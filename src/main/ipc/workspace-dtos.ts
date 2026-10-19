@@ -4,6 +4,8 @@ import type {
   FileProblemDto,
   ProjectSummaryDto
 } from '../../contract/dtos'
+import { breaksLinks } from '../shared-kernel/file-name'
+import { projectPathStem } from '../shared-kernel/project-path'
 import type { OpenedProject } from '../contexts/workspace/application/commands/open-project'
 
 /** Maps an opened project to what the renderer shows: counts by type, plus files with problems. */
@@ -28,6 +30,9 @@ export function toProjectSummaryDto(opened: OpenedProject): ProjectSummaryDto {
       problems.push({ path: file.path, problem: file.problem })
     } else if (classification.kind === 'untyped' && classification.rawType !== undefined) {
       problems.push({ path: file.path, problem: 'unknown-type', detail: classification.rawType })
+    }
+    if (breaksLinks(projectPathStem(file.path))) {
+      problems.push({ path: file.path, problem: 'name-breaks-links' })
     }
   }
   for (const path of opened.scan.nestedProjects) {

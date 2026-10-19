@@ -71,7 +71,7 @@ src/
   contract/
     api.ts                    # the PlotDeviceApi interface: the whole renderer↔main surface
     dtos.ts                   # plain serializable shapes; no classes, no methods
-    events.ts                 # main → renderer events (for example `project:changed`)
+    channels.ts               # IPC channel names, including main → renderer events (`project:changed`)
   renderer/
     src/
       app/                    # shell, router, layout
@@ -91,7 +91,7 @@ src/
 
 **Saving prose.** The editor sends body text with a debounce of about 800 ms and on blur. The main process replaces only the body part of the file and keeps the frontmatter bytes exactly as they were. CodeMirror works with `\n` internally, so the writer converts the text back to the file's line endings.
 
-**External changes.** The watcher emits change events for paths inside the project. Writes the app made itself are suppressed by remembering their content hash for a short time. For anything else, the affected read models are invalidated and the renderer gets `project:changed`. A change that only converts line endings (Obsidian rewrites CRLF files as LF) is not treated as an edit. If the chapter open in the editor changed on disk while it has unsaved edits, the editor shows a banner: "Changed outside the app — keep mine / load theirs".
+**External changes.** `infrastructure/watching/project-watcher.ts` watches the open project's `.md` files with chokidar (skipping dot-folders) and reports batches of about 150 ms. Every write and move the app makes goes through `fs/write-text-file-atomically.ts` or `fs/move-file.ts`, which first record the new bytes' hash in `own-writes.ts`. The watcher drops events whose file still has a recorded hash, so the app never reacts to itself. Other changes reach the renderer as `project:changed`. `use-live-sync.ts` then re-reads the project summary (`refreshProject`), the manuscript and its warnings, and the open entry (ADR 0006). The open entry is compared by text, not version: if its body text still matches what the editor last saved, only the version is updated, so line-ending conversions and frontmatter edits in Obsidian never conflict. New text loads quietly unless the writer has unsaved typing, which becomes the "keep mine / load the file's version" conflict. A vanished file keeps the writer's text, stops autosave, and offers to save it as a new entry.
 
 **Reordering and moving.** Order lives in frontmatter. `MoveChapter` and `MovePart` place the entry with `placeAt` and write only what `orderChanges` returns (domain `order-plan.ts`), so they're unit-tested without the disk. `MoveChapter` also writes `part` when it changes, and moves the file only if it sat in the folder that holds the old part's own file. Dropping a chapter on the unordered tray removes its `order`. The binder's drag and drop and the inspector's Move up/down and Part select both end in these two commands.
 

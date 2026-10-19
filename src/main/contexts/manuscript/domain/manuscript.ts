@@ -31,7 +31,12 @@ export interface UnorderedChapter {
 
 /** Something about the structure the writer should know. Files are never changed because of it. */
 export interface ManuscriptWarning {
-  readonly code: 'duplicate-chapter-order' | 'duplicate-part-order' | 'part-without-order'
+  readonly code:
+    | 'duplicate-chapter-order'
+    | 'duplicate-part-order'
+    | 'part-without-order'
+    | 'ambiguous-link'
+    | 'unusable-value'
   readonly message: string
   readonly paths: readonly ProjectPath[]
 }

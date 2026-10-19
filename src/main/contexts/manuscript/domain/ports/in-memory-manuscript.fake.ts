@@ -3,6 +3,7 @@ import type { LinkCandidate } from '../../../../shared-kernel/link-index'
 import type { ProjectPath } from '../../../../shared-kernel/project-path'
 import { err, ok, type Result } from '../../../../shared-kernel/result'
 import { readChapter, type Chapter } from '../chapter'
+import type { EntrySource } from '../entry-warnings'
 import { readPart, type Part } from '../part'
 import type { PropertyWrite } from '../property-changes'
 import type {
@@ -54,15 +55,18 @@ export class InMemoryManuscript implements ManuscriptRepository {
     const parts: Part[] = []
     const chapters: Chapter[] = []
     const linkCandidates: LinkCandidate[] = [...this.otherCandidates]
+    const sources: EntrySource[] = []
     for (const [path, file] of this.files) {
       const type = file.frontmatter['type']
       if (type === 'part') parts.push(readPart(path as ProjectPath, file.frontmatter, file.text))
       if (type === 'chapter')
         chapters.push(readChapter(path as ProjectPath, file.frontmatter, file.text))
-      if (type === 'part' || type === 'chapter')
+      if (type === 'part' || type === 'chapter') {
         linkCandidates.push({ path: path as ProjectPath, type })
+        sources.push({ path: path as ProjectPath, frontmatter: file.frontmatter, body: file.text })
+      }
     }
-    return Promise.resolve({ parts, chapters, linkCandidates })
+    return Promise.resolve({ parts, chapters, linkCandidates, sources })
   }
 
   readText(path: ProjectPath): Promise<Result<EntryText, ReadEntryTextError>> {

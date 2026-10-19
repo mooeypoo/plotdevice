@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
+import { onBeforeUnmount, onMounted, watch } from 'vue'
 import BinderTree from '../features/binder/BinderTree.vue'
 import EditorPane from '../features/editor/EditorPane.vue'
 import InspectorPanel from '../features/inspector/InspectorPanel.vue'
@@ -10,6 +10,8 @@ import { lastEntryOf, rememberLastEntry, useLayoutStore } from './layout-store'
 import { useManuscriptStore } from './manuscript-store'
 import StatusBar from './StatusBar.vue'
 import TopBar from './TopBar.vue'
+import { useWarnings } from '../features/warnings/use-warnings'
+import { useLiveSync } from './use-live-sync'
 import { useShortcuts } from './use-shortcuts'
 import { useWorkspaceStore } from './workspace-store'
 
@@ -18,17 +20,14 @@ const manuscript = useManuscriptStore()
 const layout = useLayoutStore()
 const inspector = useInspectorStore()
 
+useLiveSync()
+
 function move(request: DropRequest): void {
   if (request.kind === 'move-part') void manuscript.movePart(request.path, request.index)
   else void manuscript.moveChapter(request.path, request.destination)
 }
 
-const attentionCount = computed(
-  () =>
-    (workspace.project?.problems.length ?? 0) +
-    (workspace.project?.warnings.length ?? 0) +
-    (manuscript.manuscript?.warnings.length ?? 0)
-)
+const { count: attentionCount } = useWarnings()
 
 onMounted(async () => {
   void inspector.loadVocabulary()

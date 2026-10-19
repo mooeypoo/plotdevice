@@ -44,6 +44,17 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     screen.value = 'project'
   }
 
+  const openRoot = (): string | undefined => project.value?.root
+
+  /** Re-reads the open project's warnings and file problems after files changed outside. */
+  async function refresh(): Promise<void> {
+    const root = project.value?.root
+    if (root === undefined) return
+    const result = await api().refreshProject()
+    // The project may have been closed or replaced while it was being re-read.
+    if (result.ok && openRoot() === root) project.value = result.value
+  }
+
   async function openProject(root: string): Promise<void> {
     if (!(await leaveCurrentProject())) return
     await run(async () => {
@@ -120,6 +131,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     busy,
     loadRecents,
     openProject,
+    refresh,
     chooseFolder,
     initializeChosenFolder,
     removeRecent,

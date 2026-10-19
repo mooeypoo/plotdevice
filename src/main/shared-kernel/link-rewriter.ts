@@ -1,4 +1,4 @@
-import { parseWikiLink, type WikiLink } from '../../shared-kernel/wiki-link'
+import { parseWikiLink, type WikiLink } from './wiki-link'
 import { codeRanges, insideAny } from './code-ranges'
 
 const WIKILINK = /!?\[\[[^[\]\n]+\]\]/gu

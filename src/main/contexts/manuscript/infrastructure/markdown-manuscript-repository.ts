@@ -17,6 +17,7 @@ import { editFrontmatter } from '../../../infrastructure/markdown/frontmatter-ed
 import { readFrontmatter } from '../../../infrastructure/markdown/read-frontmatter'
 import { scanProject } from '../../../infrastructure/project-scan/scan-project'
 import { readChapter, type Chapter } from '../domain/chapter'
+import type { EntrySource } from '../domain/entry-warnings'
 import { readPart, type Part } from '../domain/part'
 import type {
   ManuscriptRepository,
@@ -86,6 +87,7 @@ export function createMarkdownManuscriptRepository(rootOsPath: string): Manuscri
       const scan = await scanProject(rootOsPath)
       const parts: Part[] = []
       const chapters: Chapter[] = []
+      const sources: EntrySource[] = []
       const linkCandidates: LinkCandidate[] = scan.files.map((file) =>
         file.classification.kind === 'typed'
           ? { path: file.path, type: file.classification.type }
@@ -104,10 +106,11 @@ export function createMarkdownManuscriptRepository(rootOsPath: string): Manuscri
         if (frontmatter.kind !== 'read' || split.kind !== 'parts') continue
 
         const body = toEditorText(split.parts.body)
+        sources.push({ path: file.path, frontmatter: frontmatter.data, body })
         if (type === 'part') parts.push(readPart(file.path, frontmatter.data, body))
         else chapters.push(readChapter(file.path, frontmatter.data, body))
       }
-      return { parts, chapters, linkCandidates }
+      return { parts, chapters, linkCandidates, sources }
     },
 
     async readText(path) {

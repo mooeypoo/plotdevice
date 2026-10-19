@@ -29,6 +29,12 @@ export interface WarningDto {
   readonly message: string
 }
 
+/** A markdown file that another program added, changed, or removed while the project was open. */
+export interface ProjectChangeDto {
+  readonly path: string
+  readonly kind: 'changed' | 'removed'
+}
+
 /** How many files of each kind the project has. */
 export type EntryCountsDto = Readonly<
   Record<'part' | 'chapter' | 'character' | 'location' | 'note' | 'scene' | 'untyped', number>
@@ -44,6 +50,8 @@ export interface FileProblemDto {
     | 'unparseable-frontmatter'
     | 'unknown-type'
     | 'nested-project'
+    /** The file name holds `# ^ [ ] |`, so links to it don't work. */
+    | 'name-breaks-links'
   /** For `unknown-type`: the value of the `type` key. */
   readonly detail?: string
 }

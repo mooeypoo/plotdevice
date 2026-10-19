@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
-import { mkdir, rename, stat } from 'node:fs/promises'
+import { mkdir, readFile, rename, stat } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
+import { ownWrites } from '../watching/own-writes'
 
 /** How a move went. The source file is untouched unless the result is `moved`. */
 export type MoveResult = 'moved' | 'target-exists' | 'failed'
@@ -17,6 +18,8 @@ export async function moveFile(fromOsPath: string, toOsPath: string): Promise<Mo
       return 'target-exists'
     }
     await mkdir(dirname(toOsPath), { recursive: true })
+    ownWrites.expectRemoval(fromOsPath)
+    ownWrites.expectWrite(toOsPath, await readFile(fromOsPath))
     if (caseOnly) {
       const temporary = join(dirname(fromOsPath), `.plotdevice-rename-${randomUUID()}`)
       await rename(fromOsPath, temporary)

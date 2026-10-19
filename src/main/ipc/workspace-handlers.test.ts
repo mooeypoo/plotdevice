@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createInitializeProject } from '../contexts/workspace/application/commands/initialize-project'
-import { createOpenProject } from '../contexts/workspace/application/commands/open-project'
+import {
+  createOpenProject,
+  createReadProject
+} from '../contexts/workspace/application/commands/open-project'
 import { createRemoveRecentProject } from '../contexts/workspace/application/commands/remove-recent-project'
 import { createInspectFolder } from '../contexts/workspace/application/queries/inspect-folder'
 import { createListRecentProjects } from '../contexts/workspace/application/queries/list-recent-projects'
@@ -25,6 +28,11 @@ beforeEach(() => {
   handlers = createWorkspaceHandlers({
     inspectFolder: createInspectFolder({ folders: workspace, novelFiles: workspace }),
     openProject,
+    readProject: createReadProject({
+      folders: workspace,
+      novelFiles: workspace,
+      scanner: workspace
+    }),
     initializeProject: createInitializeProject({
       folders: workspace,
       novelFiles: workspace,
@@ -93,6 +101,32 @@ describe('workspace handlers', () => {
         ]
       }
     })
+  })
+
+  it('refreshes the open project, without opening it again', async () => {
+    expect(await handlers.refreshProject()).toMatchObject({
+      ok: false,
+      error: { code: 'no-project' }
+    })
+    workspace.addFolder('/novels/salt-orchard', {
+      novel: { kind: 'read', frontmatter: { format: 1, title: 'The Salt Orchard' } }
+    })
+    await handlers.chooseFolder(() => Promise.resolve('/novels/salt-orchard'))
+    await handlers.openProject(['/novels/salt-orchard'])
+
+    // Another program adds a file whose name breaks links.
+    workspace.addFolder('/novels/salt-orchard', {
+      novel: { kind: 'read', frontmatter: { format: 1, title: 'The Salt Orchard' } },
+      scan: {
+        files: [{ path: path('notes/Chapter #3.md'), classification: { kind: 'untyped' } }],
+        nestedProjects: []
+      }
+    })
+    expect(await handlers.refreshProject()).toMatchObject({
+      ok: true,
+      value: { problems: [{ path: 'notes/Chapter #3.md', problem: 'name-breaks-links' }] }
+    })
+    expect(opened).toHaveLength(1)
   })
 
   it('starts and ends the project session', async () => {

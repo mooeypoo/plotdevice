@@ -148,7 +148,8 @@ async function renumber(): Promise<void> {
   }
 }
 
-const disabled = computed(() => readOnly.value || busy.value)
+// A file that vanished can't take property changes; its banner offers what can be done.
+const disabled = computed(() => readOnly.value || busy.value || manuscript.saveState === 'missing')
 
 const moves = usePositionMoves()
 const { canMoveUp, canMoveDown, partOptions } = moves

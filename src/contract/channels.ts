@@ -7,8 +7,14 @@ export const WORKSPACE_CHANNELS = {
   initializeProject: 'workspace:initialize-project',
   closeProject: 'workspace:close-project',
   listRecentProjects: 'workspace:list-recent-projects',
-  removeRecentProject: 'workspace:remove-recent-project'
-} as const satisfies Record<keyof WorkspaceApi, string>
+  removeRecentProject: 'workspace:remove-recent-project',
+  refreshProject: 'workspace:refresh-project'
+} as const satisfies Record<Exclude<keyof WorkspaceApi, 'onProjectChanged'>, string>
+
+/** Main → renderer events. */
+export const EVENT_CHANNELS = {
+  projectChanged: 'project:changed'
+} as const
 
 export const MANUSCRIPT_CHANNELS = {
   getManuscript: 'manuscript:get-manuscript',

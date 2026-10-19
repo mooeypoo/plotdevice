@@ -27,7 +27,10 @@ import type { ManuscriptSettings } from './contexts/manuscript/domain/manuscript
 import { createMarkdownEntryRelocator } from './contexts/manuscript/infrastructure/markdown-entry-relocator'
 import { createMarkdownManuscriptRepository } from './contexts/manuscript/infrastructure/markdown-manuscript-repository'
 import { createInitializeProject } from './contexts/workspace/application/commands/initialize-project'
-import { createOpenProject } from './contexts/workspace/application/commands/open-project'
+import {
+  createOpenProject,
+  createReadProject
+} from './contexts/workspace/application/commands/open-project'
 import { createRemoveRecentProject } from './contexts/workspace/application/commands/remove-recent-project'
 import { createInspectFolder } from './contexts/workspace/application/queries/inspect-folder'
 import { createListRecentProjects } from './contexts/workspace/application/queries/list-recent-projects'
@@ -42,6 +45,8 @@ import { createInspectorHandlers, type InspectorUseCases } from './ipc/inspector
 import { registerInspectorIpc } from './ipc/inspector-ipc'
 import { createManuscriptHandlers, type ManuscriptUseCases } from './ipc/manuscript-handlers'
 import { registerManuscriptIpc } from './ipc/manuscript-ipc'
+import { sendProjectChanges } from './ipc/project-events'
+import { watchProject, type ProjectWatcher } from './infrastructure/watching/project-watcher'
 import { createProjectSession } from './ipc/project-session'
 import { createWorkspaceHandlers } from './ipc/workspace-handlers'
 import { registerWorkspaceIpc } from './ipc/workspace-ipc'
@@ -68,6 +73,13 @@ export function composeApplication(): void {
     recents,
     clock: systemClock
   })
+
+  // One watcher, for the open project; replaced when another opens.
+  let watcher: ProjectWatcher | undefined
+  const stopWatching = (): void => {
+    void watcher?.close()
+    watcher = undefined
+  }
 
   const session = createProjectSession((root, settings: ManuscriptSettings): ProjectUseCases => {
     const repository = createMarkdownManuscriptRepository(root)
@@ -105,6 +117,7 @@ export function composeApplication(): void {
     createWorkspaceHandlers({
       inspectFolder: createInspectFolder({ folders, novelFiles }),
       openProject,
+      readProject: createReadProject({ folders, novelFiles, scanner: { scan: scanProject } }),
       initializeProject: createInitializeProject({ folders, novelFiles, openProject }),
       listRecentProjects: createListRecentProjects({ folders, recents }),
       removeRecentProject: createRemoveRecentProject({ folders, recents }),
@@ -117,8 +130,13 @@ export function composeApplication(): void {
           chapterFolder: folderPath(project.settings.folders.chapter),
           fileNames: project.settings.fileNames
         })
+        stopWatching()
+        watcher = watchProject(root, (changes) => {
+          sendProjectChanges(changes.map(({ path, kind }) => ({ path, kind })))
+        })
       },
       onProjectClosed: () => {
+        stopWatching()
         session.close()
       }
     })

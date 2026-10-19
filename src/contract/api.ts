@@ -13,6 +13,7 @@ import type {
   StoryDateCheckDto,
   FolderChoiceDto,
   ManuscriptDto,
+  ProjectChangeDto,
   ProjectSummaryDto,
   RecentProjectDto,
   SavedEntryDto
@@ -31,6 +32,13 @@ export interface WorkspaceApi {
   listRecentProjects(): Promise<readonly RecentProjectDto[]>
   /** Forgets a recent project. The folder is not touched. */
   removeRecentProject(root: string): Promise<void>
+  /** Re-reads the open project (its warnings and file problems) after files changed. */
+  refreshProject(): Promise<ApiResult<ProjectSummaryDto>>
+  /**
+   * Called with each batch of changes other programs make to the open project's markdown files.
+   * The app's own writes are never reported. Returns a function that stops listening.
+   */
+  onProjectChanged(listener: (changes: readonly ProjectChangeDto[]) => void): () => void
 }
 
 /** The open project's parts and chapters. */
@@ -95,7 +103,7 @@ export interface AppApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 5
+  readonly contractVersion: 6
   readonly workspace: WorkspaceApi
   readonly manuscript: ManuscriptApi
   readonly inspector: InspectorApi

@@ -2,6 +2,7 @@ import type { PlotDeviceApi } from '../../../contract/api'
 import type {
   EntryPropertiesDto,
   ManuscriptDto,
+  ProjectChangeDto,
   ProjectSummaryDto,
   RenamePlanDto
 } from '../../../contract/dtos'
@@ -71,6 +72,12 @@ export function createFakePlotDeviceApi(): {
   moves: string[]
   renames: string[]
   renamePlan: { current: RenamePlanDto | null }
+  /** Simulates the main process reporting changes made by another program. */
+  emitChanges(changes: readonly ProjectChangeDto[]): void
+  /** Simulates another program rewriting a file without changing its text (line endings). */
+  touch(path: string): void
+  /** What `refreshProject` returns next. */
+  summary: { current: ProjectSummaryDto }
 } {
   const files = new Map([
     ['Part One.md', 'Two words.\n'],
@@ -86,6 +93,10 @@ export function createFakePlotDeviceApi(): {
     renames: [] as string[]
   }
   const renamePlan: { current: RenamePlanDto | null } = { current: null }
+  const summary = { current: sampleSummary }
+  const listeners = new Set<(changes: readonly ProjectChangeDto[]) => void>()
+  // New chapters join the unordered tray, so the store can open them.
+  let manuscript: ManuscriptDto = sampleManuscript
   const countWords = (text: string): number => text.split(/\s+/u).filter(Boolean).length
   const properties = new Map<string, EntryPropertiesDto>(
     [...files.keys()].map((path) => [
@@ -105,7 +116,7 @@ export function createFakePlotDeviceApi(): {
     `${files.get(path) ?? ''}#${String(revisions.get(path) ?? 0)}`
 
   const api: PlotDeviceApi = {
-    contractVersion: 5,
+    contractVersion: 6,
     workspace: {
       chooseFolder: () => Promise.resolve(null),
       openProject: () => Promise.resolve({ ok: true, value: sampleSummary }),
@@ -116,10 +127,15 @@ export function createFakePlotDeviceApi(): {
         return Promise.resolve()
       },
       listRecentProjects: () => Promise.resolve([]),
-      removeRecentProject: () => Promise.resolve()
+      removeRecentProject: () => Promise.resolve(),
+      refreshProject: () => Promise.resolve({ ok: true, value: summary.current }),
+      onProjectChanged: (listener) => {
+        listeners.add(listener)
+        return () => listeners.delete(listener)
+      }
     },
     manuscript: {
-      getManuscript: () => Promise.resolve({ ok: true, value: sampleManuscript }),
+      getManuscript: () => Promise.resolve({ ok: true, value: manuscript }),
       openEntry: (path) => {
         const text = files.get(path)
         return Promise.resolve(
@@ -186,6 +202,16 @@ export function createFakePlotDeviceApi(): {
           threads: []
         })
         state.created.push(path)
+        manuscript = {
+          ...manuscript,
+          unordered: [
+            ...manuscript.unordered,
+            {
+              chapter: { path, title, wordCount: 0, duplicateOrder: false },
+              reason: 'missing-order'
+            }
+          ]
+        }
         return Promise.resolve({ ok: true, value: { path } })
       },
       createPart: (title) => {
@@ -254,6 +280,13 @@ export function createFakePlotDeviceApi(): {
     },
     properties,
     moves: state.moves,
+    summary,
+    touch: (path) => {
+      revisions.set(path, (revisions.get(path) ?? 0) + 1)
+    },
+    emitChanges: (changes) => {
+      for (const listener of listeners) listener(changes)
+    },
     renames: state.renames,
     renamePlan,
     get created() {

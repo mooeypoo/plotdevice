@@ -30,6 +30,14 @@ const RESERVED_STEM = /^(CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])$/iu
 
 const graphemes = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
 
+/**
+ * Whether a file name (as found on disk, which the app didn't necessarily create) holds a
+ * character that breaks wikilinks to it (`# ^ [ ] |`).
+ */
+export function breaksLinks(name: string): boolean {
+  return LINK_BREAKING_CHARACTER.test(name) || name.includes('|')
+}
+
 /** Checks a name the writer typed (or the app built) and returns it in NFC form. */
 export function parseFileName(raw: string): Result<FileName, DomainError<FileNameErrorCode>> {
   const name = raw.normalize('NFC')

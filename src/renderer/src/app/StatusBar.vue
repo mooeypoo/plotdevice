@@ -20,12 +20,18 @@ const saveLabel = computed(() => {
       return 'Not saved: changed outside'
     case 'error':
       return 'Not saved'
+    case 'missing':
+      return 'Not saved: file missing'
   }
 })
 
 const saveTone = computed(() => {
   if (workspace.project?.readOnly === true) return 'var(--text-muted)'
-  if (manuscript.saveState === 'conflict' || manuscript.saveState === 'error')
+  if (
+    manuscript.saveState === 'conflict' ||
+    manuscript.saveState === 'error' ||
+    manuscript.saveState === 'missing'
+  )
     return 'var(--danger)'
   if (manuscript.saveState === 'saved') return 'var(--ok)'
   return 'var(--warning)'

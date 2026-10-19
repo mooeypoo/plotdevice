@@ -23,17 +23,27 @@ export type OpenProjectError =
 /** Opens the project in `root` and records it in the recents list. */
 export type OpenProject = (root: ProjectRoot) => Promise<Result<OpenedProject, OpenProjectError>>
 
-/** The ports `OpenProject` needs. */
-export interface OpenProjectPorts {
+/**
+ * Reads the project in `root` as it is now, without recording it anywhere. Used to refresh the
+ * open project after files change outside the app.
+ */
+export type ReadProject = OpenProject
+
+/** The ports `ReadProject` needs. */
+export interface ReadProjectPorts {
   readonly folders: ProjectFolders
   readonly novelFiles: NovelFileStore
   readonly scanner: ProjectScanner
+}
+
+/** The ports `OpenProject` needs. */
+export interface OpenProjectPorts extends ReadProjectPorts {
   readonly recents: RecentProjectsStore
   readonly clock: Clock
 }
 
-/** Builds the `OpenProject` use case. */
-export function createOpenProject(ports: OpenProjectPorts): OpenProject {
+/** Builds the `ReadProject` query. */
+export function createReadProject(ports: ReadProjectPorts): ReadProject {
   return async (root) => {
     if (!(await ports.folders.exists(root))) {
       return err(domainError('folder-missing', 'This folder no longer exists.'))
@@ -53,17 +63,25 @@ export function createOpenProject(ports: OpenProjectPorts): OpenProject {
       reading.kind === 'read'
         ? readProject(root, folderName, reading.frontmatter)
         : readUnreadableProject(root, folderName, reading.problem)
-    const scan = await ports.scanner.scan(root)
+    return ok({ project, scan: await ports.scanner.scan(root) })
+  }
+}
+
+/** Builds the `OpenProject` use case. */
+export function createOpenProject(ports: OpenProjectPorts): OpenProject {
+  const read = createReadProject(ports)
+  return async (root) => {
+    const opened = await read(root)
+    if (!opened.ok) return opened
 
     const recents = await ports.recents.load()
     await ports.recents.save(
       recordOpened(
         recents,
-        { root, title: project.title, lastOpenedAt: ports.clock.now().toISOString() },
+        { root, title: opened.value.project.title, lastOpenedAt: ports.clock.now().toISOString() },
         ports.folders.isSameRoot
       )
     )
-
-    return ok({ project, scan })
+    return opened
   }
 }

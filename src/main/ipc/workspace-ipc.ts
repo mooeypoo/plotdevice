@@ -11,6 +11,7 @@ export function registerWorkspaceIpc(handlers: WorkspaceHandlers): void {
   handleTrusted(WORKSPACE_CHANNELS.openProject, (_, args) => handlers.openProject(args))
   handleTrusted(WORKSPACE_CHANNELS.initializeProject, (_, args) => handlers.initializeProject(args))
   handleTrusted(WORKSPACE_CHANNELS.closeProject, () => handlers.closeProject())
+  handleTrusted(WORKSPACE_CHANNELS.refreshProject, () => handlers.refreshProject())
   handleTrusted(WORKSPACE_CHANNELS.listRecentProjects, () => handlers.listRecentProjects())
   handleTrusted(WORKSPACE_CHANNELS.removeRecentProject, (_, args) =>
     handlers.removeRecentProject(args)

@@ -14,7 +14,7 @@ import {
   type MarkdownFileParts
 } from '../markdown/markdown-file'
 import { rewriteFrontmatterLinks } from '../markdown/frontmatter-link-rewriter'
-import { rewriteWikiLinks } from '../markdown/link-rewriter'
+import { rewriteWikiLinks } from '../../shared-kernel/link-rewriter'
 import { scanProject } from '../project-scan/scan-project'
 
 /** What relocating an entry would change, or did. */

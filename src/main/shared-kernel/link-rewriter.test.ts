@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatWikiLink } from '../../shared-kernel/wiki-link'
+import { formatWikiLink } from './wiki-link'
 import { codeRanges } from './code-ranges'
 import { findWikiLinks, rewriteWikiLinks } from './link-rewriter'
 

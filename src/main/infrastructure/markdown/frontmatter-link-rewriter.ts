@@ -2,7 +2,7 @@ import { isDeepStrictEqual } from 'node:util'
 import { isMap, isScalar, parseDocument } from 'yaml'
 import type { WikiLink } from '../../shared-kernel/wiki-link'
 import { splitHead } from './frontmatter-editor'
-import { rewriteWikiLinks } from './link-rewriter'
+import { rewriteWikiLinks } from '../../shared-kernel/link-rewriter'
 
 /** Decides a link's replacement, knowing which top-level key it's under. */
 export type KeyedLinkDecision = (link: WikiLink, key: string) => string | undefined

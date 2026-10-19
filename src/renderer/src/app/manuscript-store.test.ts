@@ -246,3 +246,89 @@ describe('manuscript store: moving and renaming', () => {
     expect(fake.renames).toEqual([])
   })
 })
+
+describe('manuscript store: changes made in other programs', () => {
+  const changed = [{ path: 'First frost.md', kind: 'changed' as const }]
+
+  it('loads new text quietly when the writer has no unsaved typing', async () => {
+    const store = useManuscriptStore()
+    await store.open('First frost.md')
+    const revision = store.entry?.revision
+    fake.files.set('First frost.md', 'Rewritten in Obsidian.\n')
+    await store.syncFromDisk(changed)
+    expect(store.text).toBe('Rewritten in Obsidian.\n')
+    expect(store.entry?.revision).not.toBe(revision)
+    expect(store.saveState).toBe('saved')
+    expect(store.diskNotice).toContain('Updated from disk')
+
+    // And the next save goes through: the version was picked up.
+    store.edit('Then typed here.\n')
+    await vi.advanceTimersByTimeAsync(AUTOSAVE_DELAY_MS)
+    expect(fake.files.get('First frost.md')).toBe('Then typed here.\n')
+  })
+
+  it('turns unsaved typing plus an outside edit into a conflict, overwriting nothing', async () => {
+    const store = useManuscriptStore()
+    await store.open('First frost.md')
+    store.edit('Mine, not saved yet.\n')
+    fake.files.set('First frost.md', 'Theirs.\n')
+    await store.syncFromDisk(changed)
+    expect(store.saveState).toBe('conflict')
+    expect(store.text).toBe('Mine, not saved yet.\n')
+    await vi.advanceTimersByTimeAsync(AUTOSAVE_DELAY_MS * 2)
+    expect(fake.files.get('First frost.md')).toBe('Theirs.\n')
+
+    await store.keepMine()
+    expect(fake.files.get('First frost.md')).toBe('Mine, not saved yet.\n')
+    expect(store.saveState).toBe('saved')
+  })
+
+  it('keeps unsaved typing when only the version changed (line endings or frontmatter)', async () => {
+    const store = useManuscriptStore()
+    await store.open('First frost.md')
+    store.edit('Typing on.\n')
+    // The text stays the same but the file's version changes, as a CRLF→LF rewrite does.
+    fake.touch('First frost.md')
+    await store.syncFromDisk(changed)
+    expect(store.saveState).not.toBe('conflict')
+    await vi.advanceTimersByTimeAsync(AUTOSAVE_DELAY_MS)
+    expect(fake.files.get('First frost.md')).toBe('Typing on.\n')
+  })
+
+  it('ignores changes to other files', async () => {
+    const store = useManuscriptStore()
+    await store.open('First frost.md')
+    store.edit('Typing on.\n')
+    fake.files.set('The Ferry.md', 'Elsewhere.\n')
+    await store.syncFromDisk([{ path: 'The Ferry.md', kind: 'changed' }])
+    expect(store.saveState).toBe('unsaved')
+    expect(store.text).toBe('Typing on.\n')
+  })
+
+  it('keeps the text of a file deleted outside, and saves it as a new chapter', async () => {
+    const store = useManuscriptStore()
+    await store.open('First frost.md')
+    store.edit('Words worth keeping.\n')
+    fake.files.delete('First frost.md')
+    await store.syncFromDisk([{ path: 'First frost.md', kind: 'removed' }])
+    expect(store.saveState).toBe('missing')
+    expect(store.hasStuckChanges).toBe(true)
+    expect(await store.open('The Ferry.md')).toBe(false)
+
+    expect(await store.saveMissingAsNew()).toBe(true)
+    expect(fake.created).toEqual(['First frost.md'])
+    expect(store.entry?.path).toBe('First frost.md')
+    expect(fake.files.get('First frost.md')).toBe('Words worth keeping.\n')
+    expect(store.saveState).toBe('saved')
+  })
+
+  it('lets the writer discard the text of a deleted file', async () => {
+    const store = useManuscriptStore()
+    await store.open('First frost.md')
+    fake.files.delete('First frost.md')
+    await store.syncFromDisk([{ path: 'First frost.md', kind: 'removed' }])
+    store.discardMissing()
+    expect(store.entry).toBeNull()
+    expect(await store.open('The Ferry.md')).toBe(true)
+  })
+})

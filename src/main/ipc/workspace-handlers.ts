@@ -6,7 +6,10 @@ import type {
   RecentProjectDto
 } from '../../contract/dtos'
 import type { InitializeProject } from '../contexts/workspace/application/commands/initialize-project'
-import type { OpenProject } from '../contexts/workspace/application/commands/open-project'
+import type {
+  OpenProject,
+  ReadProject
+} from '../contexts/workspace/application/commands/open-project'
 import type { RemoveRecentProject } from '../contexts/workspace/application/commands/remove-recent-project'
 import type { InspectFolder } from '../contexts/workspace/application/queries/inspect-folder'
 import type { ListRecentProjects } from '../contexts/workspace/application/queries/list-recent-projects'
@@ -19,6 +22,7 @@ type OpenedProject = Extract<Awaited<ReturnType<OpenProject>>, { ok: true }>['va
 export interface WorkspaceHandlerDependencies {
   readonly inspectFolder: InspectFolder
   readonly openProject: OpenProject
+  readonly readProject: ReadProject
   readonly initializeProject: InitializeProject
   readonly listRecentProjects: ListRecentProjects
   readonly removeRecentProject: RemoveRecentProject
@@ -37,6 +41,8 @@ export interface WorkspaceHandlers {
   openProject(args: readonly unknown[]): Promise<ApiResult<ProjectSummaryDto>>
   initializeProject(args: readonly unknown[]): Promise<ApiResult<ProjectSummaryDto>>
   closeProject(): Promise<void>
+  /** Re-reads the open project after files changed outside the app. */
+  refreshProject(): Promise<ApiResult<ProjectSummaryDto>>
   listRecentProjects(): Promise<readonly RecentProjectDto[]>
   removeRecentProject(args: readonly unknown[]): Promise<void>
 }
@@ -69,6 +75,11 @@ export function createWorkspaceHandlers(deps: WorkspaceHandlerDependencies): Wor
     allowedRoots.add(deps.rootKey(root))
   }
   const isAllowed = (root: ProjectRoot): boolean => allowedRoots.has(deps.rootKey(root))
+  let openRoot: ProjectRoot | undefined
+  const opened = (root: ProjectRoot, project: OpenedProject['project']): void => {
+    openRoot = root
+    deps.onProjectOpened(root, project)
+  }
 
   return {
     async chooseFolder(showFolderDialog) {
@@ -107,7 +118,7 @@ export function createWorkspaceHandlers(deps: WorkspaceHandlerDependencies): Wor
         }
         return { ok: false, error: toApiError(result.error) }
       }
-      deps.onProjectOpened(root, result.value.project)
+      opened(root, result.value.project)
       return { ok: true, value: toProjectSummaryDto(result.value) }
     },
 
@@ -124,13 +135,24 @@ export function createWorkspaceHandlers(deps: WorkspaceHandlerDependencies): Wor
         }
         return { ok: false, error: toApiError(result.error) }
       }
-      deps.onProjectOpened(root, result.value.project)
+      opened(root, result.value.project)
       return { ok: true, value: toProjectSummaryDto(result.value) }
     },
 
     closeProject() {
+      openRoot = undefined
       deps.onProjectClosed()
       return Promise.resolve()
+    },
+
+    async refreshProject() {
+      if (openRoot === undefined) {
+        return { ok: false, error: { code: 'no-project', message: 'No project is open.' } }
+      }
+      const result = await deps.readProject(openRoot)
+      return result.ok
+        ? { ok: true, value: toProjectSummaryDto(result.value) }
+        : { ok: false, error: toApiError(result.error) }
     },
 
     async listRecentProjects() {

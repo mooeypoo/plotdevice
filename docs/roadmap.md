@@ -52,9 +52,9 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 **Done when:** you can restructure the fixture, Obsidian shows the same frontmatter, and links stay intact.
 
 ## Phase 4: Live sync
-- [ ] File watcher with own-write suppression. Changes that only convert line endings are not treated as edits.
-- [ ] "Changed outside the app" banner for the open chapter.
-- [ ] Warnings panel: unparseable files, invalid encoding, unusable values, ambiguous links, duplicate orders, names that break links.
+- [x] File watcher with own-write suppression. Changes that only convert line endings are not treated as edits.
+- [x] "Changed outside the app" banner for the open chapter.
+- [x] Warnings panel: unparseable files, invalid encoding, unusable values, ambiguous links, duplicate orders, names that break links.
 
 **Done when:** editing in Obsidian with the app open behaves sensibly, and a test covers the conflict path.
 
@@ -89,6 +89,11 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Phase 4 follow-ups:
+  - "Save as a new chapter" after the open file vanished keeps the text and title, not the other properties (POV, status, dates). Carry them over through the inspector's changes.
+  - Changes to `novel.md` settings (`file_names`, folders) take effect when the project is reopened; statuses and threads update live.
+  - Each change batch re-reads the whole project (scan, manuscript, warnings). Fine at novel scale; cache per file if it ever isn't.
+  - The warnings panel only lists problems. Fix-it actions (rewrite an ambiguous link in path form, quote a link) come with the codex in Phase 5.
 - Phase 3b follow-ups:
   - Renaming a part renames its file only, not the part's folder. Renaming the folder too would move every chapter in it; decide with the writer first.
   - There's no "Rename file to match title" action outside the title-change prompt yet, and no undo for moves or renames.

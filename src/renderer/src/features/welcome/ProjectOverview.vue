@@ -3,7 +3,8 @@ import { computed } from 'vue'
 import type { EntryCountsDto } from '../../../../contract/dtos'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
-import { describeFileProblem } from './describe-file-problem'
+import WarningsPanel from '../warnings/WarningsPanel.vue'
+import { useWarnings } from '../warnings/use-warnings'
 
 const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
@@ -28,10 +29,7 @@ const counts = computed(() => {
   }))
 })
 
-const warnings = computed(() => [
-  ...(workspace.project?.warnings ?? []),
-  ...(manuscript.manuscript?.warnings ?? [])
-])
+const { groups: warningGroups } = useWarnings()
 </script>
 
 <template>
@@ -61,24 +59,12 @@ const warnings = computed(() => [
       <p v-if="counts.length === 0" class="muted">No markdown files yet.</p>
     </section>
 
-    <section v-if="warnings.length > 0" aria-labelledby="warnings-heading">
-      <h2 id="warnings-heading" class="eyebrow">Worth checking</h2>
-      <ul class="list">
-        <li v-for="warning in warnings" :key="warning.code + warning.message" dir="auto">
-          {{ warning.message }}
-        </li>
-      </ul>
-    </section>
-
-    <section v-if="workspace.project.problems.length > 0" aria-labelledby="problems-heading">
-      <h2 id="problems-heading" class="eyebrow">Files that need attention</h2>
-      <ul class="list">
-        <li v-for="problem in workspace.project.problems" :key="problem.path">
-          <code dir="auto">{{ problem.path }}</code>
-          <span class="muted">{{ describeFileProblem(problem) }}</span>
-        </li>
-      </ul>
-    </section>
+    <WarningsPanel
+      v-if="warningGroups.length > 0"
+      :groups="warningGroups"
+      :can-open="manuscript.hasEntry"
+      @open="manuscript.open($event)"
+    />
   </section>
 </template>
 

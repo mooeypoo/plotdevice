@@ -7,6 +7,7 @@ import type {
   EntryPropertiesDto,
   ManuscriptDto,
   PartDto,
+  ProjectChangeDto,
   PropertyChangesDto,
   RenamePlanDto
 } from '../../../contract/dtos'
@@ -15,7 +16,7 @@ import { romanNumeral } from '../shared/roman-numeral'
 import { plotDeviceApi } from './plot-device-api'
 
 /** Where the open entry's text stands relative to the file on disk. */
-export type SaveState = 'saved' | 'unsaved' | 'saving' | 'conflict' | 'error'
+export type SaveState = 'saved' | 'unsaved' | 'saving' | 'conflict' | 'error' | 'missing'
 
 /** The part or chapter open in the editor. */
 export interface OpenEntry {
@@ -58,10 +59,14 @@ export const useManuscriptStore = defineStore('manuscript', () => {
   const properties = shallowRef<EntryPropertiesDto | null>(null)
   const actionError = ref<string | null>(null)
   const pendingRename = shallowRef<PendingRename | null>(null)
+  /** A short note after the open text was replaced by a newer version from disk. */
+  const diskNotice = ref<string | null>(null)
   // The open file's version, shared by the editor and the inspector: both write the same file.
   let version = ''
   let savedText = ''
   let revision = 0
+  // The open entry's part, remembered so a chapter whose file vanished can be saved there again.
+  let lastPartPath: string | null = null
 
   const api = (): ReturnType<typeof plotDeviceApi.current>['manuscript'] =>
     plotDeviceApi.current().manuscript
@@ -74,7 +79,8 @@ export const useManuscriptStore = defineStore('manuscript', () => {
 
   async function save(overwrite = false): Promise<void> {
     const current = entry.value
-    if (current === null || (saveState.value === 'conflict' && !overwrite)) return
+    if (current === null || saveState.value === 'missing') return
+    if (saveState.value === 'conflict' && !overwrite) return
     const sending = text.value
     if (sending === savedText && !overwrite) {
       saveState.value = 'saved'
@@ -112,10 +118,11 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     }
   }
 
-  /** Unsaved text that saving can't fix by itself (a conflict or a failed save). */
+  /** Unsaved text that saving can't fix by itself (a conflict, a failed save, or a missing file). */
   const hasStuckChanges = computed(
     () =>
-      (saveState.value === 'conflict' || saveState.value === 'error') && text.value !== savedText
+      saveState.value === 'missing' ||
+      ((saveState.value === 'conflict' || saveState.value === 'error') && text.value !== savedText)
   )
 
   async function open(path: string): Promise<boolean> {
@@ -138,6 +145,8 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     saveState.value = 'saved'
     saveError.value = null
     actionError.value = null
+    diskNotice.value = null
+    lastPartPath = place.part?.path ?? null
     await readProperties(path)
     return true
   }
@@ -157,7 +166,94 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     const place = current === null ? undefined : places.value.get(current.path)
     if (current !== null && place !== undefined) {
       entry.value = { ...current, label: place.label, title: place.title }
+      lastPartPath = place.part?.path ?? null
     }
+  }
+
+  /**
+   * Catches up with files other programs changed. If the open entry's file changed: a change that
+   * leaves its text as last saved (only line endings or frontmatter) just updates the version; new
+   * text loads quietly unless the writer has unsaved typing, which becomes a conflict; a vanished
+   * file keeps the writer's text and stops saving.
+   */
+  async function syncFromDisk(changes: readonly ProjectChangeDto[]): Promise<void> {
+    await reload()
+    const current = entry.value
+    if (current === null || !changes.some((change) => change.path === current.path)) return
+
+    const result = await api().openEntry(current.path)
+    if (entry.value?.path !== current.path) return
+    if (!result.ok) {
+      if (result.error.code === 'not-found' || result.error.code === 'entry-not-allowed') {
+        autosaver.cancel()
+        saveState.value = 'missing'
+        diskNotice.value = null
+      }
+      return
+    }
+
+    const disk = result.value
+    const wasMissing = saveState.value === 'missing'
+    if (disk.text === savedText || disk.text === text.value) {
+      version = disk.version
+      savedText = disk.text
+      if (wasMissing || saveState.value === 'conflict') {
+        saveState.value = text.value === savedText ? 'saved' : 'unsaved'
+        if (saveState.value === 'unsaved') autosaver.schedule()
+      }
+    } else if (text.value === savedText && saveState.value !== 'conflict' && !wasMissing) {
+      autosaver.cancel()
+      revision += 1
+      entry.value = { ...current, revision }
+      text.value = disk.text
+      savedText = disk.text
+      version = disk.version
+      wordCount.value = disk.wordCount
+      saveState.value = 'saved'
+      diskNotice.value = 'Updated from disk: this file changed in another program.'
+    } else {
+      autosaver.cancel()
+      saveState.value = 'conflict'
+    }
+    await readProperties(current.path)
+  }
+
+  /**
+   * The open file vanished: saves the writer's text as a new chapter (or part) with the same
+   * title, in the same part when it still exists, and opens it.
+   */
+  async function saveMissingAsNew(): Promise<boolean> {
+    const current = entry.value
+    if (current === null || saveState.value !== 'missing') return false
+    const keep = text.value
+    const partPath = lastPartPath !== null && places.value.has(lastPartPath) ? lastPartPath : null
+    const result =
+      current.kind === 'part'
+        ? await api().createPart(current.title)
+        : await api().createChapter(partPath, current.title)
+    if (!result.ok) {
+      actionError.value = result.error.message
+      return false
+    }
+    await reload()
+    // The text is about to be saved into the new file; nothing is left behind.
+    saveState.value = 'saved'
+    savedText = text.value
+    if (!(await open(result.value.path))) return false
+    edit(keep)
+    await flush()
+    return true
+  }
+
+  /** The open file vanished and the writer doesn't want its text: closes it. */
+  function discardMissing(): void {
+    if (saveState.value !== 'missing') return
+    autosaver.cancel()
+    saveState.value = 'saved'
+    entry.value = null
+    properties.value = null
+    text.value = ''
+    savedText = ''
   }
 
   /**
@@ -312,7 +408,8 @@ export const useManuscriptStore = defineStore('manuscript', () => {
 
   function edit(newText: string): void {
     text.value = newText
-    if (saveState.value === 'conflict') return
+    diskNotice.value = null
+    if (saveState.value === 'conflict' || saveState.value === 'missing') return
     saveState.value = newText === savedText ? 'saved' : 'unsaved'
     if (saveState.value === 'unsaved') autosaver.schedule()
   }
@@ -387,6 +484,10 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     moveChapter,
     movePart,
     pendingRename,
+    diskNotice,
+    syncFromDisk,
+    saveMissingAsNew,
+    discardMissing,
     renameEntry,
     dismissRename,
     hasEntry: (path: string) => places.value.has(path)

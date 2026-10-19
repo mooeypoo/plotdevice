@@ -3,6 +3,7 @@ import type { LinkCandidate } from '../../../../shared-kernel/link-index'
 import type { ProjectPath } from '../../../../shared-kernel/project-path'
 import type { Result } from '../../../../shared-kernel/result'
 import type { Chapter } from '../chapter'
+import type { EntrySource } from '../entry-warnings'
 import type { Part } from '../part'
 import type { PropertyWrite } from '../property-changes'
 
@@ -12,6 +13,8 @@ export interface ManuscriptFiles {
   readonly chapters: readonly Chapter[]
   /** Every typed file in the project, for resolving links. */
   readonly linkCandidates: readonly LinkCandidate[]
+  /** Each part's and chapter's frontmatter and body, for the warnings panel. */
+  readonly sources: readonly EntrySource[]
 }
 
 /** A part's or chapter's prose as the editor gets it. */

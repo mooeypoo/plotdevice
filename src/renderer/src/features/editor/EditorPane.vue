@@ -6,6 +6,7 @@ import { useWorkspaceStore } from '../../app/workspace-store'
 import ProjectOverview from '../welcome/ProjectOverview.vue'
 import ChapterEditor from './ChapterEditor.vue'
 import ConflictBanner from './ConflictBanner.vue'
+import MissingFileBanner from './MissingFileBanner.vue'
 
 const manuscript = useManuscriptStore()
 const workspace = useWorkspaceStore()
@@ -28,6 +29,16 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
       </p>
       <p v-else-if="manuscript.saveState === 'error'" class="notice error" role="alert">
         {{ manuscript.saveError }}
+      </p>
+      <MissingFileBanner
+        v-if="manuscript.saveState === 'missing'"
+        :kind="manuscript.entry.kind"
+        :busy="false"
+        @save-as-new="manuscript.saveMissingAsNew()"
+        @discard="manuscript.discardMissing()"
+      />
+      <p v-if="manuscript.diskNotice" class="notice" role="status">
+        {{ manuscript.diskNotice }}
       </p>
       <ConflictBanner
         v-if="manuscript.saveState === 'conflict'"

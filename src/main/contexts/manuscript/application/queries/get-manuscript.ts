@@ -1,4 +1,5 @@
 import { buildLinkIndex, type LinkCandidate } from '../../../../shared-kernel/link-index'
+import { entryWarnings } from '../../domain/entry-warnings'
 import { arrangeManuscript, type Manuscript } from '../../domain/manuscript'
 import type { ManuscriptRepository } from '../../domain/ports/manuscript-repository'
 
@@ -18,8 +19,12 @@ export function createGetManuscript(ports: {
   return async () => {
     const files = await ports.repository.load()
     const links = buildLinkIndex(files.linkCandidates)
+    const manuscript = arrangeManuscript(files.parts, files.chapters, links)
     return {
-      manuscript: arrangeManuscript(files.parts, files.chapters, links),
+      manuscript: {
+        ...manuscript,
+        warnings: [...manuscript.warnings, ...entryWarnings(files.sources, links)]
+      },
       linkCandidates: files.linkCandidates
     }
   }

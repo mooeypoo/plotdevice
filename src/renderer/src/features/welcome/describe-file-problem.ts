@@ -15,5 +15,7 @@ export function describeFileProblem(problem: FileProblemDto): string {
       return `Unknown type "${problem.detail ?? ''}", so it is listed as untyped.`
     case 'nested-project':
       return 'Another project (has its own novel.md). Its files are not part of this one.'
+    case 'name-breaks-links':
+      return 'The file name contains # ^ [ ] or |, so links to it don’t work. Rename it.'
   }
 }

@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { PlotDeviceApi } from '../contract/api'
 import {
   APP_CHANNELS,
+  EVENT_CHANNELS,
   INSPECTOR_CHANNELS,
   MANUSCRIPT_CHANNELS,
   WORKSPACE_CHANNELS
@@ -19,6 +20,7 @@ import type {
   StoryDateCheckDto,
   FolderChoiceDto,
   ManuscriptDto,
+  ProjectChangeDto,
   ProjectSummaryDto,
   RecentProjectDto,
   SavedEntryDto
@@ -30,7 +32,7 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 5,
+  contractVersion: 6,
   workspace: {
     chooseFolder: () => invoke<FolderChoiceDto | null>(WORKSPACE_CHANNELS.chooseFolder),
     openProject: (root) =>
@@ -40,7 +42,15 @@ const plotDevice: PlotDeviceApi = {
     closeProject: () => invoke<undefined>(WORKSPACE_CHANNELS.closeProject),
     listRecentProjects: () =>
       invoke<readonly RecentProjectDto[]>(WORKSPACE_CHANNELS.listRecentProjects),
-    removeRecentProject: (root) => invoke<undefined>(WORKSPACE_CHANNELS.removeRecentProject, root)
+    removeRecentProject: (root) => invoke<undefined>(WORKSPACE_CHANNELS.removeRecentProject, root),
+    refreshProject: () => invoke<ApiResult<ProjectSummaryDto>>(WORKSPACE_CHANNELS.refreshProject),
+    onProjectChanged: (listener) => {
+      const handler = (_: unknown, changes: readonly ProjectChangeDto[]): void => {
+        listener(changes)
+      }
+      ipcRenderer.on(EVENT_CHANNELS.projectChanged, handler)
+      return () => ipcRenderer.removeListener(EVENT_CHANNELS.projectChanged, handler)
+    }
   },
   manuscript: {
     getManuscript: () => invoke<ApiResult<ManuscriptDto>>(MANUSCRIPT_CHANNELS.getManuscript),
