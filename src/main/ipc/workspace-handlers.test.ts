@@ -34,8 +34,8 @@ beforeEach(() => {
     removeRecentProject: createRemoveRecentProject({ folders: workspace, recents: workspace }),
     toProjectRoot: (osPath) => osPath as Parameters<typeof openProject>[0],
     rootKey: (root) => root,
-    onProjectOpened: (root, readOnly) => {
-      opened.push([root, readOnly])
+    onProjectOpened: (root, project) => {
+      opened.push([root, project.readOnly])
     },
     onProjectClosed: () => {
       opened.push(['closed', false])

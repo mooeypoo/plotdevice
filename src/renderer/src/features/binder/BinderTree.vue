@@ -1,20 +1,49 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import type { ManuscriptDto } from '../../../../contract/dtos'
-import { describeUnorderedReason, formatWordCount } from './binder-labels'
+import { clashDescription, describeUnorderedReason, formatWordCount } from './binder-labels'
 import BinderPart from './BinderPart.vue'
 import BinderRow from './BinderRow.vue'
+import NewEntryInput from './NewEntryInput.vue'
 
-defineProps<{
+const props = defineProps<{
   manuscript: ManuscriptDto
   selectedPath: string | null
   /** How many files or warnings need the writer's attention. */
   attentionCount: number
+  readOnly: boolean
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   open: [path: string]
   showOverview: []
+  createChapter: [partPath: string | null, title: string]
+  createPart: [title: string]
 }>()
+
+// Which inline title box is open: a new part, or a chapter in a book without parts.
+const adding = ref<'part' | 'chapter' | null>(null)
+
+const empty = computed(
+  () =>
+    props.manuscript.parts.length === 0 &&
+    props.manuscript.chapters.length === 0 &&
+    props.manuscript.unnumberedParts.length === 0 &&
+    props.manuscript.unordered.length === 0
+)
+const hasParts = computed(
+  () => props.manuscript.parts.length > 0 || props.manuscript.unnumberedParts.length > 0
+)
+
+function createPart(title: string): void {
+  adding.value = null
+  emit('createPart', title)
+}
+
+function createChapter(title: string): void {
+  adding.value = null
+  emit('createChapter', null, title)
+}
 </script>
 
 <template>
@@ -27,7 +56,9 @@ defineEmits<{
         :key="part.path"
         :part="part"
         :selected-path="selectedPath"
+        :read-only="readOnly"
         @open="$emit('open', $event)"
+        @create-chapter="(part, title) => $emit('createChapter', part, title)"
       />
 
       <ul v-if="manuscript.chapters.length > 0" class="flat">
@@ -38,24 +69,39 @@ defineEmits<{
             :status="chapter.status"
             :word-count="chapter.wordCount"
             :active="selectedPath === chapter.path"
-            :warning="chapter.duplicateOrder ? 'Shares its order with another chapter' : undefined"
+            :warning="clashDescription(chapter, manuscript.chapters)"
             @open="$emit('open', chapter.path)"
           />
         </li>
       </ul>
 
-      <p
-        v-if="
-          manuscript.parts.length === 0 &&
-          manuscript.chapters.length === 0 &&
-          manuscript.unnumberedParts.length === 0 &&
-          manuscript.unordered.length === 0
-        "
-        class="empty"
-      >
-        No parts or chapters yet. Files with <code>type: chapter</code> in their frontmatter appear
-        here.
-      </p>
+      <div v-if="empty && adding === null" class="empty">
+        <p>No chapters yet. Start with a chapter, or with a part if your book has parts.</p>
+        <div v-if="!readOnly" class="start">
+          <button type="button" class="primary" @click="adding = 'chapter'">New chapter</button>
+          <button type="button" @click="adding = 'part'">New part</button>
+        </div>
+      </div>
+
+      <NewEntryInput
+        v-if="adding === 'chapter'"
+        placeholder="Chapter title"
+        @create="createChapter"
+        @cancel="adding = null"
+      />
+      <NewEntryInput
+        v-if="adding === 'part'"
+        placeholder="Part title"
+        @create="createPart"
+        @cancel="adding = null"
+      />
+
+      <div v-if="!empty && !readOnly && adding === null" class="actions">
+        <button v-if="!hasParts" type="button" class="quiet" @click="adding = 'chapter'">
+          + New chapter
+        </button>
+        <button type="button" class="quiet" @click="adding = 'part'">+ New part</button>
+      </div>
 
       <template v-if="manuscript.unnumberedParts.length > 0">
         <div class="divider">
@@ -67,7 +113,9 @@ defineEmits<{
           :key="part.path"
           :part="part"
           :selected-path="selectedPath"
+          :read-only="readOnly"
           @open="$emit('open', $event)"
+          @create-chapter="(part, title) => $emit('createChapter', part, title)"
         />
       </template>
 
@@ -158,6 +206,26 @@ defineEmits<{
   margin: 8px;
   line-height: 1.5;
   color: var(--text-muted);
+}
+
+.empty p {
+  margin: 0 0 12px;
+}
+
+.start {
+  display: flex;
+  gap: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+  margin: 10px 0 0;
+}
+
+.actions button {
+  padding: 6px 10px;
+  font-size: 12px;
 }
 
 footer {

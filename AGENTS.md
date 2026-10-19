@@ -85,7 +85,7 @@ npm run build:linux  # AppImage + deb
 npm run build:win    # NSIS installer (normally built in CI)
 ```
 
-Before saying a task is done, run `npm run lint && npm run typecheck && npm run test`.
+Before saying a task is done, run `npm run lint && npm run typecheck && npm run test && npx electron-vite build`. The build compiles the Vue templates, which lint and typecheck don't.
 
 Setup, local builds, and troubleshooting (including the Ubuntu sandbox error) are in `docs/development.md`.
 

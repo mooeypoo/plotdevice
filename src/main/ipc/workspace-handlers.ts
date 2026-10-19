@@ -13,6 +13,7 @@ import type { ListRecentProjects } from '../contexts/workspace/application/queri
 import { toApiError, toProjectSummaryDto } from './workspace-dtos'
 
 type ProjectRoot = Parameters<OpenProject>[0]
+type OpenedProject = Extract<Awaited<ReturnType<OpenProject>>, { ok: true }>['value']
 
 /** What the workspace handlers need, injected by the composition root. */
 export interface WorkspaceHandlerDependencies {
@@ -26,7 +27,7 @@ export interface WorkspaceHandlerDependencies {
   /** A key under which two paths to the same folder are equal (case-insensitive on Windows). */
   readonly rootKey: (root: ProjectRoot) => string
   /** Called when a project opens (or is initialized), so per-project use cases can be built. */
-  readonly onProjectOpened: (root: ProjectRoot, readOnly: boolean) => void
+  readonly onProjectOpened: (root: ProjectRoot, project: OpenedProject['project']) => void
   readonly onProjectClosed: () => void
 }
 
@@ -106,7 +107,7 @@ export function createWorkspaceHandlers(deps: WorkspaceHandlerDependencies): Wor
         }
         return { ok: false, error: toApiError(result.error) }
       }
-      deps.onProjectOpened(root, result.value.project.readOnly)
+      deps.onProjectOpened(root, result.value.project)
       return { ok: true, value: toProjectSummaryDto(result.value) }
     },
 
@@ -123,7 +124,7 @@ export function createWorkspaceHandlers(deps: WorkspaceHandlerDependencies): Wor
         }
         return { ok: false, error: toApiError(result.error) }
       }
-      deps.onProjectOpened(root, result.value.project.readOnly)
+      deps.onProjectOpened(root, result.value.project)
       return { ok: true, value: toProjectSummaryDto(result.value) }
     },
 

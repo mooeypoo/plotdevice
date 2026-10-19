@@ -1,6 +1,6 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createFakePlotDeviceApi } from './fake-plot-device-api'
+import { createFakePlotDeviceApi, sampleManuscript } from './fake-plot-device-api'
 import { AUTOSAVE_DELAY_MS, useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 
@@ -114,5 +114,62 @@ describe('manuscript store', () => {
     expect(store.text).toBe('Edited in Obsidian.\n')
     expect(store.saveState).toBe('saved')
     expect(store.entry?.revision).not.toBe(revision)
+  })
+})
+
+describe('manuscript store: properties and new entries', () => {
+  it('loads the open entry’s properties', async () => {
+    const store = useManuscriptStore()
+    await store.open('The Ferry.md')
+    expect(store.properties).toMatchObject({ path: 'The Ferry.md', kind: 'chapter' })
+  })
+
+  it('saves typing first, then the property change, with no false conflict', async () => {
+    const store = useManuscriptStore()
+    await store.open('The Ferry.md')
+    store.edit('Typed and not yet saved.\n')
+
+    expect(await store.updateProperties({ status: 'revised' })).toBe(true)
+
+    expect(fake.files.get('The Ferry.md')).toBe('Typed and not yet saved.\n')
+    expect(store.properties?.status).toBe('revised')
+    store.edit('More typing after the property change.\n')
+    await store.flush()
+    expect(store.saveState).toBe('saved')
+    expect(fake.files.get('The Ferry.md')).toBe('More typing after the property change.\n')
+  })
+
+  it('shows a conflict when the file changed outside before a property change', async () => {
+    const store = useManuscriptStore()
+    await store.open('The Ferry.md')
+    fake.files.set('The Ferry.md', 'Edited in Obsidian.\n')
+    expect(await store.updateProperties({ status: 'revised' })).toBe(false)
+    expect(store.saveState).toBe('conflict')
+  })
+
+  it('creates a chapter and opens it', async () => {
+    const store = useManuscriptStore()
+    fake.api.manuscript.getManuscript = () =>
+      Promise.resolve({
+        ok: true,
+        value: {
+          ...sampleManuscript,
+          unordered: [
+            ...sampleManuscript.unordered,
+            {
+              chapter: {
+                path: 'The Mill.md',
+                title: 'The Mill',
+                wordCount: 0,
+                duplicateOrder: false
+              },
+              reason: 'missing-order'
+            }
+          ]
+        }
+      })
+    expect(await store.createChapter('Part One.md', 'The Mill')).toBe(true)
+    expect(fake.created).toEqual(['The Mill.md'])
+    expect(store.entry?.path).toBe('The Mill.md')
   })
 })

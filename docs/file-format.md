@@ -154,7 +154,8 @@ Prose goes here, in plain markdown.
   The last two also show a warning.
 - Two chapters with the same `order` in one part get a warning and are sorted by title, then by path.
 - **Reordering in the app** rewrites only the `order` key of the chapters in that part, numbering them 1, 2, 3…
-- **Moving a chapter to another part** updates `part` and `order`. If the file is in the default folder for its old part, the app also moves it to the new part's folder. A file the writer filed somewhere else stays where it is.
+- **Moving a chapter to another part** updates `part` and `order`. If the file is in its old part's folder (the folder that holds that part's own file), the app also moves it to the new part's folder. A file the writer filed somewhere else stays where it is.
+- **New entries.** A new chapter goes at the end of its part, in that part's folder (in a book without parts, in `settings.folders.chapter`), with only `type`, `title`, `part`, and `order`. A new part goes after the others, in its own folder under `settings.folders.part`.
 
 ## Scenes
 

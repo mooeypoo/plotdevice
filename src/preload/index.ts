@@ -1,9 +1,19 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { PlotDeviceApi } from '../contract/api'
-import { APP_CHANNELS, MANUSCRIPT_CHANNELS, WORKSPACE_CHANNELS } from '../contract/channels'
+import {
+  APP_CHANNELS,
+  INSPECTOR_CHANNELS,
+  MANUSCRIPT_CHANNELS,
+  WORKSPACE_CHANNELS
+} from '../contract/channels'
 import type {
   ApiResult,
+  CreatedEntryDto,
+  EntryPropertiesViewDto,
   EntryTextDto,
+  InspectorVocabularyDto,
+  RenumberedDto,
+  StoryDateCheckDto,
   FolderChoiceDto,
   ManuscriptDto,
   ProjectSummaryDto,
@@ -17,7 +27,7 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 3,
+  contractVersion: 4,
   workspace: {
     chooseFolder: () => invoke<FolderChoiceDto | null>(WORKSPACE_CHANNELS.chooseFolder),
     openProject: (root) =>
@@ -39,7 +49,30 @@ const plotDevice: PlotDeviceApi = {
         text,
         version,
         overwrite
-      )
+      ),
+    getEntryProperties: (path) =>
+      invoke<ApiResult<EntryPropertiesViewDto>>(MANUSCRIPT_CHANNELS.getEntryProperties, path),
+    updateEntryProperties: (path, version, changes) =>
+      invoke<ApiResult<EntryPropertiesViewDto>>(
+        MANUSCRIPT_CHANNELS.updateEntryProperties,
+        path,
+        version,
+        changes
+      ),
+    createChapter: (partPath, title) =>
+      invoke<ApiResult<CreatedEntryDto>>(MANUSCRIPT_CHANNELS.createChapter, partPath, title),
+    createPart: (title) =>
+      invoke<ApiResult<CreatedEntryDto>>(MANUSCRIPT_CHANNELS.createPart, title),
+    renumberPart: (partPath) =>
+      invoke<ApiResult<RenumberedDto>>(MANUSCRIPT_CHANNELS.renumberPart, partPath),
+    addStatus: (status) =>
+      invoke<ApiResult<readonly string[]>>(MANUSCRIPT_CHANNELS.addStatus, status)
+  },
+  inspector: {
+    getVocabulary: () =>
+      invoke<ApiResult<InspectorVocabularyDto>>(INSPECTOR_CHANNELS.getVocabulary),
+    checkStoryDate: (text) =>
+      invoke<ApiResult<StoryDateCheckDto>>(INSPECTOR_CHANNELS.checkStoryDate, text)
   },
   app: {
     onBeforeClose: (listener) => {

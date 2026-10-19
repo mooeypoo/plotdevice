@@ -75,6 +75,8 @@ export interface ChapterDto {
   readonly title: string
   /** Position in its numbered part (or the book); absent outside the sequence. */
   readonly number?: number
+  /** The `order` key, when it's a whole number. */
+  readonly order?: number
   readonly status?: string
   readonly synopsis?: string
   readonly wordCount: number
@@ -88,6 +90,7 @@ export interface PartDto {
   readonly title: string
   /** Position in the sequence; absent for parts without an `order`. */
   readonly number?: number
+  readonly order?: number
   readonly synopsis?: string
   /** The part's own text plus its chapters. */
   readonly wordCount: number
@@ -137,4 +140,74 @@ export interface EntryTextDto {
 export interface SavedEntryDto {
   readonly version: string
   readonly wordCount: number
+}
+
+/** A part's or chapter's frontmatter as the inspector shows it: values as written. */
+export interface EntryPropertiesDto {
+  readonly path: string
+  readonly kind: 'part' | 'chapter'
+  readonly title?: string
+  readonly status?: string
+  readonly pov: readonly string[]
+  readonly characters: readonly string[]
+  readonly location: readonly string[]
+  readonly threads: readonly string[]
+  readonly storyDate?: string
+  readonly storyTime?: string
+  readonly synopsis?: string
+  readonly part?: string
+  readonly order?: string
+}
+
+/** Properties plus the file version they were read from; pass the version back when saving. */
+export interface EntryPropertiesViewDto {
+  readonly properties: EntryPropertiesDto
+  readonly version: string
+}
+
+/**
+ * What the writer changed. Only present fields change; an empty text or list removes the key.
+ * Links are given as targets (file names), for example `Ilka Szabó`.
+ */
+export interface PropertyChangesDto {
+  readonly title?: string
+  readonly status?: string
+  readonly pov?: readonly string[]
+  readonly characters?: readonly string[]
+  readonly location?: readonly string[]
+  readonly threads?: readonly string[]
+  readonly storyDate?: string
+  readonly storyTime?: string
+  readonly synopsis?: string
+}
+
+/** A plotline from novel.md. */
+export interface ThreadDto {
+  readonly key: string
+  readonly name: string
+  readonly color?: string
+}
+
+/** The choices the inspector offers. */
+export interface InspectorVocabularyDto {
+  readonly statuses: readonly string[]
+  readonly threads: readonly ThreadDto[]
+  readonly calendar: 'gregorian' | 'day-count'
+}
+
+/** Whether a typed story date can be used. */
+export type StoryDateCheckDto =
+  | { readonly kind: 'undated' }
+  | { readonly kind: 'date' | 'range'; readonly description: string }
+  | { readonly kind: 'invalid'; readonly message: string }
+
+/** A newly created part or chapter. */
+export interface CreatedEntryDto {
+  readonly path: string
+}
+
+/** What a renumbering changed. */
+export interface RenumberedDto {
+  readonly changed: number
+  readonly failed: readonly string[]
 }

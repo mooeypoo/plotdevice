@@ -1,5 +1,5 @@
 import type { PlotDeviceApi } from '../../../contract/api'
-import type { ManuscriptDto, ProjectSummaryDto } from '../../../contract/dtos'
+import type { EntryPropertiesDto, ManuscriptDto, ProjectSummaryDto } from '../../../contract/dtos'
 
 /** A project summary for tests. */
 export const sampleSummary: ProjectSummaryDto = {
@@ -52,14 +52,17 @@ export const sampleManuscript: ManuscriptDto = {
 }
 
 /**
- * An in-memory `PlotDeviceApi` for renderer tests. Files are a map of path → text; a version is
- * the text itself, so an outside edit changes it.
+ * An in-memory `PlotDeviceApi` for renderer tests. Files are a map of path → text, plus
+ * properties per path. A version is the text and a properties revision, so an outside edit to
+ * either changes it.
  */
 export function createFakePlotDeviceApi(): {
   api: PlotDeviceApi
   files: Map<string, string>
   saves: string[]
   closedProjects: number
+  properties: Map<string, EntryPropertiesDto>
+  created: string[]
 } {
   const files = new Map([
     ['Part One.md', 'Two words.\n'],
@@ -67,11 +70,27 @@ export function createFakePlotDeviceApi(): {
     ['First frost.md', 'Four words are here.\n'],
     ['Lost.md', 'One.\n']
   ])
-  const state = { saves: [] as string[], closedProjects: 0 }
+  const state = { saves: [] as string[], closedProjects: 0, created: [] as string[] }
   const countWords = (text: string): number => text.split(/\s+/u).filter(Boolean).length
+  const properties = new Map<string, EntryPropertiesDto>(
+    [...files.keys()].map((path) => [
+      path,
+      {
+        path,
+        kind: path === 'Part One.md' ? 'part' : 'chapter',
+        pov: [],
+        characters: [],
+        location: [],
+        threads: []
+      }
+    ])
+  )
+  const revisions = new Map<string, number>()
+  const versionOf = (path: string): string =>
+    `${files.get(path) ?? ''}#${String(revisions.get(path) ?? 0)}`
 
   const api: PlotDeviceApi = {
-    contractVersion: 3,
+    contractVersion: 4,
     workspace: {
       chooseFolder: () => Promise.resolve(null),
       openProject: () => Promise.resolve({ ok: true, value: sampleSummary }),
@@ -91,12 +110,14 @@ export function createFakePlotDeviceApi(): {
         return Promise.resolve(
           text === undefined
             ? { ok: false, error: { code: 'not-found', message: 'gone' } }
-            : { ok: true, value: { path, text, version: text, wordCount: countWords(text) } }
+            : {
+                ok: true,
+                value: { path, text, version: versionOf(path), wordCount: countWords(text) }
+              }
         )
       },
       saveEntryText: (path, text, version, overwrite) => {
-        const current = files.get(path)
-        if (!overwrite && current !== version) {
+        if (!overwrite && versionOf(path) !== version) {
           return Promise.resolve({
             ok: false,
             error: { code: 'changed-on-disk', message: 'changed' }
@@ -104,8 +125,77 @@ export function createFakePlotDeviceApi(): {
         }
         files.set(path, text)
         state.saves.push(text)
-        return Promise.resolve({ ok: true, value: { version: text, wordCount: countWords(text) } })
-      }
+        return Promise.resolve({
+          ok: true,
+          value: { version: versionOf(path), wordCount: countWords(text) }
+        })
+      },
+      getEntryProperties: (path) => {
+        const props = properties.get(path)
+        return Promise.resolve(
+          props === undefined
+            ? { ok: false, error: { code: 'not-found', message: 'gone' } }
+            : { ok: true, value: { properties: props, version: versionOf(path) } }
+        )
+      },
+      updateEntryProperties: (path, version, changes) => {
+        const props = properties.get(path)
+        if (props === undefined)
+          return Promise.resolve({ ok: false, error: { code: 'not-found', message: 'gone' } })
+        if (versionOf(path) !== version) {
+          return Promise.resolve({
+            ok: false,
+            error: { code: 'changed-on-disk', message: 'changed' }
+          })
+        }
+        const next: EntryPropertiesDto = {
+          ...props,
+          ...(changes.title !== undefined ? { title: changes.title } : {}),
+          ...(changes.status !== undefined ? { status: changes.status } : {}),
+          ...(changes.pov !== undefined ? { pov: changes.pov.map((t) => `[[${t}]]`) } : {})
+        }
+        properties.set(path, next)
+        revisions.set(path, (revisions.get(path) ?? 0) + 1)
+        return Promise.resolve({ ok: true, value: { properties: next, version: versionOf(path) } })
+      },
+      createChapter: (_, title) => {
+        const path = `${title === '' ? 'Untitled chapter' : title}.md`
+        files.set(path, '')
+        properties.set(path, {
+          path,
+          kind: 'chapter',
+          title,
+          pov: [],
+          characters: [],
+          location: [],
+          threads: []
+        })
+        state.created.push(path)
+        return Promise.resolve({ ok: true, value: { path } })
+      },
+      createPart: (title) => {
+        const path = `${title}/${title}.md`
+        state.created.push(path)
+        return Promise.resolve({ ok: true, value: { path } })
+      },
+      renumberPart: () => Promise.resolve({ ok: true, value: { changed: 1, failed: [] } }),
+      addStatus: (status) => Promise.resolve({ ok: true, value: ['idea', 'draft', status] })
+    },
+    inspector: {
+      getVocabulary: () =>
+        Promise.resolve({
+          ok: true,
+          value: {
+            statuses: ['idea', 'draft'],
+            threads: [{ key: 'main', name: 'Main plot' }],
+            calendar: 'gregorian'
+          }
+        }),
+      checkStoryDate: (text) =>
+        Promise.resolve({
+          ok: true,
+          value: text === '' ? { kind: 'undated' } : { kind: 'date', description: `On ${text}` }
+        })
     },
     app: {
       onBeforeClose: () => () => undefined,
@@ -121,6 +211,10 @@ export function createFakePlotDeviceApi(): {
     },
     get closedProjects() {
       return state.closedProjects
+    },
+    properties,
+    get created() {
+      return state.created
     }
   }
 }

@@ -1,5 +1,5 @@
 export { romanNumeral } from '../../shared/roman-numeral'
-import type { UnorderedReasonDto } from '../../../../contract/dtos'
+import type { ChapterDto, UnorderedReasonDto } from '../../../../contract/dtos'
 
 /** Why a chapter is unordered, in a few words. */
 export function describeUnorderedReason(reason: UnorderedReasonDto): string {
@@ -36,4 +36,16 @@ const wordFormat = new Intl.NumberFormat(undefined)
 /** A word count for the binder: "—" for none, digits grouped for the locale. */
 export function formatWordCount(count: number): string {
   return count === 0 ? '—' : wordFormat.format(count)
+}
+
+/** For a chapter whose order clashes: which chapters share it ("Shares order 2 with “X”"). */
+export function clashDescription(
+  chapter: ChapterDto,
+  siblings: readonly ChapterDto[]
+): string | undefined {
+  if (!chapter.duplicateOrder) return undefined
+  const others = siblings
+    .filter((other) => other.path !== chapter.path && other.order === chapter.order)
+    .map((other) => `“${other.title}”`)
+  return `Shares order ${String(chapter.order)} with ${others.join(', ')}`
 }

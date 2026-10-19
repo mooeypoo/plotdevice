@@ -4,6 +4,7 @@ import type { ProjectPath } from '../../../../shared-kernel/project-path'
 import type { Result } from '../../../../shared-kernel/result'
 import type { Chapter } from '../chapter'
 import type { Part } from '../part'
+import type { PropertyWrite } from '../property-changes'
 
 /** Everything the manuscript is built from, read from one project. */
 export interface ManuscriptFiles {
@@ -43,4 +44,40 @@ export interface ManuscriptRepository {
     text: string,
     expectedVersion: string | undefined
   ): Promise<Result<{ readonly version: string }, WriteEntryTextError>>
+  /** A part's or chapter's frontmatter values and version, for the inspector. */
+  readEntryFile(path: ProjectPath): Promise<Result<EntryFile, ReadEntryTextError>>
+  /**
+   * Changes only the given frontmatter keys (ADR 0004). Refuses if the file no longer matches
+   * `expectedVersion`; `undefined` edits whatever is there now.
+   */
+  writeProperties(
+    path: ProjectPath,
+    writes: readonly PropertyWrite[],
+    expectedVersion: string | undefined
+  ): Promise<Result<{ readonly version: string }, WritePropertiesError>>
+  /** Creates a new file, and its folders. Never replaces an existing file. */
+  createFile(
+    path: ProjectPath,
+    text: string
+  ): Promise<Result<{ readonly version: string }, CreateFileError>>
+  /** novel.md's frontmatter values, or `undefined` if it can't be read. */
+  readNovelFrontmatter(): Promise<unknown>
+  /** Changes only the given keys of novel.md. */
+  writeNovelProperties(
+    writes: readonly PropertyWrite[]
+  ): Promise<Result<void, WritePropertiesError>>
 }
+
+/** A part's or chapter's frontmatter, read from disk. */
+export interface EntryFile {
+  readonly path: ProjectPath
+  readonly kind: 'part' | 'chapter'
+  readonly frontmatter: unknown
+  readonly version: string
+}
+
+/** Why frontmatter couldn't be written. The file is untouched in every case. */
+export type WritePropertiesError = WriteEntryTextError | DomainError<'cannot-edit'>
+
+/** Why a new file couldn't be created. */
+export type CreateFileError = DomainError<'already-exists' | 'write-failed'>

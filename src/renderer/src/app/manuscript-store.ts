@@ -1,6 +1,13 @@
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
-import type { ApiError, ChapterDto, ManuscriptDto, PartDto } from '../../../contract/dtos'
+import type {
+  ApiError,
+  ChapterDto,
+  EntryPropertiesDto,
+  ManuscriptDto,
+  PartDto,
+  PropertyChangesDto
+} from '../../../contract/dtos'
 import { createAutosaver } from './autosaver'
 import { romanNumeral } from '../shared/roman-numeral'
 import { plotDeviceApi } from './plot-device-api'
@@ -39,6 +46,10 @@ export const useManuscriptStore = defineStore('manuscript', () => {
   const wordCount = ref(0)
   const saveState = ref<SaveState>('saved')
   const saveError = ref<string | null>(null)
+  /** The open entry's frontmatter, as the inspector shows it. */
+  const properties = shallowRef<EntryPropertiesDto | null>(null)
+  const actionError = ref<string | null>(null)
+  // The open file's version, shared by the editor and the inspector: both write the same file.
   let version = ''
   let savedText = ''
   let revision = 0
@@ -117,6 +128,91 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     wordCount.value = result.value.wordCount
     saveState.value = 'saved'
     saveError.value = null
+    actionError.value = null
+    await readProperties(path)
+    return true
+  }
+
+  async function readProperties(path: string): Promise<void> {
+    const result = await api().getEntryProperties(path)
+    if (entry.value?.path !== path) return
+    properties.value = result.ok ? result.value.properties : null
+    // Only adopt the version if the body on disk is still what the editor has.
+    if (result.ok && saveState.value === 'saved') version = result.value.version
+  }
+
+  /** Re-reads the binder and keeps the open entry's label and title in step with it. */
+  async function reload(): Promise<void> {
+    await load()
+    const current = entry.value
+    const place = current === null ? undefined : places.value.get(current.path)
+    if (current !== null && place !== undefined) {
+      entry.value = { ...current, label: place.label, title: place.title }
+    }
+  }
+
+  /**
+   * Saves inspector changes. The body is saved first, so the two writes to the same file never
+   * look like a conflict to each other.
+   */
+  async function updateProperties(changes: PropertyChangesDto): Promise<boolean> {
+    const current = entry.value
+    if (current === null) return false
+    await flush()
+    if (hasStuckChanges.value || saveState.value === 'conflict') return false
+    const result = await api().updateEntryProperties(current.path, version, changes)
+    if (entry.value?.path !== current.path) return false
+    if (!result.ok) {
+      if (result.error.code === 'changed-on-disk') saveState.value = 'conflict'
+      else actionError.value = result.error.message
+      return false
+    }
+    version = result.value.version
+    properties.value = result.value.properties
+    actionError.value = null
+    await reload()
+    return true
+  }
+
+  /** Creates a chapter at the end of a part (`null`: a book without parts) and opens it. */
+  async function createChapter(partPath: string | null, title: string): Promise<boolean> {
+    await flush()
+    if (hasStuckChanges.value) return false
+    const result = await api().createChapter(partPath, title)
+    if (!result.ok) {
+      actionError.value = result.error.message
+      return false
+    }
+    await reload()
+    return open(result.value.path)
+  }
+
+  /** Creates a part after the others. */
+  async function createPart(title: string): Promise<boolean> {
+    const result = await api().createPart(title)
+    if (!result.ok) {
+      actionError.value = result.error.message
+      return false
+    }
+    await reload()
+    return true
+  }
+
+  /** Renumbers a part's chapters 1, 2, 3… (`null`: a book without parts). */
+  async function renumberPart(partPath: string | null): Promise<boolean> {
+    await flush()
+    if (hasStuckChanges.value) return false
+    const result = await api().renumberPart(partPath)
+    if (!result.ok) {
+      actionError.value = result.error.message
+      return false
+    }
+    if (result.value.failed.length > 0) {
+      actionError.value = `${String(result.value.failed.length)} files couldn’t be renumbered and were left as they were.`
+    }
+    await reload()
+    // The open chapter's `order` may have changed on disk; pick up its new version.
+    if (entry.value !== null) await readProperties(entry.value.path)
     return true
   }
 
@@ -150,6 +246,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
   async function close(): Promise<void> {
     await flush()
     entry.value = null
+    properties.value = null
     manuscript.value = null
     text.value = ''
   }
@@ -176,6 +273,8 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     wordCount,
     saveState,
     saveError,
+    properties,
+    actionError,
     currentPart,
     hasStuckChanges,
     load,
@@ -186,6 +285,10 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     keepMine,
     close,
     closeEntry,
+    updateProperties,
+    createChapter,
+    createPart,
+    renumberPart,
     hasEntry: (path: string) => places.value.has(path)
   }
 })

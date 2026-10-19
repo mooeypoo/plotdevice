@@ -7,4 +7,14 @@ export function registerManuscriptIpc(handlers: ManuscriptHandlers): void {
   handleTrusted(MANUSCRIPT_CHANNELS.getManuscript, () => handlers.getManuscript())
   handleTrusted(MANUSCRIPT_CHANNELS.openEntry, (_, args) => handlers.openEntry(args))
   handleTrusted(MANUSCRIPT_CHANNELS.saveEntryText, (_, args) => handlers.saveEntryText(args))
+  handleTrusted(MANUSCRIPT_CHANNELS.getEntryProperties, (_, args) =>
+    handlers.getEntryProperties(args)
+  )
+  handleTrusted(MANUSCRIPT_CHANNELS.updateEntryProperties, (_, args) =>
+    handlers.updateEntryProperties(args)
+  )
+  handleTrusted(MANUSCRIPT_CHANNELS.createChapter, (_, args) => handlers.createChapter(args))
+  handleTrusted(MANUSCRIPT_CHANNELS.createPart, (_, args) => handlers.createPart(args))
+  handleTrusted(MANUSCRIPT_CHANNELS.renumberPart, (_, args) => handlers.renumberPart(args))
+  handleTrusted(MANUSCRIPT_CHANNELS.addStatus, (_, args) => handlers.addStatus(args))
 }

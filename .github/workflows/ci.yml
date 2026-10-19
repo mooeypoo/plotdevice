@@ -33,6 +33,8 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test
+      # Compiles the Vue templates too, which lint and typecheck don't.
+      - run: npx electron-vite build
 
   build:
     name: Build (${{ matrix.os }})

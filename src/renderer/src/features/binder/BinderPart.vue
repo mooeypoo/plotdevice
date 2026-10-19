@@ -1,17 +1,33 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { PartDto } from '../../../../contract/dtos'
-import { formatWordCount, romanNumeral } from './binder-labels'
+import { clashDescription, formatWordCount, romanNumeral } from './binder-labels'
 import BinderRow from './BinderRow.vue'
+import NewEntryInput from './NewEntryInput.vue'
 
 const props = defineProps<{
   part: PartDto
   selectedPath: string | null
+  readOnly: boolean
 }>()
 
-defineEmits<{ open: [path: string] }>()
+const emit = defineEmits<{
+  open: [path: string]
+  createChapter: [partPath: string, title: string]
+}>()
 
 const expanded = ref(true)
+const adding = ref(false)
+
+function startAdding(): void {
+  expanded.value = true
+  adding.value = true
+}
+
+function create(title: string): void {
+  adding.value = false
+  emit('createChapter', props.part.path, title)
+}
 const marker = props.part.number === undefined ? '◇' : romanNumeral(props.part.number)
 </script>
 
@@ -50,6 +66,16 @@ const marker = props.part.number === undefined ? '◇' : romanNumeral(props.part
         <span class="title" dir="auto">{{ part.title }}</span>
         <span class="words">{{ formatWordCount(part.wordCount) }}</span>
       </button>
+      <button
+        v-if="!readOnly"
+        type="button"
+        class="add"
+        :aria-label="`New chapter in ${part.title}`"
+        title="New chapter"
+        @click="startAdding"
+      >
+        +
+      </button>
     </div>
     <ul v-if="expanded" class="chapters">
       <li v-for="chapter in part.chapters" :key="chapter.path">
@@ -59,11 +85,14 @@ const marker = props.part.number === undefined ? '◇' : romanNumeral(props.part
           :status="chapter.status"
           :word-count="chapter.wordCount"
           :active="selectedPath === chapter.path"
-          :warning="chapter.duplicateOrder ? 'Shares its order with another chapter' : undefined"
+          :warning="clashDescription(chapter, part.chapters)"
           @open="$emit('open', chapter.path)"
         />
       </li>
-      <li v-if="part.chapters.length === 0" class="empty">No chapters yet</li>
+      <li v-if="part.chapters.length === 0 && !adding" class="empty">No chapters yet</li>
+      <li v-if="adding">
+        <NewEntryInput placeholder="Chapter title" @create="create" @cancel="adding = false" />
+      </li>
     </ul>
   </section>
 </template>
@@ -77,6 +106,23 @@ const marker = props.part.number === undefined ? '◇' : romanNumeral(props.part
   display: flex;
   align-items: center;
   border-radius: 7px;
+}
+
+.add {
+  width: 26px;
+  height: 26px;
+  margin-inline-end: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 16px;
+  opacity: 0;
+}
+
+.header:hover .add,
+.add:focus-visible {
+  opacity: 1;
 }
 
 .header.active {

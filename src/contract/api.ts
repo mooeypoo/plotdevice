@@ -1,6 +1,12 @@
 import type {
   ApiResult,
+  CreatedEntryDto,
+  EntryPropertiesViewDto,
   EntryTextDto,
+  InspectorVocabularyDto,
+  PropertyChangesDto,
+  RenumberedDto,
+  StoryDateCheckDto,
   FolderChoiceDto,
   ManuscriptDto,
   ProjectSummaryDto,
@@ -38,6 +44,26 @@ export interface ManuscriptApi {
     version: string,
     overwrite: boolean
   ): Promise<ApiResult<SavedEntryDto>>
+  getEntryProperties(path: string): Promise<ApiResult<EntryPropertiesViewDto>>
+  /** Changes only the given keys. Fails with `changed-on-disk` if the file changed since `version`. */
+  updateEntryProperties(
+    path: string,
+    version: string,
+    changes: PropertyChangesDto
+  ): Promise<ApiResult<EntryPropertiesViewDto>>
+  /** A new chapter at the end of a part (`null`: a book without parts). */
+  createChapter(partPath: string | null, title: string): Promise<ApiResult<CreatedEntryDto>>
+  createPart(title: string): Promise<ApiResult<CreatedEntryDto>>
+  /** Rewrites a part's chapter orders to 1, 2, 3… (`null`: a book without parts). */
+  renumberPart(partPath: string | null): Promise<ApiResult<RenumberedDto>>
+  /** Adds a status to novel.md's list and returns the new list. */
+  addStatus(status: string): Promise<ApiResult<readonly string[]>>
+}
+
+/** Choices and checks for the inspector, drawn from several parts of the project. */
+export interface InspectorApi {
+  getVocabulary(): Promise<ApiResult<InspectorVocabularyDto>>
+  checkStoryDate(text: string): Promise<ApiResult<StoryDateCheckDto>>
 }
 
 /** The window's lifecycle. */
@@ -54,8 +80,9 @@ export interface AppApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 3
+  readonly contractVersion: 4
   readonly workspace: WorkspaceApi
   readonly manuscript: ManuscriptApi
+  readonly inspector: InspectorApi
   readonly app: AppApi
 }

@@ -168,3 +168,89 @@ describe('reading and writing prose', () => {
     expect((await bytesOf('notes/Unclosed.md')).equals(before)).toBe(true)
   })
 })
+
+describe('editing properties on real files', () => {
+  const repository = (): ReturnType<typeof createMarkdownManuscriptRepository> =>
+    createMarkdownManuscriptRepository(copy.root)
+
+  it('changes only the edited key of a CRLF file, keeping CRLF and comments', async () => {
+    const file = 'manuscript/Part One/First frost.md'
+    const before = await textOf(file)
+    const read = await repository().readEntryFile(path(file))
+    if (!read.ok) throw new Error('read failed')
+
+    const written = await repository().writeProperties(
+      path(file),
+      [{ key: 'status', value: 'draft' }],
+      read.value.version
+    )
+
+    expect(written.ok).toBe(true)
+    expect(await textOf(file)).toBe(before.replace('status: outline', 'status: draft'))
+  })
+
+  it('keeps the BOM and body of a Hebrew chapter when adding a key', async () => {
+    const file = 'manuscript/Part Three/הנהר.md'
+    const before = await bytesOf(file)
+    await repository().writeProperties(
+      path(file),
+      [{ key: 'story_time', value: 'בבוקר' }],
+      undefined
+    )
+    const after = await bytesOf(file)
+    expect([...after.subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf])
+    const beforeText = before.toString('utf8')
+    const afterText = after.toString('utf8')
+    expect(afterText).toBe(
+      beforeText.replace(
+        'synopsis: יעל יורדת אל הנהר.\n',
+        'synopsis: יעל יורדת אל הנהר.\nstory_time: בבוקר\n'
+      )
+    )
+  })
+
+  it('refuses to edit a file whose frontmatter is broken, and leaves it alone', async () => {
+    const file = 'manuscript/Part Two/Broken.md'
+    const before = await bytesOf(file)
+    expect(await repository().readEntryFile(path(file))).toMatchObject({ ok: false })
+    expect(
+      await repository().writeProperties(path(file), [{ key: 'order', value: 1 }], undefined)
+    ).toMatchObject({ ok: false })
+    expect((await bytesOf(file)).equals(before)).toBe(true)
+  })
+
+  it('refuses a stale version, leaving the file alone', async () => {
+    const file = 'manuscript/Part One/The Ferry.md'
+    const before = await bytesOf(file)
+    expect(
+      await repository().writeProperties(path(file), [{ key: 'order', value: 9 }], 'stale')
+    ).toMatchObject({ ok: false, error: { code: 'changed-on-disk' } })
+    expect((await bytesOf(file)).equals(before)).toBe(true)
+  })
+
+  it('creates a file and its folders, and never replaces one', async () => {
+    const created = await repository().createFile(
+      path('manuscript/Part Four/Part Four.md'),
+      '---\ntype: part\n---\n'
+    )
+    expect(created.ok).toBe(true)
+    expect(await textOf('manuscript/Part Four/Part Four.md')).toBe('---\ntype: part\n---\n')
+    expect(
+      await repository().createFile(path('manuscript/Part One/The Ferry.md'), 'x')
+    ).toMatchObject({ ok: false, error: { code: 'already-exists' } })
+  })
+
+  it('adds a status to novel.md, changing only the statuses line', async () => {
+    const before = await textOf('novel.md')
+    const written = await repository().writeNovelProperties([
+      { key: 'statuses', value: ['idea', 'outline', 'draft', 'revised', 'final', 'maybe'] }
+    ])
+    expect(written.ok).toBe(true)
+    expect(await textOf('novel.md')).toBe(
+      before.replace(
+        'statuses: [idea, outline, draft, revised, final]',
+        'statuses: [idea, outline, draft, revised, final, maybe]'
+      )
+    )
+  })
+})

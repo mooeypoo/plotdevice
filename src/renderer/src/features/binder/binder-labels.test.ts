@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { describeUnorderedReason, romanNumeral, statusColor } from './binder-labels'
+import {
+  clashDescription,
+  describeUnorderedReason,
+  romanNumeral,
+  statusColor
+} from './binder-labels'
 
 describe('romanNumeral', () => {
   it.each([
@@ -33,5 +38,15 @@ describe('describeUnorderedReason', () => {
   it('explains each reason briefly', () => {
     expect(describeUnorderedReason('missing-order')).toBe('needs an order')
     expect(describeUnorderedReason('part-not-found')).toBe('part not found')
+  })
+})
+
+describe('clashDescription', () => {
+  it('names the chapters that share the order', () => {
+    const a = { path: 'a', title: 'Café Ñandú', order: 2, wordCount: 0, duplicateOrder: true }
+    const b = { path: 'b', title: 'Duplicate order', order: 2, wordCount: 0, duplicateOrder: true }
+    const c = { path: 'c', title: 'Shapes', order: 3, wordCount: 0, duplicateOrder: false }
+    expect(clashDescription(a, [a, b, c])).toBe('Shares order 2 with “Duplicate order”')
+    expect(clashDescription(c, [a, b, c])).toBeUndefined()
   })
 })

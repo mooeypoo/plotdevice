@@ -86,7 +86,7 @@ src/
 
 ## Key mechanisms
 
-**Frontmatter round-tripping.** `infrastructure/markdown/frontmatter-document.ts` wraps a `yaml` `Document`. Repositories read typed values through zod schemas. They write by setting individual keys on the document, never by serializing a fresh object. That's how unknown keys, comments, and order survive. A test runs every fixture through read and write and checks the bytes are unchanged.
+**Frontmatter editing.** `infrastructure/markdown/frontmatter-editor.ts` changes one key at a time by replacing only that value's characters in the source (ADR 0004); it never re-serializes YAML. Every edit is re-parsed and checked to have changed exactly that key, or nothing is written. Tests run edits over every fixture file and check that every other byte is unchanged.
 
 **Saving prose.** The editor sends body text with a debounce of about 800 ms and on blur. The main process replaces only the body part of the file and keeps the frontmatter bytes exactly as they were. CodeMirror works with `\n` internally, so the writer converts the text back to the file's line endings.
 
@@ -96,7 +96,7 @@ src/
 
 **Renames.** `RenameEntry` happens when a title changes (depending on `settings.file_names`) or when the writer asks for it. It computes a rename plan (old path → new path), applies it, then calls `UpdateWikiLinks`, which rewrites matching links across the project. Rename plans use temporary names when needed, so swaps and case-only renames work on case-insensitive file systems.
 
-**The open project.** `ipc/project-session.ts` holds the one open project and the per-project use cases the composition root builds for it (a manuscript repository bound to that folder). Opening another project replaces it; closing clears it.
+**The open project.** `ipc/project-session.ts` holds the one open project and the per-project use cases the composition root builds for it (repositories bound to that folder, and the project's folder settings). The inspector's choices come from `queries/get-inspector-vocabulary.ts`, which combines the manuscript's statuses with chronology's threads and calendar. Opening another project replaces it; closing clears it.
 
 **Saving safely.** Each opened part or chapter carries a version (a hash of the file). A save re-reads the file first: if it changed since it was opened, the save is refused (`changed-on-disk`) and the editor asks the writer to load the file's version or keep theirs. Unchanged text is never written, so opening and reading a chapter never touches the file. When the window closes, `ipc/close-guard.ts` waits for the renderer to save; if text can't be saved, the writer is asked before it is lost.
 

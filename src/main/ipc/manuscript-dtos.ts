@@ -38,6 +38,7 @@ function toPartDto(section: PartSection): PartDto {
     path: part.path,
     title: part.title,
     ...(section.number !== undefined ? { number: section.number } : {}),
+    ...(part.order !== undefined ? { order: part.order } : {}),
     ...(part.synopsis !== undefined ? { synopsis: part.synopsis } : {}),
     wordCount: section.wordCount,
     chapters: section.chapters.map(toChapterDto)
@@ -50,6 +51,7 @@ function toChapterDto(placed: PlacedChapter): ChapterDto {
     path: chapter.path,
     title: chapter.title,
     ...(placed.number !== undefined ? { number: placed.number } : {}),
+    ...(chapter.order !== undefined ? { order: chapter.order } : {}),
     ...(chapter.status !== undefined ? { status: chapter.status } : {}),
     ...(chapter.synopsis !== undefined ? { synopsis: chapter.synopsis } : {}),
     wordCount: chapter.wordCount,

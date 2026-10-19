@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import BinderTree from '../features/binder/BinderTree.vue'
 import EditorPane from '../features/editor/EditorPane.vue'
+import InspectorPanel from '../features/inspector/InspectorPanel.vue'
+import { useInspectorStore } from './inspector-store'
 import { formatWordCount } from '../features/binder/binder-labels'
 import { lastEntryOf, rememberLastEntry, useLayoutStore } from './layout-store'
 import { useManuscriptStore } from './manuscript-store'
@@ -13,6 +15,7 @@ import { useWorkspaceStore } from './workspace-store'
 const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
 const layout = useLayoutStore()
+const inspector = useInspectorStore()
 
 const attentionCount = computed(
   () =>
@@ -22,10 +25,15 @@ const attentionCount = computed(
 )
 
 onMounted(async () => {
+  void inspector.loadVocabulary()
   await manuscript.load()
   const root = workspace.project?.root
   const last = root === undefined ? undefined : lastEntryOf(root)
   if (last !== undefined && manuscript.hasEntry(last)) await manuscript.open(last)
+})
+
+onBeforeUnmount(() => {
+  inspector.clear()
 })
 
 watch(
@@ -50,6 +58,14 @@ useShortcuts([
     shift: true,
     run: () => {
       layout.toggleFocusMode()
+    }
+  },
+  {
+    key: 'i',
+    mod: true,
+    shift: true,
+    run: () => {
+      layout.toggleInspector()
     }
   },
   {
@@ -78,12 +94,16 @@ useShortcuts([
         :manuscript="manuscript.manuscript"
         :selected-path="manuscript.entry?.path ?? null"
         :attention-count="attentionCount"
+        :read-only="workspace.project?.readOnly ?? false"
         @open="manuscript.open($event)"
         @show-overview="manuscript.closeEntry()"
+        @create-chapter="(part, title) => manuscript.createChapter(part, title)"
+        @create-part="manuscript.createPart($event)"
       />
       <main class="main">
         <EditorPane />
       </main>
+      <InspectorPanel v-if="layout.inspectorOpen && !layout.focusMode && manuscript.entry" />
     </div>
 
     <StatusBar v-if="!layout.focusMode" />

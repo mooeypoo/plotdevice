@@ -11,14 +11,21 @@ const LAST_ENTRY_KEY = 'plotdevice.lastEntry'
 export const useLayoutStore = defineStore('layout', () => {
   const saved = readRecord(LAYOUT_KEY)
   const binderOpen = ref(typeof saved['binderOpen'] === 'boolean' ? saved['binderOpen'] : true)
+  const inspectorOpen = ref(
+    typeof saved['inspectorOpen'] === 'boolean' ? saved['inspectorOpen'] : true
+  )
   const focusMode = ref(false)
 
-  watch(binderOpen, (value) => {
-    writeRecord(LAYOUT_KEY, { binderOpen: value })
+  watch([binderOpen, inspectorOpen], ([binder, inspector]) => {
+    writeRecord(LAYOUT_KEY, { binderOpen: binder, inspectorOpen: inspector })
   })
 
   function toggleBinder(): void {
     binderOpen.value = !binderOpen.value
+  }
+
+  function toggleInspector(): void {
+    inspectorOpen.value = !inspectorOpen.value
   }
 
   function toggleFocusMode(): void {
@@ -29,7 +36,15 @@ export const useLayoutStore = defineStore('layout', () => {
     focusMode.value = false
   }
 
-  return { binderOpen, focusMode, toggleBinder, toggleFocusMode, exitFocusMode }
+  return {
+    binderOpen,
+    inspectorOpen,
+    focusMode,
+    toggleBinder,
+    toggleInspector,
+    toggleFocusMode,
+    exitFocusMode
+  }
 })
 
 /** Remembers the entry open in each project, so reopening a project returns to it. */

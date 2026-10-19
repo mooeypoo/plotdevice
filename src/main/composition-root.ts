@@ -1,7 +1,21 @@
 import { app } from 'electron'
+import { createCheckStoryDate } from './contexts/chronology/application/queries/check-story-date'
+import { createGetChronologySettings } from './contexts/chronology/application/queries/get-chronology-settings'
+import { describeStoryDateReading } from './contexts/chronology/domain/story-date'
+import { createMarkdownChronologyRepository } from './contexts/chronology/infrastructure/markdown-chronology-repository'
+import { createAddStatus } from './contexts/manuscript/application/commands/add-status'
+import {
+  createCreateChapter,
+  createCreatePart
+} from './contexts/manuscript/application/commands/create-entries'
+import { createRenumberPart } from './contexts/manuscript/application/commands/renumber-part'
 import { createSaveEntryText } from './contexts/manuscript/application/commands/save-entry-text'
+import { createUpdateEntryProperties } from './contexts/manuscript/application/commands/update-entry-properties'
+import { createGetEntryProperties } from './contexts/manuscript/application/queries/get-entry-properties'
 import { createGetManuscript } from './contexts/manuscript/application/queries/get-manuscript'
+import { createListStatuses } from './contexts/manuscript/application/queries/list-statuses'
 import { createOpenEntry } from './contexts/manuscript/application/queries/open-entry'
+import type { ManuscriptSettings } from './contexts/manuscript/domain/manuscript-settings'
 import { createMarkdownManuscriptRepository } from './contexts/manuscript/infrastructure/markdown-manuscript-repository'
 import { createInitializeProject } from './contexts/workspace/application/commands/initialize-project'
 import { createOpenProject } from './contexts/workspace/application/commands/open-project'
@@ -14,11 +28,21 @@ import { createNodeProjectFolders } from './contexts/workspace/infrastructure/no
 import { projectRootFromOsPath } from './contexts/workspace/infrastructure/project-root-from-os-path'
 import { systemClock } from './contexts/workspace/infrastructure/system-clock'
 import { scanProject } from './infrastructure/project-scan/scan-project'
+import { createGetInspectorVocabulary } from './queries/get-inspector-vocabulary'
+import { createInspectorHandlers, type InspectorUseCases } from './ipc/inspector-handlers'
+import { registerInspectorIpc } from './ipc/inspector-ipc'
 import { createManuscriptHandlers, type ManuscriptUseCases } from './ipc/manuscript-handlers'
 import { registerManuscriptIpc } from './ipc/manuscript-ipc'
 import { createProjectSession } from './ipc/project-session'
 import { createWorkspaceHandlers } from './ipc/workspace-handlers'
 import { registerWorkspaceIpc } from './ipc/workspace-ipc'
+import { parseProjectPath, type ProjectPath } from './shared-kernel/project-path'
+
+/** The use cases built for each open project. */
+interface ProjectUseCases {
+  readonly manuscript: ManuscriptUseCases
+  readonly inspector: InspectorUseCases
+}
 
 /**
  * Wires concrete adapters into use cases and registers IPC handlers. It is the only module allowed
@@ -36,12 +60,30 @@ export function composeApplication(): void {
     clock: systemClock
   })
 
-  const session = createProjectSession((root, readOnly): ManuscriptUseCases => {
+  const session = createProjectSession((root, settings: ManuscriptSettings): ProjectUseCases => {
     const repository = createMarkdownManuscriptRepository(root)
+    const chronology = createMarkdownChronologyRepository(root)
+    const getChronologySettings = createGetChronologySettings({ repository: chronology })
     return {
-      getManuscript: createGetManuscript({ repository }),
-      openEntry: createOpenEntry({ repository }),
-      saveEntryText: createSaveEntryText({ repository, readOnly })
+      manuscript: {
+        getManuscript: createGetManuscript({ repository }),
+        openEntry: createOpenEntry({ repository }),
+        saveEntryText: createSaveEntryText({ repository, readOnly: settings.readOnly }),
+        getEntryProperties: createGetEntryProperties({ repository }),
+        updateEntryProperties: createUpdateEntryProperties({ repository, settings }),
+        createChapter: createCreateChapter({ repository, settings }),
+        createPart: createCreatePart({ repository, settings }),
+        renumberPart: createRenumberPart({ repository, settings }),
+        addStatus: createAddStatus({ repository, settings })
+      },
+      inspector: {
+        getVocabulary: createGetInspectorVocabulary({
+          listStatuses: createListStatuses({ repository }),
+          getChronologySettings
+        }),
+        checkStoryDate: createCheckStoryDate({ getSettings: getChronologySettings }),
+        describeStoryDate: describeStoryDateReading
+      }
     }
   })
 
@@ -54,13 +96,23 @@ export function composeApplication(): void {
       removeRecentProject: createRemoveRecentProject({ folders, recents }),
       toProjectRoot: projectRootFromOsPath,
       rootKey: (root) => (process.platform === 'win32' ? root.toLowerCase() : root),
-      onProjectOpened: (root, readOnly) => {
-        session.open(root, readOnly)
+      onProjectOpened: (root, project) => {
+        session.open(root, {
+          readOnly: project.readOnly,
+          partFolder: folderPath(project.settings.folders.part),
+          chapterFolder: folderPath(project.settings.folders.chapter)
+        })
       },
       onProjectClosed: () => {
         session.close()
       }
     })
   )
-  registerManuscriptIpc(createManuscriptHandlers(() => session.current()))
+  registerManuscriptIpc(createManuscriptHandlers(() => session.current()?.manuscript))
+  registerInspectorIpc(createInspectorHandlers(() => session.current()?.inspector))
+}
+
+function folderPath(folder: string): ProjectPath | undefined {
+  const parsed = parseProjectPath(folder)
+  return parsed.ok ? parsed.value : undefined
 }

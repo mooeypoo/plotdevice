@@ -58,6 +58,30 @@ const crumbs = computed(() => {
           <path d="M9 4v16"></path>
         </svg>
       </button>
+      <button
+        type="button"
+        class="icon"
+        :class="{ on: layout.inspectorOpen }"
+        :aria-pressed="layout.inspectorOpen"
+        aria-label="Inspector"
+        title="Inspector (Ctrl+Shift+I)"
+        @click="layout.toggleInspector()"
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <rect x="3" y="4" width="18" height="16" rx="2.5"></rect>
+          <path d="M15 4v16"></path>
+        </svg>
+      </button>
       <span class="divider" aria-hidden="true"></span>
       <button
         type="button"

@@ -34,13 +34,19 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 
 **Done when:** you can write in a chapter, see the change in Obsidian, and frontmatter is untouched.
 
-## Phase 3: Inspector and structure editing
-- [ ] "New chapter" and "New part" in the binder, including in an empty project's binder, so a fresh project can start writing at once.
-- [ ] The inspector shows `part` and `order` as written. A duplicate-order warning names the other chapter and offers "Renumber this part" (rewrites `order` to 1, 2, 3…).
-- [ ] Right-hand panel that edits `title`, `status`, `pov`, `characters`, `location`, `threads`, `story_date`, and `synopsis`, with statuses from `novel.md` and "not in your list" statuses.
-- [ ] Create, reorder, and move parts and chapters, with drag and drop in the binder. Reordering rewrites only `order`. Moving updates `part` and `order`, and moves the file only from its default folder.
-- [ ] Title → file name sync per `settings.file_names`. Renames update wikilinks in every form.
-- [ ] Drag from the unordered tray into a part.
+## Phase 3a: Inspector and new entries
+- [x] "New chapter" and "New part" in the binder, including in an empty project's binder, so a fresh project can start writing at once. A small title box comes first; the file is named from that title.
+- [x] The inspector shows `part` and `order` as written. A duplicate-order warning names the other chapter and offers "Renumber this part" (rewrites `order` to 1, 2, 3…).
+- [x] Right-hand panel that edits `title`, `status`, `pov`, `characters`, `location`, `threads`, `story_date`, `story_time`, and `synopsis`, with statuses from `novel.md` and "not in your list" statuses (one click adds them to the list).
+- [x] Surgical frontmatter edits (ADR 0004): only the edited key's characters change; everything else stays byte-identical.
+
+**Done when:** you can create a part and a chapter in an empty project, edit any property, fix a duplicate order in one click, and Obsidian shows the change with every other byte of the file unchanged.
+
+## Phase 3b: Restructuring, renames, and links
+- [ ] Drag and drop in the binder: reorder chapters, move them between parts, drag from the unordered tray into a part, reorder parts. Keyboard alternatives in a row menu.
+- [ ] Reordering rewrites only `order`, and only where it changes. Moving updates `part` and `order`, and moves the file only from its old part's folder.
+- [ ] "Remove from manuscript": removes the chapter's `order`, so it moves to the unordered tray. The file stays.
+- [ ] Title → file name sync per `settings.file_names`. Renames update wikilinks in every form (ask first when other files would change).
 
 **Done when:** you can restructure the fixture, Obsidian shows the same frontmatter, and links stay intact.
 
@@ -82,6 +88,9 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Phase 3a follow-ups:
+  - Editing nested values (`relationships`) needs its own careful editor (Phase 5); the frontmatter editor refuses them today.
+  - The inspector edits parts' `title` and `synopsis` only; part-level status could come later.
 - Phase 2 follow-ups:
   - A light theme. Only the dark theme exists.
   - The panel framework (reference panel, timeline drawer) arrives with Phases 5 and 7, as drawn in the UI direction canvas.
