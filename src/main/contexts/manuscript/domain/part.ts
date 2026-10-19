@@ -1,6 +1,6 @@
 import { projectPathStem, type ProjectPath } from '../../../shared-kernel/project-path'
-import { readEntryText, readInteger, isMapping } from './frontmatter-values'
-import { countWords } from './word-count'
+import { readEntryText, readInteger, isMapping } from '../../../shared-kernel/frontmatter-values'
+import { countWords } from '../../../shared-kernel/word-count'
 
 /** A part of the manuscript (`type: part`). Its body, such as an epigraph, is manuscript text. */
 export interface Part {

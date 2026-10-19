@@ -2,14 +2,17 @@
 import { computed, ref, watch } from 'vue'
 import type { PropertyChangesDto, StoryDateCheckDto } from '../../../../contract/dtos'
 import { useInspectorStore } from '../../app/inspector-store'
+import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import { describeUnorderedReason } from '../binder/binder-labels'
 import { linkLabel, namesOfType } from './link-targets'
 import LinkPicker from './LinkPicker.vue'
+import RenameOffer from './RenameOffer.vue'
 import { usePositionMoves } from './use-position-moves'
 
 const manuscript = useManuscriptStore()
+const editor = useEditorStore()
 const inspector = useInspectorStore()
 const workspace = useWorkspaceStore()
 
@@ -149,7 +152,7 @@ async function renumber(): Promise<void> {
 }
 
 // A file that vanished can't take property changes; its banner offers what can be done.
-const disabled = computed(() => readOnly.value || busy.value || manuscript.saveState === 'missing')
+const disabled = computed(() => readOnly.value || busy.value || editor.saveState === 'missing')
 
 const moves = usePositionMoves()
 const { canMoveUp, canMoveDown, partOptions } = moves
@@ -166,26 +169,6 @@ async function run(action: () => Promise<unknown>): Promise<void> {
 function changePart(event: Event): void {
   const value = (event.target as HTMLSelectElement).value
   if (value !== '') void run(() => moves.moveToPart(value))
-}
-
-const renameOffer = computed(() => {
-  const pending = manuscript.pendingRename
-  return pending !== null && pending.path === properties.value?.path ? pending.plan : null
-})
-
-const renameQuestion = computed(() => {
-  const plan = renameOffer.value
-  if (plan === null) return ''
-  const links =
-    plan.linkCount === 0
-      ? ''
-      : ` This also updates ${String(plan.linkCount)} ${plan.linkCount === 1 ? 'link' : 'links'} in ${String(plan.fileCount)} ${plan.fileCount === 1 ? 'file' : 'files'}.`
-  return `Rename the file to “${plan.newName}”?${links}`
-})
-
-function acceptRename(): void {
-  const path = manuscript.pendingRename?.path
-  if (path !== undefined) void run(() => manuscript.renameEntry(path))
 }
 
 /** The part's own title when the link resolves; otherwise the link as written. */
@@ -290,21 +273,11 @@ const partName = computed(() => {
           v-model="title"
           type="text"
           dir="auto"
-          :placeholder="`${manuscript.entry?.title ?? ''} (from the file name)`"
+          :placeholder="`${editor.entry?.title ?? ''} (from the file name)`"
           :disabled="disabled"
           @change="saveText('title', title)"
         />
-        <div v-if="renameOffer" class="note" role="status">
-          <p dir="auto">{{ renameQuestion }}</p>
-          <div class="choices">
-            <button type="button" class="primary" :disabled="disabled" @click="acceptRename">
-              Rename file
-            </button>
-            <button type="button" :disabled="disabled" @click="manuscript.dismissRename()">
-              Keep the name
-            </button>
-          </div>
-        </div>
+        <RenameOffer :disabled="disabled" />
       </div>
 
       <div v-if="properties.kind === 'chapter'" class="field">
@@ -428,8 +401,8 @@ const partName = computed(() => {
         ></textarea>
       </div>
 
-      <p v-if="manuscript.actionError" class="note warn" role="alert">
-        {{ manuscript.actionError }}
+      <p v-if="editor.actionError" class="note warn" role="alert">
+        {{ editor.actionError }}
       </p>
       <p v-if="readOnly" class="note">This project is open read-only.</p>
     </template>
@@ -437,19 +410,9 @@ const partName = computed(() => {
   </aside>
 </template>
 
-<style scoped>
-.inspector {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  width: 320px;
-  flex-shrink: 0;
-  overflow-y: auto;
-  padding: 16px 18px 40px;
-  border-inline-start: 1px solid var(--line);
-  background: var(--panel);
-}
+<style scoped src="./inspector.css"></style>
 
+<style scoped>
 .position dl {
   display: flex;
   gap: 24px;
@@ -485,61 +448,6 @@ const partName = computed(() => {
   gap: 4px;
 }
 
-.choices {
-  display: flex;
-  gap: 6px;
-}
-
-.note {
-  margin: 10px 0 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: var(--raised);
-  color: var(--text-dim);
-  line-height: 1.45;
-}
-
-.note p {
-  margin: 0 0 8px;
-}
-
-.note.warn {
-  background: var(--accent-soft);
-  color: var(--text);
-}
-
-:deep(.field) {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-:deep(input),
-select,
-textarea {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  background: var(--bg);
-  color: var(--text);
-  font: inherit;
-  font-size: 13px;
-}
-
-textarea {
-  resize: vertical;
-  font-family: var(--font-prose);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.small {
-  align-self: flex-start;
-  padding: 4px 6px;
-  font-size: 12px;
-}
-
 .threads {
   display: flex;
   flex-wrap: wrap;
@@ -565,19 +473,5 @@ textarea {
   width: 8px;
   height: 8px;
   border-radius: 2px;
-}
-
-.hint {
-  margin: 0;
-  font-size: 12px;
-  color: var(--ok);
-}
-
-.hint.bad {
-  color: var(--danger);
-}
-
-.empty {
-  color: var(--text-muted);
 }
 </style>

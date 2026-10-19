@@ -5,7 +5,7 @@ import type {
   ManuscriptRepository,
   ReadEntryTextError
 } from '../../domain/ports/manuscript-repository'
-import { countWords } from '../../domain/word-count'
+import { countWords } from '../../../../shared-kernel/word-count'
 
 /** A part's or chapter's prose, ready for the editor. */
 export interface OpenedEntry extends EntryText {

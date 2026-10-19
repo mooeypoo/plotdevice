@@ -1,112 +1,44 @@
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import type {
-  ApiError,
   ChapterDestinationDto,
   ChapterDto,
   EntryPropertiesDto,
   ManuscriptDto,
   PartDto,
-  ProjectChangeDto,
-  PropertyChangesDto,
-  RenamePlanDto
+  PropertyChangesDto
 } from '../../../contract/dtos'
-import { createAutosaver } from './autosaver'
 import { romanNumeral } from '../shared/roman-numeral'
+import { useEditorStore } from './editor-store'
+import { registerEntryOwner } from './entry-owners'
+import type { EntryPlace } from './entry-place'
 import { plotDeviceApi } from './plot-device-api'
 
-/** Where the open entry's text stands relative to the file on disk. */
-export type SaveState = 'saved' | 'unsaved' | 'saving' | 'conflict' | 'error' | 'missing'
-
-/** The part or chapter open in the editor. */
-export interface OpenEntry {
-  readonly path: string
-  readonly kind: 'part' | 'chapter'
-  /** "Part One · Chapter 1", "Part One", "Not in sequence", "Unordered". */
-  readonly label: string
-  readonly title: string
-  /** Increments when the text is replaced from disk, so the editor remounts with it. */
-  readonly revision: number
-}
-
-/** Where an entry sits in the manuscript. */
-interface EntryPlace {
-  readonly kind: 'part' | 'chapter'
-  readonly title: string
-  readonly label: string
+/** Where a part or chapter sits in the manuscript, with its part's listing. */
+interface ManuscriptPlace {
+  readonly place: EntryPlace
   readonly part?: PartDto
 }
 
-/** A rename waiting for the writer's answer (`settings.file_names: ask`). */
-export interface PendingRename {
-  readonly path: string
-  readonly plan: RenamePlanDto
-}
-
-/** Autosave this long after the writer stops typing. */
-export const AUTOSAVE_DELAY_MS = 800
-
-/** The binder's data, the entry in the editor, and saving it. */
+/**
+ * The binder's data: parts and chapters in order, the open part's or chapter's properties, and
+ * changes to the book's structure. The text in the editor belongs to the editor store.
+ */
 export const useManuscriptStore = defineStore('manuscript', () => {
   const manuscript = shallowRef<ManuscriptDto | null>(null)
   const loadError = ref<string | null>(null)
-  const entry = ref<OpenEntry | null>(null)
-  const text = ref('')
-  const wordCount = ref(0)
-  const saveState = ref<SaveState>('saved')
-  const saveError = ref<string | null>(null)
-  /** The open entry's frontmatter, as the inspector shows it. */
+  /** The open part's or chapter's frontmatter, as the inspector shows it. */
   const properties = shallowRef<EntryPropertiesDto | null>(null)
-  const actionError = ref<string | null>(null)
-  const pendingRename = shallowRef<PendingRename | null>(null)
-  /** A short note after the open text was replaced by a newer version from disk. */
-  const diskNotice = ref<string | null>(null)
-  // The open file's version, shared by the editor and the inspector: both write the same file.
-  let version = ''
-  let savedText = ''
-  let revision = 0
-  // The open entry's part, remembered so a chapter whose file vanished can be saved there again.
-  let lastPartPath: string | null = null
 
   const api = (): ReturnType<typeof plotDeviceApi.current>['manuscript'] =>
     plotDeviceApi.current().manuscript
 
   const places = computed(() => indexPlaces(manuscript.value))
 
-  const currentPart = computed<PartDto | undefined>(() =>
-    entry.value === null ? undefined : places.value.get(entry.value.path)?.part
-  )
-
-  async function save(overwrite = false): Promise<void> {
-    const current = entry.value
-    if (current === null || saveState.value === 'missing') return
-    if (saveState.value === 'conflict' && !overwrite) return
-    const sending = text.value
-    if (sending === savedText && !overwrite) {
-      saveState.value = 'saved'
-      return
-    }
-    saveState.value = 'saving'
-    const result = await api().saveEntryText(current.path, sending, version, overwrite)
-    if (entry.value?.path !== current.path) return
-
-    if (result.ok) {
-      version = result.value.version
-      savedText = sending
-      updateWordCount(current.path, result.value.wordCount)
-      saveState.value = text.value === sending ? 'saved' : 'unsaved'
-      saveError.value = null
-      if (saveState.value === 'unsaved') autosaver.schedule()
-    } else if (result.error.code === 'changed-on-disk') {
-      saveState.value = 'conflict'
-      saveError.value = null
-    } else {
-      saveState.value = 'error'
-      saveError.value = describeSaveError(result.error)
-    }
-  }
-
-  const autosaver = createAutosaver({ delayMs: AUTOSAVE_DELAY_MS, save: () => save() })
+  const currentPart = computed<PartDto | undefined>(() => {
+    const open = useEditorStore().entry
+    return open === null ? undefined : places.value.get(open.path)?.part
+  })
 
   async function load(): Promise<void> {
     const result = await api().getManuscript()
@@ -118,142 +50,18 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     }
   }
 
-  /** Unsaved text that saving can't fix by itself (a conflict, a failed save, or a missing file). */
-  const hasStuckChanges = computed(
-    () =>
-      saveState.value === 'missing' ||
-      ((saveState.value === 'conflict' || saveState.value === 'error') && text.value !== savedText)
-  )
-
-  async function open(path: string): Promise<boolean> {
-    await flush()
-    // Switching now would silently drop the writer's unsaved text.
-    if (hasStuckChanges.value) return false
-    const place = places.value.get(path)
-    if (place === undefined) return false
-    const result = await api().openEntry(path)
-    if (!result.ok) {
-      loadError.value = result.error.message
-      return false
-    }
-    revision += 1
-    entry.value = { path, kind: place.kind, label: place.label, title: place.title, revision }
-    text.value = result.value.text
-    savedText = result.value.text
-    version = result.value.version
-    wordCount.value = result.value.wordCount
-    saveState.value = 'saved'
-    saveError.value = null
-    actionError.value = null
-    diskNotice.value = null
-    lastPartPath = place.part?.path ?? null
-    await readProperties(path)
-    return true
-  }
-
-  async function readProperties(path: string): Promise<void> {
-    const result = await api().getEntryProperties(path)
-    if (entry.value?.path !== path) return
-    properties.value = result.ok ? result.value.properties : null
-    // Only adopt the version if the body on disk is still what the editor has.
-    if (result.ok && saveState.value === 'saved') version = result.value.version
-  }
-
   /** Re-reads the binder and keeps the open entry's label and title in step with it. */
   async function reload(): Promise<void> {
     await load()
-    const current = entry.value
-    const place = current === null ? undefined : places.value.get(current.path)
-    if (current !== null && place !== undefined) {
-      entry.value = { ...current, label: place.label, title: place.title }
-      lastPartPath = place.part?.path ?? null
-    }
+    useEditorStore().refreshPlace()
   }
 
-  /**
-   * Catches up with files other programs changed. If the open entry's file changed: a change that
-   * leaves its text as last saved (only line endings or frontmatter) just updates the version; new
-   * text loads quietly unless the writer has unsaved typing, which becomes a conflict; a vanished
-   * file keeps the writer's text and stops saving.
-   */
-  async function syncFromDisk(changes: readonly ProjectChangeDto[]): Promise<void> {
-    await reload()
-    const current = entry.value
-    if (current === null || !changes.some((change) => change.path === current.path)) return
-
-    const result = await api().openEntry(current.path)
-    if (entry.value?.path !== current.path) return
-    if (!result.ok) {
-      if (result.error.code === 'not-found' || result.error.code === 'entry-not-allowed') {
-        autosaver.cancel()
-        saveState.value = 'missing'
-        diskNotice.value = null
-      }
-      return
-    }
-
-    const disk = result.value
-    const wasMissing = saveState.value === 'missing'
-    if (disk.text === savedText || disk.text === text.value) {
-      version = disk.version
-      savedText = disk.text
-      if (wasMissing || saveState.value === 'conflict') {
-        saveState.value = text.value === savedText ? 'saved' : 'unsaved'
-        if (saveState.value === 'unsaved') autosaver.schedule()
-      }
-    } else if (text.value === savedText && saveState.value !== 'conflict' && !wasMissing) {
-      autosaver.cancel()
-      revision += 1
-      entry.value = { ...current, revision }
-      text.value = disk.text
-      savedText = disk.text
-      version = disk.version
-      wordCount.value = disk.wordCount
-      saveState.value = 'saved'
-      diskNotice.value = 'Updated from disk: this file changed in another program.'
-    } else {
-      autosaver.cancel()
-      saveState.value = 'conflict'
-    }
-    await readProperties(current.path)
-  }
-
-  /**
-   * The open file vanished: saves the writer's text as a new chapter (or part) with the same
-   * title, in the same part when it still exists, and opens it.
-   */
-  async function saveMissingAsNew(): Promise<boolean> {
-    const current = entry.value
-    if (current === null || saveState.value !== 'missing') return false
-    const keep = text.value
-    const partPath = lastPartPath !== null && places.value.has(lastPartPath) ? lastPartPath : null
-    const result =
-      current.kind === 'part'
-        ? await api().createPart(current.title)
-        : await api().createChapter(partPath, current.title)
-    if (!result.ok) {
-      actionError.value = result.error.message
-      return false
-    }
-    await reload()
-    // The text is about to be saved into the new file; nothing is left behind.
-    saveState.value = 'saved'
-    savedText = text.value
-    if (!(await open(result.value.path))) return false
-    edit(keep)
-    await flush()
-    return true
-  }
-
-  /** The open file vanished and the writer doesn't want its text: closes it. */
-  function discardMissing(): void {
-    if (saveState.value !== 'missing') return
-    autosaver.cancel()
-    saveState.value = 'saved'
-    entry.value = null
-    properties.value = null
-    text.value = ''
-    savedText = ''
+  /** Reads a part's or chapter's properties; returns the file version they came from. */
+  async function readProperties(path: string): Promise<string | undefined> {
+    const result = await api().getEntryProperties(path)
+    if (useEditorStore().entry?.path !== path) return undefined
+    properties.value = result.ok ? result.value.properties : null
+    return result.ok ? result.value.version : undefined
   }
 
   /**
@@ -261,277 +69,185 @@ export const useManuscriptStore = defineStore('manuscript', () => {
    * look like a conflict to each other.
    */
   async function updateProperties(changes: PropertyChangesDto): Promise<boolean> {
-    const current = entry.value
+    const editor = useEditorStore()
+    const current = editor.entry
     if (current === null) return false
-    await flush()
-    if (hasStuckChanges.value || saveState.value === 'conflict') return false
+    const version = await editor.versionForPropertyChange()
+    if (version === undefined) return false
     const result = await api().updateEntryProperties(current.path, version, changes)
-    if (entry.value?.path !== current.path) return false
+    if (editor.entry?.path !== current.path) return false
     if (!result.ok) {
-      if (result.error.code === 'changed-on-disk') saveState.value = 'conflict'
-      else actionError.value = result.error.message
+      editor.propertiesWritten({
+        ok: false,
+        conflict: result.error.code === 'changed-on-disk',
+        message: result.error.message
+      })
       return false
     }
-    version = result.value.version
+    editor.propertiesWritten({ ok: true, version: result.value.version })
     properties.value = result.value.properties
-    actionError.value = null
     await reload()
-    if (changes.title !== undefined) await offerRename(current.path)
+    if (changes.title !== undefined) await editor.offerRename(current.path)
     return true
   }
 
-  /** After a title change: rename the file now (`always`), or ask first (`ask`). */
-  async function offerRename(path: string): Promise<void> {
-    pendingRename.value = null
-    const result = await api().planRename(path)
-    if (!result.ok || result.value === null || entry.value?.path !== path) return
-    if (result.value.policy === 'always') await renameEntry(path)
-    else pendingRename.value = { path, plan: result.value }
-  }
-
-  /** Renames the file to match its title, updating links; the open entry follows it. */
-  async function renameEntry(path: string): Promise<boolean> {
-    pendingRename.value = null
-    await flush()
-    if (hasStuckChanges.value) return false
-    const result = await api().renameEntry(path)
+  /** Runs a structural change after saving the open text; refuses if that text is stuck. */
+  async function restructure(
+    change: () => Promise<
+      | { ok: true; path?: string; from?: string; failed: readonly string[] }
+      | { ok: false; message: string }
+    >
+  ): Promise<boolean> {
+    const editor = useEditorStore()
+    await editor.flush()
+    if (editor.hasStuckChanges) return false
+    const result = await change()
     if (!result.ok) {
-      actionError.value = result.error.message
+      editor.actionError = result.message
       return false
     }
-    const { skipped } = result.value
-    actionError.value =
-      skipped.length > 0
-        ? `Renamed, but links in ${String(skipped.length)} ${skipped.length === 1 ? 'file' : 'files'} couldn’t be updated safely: ${skipped.join(', ')}.`
+    const { failed } = result
+    editor.actionError =
+      failed.length > 0
+        ? `${String(failed.length)} ${failed.length === 1 ? 'file' : 'files'} couldn’t be renumbered and were left as they were.`
         : null
-    await afterStructureChange(path, result.value.path)
+    if (result.from !== undefined && result.path !== undefined) {
+      editor.followMove(result.from, result.path)
+    }
+    await reload()
+    // The open entry's file may have been rewritten; pick up its new version.
+    await editor.readProperties()
     return true
-  }
-
-  function dismissRename(): void {
-    pendingRename.value = null
   }
 
   /**
    * Moves a chapter to a position in a part (`part: null`: a book without parts), or out of the
    * book's order (`null`).
    */
-  async function moveChapter(
-    path: string,
-    destination: ChapterDestinationDto | null
-  ): Promise<boolean> {
-    await flush()
-    if (hasStuckChanges.value) return false
-    const result = await api().moveChapter(path, destination)
-    if (!result.ok) {
-      actionError.value = result.error.message
-      return false
-    }
-    reportFailed(result.value.failed)
-    await afterStructureChange(path, result.value.path)
-    return true
+  function moveChapter(path: string, destination: ChapterDestinationDto | null): Promise<boolean> {
+    return restructure(async () => {
+      const result = await api().moveChapter(path, destination)
+      return result.ok
+        ? { ok: true, from: path, path: result.value.path, failed: result.value.failed }
+        : { ok: false, message: result.error.message }
+    })
   }
 
   /** Moves a part to a position among the numbered parts. */
-  async function movePart(path: string, index: number): Promise<boolean> {
-    await flush()
-    if (hasStuckChanges.value) return false
-    const result = await api().movePart(path, index)
-    if (!result.ok) {
-      actionError.value = result.error.message
-      return false
-    }
-    reportFailed(result.value.failed)
-    await afterStructureChange(path, path)
-    return true
+  function movePart(path: string, index: number): Promise<boolean> {
+    return restructure(async () => {
+      const result = await api().movePart(path, index)
+      return result.ok
+        ? { ok: true, failed: result.value.failed }
+        : { ok: false, message: result.error.message }
+    })
   }
 
-  function reportFailed(failed: readonly string[]): void {
-    actionError.value =
-      failed.length > 0
-        ? `${String(failed.length)} ${failed.length === 1 ? 'file' : 'files'} couldn’t be renumbered and were left as they were.`
-        : null
-  }
-
-  /**
-   * Re-reads the binder after files were rewritten or moved. The open entry follows its file to a
-   * new path, keeps its text, and picks up the file's new version.
-   */
-  async function afterStructureChange(from: string, to: string): Promise<void> {
-    const current = entry.value
-    if (current !== null && current.path === from && to !== from) {
-      entry.value = { ...current, path: to }
-    }
-    await reload()
-    if (entry.value !== null) await readProperties(entry.value.path)
+  /** Renumbers a part's chapters 1, 2, 3… (`null`: a book without parts). */
+  function renumberPart(partPath: string | null): Promise<boolean> {
+    return restructure(async () => {
+      const result = await api().renumberPart(partPath)
+      return result.ok
+        ? { ok: true, failed: result.value.failed }
+        : { ok: false, message: result.error.message }
+    })
   }
 
   /** Creates a chapter at the end of a part (`null`: a book without parts) and opens it. */
   async function createChapter(partPath: string | null, title: string): Promise<boolean> {
-    await flush()
-    if (hasStuckChanges.value) return false
+    const editor = useEditorStore()
+    await editor.flush()
+    if (editor.hasStuckChanges) return false
     const result = await api().createChapter(partPath, title)
     if (!result.ok) {
-      actionError.value = result.error.message
+      editor.actionError = result.error.message
       return false
     }
     await reload()
-    return open(result.value.path)
+    return editor.open(result.value.path)
   }
 
   /** Creates a part after the others. */
   async function createPart(title: string): Promise<boolean> {
     const result = await api().createPart(title)
     if (!result.ok) {
-      actionError.value = result.error.message
+      useEditorStore().actionError = result.error.message
       return false
     }
     await reload()
     return true
   }
 
-  /** Renumbers a part's chapters 1, 2, 3… (`null`: a book without parts). */
-  async function renumberPart(partPath: string | null): Promise<boolean> {
-    await flush()
-    if (hasStuckChanges.value) return false
-    const result = await api().renumberPart(partPath)
-    if (!result.ok) {
-      actionError.value = result.error.message
-      return false
-    }
-    reportFailed(result.value.failed)
-    const path = entry.value?.path
-    if (path !== undefined) await afterStructureChange(path, path)
-    else await reload()
-    return true
-  }
-
-  function edit(newText: string): void {
-    text.value = newText
-    diskNotice.value = null
-    if (saveState.value === 'conflict' || saveState.value === 'missing') return
-    saveState.value = newText === savedText ? 'saved' : 'unsaved'
-    if (saveState.value === 'unsaved') autosaver.schedule()
-  }
-
-  async function flush(): Promise<void> {
-    await autosaver.flush()
-  }
-
-  /** In a conflict: drop the writer's unsaved text and load the file as it is on disk now. */
-  async function loadVersionOnDisk(): Promise<void> {
-    const current = entry.value
-    if (current === null) return
-    autosaver.cancel()
-    saveState.value = 'saved'
-    savedText = text.value
-    await open(current.path)
-  }
-
-  /** In a conflict: write the writer's text over the outside change. */
-  async function keepMine(): Promise<void> {
-    autosaver.cancel()
-    await save(true)
-  }
-
-  async function close(): Promise<void> {
-    await flush()
-    pendingRename.value = null
-    entry.value = null
-    properties.value = null
-    manuscript.value = null
-    text.value = ''
-  }
-
-  function closeEntry(): void {
-    void flush().then(() => {
-      entry.value = null
-    })
-  }
-
-  function updateWordCount(path: string, count: number): void {
-    const previous = wordCount.value
-    wordCount.value = count
+  /** Keeps the binder's word counts current as the open part or chapter is saved. */
+  function addWords(path: string, delta: number): void {
     const current = manuscript.value
-    if (current === null || previous === count) return
-    manuscript.value = withWordCount(current, path, count - previous)
+    if (current !== null && delta !== 0) manuscript.value = withWordCount(current, path, delta)
+  }
+
+  function close(): void {
+    manuscript.value = null
+    properties.value = null
   }
 
   return {
     manuscript,
     loadError,
-    entry,
-    text,
-    wordCount,
-    saveState,
-    saveError,
     properties,
-    actionError,
     currentPart,
-    hasStuckChanges,
     load,
-    open,
-    edit,
-    flush,
-    loadVersionOnDisk,
-    keepMine,
-    close,
-    closeEntry,
+    reload,
+    readProperties,
     updateProperties,
-    createChapter,
-    createPart,
-    renumberPart,
     moveChapter,
     movePart,
-    pendingRename,
-    diskNotice,
-    syncFromDisk,
-    saveMissingAsNew,
-    discardMissing,
-    renameEntry,
-    dismissRename,
+    renumberPart,
+    createChapter,
+    createPart,
+    addWords,
+    close,
+    placeOf: (path: string): EntryPlace | undefined => places.value.get(path)?.place,
     hasEntry: (path: string) => places.value.has(path)
   }
 })
 
-function indexPlaces(manuscript: ManuscriptDto | null): Map<string, EntryPlace> {
-  const places = new Map<string, EntryPlace>()
+registerEntryOwner(['part', 'chapter'], () => useManuscriptStore())
+
+function indexPlaces(manuscript: ManuscriptDto | null): Map<string, ManuscriptPlace> {
+  const places = new Map<string, ManuscriptPlace>()
   if (manuscript === null) return places
   const chapterLabel = (prefix: string, chapter: ChapterDto): string =>
     chapter.number === undefined ? prefix : `${prefix} · Chapter ${String(chapter.number)}`
+  const chapterPlace = (chapter: ChapterDto, label: string, part?: PartDto): ManuscriptPlace => ({
+    place: {
+      kind: 'chapter',
+      title: chapter.title,
+      label,
+      ...(part !== undefined ? { partPath: part.path } : {})
+    },
+    ...(part !== undefined ? { part } : {})
+  })
 
   for (const part of manuscript.parts) {
     const partLabel = `Part ${romanNumeral(part.number ?? 0)}`
-    places.set(part.path, { kind: 'part', title: part.title, label: partLabel, part })
+    places.set(part.path, { place: { kind: 'part', title: part.title, label: partLabel }, part })
     for (const chapter of part.chapters) {
-      places.set(chapter.path, {
-        kind: 'chapter',
-        title: chapter.title,
-        label: chapterLabel(partLabel, chapter),
-        part
-      })
+      places.set(chapter.path, chapterPlace(chapter, chapterLabel(partLabel, chapter), part))
     }
   }
   for (const part of manuscript.unnumberedParts) {
-    places.set(part.path, { kind: 'part', title: part.title, label: 'Not in sequence', part })
+    places.set(part.path, {
+      place: { kind: 'part', title: part.title, label: 'Not in sequence' },
+      part
+    })
     for (const chapter of part.chapters) {
-      places.set(chapter.path, {
-        kind: 'chapter',
-        title: chapter.title,
-        label: `${part.title} · not in sequence`,
-        part
-      })
+      places.set(chapter.path, chapterPlace(chapter, `${part.title} · not in sequence`, part))
     }
   }
   for (const chapter of manuscript.chapters) {
-    places.set(chapter.path, {
-      kind: 'chapter',
-      title: chapter.title,
-      label: `Chapter ${String(chapter.number)}`
-    })
+    places.set(chapter.path, chapterPlace(chapter, `Chapter ${String(chapter.number)}`))
   }
   for (const { chapter } of manuscript.unordered) {
-    places.set(chapter.path, { kind: 'chapter', title: chapter.title, label: 'Unordered' })
+    places.set(chapter.path, chapterPlace(chapter, 'Unordered'))
   }
   return places
 }
@@ -556,16 +272,5 @@ function withWordCount(manuscript: ManuscriptDto, path: string, delta: number): 
       chapter: bumpChapter(entry.chapter)
     })),
     wordCount: manuscript.wordCount + delta
-  }
-}
-
-function describeSaveError(error: ApiError): string {
-  switch (error.code) {
-    case 'read-only':
-      return 'This project is open read-only, so changes aren’t saved.'
-    case 'not-found':
-      return 'This file was moved or deleted outside Plot Device.'
-    default:
-      return error.message
   }
 }

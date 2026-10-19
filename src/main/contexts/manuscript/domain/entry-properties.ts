@@ -1,5 +1,5 @@
 import type { ProjectPath } from '../../../shared-kernel/project-path'
-import { isMapping } from './frontmatter-values'
+import { isMapping } from '../../../shared-kernel/frontmatter-values'
 
 /**
  * A part's or chapter's frontmatter as the inspector shows it: the values as written, so the

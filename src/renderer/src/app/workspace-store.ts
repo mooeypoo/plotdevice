@@ -6,6 +6,8 @@ import type {
   ProjectSummaryDto,
   RecentProjectDto
 } from '../../../contract/dtos'
+import { useCodexStore } from './codex-store'
+import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 
@@ -102,13 +104,15 @@ export const useWorkspaceStore = defineStore('workspace', () => {
    */
   async function leaveCurrentProject(): Promise<boolean> {
     if (project.value === null) return true
-    const manuscript = useManuscriptStore()
-    await manuscript.flush()
-    if (manuscript.hasStuckChanges) {
+    const editor = useEditorStore()
+    await editor.flush()
+    if (editor.hasStuckChanges) {
       errorMessage.value = 'Resolve the unsaved changes in the open chapter first.'
       return false
     }
-    await manuscript.close()
+    await editor.close()
+    useManuscriptStore().close()
+    useCodexStore().close()
     await api().closeProject()
     project.value = null
     return true

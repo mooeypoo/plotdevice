@@ -3,6 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
+import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import InspectorPanel from './InspectorPanel.vue'
@@ -18,7 +19,7 @@ beforeEach(async () => {
 
 describe('InspectorPanel', () => {
   it('locks the fields of a file that was deleted outside the app', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('First frost.md')
     const panel = mount(InspectorPanel)
     await flushPromises()

@@ -74,8 +74,6 @@ function createChapter(title: string): void {
 <template>
   <nav class="binder" aria-label="Binder" @dragover="drag.clear">
     <div class="scroll">
-      <div class="eyebrow heading">Manuscript</div>
-
       <BinderPart
         v-for="(part, index) in manuscript.parts"
         :key="part.path"
@@ -248,21 +246,15 @@ function createChapter(title: string): void {
 
 .binder {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  width: 280px;
-  flex-shrink: 0;
-  border-inline-end: 1px solid var(--line);
-  background: var(--panel);
+  min-height: 0;
 }
 
 .scroll {
   flex: 1;
   overflow-y: auto;
   padding: 14px 10px 10px;
-}
-
-.heading {
-  padding: 0 8px 10px;
 }
 
 .flat {

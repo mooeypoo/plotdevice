@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { formatWordCount } from '../features/binder/binder-labels'
+import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useWorkspaceStore } from './workspace-store'
 
 const manuscript = useManuscriptStore()
+const editor = useEditorStore()
 const workspace = useWorkspaceStore()
 
 const saveLabel = computed(() => {
   if (workspace.project?.readOnly === true) return 'Read-only'
-  switch (manuscript.saveState) {
+  switch (editor.saveState) {
     case 'saved':
       return 'Saved'
     case 'unsaved':
@@ -28,22 +30,22 @@ const saveLabel = computed(() => {
 const saveTone = computed(() => {
   if (workspace.project?.readOnly === true) return 'var(--text-muted)'
   if (
-    manuscript.saveState === 'conflict' ||
-    manuscript.saveState === 'error' ||
-    manuscript.saveState === 'missing'
+    editor.saveState === 'conflict' ||
+    editor.saveState === 'error' ||
+    editor.saveState === 'missing'
   )
     return 'var(--danger)'
-  if (manuscript.saveState === 'saved') return 'var(--ok)'
+  if (editor.saveState === 'saved') return 'var(--ok)'
   return 'var(--warning)'
 })
 </script>
 
 <template>
   <footer class="status-bar">
-    <template v-if="manuscript.entry">
+    <template v-if="editor.entry">
       <span>
-        <span class="strong">{{ formatWordCount(manuscript.wordCount) }}</span>
-        words in {{ manuscript.entry.kind }}
+        <span class="strong">{{ formatWordCount(editor.wordCount) }}</span>
+        words in {{ editor.entry.kind }}
       </span>
       <span v-if="manuscript.currentPart" dir="auto">
         {{ manuscript.currentPart.title }} {{ formatWordCount(manuscript.currentPart.wordCount) }}
@@ -53,7 +55,7 @@ const saveTone = computed(() => {
       Manuscript {{ formatWordCount(manuscript.manuscript.wordCount) }}
     </span>
     <span class="spacer"></span>
-    <span v-if="manuscript.entry" class="save" role="status" aria-live="polite">
+    <span v-if="editor.entry" class="save" role="status" aria-live="polite">
       <span class="dot" :style="{ background: saveTone }" aria-hidden="true"></span>
       {{ saveLabel }}
     </span>

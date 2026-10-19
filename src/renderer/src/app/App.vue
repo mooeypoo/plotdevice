@@ -2,23 +2,23 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 import InitializePrompt from '../features/welcome/InitializePrompt.vue'
 import WelcomeScreen from '../features/welcome/WelcomeScreen.vue'
-import { useManuscriptStore } from './manuscript-store'
+import { useEditorStore } from './editor-store'
 import { plotDeviceApi } from './plot-device-api'
 import ProjectLayout from './ProjectLayout.vue'
 import { useWorkspaceStore } from './workspace-store'
 
 const workspace = useWorkspaceStore()
-const manuscript = useManuscriptStore()
+const editor = useEditorStore()
 let stopListening: (() => void) | undefined
 
 onMounted(() => {
   void workspace.loadRecents()
   // Save the last keystrokes before the window closes.
   stopListening = plotDeviceApi.current().app.onBeforeClose(() => {
-    void manuscript.flush().finally(() => {
+    void editor.flush().finally(() => {
       const app = plotDeviceApi.current().app
       const discard =
-        !manuscript.hasStuckChanges ||
+        !editor.hasStuckChanges ||
         window.confirm(
           'Your latest changes to this chapter couldn’t be saved. Close anyway and lose them?'
         )

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { ProjectPath } from '../../../shared-kernel/project-path'
 import { readEntryProperties } from './entry-properties'
-import { newChapterText, newPartText, uniqueFileName } from './new-entry'
+import { uniqueFileName } from '../../../shared-kernel/unique-file-name'
+import { newChapterText, newPartText } from './new-entry'
 import { propertyWrites } from './property-changes'
 import { DEFAULT_STATUSES, readStatuses, withStatus } from './statuses'
 

@@ -1,7 +1,8 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createFakePlotDeviceApi, sampleManuscript } from './fake-plot-device-api'
-import { AUTOSAVE_DELAY_MS, useManuscriptStore } from './manuscript-store'
+import { AUTOSAVE_DELAY_MS, useEditorStore } from './editor-store'
+import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
@@ -20,7 +21,8 @@ afterEach(() => {
 
 describe('manuscript store', () => {
   it('opens a chapter with its place in the book', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
+    const manuscript = useManuscriptStore()
     await store.open('First frost.md')
     expect(store.entry).toMatchObject({
       kind: 'chapter',
@@ -28,11 +30,11 @@ describe('manuscript store', () => {
       label: 'Part I · Chapter 2'
     })
     expect(store.text).toBe('Four words are here.\n')
-    expect(store.currentPart?.title).toBe('Part One: The Orchard')
+    expect(manuscript.currentPart?.title).toBe('Part One: The Orchard')
   })
 
   it('opens a part’s own text, and an unordered chapter', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('Part One.md')
     expect(store.entry).toMatchObject({ kind: 'part', label: 'Part I' })
     await store.open('Lost.md')
@@ -40,7 +42,8 @@ describe('manuscript store', () => {
   })
 
   it('autosaves after a pause, and updates chapter, part, and book word counts', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
+    const manuscript = useManuscriptStore()
     await store.open('The Ferry.md')
 
     store.edit('Now there are five words.\n')
@@ -50,13 +53,13 @@ describe('manuscript store', () => {
     expect(fake.files.get('The Ferry.md')).toBe('Now there are five words.\n')
     expect(store.saveState).toBe('saved')
     expect(store.wordCount).toBe(5)
-    expect(store.manuscript?.parts[0]?.chapters[0]?.wordCount).toBe(5)
-    expect(store.manuscript?.parts[0]?.wordCount).toBe(11)
-    expect(store.manuscript?.wordCount).toBe(12)
+    expect(manuscript.manuscript?.parts[0]?.chapters[0]?.wordCount).toBe(5)
+    expect(manuscript.manuscript?.parts[0]?.wordCount).toBe(11)
+    expect(manuscript.manuscript?.wordCount).toBe(12)
   })
 
   it('does not save text that matches the file', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('The Ferry.md')
     store.edit('Three words here!\n')
     store.edit('Three words here.\n')
@@ -66,7 +69,7 @@ describe('manuscript store', () => {
   })
 
   it('saves the current chapter before opening another', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('The Ferry.md')
     store.edit('Changed.\n')
     await store.open('First frost.md')
@@ -74,7 +77,7 @@ describe('manuscript store', () => {
   })
 
   it('stops at a conflict, keeps the writer’s text, and refuses to switch away', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('The Ferry.md')
     fake.files.set('The Ferry.md', 'Edited in Obsidian.\n')
 
@@ -89,7 +92,7 @@ describe('manuscript store', () => {
   })
 
   it('resolves a conflict by keeping the writer’s text', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('The Ferry.md')
     fake.files.set('The Ferry.md', 'Edited in Obsidian.\n')
     store.edit('Mine.\n')
@@ -102,7 +105,7 @@ describe('manuscript store', () => {
   })
 
   it('resolves a conflict by loading the file’s version', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('The Ferry.md')
     const revision = store.entry?.revision
     fake.files.set('The Ferry.md', 'Edited in Obsidian.\n')
@@ -119,20 +122,22 @@ describe('manuscript store', () => {
 
 describe('manuscript store: properties and new entries', () => {
   it('loads the open entry’s properties', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
+    const manuscript = useManuscriptStore()
     await store.open('The Ferry.md')
-    expect(store.properties).toMatchObject({ path: 'The Ferry.md', kind: 'chapter' })
+    expect(manuscript.properties).toMatchObject({ path: 'The Ferry.md', kind: 'chapter' })
   })
 
   it('saves typing first, then the property change, with no false conflict', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
+    const manuscript = useManuscriptStore()
     await store.open('The Ferry.md')
     store.edit('Typed and not yet saved.\n')
 
-    expect(await store.updateProperties({ status: 'revised' })).toBe(true)
+    expect(await manuscript.updateProperties({ status: 'revised' })).toBe(true)
 
     expect(fake.files.get('The Ferry.md')).toBe('Typed and not yet saved.\n')
-    expect(store.properties?.status).toBe('revised')
+    expect(manuscript.properties?.status).toBe('revised')
     store.edit('More typing after the property change.\n')
     await store.flush()
     expect(store.saveState).toBe('saved')
@@ -140,15 +145,17 @@ describe('manuscript store: properties and new entries', () => {
   })
 
   it('shows a conflict when the file changed outside before a property change', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
+    const manuscript = useManuscriptStore()
     await store.open('The Ferry.md')
     fake.files.set('The Ferry.md', 'Edited in Obsidian.\n')
-    expect(await store.updateProperties({ status: 'revised' })).toBe(false)
+    expect(await manuscript.updateProperties({ status: 'revised' })).toBe(false)
     expect(store.saveState).toBe('conflict')
   })
 
   it('creates a chapter and opens it', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
+    const manuscript = useManuscriptStore()
     fake.api.manuscript.getManuscript = () =>
       Promise.resolve({
         ok: true,
@@ -168,7 +175,7 @@ describe('manuscript store: properties and new entries', () => {
           ]
         }
       })
-    expect(await store.createChapter('Part One.md', 'The Mill')).toBe(true)
+    expect(await manuscript.createChapter('Part One.md', 'The Mill')).toBe(true)
     expect(fake.created).toEqual(['The Mill.md'])
     expect(store.entry?.path).toBe('The Mill.md')
   })
@@ -176,19 +183,23 @@ describe('manuscript store: properties and new entries', () => {
 
 describe('manuscript store: moving and renaming', () => {
   it('saves typing before a move, then moves', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
+    const manuscript = useManuscriptStore()
     await store.open('First frost.md')
     store.edit('Typed before the drag.\n')
-    expect(await store.moveChapter('First frost.md', { part: 'Part One.md', index: 0 })).toBe(true)
+    expect(await manuscript.moveChapter('First frost.md', { part: 'Part One.md', index: 0 })).toBe(
+      true
+    )
     expect(fake.saves).toEqual(['Typed before the drag.\n'])
     expect(fake.moves).toEqual(['First frost.md → Part One.md#0'])
-    expect(await store.movePart('Part One.md', 0)).toBe(true)
-    expect(await store.moveChapter('The Ferry.md', null)).toBe(true)
+    expect(await manuscript.movePart('Part One.md', 0)).toBe(true)
+    expect(await manuscript.moveChapter('The Ferry.md', null)).toBe(true)
     expect(fake.moves.slice(1)).toEqual(['Part One.md → #0', 'The Ferry.md → unordered'])
   })
 
   it('asks before renaming when the project says ask', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
+    const manuscript = useManuscriptStore()
     await store.open('First frost.md')
     fake.renamePlan.current = {
       newPath: 'Hoarfrost.md',
@@ -197,7 +208,7 @@ describe('manuscript store: moving and renaming', () => {
       linkCount: 2,
       fileCount: 1
     }
-    await store.updateProperties({ title: 'Hoarfrost' })
+    await manuscript.updateProperties({ title: 'Hoarfrost' })
     expect(store.pendingRename?.plan.newName).toBe('Hoarfrost.md')
     expect(fake.renames).toEqual([])
 
@@ -213,9 +224,10 @@ describe('manuscript store: moving and renaming', () => {
   })
 
   it('renames without asking when the project says always, and never asks for nothing', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
+    const manuscript = useManuscriptStore()
     await store.open('First frost.md')
-    await store.updateProperties({ title: 'First frost' })
+    await manuscript.updateProperties({ title: 'First frost' })
     expect(store.pendingRename).toBeNull()
 
     fake.renamePlan.current = {
@@ -225,13 +237,14 @@ describe('manuscript store: moving and renaming', () => {
       linkCount: 0,
       fileCount: 0
     }
-    await store.updateProperties({ title: 'Hoarfrost' })
+    await manuscript.updateProperties({ title: 'Hoarfrost' })
     expect(fake.renames).toEqual(['First frost.md → Hoarfrost.md'])
     expect(store.pendingRename).toBeNull()
   })
 
   it('forgets a rename the writer declined', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
+    const manuscript = useManuscriptStore()
     await store.open('First frost.md')
     fake.renamePlan.current = {
       newPath: 'Hoarfrost.md',
@@ -240,7 +253,7 @@ describe('manuscript store: moving and renaming', () => {
       linkCount: 0,
       fileCount: 0
     }
-    await store.updateProperties({ title: 'Hoarfrost' })
+    await manuscript.updateProperties({ title: 'Hoarfrost' })
     store.dismissRename()
     expect(store.pendingRename).toBeNull()
     expect(fake.renames).toEqual([])
@@ -251,7 +264,7 @@ describe('manuscript store: changes made in other programs', () => {
   const changed = [{ path: 'First frost.md', kind: 'changed' as const }]
 
   it('loads new text quietly when the writer has no unsaved typing', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('First frost.md')
     const revision = store.entry?.revision
     fake.files.set('First frost.md', 'Rewritten in Obsidian.\n')
@@ -268,7 +281,7 @@ describe('manuscript store: changes made in other programs', () => {
   })
 
   it('turns unsaved typing plus an outside edit into a conflict, overwriting nothing', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('First frost.md')
     store.edit('Mine, not saved yet.\n')
     fake.files.set('First frost.md', 'Theirs.\n')
@@ -284,7 +297,7 @@ describe('manuscript store: changes made in other programs', () => {
   })
 
   it('keeps unsaved typing when only the version changed (line endings or frontmatter)', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('First frost.md')
     store.edit('Typing on.\n')
     // The text stays the same but the file's version changes, as a CRLF→LF rewrite does.
@@ -296,7 +309,7 @@ describe('manuscript store: changes made in other programs', () => {
   })
 
   it('ignores changes to other files', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('First frost.md')
     store.edit('Typing on.\n')
     fake.files.set('The Ferry.md', 'Elsewhere.\n')
@@ -306,7 +319,7 @@ describe('manuscript store: changes made in other programs', () => {
   })
 
   it('keeps the text of a file deleted outside, and saves it as a new chapter', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('First frost.md')
     store.edit('Words worth keeping.\n')
     fake.files.delete('First frost.md')
@@ -323,7 +336,7 @@ describe('manuscript store: changes made in other programs', () => {
   })
 
   it('lets the writer discard the text of a deleted file', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('First frost.md')
     fake.files.delete('First frost.md')
     await store.syncFromDisk([{ path: 'First frost.md', kind: 'removed' }])

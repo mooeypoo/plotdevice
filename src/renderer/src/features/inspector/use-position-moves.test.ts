@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
+import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { usePositionMoves } from './use-position-moves'
@@ -16,7 +17,7 @@ beforeEach(async () => {
 
 describe('usePositionMoves', () => {
   it('moves the first chapter down only', async () => {
-    await useManuscriptStore().open('The Ferry.md')
+    await useEditorStore().open('The Ferry.md')
     const moves = usePositionMoves()
     expect([moves.canMoveUp.value, moves.canMoveDown.value]).toEqual([false, true])
     await moves.moveDown()
@@ -24,7 +25,7 @@ describe('usePositionMoves', () => {
   })
 
   it('moves the last chapter up', async () => {
-    await useManuscriptStore().open('First frost.md')
+    await useEditorStore().open('First frost.md')
     const moves = usePositionMoves()
     expect([moves.canMoveUp.value, moves.canMoveDown.value]).toEqual([true, false])
     await moves.moveUp()
@@ -32,7 +33,7 @@ describe('usePositionMoves', () => {
   })
 
   it('offers the parts, and ignores a move to the part it is already in', async () => {
-    await useManuscriptStore().open('First frost.md')
+    await useEditorStore().open('First frost.md')
     const moves = usePositionMoves()
     expect(moves.partOptions.value.map((option) => option.path)).toEqual(['Part One.md'])
     await moves.moveToPart('Part One.md')
@@ -40,7 +41,7 @@ describe('usePositionMoves', () => {
   })
 
   it('places an unordered chapter at the end of a part', async () => {
-    await useManuscriptStore().open('Lost.md')
+    await useEditorStore().open('Lost.md')
     const moves = usePositionMoves()
     expect(moves.canMoveUp.value || moves.canMoveDown.value).toBe(false)
     await moves.moveToPart('Part One.md')

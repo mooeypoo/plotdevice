@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, watch } from 'vue'
-import BinderTree from '../features/binder/BinderTree.vue'
+import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import EditorPane from '../features/editor/EditorPane.vue'
+import CodexInspector from '../features/inspector/CodexInspector.vue'
 import InspectorPanel from '../features/inspector/InspectorPanel.vue'
 import { useInspectorStore } from './inspector-store'
 import { formatWordCount } from '../features/binder/binder-labels'
 import type { DropRequest } from '../features/binder/binder-drop'
 import { lastEntryOf, rememberLastEntry, useLayoutStore } from './layout-store'
+import { useCodexStore } from './codex-store'
+import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
+import SidePanel from './SidePanel.vue'
 import StatusBar from './StatusBar.vue'
 import TopBar from './TopBar.vue'
 import { useWarnings } from '../features/warnings/use-warnings'
@@ -17,6 +20,8 @@ import { useWorkspaceStore } from './workspace-store'
 
 const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
+const codex = useCodexStore()
+const editor = useEditorStore()
 const layout = useLayoutStore()
 const inspector = useInspectorStore()
 
@@ -28,13 +33,16 @@ function move(request: DropRequest): void {
 }
 
 const { count: attentionCount } = useWarnings()
+const isManuscriptEntry = computed(
+  () => editor.entry?.kind === 'part' || editor.entry?.kind === 'chapter'
+)
 
 onMounted(async () => {
   void inspector.loadVocabulary()
-  await manuscript.load()
+  await Promise.all([manuscript.load(), codex.load()])
   const root = workspace.project?.root
   const last = root === undefined ? undefined : lastEntryOf(root)
-  if (last !== undefined && manuscript.hasEntry(last)) await manuscript.open(last)
+  if (last !== undefined && editor.canOpen(last)) await editor.open(last)
 })
 
 onBeforeUnmount(() => {
@@ -42,7 +50,7 @@ onBeforeUnmount(() => {
 })
 
 watch(
-  () => manuscript.entry?.path ?? null,
+  () => editor.entry?.path ?? null,
   (path) => {
     const root = workspace.project?.root
     if (root !== undefined) rememberLastEntry(root, path)
@@ -83,7 +91,7 @@ useShortcuts([
     key: 's',
     mod: true,
     run: () => {
-      void manuscript.flush()
+      void editor.flush()
     }
   }
 ])
@@ -94,28 +102,24 @@ useShortcuts([
     <TopBar v-if="!layout.focusMode" />
 
     <div class="body">
-      <BinderTree
-        v-if="layout.binderOpen && !layout.focusMode && manuscript.manuscript"
-        :manuscript="manuscript.manuscript"
-        :selected-path="manuscript.entry?.path ?? null"
+      <SidePanel
+        v-if="layout.binderOpen && !layout.focusMode"
         :attention-count="attentionCount"
-        :read-only="workspace.project?.readOnly ?? false"
-        @open="manuscript.open($event)"
-        @show-overview="manuscript.closeEntry()"
-        @create-chapter="(part, title) => manuscript.createChapter(part, title)"
-        @create-part="manuscript.createPart($event)"
         @move="move"
       />
       <main class="main">
         <EditorPane />
       </main>
-      <InspectorPanel v-if="layout.inspectorOpen && !layout.focusMode && manuscript.entry" />
+      <template v-if="layout.inspectorOpen && !layout.focusMode && editor.entry">
+        <InspectorPanel v-if="isManuscriptEntry" />
+        <CodexInspector v-else />
+      </template>
     </div>
 
     <StatusBar v-if="!layout.focusMode" />
 
     <div v-else class="focus-chrome">
-      <span v-if="manuscript.entry">{{ formatWordCount(manuscript.wordCount) }} words</span>
+      <span v-if="editor.entry">{{ formatWordCount(editor.wordCount) }} words</span>
       <button type="button" class="quiet" @click="layout.exitFocusMode()">Leave focus (Esc)</button>
     </div>
   </div>

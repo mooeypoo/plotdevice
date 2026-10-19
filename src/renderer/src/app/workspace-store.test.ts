@@ -2,6 +2,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { RecentProjectDto } from '../../../contract/dtos'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
+import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useWorkspaceStore } from './workspace-store'
@@ -64,10 +65,10 @@ describe('workspace store', () => {
   it('saves the open chapter and tells the main process when closing a project', async () => {
     const store = useWorkspaceStore()
     await store.openProject('/novels/salt-orchard')
-    const manuscript = useManuscriptStore()
-    await manuscript.load()
-    await manuscript.open('The Ferry.md')
-    manuscript.edit('Typed just before closing.\n')
+    await useManuscriptStore().load()
+    const editor = useEditorStore()
+    await editor.open('The Ferry.md')
+    editor.edit('Typed just before closing.\n')
 
     await store.backToWelcome()
 
@@ -79,12 +80,12 @@ describe('workspace store', () => {
   it('refuses to close while unsaved text is stuck in a conflict', async () => {
     const store = useWorkspaceStore()
     await store.openProject('/novels/salt-orchard')
-    const manuscript = useManuscriptStore()
-    await manuscript.load()
-    await manuscript.open('The Ferry.md')
+    await useManuscriptStore().load()
+    const editor = useEditorStore()
+    await editor.open('The Ferry.md')
     fake.files.set('The Ferry.md', 'Edited in Obsidian.\n')
-    manuscript.edit('Mine.\n')
-    await manuscript.flush()
+    editor.edit('Mine.\n')
+    await editor.flush()
 
     await store.backToWelcome()
 

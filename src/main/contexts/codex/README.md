@@ -1,9 +1,11 @@
 # codex
 
-**Purpose.** Story-world entries and free-form notes: characters, locations, their relationships, and aliases.
+**Purpose.** Story-world entries and free-form notes: characters, locations, notes, and the untyped files the writer can give a type. Edits change only the body or only the edited keys.
 
-**Main concepts.** `Character`, `Location`, `Note`, `Relationship`, `Alias`.
+**Main concepts.** `CodexEntry` (`character`, `location`, `note`), `CodexProperties` (the inspector's view: the keys the app edits, `relationships` read-only for now, and every other key shown as written), `CodexChanges` → `CodexWrite`, `newCodexText` (templates that only seed new files), `UntypedFile`.
 
-**Must not know about.** Chapters, parts, or story dates. "Appears in" and interactions are cross-context read models in `src/main/queries/`, not part of this context.
+**Use cases.** Queries: `ListCodex`, `OpenCodexEntry`, `GetCodexProperties`, `PlanCodexRename`. Commands: `SaveCodexText`, `UpdateCodexProperties`, `CreateCodexEntry`, `SetEntryType`, `RenameCodexEntry`. Every command refuses read-only projects.
 
-**Status.** Empty until Phase 5.
+**Ports.** `CodexRepository` (in-memory fake beside it) and the shared `EntryRelocator`.
+
+**Must not know about.** Chapters, parts, or story dates. "Appears in" is the cross-context query `src/main/queries/get-appears-in.ts`, built on the manuscript's `ListChapterReferences`.

@@ -3,6 +3,23 @@ import { createCheckStoryDate } from './contexts/chronology/application/queries/
 import { createGetChronologySettings } from './contexts/chronology/application/queries/get-chronology-settings'
 import { describeStoryDateReading } from './contexts/chronology/domain/story-date'
 import { createMarkdownChronologyRepository } from './contexts/chronology/infrastructure/markdown-chronology-repository'
+import { createCreateCodexEntry } from './contexts/codex/application/commands/create-codex-entry'
+import {
+  createPlanCodexRename,
+  createRenameCodexEntry
+} from './contexts/codex/application/commands/rename-codex-entry'
+import { createSaveCodexText } from './contexts/codex/application/commands/save-codex-text'
+import { createSetEntryType } from './contexts/codex/application/commands/set-entry-type'
+import { createUpdateCodexProperties } from './contexts/codex/application/commands/update-codex-properties'
+import { createGetCodexProperties } from './contexts/codex/application/queries/get-codex-properties'
+import { createListCodex } from './contexts/codex/application/queries/list-codex'
+import { createOpenCodexEntry } from './contexts/codex/application/queries/open-codex-entry'
+import type { CodexSettings } from './contexts/codex/domain/codex-settings'
+import { createMarkdownCodexRepository } from './contexts/codex/infrastructure/markdown-codex-repository'
+import { createListChapterReferences } from './contexts/manuscript/application/queries/list-chapter-references'
+import { createCodexHandlers, type CodexUseCases } from './ipc/codex-handlers'
+import { registerCodexIpc } from './ipc/codex-ipc'
+import { createGetAppearsIn } from './queries/get-appears-in'
 import { createAddStatus } from './contexts/manuscript/application/commands/add-status'
 import {
   createCreateChapter,
@@ -24,7 +41,7 @@ import { createGetManuscript } from './contexts/manuscript/application/queries/g
 import { createListStatuses } from './contexts/manuscript/application/queries/list-statuses'
 import { createOpenEntry } from './contexts/manuscript/application/queries/open-entry'
 import type { ManuscriptSettings } from './contexts/manuscript/domain/manuscript-settings'
-import { createMarkdownEntryRelocator } from './contexts/manuscript/infrastructure/markdown-entry-relocator'
+import { createMarkdownEntryRelocator } from './infrastructure/links/markdown-entry-relocator'
 import { createMarkdownManuscriptRepository } from './contexts/manuscript/infrastructure/markdown-manuscript-repository'
 import { createInitializeProject } from './contexts/workspace/application/commands/initialize-project'
 import {
@@ -55,7 +72,14 @@ import { parseProjectPath, type ProjectPath } from './shared-kernel/project-path
 /** The use cases built for each open project. */
 interface ProjectUseCases {
   readonly manuscript: ManuscriptUseCases
+  readonly codex: CodexUseCases
   readonly inspector: InspectorUseCases
+}
+
+/** What each context needs to know about the open project. */
+interface ProjectContext {
+  readonly manuscript: ManuscriptSettings
+  readonly codex: CodexSettings
 }
 
 /**
@@ -81,8 +105,11 @@ export function composeApplication(): void {
     watcher = undefined
   }
 
-  const session = createProjectSession((root, settings: ManuscriptSettings): ProjectUseCases => {
+  const session = createProjectSession((root, context: ProjectContext): ProjectUseCases => {
+    const settings = context.manuscript
     const repository = createMarkdownManuscriptRepository(root)
+    const codexRepository = createMarkdownCodexRepository(root)
+    const codexSettings = context.codex
     const relocator = createMarkdownEntryRelocator(root)
     const chronology = createMarkdownChronologyRepository(root)
     const getChronologySettings = createGetChronologySettings({ repository: chronology })
@@ -101,6 +128,37 @@ export function composeApplication(): void {
         movePart: createMovePart({ repository, settings }),
         planRename: createPlanRename({ repository, relocator, settings }),
         renameEntry: createRenameEntry({ repository, relocator, settings })
+      },
+      codex: {
+        listCodex: createListCodex({ repository: codexRepository }),
+        openEntry: createOpenCodexEntry({ repository: codexRepository }),
+        saveEntryText: createSaveCodexText({
+          repository: codexRepository,
+          readOnly: codexSettings.readOnly
+        }),
+        getProperties: createGetCodexProperties({ repository: codexRepository }),
+        updateProperties: createUpdateCodexProperties({
+          repository: codexRepository,
+          settings: codexSettings
+        }),
+        createEntry: createCreateCodexEntry({
+          repository: codexRepository,
+          settings: codexSettings
+        }),
+        setEntryType: createSetEntryType({ repository: codexRepository, settings: codexSettings }),
+        planRename: createPlanCodexRename({
+          repository: codexRepository,
+          relocator,
+          settings: codexSettings
+        }),
+        renameEntry: createRenameCodexEntry({
+          repository: codexRepository,
+          relocator,
+          settings: codexSettings
+        }),
+        getAppearsIn: createGetAppearsIn({
+          listChapterReferences: createListChapterReferences({ repository })
+        })
       },
       inspector: {
         getVocabulary: createGetInspectorVocabulary({
@@ -124,11 +182,23 @@ export function composeApplication(): void {
       toProjectRoot: projectRootFromOsPath,
       rootKey: (root) => (process.platform === 'win32' ? root.toLowerCase() : root),
       onProjectOpened: (root, project) => {
+        const { folders, fileNames } = project.settings
         session.open(root, {
-          readOnly: project.readOnly,
-          partFolder: folderPath(project.settings.folders.part),
-          chapterFolder: folderPath(project.settings.folders.chapter),
-          fileNames: project.settings.fileNames
+          manuscript: {
+            readOnly: project.readOnly,
+            partFolder: folderPath(folders.part),
+            chapterFolder: folderPath(folders.chapter),
+            fileNames
+          },
+          codex: {
+            readOnly: project.readOnly,
+            folders: {
+              character: folderPath(folders.character),
+              location: folderPath(folders.location),
+              note: folderPath(folders.note)
+            },
+            fileNames
+          }
         })
         stopWatching()
         watcher = watchProject(root, (changes) => {
@@ -142,6 +212,7 @@ export function composeApplication(): void {
     })
   )
   registerManuscriptIpc(createManuscriptHandlers(() => session.current()?.manuscript))
+  registerCodexIpc(createCodexHandlers(() => session.current()?.codex))
   registerInspectorIpc(createInspectorHandlers(() => session.current()?.inspector))
 }
 

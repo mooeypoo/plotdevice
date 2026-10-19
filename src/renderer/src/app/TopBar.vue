@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useLayoutStore } from './layout-store'
+import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useWorkspaceStore } from './workspace-store'
 
 const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
+const editor = useEditorStore()
 const layout = useLayoutStore()
 
 const crumbs = computed(() => {
-  const entry = manuscript.entry
+  const entry = editor.entry
   if (entry === null) return []
   const part = manuscript.currentPart
   const chapterOfPart = entry.kind === 'chapter' && part !== undefined

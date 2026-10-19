@@ -9,13 +9,13 @@ import {
   type ProjectPath
 } from '../../../../shared-kernel/project-path'
 import { err, ok, type Result } from '../../../../shared-kernel/result'
+import { uniqueFileName } from '../../../../shared-kernel/unique-file-name'
 import { linkTo } from '../../domain/entry-link'
 import { arrangeManuscript } from '../../domain/manuscript'
 import type { ManuscriptSettings } from '../../domain/manuscript-settings'
 import {
   newChapterText,
   newPartText,
-  uniqueFileName,
   UNTITLED_CHAPTER,
   UNTITLED_PART
 } from '../../domain/new-entry'

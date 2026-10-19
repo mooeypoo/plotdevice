@@ -254,3 +254,71 @@ export interface RenumberedDto {
   readonly changed: number
   readonly failed: readonly string[]
 }
+
+/** The kinds of codex entry. */
+export type CodexKindDto = 'character' | 'location' | 'note'
+
+/** A character, location, or note in the codex list. */
+export interface CodexEntryDto {
+  readonly path: string
+  readonly kind: CodexKindDto
+  readonly title: string
+  readonly aliases: readonly string[]
+  readonly role?: string
+}
+
+/** A markdown file with no `type`, or an unknown one (`rawType`). */
+export interface UntypedFileDto {
+  readonly path: string
+  readonly rawType?: string
+}
+
+/** Everything the codex tab lists. */
+export interface CodexListingDto {
+  readonly entries: readonly CodexEntryDto[]
+  readonly untyped: readonly UntypedFileDto[]
+}
+
+/** One of a character's relationships, as written. */
+export interface RelationshipDto {
+  readonly with: string
+  readonly kind?: string
+  readonly note?: string
+}
+
+/** A codex entry's frontmatter as the inspector shows it. */
+export interface CodexPropertiesDto {
+  readonly path: string
+  readonly kind: CodexKindDto
+  readonly title?: string
+  readonly aliases: readonly string[]
+  readonly role?: string
+  readonly born?: string
+  readonly relationships: readonly RelationshipDto[]
+  /** Keys the app doesn't edit, shown read-only. */
+  readonly otherKeys: readonly { readonly key: string; readonly value: string }[]
+}
+
+/** A codex entry's properties and the file version they came from. */
+export interface CodexPropertiesViewDto {
+  readonly properties: CodexPropertiesDto
+  readonly version: string
+}
+
+/** Inspector changes to a codex entry. Only present fields change; empty removes the key. */
+export interface CodexChangesDto {
+  readonly title?: string
+  readonly aliases?: readonly string[]
+  readonly role?: string
+  readonly born?: string
+}
+
+/** A chapter a character or location appears in. */
+export interface AppearanceDto {
+  readonly path: string
+  readonly title: string
+  readonly keys: readonly ('pov' | 'characters' | 'location')[]
+}
+
+/** The types an untyped file can be given. */
+export type SettableTypeDto = 'part' | 'chapter' | 'character' | 'location' | 'note'

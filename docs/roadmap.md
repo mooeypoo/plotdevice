@@ -58,12 +58,19 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 
 **Done when:** editing in Obsidian with the app open behaves sensibly, and a test covers the conflict path.
 
-## Phase 5: Codex
-- [ ] Characters, locations, and notes: list, profile view and editing, a new-entry template, and a relationships editor.
-- [ ] Untyped files list, with an action to set a type.
-- [ ] Link autocomplete that shows each candidate's type and writes the path form for names that aren't unique. Links styled by target type.
+## Phase 5a: Codex entries
+- [x] Characters, locations, and notes in a Codex tab beside the manuscript: list, open in the editor, profile in the inspector (name, other names, role, born), new entries from a template.
+- [x] Untyped files list, with an action to set a type.
+- [x] "Appears in" list on each character and location.
+- [x] Renaming a codex entry's file to match its title, as for chapters.
+
+## Phase 5b: Links and relationships
+- [ ] Relationships editor (one-way; the other character shows them read-only). When a file can't be edited safely, say so on the entry.
+- [ ] Link autocomplete that shows each candidate's type and writes the path form for names that aren't unique. Aliases match. Links styled by target type.
+- [ ] Ctrl/Cmd+click on a link opens its target.
 - [ ] Read markdown links (`[text](file.md)`) when resolving references.
-- [ ] "Appears in" list on each character.
+- [ ] Fix-it actions in the warnings panel: write an ambiguous link with its folder, quote an unquoted link.
+- [ ] Templates for new characters and locations that the writer can change.
 
 ## Phase 6: Outline view
 - [ ] Derived outline: parts and chapters with status chips and synopses. Edit synopses inline, filter by status, POV, or thread.
@@ -89,6 +96,9 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Phase 5a follow-ups:
+  - The editor, inspector, and side panel share one open entry (`app/editor-store.ts`); stores register as owners of entry kinds (`app/entry-owners.ts`) to avoid import cycles.
+  - Codex entries have no word counts in their list, and notes have no aliases field (their other keys are shown read-only).
 - Phase 4 follow-ups:
   - "Save as a new chapter" after the open file vanished keeps the text and title, not the other properties (POV, status, dates). Carry them over through the inspector's changes.
   - Changes to `novel.md` settings (`file_names`, folders) take effect when the project is reopened; statuses and threads update live.

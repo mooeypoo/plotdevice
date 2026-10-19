@@ -2,6 +2,8 @@ import type { PlotDeviceApi } from '../../../contract/api'
 import type {
   EntryPropertiesDto,
   ManuscriptDto,
+  CodexListingDto,
+  CodexPropertiesDto,
   ProjectChangeDto,
   ProjectSummaryDto,
   RenamePlanDto
@@ -62,6 +64,22 @@ export const sampleManuscript: ManuscriptDto = {
  * properties per path. A version is the text and a properties revision, so an outside edit to
  * either changes it.
  */
+/** A small codex: one character, one location, one note, one untyped file. */
+export const sampleCodex: CodexListingDto = {
+  entries: [
+    {
+      path: 'characters/Ilka.md',
+      kind: 'character',
+      title: 'Ilka',
+      aliases: ['Ilk'],
+      role: 'lead'
+    },
+    { path: 'locations/Marrow.md', kind: 'location', title: 'Marrow', aliases: [] },
+    { path: 'notes/Research.md', kind: 'note', title: 'Research', aliases: [] }
+  ],
+  untyped: [{ path: 'Loose thoughts.md' }]
+}
+
 export function createFakePlotDeviceApi(): {
   api: PlotDeviceApi
   files: Map<string, string>
@@ -76,10 +94,15 @@ export function createFakePlotDeviceApi(): {
   emitChanges(changes: readonly ProjectChangeDto[]): void
   /** Simulates another program rewriting a file without changing its text (line endings). */
   touch(path: string): void
+  /** Codex entries created, and types set on untyped files. */
+  codexWrites: string[]
   /** What `refreshProject` returns next. */
   summary: { current: ProjectSummaryDto }
 } {
   const files = new Map([
+    ['characters/Ilka.md', 'Ilka grafts pear trees.\n'],
+    ['locations/Marrow.md', 'A village on the marsh.\n'],
+    ['notes/Research.md', 'Smudge pots.\n'],
     ['Part One.md', 'Two words.\n'],
     ['The Ferry.md', 'Three words here.\n'],
     ['First frost.md', 'Four words are here.\n'],
@@ -93,6 +116,22 @@ export function createFakePlotDeviceApi(): {
     renames: [] as string[]
   }
   const renamePlan: { current: RenamePlanDto | null } = { current: null }
+  const codexWrites: string[] = []
+  let codex: CodexListingDto = sampleCodex
+  const codexProperties = new Map<string, CodexPropertiesDto>(
+    sampleCodex.entries.map((entry) => [
+      entry.path,
+      {
+        path: entry.path,
+        kind: entry.kind,
+        title: entry.title,
+        aliases: entry.aliases,
+        ...(entry.role !== undefined ? { role: entry.role } : {}),
+        relationships: [],
+        otherKeys: []
+      }
+    ])
+  )
   const summary = { current: sampleSummary }
   const listeners = new Set<(changes: readonly ProjectChangeDto[]) => void>()
   // New chapters join the unordered tray, so the store can open them.
@@ -116,7 +155,7 @@ export function createFakePlotDeviceApi(): {
     `${files.get(path) ?? ''}#${String(revisions.get(path) ?? 0)}`
 
   const api: PlotDeviceApi = {
-    contractVersion: 6,
+    contractVersion: 7,
     workspace: {
       chooseFolder: () => Promise.resolve(null),
       openProject: () => Promise.resolve({ ok: true, value: sampleSummary }),
@@ -247,6 +286,74 @@ export function createFakePlotDeviceApi(): {
         })
       }
     },
+    codex: {
+      listCodex: () => Promise.resolve({ ok: true, value: codex }),
+      openEntry: (path) => api.manuscript.openEntry(path),
+      saveEntryText: (path, text, version, overwrite) =>
+        api.manuscript.saveEntryText(path, text, version, overwrite),
+      getProperties: (path) => {
+        const props = codexProperties.get(path)
+        return Promise.resolve(
+          props === undefined
+            ? { ok: false, error: { code: 'not-found', message: 'gone' } }
+            : { ok: true, value: { properties: props, version: versionOf(path) } }
+        )
+      },
+      updateProperties: (path, version, changes) => {
+        const props = codexProperties.get(path)
+        if (props === undefined)
+          return Promise.resolve({ ok: false, error: { code: 'not-found', message: 'gone' } })
+        if (versionOf(path) !== version) {
+          return Promise.resolve({
+            ok: false,
+            error: { code: 'changed-on-disk', message: 'changed' }
+          })
+        }
+        const next: CodexPropertiesDto = {
+          ...props,
+          ...(changes.title !== undefined ? { title: changes.title } : {}),
+          ...(changes.aliases !== undefined ? { aliases: changes.aliases } : {}),
+          ...(changes.role !== undefined ? { role: changes.role } : {}),
+          ...(changes.born !== undefined ? { born: changes.born } : {})
+        }
+        codexProperties.set(path, next)
+        revisions.set(path, (revisions.get(path) ?? 0) + 1)
+        return Promise.resolve({ ok: true, value: { properties: next, version: versionOf(path) } })
+      },
+      createEntry: (kind, title) => {
+        const path = `${kind}s/${title}.md`
+        files.set(path, '## Description\n')
+        codex = {
+          ...codex,
+          entries: [...codex.entries, { path, kind, title, aliases: [] }]
+        }
+        codexProperties.set(path, {
+          path,
+          kind,
+          title,
+          aliases: [],
+          relationships: [],
+          otherKeys: []
+        })
+        codexWrites.push(`created ${path}`)
+        return Promise.resolve({ ok: true, value: { path } })
+      },
+      setEntryType: (path, type) => {
+        codexWrites.push(`${path} → ${type}`)
+        codex = { ...codex, untyped: codex.untyped.filter((file) => file.path !== path) }
+        return Promise.resolve({ ok: true, value: null })
+      },
+      planRename: () => Promise.resolve({ ok: true, value: renamePlan.current }),
+      renameEntry: (path) => api.manuscript.renameEntry(path),
+      getAppearsIn: (path) =>
+        Promise.resolve({
+          ok: true,
+          value:
+            path === 'characters/Ilka.md'
+              ? [{ path: 'The Ferry.md', title: 'The Ferry', keys: ['pov'] }]
+              : []
+        })
+    },
     inspector: {
       getVocabulary: () =>
         Promise.resolve({
@@ -280,6 +387,7 @@ export function createFakePlotDeviceApi(): {
     },
     properties,
     moves: state.moves,
+    codexWrites,
     summary,
     touch: (path) => {
       revisions.set(path, (revisions.get(path) ?? 0) + 1)

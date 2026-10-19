@@ -8,10 +8,14 @@ import {
   type ProjectPath
 } from '../../../../shared-kernel/project-path'
 import { err, ok, type Result } from '../../../../shared-kernel/result'
-import { isMapping, readEntryText } from '../../domain/frontmatter-values'
+import { isMapping, readEntryText } from '../../../../shared-kernel/frontmatter-values'
 import type { ManuscriptSettings } from '../../domain/manuscript-settings'
-import { uniqueFileName } from '../../domain/new-entry'
-import type { EntryRelocator, LinkUpdates, RelocateError } from '../../domain/ports/entry-relocator'
+import { uniqueFileName } from '../../../../shared-kernel/unique-file-name'
+import type {
+  EntryRelocator,
+  LinkUpdates,
+  RelocateError
+} from '../../../../shared-kernel/entry-relocator'
 import type {
   ManuscriptRepository,
   ReadEntryTextError

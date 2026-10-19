@@ -1,4 +1,5 @@
 import { computed, type ComputedRef } from 'vue'
+import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 
 /** A part the open chapter can move to. */
@@ -22,11 +23,12 @@ export interface PositionMoves {
 /** The keyboard alternative to dragging in the binder (see Phase 3b in docs/roadmap.md). */
 export function usePositionMoves(): PositionMoves {
   const manuscript = useManuscriptStore()
+  const editor = useEditorStore()
 
   // Where the open entry sits: its list, its index in it, and the list's part.
   const place = computed(() => {
     const book = manuscript.manuscript
-    const entry = manuscript.entry
+    const entry = editor.entry
     if (book === null || entry === null) return undefined
     if (entry.kind === 'part') {
       const paths = book.parts.map((part) => part.path)
@@ -58,7 +60,7 @@ export function usePositionMoves(): PositionMoves {
 
   async function moveBy(step: -1 | 1): Promise<void> {
     const current = place.value
-    const path = manuscript.entry?.path
+    const path = editor.entry?.path
     if (current === undefined || path === undefined) return
     const index = current.index + step
     if (current.kind === 'part') await manuscript.movePart(path, index)
@@ -66,7 +68,7 @@ export function usePositionMoves(): PositionMoves {
   }
 
   async function moveToPart(partPath: string): Promise<void> {
-    const path = manuscript.entry?.path
+    const path = editor.entry?.path
     const target = [
       ...(manuscript.manuscript?.parts ?? []),
       ...(manuscript.manuscript?.unnumberedParts ?? [])

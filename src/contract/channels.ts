@@ -1,4 +1,4 @@
-import type { InspectorApi, ManuscriptApi, WorkspaceApi } from './api'
+import type { CodexApi, InspectorApi, ManuscriptApi, WorkspaceApi } from './api'
 
 /** IPC channel names, shared by the preload (which invokes) and main (which handles). */
 export const WORKSPACE_CHANNELS = {
@@ -31,6 +31,19 @@ export const MANUSCRIPT_CHANNELS = {
   planRename: 'manuscript:plan-rename',
   renameEntry: 'manuscript:rename-entry'
 } as const satisfies Record<keyof ManuscriptApi, string>
+
+export const CODEX_CHANNELS = {
+  listCodex: 'codex:list',
+  openEntry: 'codex:open-entry',
+  saveEntryText: 'codex:save-entry-text',
+  getProperties: 'codex:get-properties',
+  updateProperties: 'codex:update-properties',
+  createEntry: 'codex:create-entry',
+  setEntryType: 'codex:set-entry-type',
+  planRename: 'codex:plan-rename',
+  renameEntry: 'codex:rename-entry',
+  getAppearsIn: 'codex:get-appears-in'
+} as const satisfies Record<keyof CodexApi, string>
 
 export const INSPECTOR_CHANNELS = {
   getVocabulary: 'inspector:get-vocabulary',

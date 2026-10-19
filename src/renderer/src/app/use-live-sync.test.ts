@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { defineComponent } from 'vue'
 import { createFakePlotDeviceApi, sampleSummary } from './fake-plot-device-api'
+import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useLiveSync } from './use-live-sync'
@@ -28,7 +29,7 @@ beforeEach(async () => {
 
 describe('useLiveSync', () => {
   it('refreshes the problems and the open chapter when files change outside', async () => {
-    const manuscript = useManuscriptStore()
+    const manuscript = useEditorStore()
     await manuscript.open('First frost.md')
     const host = mount(Host)
 

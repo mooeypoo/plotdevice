@@ -1,4 +1,4 @@
-import { isMapping } from './frontmatter-values'
+import { isMapping } from '../../../shared-kernel/frontmatter-values'
 
 /** The statuses a project starts with (see "`novel.md`" in docs/file-format.md). */
 export const DEFAULT_STATUSES: readonly string[] = ['idea', 'outline', 'draft', 'revised', 'final']

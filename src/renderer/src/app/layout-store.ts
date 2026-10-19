@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 
+/** The side panel's tabs. */
+export type SideTab = 'manuscript' | 'codex'
+
 const LAYOUT_KEY = 'plotdevice.layout'
 const LAST_ENTRY_KEY = 'plotdevice.lastEntry'
 
@@ -15,9 +18,11 @@ export const useLayoutStore = defineStore('layout', () => {
     typeof saved['inspectorOpen'] === 'boolean' ? saved['inspectorOpen'] : true
   )
   const focusMode = ref(false)
+  /** Which list the side panel shows. */
+  const sideTab = ref<SideTab>(saved['sideTab'] === 'codex' ? 'codex' : 'manuscript')
 
-  watch([binderOpen, inspectorOpen], ([binder, inspector]) => {
-    writeRecord(LAYOUT_KEY, { binderOpen: binder, inspectorOpen: inspector })
+  watch([binderOpen, inspectorOpen, sideTab], ([binder, inspector, tab]) => {
+    writeRecord(LAYOUT_KEY, { binderOpen: binder, inspectorOpen: inspector, sideTab: tab })
   })
 
   function toggleBinder(): void {
@@ -40,6 +45,7 @@ export const useLayoutStore = defineStore('layout', () => {
     binderOpen,
     inspectorOpen,
     focusMode,
+    sideTab,
     toggleBinder,
     toggleInspector,
     toggleFocusMode,

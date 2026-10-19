@@ -1,7 +1,7 @@
-import { domainError } from '../../../shared-kernel/domain-error'
-import { err, ok } from '../../../shared-kernel/result'
-import { previewRelocation, relocateEntry } from '../../../infrastructure/links/relocate-entry'
-import type { EntryRelocator } from '../domain/ports/entry-relocator'
+import { domainError } from '../../shared-kernel/domain-error'
+import { err, ok } from '../../shared-kernel/result'
+import { previewRelocation, relocateEntry } from './relocate-entry'
+import type { EntryRelocator } from '../../shared-kernel/entry-relocator'
 
 /** Moves and renames files of the project at `rootOsPath`, updating links in every markdown file. */
 export function createMarkdownEntryRelocator(rootOsPath: string): EntryRelocator {

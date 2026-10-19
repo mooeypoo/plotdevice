@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useLayoutStore } from '../../app/layout-store'
+import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import ProjectOverview from '../welcome/ProjectOverview.vue'
@@ -9,6 +10,7 @@ import ConflictBanner from './ConflictBanner.vue'
 import MissingFileBanner from './MissingFileBanner.vue'
 
 const manuscript = useManuscriptStore()
+const editor = useEditorStore()
 const workspace = useWorkspaceStore()
 const layout = useLayoutStore()
 
@@ -18,43 +20,43 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
 
 <template>
   <div class="pane" :class="{ focus: layout.focusMode }">
-    <div v-if="manuscript.entry" class="page">
+    <div v-if="editor.entry" class="page">
       <header class="heading">
-        <div class="eyebrow" dir="auto">{{ manuscript.entry.label }}</div>
-        <h1 dir="auto">{{ manuscript.entry.title }}</h1>
+        <div class="eyebrow" dir="auto">{{ editor.entry.label }}</div>
+        <h1 dir="auto">{{ editor.entry.title }}</h1>
       </header>
 
       <p v-if="readOnly" class="notice" role="status">
         This project is open read-only, so Plot Device won’t change its files.
       </p>
-      <p v-else-if="manuscript.saveState === 'error'" class="notice error" role="alert">
-        {{ manuscript.saveError }}
+      <p v-else-if="editor.saveState === 'error'" class="notice error" role="alert">
+        {{ editor.saveError }}
       </p>
       <MissingFileBanner
-        v-if="manuscript.saveState === 'missing'"
-        :kind="manuscript.entry.kind"
+        v-if="editor.saveState === 'missing'"
+        :kind="editor.entry.kind"
         :busy="false"
-        @save-as-new="manuscript.saveMissingAsNew()"
-        @discard="manuscript.discardMissing()"
+        @save-as-new="editor.saveMissingAsNew()"
+        @discard="editor.discardMissing()"
       />
-      <p v-if="manuscript.diskNotice" class="notice" role="status">
-        {{ manuscript.diskNotice }}
+      <p v-if="editor.diskNotice" class="notice" role="status">
+        {{ editor.diskNotice }}
       </p>
       <ConflictBanner
-        v-if="manuscript.saveState === 'conflict'"
+        v-if="editor.saveState === 'conflict'"
         :busy="false"
-        @load-theirs="manuscript.loadVersionOnDisk()"
-        @keep-mine="manuscript.keepMine()"
+        @load-theirs="editor.loadVersionOnDisk()"
+        @keep-mine="editor.keepMine()"
       />
 
       <ChapterEditor
-        :key="`${manuscript.entry.path}#${manuscript.entry.revision}`"
-        :initial-text="manuscript.text"
+        :key="`${editor.entry.path}#${editor.entry.revision}`"
+        :initial-text="editor.text"
         :read-only="readOnly"
         :focus-mode="layout.focusMode"
         :link-targets="linkTargets"
-        @change="manuscript.edit($event)"
-        @blur="manuscript.flush()"
+        @change="editor.edit($event)"
+        @blur="editor.flush()"
       />
     </div>
     <ProjectOverview v-else />

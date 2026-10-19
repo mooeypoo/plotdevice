@@ -3,6 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
+import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import EditorPane from './EditorPane.vue'
@@ -22,7 +23,7 @@ const mountPane = (): ReturnType<typeof mount> =>
 
 describe('EditorPane', () => {
   it('says when the text was updated from disk', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('First frost.md')
     const pane = mountPane()
     fake.files.set('First frost.md', 'From Obsidian.\n')
@@ -32,7 +33,7 @@ describe('EditorPane', () => {
   })
 
   it('offers to keep the text of a file deleted outside', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('First frost.md')
     store.edit('Keep me.\n')
     const pane = mountPane()
@@ -49,7 +50,7 @@ describe('EditorPane', () => {
   })
 
   it('shows the conflict banner for unsaved typing and an outside edit', async () => {
-    const store = useManuscriptStore()
+    const store = useEditorStore()
     await store.open('First frost.md')
     store.edit('Mine.\n')
     const pane = mountPane()

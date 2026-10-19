@@ -14,7 +14,7 @@ import { linkTo } from '../../domain/entry-link'
 import { arrangeManuscript, type Manuscript } from '../../domain/manuscript'
 import type { ManuscriptSettings } from '../../domain/manuscript-settings'
 import { orderChanges, placeAt } from '../../domain/order-plan'
-import type { EntryRelocator } from '../../domain/ports/entry-relocator'
+import type { EntryRelocator } from '../../../../shared-kernel/entry-relocator'
 import type {
   ManuscriptRepository,
   WritePropertiesError

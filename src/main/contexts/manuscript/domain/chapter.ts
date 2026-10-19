@@ -1,7 +1,7 @@
 import { projectPathStem, type ProjectPath } from '../../../shared-kernel/project-path'
 import { readLinkValue, type LinkValue } from '../../../shared-kernel/read-link-value'
-import { readEntryText, readInteger, isMapping } from './frontmatter-values'
-import { countWords } from './word-count'
+import { readEntryText, readInteger, isMapping } from '../../../shared-kernel/frontmatter-values'
+import { countWords } from '../../../shared-kernel/word-count'
 
 /** A chapter (`type: chapter`): the unit of prose and story metadata. */
 export interface Chapter {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{ kind: 'part' | 'chapter'; busy: boolean }>()
+defineProps<{ kind: string; busy: boolean }>()
 
 defineEmits<{
   saveAsNew: []

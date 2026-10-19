@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { PlotDeviceApi } from '../contract/api'
 import {
   APP_CHANNELS,
+  CODEX_CHANNELS,
   EVENT_CHANNELS,
   INSPECTOR_CHANNELS,
   MANUSCRIPT_CHANNELS,
@@ -9,6 +10,9 @@ import {
 } from '../contract/channels'
 import type {
   ApiResult,
+  AppearanceDto,
+  CodexListingDto,
+  CodexPropertiesViewDto,
   CreatedEntryDto,
   EntryPropertiesViewDto,
   EntryTextDto,
@@ -32,7 +36,7 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 6,
+  contractVersion: 7,
   workspace: {
     chooseFolder: () => invoke<FolderChoiceDto | null>(WORKSPACE_CHANNELS.chooseFolder),
     openProject: (root) =>
@@ -87,6 +91,34 @@ const plotDevice: PlotDeviceApi = {
     planRename: (path) =>
       invoke<ApiResult<RenamePlanDto | null>>(MANUSCRIPT_CHANNELS.planRename, path),
     renameEntry: (path) => invoke<ApiResult<RenamedDto>>(MANUSCRIPT_CHANNELS.renameEntry, path)
+  },
+  codex: {
+    listCodex: () => invoke<ApiResult<CodexListingDto>>(CODEX_CHANNELS.listCodex),
+    openEntry: (path) => invoke<ApiResult<EntryTextDto>>(CODEX_CHANNELS.openEntry, path),
+    saveEntryText: (path, text, version, overwrite) =>
+      invoke<ApiResult<SavedEntryDto>>(
+        CODEX_CHANNELS.saveEntryText,
+        path,
+        text,
+        version,
+        overwrite
+      ),
+    getProperties: (path) =>
+      invoke<ApiResult<CodexPropertiesViewDto>>(CODEX_CHANNELS.getProperties, path),
+    updateProperties: (path, version, changes) =>
+      invoke<ApiResult<CodexPropertiesViewDto>>(
+        CODEX_CHANNELS.updateProperties,
+        path,
+        version,
+        changes
+      ),
+    createEntry: (kind, title) =>
+      invoke<ApiResult<CreatedEntryDto>>(CODEX_CHANNELS.createEntry, kind, title),
+    setEntryType: (path, type) => invoke<ApiResult<null>>(CODEX_CHANNELS.setEntryType, path, type),
+    planRename: (path) => invoke<ApiResult<RenamePlanDto | null>>(CODEX_CHANNELS.planRename, path),
+    renameEntry: (path) => invoke<ApiResult<RenamedDto>>(CODEX_CHANNELS.renameEntry, path),
+    getAppearsIn: (path) =>
+      invoke<ApiResult<readonly AppearanceDto[]>>(CODEX_CHANNELS.getAppearsIn, path)
   },
   inspector: {
     getVocabulary: () =>

@@ -2,7 +2,11 @@ import { domainError } from '../../../../shared-kernel/domain-error'
 import { nameComparisonKey } from '../../../../shared-kernel/name-comparison-key'
 import { projectPathStem, type ProjectPath } from '../../../../shared-kernel/project-path'
 import { err, ok, type Result } from '../../../../shared-kernel/result'
-import type { EntryRelocator, LinkUpdates, RelocateError } from './entry-relocator'
+import type {
+  EntryRelocator,
+  LinkUpdates,
+  RelocateError
+} from '../../../../shared-kernel/entry-relocator'
 import type { InMemoryManuscript } from './in-memory-manuscript.fake'
 
 /**

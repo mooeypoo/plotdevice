@@ -1,6 +1,6 @@
-import type { DomainError } from '../../../../shared-kernel/domain-error'
-import type { ProjectPath } from '../../../../shared-kernel/project-path'
-import type { Result } from '../../../../shared-kernel/result'
+import type { DomainError } from './domain-error'
+import type { ProjectPath } from './project-path'
+import type { Result } from './result'
 
 /** The links a move or rename updates (or would update) in other files. */
 export interface LinkUpdates {

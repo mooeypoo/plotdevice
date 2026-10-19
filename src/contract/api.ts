@@ -1,4 +1,10 @@
 import type {
+  AppearanceDto,
+  CodexChangesDto,
+  CodexKindDto,
+  CodexListingDto,
+  CodexPropertiesViewDto,
+  SettableTypeDto,
   ApiResult,
   ChapterDestinationDto,
   CreatedEntryDto,
@@ -83,6 +89,33 @@ export interface ManuscriptApi {
   renameEntry(path: string): Promise<ApiResult<RenamedDto>>
 }
 
+/** The open project's characters, locations, notes, and untyped files. */
+export interface CodexApi {
+  listCodex(): Promise<ApiResult<CodexListingDto>>
+  /** Only paths from the last `listCodex` (or just created) are accepted, as for the manuscript. */
+  openEntry(path: string): Promise<ApiResult<EntryTextDto>>
+  saveEntryText(
+    path: string,
+    text: string,
+    version: string,
+    overwrite: boolean
+  ): Promise<ApiResult<SavedEntryDto>>
+  getProperties(path: string): Promise<ApiResult<CodexPropertiesViewDto>>
+  updateProperties(
+    path: string,
+    version: string,
+    changes: CodexChangesDto
+  ): Promise<ApiResult<CodexPropertiesViewDto>>
+  /** A new entry from the template, in the kind's folder. */
+  createEntry(kind: CodexKindDto, title: string): Promise<ApiResult<CreatedEntryDto>>
+  /** Writes `type` into an untyped file, and nothing else. */
+  setEntryType(path: string, type: SettableTypeDto): Promise<ApiResult<null>>
+  planRename(path: string): Promise<ApiResult<RenamePlanDto | null>>
+  renameEntry(path: string): Promise<ApiResult<RenamedDto>>
+  /** The chapters a character or location appears in, in book order. */
+  getAppearsIn(path: string): Promise<ApiResult<readonly AppearanceDto[]>>
+}
+
 /** Choices and checks for the inspector, drawn from several parts of the project. */
 export interface InspectorApi {
   getVocabulary(): Promise<ApiResult<InspectorVocabularyDto>>
@@ -103,9 +136,10 @@ export interface AppApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 6
+  readonly contractVersion: 7
   readonly workspace: WorkspaceApi
   readonly manuscript: ManuscriptApi
+  readonly codex: CodexApi
   readonly inspector: InspectorApi
   readonly app: AppApi
 }

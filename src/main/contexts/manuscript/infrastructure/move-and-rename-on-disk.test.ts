@@ -6,7 +6,7 @@ import { copySampleNovel, type SampleNovelCopy } from '../../../infrastructure/t
 import { createMoveChapter } from '../application/commands/move-entries'
 import { createPlanRename, createRenameEntry } from '../application/commands/rename-entry'
 import type { ManuscriptSettings } from '../domain/manuscript-settings'
-import { createMarkdownEntryRelocator } from './markdown-entry-relocator'
+import { createMarkdownEntryRelocator } from '../../../infrastructure/links/markdown-entry-relocator'
 import { createMarkdownManuscriptRepository } from './markdown-manuscript-repository'
 
 let copy: SampleNovelCopy

@@ -4,7 +4,7 @@ import { findWikiLinks } from '../../../shared-kernel/link-rewriter'
 import { projectPathStem, type ProjectPath } from '../../../shared-kernel/project-path'
 import { readLinkValue } from '../../../shared-kernel/read-link-value'
 import { formatWikiLink, type WikiLink } from '../../../shared-kernel/wiki-link'
-import { isMapping, readEntryText } from './frontmatter-values'
+import { isMapping, readEntryText } from '../../../shared-kernel/frontmatter-values'
 import type { ManuscriptWarning } from './manuscript'
 
 /** A part's or chapter's file as read: its frontmatter values and its body. */

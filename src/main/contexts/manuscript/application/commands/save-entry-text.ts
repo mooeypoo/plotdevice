@@ -5,7 +5,7 @@ import type {
   ManuscriptRepository,
   WriteEntryTextError
 } from '../../domain/ports/manuscript-repository'
-import { countWords } from '../../domain/word-count'
+import { countWords } from '../../../../shared-kernel/word-count'
 
 /** What a save produced. */
 export interface SavedEntry {

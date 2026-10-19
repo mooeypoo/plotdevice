@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { EntryCountsDto } from '../../../../contract/dtos'
-import { useManuscriptStore } from '../../app/manuscript-store'
+import { useEditorStore } from '../../app/editor-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import WarningsPanel from '../warnings/WarningsPanel.vue'
 import { useWarnings } from '../warnings/use-warnings'
 
 const workspace = useWorkspaceStore()
-const manuscript = useManuscriptStore()
+const editor = useEditorStore()
 
 const COUNT_LABELS: ReadonlyArray<[keyof EntryCountsDto, string, string]> = [
   ['part', 'part', 'parts'],
@@ -62,8 +62,8 @@ const { groups: warningGroups } = useWarnings()
     <WarningsPanel
       v-if="warningGroups.length > 0"
       :groups="warningGroups"
-      :can-open="manuscript.hasEntry"
-      @open="manuscript.open($event)"
+      :can-open="editor.canOpen"
+      @open="editor.open($event)"
     />
   </section>
 </template>
