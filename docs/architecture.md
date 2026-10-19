@@ -125,4 +125,5 @@ src/
   - Hebrew and other non-ASCII names and prose
   - a dot-folder
 - **Fixture integrity:** `fixtures/sample-novel.test.ts` checks that the fixture still has the line endings, BOMs, and file names it is supposed to have. It catches git rewriting fixture files on checkout.
+- **Renderer:** stores and composables against the fake API (`app/fake-plot-device-api.ts`). Components are mounted with `@vue/test-utils` in `happy-dom`; such a test file starts with `// @vitest-environment happy-dom`, and every other test runs in plain Node.
 - **End-to-end:** optional later, with Playwright's Electron support. A few smoke tests are enough.

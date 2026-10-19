@@ -92,7 +92,7 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - Phase 3b follow-ups:
   - Renaming a part renames its file only, not the part's folder. Renaming the folder too would move every chapter in it; decide with the writer first.
   - There's no "Rename file to match title" action outside the title-change prompt yet, and no undo for moves or renames.
-  - Vue components have no tests of their own: Vitest runs in Node without a DOM and doesn't compile `.vue` files. Component tests would need `@vue/test-utils`, a DOM (`happy-dom` or `jsdom`), and `@vitejs/plugin-vue` in the Vitest config. The binder's drop logic and the inspector's moves are tested as plain TypeScript, and the app is checked end to end.
+  - Component tests exist for the binder only (`BinderTree.test.ts`, with `@vue/test-utils` and `happy-dom`). Add them for the inspector and editor as those change.
   - Dragging a part out of the sequence isn't offered; the part's Order field can be cleared instead.
 - Phase 3a follow-ups:
   - Editing nested values (`relationships`) needs its own careful editor (Phase 5); the frontmatter editor refuses them today.
