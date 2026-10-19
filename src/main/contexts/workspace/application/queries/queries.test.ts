@@ -13,39 +13,39 @@ beforeEach(() => {
 
 describe('InspectFolder', () => {
   it('recognizes a project', async () => {
-    const root = workspace.addFolder('/novels/preservers', {
+    const root = workspace.addFolder('/novels/salt-orchard', {
       novel: { kind: 'read', frontmatter: {} }
     })
     expect(await createInspectFolder({ folders: workspace, novelFiles: workspace })(root)).toEqual({
       root,
-      name: 'preservers',
+      name: 'salt-orchard',
       isProject: true
     })
   })
 
   it('names the project above, using its title', async () => {
-    workspace.addFolder('/novels/preservers', {
-      novel: { kind: 'read', frontmatter: { title: 'The Preservers' } }
+    workspace.addFolder('/novels/salt-orchard', {
+      novel: { kind: 'read', frontmatter: { title: 'The Salt Orchard' } }
     })
-    const notes = workspace.addFolder('/novels/preservers/notes')
+    const notes = workspace.addFolder('/novels/salt-orchard/notes')
 
     expect(await createInspectFolder({ folders: workspace, novelFiles: workspace })(notes)).toEqual(
       {
         root: notes,
         name: 'notes',
         isProject: false,
-        projectAbove: { root: '/novels/preservers', title: 'The Preservers' }
+        projectAbove: { root: '/novels/salt-orchard', title: 'The Salt Orchard' }
       }
     )
   })
 
   it('reports a project below', async () => {
     const novels = workspace.addFolder('/novels')
-    workspace.addFolder('/novels/preservers', { novel: { kind: 'read', frontmatter: {} } })
+    workspace.addFolder('/novels/salt-orchard', { novel: { kind: 'read', frontmatter: {} } })
 
     expect(
       await createInspectFolder({ folders: workspace, novelFiles: workspace })(novels)
-    ).toMatchObject({ isProject: false, projectBelow: '/novels/preservers' })
+    ).toMatchObject({ isProject: false, projectBelow: '/novels/salt-orchard' })
   })
 
   it('reports a plain folder', async () => {

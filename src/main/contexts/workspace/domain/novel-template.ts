@@ -16,7 +16,7 @@ export function novelTemplate(title: string): string {
     'author: ""',
     withComment(
       'calendar: gregorian',
-      'gregorian (dates like 2187-04-12) or day-count (day 14 of the story)'
+      'gregorian (dates like 1952-10-03) or day-count (day 14 of the story)'
     ),
     'statuses: [idea, outline, draft, revised, final]',
     withComment('threads: []', 'plotlines, for example:'),

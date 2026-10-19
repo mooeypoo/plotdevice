@@ -65,7 +65,7 @@ export function wikiLinkTargetKey(link: WikiLink): string {
   return nameComparisonKey(link.target)
 }
 
-/** Whether the link names a path (`[[locations/Harbor]]`) rather than just a file name. */
+/** Whether the link names a path (`[[locations/Marrow]]`) rather than just a file name. */
 export function isPathFormLink(link: WikiLink): boolean {
   return link.target.includes('/')
 }

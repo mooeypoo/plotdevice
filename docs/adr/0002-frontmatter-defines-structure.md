@@ -8,7 +8,7 @@ ADR 0001 took order from numeric file-name prefixes and took structure from fold
 - Titles in Hebrew, or with punctuation, make poor file names.
 - Writers who organize files their own way, or keep everything in one folder, lose their structure.
 
-The author's novel has three parts, with chapter numbering restarting in each.
+Novels are often divided into parts, with chapter numbering restarting in each.
 
 ## Decision
 - A file's `type` key decides what it is: `part`, `chapter`, `character`, `location`, `note`, or later `scene`.

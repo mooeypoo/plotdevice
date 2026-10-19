@@ -8,8 +8,8 @@ function errorCode(raw: string): string | undefined {
 
 describe('parseFileName', () => {
   it.each([
-    'Arrival.md',
-    'Mira Kovač.md',
+    'The Ferry.md',
+    'Ilka Szabó.md',
     'מירה.md',
     'Part One',
     'CONSOLE.md',
@@ -20,8 +20,8 @@ describe('parseFileName', () => {
   })
 
   it('normalizes to NFC', () => {
-    const result = parseFileName('Kovac\u030C.md')
-    expect(result).toEqual({ ok: true, value: 'Kova\u010D.md' })
+    const result = parseFileName('Szabo\u0301.md')
+    expect(result).toEqual({ ok: true, value: 'Szab\u00F3.md' })
   })
 
   it.each(['<', '>', ':', '"', '/', '\\', '|', '?', '*'])(
@@ -39,7 +39,7 @@ describe('parseFileName', () => {
     expect(errorCode(`a${char}b.md`)).toBe('link-breaking-character')
   })
 
-  it.each(['Arrival.', 'Arrival ', 'Arrival.md.', 'Arrival.md '])(
+  it.each(['The Ferry.', 'The Ferry ', 'The Ferry.md.', 'The Ferry.md '])(
     'rejects a trailing dot or space in %j',
     (raw) => {
       expect(errorCode(raw)).toBe('trailing-dot-or-space')
@@ -81,8 +81,8 @@ describe('parseFileName', () => {
 
 describe('fileNameFromTitle', () => {
   it.each([
-    ['Arrival', 'Arrival.md'],
-    ['Mira: The Return, Part 1', 'Mira - The Return, Part 1.md'],
+    ['The Ferry', 'The Ferry.md'],
+    ['Ilka: The Return, Part 1', 'Ilka - The Return, Part 1.md'],
     ['Before/After', 'Before-After.md'],
     ['Either | Or', 'Either - Or.md'],
     ['What? Why*', 'What Why.md'],
@@ -91,7 +91,7 @@ describe('fileNameFromTitle', () => {
     ['  lots   of\tspace  ', 'lots of space.md'],
     ['...hidden', 'hidden.md'],
     ['Ends with dots...', 'Ends with dots.md'],
-    ['הגעה לנמל', 'הגעה לנמל.md'],
+    ['בוקר במטע', 'בוקר במטע.md'],
     ['', 'Untitled.md'],
     ['???', 'Untitled.md'],
     ['CON', 'CON_.md'],
@@ -101,7 +101,7 @@ describe('fileNameFromTitle', () => {
   })
 
   it('writes NFC', () => {
-    expect(fileNameFromTitle('Kovac\u030C')).toBe('Kova\u010D.md')
+    expect(fileNameFromTitle('Szabo\u0301')).toBe('Szab\u00F3.md')
   })
 
   it('cuts long titles to 100 characters', () => {

@@ -23,29 +23,29 @@ describe('scanProject on the sample novel', () => {
 
     expect(Object.fromEntries(files.map(({ path, ...rest }) => [path, rest]))).toEqual({
       'Loose thoughts.md': untyped(),
-      'characters/Harbor.md': typed('character'),
-      'characters/Mira Kovač.md': typed('character'),
-      'characters/Old Tal.md': typed('character'),
-      'characters/Zoe\u0308.md': typed('character'),
-      'characters/נועה.md': typed('character'),
-      'locations/Harbor.md': typed('location'),
-      'manuscript/Part One/Arrival.md': typed('chapter'),
-      'manuscript/Part One/First night.md': typed('chapter'),
-      'manuscript/Part One/Lanterns.md': untyped(),
+      'characters/Marrow.md': typed('character'),
+      'characters/Ilka Szabó.md': typed('character'),
+      'characters/Aunt Bea.md': typed('character'),
+      'characters/Noe\u0308l.md': typed('character'),
+      'characters/יעל.md': typed('character'),
+      'locations/Marrow.md': typed('location'),
+      'manuscript/Part One/The Ferry.md': typed('chapter'),
+      'manuscript/Part One/First frost.md': typed('chapter'),
+      'manuscript/Part One/Margins.md': untyped(),
       'manuscript/Part One/Mixed endings.md': typed('chapter'),
       'manuscript/Part One/Part One.md': typed('part'),
       'manuscript/Part Three/Lost part.md': typed('chapter'),
       'manuscript/Part Three/Misfiled.md': typed('chapter'),
       'manuscript/Part Three/No order.md': typed('chapter'),
       'manuscript/Part Three/Part Three.md': typed('part'),
-      'manuscript/Part Three/חזרה.md': typed('chapter'),
+      'manuscript/Part Three/הנהר.md': typed('chapter'),
       'manuscript/Part Two/Broken.md': untyped({ problem: 'unparseable-frontmatter' }),
       'manuscript/Part Two/Café Ñandú.md': typed('chapter'),
       'manuscript/Part Two/Duplicate order.md': typed('chapter'),
       'manuscript/Part Two/Empty frontmatter.md': untyped(),
       'manuscript/Part Two/Part Two.md': typed('part'),
       'manuscript/Part Two/Shapes.md': typed('chapter'),
-      'manuscript/Part Two/The Archive.md': typed('chapter'),
+      'manuscript/Part Two/The Cannery.md': typed('chapter'),
       'notes/Chapter #3 [draft].md': typed('note'),
       'notes/Research.md': typed('note'),
       'notes/Scene idea.md': typed('scene'),
@@ -91,7 +91,7 @@ describe('scanProject on the sample novel', () => {
     'reads linked files but does not follow linked folders',
     async () => {
       await symlink(join(copy.root, 'characters'), join(copy.root, 'notes', 'people'))
-      await symlink(join(copy.root, 'locations', 'Harbor.md'), join(copy.root, 'notes', 'Port.md'))
+      await symlink(join(copy.root, 'locations', 'Marrow.md'), join(copy.root, 'notes', 'Port.md'))
 
       const paths = (await scanProject(copy.root)).files.map((file) => file.path)
 

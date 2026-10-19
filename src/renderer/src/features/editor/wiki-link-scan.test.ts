@@ -3,28 +3,28 @@ import { createLinkKindLookup, findWikiLinks } from './wiki-link-scan'
 
 describe('findWikiLinks', () => {
   it('finds a plain link, labelled by its target', () => {
-    const text = 'at [[Harbor]] now'
+    const text = 'at [[Marrow]] now'
     const [link] = findWikiLinks(text)
-    expect(link).toMatchObject({ from: 3, to: 13, target: 'Harbor', embed: false })
-    expect(text.slice(link?.labelFrom, link?.labelTo)).toBe('Harbor')
+    expect(link).toMatchObject({ from: 3, to: 13, target: 'Marrow', embed: false })
+    expect(text.slice(link?.labelFrom, link?.labelTo)).toBe('Marrow')
   })
 
   it('labels a link with shown text by that text', () => {
-    const text = '[[Mira Kovač|Mira]] saw'
+    const text = '[[Ilka Szabó|Ilka]] saw'
     const [link] = findWikiLinks(text)
-    expect(link?.target).toBe('Mira Kovač')
-    expect(text.slice(link?.labelFrom, link?.labelTo)).toBe('Mira')
+    expect(link?.target).toBe('Ilka Szabó')
+    expect(text.slice(link?.labelFrom, link?.labelTo)).toBe('Ilka')
   })
 
   it('separates the target from a heading', () => {
-    expect(findWikiLinks('[[Harbor#Docks|the docks]]')[0]?.target).toBe('Harbor')
+    expect(findWikiLinks('[[Marrow#Mill|the mill]]')[0]?.target).toBe('Marrow')
   })
 
   it('finds embeds and several links on a line, with an offset', () => {
-    const links = findWikiLinks('![[Harbor]] and [[Old Tal]]', 100)
+    const links = findWikiLinks('![[Marrow]] and [[Aunt Bea]]', 100)
     expect(links.map((link) => [link.target, link.embed, link.from])).toEqual([
-      ['Harbor', true, 100],
-      ['Old Tal', false, 116]
+      ['Marrow', true, 100],
+      ['Aunt Bea', false, 116]
     ])
   })
 
@@ -35,23 +35,23 @@ describe('findWikiLinks', () => {
 
 describe('createLinkKindLookup', () => {
   const kindOf = createLinkKindLookup([
-    { name: 'Mira Kovač', type: 'character' },
-    { name: 'Harbor', type: 'character' },
-    { name: 'Harbor', type: 'location' },
-    { name: 'Zoe\u0308', type: 'character' },
+    { name: 'Ilka Szabó', type: 'character' },
+    { name: 'Marrow', type: 'character' },
+    { name: 'Marrow', type: 'location' },
+    { name: 'Noe\u0308l', type: 'character' },
     { name: 'Research', type: 'note' },
     { name: 'Loose thoughts' }
   ])
 
   it('gives the target file’s type, case- and normalization-insensitively', () => {
-    expect(kindOf('mira kovač')).toBe('character')
-    expect(kindOf('Zo\u00EB')).toBe('character')
+    expect(kindOf('ilka szabó')).toBe('character')
+    expect(kindOf('No\u00EBl')).toBe('character')
     expect(kindOf('notes/Research')).toBe('note')
     expect(kindOf('Research.md')).toBe('note')
   })
 
   it('marks names shared by different types, untyped files, and missing ones', () => {
-    expect(kindOf('Harbor')).toBe('ambiguous')
+    expect(kindOf('Marrow')).toBe('ambiguous')
     expect(kindOf('Loose thoughts')).toBe('untyped')
     expect(kindOf('Part Nine')).toBe('missing')
   })

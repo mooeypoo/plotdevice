@@ -17,13 +17,13 @@ beforeEach(() => {
 describe('workspace store', () => {
   it('opens a chosen project folder directly', async () => {
     fake.api.workspace.chooseFolder = () =>
-      Promise.resolve({ root: '/novels/preservers', name: 'preservers', isProject: true })
+      Promise.resolve({ root: '/novels/salt-orchard', name: 'salt-orchard', isProject: true })
     const store = useWorkspaceStore()
 
     await store.chooseFolder()
 
     expect(store.screen).toBe('project')
-    expect(store.project?.title).toBe('The Preservers')
+    expect(store.project?.title).toBe('The Salt Orchard')
   })
 
   it('asks before initializing a folder that is not a project', async () => {
@@ -63,26 +63,26 @@ describe('workspace store', () => {
 
   it('saves the open chapter and tells the main process when closing a project', async () => {
     const store = useWorkspaceStore()
-    await store.openProject('/novels/preservers')
+    await store.openProject('/novels/salt-orchard')
     const manuscript = useManuscriptStore()
     await manuscript.load()
-    await manuscript.open('Arrival.md')
+    await manuscript.open('The Ferry.md')
     manuscript.edit('Typed just before closing.\n')
 
     await store.backToWelcome()
 
-    expect(fake.files.get('Arrival.md')).toBe('Typed just before closing.\n')
+    expect(fake.files.get('The Ferry.md')).toBe('Typed just before closing.\n')
     expect(fake.closedProjects).toBe(1)
     expect(store.screen).toBe('welcome')
   })
 
   it('refuses to close while unsaved text is stuck in a conflict', async () => {
     const store = useWorkspaceStore()
-    await store.openProject('/novels/preservers')
+    await store.openProject('/novels/salt-orchard')
     const manuscript = useManuscriptStore()
     await manuscript.load()
-    await manuscript.open('Arrival.md')
-    fake.files.set('Arrival.md', 'Edited in Obsidian.\n')
+    await manuscript.open('The Ferry.md')
+    fake.files.set('The Ferry.md', 'Edited in Obsidian.\n')
     manuscript.edit('Mine.\n')
     await manuscript.flush()
 

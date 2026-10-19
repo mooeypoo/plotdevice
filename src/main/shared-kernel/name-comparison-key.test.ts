@@ -3,13 +3,13 @@ import { nameComparisonKey } from './name-comparison-key'
 
 describe('nameComparisonKey', () => {
   it('ignores case', () => {
-    expect(nameComparisonKey('Harbor')).toBe(nameComparisonKey('HARBOR'))
-    expect(nameComparisonKey('Mira Kovač')).toBe(nameComparisonKey('MIRA KOVAČ'))
+    expect(nameComparisonKey('Marrow')).toBe(nameComparisonKey('MARROW'))
+    expect(nameComparisonKey('Ilka Szabó')).toBe(nameComparisonKey('ILKA SZABÓ'))
   })
 
   it('treats composed and decomposed forms as the same name', () => {
-    const composed = 'Kova\u010D' // č as one code point
-    const decomposed = 'Kovac\u030C' // c + combining caron
+    const composed = 'Szab\u00F3' // ó as one code point
+    const decomposed = 'Szabo\u0301' // o + combining acute
     expect(nameComparisonKey(composed)).toBe(nameComparisonKey(decomposed))
   })
 

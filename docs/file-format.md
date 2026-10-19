@@ -39,15 +39,15 @@ my-novel/
   manuscript/
     Part One/                   # one folder per part (the part's title)
       Part One.md               # type: part
-      Arrival.md                # type: chapter, part: "[[Part One]]", order: 1
-      First night.md            # type: chapter, part: "[[Part One]]", order: 2
+      The Ferry.md              # type: chapter, part: "[[Part One]]", order: 1
+      First frost.md            # type: chapter, part: "[[Part One]]", order: 2
     Part Two/
       Part Two.md
-      The Archive.md            # order: 1 again; numbering restarts in each part
+      The Cannery.md            # order: 1 again; numbering restarts in each part
   characters/
-    Mira Kovač.md
+    Ilka Szabó.md
   locations/
-    Harbor.md
+    Marrow.md
   notes/
 ```
 
@@ -74,16 +74,16 @@ Each file's `type` key says what it is:
 ```yaml
 ---
 format: 1
-title: The Preservers
-author: Moriel
+title: The Salt Orchard
+author: Ines Varga
 calendar: gregorian            # gregorian | day-count (see StoryDate)
 statuses: [idea, outline, draft, revised, final]
 threads:                       # plotlines; chapters refer to them by key
   - key: main
     name: Main plot
     color: "#4f7cac"
-  - key: sect
-    name: The sect's history
+  - key: strike
+    name: The cannery strike
     color: "#b5654a"
 settings:
   file_names: ask              # ask | always | never: rename the file when the title changes
@@ -109,7 +109,7 @@ Free text: premise, notes. The app shows it but does not parse it.
 ```yaml
 ---
 type: part
-title: "Part One: The Harbor"
+title: "Part One: The Orchard"
 order: 1
 synopsis: ...
 ---
@@ -123,19 +123,19 @@ Parts are optional. A novel without part files is a single list of chapters.
 ```yaml
 ---
 type: chapter
-title: Arrival                 # optional; otherwise the file name is the title
+title: The Ferry               # optional; otherwise the file name is the title
 part: "[[Part One]]"           # which part; leave out in a novel without parts
 order: 1                       # position within the part
 status: draft                  # any value; see `statuses` in novel.md
-pov: "[[Mira Kovač]]"          # one link, or a list
+pov: "[[Ilka Szabó]]"          # one link, or a list
 characters:
-  - "[[Mira Kovač]]"
-  - "[[Old Tal]]"
-location: "[[Harbor]]"         # one link, or a list
+  - "[[Ilka Szabó]]"
+  - "[[Aunt Bea]]"
+location: "[[Marrow]]"         # one link, or a list
 threads: [main]
-story_date: 2187-04-12         # one date, or a list (see StoryDate)
+story_date: 1952-10-03         # one date, or a list (see StoryDate)
 story_time: evening            # free text
-synopsis: Mira arrives and is met by someone who shouldn't know her name.
+synopsis: Ilka crosses to Marrow and finds the orchard gate already open.
 ---
 Prose goes here, in plain markdown.
 ```
@@ -165,14 +165,14 @@ Reserved for a later version. A scene will be a file with `type: scene`, `chapte
 ```yaml
 ---
 type: character
-title: Mira Kovač
-aliases: [Mir]
+title: Ilka Szabó
+aliases: [Ilk]
 role: protagonist
-born: 2161                     # same rules as story_date
+born: 1931                     # same rules as story_date
 relationships:
-  - with: "[[Old Tal]]"
+  - with: "[[Aunt Bea]]"
     kind: mentor
-    note: Taught her to read the old script.
+    note: Taught her to graft pear trees.
 ---
 ## Description
 ## History
@@ -185,10 +185,10 @@ relationships:
 
 ## StoryDate
 
-- **`calendar: gregorian`** accepts `YYYY`, `YYYY-MM`, or `YYYY-MM-DD`. The year can have any number of digits and a sign, for example `2187`, `-0500`, `+12000-03`. A year-only value written without quotes is read as a number, and that's accepted too.
+- **`calendar: gregorian`** accepts `YYYY`, `YYYY-MM`, or `YYYY-MM-DD`. The year can have any number of digits and a sign, for example `1952`, `-0500`, `+12000-03`. A year-only value written without quotes is read as a number, and that's accepted too.
 - **`calendar: day-count`** accepts any integer, including negative numbers: `story_date: 14` is day 14 of the story.
 - **A list of dates** means the chapter spans from the earliest to the latest.
-- A chapter with no `story_date` is **undated**. A value the app can't use, such as `2187-02-30`, text in a day-count project, or an integer beyond ±9,007,199,254,740,991, shows a warning and the chapter is treated as undated. Undated chapters appear in a separate tray, in manuscript order.
+- A chapter with no `story_date` is **undated**. A value the app can't use, such as `1952-02-30`, text in a day-count project, or an integer beyond ±9,007,199,254,740,991, shows a warning and the chapter is treated as undated. Undated chapters appear in a separate tray, in manuscript order.
 
 ## Values with a different shape
 
@@ -196,8 +196,8 @@ People and tools write the same idea in different YAML shapes. The app reads the
 
 | What's written | How it's read |
 |---|---|
-| `characters: "[[Mira Kovač]]"` (one value where a list is allowed) | A list of one |
-| `pov: [[Mira Kovač]]` (unquoted; YAML reads this as a list inside a list) | The link `[[Mira Kovač]]`, plus a note in the warnings panel |
+| `characters: "[[Ilka Szabó]]"` (one value where a list is allowed) | A list of one |
+| `pov: [[Ilka Szabó]]` (unquoted; YAML reads this as a list inside a list) | The link `[[Ilka Szabó]]`, plus a note in the warnings panel |
 
 When the app writes a key, it keeps the style the key already uses. If a single value becomes a list, the app writes a block list (one `- ` item per line). New list keys are written as block lists. Wikilinks are always written quoted.
 
@@ -212,7 +212,7 @@ When the app writes a key, it keeps the style the key already uses. If a single 
   - The name is cut to 100 characters, and further if needed so the whole file name fits in 255 bytes of UTF-8 (the Linux limit; Hebrew letters with niqqud take about 4 bytes each). A letter is never separated from its combining marks.
   - An empty result becomes `Untitled`.
   - A Windows reserved name (`CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, `LPT1`–`LPT9`, with or without an extension, in any case) gets `_` appended.
-- **App-created file names are unique across the project.** On a clash, the app first adds the type (`Harbor (location).md`), then a number (`Harbor (2).md`). `title` keeps the name the writer sees, so both files can still be titled "Harbor".
+- **App-created file names are unique across the project.** On a clash, the app first adds the type (`Marrow (location).md`), then a number (`Marrow (2).md`). `title` keeps the name the writer sees, so both files can still be titled "Marrow".
 - **Title changes.** When a title changes, `settings.file_names` decides whether the file is renamed: `ask` (the default), `always`, or `never`. Renames update links (see "Links").
 - **Names the writer types** for a file are checked against the same rules and rejected if they break them.
 - **Files the app didn't create** can have any name the OS allows. If a name contains characters that break links (`# ^ [ ] |`), the warnings panel says so.
@@ -221,12 +221,12 @@ When the app writes a key, it keeps the style the key already uses. If a single 
 ## Links
 
 - **Syntax.** References are wikilinks by file name (without `.md`):
-  - `[[Mira Kovač]]`
-  - `[[Mira Kovač|Mira]]` (shown text)
-  - `[[Mira Kovač#History]]` (heading)
-  - `[[Mira Kovač#^ab12]]` (block)
-  - `![[Harbor]]` (embed)
-  - `[[locations/Harbor]]` (path form)
+  - `[[Ilka Szabó]]`
+  - `[[Ilka Szabó|Ilka]]` (shown text)
+  - `[[Ilka Szabó#History]]` (heading)
+  - `[[Ilka Szabó#^ab12]]` (block)
+  - `![[Marrow]]` (embed)
+  - `[[locations/Marrow]]` (path form)
 
   A trailing `.md` is accepted. Inside frontmatter, links must be quoted strings.
 - **Resolution:**
@@ -236,11 +236,11 @@ When the app writes a key, it keeps the style the key already uses. If a single 
   4. If more than one file still matches, the link is **ambiguous**. It shows a warning, and the app offers to rewrite it in path form.
 - **Writing links:**
   - When the app inserts a link, autocomplete shows each candidate's type.
-  - If the target's name isn't unique, the app writes the path form with the plain name as shown text: `[[locations/Harbor|Harbor]]`.
+  - If the target's name isn't unique, the app writes the path form with the plain name as shown text: `[[locations/Marrow|Marrow]]`.
   - In the app, links are styled by the target's type.
 - **Ignored text.** Links inside code spans and code blocks are ignored.
 - **Renames.** When the app renames or moves a file, it updates links to it in all project files, in both frontmatter and body. The shown text, heading, block, and embed parts are kept.
-- **Markdown links.** Links like `[Harbor](../locations/Harbor.md)` are read but not rewritten.
+- **Markdown links.** Links like `[Marrow](../locations/Marrow.md)` are read but not rewritten.
 
 ## Derived data (never stored)
 
@@ -256,7 +256,7 @@ When the app writes a key, it keeps the style the key already uses. If a single 
 
 - Words are found by Unicode word segmentation, so Hebrew (including niqqud and attached prefixes) and other scripts count correctly.
 - Obsidian comments (`%% … %%`) and HTML comments (`<!-- … -->`) are left out.
-- A wikilink counts its visible text (`[[Mira Kovač|Mira]]` is one word); an embed (`![[…]]`) counts nothing; a markdown link counts its text.
+- A wikilink counts its visible text (`[[Ilka Szabó|Ilka]]` is one word); an embed (`![[…]]`) counts nothing; a markdown link counts its text.
 - Markdown symbols don't count. A hyphenated word (`well-known`) counts once.
 
 ## Rules for writers of this format (including the app)

@@ -28,7 +28,7 @@ describe('reading novel.md', () => {
   it("reads the fixture's novel.md", async () => {
     expect(await store.read(folder.root as ProjectRoot)).toMatchObject({
       kind: 'read',
-      frontmatter: { format: 1, title: 'The Preservers', genre: 'science fiction' }
+      frontmatter: { format: 1, title: 'The Salt Orchard', genre: 'literary fiction' }
     })
   })
 
@@ -59,7 +59,7 @@ describe('creating novel.md', () => {
   })
 
   it('writes the template, which reads back as the defaults with no warnings', async () => {
-    const title = 'Mira: "The Return" — הגעה'
+    const title = 'Ilka: "The Return" — בוקר'
     expect(await store.create(folder.root as ProjectRoot, novelTemplate(title))).toEqual({
       ok: true,
       value: undefined

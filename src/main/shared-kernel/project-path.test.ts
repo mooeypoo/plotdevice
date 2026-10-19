@@ -31,9 +31,9 @@ function errorCode(raw: string): string | undefined {
 describe('parseProjectPath', () => {
   it.each([
     'novel.md',
-    'manuscript/Part One/Arrival.md',
-    'characters/Mira Kovač.md',
-    'manuscript/חלק א/הגעה.md',
+    'manuscript/Part One/The Ferry.md',
+    'characters/Ilka Szabó.md',
+    'manuscript/חלק א/בוקר.md',
     // Files the app didn't create may have names the app would never write.
     'notes/Chapter #3 [draft].md',
     'notes/CON.md'
@@ -42,7 +42,7 @@ describe('parseProjectPath', () => {
   })
 
   it('keeps the exact Unicode form, because it identifies a file on disk', () => {
-    const decomposed = 'characters/Kovac\u030C.md'
+    const decomposed = 'characters/Szabo\u0301.md'
     expect(parseProjectPath(decomposed)).toEqual({ ok: true, value: decomposed })
   })
 
@@ -51,9 +51,9 @@ describe('parseProjectPath', () => {
     ['/novel.md', 'absolute'],
     ['C:/novel/novel.md', 'absolute'],
     ['c:novel.md', 'absolute'],
-    ['manuscript\\Arrival.md', 'backslash'],
+    ['manuscript\\The Ferry.md', 'backslash'],
     ['\\\\server\\share\\novel.md', 'backslash'],
-    ['manuscript//Arrival.md', 'empty-segment'],
+    ['manuscript//The Ferry.md', 'empty-segment'],
     ['manuscript/', 'empty-segment'],
     ['./novel.md', 'dot-segment'],
     ['manuscript/../../etc/passwd', 'dot-segment'],
@@ -64,12 +64,12 @@ describe('parseProjectPath', () => {
 })
 
 describe('ProjectPath parts', () => {
-  const arrival = path('manuscript/Part One/Arrival.md')
+  const arrival = path('manuscript/Part One/The Ferry.md')
 
   it('splits into segments, name, and stem', () => {
-    expect(projectPathSegments(arrival)).toEqual(['manuscript', 'Part One', 'Arrival.md'])
-    expect(projectPathName(arrival)).toBe('Arrival.md')
-    expect(projectPathStem(arrival)).toBe('Arrival')
+    expect(projectPathSegments(arrival)).toEqual(['manuscript', 'Part One', 'The Ferry.md'])
+    expect(projectPathName(arrival)).toBe('The Ferry.md')
+    expect(projectPathStem(arrival)).toBe('The Ferry')
     expect(projectPathStem(path('notes/archive.tar.gz'))).toBe('archive.tar')
     expect(projectPathStem(path('notes/README'))).toBe('README')
   })
@@ -80,8 +80,8 @@ describe('ProjectPath parts', () => {
   })
 
   it('joins a parent and a file name', () => {
-    expect(joinProjectPath(path('manuscript/Part Two'), name('The Archive.md'))).toBe(
-      'manuscript/Part Two/The Archive.md'
+    expect(joinProjectPath(path('manuscript/Part Two'), name('The Cannery.md'))).toBe(
+      'manuscript/Part Two/The Cannery.md'
     )
     expect(joinProjectPath(undefined, name('novel.md'))).toBe('novel.md')
   })
@@ -89,16 +89,16 @@ describe('ProjectPath parts', () => {
 
 describe('isSameProjectPath', () => {
   it('matches regardless of case, since Windows file systems ignore it', () => {
-    expect(isSameProjectPath(path('locations/Harbor.md'), path('Locations/harbor.MD'))).toBe(true)
+    expect(isSameProjectPath(path('locations/Marrow.md'), path('Locations/marrow.MD'))).toBe(true)
   })
 
   it('matches composed and decomposed Unicode', () => {
     expect(
-      isSameProjectPath(path('characters/Kova\u010D.md'), path('characters/Kovac\u030C.md'))
+      isSameProjectPath(path('characters/Szab\u00F3.md'), path('characters/Szabo\u0301.md'))
     ).toBe(true)
   })
 
   it('does not match different files', () => {
-    expect(isSameProjectPath(path('locations/Harbor.md'), path('notes/Harbor.md'))).toBe(false)
+    expect(isSameProjectPath(path('locations/Marrow.md'), path('notes/Marrow.md'))).toBe(false)
   })
 })

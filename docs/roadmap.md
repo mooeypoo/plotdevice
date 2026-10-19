@@ -35,6 +35,8 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 **Done when:** you can write in a chapter, see the change in Obsidian, and frontmatter is untouched.
 
 ## Phase 3: Inspector and structure editing
+- [ ] "New chapter" and "New part" in the binder, including in an empty project's binder, so a fresh project can start writing at once.
+- [ ] The inspector shows `part` and `order` as written. A duplicate-order warning names the other chapter and offers "Renumber this part" (rewrites `order` to 1, 2, 3…).
 - [ ] Right-hand panel that edits `title`, `status`, `pov`, `characters`, `location`, `threads`, `story_date`, and `synopsis`, with statuses from `novel.md` and "not in your list" statuses.
 - [ ] Create, reorder, and move parts and chapters, with drag and drop in the binder. Reordering rewrites only `order`. Moving updates `part` and `order`, and moves the file only from its default folder.
 - [ ] Title → file name sync per `settings.file_names`. Renames update wikilinks in every form.
@@ -84,7 +86,7 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
   - A light theme. Only the dark theme exists.
   - The panel framework (reference panel, timeline drawer) arrives with Phases 5 and 7, as drawn in the UI direction canvas.
   - Remember which binder parts are collapsed; typewriter scrolling; adjustable prose size and line width.
-  - Embeds show their target as `Harbor#Docks`; render headings as `Harbor › Docks`.
+  - Embeds show their target as `Marrow#Mill`; render headings as `Marrow › Mill`.
   - Clicking a link in the editor to open its target (Phase 5, with the codex).
 - Phase 1 follow-ups:
   - `write-file-atomic` 8 ships no types; `@types/write-file-atomic` 4.0.3 describes the same `writeFile(path, data, options)` API. Recheck when either updates.

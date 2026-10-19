@@ -23,14 +23,14 @@ describe('OpenProject', () => {
     const scan = {
       files: [
         {
-          path: 'manuscript/Arrival.md' as ProjectPath,
+          path: 'manuscript/The Ferry.md' as ProjectPath,
           classification: { kind: 'typed', type: 'chapter' } as const
         }
       ],
       nestedProjects: []
     }
-    const root = workspace.addFolder('/novels/preservers', {
-      novel: { kind: 'read', frontmatter: { format: 1, title: 'The Preservers' } },
+    const root = workspace.addFolder('/novels/salt-orchard', {
+      novel: { kind: 'read', frontmatter: { format: 1, title: 'The Salt Orchard' } },
       scan
     })
 
@@ -38,13 +38,13 @@ describe('OpenProject', () => {
 
     expect(result.ok).toBe(true)
     if (!result.ok) return
-    expect(result.value.project.title).toBe('The Preservers')
+    expect(result.value.project.title).toBe('The Salt Orchard')
     expect(result.value.scan).toEqual(scan)
   })
 
   it('records the project at the top of the recents list', async () => {
-    const root = workspace.addFolder('/novels/preservers', {
-      novel: { kind: 'read', frontmatter: { title: 'The Preservers' } }
+    const root = workspace.addFolder('/novels/salt-orchard', {
+      novel: { kind: 'read', frontmatter: { title: 'The Salt Orchard' } }
     })
     workspace.recents = [
       {
@@ -56,7 +56,7 @@ describe('OpenProject', () => {
 
     await openProject(root)
 
-    expect(workspace.recents.map((entry) => entry.title)).toEqual(['The Preservers', 'Other'])
+    expect(workspace.recents.map((entry) => entry.title)).toEqual(['The Salt Orchard', 'Other'])
     expect(workspace.recents[0]?.lastOpenedAt).toBe('2026-10-19T12:00:00.000Z')
   })
 
@@ -74,14 +74,14 @@ describe('OpenProject', () => {
   })
 
   it('points to the project above when the folder is inside one', async () => {
-    workspace.addFolder('/novels/preservers', { novel: { kind: 'read', frontmatter: {} } })
-    const characters = workspace.addFolder('/novels/preservers/characters')
+    workspace.addFolder('/novels/salt-orchard', { novel: { kind: 'read', frontmatter: {} } })
+    const characters = workspace.addFolder('/novels/salt-orchard/characters')
 
     const result = await openProject(characters)
 
     expect(result).toMatchObject({
       ok: false,
-      error: { code: 'not-a-project', projectAbove: '/novels/preservers' }
+      error: { code: 'not-a-project', projectAbove: '/novels/salt-orchard' }
     })
   })
 

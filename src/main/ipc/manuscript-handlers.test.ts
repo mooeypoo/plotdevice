@@ -13,8 +13,8 @@ import {
 } from './manuscript-handlers'
 
 const partPath = 'manuscript/Part One.md' as ProjectPath
-const arrival = 'manuscript/Arrival.md' as ProjectPath
-const harbor = 'locations/Harbor.md' as ProjectPath
+const arrival = 'manuscript/The Ferry.md' as ProjectPath
+const marrow = 'locations/Marrow.md' as ProjectPath
 
 let repository: InMemoryManuscript
 let session: ManuscriptUseCases | undefined
@@ -22,18 +22,18 @@ let handlers: ManuscriptHandlers
 
 beforeEach(() => {
   repository = new InMemoryManuscript()
-  repository.parts = [readPart(partPath, { title: 'Part One: The Harbor', order: 1 }, 'Epigraph.')]
+  repository.parts = [readPart(partPath, { title: 'Part One: The Orchard', order: 1 }, 'Epigraph.')]
   repository.chapters = [
     readChapter(arrival, { part: '[[Part One]]', order: 1, status: 'draft' }, 'Three words here.')
   ]
   repository.linkCandidates = [
     { path: partPath, type: 'part' },
     { path: arrival, type: 'chapter' },
-    { path: harbor, type: 'location' }
+    { path: marrow, type: 'location' }
   ]
   repository.setText(partPath, 'Epigraph.\n')
   repository.setText(arrival, 'Three words here.\n')
-  repository.setText(harbor, 'A location, not a chapter.\n')
+  repository.setText(marrow, 'A location, not a chapter.\n')
 
   session = {
     getManuscript: createGetManuscript({ repository }),
@@ -51,13 +51,13 @@ describe('manuscript handlers', () => {
         parts: [
           {
             path: partPath,
-            title: 'Part One: The Harbor',
+            title: 'Part One: The Orchard',
             number: 1,
             wordCount: 4,
             chapters: [
               {
                 path: arrival,
-                title: 'Arrival',
+                title: 'The Ferry',
                 number: 1,
                 status: 'draft',
                 wordCount: 3,
@@ -73,8 +73,8 @@ describe('manuscript handlers', () => {
         wordCount: 4,
         linkTargets: [
           { name: 'Part One', type: 'part' },
-          { name: 'Arrival', type: 'chapter' },
-          { name: 'Harbor', type: 'location' }
+          { name: 'The Ferry', type: 'chapter' },
+          { name: 'Marrow', type: 'location' }
         ]
       }
     })
@@ -94,15 +94,15 @@ describe('manuscript handlers', () => {
 
   it('refuses any other file, even one inside the project', async () => {
     await handlers.getManuscript()
-    expect(await handlers.openEntry([harbor])).toMatchObject({
+    expect(await handlers.openEntry([marrow])).toMatchObject({
       ok: false,
       error: { code: 'entry-not-allowed' }
     })
-    expect(await handlers.saveEntryText([harbor, 'x', 'v3', true])).toMatchObject({
+    expect(await handlers.saveEntryText([marrow, 'x', 'v3', true])).toMatchObject({
       ok: false,
       error: { code: 'entry-not-allowed' }
     })
-    expect(repository.texts.get(harbor)?.text).toBe('A location, not a chapter.\n')
+    expect(repository.texts.get(marrow)?.text).toBe('A location, not a chapter.\n')
   })
 
   it('refuses paths before the manuscript is listed, and traversal attempts', async () => {

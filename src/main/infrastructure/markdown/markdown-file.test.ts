@@ -48,16 +48,16 @@ describe('splitMarkdownFile and composeMarkdownFile', () => {
   })
 
   it('keeps the head exactly, including comments and CRLF', () => {
-    const parts = partsOf('manuscript/Part One/First night.md')
+    const parts = partsOf('manuscript/Part One/First frost.md')
     expect(parts.head.startsWith('---\r\ntype: chapter\r\n')).toBe(true)
     expect(parts.head).toContain('# which part this chapter belongs to')
     expect(parts.head.endsWith('---\r\n')).toBe(true)
   })
 
   it('treats a file without frontmatter as all body', () => {
-    const parts = partsOf('manuscript/Part One/Lanterns.md')
+    const parts = partsOf('manuscript/Part One/Margins.md')
     expect(parts.head).toBe('')
-    expect(parts.body.startsWith('Lanterns along the quay')).toBe(true)
+    expect(parts.body.startsWith('Pencilled notes in the margin')).toBe(true)
   })
 })
 
@@ -69,17 +69,17 @@ describe('writing a new body', () => {
   }
 
   it('gives a CRLF file CRLF in the new body, and leaves its frontmatter alone', () => {
-    const original = readFileSync(join(fixture, 'manuscript/Part One/First night.md'), 'utf8')
-    const result = rewrite('manuscript/Part One/First night.md', (text) => `${text}A new line.\n`)
-    expect(result.endsWith('songs.\r\nA new line.\r\n')).toBe(true)
+    const original = readFileSync(join(fixture, 'manuscript/Part One/First frost.md'), 'utf8')
+    const result = rewrite('manuscript/Part One/First frost.md', (text) => `${text}A new line.\n`)
+    expect(result.endsWith('night.\r\nA new line.\r\n')).toBe(true)
     expect(result.replaceAll('\r\n', '')).not.toContain('\n')
-    expect(result.slice(0, original.indexOf('Mira'))).toBe(
-      original.slice(0, original.indexOf('Mira'))
+    expect(result.slice(0, original.indexOf('Ilka'))).toBe(
+      original.slice(0, original.indexOf('Ilka'))
     )
   })
 
   it('keeps a BOM', () => {
-    const parts = partsOf('manuscript/Part Three/חזרה.md')
+    const parts = partsOf('manuscript/Part Three/הנהר.md')
     const body = fromEditorText(`${toEditorText(parts.body)}עוד שורה.\n`, parts)
     const bytes = composeMarkdownFile({ ...parts, body })
     expect([...bytes.subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf])
@@ -87,7 +87,7 @@ describe('writing a new body', () => {
 
   it('writes exactly what the editor has, so a missing trailing newline stays missing', () => {
     const result = rewrite('manuscript/Part Two/Café Ñandú.md', (text) => `${text} Then rain.`)
-    expect(result.endsWith('ledger. Then rain.')).toBe(true)
+    expect(result.endsWith('strike. Then rain.')).toBe(true)
   })
 
   it('gives an edited body with mixed endings its most common ending', () => {

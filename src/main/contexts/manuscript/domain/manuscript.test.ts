@@ -27,31 +27,31 @@ function arrange(parts: Part[], chapters: Chapter[], extra: LinkCandidate[] = []
 // The structure of fixtures/sample-novel.
 const partOne = part(
   'manuscript/Part One/Part One.md',
-  { title: 'Part One: The Harbor', order: 1 },
-  'Every harbor remembers.'
+  { title: 'Part One: The Orchard', order: 1 },
+  'Every tree remembers.'
 )
 const partTwo = part('manuscript/Part Two/Part Two.md', {
-  title: 'Part Two: The Archive',
+  title: 'Part Two: The Cannery',
   order: 2
 })
 const partThree = part('manuscript/Part Three/Part Three.md', {
-  title: 'Part Three: חזרה',
+  title: 'Part Three: הנהר',
   order: 3
 })
 const fixtureChapters = [
   chapter(
-    'manuscript/Part One/Arrival.md',
-    { title: 'Arrival', part: '[[Part One]]', order: 1 },
+    'manuscript/Part One/The Ferry.md',
+    { title: 'The Ferry', part: '[[Part One]]', order: 1 },
     'One two three.'
   ),
-  chapter('manuscript/Part One/First night.md', { part: '[[Part One]]', order: 2 }, 'Four five.'),
+  chapter('manuscript/Part One/First frost.md', { part: '[[Part One]]', order: 2 }, 'Four five.'),
   chapter('manuscript/Part One/Mixed endings.md', { part: '[[Part One]]', order: 3 }),
   chapter('manuscript/Part Three/Misfiled.md', { part: '[[Part One]]', order: 4 }),
-  chapter('manuscript/Part Two/The Archive.md', { part: '[[Part Two]]', order: 1 }),
+  chapter('manuscript/Part Two/The Cannery.md', { part: '[[Part Two]]', order: 1 }),
   chapter('manuscript/Part Two/Café Ñandú.md', { part: '[[Part Two]]', order: 2 }),
   chapter('manuscript/Part Two/Duplicate order.md', { part: '[[Part Two]]', order: 2 }),
   chapter('manuscript/Part Two/Shapes.md', { part: '[[Part Two]]', order: 3 }),
-  chapter('manuscript/Part Three/חזרה.md', { title: 'חֲזָרָה', part: '[[Part Three]]', order: 1 }),
+  chapter('manuscript/Part Three/הנהר.md', { title: 'הַנָּהָר', part: '[[Part Three]]', order: 1 }),
   chapter('manuscript/Part Three/No order.md', { part: '[[Part Three]]' }),
   chapter('manuscript/Part Three/Lost part.md', { part: '[[Part Nine]]', order: 2 })
 ]
@@ -68,9 +68,9 @@ describe('arrangeManuscript on the sample novel', () => {
 
   it('orders parts and chapters by frontmatter, restarting numbers in each part', () => {
     expect(outline(manuscript.parts)).toEqual([
-      ['1 Part One: The Harbor', '1 Arrival', '2 First night', '3 Mixed endings', '4 Misfiled'],
-      ['2 Part Two: The Archive', '1 The Archive', '2 Café Ñandú', '3 Duplicate order', '4 Shapes'],
-      ['3 Part Three: חזרה', '1 חֲזָרָה']
+      ['1 Part One: The Orchard', '1 The Ferry', '2 First frost', '3 Mixed endings', '4 Misfiled'],
+      ['2 Part Two: The Cannery', '1 The Cannery', '2 Café Ñandú', '3 Duplicate order', '4 Shapes'],
+      ['3 Part Three: הנהר', '1 הַנָּהָר']
     ])
   })
 
@@ -81,7 +81,7 @@ describe('arrangeManuscript on the sample novel', () => {
   it('numbers chapters by position, so a shared order still gets distinct numbers, with a warning', () => {
     const partTwoChapters = manuscript.parts[1]?.chapters ?? []
     expect(partTwoChapters.map((entry) => [entry.chapter.title, entry.duplicateOrder])).toEqual([
-      ['The Archive', false],
+      ['The Cannery', false],
       ['Café Ñandú', true],
       ['Duplicate order', true],
       ['Shapes', false]
@@ -119,7 +119,7 @@ describe('arrangeManuscript rules', () => {
         chapter('Fog.md', { part: '[[Interludes]]', order: 1 })
       ]
     )
-    expect(outline(manuscript.parts)).toEqual([['1 Part One: The Harbor']])
+    expect(outline(manuscript.parts)).toEqual([['1 Part One: The Orchard']])
     expect(outline(manuscript.unnumberedParts)).toEqual([
       ['- Interludes', '- Fog', '- Lamplighter']
     ])
@@ -153,8 +153,8 @@ describe('arrangeManuscript rules', () => {
       [partOne],
       [
         chapter('Plain.md', { part: 'Part One', order: 1 }),
-        chapter('Wrong.md', { part: '[[Arrival]]', order: 1 }),
-        chapter('Arrival.md', { part: '[[Part One]]', order: 1 })
+        chapter('Wrong.md', { part: '[[The Ferry]]', order: 1 }),
+        chapter('The Ferry.md', { part: '[[Part One]]', order: 1 })
       ]
     )
     expect(manuscript.unordered.map((entry) => [entry.chapter.title, entry.reason])).toEqual([
@@ -166,17 +166,17 @@ describe('arrangeManuscript rules', () => {
   it('accepts an unquoted part link', () => {
     const manuscript = arrange(
       [partOne],
-      [chapter('Arrival.md', { part: [['Part One']], order: 1 })]
+      [chapter('The Ferry.md', { part: [['Part One']], order: 1 })]
     )
     expect(manuscript.parts[0]?.chapters).toHaveLength(1)
   })
 
   it('uses the expected type when a part shares its name with another file', () => {
-    const harborPart = part('manuscript/Harbor.md', { order: 1 })
+    const marrowPart = part('manuscript/Marrow.md', { order: 1 })
     const manuscript = arrange(
-      [harborPart],
-      [chapter('Arrival.md', { part: '[[Harbor]]', order: 1 })],
-      [{ path: path('locations/Harbor.md'), type: 'location' }]
+      [marrowPart],
+      [chapter('The Ferry.md', { part: '[[Marrow]]', order: 1 })],
+      [{ path: path('locations/Marrow.md'), type: 'location' }]
     )
     expect(manuscript.parts[0]?.chapters).toHaveLength(1)
   })
@@ -184,7 +184,7 @@ describe('arrangeManuscript rules', () => {
   it('sends a chapter to the tray when its part link is ambiguous', () => {
     const manuscript = arrange(
       [part('a/Book.md', { order: 1 }), part('b/Book.md', { order: 2 })],
-      [chapter('Arrival.md', { part: '[[Book]]', order: 1 })]
+      [chapter('The Ferry.md', { part: '[[Book]]', order: 1 })]
     )
     expect(manuscript.unordered).toMatchObject([{ reason: 'part-ambiguous' }])
   })
@@ -201,8 +201,8 @@ describe('arrangeManuscript rules', () => {
 
 describe('readChapter and readPart', () => {
   it('takes the title from the title key, or the file name', () => {
-    expect(chapter('manuscript/Arrival.md', { title: '  The Dock ' }).title).toBe('The Dock')
-    expect(chapter('manuscript/Arrival.md', {}).title).toBe('Arrival')
+    expect(chapter('manuscript/The Ferry.md', { title: '  The Dock ' }).title).toBe('The Dock')
+    expect(chapter('manuscript/The Ferry.md', {}).title).toBe('The Ferry')
     expect(chapter('manuscript/1984.md', { title: 1984 }).title).toBe('1984')
   })
 

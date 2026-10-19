@@ -10,17 +10,17 @@ describe('readLinkValue', () => {
   })
 
   it('recovers an unquoted wikilink, which YAML reads as a list inside a list', () => {
-    expect(readLinkValue([['Mira Kovač']])).toEqual({
+    expect(readLinkValue([['Ilka Szabó']])).toEqual({
       kind: 'link',
-      link: { target: 'Mira Kovač', embed: false },
+      link: { target: 'Ilka Szabó', embed: false },
       recovered: true
     })
   })
 
   it('recovers an unquoted wikilink with shown text', () => {
-    expect(readLinkValue([['Mira Kovač|Mira']])).toMatchObject({
+    expect(readLinkValue([['Ilka Szabó|Ilka']])).toMatchObject({
       kind: 'link',
-      link: { target: 'Mira Kovač', shownText: 'Mira' },
+      link: { target: 'Ilka Szabó', shownText: 'Ilka' },
       recovered: true
     })
   })
@@ -40,13 +40,13 @@ describe('readLinkValue', () => {
 
 describe('readLinkList', () => {
   it('reads a list of links, a single link as a list of one, and skips invalid items', () => {
-    expect(readLinkList(['[[Mira Kovač]]', '[[Old Tal]]']).links.map((l) => l.target)).toEqual([
-      'Mira Kovač',
-      'Old Tal'
+    expect(readLinkList(['[[Ilka Szabó]]', '[[Aunt Bea]]']).links.map((l) => l.target)).toEqual([
+      'Ilka Szabó',
+      'Aunt Bea'
     ])
-    expect(readLinkList('[[Old Tal]]').links.map((l) => l.target)).toEqual(['Old Tal'])
-    expect(readLinkList(['[[Mira Kovač]]', 'not a link'])).toMatchObject({
-      links: [{ target: 'Mira Kovač' }],
+    expect(readLinkList('[[Aunt Bea]]').links.map((l) => l.target)).toEqual(['Aunt Bea'])
+    expect(readLinkList(['[[Ilka Szabó]]', 'not a link'])).toMatchObject({
+      links: [{ target: 'Ilka Szabó' }],
       invalidCount: 1
     })
     expect(readLinkList(undefined)).toEqual({ links: [], invalidCount: 0 })

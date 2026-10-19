@@ -17,8 +17,8 @@ afterEach(async () => {
 })
 
 const entry: RecentProject = {
-  root: resolve('/novels/preservers') as ProjectRoot,
-  title: 'The Preservers',
+  root: resolve('/novels/salt-orchard') as ProjectRoot,
+  title: 'The Salt Orchard',
   lastOpenedAt: '2026-10-19T12:00:00.000Z'
 }
 

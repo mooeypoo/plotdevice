@@ -71,10 +71,10 @@ describe('workspace on real files', () => {
 
     const result = await openProject(root)
 
-    expect(result).toMatchObject({ ok: true, value: { project: { title: 'The Preservers' } } })
+    expect(result).toMatchObject({ ok: true, value: { project: { title: 'The Salt Orchard' } } })
     if (result.ok) expect(result.value.scan.files).toHaveLength(30)
     expect(await listRecentProjects()).toMatchObject([
-      { root, title: 'The Preservers', available: true }
+      { root, title: 'The Salt Orchard', available: true }
     ])
   })
 

@@ -47,16 +47,16 @@ const path = (value: string): ProjectPath => value as ProjectPath
 
 describe('workspace handlers', () => {
   it('refuses to open a folder the writer never chose', async () => {
-    workspace.addFolder('/novels/preservers', { novel: { kind: 'read', frontmatter: {} } })
-    expect(await handlers.openProject(['/novels/preservers'])).toMatchObject({
+    workspace.addFolder('/novels/salt-orchard', { novel: { kind: 'read', frontmatter: {} } })
+    expect(await handlers.openProject(['/novels/salt-orchard'])).toMatchObject({
       ok: false,
       error: { code: 'folder-not-allowed' }
     })
   })
 
   it('opens a folder chosen in the dialog, summarizing its files', async () => {
-    workspace.addFolder('/novels/preservers', {
-      novel: { kind: 'read', frontmatter: { format: 1, title: 'The Preservers' } },
+    workspace.addFolder('/novels/salt-orchard', {
+      novel: { kind: 'read', frontmatter: { format: 1, title: 'The Salt Orchard' } },
       scan: {
         files: [
           { path: path('a.md'), classification: { kind: 'typed', type: 'chapter' } },
@@ -74,14 +74,14 @@ describe('workspace handlers', () => {
       }
     })
 
-    const choice = await handlers.chooseFolder(() => Promise.resolve('/novels/preservers'))
-    expect(choice).toEqual({ root: '/novels/preservers', name: 'preservers', isProject: true })
+    const choice = await handlers.chooseFolder(() => Promise.resolve('/novels/salt-orchard'))
+    expect(choice).toEqual({ root: '/novels/salt-orchard', name: 'salt-orchard', isProject: true })
 
-    expect(await handlers.openProject(['/novels/preservers'])).toEqual({
+    expect(await handlers.openProject(['/novels/salt-orchard'])).toEqual({
       ok: true,
       value: {
-        root: '/novels/preservers',
-        title: 'The Preservers',
+        root: '/novels/salt-orchard',
+        title: 'The Salt Orchard',
         formatVersion: 1,
         readOnly: false,
         warnings: [],
@@ -96,16 +96,16 @@ describe('workspace handlers', () => {
   })
 
   it('starts and ends the project session', async () => {
-    workspace.addFolder('/novels/preservers', {
+    workspace.addFolder('/novels/salt-orchard', {
       novel: { kind: 'read', frontmatter: { format: 2 } }
     })
-    await handlers.chooseFolder(() => Promise.resolve('/novels/preservers'))
+    await handlers.chooseFolder(() => Promise.resolve('/novels/salt-orchard'))
 
-    await handlers.openProject(['/novels/preservers'])
+    await handlers.openProject(['/novels/salt-orchard'])
     await handlers.closeProject()
 
     expect(opened).toEqual([
-      ['/novels/preservers', true],
+      ['/novels/salt-orchard', true],
       ['closed', false]
     ])
   })
@@ -115,29 +115,29 @@ describe('workspace handlers', () => {
   })
 
   it('allows the project above a chosen subfolder', async () => {
-    workspace.addFolder('/novels/preservers', {
-      novel: { kind: 'read', frontmatter: { title: 'The Preservers' } }
+    workspace.addFolder('/novels/salt-orchard', {
+      novel: { kind: 'read', frontmatter: { title: 'The Salt Orchard' } }
     })
-    workspace.addFolder('/novels/preservers/notes')
+    workspace.addFolder('/novels/salt-orchard/notes')
 
-    const choice = await handlers.chooseFolder(() => Promise.resolve('/novels/preservers/notes'))
+    const choice = await handlers.chooseFolder(() => Promise.resolve('/novels/salt-orchard/notes'))
 
     expect(choice).toMatchObject({
       isProject: false,
-      projectAbove: { root: '/novels/preservers', title: 'The Preservers' }
+      projectAbove: { root: '/novels/salt-orchard', title: 'The Salt Orchard' }
     })
-    expect(await handlers.openProject(['/novels/preservers'])).toMatchObject({ ok: true })
+    expect(await handlers.openProject(['/novels/salt-orchard'])).toMatchObject({ ok: true })
   })
 
   it('allows reopening anything in the recents list', async () => {
-    const root = workspace.addFolder('/novels/preservers', {
+    const root = workspace.addFolder('/novels/salt-orchard', {
       novel: { kind: 'read', frontmatter: {} }
     })
     workspace.recents = [{ root, title: 'P', lastOpenedAt: '2026-10-01T00:00:00.000Z' }]
 
     await handlers.listRecentProjects()
 
-    expect(await handlers.openProject(['/novels/preservers'])).toMatchObject({ ok: true })
+    expect(await handlers.openProject(['/novels/salt-orchard'])).toMatchObject({ ok: true })
   })
 
   it('initializes a chosen folder', async () => {
@@ -152,7 +152,7 @@ describe('workspace handlers', () => {
 
   it('passes the project-below hint through when initializing is refused', async () => {
     workspace.addFolder('/novels')
-    workspace.addFolder('/novels/preservers', { novel: { kind: 'read', frontmatter: {} } })
+    workspace.addFolder('/novels/salt-orchard', { novel: { kind: 'read', frontmatter: {} } })
     await handlers.chooseFolder(() => Promise.resolve('/novels'))
 
     expect(await handlers.initializeProject(['/novels', 'All'])).toEqual({
@@ -160,7 +160,7 @@ describe('workspace handlers', () => {
       error: {
         code: 'contains-project',
         message: 'This folder contains another project.',
-        projectBelow: '/novels/preservers'
+        projectBelow: '/novels/salt-orchard'
       }
     })
   })

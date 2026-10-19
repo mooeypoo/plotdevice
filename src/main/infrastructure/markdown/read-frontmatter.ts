@@ -21,7 +21,7 @@ export function readFrontmatter(bytes: Uint8Array): FrontmatterReading {
     case 'none':
       return { kind: 'none' }
     case 'frontmatter': {
-      // YAML 1.2 core schema (the default): `2187-04-12` stays a string, not a Date.
+      // YAML 1.2 core schema (the default): `1952-10-03` stays a string, not a Date.
       const document = parseDocument(split.yaml)
       const firstError = document.errors[0]
       if (firstError !== undefined) return { kind: 'unparseable', message: firstError.message }

@@ -2,13 +2,13 @@ import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { toProjectPath } from './to-project-path'
 
-const root = resolve('/novels/preservers')
+const root = resolve('/novels/salt-orchard')
 
 describe('toProjectPath', () => {
   it('converts a path inside the project, with forward slashes on every OS', () => {
-    expect(toProjectPath(root, join(root, 'manuscript', 'Part One', 'Arrival.md'))).toEqual({
+    expect(toProjectPath(root, join(root, 'manuscript', 'Part One', 'The Ferry.md'))).toEqual({
       ok: true,
-      value: 'manuscript/Part One/Arrival.md'
+      value: 'manuscript/Part One/The Ferry.md'
     })
   })
 

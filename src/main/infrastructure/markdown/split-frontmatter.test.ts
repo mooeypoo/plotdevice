@@ -16,14 +16,14 @@ function readFixture(path: string): ReturnType<typeof splitFrontmatter> {
 
 describe('splitFrontmatter', () => {
   it('separates frontmatter from the body', () => {
-    const result = split('---\ntitle: Arrival\n---\nProse.\n')
-    expect(result).toMatchObject({ kind: 'frontmatter', hasBom: false, yaml: 'title: Arrival\n' })
+    const result = split('---\ntitle: The Ferry\n---\nProse.\n')
+    expect(result).toMatchObject({ kind: 'frontmatter', hasBom: false, yaml: 'title: The Ferry\n' })
     if (result.kind === 'frontmatter') expect(result.text.slice(result.bodyStart)).toBe('Prose.\n')
   })
 
   it('keeps CRLF inside the frontmatter and finds the body after it', () => {
-    const result = split('---\r\ntitle: Arrival\r\n---\r\nProse.\r\n')
-    expect(result).toMatchObject({ kind: 'frontmatter', yaml: 'title: Arrival\r\n' })
+    const result = split('---\r\ntitle: The Ferry\r\n---\r\nProse.\r\n')
+    expect(result).toMatchObject({ kind: 'frontmatter', yaml: 'title: The Ferry\r\n' })
     if (result.kind === 'frontmatter')
       expect(result.text.slice(result.bodyStart)).toBe('Prose.\r\n')
   })
@@ -65,7 +65,7 @@ describe('splitFrontmatter', () => {
 
   describe('on the fixture', () => {
     it('handles a BOM', () => {
-      const result = readFixture('manuscript/Part Three/חזרה.md')
+      const result = readFixture('manuscript/Part Three/הנהר.md')
       expect(result).toMatchObject({ kind: 'frontmatter', hasBom: true })
       if (result.kind === 'frontmatter') expect(result.yaml).toContain('type: chapter')
     })
@@ -78,7 +78,7 @@ describe('splitFrontmatter', () => {
     })
 
     it.each([
-      ['manuscript/Part One/Lanterns.md', 'none'],
+      ['manuscript/Part One/Margins.md', 'none'],
       ['manuscript/Part Two/Empty frontmatter.md', 'frontmatter'],
       ['notes/Unclosed.md', 'unclosed'],
       ['notes/Windows-1255.md', 'invalid-encoding'],
@@ -92,7 +92,7 @@ describe('splitFrontmatter', () => {
       expect(result.kind).toBe('frontmatter')
       if (result.kind === 'frontmatter') {
         expect(result.text.slice(result.bodyStart)).toBe(
-          'Steam rose from the cups. Nobody spoke of the ledger.'
+          'Steam rose from the cups. Nobody mentioned the strike.'
         )
       }
     })

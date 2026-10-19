@@ -20,9 +20,9 @@ function listFiles(dir: string): string[] {
 }
 
 const crlfOnly = [
-  'manuscript/Part One/First night.md',
+  'manuscript/Part One/First frost.md',
   'manuscript/Part Three/Part Three.md',
-  'characters/Old Tal.md'
+  'characters/Aunt Bea.md'
 ]
 const mixedLineEndings = ['manuscript/Part One/Mixed endings.md']
 
@@ -32,29 +32,29 @@ describe('fixtures/sample-novel', () => {
       [
         '.obsidian/app.json',
         'Loose thoughts.md',
-        'characters/Harbor.md',
-        'characters/Mira Kovač.md',
-        'characters/Old Tal.md',
-        'characters/Zoë.md',
-        'characters/נועה.md',
-        'locations/Harbor.md',
-        'manuscript/Part One/Arrival.md',
-        'manuscript/Part One/First night.md',
-        'manuscript/Part One/Lanterns.md',
+        'characters/Marrow.md',
+        'characters/Ilka Szabó.md',
+        'characters/Aunt Bea.md',
+        'characters/Noël.md',
+        'characters/יעל.md',
+        'locations/Marrow.md',
+        'manuscript/Part One/The Ferry.md',
+        'manuscript/Part One/First frost.md',
+        'manuscript/Part One/Margins.md',
         'manuscript/Part One/Mixed endings.md',
         'manuscript/Part One/Part One.md',
         'manuscript/Part Three/Lost part.md',
         'manuscript/Part Three/Misfiled.md',
         'manuscript/Part Three/No order.md',
         'manuscript/Part Three/Part Three.md',
-        'manuscript/Part Three/חזרה.md',
+        'manuscript/Part Three/הנהר.md',
         'manuscript/Part Two/Broken.md',
         'manuscript/Part Two/Café Ñandú.md',
         'manuscript/Part Two/Duplicate order.md',
         'manuscript/Part Two/Empty frontmatter.md',
         'manuscript/Part Two/Part Two.md',
         'manuscript/Part Two/Shapes.md',
-        'manuscript/Part Two/The Archive.md',
+        'manuscript/Part Two/The Cannery.md',
         'notes/Chapter #3 [draft].md',
         'notes/Research.md',
         'notes/Scene idea.md',
@@ -62,7 +62,9 @@ describe('fixtures/sample-novel', () => {
         'notes/Unknown type.md',
         'notes/Windows-1255.md',
         'novel.md'
-      ].map((path) => path.normalize('NFC'))
+      ]
+        .map((path) => path.normalize('NFC'))
+        .sort()
     )
   })
 
@@ -89,11 +91,11 @@ describe('fixtures/sample-novel', () => {
 
   it('keeps a file without a trailing newline', () => {
     const text = bytes('manuscript/Part Two/Café Ñandú.md').toString('utf8')
-    expect(text.endsWith('ledger.')).toBe(true)
+    expect(text.endsWith('strike.')).toBe(true)
   })
 
   it('keeps a UTF-8 byte-order mark', () => {
-    expect([...bytes('manuscript/Part Three/חזרה.md').subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf])
+    expect([...bytes('manuscript/Part Three/הנהר.md').subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf])
   })
 
   it('keeps a file that is not valid UTF-8', () => {
@@ -102,12 +104,12 @@ describe('fixtures/sample-novel', () => {
   })
 
   it('keeps a decomposed (NFD) file name', () => {
-    expect(readdirSync(join(root, 'characters'))).toContain('Zoë.md')
+    expect(readdirSync(join(root, 'characters'))).toContain('Noe\u0308l.md')
   })
 
   it('keeps Hebrew niqqud in the prose', () => {
     // בְּרֵאשִׁית in NFC order: sheva before dagesh, hiriq before shin dot.
-    expect(bytes('manuscript/Part Three/חזרה.md').toString('utf8')).toContain(
+    expect(bytes('manuscript/Part Three/הנהר.md').toString('utf8')).toContain(
       'בְּרֵאשִׁית'
     )
   })

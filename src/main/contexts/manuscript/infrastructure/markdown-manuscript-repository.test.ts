@@ -38,9 +38,9 @@ describe('loading the sample novel', () => {
         ...section.chapters.map((entry) => entry.chapter.title)
       ])
     ).toEqual([
-      ['Part One: The Harbor', 'Arrival', 'First night', 'Mixed endings', 'Misfiled'],
-      ['Part Two: The Archive', 'The Archive', 'Café Ñandú', 'Duplicate order', 'Shapes'],
-      ['Part Three: חזרה', 'חֲזָרָה']
+      ['Part One: The Orchard', 'The Ferry', 'First frost', 'Mixed endings', 'Misfiled'],
+      ['Part Two: The Cannery', 'The Cannery', 'Café Ñandú', 'Duplicate order', 'Shapes'],
+      ['Part Three: הנהר', 'הַנָּהָר']
     ])
     expect(manuscript.unordered.map((entry) => [entry.chapter.title, entry.reason])).toEqual([
       ['Lost part', 'part-not-found'],
@@ -51,7 +51,7 @@ describe('loading the sample novel', () => {
   it('offers every scanned file as a link candidate', async () => {
     const files = await createMarkdownManuscriptRepository(copy.root).load()
     expect(files.linkCandidates).toHaveLength(30)
-    expect(files.linkCandidates).toContainEqual({ path: 'locations/Harbor.md', type: 'location' })
+    expect(files.linkCandidates).toContainEqual({ path: 'locations/Marrow.md', type: 'location' })
   })
 })
 
@@ -60,19 +60,19 @@ describe('reading and writing prose', () => {
     createMarkdownManuscriptRepository(copy.root)
 
   it('gives the editor LF text, even from a CRLF file', async () => {
-    const read = await repository().readText(path('manuscript/Part One/First night.md'))
+    const read = await repository().readText(path('manuscript/Part One/First frost.md'))
     expect(read).toMatchObject({
       ok: true,
-      value: { text: "Mira couldn't sleep. The walls hummed with the ship's old songs.\n" }
+      value: { text: "Ilka couldn't sleep. The smudge pots ticked in the cold all night.\n" }
     })
   })
 
   it.each([
-    'manuscript/Part One/Arrival.md',
-    'manuscript/Part One/First night.md',
+    'manuscript/Part One/The Ferry.md',
+    'manuscript/Part One/First frost.md',
     'manuscript/Part One/Mixed endings.md',
     'manuscript/Part Two/Café Ñandú.md',
-    'manuscript/Part Three/חזרה.md',
+    'manuscript/Part Three/הנהר.md',
     'manuscript/Part One/Part One.md'
   ])('does not touch %s when the text is unchanged', async (file) => {
     const before = await bytesOf(file)
@@ -88,9 +88,9 @@ describe('reading and writing prose', () => {
   })
 
   it.each([
-    ['manuscript/Part One/Arrival.md', '\n'],
-    ['manuscript/Part One/First night.md', '\r\n'],
-    ['manuscript/Part Three/חזרה.md', '\n']
+    ['manuscript/Part One/The Ferry.md', '\n'],
+    ['manuscript/Part One/First frost.md', '\r\n'],
+    ['manuscript/Part Three/הנהר.md', '\n']
   ])(
     'changes only the body of %s, keeping frontmatter bytes and line endings',
     async (file, eol) => {
@@ -113,7 +113,7 @@ describe('reading and writing prose', () => {
   )
 
   it('keeps the BOM when saving', async () => {
-    const file = 'manuscript/Part Three/חזרה.md'
+    const file = 'manuscript/Part Three/הנהר.md'
     const read = await repository().readText(path(file))
     if (!read.ok) throw new Error('read failed')
     await repository().writeText(path(file), `${read.value.text}עוד.\n`, read.value.version)
@@ -121,11 +121,11 @@ describe('reading and writing prose', () => {
   })
 
   it('refuses to save over a change made outside the app, and leaves that change alone', async () => {
-    const file = 'manuscript/Part One/Arrival.md'
+    const file = 'manuscript/Part One/The Ferry.md'
     const read = await repository().readText(path(file))
     if (!read.ok) throw new Error('read failed')
-    const outside = (await textOf(file)).replace('lamps came on', 'lamps went out')
-    await writeFile(join(copy.root, 'manuscript', 'Part One', 'Arrival.md'), outside)
+    const outside = (await textOf(file)).replace('fog was still lifting', 'fog had already lifted')
+    await writeFile(join(copy.root, 'manuscript', 'Part One', 'The Ferry.md'), outside)
 
     const saved = await repository().writeText(path(file), 'Mine.\n', read.value.version)
 
@@ -134,9 +134,9 @@ describe('reading and writing prose', () => {
   })
 
   it('overwrites the outside change when asked to', async () => {
-    const file = 'manuscript/Part One/Arrival.md'
+    const file = 'manuscript/Part One/The Ferry.md'
     await writeFile(
-      join(copy.root, 'manuscript', 'Part One', 'Arrival.md'),
+      join(copy.root, 'manuscript', 'Part One', 'The Ferry.md'),
       '---\ntype: chapter\n---\nTheirs.\n'
     )
     expect(await repository().writeText(path(file), 'Mine.\n', undefined)).toMatchObject({

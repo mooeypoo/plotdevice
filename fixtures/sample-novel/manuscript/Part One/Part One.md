@@ -1,7 +1,7 @@
 ---
 type: part
-title: "Part One: The Harbor"
+title: "Part One: The Orchard"
 order: 1
-synopsis: Mira arrives at the colony.
+synopsis: Ilka comes home for the harvest.
 ---
-> Every harbor remembers the ships that never came back.
+> Every tree remembers the frost that almost took it.

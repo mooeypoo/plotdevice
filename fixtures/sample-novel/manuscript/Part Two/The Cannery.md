@@ -1,21 +1,21 @@
 ---
-tags: [archive, worldbuilding]
+tags: [cannery, worldbuilding]
 type: chapter
 mood: tense                 # unknown key, between keys the app owns
 part: "[[Part Two]]"
 aliases:
-  - Stacks
+  - Line Three
 order: 1                    # numbering restarts in each part
 status: revised
 characters:
-  - "[[Mira Kovač]]"
-  - "[[נועה]]"
+  - "[[Ilka Szabó]]"
+  - "[[יעל]]"
 threads:
-  - sect
-story_date: 2187-05-02
-synopsis: Mira finds her own name in a ledger older than the colony.
+  - strike
+story_date: 1952-11-14
+synopsis: The line stops, and nobody will say who pulled the lever.
 ---
-The archive smelled of dust and cold metal.
+The cannery smelled of syrup and wet tin.
 
 Inline code like `[[Not a link]]` and code blocks are ignored:
 

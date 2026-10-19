@@ -41,7 +41,7 @@ describe('InitializeProject', () => {
   })
 
   it('refuses a folder that is already a project', async () => {
-    const root = workspace.addFolder('/novels/preservers', {
+    const root = workspace.addFolder('/novels/salt-orchard', {
       novel: { kind: 'read', frontmatter: {} }
     })
     const result = await initializeProject(root, 'Again')
@@ -50,27 +50,27 @@ describe('InitializeProject', () => {
   })
 
   it('refuses a folder inside another project, and says which', async () => {
-    workspace.addFolder('/novels/preservers', { novel: { kind: 'read', frontmatter: {} } })
-    const notes = workspace.addFolder('/novels/preservers/notes')
+    workspace.addFolder('/novels/salt-orchard', { novel: { kind: 'read', frontmatter: {} } })
+    const notes = workspace.addFolder('/novels/salt-orchard/notes')
 
     const result = await initializeProject(notes, 'Nested')
 
     expect(result).toMatchObject({
       ok: false,
-      error: { code: 'inside-project', projectAbove: '/novels/preservers' }
+      error: { code: 'inside-project', projectAbove: '/novels/salt-orchard' }
     })
     expect(workspace.createdNovelFiles.size).toBe(0)
   })
 
   it('refuses a folder that contains another project, and says which', async () => {
     const novels = workspace.addFolder('/novels')
-    workspace.addFolder('/novels/preservers', { novel: { kind: 'read', frontmatter: {} } })
+    workspace.addFolder('/novels/salt-orchard', { novel: { kind: 'read', frontmatter: {} } })
 
     const result = await initializeProject(novels, 'All of them')
 
     expect(result).toMatchObject({
       ok: false,
-      error: { code: 'contains-project', projectBelow: '/novels/preservers' }
+      error: { code: 'contains-project', projectBelow: '/novels/salt-orchard' }
     })
     expect(workspace.createdNovelFiles.size).toBe(0)
   })

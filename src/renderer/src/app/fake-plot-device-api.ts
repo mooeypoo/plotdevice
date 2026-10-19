@@ -3,8 +3,8 @@ import type { ManuscriptDto, ProjectSummaryDto } from '../../../contract/dtos'
 
 /** A project summary for tests. */
 export const sampleSummary: ProjectSummaryDto = {
-  root: '/novels/preservers',
-  title: 'The Preservers',
+  root: '/novels/salt-orchard',
+  title: 'The Salt Orchard',
   formatVersion: 1,
   readOnly: false,
   warnings: [],
@@ -17,14 +17,20 @@ export const sampleManuscript: ManuscriptDto = {
   parts: [
     {
       path: 'Part One.md',
-      title: 'Part One: The Harbor',
+      title: 'Part One: The Orchard',
       number: 1,
       wordCount: 9,
       chapters: [
-        { path: 'Arrival.md', title: 'Arrival', number: 1, wordCount: 3, duplicateOrder: false },
         {
-          path: 'First night.md',
-          title: 'First night',
+          path: 'The Ferry.md',
+          title: 'The Ferry',
+          number: 1,
+          wordCount: 3,
+          duplicateOrder: false
+        },
+        {
+          path: 'First frost.md',
+          title: 'First frost',
           number: 2,
           wordCount: 4,
           duplicateOrder: false
@@ -57,8 +63,8 @@ export function createFakePlotDeviceApi(): {
 } {
   const files = new Map([
     ['Part One.md', 'Two words.\n'],
-    ['Arrival.md', 'Three words here.\n'],
-    ['First night.md', 'Four words are here.\n'],
+    ['The Ferry.md', 'Three words here.\n'],
+    ['First frost.md', 'Four words are here.\n'],
     ['Lost.md', 'One.\n']
   ])
   const state = { saves: [] as string[], closedProjects: 0 }

@@ -9,15 +9,15 @@ describe('readProject', () => {
   it('reads the keys workspace owns', () => {
     const project = readProject(root, 'my-novel', {
       format: 1,
-      title: 'The Preservers',
-      author: 'Moriel',
+      title: 'The Salt Orchard',
+      author: 'Ines Varga',
       calendar: 'gregorian',
       settings: { file_names: 'never' }
     })
     expect(project).toEqual({
       root,
-      title: 'The Preservers',
-      author: 'Moriel',
+      title: 'The Salt Orchard',
+      author: 'Ines Varga',
       formatVersion: 1,
       readOnly: false,
       settings: { ...DEFAULT_PROJECT_SETTINGS, fileNames: 'never' },
