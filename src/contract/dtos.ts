@@ -179,6 +179,8 @@ export interface PropertyChangesDto {
   readonly storyDate?: string
   readonly storyTime?: string
   readonly synopsis?: string
+  /** A whole number sets the position; `null` removes `order` (to the unordered tray). */
+  readonly order?: number | null
 }
 
 /** A plotline from novel.md. */

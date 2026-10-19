@@ -89,9 +89,11 @@ const marker = props.part.number === undefined ? '◇' : romanNumeral(props.part
           @open="$emit('open', chapter.path)"
         />
       </li>
-      <li v-if="part.chapters.length === 0 && !adding" class="empty">No chapters yet</li>
       <li v-if="adding">
         <NewEntryInput placeholder="Chapter title" @create="create" @cancel="adding = false" />
+      </li>
+      <li v-else-if="!readOnly">
+        <button type="button" class="new-chapter" @click="startAdding">+ New chapter</button>
       </li>
     </ul>
   </section>
@@ -108,6 +110,21 @@ const marker = props.part.number === undefined ? '◇' : romanNumeral(props.part
   border-radius: 7px;
 }
 
+.new-chapter {
+  width: 100%;
+  min-height: 30px;
+  padding: 0 8px 0 36px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: start;
+}
+
+.new-chapter:hover {
+  color: var(--text);
+}
+
 .add {
   width: 26px;
   height: 26px;
@@ -117,7 +134,7 @@ const marker = props.part.number === undefined ? '◇' : romanNumeral(props.part
   background: transparent;
   color: var(--text-muted);
   font-size: 16px;
-  opacity: 0;
+  opacity: 0.5;
 }
 
 .header:hover .add,

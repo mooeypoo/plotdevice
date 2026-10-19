@@ -24,6 +24,8 @@ export interface PropertyChanges {
   readonly storyDate?: string
   readonly storyTime?: string
   readonly synopsis?: string
+  /** A whole number sets the position; `null` removes `order` (the chapter leaves the numbered book). */
+  readonly order?: number | null
 }
 
 const WHOLE_NUMBER = /^[+-]?\d+$/u
@@ -73,6 +75,9 @@ export function propertyWrites(
   }
   textKey('story_time', changes.storyTime)
   textKey('synopsis', changes.synopsis)
+  if (changes.order !== undefined) {
+    writes.push({ key: 'order', value: changes.order ?? undefined })
+  }
   return writes
 }
 

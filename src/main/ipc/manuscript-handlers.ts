@@ -76,7 +76,8 @@ const changes = z
     threads: list.optional(),
     storyDate: z.string().max(500).optional(),
     storyTime: field.optional(),
-    synopsis: field.optional()
+    synopsis: field.optional(),
+    order: z.number().int().min(-1_000_000).max(1_000_000).nullable().optional()
   })
   .strict()
 const updateArgs = z.tuple([path, z.string().min(1).max(200), changes])

@@ -128,10 +128,31 @@ describe('manuscript handlers', () => {
     })
   })
 
+  it('changes and removes a chapter’s order', async () => {
+    await handlers.getManuscript()
+    const read = await handlers.getEntryProperties([ferry])
+    if (!read.ok) return
+    const moved = await handlers.updateEntryProperties([ferry, read.value.version, { order: 4 }])
+    expect(moved).toMatchObject({ ok: true, value: { properties: { order: '4' } } })
+    if (!moved.ok) return
+    const removed = await handlers.updateEntryProperties([
+      ferry,
+      moved.value.version,
+      { order: null }
+    ])
+    expect(removed.ok && removed.value.properties).not.toHaveProperty('order')
+    expect(repository.get(ferry)?.frontmatter).not.toHaveProperty('order')
+  })
+
   it('rejects unknown property names and malformed values', async () => {
     await handlers.getManuscript()
     const invalid = { ok: false, error: { code: 'invalid-request' } }
-    expect(await handlers.updateEntryProperties([ferry, 'v1', { order: 3 }])).toMatchObject(invalid)
+    expect(await handlers.updateEntryProperties([ferry, 'v1', { order: 2.5 }])).toMatchObject(
+      invalid
+    )
+    expect(await handlers.updateEntryProperties([ferry, 'v1', { part: 'x' }])).toMatchObject(
+      invalid
+    )
     expect(await handlers.updateEntryProperties([ferry, 'v1', { pov: 'Ilka' }])).toMatchObject(
       invalid
     )

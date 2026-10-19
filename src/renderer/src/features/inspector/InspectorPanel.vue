@@ -18,6 +18,9 @@ const busy = ref(false)
 
 // Text fields edit a local draft and save when the writer leaves the field.
 const title = ref('')
+// A number field's v-model gives a number once the writer types, text before that.
+const order = ref<string | number>('')
+const orderHint = ref<string | null>(null)
 const storyDate = ref('')
 const storyTime = ref('')
 const synopsis = ref('')
@@ -27,6 +30,8 @@ watch(
   properties,
   (current) => {
     title.value = current?.title ?? ''
+    order.value = current?.order ?? ''
+    orderHint.value = null
     storyDate.value = current?.storyDate ?? ''
     storyTime.value = current?.storyTime ?? ''
     synopsis.value = current?.synopsis ?? ''
@@ -90,6 +95,22 @@ function saveText(field: 'title' | 'storyTime' | 'synopsis', value: string): voi
   if (value.trim() !== before.trim()) void save({ [field]: value })
 }
 
+function saveOrder(): void {
+  const text = String(order.value).trim()
+  if (text === (properties.value?.order ?? '')) return
+  if (text === '') {
+    void save({ order: null })
+    return
+  }
+  const value = Number(text)
+  if (!Number.isInteger(value)) {
+    orderHint.value = 'Order must be a whole number.'
+    return
+  }
+  orderHint.value = null
+  void save({ order: value })
+}
+
 function saveStatus(event: Event): void {
   const value = (event.target as HTMLSelectElement).value
   if (value !== (properties.value?.status ?? '')) void save({ status: value })
@@ -150,10 +171,32 @@ const partName = computed(() => {
             <dd dir="auto">{{ partName }}</dd>
           </div>
           <div>
-            <dt>Order</dt>
-            <dd>{{ properties.order ?? '—' }}</dd>
+            <dt><label for="inspector-order">Order</label></dt>
+            <dd>
+              <input
+                id="inspector-order"
+                v-model="order"
+                class="order"
+                type="number"
+                step="1"
+                :placeholder="properties.order === undefined ? 'none' : ''"
+                :disabled="disabled"
+                @change="saveOrder"
+              />
+            </dd>
           </div>
         </dl>
+        <p v-if="orderHint" class="hint bad">{{ orderHint }}</p>
+        <button
+          v-if="properties.kind === 'chapter' && properties.order !== undefined"
+          type="button"
+          class="quiet small"
+          :disabled="disabled"
+          title="Removes this chapter's order; it moves to the Unordered tray. The file stays."
+          @click="save({ order: null })"
+        >
+          Remove from manuscript
+        </button>
         <p v-if="placement && 'reason' in placement" class="note">
           Not in the book yet: {{ placement.reason }}.
         </p>
@@ -333,6 +376,15 @@ const partName = computed(() => {
 .position dd {
   margin: 2px 0 0;
   color: var(--text);
+}
+
+.position .order {
+  width: 72px;
+  padding: 4px 8px;
+}
+
+.position .small {
+  margin-top: 8px;
 }
 
 .note {

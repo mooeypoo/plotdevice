@@ -90,6 +90,11 @@ describe('propertyWrites', () => {
     ])
   })
 
+  it('sets an order, or removes it to take the chapter out of the numbered book', () => {
+    expect(propertyWrites(ferry, { order: 3 })).toEqual([{ key: 'order', value: 3 }])
+    expect(propertyWrites(ferry, { order: null })).toEqual([{ key: 'order', value: undefined }])
+  })
+
   it('writes a story date as typed, a year as a number, and commas as a range', () => {
     expect(propertyWrites(ferry, { storyDate: '1952' })).toEqual([
       { key: 'story_date', value: 1952 }

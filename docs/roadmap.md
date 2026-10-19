@@ -39,13 +39,14 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [x] The inspector shows `part` and `order` as written. A duplicate-order warning names the other chapter and offers "Renumber this part" (rewrites `order` to 1, 2, 3…).
 - [x] Right-hand panel that edits `title`, `status`, `pov`, `characters`, `location`, `threads`, `story_date`, `story_time`, and `synopsis`, with statuses from `novel.md` and "not in your list" statuses (one click adds them to the list).
 - [x] Surgical frontmatter edits (ADR 0004): only the edited key's characters change; everything else stays byte-identical.
+- [x] A visible "+ New chapter" row in every part (the "+" on a part's title was too hard to find).
+- [x] Order is editable in the inspector, and "Remove from manuscript" removes `order` so the chapter moves to the unordered tray (the file stays).
 
 **Done when:** you can create a part and a chapter in an empty project, edit any property, fix a duplicate order in one click, and Obsidian shows the change with every other byte of the file unchanged.
 
 ## Phase 3b: Restructuring, renames, and links
 - [ ] Drag and drop in the binder: reorder chapters, move them between parts, drag from the unordered tray into a part, reorder parts. Keyboard alternatives in a row menu.
 - [ ] Reordering rewrites only `order`, and only where it changes. Moving updates `part` and `order`, and moves the file only from its old part's folder.
-- [ ] "Remove from manuscript": removes the chapter's `order`, so it moves to the unordered tray. The file stays.
 - [ ] Title → file name sync per `settings.file_names`. Renames update wikilinks in every form (ask first when other files would change).
 
 **Done when:** you can restructure the fixture, Obsidian shows the same frontmatter, and links stay intact.
