@@ -87,6 +87,8 @@ npm run build:win    # NSIS installer (normally built in CI)
 
 Before saying a task is done, run `npm run lint && npm run typecheck && npm run test`.
 
+Setup, local builds, and troubleshooting (including the Ubuntu sandbox error) are in `docs/development.md`.
+
 ## Working style (all agents)
 
 - Start each phase with a written plan, including the files you'll touch, and wait for approval before changing code.

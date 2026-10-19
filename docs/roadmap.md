@@ -69,6 +69,7 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 
 ## Phase 9: Packaging polish
 - [ ] App icon and a stylized "Plot Device" wordmark in the UI.
+- [ ] Ubuntu 24.04+ sandbox: ship an AppArmor profile in the deb (as VS Code and Chrome do) and decide how the AppImage handles it (see `docs/development.md`, "Troubleshooting"). Check whether the deb already sets up `chrome-sandbox`.
 - [ ] Project-file association (optional).
 - [ ] Test an install on a Windows machine or VM.
 
