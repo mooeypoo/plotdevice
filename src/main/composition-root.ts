@@ -8,6 +8,14 @@ import {
   createCreateChapter,
   createCreatePart
 } from './contexts/manuscript/application/commands/create-entries'
+import {
+  createMoveChapter,
+  createMovePart
+} from './contexts/manuscript/application/commands/move-entries'
+import {
+  createPlanRename,
+  createRenameEntry
+} from './contexts/manuscript/application/commands/rename-entry'
 import { createRenumberPart } from './contexts/manuscript/application/commands/renumber-part'
 import { createSaveEntryText } from './contexts/manuscript/application/commands/save-entry-text'
 import { createUpdateEntryProperties } from './contexts/manuscript/application/commands/update-entry-properties'
@@ -16,6 +24,7 @@ import { createGetManuscript } from './contexts/manuscript/application/queries/g
 import { createListStatuses } from './contexts/manuscript/application/queries/list-statuses'
 import { createOpenEntry } from './contexts/manuscript/application/queries/open-entry'
 import type { ManuscriptSettings } from './contexts/manuscript/domain/manuscript-settings'
+import { createMarkdownEntryRelocator } from './contexts/manuscript/infrastructure/markdown-entry-relocator'
 import { createMarkdownManuscriptRepository } from './contexts/manuscript/infrastructure/markdown-manuscript-repository'
 import { createInitializeProject } from './contexts/workspace/application/commands/initialize-project'
 import { createOpenProject } from './contexts/workspace/application/commands/open-project'
@@ -62,6 +71,7 @@ export function composeApplication(): void {
 
   const session = createProjectSession((root, settings: ManuscriptSettings): ProjectUseCases => {
     const repository = createMarkdownManuscriptRepository(root)
+    const relocator = createMarkdownEntryRelocator(root)
     const chronology = createMarkdownChronologyRepository(root)
     const getChronologySettings = createGetChronologySettings({ repository: chronology })
     return {
@@ -74,7 +84,11 @@ export function composeApplication(): void {
         createChapter: createCreateChapter({ repository, settings }),
         createPart: createCreatePart({ repository, settings }),
         renumberPart: createRenumberPart({ repository, settings }),
-        addStatus: createAddStatus({ repository, settings })
+        addStatus: createAddStatus({ repository, settings }),
+        moveChapter: createMoveChapter({ repository, relocator, settings }),
+        movePart: createMovePart({ repository, settings }),
+        planRename: createPlanRename({ repository, relocator, settings }),
+        renameEntry: createRenameEntry({ repository, relocator, settings })
       },
       inspector: {
         getVocabulary: createGetInspectorVocabulary({
@@ -100,7 +114,8 @@ export function composeApplication(): void {
         session.open(root, {
           readOnly: project.readOnly,
           partFolder: folderPath(project.settings.folders.part),
-          chapterFolder: folderPath(project.settings.folders.chapter)
+          chapterFolder: folderPath(project.settings.folders.chapter),
+          fileNames: project.settings.fileNames
         })
       },
       onProjectClosed: () => {

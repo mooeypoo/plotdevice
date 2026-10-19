@@ -8,4 +8,6 @@ export interface ManuscriptSettings {
   readonly partFolder: ProjectPath | undefined
   /** Where new chapters go in a book without parts; `undefined` means the project root. */
   readonly chapterFolder: ProjectPath | undefined
+  /** `settings.file_names`: whether a title change renames the file. */
+  readonly fileNames: 'ask' | 'always' | 'never'
 }

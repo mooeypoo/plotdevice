@@ -153,7 +153,8 @@ Prose goes here, in plain markdown.
 
   The last two also show a warning.
 - Two chapters with the same `order` in one part get a warning and are sorted by title, then by path.
-- **Reordering in the app** rewrites only the `order` key of the chapters in that part, numbering them 1, 2, 3…
+- **Reordering in the app** numbers the chapters of that part 1, 2, 3… in their new order and rewrites `order` only in the files whose number changes. Chapters that shared an order get distinct numbers as a side effect. Parts are reordered the same way; moving a part without an `order` into the sequence gives it one.
+- **Taking a chapter out of the order** (dropping it on the unordered tray) removes its `order` key. The file and its `part` stay.
 - **Moving a chapter to another part** updates `part` and `order`. If the file is in its old part's folder (the folder that holds that part's own file), the app also moves it to the new part's folder. A file the writer filed somewhere else stays where it is.
 - **New entries.** A new chapter goes at the end of its part, in that part's folder (in a book without parts, in `settings.folders.chapter`), with only `type`, `title`, `part`, and `order`. A new part goes after the others, in its own folder under `settings.folders.part`.
 
@@ -214,7 +215,7 @@ When the app writes a key, it keeps the style the key already uses. If a single 
   - An empty result becomes `Untitled`.
   - A Windows reserved name (`CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, `LPT1`–`LPT9`, with or without an extension, in any case) gets `_` appended.
 - **App-created file names are unique across the project.** On a clash, the app first adds the type (`Marrow (location).md`), then a number (`Marrow (2).md`). `title` keeps the name the writer sees, so both files can still be titled "Marrow".
-- **Title changes.** When a title changes, `settings.file_names` decides whether the file is renamed: `ask` (the default), `always`, or `never`. Renames update links (see "Links").
+- **Title changes.** When a title changes, `settings.file_names` decides whether the file is renamed: `ask` (the default), `always`, or `never`. The new name follows the rules above and stays unique; the file stays in its folder (a part's folder is not renamed). Renames update links (see "Links").
 - **Names the writer types** for a file are checked against the same rules and rejected if they break them.
 - **Files the app didn't create** can have any name the OS allows. If a name contains characters that break links (`# ^ [ ] |`), the warnings panel says so.
 - **Unicode normalization.** New names are written in Unicode NFC form. Names are compared after NFC normalization and case-folding (`toLowerCase`, independent of locale). Scripts without case, such as Hebrew, are unaffected by case-folding. The app never renames a file only to normalize it.
@@ -241,6 +242,10 @@ When the app writes a key, it keeps the style the key already uses. If a single 
   - In the app, links are styled by the target's type.
 - **Ignored text.** Links inside code spans and code blocks are ignored.
 - **Renames.** When the app renames or moves a file, it updates links to it in all project files, in both frontmatter and body. The shown text, heading, block, and embed parts are kept.
+  - Only links that resolve to that file change. A prose link whose name several files share is ambiguous, so it stays as written; in frontmatter, the key's expected type settles it (rule 3 above).
+  - A name link gets the new name. A path-form link keeps its depth: `[[Part One/The Ferry]]` becomes `[[Part Two/The Ferry]]`. A move to another folder leaves name links as they are, since they still resolve.
+  - Links in code, and in YAML comments, are left alone.
+  - A file the app can't change safely (invalid YAML, unclosed frontmatter, not UTF-8, or a rewrite that would change any other value) is left untouched and listed for the writer.
 - **Markdown links.** Links like `[Marrow](../locations/Marrow.md)` are read but not rewritten.
 
 ## Derived data (never stored)

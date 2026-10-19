@@ -2,11 +2,13 @@ import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import type {
   ApiError,
+  ChapterDestinationDto,
   ChapterDto,
   EntryPropertiesDto,
   ManuscriptDto,
   PartDto,
-  PropertyChangesDto
+  PropertyChangesDto,
+  RenamePlanDto
 } from '../../../contract/dtos'
 import { createAutosaver } from './autosaver'
 import { romanNumeral } from '../shared/roman-numeral'
@@ -34,6 +36,12 @@ interface EntryPlace {
   readonly part?: PartDto
 }
 
+/** A rename waiting for the writer's answer (`settings.file_names: ask`). */
+export interface PendingRename {
+  readonly path: string
+  readonly plan: RenamePlanDto
+}
+
 /** Autosave this long after the writer stops typing. */
 export const AUTOSAVE_DELAY_MS = 800
 
@@ -49,6 +57,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
   /** The open entry's frontmatter, as the inspector shows it. */
   const properties = shallowRef<EntryPropertiesDto | null>(null)
   const actionError = ref<string | null>(null)
+  const pendingRename = shallowRef<PendingRename | null>(null)
   // The open file's version, shared by the editor and the inspector: both write the same file.
   let version = ''
   let savedText = ''
@@ -171,7 +180,94 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     properties.value = result.value.properties
     actionError.value = null
     await reload()
+    if (changes.title !== undefined) await offerRename(current.path)
     return true
+  }
+
+  /** After a title change: rename the file now (`always`), or ask first (`ask`). */
+  async function offerRename(path: string): Promise<void> {
+    pendingRename.value = null
+    const result = await api().planRename(path)
+    if (!result.ok || result.value === null || entry.value?.path !== path) return
+    if (result.value.policy === 'always') await renameEntry(path)
+    else pendingRename.value = { path, plan: result.value }
+  }
+
+  /** Renames the file to match its title, updating links; the open entry follows it. */
+  async function renameEntry(path: string): Promise<boolean> {
+    pendingRename.value = null
+    await flush()
+    if (hasStuckChanges.value) return false
+    const result = await api().renameEntry(path)
+    if (!result.ok) {
+      actionError.value = result.error.message
+      return false
+    }
+    const { skipped } = result.value
+    actionError.value =
+      skipped.length > 0
+        ? `Renamed, but links in ${String(skipped.length)} ${skipped.length === 1 ? 'file' : 'files'} couldn’t be updated safely: ${skipped.join(', ')}.`
+        : null
+    await afterStructureChange(path, result.value.path)
+    return true
+  }
+
+  function dismissRename(): void {
+    pendingRename.value = null
+  }
+
+  /**
+   * Moves a chapter to a position in a part (`part: null`: a book without parts), or out of the
+   * book's order (`null`).
+   */
+  async function moveChapter(
+    path: string,
+    destination: ChapterDestinationDto | null
+  ): Promise<boolean> {
+    await flush()
+    if (hasStuckChanges.value) return false
+    const result = await api().moveChapter(path, destination)
+    if (!result.ok) {
+      actionError.value = result.error.message
+      return false
+    }
+    reportFailed(result.value.failed)
+    await afterStructureChange(path, result.value.path)
+    return true
+  }
+
+  /** Moves a part to a position among the numbered parts. */
+  async function movePart(path: string, index: number): Promise<boolean> {
+    await flush()
+    if (hasStuckChanges.value) return false
+    const result = await api().movePart(path, index)
+    if (!result.ok) {
+      actionError.value = result.error.message
+      return false
+    }
+    reportFailed(result.value.failed)
+    await afterStructureChange(path, path)
+    return true
+  }
+
+  function reportFailed(failed: readonly string[]): void {
+    actionError.value =
+      failed.length > 0
+        ? `${String(failed.length)} ${failed.length === 1 ? 'file' : 'files'} couldn’t be renumbered and were left as they were.`
+        : null
+  }
+
+  /**
+   * Re-reads the binder after files were rewritten or moved. The open entry follows its file to a
+   * new path, keeps its text, and picks up the file's new version.
+   */
+  async function afterStructureChange(from: string, to: string): Promise<void> {
+    const current = entry.value
+    if (current !== null && current.path === from && to !== from) {
+      entry.value = { ...current, path: to }
+    }
+    await reload()
+    if (entry.value !== null) await readProperties(entry.value.path)
   }
 
   /** Creates a chapter at the end of a part (`null`: a book without parts) and opens it. */
@@ -207,12 +303,10 @@ export const useManuscriptStore = defineStore('manuscript', () => {
       actionError.value = result.error.message
       return false
     }
-    if (result.value.failed.length > 0) {
-      actionError.value = `${String(result.value.failed.length)} files couldn’t be renumbered and were left as they were.`
-    }
-    await reload()
-    // The open chapter's `order` may have changed on disk; pick up its new version.
-    if (entry.value !== null) await readProperties(entry.value.path)
+    reportFailed(result.value.failed)
+    const path = entry.value?.path
+    if (path !== undefined) await afterStructureChange(path, path)
+    else await reload()
     return true
   }
 
@@ -245,6 +339,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
 
   async function close(): Promise<void> {
     await flush()
+    pendingRename.value = null
     entry.value = null
     properties.value = null
     manuscript.value = null
@@ -289,6 +384,11 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     createChapter,
     createPart,
     renumberPart,
+    moveChapter,
+    movePart,
+    pendingRename,
+    renameEntry,
+    dismissRename,
     hasEntry: (path: string) => places.value.has(path)
   }
 })

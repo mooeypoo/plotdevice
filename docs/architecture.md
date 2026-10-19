@@ -64,6 +64,7 @@ src/
       markdown/               # frontmatter document (yaml Document API), wikilink parser, body/frontmatter split
       fs/                     # atomic writer, path guard, line-ending and BOM preservation
       project-scan/           # finds .md files (skipping dot-folders) and classifies them by `type`
+      links/                  # moves or renames a file and updates the links to it everywhere (ADR 0005)
       watching/               # chokidar wrapper, own-write suppression
   preload/
     index.ts                  # exposes `window.plotDevice`, implementing the contract via ipcRenderer.invoke
@@ -92,9 +93,9 @@ src/
 
 **External changes.** The watcher emits change events for paths inside the project. Writes the app made itself are suppressed by remembering their content hash for a short time. For anything else, the affected read models are invalidated and the renderer gets `project:changed`. A change that only converts line endings (Obsidian rewrites CRLF files as LF) is not treated as an edit. If the chapter open in the editor changed on disk while it has unsaved edits, the editor shows a banner: "Changed outside the app — keep mine / load theirs".
 
-**Reordering and moving.** Order lives in frontmatter, so `ReorderChapters` rewrites only the `order` key of the affected chapters and renames no files. `MoveChapter` updates `part` and `order`. It moves the file only if the file is in its old part's default folder. Both compute a plan in the domain, so they can be unit-tested without touching the disk.
+**Reordering and moving.** Order lives in frontmatter. `MoveChapter` and `MovePart` place the entry with `placeAt` and write only what `orderChanges` returns (domain `order-plan.ts`), so they're unit-tested without the disk. `MoveChapter` also writes `part` when it changes, and moves the file only if it sat in the folder that holds the old part's own file. Dropping a chapter on the unordered tray removes its `order`. The binder's drag and drop and the inspector's Move up/down and Part select both end in these two commands.
 
-**Renames.** `RenameEntry` happens when a title changes (depending on `settings.file_names`) or when the writer asks for it. It computes a rename plan (old path → new path), applies it, then calls `UpdateWikiLinks`, which rewrites matching links across the project. Rename plans use temporary names when needed, so swaps and case-only renames work on case-insensitive file systems.
+**Renames.** After a title change, the renderer asks `PlanRename`, which returns the new path (`uniqueFileName`, same folder) and how many links would change, or nothing when the name matches or `settings.file_names` is `never`. With `ask` the inspector shows the question; with `always` it renames at once. `RenameEntry` and file moves go through the `EntryRelocator` port, implemented by `infrastructure/links/relocate-entry.ts` (ADR 0005): it plans every link edit first, moves the file (never over another file; a case-only rename goes through a temporary name), then writes each linking file atomically if it hasn't changed since the plan.
 
 **The open project.** `ipc/project-session.ts` holds the one open project and the per-project use cases the composition root builds for it (repositories bound to that folder, and the project's folder settings). The inspector's choices come from `queries/get-inspector-vocabulary.ts`, which combines the manuscript's statuses with chronology's threads and calendar. Opening another project replaces it; closing clears it.
 

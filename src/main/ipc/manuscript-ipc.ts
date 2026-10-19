@@ -17,4 +17,8 @@ export function registerManuscriptIpc(handlers: ManuscriptHandlers): void {
   handleTrusted(MANUSCRIPT_CHANNELS.createPart, (_, args) => handlers.createPart(args))
   handleTrusted(MANUSCRIPT_CHANNELS.renumberPart, (_, args) => handlers.renumberPart(args))
   handleTrusted(MANUSCRIPT_CHANNELS.addStatus, (_, args) => handlers.addStatus(args))
+  handleTrusted(MANUSCRIPT_CHANNELS.moveChapter, (_, args) => handlers.moveChapter(args))
+  handleTrusted(MANUSCRIPT_CHANNELS.movePart, (_, args) => handlers.movePart(args))
+  handleTrusted(MANUSCRIPT_CHANNELS.planRename, (_, args) => handlers.planRename(args))
+  handleTrusted(MANUSCRIPT_CHANNELS.renameEntry, (_, args) => handlers.renameEntry(args))
 }

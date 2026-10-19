@@ -45,9 +45,9 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 **Done when:** you can create a part and a chapter in an empty project, edit any property, fix a duplicate order in one click, and Obsidian shows the change with every other byte of the file unchanged.
 
 ## Phase 3b: Restructuring, renames, and links
-- [ ] Drag and drop in the binder: reorder chapters, move them between parts, drag from the unordered tray into a part, reorder parts. Keyboard alternatives in a row menu.
-- [ ] Reordering rewrites only `order`, and only where it changes. Moving updates `part` and `order`, and moves the file only from its old part's folder.
-- [ ] Title → file name sync per `settings.file_names`. Renames update wikilinks in every form (ask first when other files would change).
+- [x] Drag and drop in the binder: reorder chapters, move them between parts, drag from the unordered tray into a part (or onto it, to take a chapter out of the order), reorder parts. Keyboard alternatives in the inspector: Move up/down and a Part select.
+- [x] Reordering rewrites only `order`, and only where it changes. Moving updates `part` and `order`, and moves the file only from its old part's folder.
+- [x] Title → file name sync per `settings.file_names`. Renames update wikilinks in every form (ask first when other files would change).
 
 **Done when:** you can restructure the fixture, Obsidian shows the same frontmatter, and links stay intact.
 
@@ -89,6 +89,11 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Phase 3b follow-ups:
+  - Renaming a part renames its file only, not the part's folder. Renaming the folder too would move every chapter in it; decide with the writer first.
+  - There's no "Rename file to match title" action outside the title-change prompt yet, and no undo for moves or renames.
+  - Vue components have no tests of their own: Vitest runs in Node without a DOM and doesn't compile `.vue` files. Component tests would need `@vue/test-utils`, a DOM (`happy-dom` or `jsdom`), and `@vitejs/plugin-vue` in the Vitest config. The binder's drop logic and the inspector's moves are tested as plain TypeScript, and the app is checked end to end.
+  - Dragging a part out of the sequence isn't offered; the part's Order field can be cleared instead.
 - Phase 3a follow-ups:
   - Editing nested values (`relationships`) needs its own careful editor (Phase 5); the frontmatter editor refuses them today.
   - The inspector edits parts' `title` and `synopsis` only; part-level status could come later.

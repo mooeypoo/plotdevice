@@ -1,20 +1,62 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { PartDto } from '../../../../contract/dtos'
 import { clashDescription, formatWordCount, romanNumeral } from './binder-labels'
 import BinderRow from './BinderRow.vue'
 import NewEntryInput from './NewEntryInput.vue'
+import type { DropSpot } from './binder-drop'
+import { useBinderDrag } from './use-binder-drag'
 
 const props = defineProps<{
   part: PartDto
   selectedPath: string | null
   readOnly: boolean
+  /** The numbered parts' paths, in order, for dragging parts. */
+  partPaths: readonly string[]
+  /** This part's position among them; absent for a part outside the sequence. */
+  partIndex?: number | undefined
 }>()
 
 const emit = defineEmits<{
   open: [path: string]
   createChapter: [partPath: string, title: string]
 }>()
+
+const drag = useBinderDrag()
+const chapterPaths = computed(() => props.part.chapters.map((chapter) => chapter.path))
+const lastChapter = computed(() => props.part.chapters.length - 1)
+
+function chapterSpot(slot: number): DropSpot {
+  return { kind: 'chapters', part: props.part.path, paths: chapterPaths.value, slot }
+}
+
+function partSpot(slot: number): DropSpot {
+  return { kind: 'parts', paths: props.partPaths, slot }
+}
+
+/** Over the header, a part lands above or below this one; a chapter lands at the end of it. */
+function overHeader(event: DragEvent): void {
+  if (drag.dragged.value?.kind === 'part') {
+    if (props.partIndex !== undefined) drag.overRow(partSpot, props.partIndex, event)
+  } else {
+    drag.over(chapterSpot(props.part.chapters.length), event)
+  }
+}
+
+const droppingInto = computed(
+  () =>
+    drag.isChapterGap(props.part.path, props.part.chapters.length) &&
+    (!expanded.value || props.part.chapters.length === 0)
+)
+const partGapBefore = computed(
+  () => props.partIndex !== undefined && drag.isPartGap(props.partIndex)
+)
+const partGapAfter = computed(
+  () =>
+    props.partIndex !== undefined &&
+    props.partIndex === props.partPaths.length - 1 &&
+    drag.isPartGap(props.partIndex + 1)
+)
 
 const expanded = ref(true)
 const adding = ref(false)
@@ -28,12 +70,23 @@ function create(title: string): void {
   adding.value = false
   emit('createChapter', props.part.path, title)
 }
-const marker = props.part.number === undefined ? '◇' : romanNumeral(props.part.number)
+// Computed, not read once: the same component shows a new number after the parts are reordered.
+const marker = computed(() =>
+  props.part.number === undefined ? '◇' : romanNumeral(props.part.number)
+)
 </script>
 
 <template>
-  <section class="part">
-    <div class="header" :class="{ active: selectedPath === part.path }">
+  <section class="part" :class="{ 'gap-before': partGapBefore, 'gap-after': partGapAfter }">
+    <div
+      class="header"
+      :class="{ active: selectedPath === part.path, 'drop-into': droppingInto }"
+      :draggable="!readOnly"
+      @dragstart="drag.start({ kind: 'part', path: part.path }, $event)"
+      @dragend="drag.end()"
+      @dragover="overHeader"
+      @drop="drag.drop"
+    >
       <button
         type="button"
         class="toggle"
@@ -78,7 +131,19 @@ const marker = props.part.number === undefined ? '◇' : romanNumeral(props.part
       </button>
     </div>
     <ul v-if="expanded" class="chapters">
-      <li v-for="chapter in part.chapters" :key="chapter.path">
+      <li
+        v-for="(chapter, index) in part.chapters"
+        :key="chapter.path"
+        :class="{
+          'gap-before': drag.isChapterGap(part.path, index),
+          'gap-after': index === lastChapter && drag.isChapterGap(part.path, index + 1)
+        }"
+        :draggable="!readOnly"
+        @dragstart="drag.start({ kind: 'chapter', path: chapter.path }, $event)"
+        @dragend="drag.end()"
+        @dragover="drag.overRow(chapterSpot, index, $event)"
+        @drop="drag.drop"
+      >
         <BinderRow
           :title="chapter.title"
           :number="chapter.number"
@@ -102,6 +167,25 @@ const marker = props.part.number === undefined ? '◇' : romanNumeral(props.part
 <style scoped>
 .part {
   margin-bottom: 8px;
+  border-radius: 7px;
+}
+
+/* Drop indicators: a line in the gap where the dragged entry would land. */
+.gap-before {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+
+.gap-after {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.header.drop-into {
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.chapters li {
+  border-radius: 7px;
 }
 
 .header {

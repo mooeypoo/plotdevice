@@ -173,3 +173,76 @@ describe('manuscript store: properties and new entries', () => {
     expect(store.entry?.path).toBe('The Mill.md')
   })
 })
+
+describe('manuscript store: moving and renaming', () => {
+  it('saves typing before a move, then moves', async () => {
+    const store = useManuscriptStore()
+    await store.open('First frost.md')
+    store.edit('Typed before the drag.\n')
+    expect(await store.moveChapter('First frost.md', { part: 'Part One.md', index: 0 })).toBe(true)
+    expect(fake.saves).toEqual(['Typed before the drag.\n'])
+    expect(fake.moves).toEqual(['First frost.md → Part One.md#0'])
+    expect(await store.movePart('Part One.md', 0)).toBe(true)
+    expect(await store.moveChapter('The Ferry.md', null)).toBe(true)
+    expect(fake.moves.slice(1)).toEqual(['Part One.md → #0', 'The Ferry.md → unordered'])
+  })
+
+  it('asks before renaming when the project says ask', async () => {
+    const store = useManuscriptStore()
+    await store.open('First frost.md')
+    fake.renamePlan.current = {
+      newPath: 'Hoarfrost.md',
+      newName: 'Hoarfrost.md',
+      policy: 'ask',
+      linkCount: 2,
+      fileCount: 1
+    }
+    await store.updateProperties({ title: 'Hoarfrost' })
+    expect(store.pendingRename?.plan.newName).toBe('Hoarfrost.md')
+    expect(fake.renames).toEqual([])
+
+    expect(await store.renameEntry('First frost.md')).toBe(true)
+    expect(fake.renames).toEqual(['First frost.md → Hoarfrost.md'])
+    expect(store.entry?.path).toBe('Hoarfrost.md')
+    expect(store.pendingRename).toBeNull()
+
+    // The editor keeps saving to the renamed file.
+    store.edit('Still writing.\n')
+    await vi.advanceTimersByTimeAsync(AUTOSAVE_DELAY_MS)
+    expect(fake.files.get('Hoarfrost.md')).toBe('Still writing.\n')
+  })
+
+  it('renames without asking when the project says always, and never asks for nothing', async () => {
+    const store = useManuscriptStore()
+    await store.open('First frost.md')
+    await store.updateProperties({ title: 'First frost' })
+    expect(store.pendingRename).toBeNull()
+
+    fake.renamePlan.current = {
+      newPath: 'Hoarfrost.md',
+      newName: 'Hoarfrost.md',
+      policy: 'always',
+      linkCount: 0,
+      fileCount: 0
+    }
+    await store.updateProperties({ title: 'Hoarfrost' })
+    expect(fake.renames).toEqual(['First frost.md → Hoarfrost.md'])
+    expect(store.pendingRename).toBeNull()
+  })
+
+  it('forgets a rename the writer declined', async () => {
+    const store = useManuscriptStore()
+    await store.open('First frost.md')
+    fake.renamePlan.current = {
+      newPath: 'Hoarfrost.md',
+      newName: 'Hoarfrost.md',
+      policy: 'ask',
+      linkCount: 0,
+      fileCount: 0
+    }
+    await store.updateProperties({ title: 'Hoarfrost' })
+    store.dismissRename()
+    expect(store.pendingRename).toBeNull()
+    expect(fake.renames).toEqual([])
+  })
+})

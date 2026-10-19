@@ -1,10 +1,14 @@
 import type {
   ApiResult,
+  ChapterDestinationDto,
   CreatedEntryDto,
   EntryPropertiesViewDto,
   EntryTextDto,
   InspectorVocabularyDto,
+  MovedDto,
   PropertyChangesDto,
+  RenamedDto,
+  RenamePlanDto,
   RenumberedDto,
   StoryDateCheckDto,
   FolderChoiceDto,
@@ -58,6 +62,17 @@ export interface ManuscriptApi {
   renumberPart(partPath: string | null): Promise<ApiResult<RenumberedDto>>
   /** Adds a status to novel.md's list and returns the new list. */
   addStatus(status: string): Promise<ApiResult<readonly string[]>>
+  /**
+   * Puts a chapter at a position, rewriting `order` only where it changes and `part` if it changed.
+   * `null` takes it out of the book's order.
+   */
+  moveChapter(path: string, destination: ChapterDestinationDto | null): Promise<ApiResult<MovedDto>>
+  /** Puts a part at a position among the numbered parts. */
+  movePart(path: string, index: number): Promise<ApiResult<MovedDto>>
+  /** Whether the file should be renamed to match its title; `null` when not. */
+  planRename(path: string): Promise<ApiResult<RenamePlanDto | null>>
+  /** Renames the file to match its title and updates every link to it. */
+  renameEntry(path: string): Promise<ApiResult<RenamedDto>>
 }
 
 /** Choices and checks for the inspector, drawn from several parts of the project. */
@@ -80,7 +95,7 @@ export interface AppApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 4
+  readonly contractVersion: 5
   readonly workspace: WorkspaceApi
   readonly manuscript: ManuscriptApi
   readonly inspector: InspectorApi

@@ -2,6 +2,9 @@ import { z } from 'zod'
 import type {
   ApiResult,
   CreatedEntryDto,
+  MovedDto,
+  RenamedDto,
+  RenamePlanDto,
   EntryPropertiesViewDto,
   EntryTextDto,
   ManuscriptDto,
@@ -13,13 +16,21 @@ import type {
   CreateChapter,
   CreatePart
 } from '../contexts/manuscript/application/commands/create-entries'
+import type {
+  MoveChapter,
+  MovePart
+} from '../contexts/manuscript/application/commands/move-entries'
+import type {
+  PlanRename,
+  RenameEntry
+} from '../contexts/manuscript/application/commands/rename-entry'
 import type { RenumberPart } from '../contexts/manuscript/application/commands/renumber-part'
 import type { SaveEntryText } from '../contexts/manuscript/application/commands/save-entry-text'
 import type { UpdateEntryProperties } from '../contexts/manuscript/application/commands/update-entry-properties'
 import type { GetEntryProperties } from '../contexts/manuscript/application/queries/get-entry-properties'
 import type { GetManuscript } from '../contexts/manuscript/application/queries/get-manuscript'
 import type { OpenEntry } from '../contexts/manuscript/application/queries/open-entry'
-import { parseProjectPath, type ProjectPath } from '../shared-kernel/project-path'
+import { parseProjectPath, projectPathName, type ProjectPath } from '../shared-kernel/project-path'
 import { toApiError } from './workspace-dtos'
 import { toManuscriptDto } from './manuscript-dtos'
 
@@ -34,6 +45,10 @@ export interface ManuscriptUseCases {
   readonly createPart: CreatePart
   readonly renumberPart: RenumberPart
   readonly addStatus: AddStatus
+  readonly moveChapter: MoveChapter
+  readonly movePart: MovePart
+  readonly planRename: PlanRename
+  readonly renameEntry: RenameEntry
 }
 
 /** The manuscript API as plain functions of untrusted arguments. */
@@ -47,6 +62,10 @@ export interface ManuscriptHandlers {
   createPart(args: readonly unknown[]): Promise<ApiResult<CreatedEntryDto>>
   renumberPart(args: readonly unknown[]): Promise<ApiResult<RenumberedDto>>
   addStatus(args: readonly unknown[]): Promise<ApiResult<readonly string[]>>
+  moveChapter(args: readonly unknown[]): Promise<ApiResult<MovedDto>>
+  movePart(args: readonly unknown[]): Promise<ApiResult<MovedDto>>
+  planRename(args: readonly unknown[]): Promise<ApiResult<RenamePlanDto | null>>
+  renameEntry(args: readonly unknown[]): Promise<ApiResult<RenamedDto>>
 }
 
 const MAX_PATH_LENGTH = 4096
@@ -85,6 +104,12 @@ const createChapterArgs = z.tuple([path.nullable(), title])
 const titleArgs = z.tuple([title])
 const optionalPathArgs = z.tuple([path.nullable()])
 const statusArgs = z.tuple([z.string().min(1).max(200)])
+const position = z.number().int().min(0).max(100_000)
+const moveChapterArgs = z.tuple([
+  path,
+  z.object({ part: path.nullable(), index: position }).strict().nullable()
+])
+const movePartArgs = z.tuple([path, position])
 
 const noProject: ApiResult<never> = {
   ok: false,
@@ -261,6 +286,77 @@ export function createManuscriptHandlers(
             ? { ok: true, value: added.value }
             : { ok: false, error: toApiError(added.error) }
         }
-      )
+      ),
+
+    moveChapter: (args) =>
+      withProject<z.infer<typeof moveChapterArgs>, MovedDto>(
+        moveChapterArgs,
+        args,
+        async (useCases, [raw, destination]) => {
+          const entry = allowed(useCases, raw)
+          if (entry === undefined) return notAllowed
+          let part: ProjectPath | undefined
+          if (destination?.part != null) {
+            part = allowed(useCases, destination.part)
+            if (part === undefined) return notAllowed
+          }
+          const moved = await useCases.moveChapter(
+            entry,
+            destination === null ? null : { part, index: destination.index }
+          )
+          if (!moved.ok) return { ok: false, error: toApiError(moved.error) }
+          allowedPaths.add(moved.value.path)
+          return { ok: true, value: { ...moved.value, failed: [...moved.value.failed] } }
+        }
+      ),
+
+    movePart: (args) =>
+      withProject<z.infer<typeof movePartArgs>, MovedDto>(
+        movePartArgs,
+        args,
+        async (useCases, [raw, index]) => {
+          const entry = allowed(useCases, raw)
+          if (entry === undefined) return notAllowed
+          const moved = await useCases.movePart(entry, index)
+          if (!moved.ok) return { ok: false, error: toApiError(moved.error) }
+          return { ok: true, value: { ...moved.value, failed: [...moved.value.failed] } }
+        }
+      ),
+
+    planRename: (args) =>
+      withProject<z.infer<typeof pathArgs>, RenamePlanDto | null>(
+        pathArgs,
+        args,
+        async (useCases, [raw]) => {
+          const entry = allowed(useCases, raw)
+          if (entry === undefined) return notAllowed
+          const plan = await useCases.planRename(entry)
+          if (!plan.ok) return { ok: false, error: toApiError(plan.error) }
+          if (plan.value === null) return { ok: true, value: null }
+          return {
+            ok: true,
+            value: { ...plan.value, newName: projectPathName(plan.value.newPath) }
+          }
+        }
+      ),
+
+    renameEntry: (args) =>
+      withProject<z.infer<typeof pathArgs>, RenamedDto>(pathArgs, args, async (useCases, [raw]) => {
+        const entry = allowed(useCases, raw)
+        if (entry === undefined) return notAllowed
+        const renamed = await useCases.renameEntry(entry)
+        if (!renamed.ok) return { ok: false, error: toApiError(renamed.error) }
+        const { path: newPath, links } = renamed.value
+        allowedPaths.add(newPath)
+        return {
+          ok: true,
+          value: {
+            path: newPath,
+            linkCount: links.linkCount,
+            fileCount: links.changedFiles.length,
+            skipped: [...links.skipped]
+          }
+        }
+      })
   }
 }

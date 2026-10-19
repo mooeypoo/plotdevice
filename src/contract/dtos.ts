@@ -208,6 +208,39 @@ export interface CreatedEntryDto {
   readonly path: string
 }
 
+/** Where a dragged chapter goes: a position in a part (`null`: a book without parts). */
+export interface ChapterDestinationDto {
+  readonly part: string | null
+  readonly index: number
+}
+
+/** What a move changed. `path` is the entry's path afterwards (its file may have moved). */
+export interface MovedDto {
+  readonly path: string
+  readonly changed: number
+  readonly failed: readonly string[]
+}
+
+/** A rename the title calls for. */
+export interface RenamePlanDto {
+  readonly newPath: string
+  /** The new file name, for the confirmation prompt. */
+  readonly newName: string
+  /** `ask`: confirm first. `always`: rename without asking. */
+  readonly policy: 'ask' | 'always'
+  readonly linkCount: number
+  readonly fileCount: number
+}
+
+/** What a rename did. */
+export interface RenamedDto {
+  readonly path: string
+  readonly linkCount: number
+  readonly fileCount: number
+  /** Files that seemed to link to the entry but couldn't be updated safely. */
+  readonly skipped: readonly string[]
+}
+
 /** What a renumbering changed. */
 export interface RenumberedDto {
   readonly changed: number

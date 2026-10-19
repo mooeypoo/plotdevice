@@ -9,6 +9,7 @@ import {
   type ProjectPath
 } from '../../../../shared-kernel/project-path'
 import { err, ok, type Result } from '../../../../shared-kernel/result'
+import { linkTo } from '../../domain/entry-link'
 import { arrangeManuscript } from '../../domain/manuscript'
 import type { ManuscriptSettings } from '../../domain/manuscript-settings'
 import {
@@ -112,13 +113,4 @@ export function createCreatePart(ports: Ports): CreatePart {
 
 function stemsOf(candidates: readonly LinkCandidate[]): Set<string> {
   return new Set(candidates.map((candidate) => nameComparisonKey(projectPathStem(candidate.path))))
-}
-
-/** A link to `path` by file name, or by path when another file shares the name. */
-function linkTo(path: ProjectPath, candidates: readonly LinkCandidate[]): string {
-  const stem = projectPathStem(path)
-  const sameName = candidates.filter(
-    (candidate) => nameComparisonKey(projectPathStem(candidate.path)) === nameComparisonKey(stem)
-  )
-  return sameName.length > 1 ? `[[${path.replace(/\.md$/iu, '')}]]` : `[[${stem}]]`
 }

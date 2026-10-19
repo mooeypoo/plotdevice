@@ -1,5 +1,10 @@
 import type { PlotDeviceApi } from '../../../contract/api'
-import type { EntryPropertiesDto, ManuscriptDto, ProjectSummaryDto } from '../../../contract/dtos'
+import type {
+  EntryPropertiesDto,
+  ManuscriptDto,
+  ProjectSummaryDto,
+  RenamePlanDto
+} from '../../../contract/dtos'
 
 /** A project summary for tests. */
 export const sampleSummary: ProjectSummaryDto = {
@@ -63,6 +68,9 @@ export function createFakePlotDeviceApi(): {
   closedProjects: number
   properties: Map<string, EntryPropertiesDto>
   created: string[]
+  moves: string[]
+  renames: string[]
+  renamePlan: { current: RenamePlanDto | null }
 } {
   const files = new Map([
     ['Part One.md', 'Two words.\n'],
@@ -70,7 +78,14 @@ export function createFakePlotDeviceApi(): {
     ['First frost.md', 'Four words are here.\n'],
     ['Lost.md', 'One.\n']
   ])
-  const state = { saves: [] as string[], closedProjects: 0, created: [] as string[] }
+  const state = {
+    saves: [] as string[],
+    closedProjects: 0,
+    created: [] as string[],
+    moves: [] as string[],
+    renames: [] as string[]
+  }
+  const renamePlan: { current: RenamePlanDto | null } = { current: null }
   const countWords = (text: string): number => text.split(/\s+/u).filter(Boolean).length
   const properties = new Map<string, EntryPropertiesDto>(
     [...files.keys()].map((path) => [
@@ -90,7 +105,7 @@ export function createFakePlotDeviceApi(): {
     `${files.get(path) ?? ''}#${String(revisions.get(path) ?? 0)}`
 
   const api: PlotDeviceApi = {
-    contractVersion: 4,
+    contractVersion: 5,
     workspace: {
       chooseFolder: () => Promise.resolve(null),
       openProject: () => Promise.resolve({ ok: true, value: sampleSummary }),
@@ -179,7 +194,32 @@ export function createFakePlotDeviceApi(): {
         return Promise.resolve({ ok: true, value: { path } })
       },
       renumberPart: () => Promise.resolve({ ok: true, value: { changed: 1, failed: [] } }),
-      addStatus: (status) => Promise.resolve({ ok: true, value: ['idea', 'draft', status] })
+      addStatus: (status) => Promise.resolve({ ok: true, value: ['idea', 'draft', status] }),
+      moveChapter: (path, destination) => {
+        state.moves.push(
+          destination === null
+            ? `${path} → unordered`
+            : `${path} → ${destination.part ?? 'book'}#${String(destination.index)}`
+        )
+        return Promise.resolve({ ok: true, value: { path, changed: 1, failed: [] } })
+      },
+      movePart: (path, index) => {
+        state.moves.push(`${path} → #${String(index)}`)
+        return Promise.resolve({ ok: true, value: { path, changed: 1, failed: [] } })
+      },
+      planRename: () => Promise.resolve({ ok: true, value: renamePlan.current }),
+      renameEntry: (path) => {
+        const newPath = renamePlan.current?.newPath ?? path
+        state.renames.push(`${path} → ${newPath}`)
+        const text = files.get(path)
+        if (text !== undefined) files.set(newPath, text)
+        const props = properties.get(path)
+        if (props !== undefined) properties.set(newPath, { ...props, path: newPath })
+        return Promise.resolve({
+          ok: true,
+          value: { path: newPath, linkCount: 0, fileCount: 0, skipped: [] }
+        })
+      }
     },
     inspector: {
       getVocabulary: () =>
@@ -213,6 +253,9 @@ export function createFakePlotDeviceApi(): {
       return state.closedProjects
     },
     properties,
+    moves: state.moves,
+    renames: state.renames,
+    renamePlan,
     get created() {
       return state.created
     }

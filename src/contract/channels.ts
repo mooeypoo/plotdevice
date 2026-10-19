@@ -19,7 +19,11 @@ export const MANUSCRIPT_CHANNELS = {
   createChapter: 'manuscript:create-chapter',
   createPart: 'manuscript:create-part',
   renumberPart: 'manuscript:renumber-part',
-  addStatus: 'manuscript:add-status'
+  addStatus: 'manuscript:add-status',
+  moveChapter: 'manuscript:move-chapter',
+  movePart: 'manuscript:move-part',
+  planRename: 'manuscript:plan-rename',
+  renameEntry: 'manuscript:rename-entry'
 } as const satisfies Record<keyof ManuscriptApi, string>
 
 export const INSPECTOR_CHANNELS = {

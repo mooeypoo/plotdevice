@@ -12,6 +12,9 @@ import type {
   EntryPropertiesViewDto,
   EntryTextDto,
   InspectorVocabularyDto,
+  MovedDto,
+  RenamedDto,
+  RenamePlanDto,
   RenumberedDto,
   StoryDateCheckDto,
   FolderChoiceDto,
@@ -27,7 +30,7 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 4,
+  contractVersion: 5,
   workspace: {
     chooseFolder: () => invoke<FolderChoiceDto | null>(WORKSPACE_CHANNELS.chooseFolder),
     openProject: (root) =>
@@ -66,7 +69,14 @@ const plotDevice: PlotDeviceApi = {
     renumberPart: (partPath) =>
       invoke<ApiResult<RenumberedDto>>(MANUSCRIPT_CHANNELS.renumberPart, partPath),
     addStatus: (status) =>
-      invoke<ApiResult<readonly string[]>>(MANUSCRIPT_CHANNELS.addStatus, status)
+      invoke<ApiResult<readonly string[]>>(MANUSCRIPT_CHANNELS.addStatus, status),
+    moveChapter: (path, destination) =>
+      invoke<ApiResult<MovedDto>>(MANUSCRIPT_CHANNELS.moveChapter, path, destination),
+    movePart: (path, index) =>
+      invoke<ApiResult<MovedDto>>(MANUSCRIPT_CHANNELS.movePart, path, index),
+    planRename: (path) =>
+      invoke<ApiResult<RenamePlanDto | null>>(MANUSCRIPT_CHANNELS.planRename, path),
+    renameEntry: (path) => invoke<ApiResult<RenamedDto>>(MANUSCRIPT_CHANNELS.renameEntry, path)
   },
   inspector: {
     getVocabulary: () =>

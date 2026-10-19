@@ -5,6 +5,8 @@ import { clashDescription, describeUnorderedReason, formatWordCount } from './bi
 import BinderPart from './BinderPart.vue'
 import BinderRow from './BinderRow.vue'
 import NewEntryInput from './NewEntryInput.vue'
+import type { DropRequest, DropSpot } from './binder-drop'
+import { provideBinderDrag } from './use-binder-drag'
 
 const props = defineProps<{
   manuscript: ManuscriptDto
@@ -19,7 +21,30 @@ const emit = defineEmits<{
   showOverview: []
   createChapter: [partPath: string | null, title: string]
   createPart: [title: string]
+  move: [request: DropRequest]
 }>()
+
+const drag = provideBinderDrag((request) => {
+  emit('move', request)
+})
+const partPaths = computed(() => props.manuscript.parts.map((part) => part.path))
+const flatPaths = computed(() => props.manuscript.chapters.map((chapter) => chapter.path))
+const lastFlat = computed(() => props.manuscript.chapters.length - 1)
+
+function flatSpot(slot: number): DropSpot {
+  return { kind: 'chapters', part: null, paths: flatPaths.value, slot }
+}
+
+const unorderedSpot: DropSpot = { kind: 'unordered' }
+/** A chapter that has an order is being dragged, so the tray can take it. */
+const draggingOrdered = computed(() => {
+  const dragged = drag.dragged.value
+  return (
+    dragged?.kind === 'chapter' &&
+    !props.manuscript.unordered.some((item) => item.chapter.path === dragged.path)
+  )
+})
+const overTray = computed(() => drag.spot.value?.kind === 'unordered')
 
 // Which inline title box is open: a new part, or a chapter in a book without parts.
 const adding = ref<'part' | 'chapter' | null>(null)
@@ -47,22 +72,36 @@ function createChapter(title: string): void {
 </script>
 
 <template>
-  <nav class="binder" aria-label="Binder">
+  <nav class="binder" aria-label="Binder" @dragover="drag.clear">
     <div class="scroll">
       <div class="eyebrow heading">Manuscript</div>
 
       <BinderPart
-        v-for="part in manuscript.parts"
+        v-for="(part, index) in manuscript.parts"
         :key="part.path"
         :part="part"
         :selected-path="selectedPath"
         :read-only="readOnly"
+        :part-paths="partPaths"
+        :part-index="index"
         @open="$emit('open', $event)"
         @create-chapter="(part, title) => $emit('createChapter', part, title)"
       />
 
       <ul v-if="manuscript.chapters.length > 0" class="flat">
-        <li v-for="chapter in manuscript.chapters" :key="chapter.path">
+        <li
+          v-for="(chapter, index) in manuscript.chapters"
+          :key="chapter.path"
+          :class="{
+            'gap-before': drag.isChapterGap(null, index),
+            'gap-after': index === lastFlat && drag.isChapterGap(null, index + 1)
+          }"
+          :draggable="!readOnly"
+          @dragstart="drag.start({ kind: 'chapter', path: chapter.path }, $event)"
+          @dragend="drag.end()"
+          @dragover="drag.overRow(flatSpot, index, $event)"
+          @drop="drag.drop"
+        >
           <BinderRow
             :title="chapter.title"
             :number="chapter.number"
@@ -114,29 +153,48 @@ function createChapter(title: string): void {
           :part="part"
           :selected-path="selectedPath"
           :read-only="readOnly"
+          :part-paths="partPaths"
           @open="$emit('open', $event)"
           @create-chapter="(part, title) => $emit('createChapter', part, title)"
         />
       </template>
 
-      <template v-if="manuscript.unordered.length > 0">
-        <div class="divider">
-          <span class="eyebrow">Unordered</span>
-          <span class="rule" aria-hidden="true"></span>
-          <span class="count">{{ manuscript.unordered.length }}</span>
+      <template v-if="manuscript.unordered.length > 0 || draggingOrdered">
+        <div
+          class="tray"
+          :class="{ over: overTray }"
+          @dragover="drag.over(unorderedSpot, $event)"
+          @drop="drag.drop"
+        >
+          <div class="divider">
+            <span class="eyebrow">Unordered</span>
+            <span class="rule" aria-hidden="true"></span>
+            <span v-if="manuscript.unordered.length > 0" class="count">{{
+              manuscript.unordered.length
+            }}</span>
+          </div>
+          <ul class="flat">
+            <li
+              v-for="item in manuscript.unordered"
+              :key="item.chapter.path"
+              :draggable="!readOnly"
+              @dragstart="drag.start({ kind: 'chapter', path: item.chapter.path }, $event)"
+              @dragend="drag.end()"
+            >
+              <BinderRow
+                :title="item.chapter.title"
+                :status="item.chapter.status"
+                :word-count="item.chapter.wordCount"
+                :active="selectedPath === item.chapter.path"
+                :detail="describeUnorderedReason(item.reason)"
+                @open="$emit('open', item.chapter.path)"
+              />
+            </li>
+          </ul>
+          <p v-if="manuscript.unordered.length === 0" class="tray-hint">
+            Drop here to take a chapter out of the book’s order. The file stays.
+          </p>
         </div>
-        <ul class="flat">
-          <li v-for="item in manuscript.unordered" :key="item.chapter.path">
-            <BinderRow
-              :title="item.chapter.title"
-              :status="item.chapter.status"
-              :word-count="item.chapter.wordCount"
-              :active="selectedPath === item.chapter.path"
-              :detail="describeUnorderedReason(item.reason)"
-              @open="$emit('open', item.chapter.path)"
-            />
-          </li>
-        </ul>
       </template>
     </div>
 
@@ -159,6 +217,35 @@ function createChapter(title: string): void {
 </template>
 
 <style scoped>
+.flat li {
+  border-radius: 7px;
+}
+
+.gap-before {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+
+.gap-after {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.tray {
+  border-radius: 8px;
+  padding-bottom: 4px;
+}
+
+.tray.over {
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.tray-hint {
+  margin: 0 8px;
+  padding: 10px 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 .binder {
   display: flex;
   flex-direction: column;

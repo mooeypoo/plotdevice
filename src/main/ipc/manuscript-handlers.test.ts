@@ -6,6 +6,14 @@ import {
   createCreateChapter,
   createCreatePart
 } from '../contexts/manuscript/application/commands/create-entries'
+import {
+  createMoveChapter,
+  createMovePart
+} from '../contexts/manuscript/application/commands/move-entries'
+import {
+  createPlanRename,
+  createRenameEntry
+} from '../contexts/manuscript/application/commands/rename-entry'
 import { createRenumberPart } from '../contexts/manuscript/application/commands/renumber-part'
 import { createSaveEntryText } from '../contexts/manuscript/application/commands/save-entry-text'
 import { createUpdateEntryProperties } from '../contexts/manuscript/application/commands/update-entry-properties'
@@ -14,6 +22,7 @@ import { createGetManuscript } from '../contexts/manuscript/application/queries/
 import { createOpenEntry } from '../contexts/manuscript/application/queries/open-entry'
 import type { ManuscriptSettings } from '../contexts/manuscript/domain/manuscript-settings'
 import { InMemoryManuscript } from '../contexts/manuscript/domain/ports/in-memory-manuscript.fake'
+import { InMemoryRelocator } from '../contexts/manuscript/domain/ports/in-memory-relocator.fake'
 import type { ProjectPath } from '../shared-kernel/project-path'
 import { createInspectorHandlers } from './inspector-handlers'
 import {
@@ -29,7 +38,8 @@ const marrow = p('locations/Marrow.md')
 const settings: ManuscriptSettings = {
   readOnly: false,
   partFolder: p('manuscript'),
-  chapterFolder: p('manuscript')
+  chapterFolder: p('manuscript'),
+  fileNames: 'ask'
 }
 
 let repository: InMemoryManuscript
@@ -37,6 +47,7 @@ let session: ManuscriptUseCases | undefined
 let handlers: ManuscriptHandlers
 
 function useCasesFor(repo: InMemoryManuscript): ManuscriptUseCases {
+  const relocator = new InMemoryRelocator(repo)
   return {
     getManuscript: createGetManuscript({ repository: repo }),
     openEntry: createOpenEntry({ repository: repo }),
@@ -46,7 +57,11 @@ function useCasesFor(repo: InMemoryManuscript): ManuscriptUseCases {
     createChapter: createCreateChapter({ repository: repo, settings }),
     createPart: createCreatePart({ repository: repo, settings }),
     renumberPart: createRenumberPart({ repository: repo, settings }),
-    addStatus: createAddStatus({ repository: repo, settings })
+    addStatus: createAddStatus({ repository: repo, settings }),
+    moveChapter: createMoveChapter({ repository: repo, relocator, settings }),
+    movePart: createMovePart({ repository: repo, settings }),
+    planRename: createPlanRename({ repository: repo, relocator, settings }),
+    renameEntry: createRenameEntry({ repository: repo, relocator, settings })
   }
 }
 
@@ -80,7 +95,10 @@ describe('manuscript handlers', () => {
         ]
       }
     })
-    expect(result.ok && result.value.linkTargets).toContainEqual({ name: 'Marrow', type: 'location' })
+    expect(result.ok && result.value.linkTargets).toContainEqual({
+      name: 'Marrow',
+      type: 'location'
+    })
   })
 
   it('opens and saves parts and chapters from the listing', async () => {
@@ -184,6 +202,46 @@ describe('manuscript handlers', () => {
       value: { changed: 0, failed: [] }
     })
     expect(await handlers.addStatus(['maybe'])).toMatchObject({ ok: true })
+  })
+
+  it('moves chapters and parts by listed paths only', async () => {
+    await handlers.getManuscript()
+    expect(await handlers.moveChapter([ferry, { part: partOne, index: 0 }])).toEqual({
+      ok: true,
+      value: { path: ferry, changed: 0, failed: [] }
+    })
+    expect(await handlers.moveChapter([ferry, null])).toMatchObject({ ok: true })
+    expect(await handlers.moveChapter([ferry, { part: marrow, index: 0 }])).toMatchObject({
+      ok: false,
+      error: { code: 'entry-not-allowed' }
+    })
+    expect(await handlers.moveChapter([ferry, { part: partOne, index: -1 }])).toMatchObject({
+      ok: false,
+      error: { code: 'invalid-request' }
+    })
+    expect(await handlers.movePart([partOne, 0])).toMatchObject({ ok: true })
+  })
+
+  it('plans no rename for an entry without a title', async () => {
+    await handlers.getManuscript()
+    expect(await handlers.planRename([ferry])).toEqual({ ok: true, value: null })
+  })
+
+  it('renames a part and updates the links to it', async () => {
+    const before = repository.get(partOne)
+    if (before === undefined) return
+    before.frontmatter['title'] = 'The Orchard'
+    await handlers.getManuscript()
+    const newPath = 'manuscript/The Orchard.md'
+    expect(await handlers.planRename([partOne])).toMatchObject({
+      ok: true,
+      value: { newPath, newName: 'The Orchard.md', linkCount: 1, fileCount: 1 }
+    })
+    expect(await handlers.renameEntry([partOne])).toEqual({
+      ok: true,
+      value: { path: newPath, linkCount: 1, fileCount: 1, skipped: [] }
+    })
+    expect(await handlers.openEntry([newPath])).toMatchObject({ ok: true })
   })
 
   it('passes a changed-on-disk refusal through', async () => {

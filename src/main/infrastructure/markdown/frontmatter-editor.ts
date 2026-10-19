@@ -45,7 +45,7 @@ export function editFrontmatter(
 }
 
 /** The head as its opening `---` line, the YAML between, and the closing `---` line. */
-function splitHead(
+export function splitHead(
   head: string
 ): { readonly opening: string; readonly yaml: string; readonly closing: string } | undefined {
   const firstBreak = head.indexOf('\n')

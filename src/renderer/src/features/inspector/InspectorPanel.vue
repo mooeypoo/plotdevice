@@ -7,6 +7,7 @@ import { useWorkspaceStore } from '../../app/workspace-store'
 import { describeUnorderedReason } from '../binder/binder-labels'
 import { linkLabel, namesOfType } from './link-targets'
 import LinkPicker from './LinkPicker.vue'
+import { usePositionMoves } from './use-position-moves'
 
 const manuscript = useManuscriptStore()
 const inspector = useInspectorStore()
@@ -149,6 +150,43 @@ async function renumber(): Promise<void> {
 
 const disabled = computed(() => readOnly.value || busy.value)
 
+const moves = usePositionMoves()
+const { canMoveUp, canMoveDown, partOptions } = moves
+
+async function run(action: () => Promise<unknown>): Promise<void> {
+  busy.value = true
+  try {
+    await action()
+  } finally {
+    busy.value = false
+  }
+}
+
+function changePart(event: Event): void {
+  const value = (event.target as HTMLSelectElement).value
+  if (value !== '') void run(() => moves.moveToPart(value))
+}
+
+const renameOffer = computed(() => {
+  const pending = manuscript.pendingRename
+  return pending !== null && pending.path === properties.value?.path ? pending.plan : null
+})
+
+const renameQuestion = computed(() => {
+  const plan = renameOffer.value
+  if (plan === null) return ''
+  const links =
+    plan.linkCount === 0
+      ? ''
+      : ` This also updates ${String(plan.linkCount)} ${plan.linkCount === 1 ? 'link' : 'links'} in ${String(plan.fileCount)} ${plan.fileCount === 1 ? 'file' : 'files'}.`
+  return `Rename the file to “${plan.newName}”?${links}`
+})
+
+function acceptRename(): void {
+  const path = manuscript.pendingRename?.path
+  if (path !== undefined) void run(() => manuscript.renameEntry(path))
+}
+
 /** The part's own title when the link resolves; otherwise the link as written. */
 const partName = computed(() => {
   const part = properties.value?.part
@@ -167,8 +205,26 @@ const partName = computed(() => {
       <section class="position" aria-label="Position">
         <dl>
           <div v-if="properties.kind === 'chapter'">
-            <dt>Part</dt>
-            <dd dir="auto">{{ partName }}</dd>
+            <dt>
+              <label v-if="partOptions.length > 0 && !readOnly" for="inspector-part">Part</label>
+              <template v-else>Part</template>
+            </dt>
+            <dd v-if="partOptions.length > 0 && !readOnly">
+              <select
+                id="inspector-part"
+                class="part-select"
+                dir="auto"
+                :value="manuscript.currentPart?.path ?? ''"
+                :disabled="disabled"
+                @change="changePart"
+              >
+                <option v-if="manuscript.currentPart === undefined" value="">{{ partName }}</option>
+                <option v-for="option in partOptions" :key="option.path" :value="option.path">
+                  {{ option.title }}
+                </option>
+              </select>
+            </dd>
+            <dd v-else dir="auto">{{ partName }}</dd>
           </div>
           <div>
             <dt><label for="inspector-order">Order</label></dt>
@@ -187,6 +243,26 @@ const partName = computed(() => {
           </div>
         </dl>
         <p v-if="orderHint" class="hint bad">{{ orderHint }}</p>
+        <div v-if="!readOnly && (canMoveUp || canMoveDown)" class="moves">
+          <button
+            type="button"
+            class="quiet small"
+            :disabled="disabled || !canMoveUp"
+            :title="`Move this ${properties.kind} up one place`"
+            @click="run(moves.moveUp)"
+          >
+            ↑ Move up
+          </button>
+          <button
+            type="button"
+            class="quiet small"
+            :disabled="disabled || !canMoveDown"
+            :title="`Move this ${properties.kind} down one place`"
+            @click="run(moves.moveDown)"
+          >
+            ↓ Move down
+          </button>
+        </div>
         <button
           v-if="properties.kind === 'chapter' && properties.order !== undefined"
           type="button"
@@ -217,6 +293,17 @@ const partName = computed(() => {
           :disabled="disabled"
           @change="saveText('title', title)"
         />
+        <div v-if="renameOffer" class="note" role="status">
+          <p dir="auto">{{ renameQuestion }}</p>
+          <div class="choices">
+            <button type="button" class="primary" :disabled="disabled" @click="acceptRename">
+              Rename file
+            </button>
+            <button type="button" :disabled="disabled" @click="manuscript.dismissRename()">
+              Keep the name
+            </button>
+          </div>
+        </div>
       </div>
 
       <div v-if="properties.kind === 'chapter'" class="field">
@@ -385,6 +472,21 @@ const partName = computed(() => {
 
 .position .small {
   margin-top: 8px;
+}
+
+.position .part-select {
+  max-width: 150px;
+  padding: 3px 6px;
+}
+
+.moves {
+  display: flex;
+  gap: 4px;
+}
+
+.choices {
+  display: flex;
+  gap: 6px;
 }
 
 .note {

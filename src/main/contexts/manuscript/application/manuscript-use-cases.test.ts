@@ -19,7 +19,8 @@ const frost = p('manuscript/Part One/First frost.md')
 const settings: ManuscriptSettings = {
   readOnly: false,
   partFolder: p('manuscript'),
-  chapterFolder: p('manuscript')
+  chapterFolder: p('manuscript'),
+  fileNames: 'ask'
 }
 
 let repository: InMemoryManuscript

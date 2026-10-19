@@ -5,6 +5,7 @@ import EditorPane from '../features/editor/EditorPane.vue'
 import InspectorPanel from '../features/inspector/InspectorPanel.vue'
 import { useInspectorStore } from './inspector-store'
 import { formatWordCount } from '../features/binder/binder-labels'
+import type { DropRequest } from '../features/binder/binder-drop'
 import { lastEntryOf, rememberLastEntry, useLayoutStore } from './layout-store'
 import { useManuscriptStore } from './manuscript-store'
 import StatusBar from './StatusBar.vue'
@@ -16,6 +17,11 @@ const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
 const layout = useLayoutStore()
 const inspector = useInspectorStore()
+
+function move(request: DropRequest): void {
+  if (request.kind === 'move-part') void manuscript.movePart(request.path, request.index)
+  else void manuscript.moveChapter(request.path, request.destination)
+}
 
 const attentionCount = computed(
   () =>
@@ -99,6 +105,7 @@ useShortcuts([
         @show-overview="manuscript.closeEntry()"
         @create-chapter="(part, title) => manuscript.createChapter(part, title)"
         @create-part="manuscript.createPart($event)"
+        @move="move"
       />
       <main class="main">
         <EditorPane />
