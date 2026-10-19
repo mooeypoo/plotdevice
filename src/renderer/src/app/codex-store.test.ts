@@ -80,3 +80,21 @@ describe('codex store', () => {
     expect(codex.listing?.untyped).toEqual([])
   })
 })
+
+describe('codex store: templates', () => {
+  it('opens a template in the editor, with no properties, and saves its text', async () => {
+    const editor = useEditorStore()
+    const codex = useCodexStore()
+    expect(await codex.editTemplate('character')).toBe(true)
+    expect(fake.codexWrites).toEqual(['template character'])
+    expect(editor.entry).toMatchObject({
+      kind: 'template',
+      title: 'Character template',
+      templateOf: 'character'
+    })
+    expect(codex.properties).toBeNull()
+    editor.edit('## Voice\n')
+    await vi.advanceTimersByTimeAsync(AUTOSAVE_DELAY_MS)
+    expect(fake.files.get('templates/character.md')).toBe('## Voice\n')
+  })
+})

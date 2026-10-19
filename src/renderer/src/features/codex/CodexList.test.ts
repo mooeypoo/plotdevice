@@ -14,6 +14,7 @@ describe('CodexList', () => {
       'Characters',
       'Locations',
       'Notes',
+      'Templates',
       'Untyped files'
     ])
     expect(list.text()).toContain('Ilka')
@@ -33,6 +34,17 @@ describe('CodexList', () => {
     const list = mountList()
     await list.get('select').setValue('note')
     expect(list.emitted('setType')).toEqual([['Loose thoughts.md', 'note']])
+  })
+
+  it('opens a template, marked default until the writer makes one', async () => {
+    const list = mountList()
+    expect(list.text()).toContain('New character')
+    expect(list.text()).toContain('default')
+    const template = list
+      .findAll('button')
+      .find((button) => button.text().startsWith('New location'))
+    await template?.trigger('click')
+    expect(list.emitted('editTemplate')).toEqual([['location']])
   })
 
   it('offers no changes in a read-only project', () => {

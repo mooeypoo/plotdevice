@@ -11,6 +11,7 @@ import type {
   SavedEntryDto
 } from '../../contract/dtos'
 import type { CreateCodexEntry } from '../contexts/codex/application/commands/create-codex-entry'
+import type { EditTemplate } from '../contexts/codex/application/commands/edit-template'
 import type {
   PlanCodexRename,
   RenameCodexEntry
@@ -33,6 +34,7 @@ export interface CodexUseCases {
   readonly getProperties: GetCodexProperties
   readonly updateProperties: UpdateCodexProperties
   readonly createEntry: CreateCodexEntry
+  readonly editTemplate: EditTemplate
   readonly setEntryType: SetEntryType
   readonly planRename: PlanCodexRename
   readonly renameEntry: RenameCodexEntry
@@ -47,6 +49,7 @@ export interface CodexHandlers {
   getProperties(args: readonly unknown[]): Promise<ApiResult<CodexPropertiesViewDto>>
   updateProperties(args: readonly unknown[]): Promise<ApiResult<CodexPropertiesViewDto>>
   createEntry(args: readonly unknown[]): Promise<ApiResult<CreatedEntryDto>>
+  editTemplate(args: readonly unknown[]): Promise<ApiResult<CreatedEntryDto>>
   setEntryType(args: readonly unknown[]): Promise<ApiResult<null>>
   planRename(args: readonly unknown[]): Promise<ApiResult<RenamePlanDto | null>>
   renameEntry(args: readonly unknown[]): Promise<ApiResult<RenamedDto>>
@@ -72,6 +75,7 @@ const changes = z
 const updateArgs = z.tuple([path, z.string().min(1).max(200), changes])
 const kind = z.enum(['character', 'location', 'note'])
 const createArgs = z.tuple([kind, z.string().max(500)])
+const kindArgs = z.tuple([kind])
 const typeArgs = z.tuple([path, z.enum(['part', 'chapter', 'character', 'location', 'note'])])
 
 const noProject: ApiResult<never> = {
@@ -134,13 +138,18 @@ export function createCodexHandlers(current: () => CodexUseCases | undefined): C
       if (useCases === undefined) return noProject
       const listing = await useCases.listCodex()
       listedFor = useCases
-      entryPaths = new Set(listing.entries.map((entry) => entry.path))
+      // Templates open and save like entries; they have no properties to read.
+      entryPaths = new Set([
+        ...listing.entries.map((entry) => entry.path),
+        ...listing.templates.map((template) => template.path)
+      ])
       untypedPaths = new Set(listing.untyped.map((file) => file.path))
       return {
         ok: true,
         value: {
           entries: listing.entries.map((entry) => ({ ...entry, aliases: [...entry.aliases] })),
-          untyped: [...listing.untyped]
+          untyped: [...listing.untyped],
+          templates: [...listing.templates]
         }
       }
     },
@@ -198,6 +207,18 @@ export function createCodexHandlers(current: () => CodexUseCases | undefined): C
           if (!created.ok) return { ok: false, error: toApiError(created.error) }
           if (listedFor === useCases) entryPaths.add(created.value.path)
           return { ok: true, value: { path: created.value.path } }
+        }
+      ),
+
+    editTemplate: (args) =>
+      withProject<z.infer<typeof kindArgs>, CreatedEntryDto>(
+        kindArgs,
+        args,
+        async (useCases, [entryKind]) => {
+          const template = await useCases.editTemplate(entryKind)
+          if (!template.ok) return { ok: false, error: toApiError(template.error) }
+          if (listedFor === useCases) entryPaths.add(template.value.path)
+          return { ok: true, value: { path: template.value.path } }
         }
       ),
 

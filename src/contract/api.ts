@@ -108,6 +108,11 @@ export interface CodexApi {
   ): Promise<ApiResult<CodexPropertiesViewDto>>
   /** A new entry from the template, in the kind's folder. */
   createEntry(kind: CodexKindDto, title: string): Promise<ApiResult<CreatedEntryDto>>
+  /**
+   * The template file new entries of `kind` start from, created from the default if the project
+   * has none yet. It opens like an entry; only its text is edited.
+   */
+  editTemplate(kind: CodexKindDto): Promise<ApiResult<CreatedEntryDto>>
   /** Writes `type` into an untyped file, and nothing else. */
   setEntryType(path: string, type: SettableTypeDto): Promise<ApiResult<null>>
   planRename(path: string): Promise<ApiResult<RenamePlanDto | null>>

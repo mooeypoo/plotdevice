@@ -10,6 +10,7 @@ export function registerCodexIpc(handlers: CodexHandlers): void {
   handleTrusted(CODEX_CHANNELS.getProperties, (_, args) => handlers.getProperties(args))
   handleTrusted(CODEX_CHANNELS.updateProperties, (_, args) => handlers.updateProperties(args))
   handleTrusted(CODEX_CHANNELS.createEntry, (_, args) => handlers.createEntry(args))
+  handleTrusted(CODEX_CHANNELS.editTemplate, (_, args) => handlers.editTemplate(args))
   handleTrusted(CODEX_CHANNELS.setEntryType, (_, args) => handlers.setEntryType(args))
   handleTrusted(CODEX_CHANNELS.planRename, (_, args) => handlers.planRename(args))
   handleTrusted(CODEX_CHANNELS.renameEntry, (_, args) => handlers.renameEntry(args))

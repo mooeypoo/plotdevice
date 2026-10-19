@@ -70,7 +70,7 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [ ] Ctrl/Cmd+click on a link opens its target.
 - [ ] Read markdown links (`[text](file.md)`) when resolving references.
 - [ ] Fix-it actions in the warnings panel: write an ambiguous link with its folder, quote an unquoted link.
-- [ ] Templates for new characters and locations that the writer can change.
+- [x] Templates for new characters, locations, and notes that the writer can change (`templates/` by default; the built-in default when a file is missing).
 
 ## Phase 6: Outline view
 - [ ] Derived outline: parts and chapters with status chips and synopses. Edit synopses inline, filter by status, POV, or thread.

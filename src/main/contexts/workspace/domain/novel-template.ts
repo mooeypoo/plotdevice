@@ -38,6 +38,10 @@ export function novelTemplate(title: string): string {
     `    character: ${folders.character}`,
     `    location: ${folders.location}`,
     `    note: ${folders.note}`,
+    withComment(
+      `    template: ${folders.template}`,
+      'templates for new characters, locations, notes'
+    ),
     '---'
   ]
   return `${lines.join('\n')}\n`

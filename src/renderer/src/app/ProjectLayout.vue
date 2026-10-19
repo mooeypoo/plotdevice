@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import EditorPane from '../features/editor/EditorPane.vue'
 import CodexInspector from '../features/inspector/CodexInspector.vue'
 import InspectorPanel from '../features/inspector/InspectorPanel.vue'
+import TemplateInspector from '../features/inspector/TemplateInspector.vue'
 import { useInspectorStore } from './inspector-store'
 import { formatWordCount } from '../features/binder/binder-labels'
 import type { DropRequest } from '../features/binder/binder-drop'
@@ -112,6 +113,7 @@ useShortcuts([
       </main>
       <template v-if="layout.inspectorOpen && !layout.focusMode && editor.entry">
         <InspectorPanel v-if="isManuscriptEntry" />
+        <TemplateInspector v-else-if="editor.entry.kind === 'template'" />
         <CodexInspector v-else />
       </template>
     </div>

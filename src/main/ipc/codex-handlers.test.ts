@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { createEditTemplate } from '../contexts/codex/application/commands/edit-template'
 import { createCreateCodexEntry } from '../contexts/codex/application/commands/create-codex-entry'
 import {
   createPlanCodexRename,
@@ -22,6 +23,7 @@ const ilka = 'characters/Ilka Szabó.md'
 const settings: CodexSettings = {
   readOnly: false,
   folders: { character: p('characters'), location: p('locations'), note: p('notes') },
+  templateFolder: p('templates'),
   fileNames: 'ask'
 }
 const relocator: EntryRelocator = {
@@ -42,6 +44,7 @@ function useCasesFor(repo: InMemoryCodex): CodexUseCases {
     getProperties: createGetCodexProperties(ports),
     updateProperties: createUpdateCodexProperties(ports),
     createEntry: createCreateCodexEntry(ports),
+    editTemplate: createEditTemplate(ports),
     setEntryType: createSetEntryType(ports),
     planRename: createPlanCodexRename({ ...ports, relocator }),
     renameEntry: createRenameCodexEntry({ ...ports, relocator }),
@@ -93,6 +96,18 @@ describe('codex handlers', () => {
     expect(await handlers.createEntry(['spaceship', 'x'])).toMatchObject({
       ok: false,
       error: { code: 'invalid-request' }
+    })
+  })
+
+  it('creates a template from the default and allows editing it', async () => {
+    await handlers.listCodex()
+    expect(await handlers.editTemplate(['character'])).toEqual({
+      ok: true,
+      value: { path: 'templates/character.md' }
+    })
+    expect(await handlers.openEntry(['templates/character.md'])).toMatchObject({
+      ok: true,
+      value: { text: '## Description\n\n## History\n\n## Arc\n' }
     })
   })
 

@@ -114,6 +114,7 @@ const plotDevice: PlotDeviceApi = {
       ),
     createEntry: (kind, title) =>
       invoke<ApiResult<CreatedEntryDto>>(CODEX_CHANNELS.createEntry, kind, title),
+    editTemplate: (kind) => invoke<ApiResult<CreatedEntryDto>>(CODEX_CHANNELS.editTemplate, kind),
     setEntryType: (path, type) => invoke<ApiResult<null>>(CODEX_CHANNELS.setEntryType, path, type),
     planRename: (path) => invoke<ApiResult<RenamePlanDto | null>>(CODEX_CHANNELS.planRename, path),
     renameEntry: (path) => invoke<ApiResult<RenamedDto>>(CODEX_CHANNELS.renameEntry, path),

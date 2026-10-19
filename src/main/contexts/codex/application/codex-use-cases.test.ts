@@ -5,6 +5,7 @@ import { ok } from '../../../shared-kernel/result'
 import type { CodexSettings } from '../domain/codex-settings'
 import { InMemoryCodex } from '../domain/ports/in-memory-codex.fake'
 import { createCreateCodexEntry } from './commands/create-codex-entry'
+import { createEditTemplate } from './commands/edit-template'
 import { createPlanCodexRename, createRenameCodexEntry } from './commands/rename-codex-entry'
 import { createSaveCodexText } from './commands/save-codex-text'
 import { createSetEntryType } from './commands/set-entry-type'
@@ -19,6 +20,7 @@ const marrow = p('locations/Marrow.md')
 const settings: CodexSettings = {
   readOnly: false,
   folders: { character: p('characters'), location: p('locations'), note: p('notes') },
+  templateFolder: p('templates'),
   fileNames: 'ask'
 }
 
@@ -51,7 +53,7 @@ beforeEach(() => {
 
 describe('ListCodex', () => {
   it('lists entries by title and the untyped files', async () => {
-    const listing = await createListCodex({ repository })()
+    const listing = await createListCodex({ repository, settings })()
     expect(listing.entries.map((entry) => entry.title)).toEqual([
       'Aunt Bea',
       'Ilka Szabó',
@@ -168,5 +170,42 @@ describe('renaming to match the title', () => {
         settings: { ...settings, fileNames: 'never' }
       })(marrow)
     ).toEqual({ ok: true, value: null })
+  })
+})
+
+describe('templates', () => {
+  it('lists templates apart from entries and untyped files', async () => {
+    repository.put('templates/character.md', {}, '## Voice\n')
+    repository.put('templates/old/stray.md', { type: 'character' })
+    const listing = await createListCodex({ repository, settings })()
+    expect(listing.templates).toEqual([
+      { kind: 'character', path: 'templates/character.md', exists: true },
+      { kind: 'location', path: 'templates/location.md', exists: false },
+      { kind: 'note', path: 'templates/note.md', exists: false }
+    ])
+    expect(listing.entries.some((entry) => entry.path.startsWith('templates/'))).toBe(false)
+    expect(listing.untyped.some((file) => file.path.startsWith('templates/'))).toBe(false)
+  })
+
+  it('starts new entries from the project’s template', async () => {
+    repository.rawTexts.set('templates/character.md', '---\nrole:\n---\n## Voice\n')
+    repository.put('templates/character.md', {})
+    await createCreateCodexEntry({ repository, settings })('character', 'Marta')
+    expect(repository.get('characters/Marta.md')).toMatchObject({
+      frontmatter: { type: 'character', title: 'Marta' },
+      text: '## Voice\n'
+    })
+  })
+
+  it('writes the default template once, when the writer first edits it', async () => {
+    const editTemplate = createEditTemplate({ repository, settings })
+    expect(await editTemplate('location')).toEqual({
+      ok: true,
+      value: { path: 'templates/location.md' }
+    })
+    expect(repository.get('templates/location.md')?.text).toBe('## Description\n\n## History\n')
+    repository.rawTexts.set('templates/location.md', 'Mine.\n')
+    await editTemplate('location')
+    expect(await repository.readFileText(p('templates/location.md'))).toBe('Mine.\n')
   })
 })

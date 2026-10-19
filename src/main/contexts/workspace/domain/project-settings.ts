@@ -4,8 +4,8 @@ import type { ProjectWarning } from './project-warning'
 /** When a title changes, whether the app renames the file to match. */
 export type FileNameSync = 'ask' | 'always' | 'never'
 
-/** The entry types the app creates files for, each with a default folder. */
-export type FolderKind = 'part' | 'chapter' | 'character' | 'location' | 'note'
+/** The entry types the app creates files for, each with a default folder, plus the templates for new entries. */
+export type FolderKind = 'part' | 'chapter' | 'character' | 'location' | 'note' | 'template'
 
 /** The `settings` block of novel.md, with defaults filled in. */
 export interface ProjectSettings {
@@ -24,12 +24,20 @@ export const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
     chapter: 'manuscript',
     character: 'characters',
     location: 'locations',
-    note: 'notes'
+    note: 'notes',
+    template: 'templates'
   }
 }
 
 const FILE_NAME_SYNC_VALUES: readonly string[] = ['ask', 'always', 'never']
-const FOLDER_KINDS: readonly FolderKind[] = ['part', 'chapter', 'character', 'location', 'note']
+const FOLDER_KINDS: readonly FolderKind[] = [
+  'part',
+  'chapter',
+  'character',
+  'location',
+  'note',
+  'template'
+]
 
 /** Settings plus a warning for each value that was replaced by its default. */
 export interface ProjectSettingsReading {

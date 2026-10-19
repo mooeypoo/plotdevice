@@ -18,6 +18,7 @@ const text = (path: string): Promise<string> =>
 const settings: CodexSettings = {
   readOnly: false,
   folders: { character: p('characters'), location: p('locations'), note: p('notes') },
+  templateFolder: p('templates'),
   fileNames: 'ask'
 }
 
@@ -32,7 +33,8 @@ afterEach(async () => {
 describe('the sample novel’s codex', () => {
   it('lists characters, locations, notes, and readable untyped files', async () => {
     const listing = await createListCodex({
-      repository: createMarkdownCodexRepository(copy.root)
+      repository: createMarkdownCodexRepository(copy.root),
+      settings
     })()
     expect(listing.entries.map((entry) => `${entry.kind}:${entry.title}`)).toEqual([
       'character:Aunt Bea',

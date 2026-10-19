@@ -34,12 +34,21 @@ export const useCodexStore = defineStore('codex', () => {
 
   const places = computed(
     () =>
-      new Map<string, EntryPlace>(
-        (listing.value?.entries ?? []).map((entry) => [
+      new Map<string, EntryPlace>([
+        ...(listing.value?.entries ?? []).map((entry): [string, EntryPlace] => [
           entry.path,
           { kind: entry.kind, title: entry.title, label: KIND_LABELS[entry.kind] }
+        ]),
+        ...(listing.value?.templates ?? []).map((template): [string, EntryPlace] => [
+          template.path,
+          {
+            kind: 'template',
+            title: `${KIND_LABELS[template.kind]} template`,
+            label: 'Template',
+            templateOf: template.kind
+          }
         ])
-      )
+      ])
   )
 
   async function load(): Promise<void> {
@@ -60,6 +69,12 @@ export const useCodexStore = defineStore('codex', () => {
 
   /** Reads a codex entry's properties and appearances; returns the file version they came from. */
   async function readProperties(path: string): Promise<string | undefined> {
+    if (places.value.get(path)?.kind === 'template') {
+      // A template has no properties; only its text is edited.
+      properties.value = null
+      appearsIn.value = []
+      return undefined
+    }
     const [read, appearances] = await Promise.all([
       api().getProperties(path),
       api().getAppearsIn(path)
@@ -108,6 +123,20 @@ export const useCodexStore = defineStore('codex', () => {
     return editor.open(result.value.path)
   }
 
+  /** Opens the template new entries of `kind` start from, creating it from the default if needed. */
+  async function editTemplate(kind: CodexKindDto): Promise<boolean> {
+    const editor = useEditorStore()
+    await editor.flush()
+    if (editor.hasStuckChanges) return false
+    const result = await api().editTemplate(kind)
+    if (!result.ok) {
+      editor.actionError = result.error.message
+      return false
+    }
+    await reload()
+    return editor.open(result.value.path)
+  }
+
   /** Gives an untyped file a type; it moves to the codex list or the binder. */
   async function setEntryType(path: string, type: SettableTypeDto): Promise<boolean> {
     const result = await api().setEntryType(path, type)
@@ -135,6 +164,7 @@ export const useCodexStore = defineStore('codex', () => {
     readProperties,
     updateProperties,
     createEntry,
+    editTemplate,
     setEntryType,
     close,
     // Codex entries have no word counts in a listing.
@@ -143,4 +173,4 @@ export const useCodexStore = defineStore('codex', () => {
   }
 })
 
-registerEntryOwner(['character', 'location', 'note'], () => useCodexStore())
+registerEntryOwner(['character', 'location', 'note', 'template'], () => useCodexStore())

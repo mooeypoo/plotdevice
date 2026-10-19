@@ -94,6 +94,7 @@ settings:
     character: characters
     location: locations
     note: notes
+    template: templates        # character.md, location.md, note.md: how new entries start
 ---
 Free text: premise, notes. The app shows it but does not parse it.
 ```
@@ -184,7 +185,7 @@ relationships:
 - The body is free markdown. The headings above are a template the app inserts for new characters; the app does not depend on them.
 - Location files follow the same pattern with `type: location`.
 - `aliases` are alternate names for search and autocomplete. They don't change which file a link points to.
-- **New entries.** A new character, location, or note goes in `settings.folders.character`, `.location`, or `.note`, named after its title (unique across the project), with only `type` and `title`. Characters start with the headings above, locations with `## Description` and `## History`, notes empty. The headings are a starting point only: edit, remove, or add any.
+- **New entries.** A new character, location, or note goes in `settings.folders.character`, `.location`, or `.note`, named after its title (unique across the project), with only `type` and `title`. New entries start from the project's template for their kind: `character.md`, `location.md`, or `note.md` in `settings.folders.template`. A template's body and frontmatter keys are copied, except `type` and `title`, which the app sets. Without a template file, characters start with the headings above, locations with `## Description` and `## History`, and notes empty. Templates only seed new files: edit, remove, or add any heading in any entry. Files in the template folder are not listed as entries or untyped files.
 - **Setting a type.** For an untyped file, the app writes only a `type` line, and only on request.
 
 ## StoryDate

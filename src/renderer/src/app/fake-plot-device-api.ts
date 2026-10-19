@@ -77,7 +77,12 @@ export const sampleCodex: CodexListingDto = {
     { path: 'locations/Marrow.md', kind: 'location', title: 'Marrow', aliases: [] },
     { path: 'notes/Research.md', kind: 'note', title: 'Research', aliases: [] }
   ],
-  untyped: [{ path: 'Loose thoughts.md' }]
+  untyped: [{ path: 'Loose thoughts.md' }],
+  templates: [
+    { kind: 'character', path: 'templates/character.md', exists: false },
+    { kind: 'location', path: 'templates/location.md', exists: false },
+    { kind: 'note', path: 'templates/note.md', exists: false }
+  ]
 }
 
 export function createFakePlotDeviceApi(): {
@@ -336,6 +341,18 @@ export function createFakePlotDeviceApi(): {
           otherKeys: []
         })
         codexWrites.push(`created ${path}`)
+        return Promise.resolve({ ok: true, value: { path } })
+      },
+      editTemplate: (kind) => {
+        const path = `templates/${kind}.md`
+        if (!files.has(path)) files.set(path, '## Description\n')
+        codex = {
+          ...codex,
+          templates: codex.templates.map((template) =>
+            template.kind === kind ? { ...template, exists: true } : template
+          )
+        }
+        codexWrites.push(`template ${kind}`)
         return Promise.resolve({ ok: true, value: { path } })
       },
       setEntryType: (path, type) => {

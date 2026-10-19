@@ -45,6 +45,8 @@ export function createMarkdownCodexRepository(rootOsPath: string): CodexReposito
 
     writeText: (path, text, expectedVersion) => files.writeText(path, text, expectedVersion),
 
+    readFileText: (path) => files.readWholeText(path),
+
     async readEntryFile(path) {
       const read = await files.readFrontmatter(path)
       if (!read.ok) return read

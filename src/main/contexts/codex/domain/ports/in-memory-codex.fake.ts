@@ -79,6 +79,13 @@ export class InMemoryCodex implements CodexRepository {
     return Promise.resolve(ok({ version }))
   }
 
+  /** Raw texts for `readFileText`, as a template file would be on disk. */
+  readonly rawTexts = new Map<string, string>()
+
+  readFileText(path: ProjectPath): Promise<string | undefined> {
+    return Promise.resolve(this.rawTexts.get(path) ?? this.files.get(path)?.text)
+  }
+
   readEntryFile(path: ProjectPath): Promise<Result<CodexEntryFile, ReadCodexError>> {
     const file = this.files.get(path)
     const type = file?.frontmatter['type']
@@ -117,7 +124,7 @@ export class InMemoryCodex implements CodexRepository {
     if (this.files.has(path)) {
       return Promise.resolve(err(domainError('already-exists', 'That file exists.')))
     }
-    const [, head = '', body = ''] = /^---\n([\s\S]*?)---\n([\s\S]*)$/u.exec(text) ?? []
+    const [, head = '', body = text] = /^---\n([\s\S]*?)---\n([\s\S]*)$/u.exec(text) ?? []
     const frontmatter: Record<string, unknown> = {}
     for (const line of head.split('\n')) {
       const match = /^([a-z_]+): (.+)$/u.exec(line)

@@ -232,11 +232,13 @@ export const useEditorStore = defineStore('editor', () => {
         : null
     const api = plotDeviceApi.current()
     const result =
-      current.kind === 'part'
-        ? await api.manuscript.createPart(current.title)
-        : current.kind === 'chapter'
-          ? await api.manuscript.createChapter(partPath, current.title)
-          : await api.codex.createEntry(current.kind, current.title)
+      current.kind === 'template'
+        ? await api.codex.editTemplate(current.templateOf ?? 'note')
+        : current.kind === 'part'
+          ? await api.manuscript.createPart(current.title)
+          : current.kind === 'chapter'
+            ? await api.manuscript.createChapter(partPath, current.title)
+            : await api.codex.createEntry(current.kind, current.title)
     if (!result.ok) {
       actionError.value = result.error.message
       return false

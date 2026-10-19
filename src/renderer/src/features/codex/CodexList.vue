@@ -14,10 +14,16 @@ const emit = defineEmits<{
   open: [path: string]
   create: [kind: CodexKindDto, title: string]
   setType: [path: string, type: SettableTypeDto]
+  editTemplate: [kind: CodexKindDto]
 }>()
 
 const sections = computed(() => codexSections(props.listing))
 const adding = ref<CodexKindDto | null>(null)
+const TEMPLATE_NAMES: Readonly<Record<CodexKindDto, string>> = {
+  character: 'New character',
+  location: 'New location',
+  note: 'New note'
+}
 const TYPES: readonly SettableTypeDto[] = ['character', 'location', 'note', 'chapter', 'part']
 
 function create(kind: CodexKindDto, title: string): void {
@@ -64,6 +70,27 @@ function chooseType(path: string, event: Event): void {
       <button v-else-if="!readOnly" type="button" class="new" @click="adding = section.kind">
         + New {{ section.newLabel }}
       </button>
+    </section>
+
+    <section v-if="listing.templates.length > 0 && !readOnly" class="section">
+      <div class="divider">
+        <h2 class="eyebrow">Templates</h2>
+        <span class="rule" aria-hidden="true"></span>
+      </div>
+      <p class="hint">How new entries start. Edit them like any file.</p>
+      <ul>
+        <li v-for="template in listing.templates" :key="template.kind">
+          <button
+            type="button"
+            class="row"
+            :class="{ active: selectedPath === template.path }"
+            @click="$emit('editTemplate', template.kind)"
+          >
+            <span class="title">{{ TEMPLATE_NAMES[template.kind] }}</span>
+            <span class="meta">{{ template.exists ? template.path : 'default' }}</span>
+          </button>
+        </li>
+      </ul>
     </section>
 
     <section v-if="listing.untyped.length > 0" class="section">

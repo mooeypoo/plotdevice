@@ -42,6 +42,24 @@ describe('OpenProject', () => {
     expect(result.value.scan).toEqual(scan)
   })
 
+  it('leaves the template folder out of the scan', async () => {
+    const root = workspace.addFolder('/novels/salt-orchard', {
+      novel: {
+        kind: 'read',
+        frontmatter: { format: 1, settings: { folders: { template: 'Templates' } } }
+      },
+      scan: {
+        files: [
+          { path: 'notes/Idea.md' as ProjectPath, classification: { kind: 'untyped' } },
+          { path: 'templates/character.md' as ProjectPath, classification: { kind: 'untyped' } }
+        ],
+        nestedProjects: []
+      }
+    })
+    const result = await openProject(root)
+    expect(result.ok && result.value.scan.files.map((file) => file.path)).toEqual(['notes/Idea.md'])
+  })
+
   it('records the project at the top of the recents list', async () => {
     const root = workspace.addFolder('/novels/salt-orchard', {
       novel: { kind: 'read', frontmatter: { title: 'The Salt Orchard' } }

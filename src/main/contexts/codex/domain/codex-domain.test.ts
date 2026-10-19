@@ -3,7 +3,7 @@ import type { ProjectPath } from '../../../shared-kernel/project-path'
 import { codexWrites } from './codex-changes'
 import { readCodexEntry } from './codex-entry'
 import { readCodexProperties } from './codex-properties'
-import { newCodexText } from './codex-templates'
+import { defaultTemplateText, newCodexText } from './codex-templates'
 
 const ilka = 'characters/Ilka Szabó.md' as ProjectPath
 
@@ -85,10 +85,43 @@ describe('codexWrites', () => {
 })
 
 describe('newCodexText', () => {
-  it('starts a character with the template headings, and a note empty', () => {
+  it('starts a character with the default headings, and a note empty', () => {
     expect(newCodexText('character', 'Marta Kovač')).toBe(
       '---\ntype: character\ntitle: "Marta Kovač"\n---\n## Description\n\n## History\n\n## Arc\n'
     )
     expect(newCodexText('note', 'Ideas')).toBe('---\ntype: note\ntitle: "Ideas"\n---\n')
+  })
+
+  it('copies a template’s keys and body, setting type and title itself', () => {
+    const template = [
+      '---',
+      'type: note',
+      'title: Template',
+      'role:',
+      'tags: [cast]',
+      'aliases:',
+      '  - nickname',
+      '---',
+      '## Voice',
+      '',
+      '## Wants',
+      ''
+    ].join('\r\n')
+    expect(newCodexText('character', 'Marta', template)).toBe(
+      '---\ntype: character\ntitle: "Marta"\nrole:\ntags: [cast]\naliases:\n  - nickname\n---\n## Voice\n\n## Wants\n'
+    )
+  })
+
+  it('treats a template without frontmatter as body only', () => {
+    expect(newCodexText('location', 'Marrow', '## Smell\n')).toBe(
+      '---\ntype: location\ntitle: "Marrow"\n---\n## Smell\n'
+    )
+  })
+})
+
+describe('defaultTemplateText', () => {
+  it('is the default headings, with no frontmatter', () => {
+    expect(defaultTemplateText('location')).toBe('## Description\n\n## History\n')
+    expect(defaultTemplateText('note')).toBe('')
   })
 })

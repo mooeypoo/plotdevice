@@ -6,6 +6,8 @@ export interface CodexSettings {
   readonly readOnly: boolean
   /** Where new entries of each kind go; `undefined` means the project root. */
   readonly folders: Readonly<Record<CodexKind, ProjectPath | undefined>>
+  /** Where the templates for new entries live (`character.md`, …); not listed as entries. */
+  readonly templateFolder: ProjectPath | undefined
   /** `settings.file_names`: whether a title change renames the file. */
   readonly fileNames: 'ask' | 'always' | 'never'
 }

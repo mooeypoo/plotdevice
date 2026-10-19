@@ -18,7 +18,8 @@ describe('readProjectSettings', () => {
         chapter: 'manuscript',
         character: 'characters',
         location: 'locations',
-        note: 'notes'
+        note: 'notes',
+        template: 'templates'
       }
     })
   })
@@ -32,7 +33,8 @@ describe('readProjectSettings', () => {
         chapter: 'book/chapters',
         character: 'people',
         location: 'מקומות',
-        note: 'notes/misc'
+        note: 'notes/misc',
+        template: 'tpl'
       }
     })
     expect(result).toEqual({
@@ -44,7 +46,8 @@ describe('readProjectSettings', () => {
           chapter: 'book/chapters',
           character: 'people',
           location: 'מקומות',
-          note: 'notes/misc'
+          note: 'notes/misc',
+          template: 'tpl'
         }
       },
       warnings: []

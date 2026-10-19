@@ -273,10 +273,18 @@ export interface UntypedFileDto {
   readonly rawType?: string
 }
 
+/** A kind's template file for new entries, and whether the writer has made one yet. */
+export interface CodexTemplateDto {
+  readonly kind: CodexKindDto
+  readonly path: string
+  readonly exists: boolean
+}
+
 /** Everything the codex tab lists. */
 export interface CodexListingDto {
   readonly entries: readonly CodexEntryDto[]
   readonly untyped: readonly UntypedFileDto[]
+  readonly templates: readonly CodexTemplateDto[]
 }
 
 /** One of a character's relationships, as written. */

@@ -1,4 +1,6 @@
 import { domainError, type DomainError } from '../../../../shared-kernel/domain-error'
+import { isInFolder } from '../../../../shared-kernel/is-in-folder'
+import { parseProjectPath } from '../../../../shared-kernel/project-path'
 import { err, ok, type Result } from '../../../../shared-kernel/result'
 import type { Clock } from '../../domain/ports/clock'
 import type { NovelFileStore } from '../../domain/ports/novel-file-store'
@@ -63,7 +65,13 @@ export function createReadProject(ports: ReadProjectPorts): ReadProject {
       reading.kind === 'read'
         ? readProject(root, folderName, reading.frontmatter)
         : readUnreadableProject(root, folderName, reading.problem)
-    return ok({ project, scan: await ports.scanner.scan(root) })
+    const scan = await ports.scanner.scan(root)
+    // Template files only seed new entries; they aren't untyped files or problems.
+    const templates = parseProjectPath(project.settings.folders.template)
+    const files = scan.files.filter(
+      (file) => !isInFolder(file.path, templates.ok ? templates.value : undefined)
+    )
+    return ok({ project, scan: { ...scan, files } })
   }
 }
 

@@ -11,10 +11,12 @@ import type { CodexKind } from '../../domain/codex-entry'
 import type { CodexSettings } from '../../domain/codex-settings'
 import { newCodexText, UNTITLED } from '../../domain/codex-templates'
 import type { CodexRepository, CreateCodexFileError } from '../../domain/ports/codex-repository'
+import { templatePath } from '../template-path'
 
 /**
  * Creates a character, location, or note in its folder (`settings.folders`), named after its
- * title and unique across the project, with the template's headings.
+ * title and unique across the project, starting from the project's template for its kind (or the
+ * default).
  */
 export type CreateCodexEntry = (
   kind: CodexKind,
@@ -22,6 +24,15 @@ export type CreateCodexEntry = (
 ) => Promise<
   Result<{ readonly path: ProjectPath }, CreateCodexFileError | DomainError<'read-only'>>
 >
+
+/** The project's template for `kind`, or `undefined` to use the default. */
+async function readTemplate(
+  ports: { readonly repository: CodexRepository; readonly settings: CodexSettings },
+  kind: CodexKind
+): Promise<string | undefined> {
+  const path = templatePath(ports.settings, kind)
+  return path === undefined ? undefined : ports.repository.readFileText(path)
+}
 
 /** Builds the `CreateCodexEntry` command. */
 export function createCreateCodexEntry(ports: {
@@ -43,7 +54,11 @@ export function createCreateCodexEntry(ports: {
       ports.settings.folders[kind],
       uniqueFileName(entryTitle, kind, taken)
     )
-    const created = await ports.repository.createFile(path, newCodexText(kind, entryTitle))
+    const template = await readTemplate(ports, kind)
+    const created = await ports.repository.createFile(
+      path,
+      newCodexText(kind, entryTitle, template)
+    )
     return created.ok ? ok({ path }) : created
   }
 }

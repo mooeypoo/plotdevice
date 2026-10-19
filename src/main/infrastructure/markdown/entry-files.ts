@@ -55,6 +55,8 @@ export interface EntryFiles {
     expectedVersion: string | undefined
   ): Promise<Result<{ readonly version: string }, WriteTextError>>
   readFrontmatter(path: ProjectPath): Promise<Result<FileFrontmatter, ReadFileError>>
+  /** A file's whole text, or `undefined` if it is missing or not UTF-8. */
+  readWholeText(path: ProjectPath): Promise<string | undefined>
   writeKeys(
     path: ProjectPath,
     edits: readonly KeyEdit[],
@@ -146,6 +148,16 @@ export function createEntryFiles(rootOsPath: string): EntryFiles {
         )
       }
       return ok({ frontmatter: frontmatter.data, version: versionOf(read.value.bytes) })
+    },
+
+    async readWholeText(path) {
+      const read = await readBytes(path)
+      if (!read.ok) return undefined
+      try {
+        return new TextDecoder('utf-8', { fatal: true }).decode(read.value.bytes)
+      } catch {
+        return undefined
+      }
     },
 
     writeKeys: (path, edits, expectedVersion) =>

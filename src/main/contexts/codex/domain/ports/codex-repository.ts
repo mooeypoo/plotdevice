@@ -49,6 +49,8 @@ export interface CodexRepository {
     text: string,
     expectedVersion: string | undefined
   ): Promise<Result<{ readonly version: string }, WriteCodexTextError>>
+  /** A file's whole text (frontmatter included), or `undefined` if it can't be read. */
+  readFileText(path: ProjectPath): Promise<string | undefined>
   readEntryFile(path: ProjectPath): Promise<Result<CodexEntryFile, ReadCodexError>>
   /** Changes only the given keys (ADR 0004), of any markdown file in the project. */
   writeProperties(
