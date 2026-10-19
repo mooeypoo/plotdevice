@@ -1,0 +1,11 @@
+out
+dist
+node_modules
+package-lock.json
+LICENSE
+tsconfig.json
+tsconfig.*.json
+# Markdown is hand-written prose and contract docs; fixtures are byte-exact test data.
+*.md
+fixtures/
+tools/dependency-rules/fixture/

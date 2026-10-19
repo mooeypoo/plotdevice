@@ -1,0 +1,48 @@
+{
+  "name": "plotdevice",
+  "productName": "Plot Device",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A desktop app for writing a novel in plain markdown files.",
+  "author": "Moriel Schottlender <mooeypoo@gmail.com>",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/mooeypoo/plotdevice",
+  "desktopName": "plotdevice.desktop",
+  "main": "./out/main/index.js",
+  "engines": {
+    "node": ">=22.22.2"
+  },
+  "scripts": {
+    "dev": "electron-vite dev",
+    "start": "electron-vite preview",
+    "build": "npm run typecheck && electron-vite build",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.node.json --composite false && vue-tsc --noEmit -p tsconfig.web.json --composite false",
+    "lint": "eslint --cache . && depcruise src --config .dependency-cruiser.cjs",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "postinstall": "install-electron && electron-builder install-app-deps",
+    "build:unpack": "npm run build && electron-builder --dir --publish never",
+    "build:linux": "npm run build && electron-builder --linux --publish never",
+    "build:win": "npm run build && electron-builder --win --publish never"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "dependency-cruiser": "^18.6.0",
+    "electron": "^44.9.0",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^6.0.0",
+    "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^10.11.1",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5",
+    "vue": "^3.5.44",
+    "vue-eslint-parser": "^10.4.1",
+    "vue-tsc": "^3.3.13"
+  }
+}

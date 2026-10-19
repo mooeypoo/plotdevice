@@ -1,0 +1,43 @@
+# App identity: see AGENTS.md ("App identity"). These values must never change.
+appId: tech.moriel.plotdevice
+productName: Plot Device
+directories:
+  buildResources: build
+  output: dist
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!{docs,fixtures,tools,.github}/**'
+  - '!**/*.test.ts'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!vitest.config.{js,ts,mts,mjs,cjs}'
+  - '!{.eslintcache,eslint.config.mjs,.dependency-cruiser.cjs,.prettierignore,.prettierrc.yaml,.editorconfig,.gitattributes,.nvmrc}'
+  - '!{AGENTS.md,CLAUDE.md,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc}'
+  - '!tsconfig*.json'
+asarUnpack:
+  - resources/**
+win:
+  target: nsis
+  executableName: plotdevice
+nsis:
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+linux:
+  target:
+    - AppImage
+    - deb
+  executableName: plotdevice
+  # Wayland/X11 window association: the running window's app_id must match the .desktop file.
+  syncDesktopName: true
+  maintainer: Moriel Schottlender <mooeypoo@gmail.com>
+  category: Office
+  synopsis: Write a novel in plain markdown files
+appImage:
+  artifactName: ${name}-${version}.${ext}
+deb:
+  artifactName: ${name}_${version}_${arch}.${ext}
+npmRebuild: false
+publish: null

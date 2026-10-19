@@ -206,7 +206,7 @@ When the app writes a key, it keeps the style the key already uses. If a single 
   - `/`, `\`, and `|` become `-`.
   - `< > " ? * # ^ [ ]` and control characters are removed.
   - Runs of spaces become one space, and leading or trailing spaces and dots are trimmed.
-  - The name is cut to 100 characters.
+  - The name is cut to 100 characters, and further if needed so the whole file name fits in 255 bytes of UTF-8 (the Linux limit; Hebrew letters with niqqud take about 4 bytes each). A letter is never separated from its combining marks.
   - An empty result becomes `Untitled`.
   - A Windows reserved name (`CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, `LPT1`–`LPT9`, with or without an extension, in any case) gets `_` appended.
 - **App-created file names are unique across the project.** On a clash, the app first adds the type (`Harbor (location).md`), then a number (`Harbor (2).md`). `title` keeps the name the writer sees, so both files can still be titled "Harbor".
