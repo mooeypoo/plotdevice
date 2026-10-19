@@ -11,6 +11,7 @@ import {
 } from './contexts/codex/application/commands/rename-codex-entry'
 import { createSaveCodexText } from './contexts/codex/application/commands/save-codex-text'
 import { createSetEntryType } from './contexts/codex/application/commands/set-entry-type'
+import { createUpdateRelationships } from './contexts/codex/application/commands/update-relationships'
 import { createUpdateCodexProperties } from './contexts/codex/application/commands/update-codex-properties'
 import { createGetCodexProperties } from './contexts/codex/application/queries/get-codex-properties'
 import { createListCodex } from './contexts/codex/application/queries/list-codex'
@@ -140,6 +141,10 @@ export function composeApplication(): void {
         }),
         getProperties: createGetCodexProperties({ repository: codexRepository }),
         updateProperties: createUpdateCodexProperties({
+          repository: codexRepository,
+          settings: codexSettings
+        }),
+        updateRelationships: createUpdateRelationships({
           repository: codexRepository,
           settings: codexSettings
         }),

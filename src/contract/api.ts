@@ -4,6 +4,7 @@ import type {
   CodexKindDto,
   CodexListingDto,
   CodexPropertiesViewDto,
+  RelationshipEditDto,
   SettableTypeDto,
   ApiResult,
   ChapterDestinationDto,
@@ -105,6 +106,12 @@ export interface CodexApi {
     path: string,
     version: string,
     changes: CodexChangesDto
+  ): Promise<ApiResult<CodexPropertiesViewDto>>
+  /** Sets a character's relationships; only what differs changes in the file. */
+  updateRelationships(
+    path: string,
+    version: string,
+    relationships: readonly RelationshipEditDto[]
   ): Promise<ApiResult<CodexPropertiesViewDto>>
   /** A new entry from the template, in the kind's folder. */
   createEntry(kind: CodexKindDto, title: string): Promise<ApiResult<CreatedEntryDto>>

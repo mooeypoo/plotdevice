@@ -119,6 +119,8 @@ export interface UnorderedChapterDto {
 export interface LinkTargetDto {
   /** The file name without `.md`, as on disk. */
   readonly name: string
+  /** The project-relative path, for path-form links and for opening the file. */
+  readonly path: string
   readonly type?: string
 }
 
@@ -303,14 +305,33 @@ export interface CodexPropertiesDto {
   readonly role?: string
   readonly born?: string
   readonly relationships: readonly RelationshipDto[]
+  /** False when the file writes `relationships` in a shape the app can't edit safely. */
+  readonly relationshipsEditable: boolean
   /** Keys the app doesn't edit, shown read-only. */
   readonly otherKeys: readonly { readonly key: string; readonly value: string }[]
+}
+
+/** Another character's relationship to this one. */
+export interface ListedByDto {
+  readonly path: string
+  readonly title: string
+  readonly kind?: string
+  readonly note?: string
 }
 
 /** A codex entry's properties and the file version they came from. */
 export interface CodexPropertiesViewDto {
   readonly properties: CodexPropertiesDto
   readonly version: string
+  /** Characters whose relationships point to this one (one-way, shown read-only). */
+  readonly listedBy: readonly ListedByDto[]
+}
+
+/** A relationship as the inspector edits it: the other character by name. */
+export interface RelationshipEditDto {
+  readonly with: string
+  readonly kind?: string
+  readonly note?: string
 }
 
 /** Inspector changes to a codex entry. Only present fields change; empty removes the key. */

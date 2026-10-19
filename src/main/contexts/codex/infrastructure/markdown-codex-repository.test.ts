@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { ProjectPath } from '../../../shared-kernel/project-path'
 import { copySampleNovel, type SampleNovelCopy } from '../../../infrastructure/testing/sample-novel'
 import { createCreateCodexEntry } from '../application/commands/create-codex-entry'
+import { createUpdateRelationships } from '../application/commands/update-relationships'
 import { createSetEntryType } from '../application/commands/set-entry-type'
 import { createUpdateCodexProperties } from '../application/commands/update-codex-properties'
 import { createGetCodexProperties } from '../application/queries/get-codex-properties'
@@ -83,5 +84,40 @@ describe('the sample novel’s codex', () => {
     const after = await text('Loose thoughts.md')
     expect(after).not.toBe(before)
     expect(after).toContain('type: note')
+  })
+})
+
+describe('relationships on disk', () => {
+  it('changes one relationship’s kind and adds one, touching nothing else', async () => {
+    const repository = createMarkdownCodexRepository(copy.root)
+    const path = p('characters/Ilka Szabó.md')
+    const before = await text(path)
+    const read = await createGetCodexProperties({ repository })(path)
+    if (!read.ok) throw new Error('expected properties')
+
+    const updated = await createUpdateRelationships({ repository, settings })(
+      path,
+      read.value.version,
+      [
+        { with: 'Aunt Bea', kind: 'teacher', note: 'Taught her to graft pear trees.' },
+        { with: 'יעל', kind: 'friend' },
+        { with: 'Noël', kind: 'rival' }
+      ]
+    )
+    expect(updated).toMatchObject({ ok: true })
+    expect(await text(path)).toBe(
+      before
+        .replace('kind: mentor', 'kind: teacher')
+        .replace('    kind: friend\n', '    kind: friend\n  - with: "[[Noël]]"\n    kind: rival\n')
+    )
+  })
+
+  it('shows who lists a character', async () => {
+    const repository = createMarkdownCodexRepository(copy.root)
+    const read = await createGetCodexProperties({ repository })(p('characters/Aunt Bea.md'))
+    expect(read).toMatchObject({
+      ok: true,
+      value: { listedBy: [{ path: 'characters/Ilka Szabó.md', kind: 'mentor' }] }
+    })
   })
 })

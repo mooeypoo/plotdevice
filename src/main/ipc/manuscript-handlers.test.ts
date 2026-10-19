@@ -97,6 +97,7 @@ describe('manuscript handlers', () => {
     })
     expect(result.ok && result.value.linkTargets).toContainEqual({
       name: 'Marrow',
+      path: 'locations/Marrow.md',
       type: 'location'
     })
   })

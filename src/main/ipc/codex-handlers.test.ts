@@ -7,6 +7,7 @@ import {
 } from '../contexts/codex/application/commands/rename-codex-entry'
 import { createSaveCodexText } from '../contexts/codex/application/commands/save-codex-text'
 import { createSetEntryType } from '../contexts/codex/application/commands/set-entry-type'
+import { createUpdateRelationships } from '../contexts/codex/application/commands/update-relationships'
 import { createUpdateCodexProperties } from '../contexts/codex/application/commands/update-codex-properties'
 import { createGetCodexProperties } from '../contexts/codex/application/queries/get-codex-properties'
 import { createListCodex } from '../contexts/codex/application/queries/list-codex'
@@ -43,6 +44,7 @@ function useCasesFor(repo: InMemoryCodex): CodexUseCases {
     saveEntryText: createSaveCodexText({ repository: repo, readOnly: false }),
     getProperties: createGetCodexProperties(ports),
     updateProperties: createUpdateCodexProperties(ports),
+    updateRelationships: createUpdateRelationships(ports),
     createEntry: createCreateCodexEntry(ports),
     editTemplate: createEditTemplate(ports),
     setEntryType: createSetEntryType(ports),

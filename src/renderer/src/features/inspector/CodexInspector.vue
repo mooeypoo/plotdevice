@@ -5,7 +5,7 @@ import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { useInspectorStore } from '../../app/inspector-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
-import { linkLabel } from './link-targets'
+import RelationshipsEditor from './RelationshipsEditor.vue'
 import RenameOffer from './RenameOffer.vue'
 import TextListInput from './TextListInput.vue'
 
@@ -127,19 +127,7 @@ const KEY_NAMES = { pov: 'point of view', characters: 'characters', location: 'l
             {{ bornCheck.kind === 'invalid' ? bornCheck.message : bornCheck.description }}
           </p>
         </div>
-        <section v-if="properties.relationships.length > 0" class="field">
-          <h3 class="eyebrow">Relationships</h3>
-          <ul class="plain">
-            <li v-for="(relationship, index) in properties.relationships" :key="index">
-              <span dir="auto">{{ linkLabel(relationship.with) }}</span>
-              <span v-if="relationship.kind" class="muted"> · {{ relationship.kind }}</span>
-              <p v-if="relationship.note" class="muted small-text" dir="auto">
-                {{ relationship.note }}
-              </p>
-            </li>
-          </ul>
-          <p class="muted small-text">Editing relationships comes next (Phase 5b).</p>
-        </section>
+        <RelationshipsEditor :disabled="disabled" />
       </template>
 
       <section v-if="properties.kind !== 'note'" class="field">

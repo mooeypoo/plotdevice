@@ -173,9 +173,9 @@ function flowList(items: readonly (string | number)[]): string {
   return `[${items.map((item) => scalarText(item, 'none')).join(', ')}]`
 }
 
-type Quoting = 'none' | 'double' | 'single'
+export type Quoting = 'none' | 'double' | 'single'
 
-function scalarQuoting(type: string | undefined): Quoting {
+export function scalarQuoting(type: string | undefined): Quoting {
   if (type === 'QUOTE_DOUBLE') return 'double'
   if (type === 'QUOTE_SINGLE') return 'single'
   return 'none'
@@ -186,7 +186,7 @@ function isBlockScalar(type: string | undefined): boolean {
 }
 
 /** One scalar as YAML text. Wikilinks are always double-quoted (see "Links" in docs/file-format.md). */
-function scalarText(value: string | number, quoting: Quoting): string {
+export function scalarText(value: string | number, quoting: Quoting): string {
   if (typeof value === 'number') return String(value)
   const wanted: Quoting = value.startsWith('[[') || value.startsWith('![[') ? 'double' : quoting
   return stringify(value, {
@@ -197,11 +197,11 @@ function scalarText(value: string | number, quoting: Quoting): string {
   }).replace(/\n$/u, '')
 }
 
-function lineStart(text: string, position: number): number {
+export function lineStart(text: string, position: number): number {
   return text.lastIndexOf('\n', position - 1) + 1
 }
 
-function splice(text: string, from: number, to: number, insert: string): string {
+export function splice(text: string, from: number, to: number, insert: string): string {
   return `${text.slice(0, from)}${insert}${text.slice(to)}`
 }
 

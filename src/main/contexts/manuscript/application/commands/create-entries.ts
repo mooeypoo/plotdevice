@@ -10,7 +10,7 @@ import {
 } from '../../../../shared-kernel/project-path'
 import { err, ok, type Result } from '../../../../shared-kernel/result'
 import { uniqueFileName } from '../../../../shared-kernel/unique-file-name'
-import { linkTo } from '../../domain/entry-link'
+import { linkTo } from '../../../../shared-kernel/entry-link'
 import { arrangeManuscript } from '../../domain/manuscript'
 import type { ManuscriptSettings } from '../../domain/manuscript-settings'
 import {

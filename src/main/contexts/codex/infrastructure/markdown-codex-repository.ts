@@ -6,6 +6,7 @@ import { createEntryFiles } from '../../../infrastructure/markdown/entry-files'
 import { scanProject } from '../../../infrastructure/project-scan/scan-project'
 import { CODEX_KINDS, readCodexEntry, type CodexEntry, type CodexKind } from '../domain/codex-entry'
 import type { CodexRepository } from '../domain/ports/codex-repository'
+import type { CodexSource } from '../domain/relationships'
 import type { UntypedFile } from '../domain/untyped-file'
 
 const isCodexKind = (value: unknown): value is CodexKind => CODEX_KINDS.includes(value as CodexKind)
@@ -20,6 +21,7 @@ export function createMarkdownCodexRepository(rootOsPath: string): CodexReposito
       const entries: CodexEntry[] = []
       const untyped: UntypedFile[] = []
       const linkCandidates: LinkCandidate[] = []
+      const sources: CodexSource[] = []
       for (const file of scan.files) {
         const { classification } = file
         if (classification.kind !== 'typed') {
@@ -35,10 +37,12 @@ export function createMarkdownCodexRepository(rootOsPath: string): CodexReposito
         linkCandidates.push({ path: file.path, type: classification.type })
         if (!isCodexKind(classification.type)) continue
         const read = await files.readFrontmatter(file.path)
-        if (read.ok)
-          entries.push(readCodexEntry(file.path, classification.type, read.value.frontmatter))
+        if (!read.ok) continue
+        const entry = readCodexEntry(file.path, classification.type, read.value.frontmatter)
+        entries.push(entry)
+        sources.push({ path: file.path, title: entry.title, frontmatter: read.value.frontmatter })
       }
-      return { entries, untyped, linkCandidates }
+      return { entries, untyped, linkCandidates, sources }
     },
 
     readText: (path) => files.readText(path),
@@ -61,6 +65,9 @@ export function createMarkdownCodexRepository(rootOsPath: string): CodexReposito
     writeProperties: (path, writes, expectedVersion) =>
       files.writeKeys(path, writes, expectedVersion),
 
-    createFile: (path, text) => files.createFile(path, text)
+    createFile: (path, text) => files.createFile(path, text),
+
+    writeRelationships: (path, relationships, expectedVersion) =>
+      files.writeMappingList(path, 'relationships', relationships, expectedVersion)
   }
 }

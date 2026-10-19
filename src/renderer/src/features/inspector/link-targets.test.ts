@@ -14,11 +14,11 @@ describe('link helpers', () => {
     expect(
       namesOfType(
         [
-          { name: 'Noël', type: 'character' },
-          { name: 'Marrow', type: 'location' },
-          { name: 'Marrow', type: 'character' },
-          { name: 'Aunt Bea', type: 'character' },
-          { name: 'Loose' }
+          { name: 'Noël', path: 'characters/Noël.md', type: 'character' },
+          { name: 'Marrow', path: 'locations/Marrow.md', type: 'location' },
+          { name: 'Marrow', path: 'characters/Marrow.md', type: 'character' },
+          { name: 'Aunt Bea', path: 'characters/Aunt Bea.md', type: 'character' },
+          { name: 'Loose', path: 'Loose.md' }
         ],
         ['character']
       )

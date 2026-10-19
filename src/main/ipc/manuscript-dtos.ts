@@ -27,7 +27,8 @@ export function toManuscriptDto(view: ManuscriptView): ManuscriptDto {
     linkTargets: view.linkCandidates.map((candidate) => {
       const fileName = candidate.path.slice(candidate.path.lastIndexOf('/') + 1)
       const name = fileName.replace(MARKDOWN_EXTENSION, '')
-      return candidate.type !== undefined ? { name, type: candidate.type } : { name }
+      const { path } = candidate
+      return candidate.type !== undefined ? { name, path, type: candidate.type } : { name, path }
     })
   }
 }

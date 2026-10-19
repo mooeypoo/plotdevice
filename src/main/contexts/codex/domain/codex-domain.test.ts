@@ -52,6 +52,7 @@ describe('readCodexProperties', () => {
       aliases: [],
       born: '1931',
       relationships: [{ with: '[[Aunt Bea]]', kind: 'mentor', note: 'Taught her to graft.' }],
+      relationshipsEditable: true,
       otherKeys: [
         { key: 'eye_color', value: 'grey' },
         { key: 'languages', value: 'Hungarian, English' },

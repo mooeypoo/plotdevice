@@ -18,6 +18,7 @@ import type {
 } from '../contexts/codex/application/commands/rename-codex-entry'
 import type { SaveCodexText } from '../contexts/codex/application/commands/save-codex-text'
 import type { SetEntryType } from '../contexts/codex/application/commands/set-entry-type'
+import type { UpdateRelationships } from '../contexts/codex/application/commands/update-relationships'
 import type { UpdateCodexProperties } from '../contexts/codex/application/commands/update-codex-properties'
 import type { GetCodexProperties } from '../contexts/codex/application/queries/get-codex-properties'
 import type { ListCodex } from '../contexts/codex/application/queries/list-codex'
@@ -33,6 +34,7 @@ export interface CodexUseCases {
   readonly saveEntryText: SaveCodexText
   readonly getProperties: GetCodexProperties
   readonly updateProperties: UpdateCodexProperties
+  readonly updateRelationships: UpdateRelationships
   readonly createEntry: CreateCodexEntry
   readonly editTemplate: EditTemplate
   readonly setEntryType: SetEntryType
@@ -48,6 +50,7 @@ export interface CodexHandlers {
   saveEntryText(args: readonly unknown[]): Promise<ApiResult<SavedEntryDto>>
   getProperties(args: readonly unknown[]): Promise<ApiResult<CodexPropertiesViewDto>>
   updateProperties(args: readonly unknown[]): Promise<ApiResult<CodexPropertiesViewDto>>
+  updateRelationships(args: readonly unknown[]): Promise<ApiResult<CodexPropertiesViewDto>>
   createEntry(args: readonly unknown[]): Promise<ApiResult<CreatedEntryDto>>
   editTemplate(args: readonly unknown[]): Promise<ApiResult<CreatedEntryDto>>
   setEntryType(args: readonly unknown[]): Promise<ApiResult<null>>
@@ -73,6 +76,14 @@ const changes = z
   })
   .strict()
 const updateArgs = z.tuple([path, z.string().min(1).max(200), changes])
+const relationship = z
+  .object({
+    with: z.string().min(1).max(500),
+    kind: z.string().max(500).optional(),
+    note: z.string().max(10_000).optional()
+  })
+  .strict()
+const relationshipArgs = z.tuple([path, z.string().min(1).max(200), z.array(relationship).max(500)])
 const kind = z.enum(['character', 'location', 'note'])
 const createArgs = z.tuple([kind, z.string().max(500)])
 const kindArgs = z.tuple([kind])
@@ -192,6 +203,18 @@ export function createCodexHandlers(current: () => CodexUseCases | undefined): C
         args,
         async (useCases, entry, [, version, edits]) => {
           const updated = await useCases.updateProperties(entry, version, edits)
+          return updated.ok
+            ? { ok: true, value: updated.value }
+            : { ok: false, error: toApiError(updated.error) }
+        }
+      ),
+
+    updateRelationships: (args) =>
+      onEntry<z.infer<typeof relationshipArgs>, CodexPropertiesViewDto>(
+        relationshipArgs,
+        args,
+        async (useCases, entry, [, version, relationships]) => {
+          const updated = await useCases.updateRelationships(entry, version, relationships)
           return updated.ok
             ? { ok: true, value: updated.value }
             : { ok: false, error: toApiError(updated.error) }

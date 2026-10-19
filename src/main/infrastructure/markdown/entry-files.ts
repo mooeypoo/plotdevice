@@ -7,6 +7,7 @@ import { err, ok, type Result } from '../../shared-kernel/result'
 import { toProjectPath } from '../fs/to-project-path'
 import { writeFileAtomically } from '../fs/write-text-file-atomically'
 import { editFrontmatter, type KeyEdit } from './frontmatter-editor'
+import { editMappingList, type MappingItem } from './mapping-list-editor'
 import {
   composeMarkdownFile,
   fromEditorText,
@@ -60,6 +61,13 @@ export interface EntryFiles {
   writeKeys(
     path: ProjectPath,
     edits: readonly KeyEdit[],
+    expectedVersion: string | undefined
+  ): Promise<Result<{ readonly version: string }, WriteFileError>>
+  /** Sets a key that holds a list of mappings (`relationships`), changing only what differs. */
+  writeMappingList(
+    path: ProjectPath,
+    key: string,
+    items: readonly MappingItem[],
     expectedVersion: string | undefined
   ): Promise<Result<{ readonly version: string }, WriteFileError>>
   /** Creates a new file, and its folders. Never replaces an existing file. */
@@ -163,6 +171,14 @@ export function createEntryFiles(rootOsPath: string): EntryFiles {
     writeKeys: (path, edits, expectedVersion) =>
       rewrite(path, expectedVersion, (parts) => {
         const edited = editFrontmatter(parts, edits)
+        return edited.ok
+          ? ok(composeMarkdownFile(edited.value))
+          : err(domainError('cannot-edit', edited.error.message))
+      }),
+
+    writeMappingList: (path, key, items, expectedVersion) =>
+      rewrite(path, expectedVersion, (parts) => {
+        const edited = editMappingList(parts, key, items)
         return edited.ok
           ? ok(composeMarkdownFile(edited.value))
           : err(domainError('cannot-edit', edited.error.message))

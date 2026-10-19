@@ -1,14 +1,7 @@
 import { isMapping, readEntryText } from '../../../shared-kernel/frontmatter-values'
 import type { ProjectPath } from '../../../shared-kernel/project-path'
 import { readTextList, type CodexKind } from './codex-entry'
-
-/** One entry of a character's `relationships` list, as written. */
-export interface Relationship {
-  /** The link as written, for example `[[Aunt Bea]]`. */
-  readonly with: string
-  readonly kind?: string
-  readonly note?: string
-}
+import { canEditRelationships, type Relationship } from './relationships'
 
 /** A key the app doesn't edit, shown read-only so the writer sees the whole file. */
 export interface OtherKey {
@@ -26,6 +19,8 @@ export interface CodexProperties {
   /** A character's `born`, as written; a list is shown comma-separated. */
   readonly born?: string
   readonly relationships: readonly Relationship[]
+  /** False when `relationships` is written in a shape the app can't edit; shown read-only then. */
+  readonly relationshipsEditable: boolean
   readonly otherKeys: readonly OtherKey[]
 }
 
@@ -53,6 +48,7 @@ export function readCodexProperties(
     ...(role !== undefined ? { role } : {}),
     ...(born !== '' ? { born } : {}),
     relationships: kind === 'character' ? readRelationships(keys['relationships']) : [],
+    relationshipsEditable: kind === 'character' && canEditRelationships(keys['relationships']),
     otherKeys: Object.entries(keys)
       .filter(([key]) => !OWN_KEYS[kind].includes(key))
       .map(([key, value]) => ({ key, value: describeValue(value) }))

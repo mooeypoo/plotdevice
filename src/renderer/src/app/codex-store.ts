@@ -6,6 +6,8 @@ import type {
   CodexKindDto,
   CodexListingDto,
   CodexPropertiesDto,
+  ListedByDto,
+  RelationshipEditDto,
   SettableTypeDto
 } from '../../../contract/dtos'
 import { useEditorStore } from './editor-store'
@@ -29,6 +31,9 @@ export const useCodexStore = defineStore('codex', () => {
   const loadError = ref<string | null>(null)
   const properties = shallowRef<CodexPropertiesDto | null>(null)
   const appearsIn = shallowRef<readonly AppearanceDto[]>([])
+  const listedBy = shallowRef<readonly ListedByDto[]>([])
+  /** Why the last relationships change was refused, shown with the relationships. */
+  const relationshipsError = ref<string | null>(null)
 
   const api = (): ReturnType<typeof plotDeviceApi.current>['codex'] => plotDeviceApi.current().codex
 
@@ -73,6 +78,7 @@ export const useCodexStore = defineStore('codex', () => {
       // A template has no properties; only its text is edited.
       properties.value = null
       appearsIn.value = []
+      listedBy.value = []
       return undefined
     }
     const [read, appearances] = await Promise.all([
@@ -81,7 +87,9 @@ export const useCodexStore = defineStore('codex', () => {
     ])
     if (useEditorStore().entry?.path !== path) return undefined
     properties.value = read.ok ? read.value.properties : null
+    listedBy.value = read.ok ? read.value.listedBy : []
     appearsIn.value = appearances.ok ? appearances.value : []
+    relationshipsError.value = null
     return read.ok ? read.value.version : undefined
   }
 
@@ -106,6 +114,39 @@ export const useCodexStore = defineStore('codex', () => {
     properties.value = result.value.properties
     await reload()
     if (changes.title !== undefined) await editor.offerRename(current.path)
+    return true
+  }
+
+  /**
+   * Saves a character's relationships, after the text. A file whose relationships can't be edited
+   * safely is left alone, and the reason is shown with them.
+   */
+  async function updateRelationships(
+    relationships: readonly RelationshipEditDto[]
+  ): Promise<boolean> {
+    const editor = useEditorStore()
+    const current = editor.entry
+    if (current === null) return false
+    const version = await editor.versionForPropertyChange()
+    if (version === undefined) return false
+    const result = await api().updateRelationships(current.path, version, relationships)
+    if (editor.entry?.path !== current.path) return false
+    if (!result.ok) {
+      if (result.error.code === 'cannot-edit') {
+        relationshipsError.value = `Plot Device can’t change the relationships in this file safely, so it left the file as it is. Edit them in the file itself. (${result.error.message})`
+        return false
+      }
+      editor.propertiesWritten({
+        ok: false,
+        conflict: result.error.code === 'changed-on-disk',
+        message: result.error.message
+      })
+      return false
+    }
+    editor.propertiesWritten({ ok: true, version: result.value.version })
+    properties.value = result.value.properties
+    listedBy.value = result.value.listedBy
+    relationshipsError.value = null
     return true
   }
 
@@ -159,10 +200,13 @@ export const useCodexStore = defineStore('codex', () => {
     loadError,
     properties,
     appearsIn,
+    listedBy,
+    relationshipsError,
     load,
     reload,
     readProperties,
     updateProperties,
+    updateRelationships,
     createEntry,
     editTemplate,
     setEntryType,

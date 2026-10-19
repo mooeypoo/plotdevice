@@ -38,6 +38,7 @@ export const CODEX_CHANNELS = {
   saveEntryText: 'codex:save-entry-text',
   getProperties: 'codex:get-properties',
   updateProperties: 'codex:update-properties',
+  updateRelationships: 'codex:update-relationships',
   createEntry: 'codex:create-entry',
   editTemplate: 'codex:edit-template',
   setEntryType: 'codex:set-entry-type',

@@ -4,6 +4,7 @@ import type { ProjectPath } from '../../../../shared-kernel/project-path'
 import type { Result } from '../../../../shared-kernel/result'
 import type { CodexWrite } from '../codex-changes'
 import type { CodexEntry, CodexKind } from '../codex-entry'
+import type { CodexSource, RelationshipFields } from '../relationships'
 import type { UntypedFile } from '../untyped-file'
 
 /** Everything the codex lists, read from one project. */
@@ -13,6 +14,8 @@ export interface CodexFiles {
   readonly untyped: readonly UntypedFile[]
   /** Every typed file in the project, for unique names and links. */
   readonly linkCandidates: readonly LinkCandidate[]
+  /** Each codex entry's frontmatter, for relationships between them. */
+  readonly sources: readonly CodexSource[]
 }
 
 /** A codex entry's frontmatter values and the version they came from. */
@@ -62,4 +65,10 @@ export interface CodexRepository {
     path: ProjectPath,
     text: string
   ): Promise<Result<{ readonly version: string }, CreateCodexFileError>>
+  /** Sets `relationships`, changing only what differs (ADR 0007); an empty list removes it. */
+  writeRelationships(
+    path: ProjectPath,
+    relationships: readonly RelationshipFields[],
+    expectedVersion: string | undefined
+  ): Promise<Result<{ readonly version: string }, WriteCodexPropertiesError>>
 }

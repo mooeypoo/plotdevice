@@ -10,7 +10,7 @@ import {
 } from '../../../../shared-kernel/project-path'
 import { err, ok, type Result } from '../../../../shared-kernel/result'
 import type { Chapter } from '../../domain/chapter'
-import { linkTo } from '../../domain/entry-link'
+import { linkTo } from '../../../../shared-kernel/entry-link'
 import { arrangeManuscript, type Manuscript } from '../../domain/manuscript'
 import type { ManuscriptSettings } from '../../domain/manuscript-settings'
 import { orderChanges, placeAt } from '../../domain/order-plan'

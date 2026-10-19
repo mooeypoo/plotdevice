@@ -112,6 +112,13 @@ const plotDevice: PlotDeviceApi = {
         version,
         changes
       ),
+    updateRelationships: (path, version, relationships) =>
+      invoke<ApiResult<CodexPropertiesViewDto>>(
+        CODEX_CHANNELS.updateRelationships,
+        path,
+        version,
+        relationships
+      ),
     createEntry: (kind, title) =>
       invoke<ApiResult<CreatedEntryDto>>(CODEX_CHANNELS.createEntry, kind, title),
     editTemplate: (kind) => invoke<ApiResult<CreatedEntryDto>>(CODEX_CHANNELS.editTemplate, kind),

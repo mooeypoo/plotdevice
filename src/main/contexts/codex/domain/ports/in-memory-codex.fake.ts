@@ -5,6 +5,7 @@ import type { ProjectPath } from '../../../../shared-kernel/project-path'
 import { err, ok, type Result } from '../../../../shared-kernel/result'
 import type { CodexWrite } from '../codex-changes'
 import { CODEX_KINDS, readCodexEntry, type CodexEntry, type CodexKind } from '../codex-entry'
+import type { CodexSource, RelationshipFields } from '../relationships'
 import type { UntypedFile } from '../untyped-file'
 import type {
   CodexEntryFile,
@@ -44,14 +45,19 @@ export class InMemoryCodex implements CodexRepository {
     const entries: CodexEntry[] = []
     const untyped: UntypedFile[] = []
     const linkCandidates: LinkCandidate[] = []
+    const sources: CodexSource[] = []
     for (const [key, file] of this.files) {
       const path = key as ProjectPath
       const type = file.frontmatter['type']
-      if (isCodexKind(type)) entries.push(readCodexEntry(path, type, file.frontmatter))
+      if (isCodexKind(type)) {
+        const entry = readCodexEntry(path, type, file.frontmatter)
+        entries.push(entry)
+        sources.push({ path, title: entry.title, frontmatter: file.frontmatter })
+      }
       if (isEntryType(type)) linkCandidates.push({ path, type })
       else untyped.push(typeof type === 'string' ? { path, rawType: type } : { path })
     }
-    return Promise.resolve({ entries, untyped, linkCandidates })
+    return Promise.resolve({ entries, untyped, linkCandidates, sources })
   }
 
   readText(path: ProjectPath): Promise<Result<{ text: string; version: string }, ReadCodexError>> {
@@ -135,6 +141,20 @@ export class InMemoryCodex implements CodexRepository {
       }
     }
     return Promise.resolve(ok({ version: this.put(path, frontmatter, body) }))
+  }
+
+  async writeRelationships(
+    path: ProjectPath,
+    relationships: readonly RelationshipFields[],
+    expectedVersion: string | undefined
+  ): Promise<Result<{ version: string }, WriteCodexPropertiesError>> {
+    const written = await this.writeProperties(path, [], expectedVersion)
+    const file = this.files.get(path)
+    if (written.ok && file !== undefined) {
+      if (relationships.length === 0) Reflect.deleteProperty(file.frontmatter, 'relationships')
+      else file.frontmatter['relationships'] = relationships.map((item) => Object.fromEntries(item))
+    }
+    return written
   }
 
   private nextVersion(): string {

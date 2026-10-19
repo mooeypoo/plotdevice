@@ -56,7 +56,12 @@ export const sampleManuscript: ManuscriptDto = {
   ],
   warnings: [],
   wordCount: 10,
-  linkTargets: []
+  linkTargets: [
+    { name: 'Ilka', path: 'characters/Ilka.md', type: 'character' },
+    { name: 'Aunt Bea', path: 'characters/Aunt Bea.md', type: 'character' },
+    { name: 'Marrow', path: 'locations/Marrow.md', type: 'location' },
+    { name: 'Research', path: 'notes/Research.md', type: 'note' }
+  ]
 }
 
 /**
@@ -99,6 +104,8 @@ export function createFakePlotDeviceApi(): {
   emitChanges(changes: readonly ProjectChangeDto[]): void
   /** Simulates another program rewriting a file without changing its text (line endings). */
   touch(path: string): void
+  /** A codex entry's properties, to set up a test (for example, relationships it can't edit). */
+  codexProperties: Map<string, CodexPropertiesDto>
   /** Codex entries created, and types set on untyped files. */
   codexWrites: string[]
   /** What `refreshProject` returns next. */
@@ -133,6 +140,7 @@ export function createFakePlotDeviceApi(): {
         aliases: entry.aliases,
         ...(entry.role !== undefined ? { role: entry.role } : {}),
         relationships: [],
+        relationshipsEditable: entry.kind === 'character',
         otherKeys: []
       }
     ])
@@ -301,7 +309,10 @@ export function createFakePlotDeviceApi(): {
         return Promise.resolve(
           props === undefined
             ? { ok: false, error: { code: 'not-found', message: 'gone' } }
-            : { ok: true, value: { properties: props, version: versionOf(path) } }
+            : {
+                ok: true,
+                value: { properties: props, version: versionOf(path), listedBy: [] }
+              }
         )
       },
       updateProperties: (path, version, changes) => {
@@ -323,7 +334,40 @@ export function createFakePlotDeviceApi(): {
         }
         codexProperties.set(path, next)
         revisions.set(path, (revisions.get(path) ?? 0) + 1)
-        return Promise.resolve({ ok: true, value: { properties: next, version: versionOf(path) } })
+        return Promise.resolve({
+          ok: true,
+          value: { properties: next, version: versionOf(path), listedBy: [] }
+        })
+      },
+      updateRelationships: (path, version, relationships) => {
+        const props = codexProperties.get(path)
+        if (props === undefined)
+          return Promise.resolve({ ok: false, error: { code: 'not-found', message: 'gone' } })
+        if (versionOf(path) !== version) {
+          return Promise.resolve({
+            ok: false,
+            error: { code: 'changed-on-disk', message: 'changed' }
+          })
+        }
+        if (!props.relationshipsEditable) {
+          return Promise.resolve({
+            ok: false,
+            error: { code: 'cannot-edit', message: 'Can’t edit these relationships safely.' }
+          })
+        }
+        const next: CodexPropertiesDto = {
+          ...props,
+          relationships: relationships.map((relationship) => ({
+            ...relationship,
+            with: `[[${relationship.with}]]`
+          }))
+        }
+        codexProperties.set(path, next)
+        revisions.set(path, (revisions.get(path) ?? 0) + 1)
+        return Promise.resolve({
+          ok: true,
+          value: { properties: next, version: versionOf(path), listedBy: [] }
+        })
       },
       createEntry: (kind, title) => {
         const path = `${kind}s/${title}.md`
@@ -338,6 +382,7 @@ export function createFakePlotDeviceApi(): {
           title,
           aliases: [],
           relationships: [],
+          relationshipsEditable: kind === 'character',
           otherKeys: []
         })
         codexWrites.push(`created ${path}`)
@@ -405,6 +450,7 @@ export function createFakePlotDeviceApi(): {
     properties,
     moves: state.moves,
     codexWrites,
+    codexProperties,
     summary,
     touch: (path) => {
       revisions.set(path, (revisions.get(path) ?? 0) + 1)

@@ -35,12 +35,12 @@ describe('findWikiLinks', () => {
 
 describe('createLinkKindLookup', () => {
   const kindOf = createLinkKindLookup([
-    { name: 'Ilka Szabó', type: 'character' },
-    { name: 'Marrow', type: 'character' },
-    { name: 'Marrow', type: 'location' },
-    { name: 'Noe\u0308l', type: 'character' },
-    { name: 'Research', type: 'note' },
-    { name: 'Loose thoughts' }
+    { name: 'Ilka Szabó', path: 'characters/Ilka Szabó.md', type: 'character' },
+    { name: 'Marrow', path: 'characters/Marrow.md', type: 'character' },
+    { name: 'Marrow', path: 'locations/Marrow.md', type: 'location' },
+    { name: 'Noe\u0308l', path: 'characters/Noe\u0308l.md', type: 'character' },
+    { name: 'Research', path: 'notes/Research.md', type: 'note' },
+    { name: 'Loose thoughts', path: 'Loose thoughts.md' }
   ])
 
   it('gives the target file’s type, case- and normalization-insensitively', () => {
