@@ -75,7 +75,7 @@ src/
     src/
       app/                    # shell, router, layout
       features/
-        binder/  editor/  inspector/  outline/  timeline/  codex/  interactions/
+        welcome/  binder/  editor/  inspector/  outline/  timeline/  codex/  interactions/
       shared/                 # generic UI components and composables
 ```
 
@@ -95,11 +95,11 @@ src/
 
 **Renames.** `RenameEntry` happens when a title changes (depending on `settings.file_names`) or when the writer asks for it. It computes a rename plan (old path → new path), applies it, then calls `UpdateWikiLinks`, which rewrites matching links across the project. Rename plans use temporary names when needed, so swaps and case-only renames work on case-insensitive file systems.
 
-**Path safety.** Every path coming in through IPC is resolved against the project root and rejected if it escapes. File names are built through `FileName`, which rejects names that are invalid on Windows or that break links.
+**Path safety.** The main process only opens project folders the writer chose in the native dialog or that are in the recents list (`ipc/workspace-handlers.ts`), so the renderer can't make it read an arbitrary folder. Every path coming in through IPC is resolved against the project root and rejected if it escapes. File names are built through `FileName`, which rejects names that are invalid on Windows or that break links.
 
 ## Security baseline
 
-`contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`. The preload exposes only the `PlotDeviceApi` methods, with no generic `invoke`. New windows and navigation are denied, and only `https:` links open in the system browser. A strict Content-Security-Policy is set in the renderer HTML.
+`contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`. The preload exposes only the `PlotDeviceApi` methods, with no generic `invoke`. IPC handlers reject calls that don't come from the app's own window and top frame, and validate every payload with zod. New windows and navigation are denied, and only `https:` links open in the system browser. A strict Content-Security-Policy is set in the renderer HTML.
 
 ## Testing pyramid
 

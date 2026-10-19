@@ -14,16 +14,17 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 **Done when:** `npm run dev` opens an empty window, all checks pass, and CI builds both installers.
 
 ## Phase 1: Workspace
-- [ ] Open a folder with the native dialog. Recognize `novel.md`, or offer to initialize a new project.
-- [ ] Read `novel.md`, including `settings`, with defaults for missing keys.
-- [ ] Keep a recent-projects list in `userData`.
-- [ ] Project scan: find `.md` files (skipping dot-folders) and classify them by `type`.
-- [ ] Use cases: `OpenProject`, `InitializeProject`, `ListRecentProjects`.
-- [ ] Add the typed IPC contract and preload bridge for these use cases.
+- [x] Open a folder with the native dialog. Recognize `novel.md`, or offer to initialize a new project.
+- [x] Read `novel.md`, including `settings`, with defaults for missing keys.
+- [x] Keep a recent-projects list in `userData`.
+- [x] Project scan: find `.md` files (skipping dot-folders) and classify them by `type`.
+- [x] Use cases: `OpenProject`, `InitializeProject`, `ListRecentProjects`.
+- [x] Add the typed IPC contract and preload bridge for these use cases.
 
 **Done when:** you can open the fixture, reopen it from the recents list, and initialize an empty folder.
 
 ## Phase 2: Binder and editor
+- [ ] Single-instance lock (`app.requestSingleInstanceLock()`), so two windows can never autosave the same file. Phase 1 testing showed two instances can run side by side.
 - [ ] Manuscript domain: `Manuscript`, `Part`, `Chapter`, order from `part` and `order` in frontmatter, the unordered tray, `WordCount`.
 - [ ] `MarkdownChapterRepository` with byte-exact round-tripping (test it), including BOM and line-ending preservation.
 - [ ] Binder tree in the left sidebar (parts → chapters, plus the unordered tray), a CodeMirror 6 markdown editor in the center, and chapter, part, and total word counts.
@@ -76,6 +77,10 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Phase 1 follow-ups:
+  - `write-file-atomic` 8 ships no types; `@types/write-file-atomic` 4.0.3 describes the same `writeFile(path, data, options)` API. Recheck when either updates.
+  - `findProjectBelow` stops after 10,000 folders, so choosing a huge folder can't hang the app. Past that, nesting isn't checked.
+  - The project screen is a placeholder (counts and problem files) until Phase 2's binder replaces it.
 - Phase 0 follow-ups:
   - Running `npm run dev` from a process that inherits `ELECTRON_RUN_AS_NODE=1` (for example, a VS Code extension host) starts Electron as plain Node, and `app` is undefined. Unset it.
   - `npm audit` reports moderate issues in electron-builder's own build tooling (`sprintf-js` via `global-agent`). Not shipped in the app; recheck when electron-builder updates.

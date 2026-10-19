@@ -80,9 +80,10 @@ module.exports = {
     },
     {
       name: 'ipc-uses-application-only',
-      comment: 'IPC handlers call use cases; they never reach into a domain.',
+      comment:
+        'IPC handlers call use cases; they never reach into a domain. Tests may use the in-memory fakes next to the ports.',
       severity: 'error',
-      from: { path: '^src/main/ipc/' },
+      from: { path: '^src/main/ipc/', pathNot: TEST_FILE },
       to: { path: '^src/main/contexts/[^/]+/domain/' }
     },
     {
@@ -90,7 +91,7 @@ module.exports = {
       comment:
         'Cross-context read models only read: they use application/queries/, never commands or domain.',
       severity: 'error',
-      from: { path: '^src/main/queries/' },
+      from: { path: '^src/main/queries/', pathNot: TEST_FILE },
       to: { path: '^src/main/contexts/[^/]+/(domain|application/commands)/' }
     },
     {

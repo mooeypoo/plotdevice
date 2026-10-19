@@ -1,15 +1,25 @@
 :root {
   --background: #faf8f5;
+  --surface: #f2efea;
+  --border: #e2ddd5;
   --text: #2b2a28;
-  --text-muted: #8a857d;
+  --text-muted: #7d786f;
+  --accent: #4f7cac;
+  --danger: #b5483a;
+  --warning: #c49a3a;
   color-scheme: light dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #1d1c1a;
+    --surface: #262522;
+    --border: #3a3834;
     --text: #e8e4dc;
-    --text-muted: #8f8a81;
+    --text-muted: #9a958b;
+    --accent: #8fb3d9;
+    --danger: #e08b7f;
+    --warning: #d9b45f;
   }
 }
 
@@ -24,4 +34,30 @@ body {
   background: var(--background);
   color: var(--text);
   font-family: system-ui, sans-serif;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--background);
+}
+
+code {
+  font-family: ui-monospace, 'Cascadia Code', 'DejaVu Sans Mono', monospace;
+  font-size: 0.85em;
 }

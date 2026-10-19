@@ -27,6 +27,8 @@ Version: 1. The version is stored as `format: 1` in `novel.md`.
 
 The project root is the folder that contains `novel.md`. It can be anywhere, including inside an Obsidian vault or a dot-folder.
 
+Projects sit side by side; they are never nested. A folder inside a project, or one that contains a project, can't become a project. If a folder below the root has its own `novel.md` anyway, the app skips that folder and reports it.
+
 The app reads every `.md` file under the root, at any depth. It skips any file or folder whose name starts with `.` (for example `.obsidian/`, `.git/`, `.trash/`). Other file types are ignored.
 
 When the app **creates** a file, it uses a default location for that file's type. These defaults can be changed in `novel.md` (see `settings.folders`):

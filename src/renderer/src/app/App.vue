@@ -1,21 +1,19 @@
+<script setup lang="ts">
+import { onMounted } from 'vue'
+import InitializePrompt from '../features/welcome/InitializePrompt.vue'
+import ProjectHome from '../features/welcome/ProjectHome.vue'
+import WelcomeScreen from '../features/welcome/WelcomeScreen.vue'
+import { useWorkspaceStore } from './workspace-store'
+
+const workspace = useWorkspaceStore()
+
+onMounted(() => {
+  void workspace.loadRecents()
+})
+</script>
+
 <template>
-  <main class="shell">
-    <h1 class="wordmark">Plot Device</h1>
-  </main>
+  <WelcomeScreen v-if="workspace.screen === 'welcome'" />
+  <InitializePrompt v-else-if="workspace.screen === 'initialize'" />
+  <ProjectHome v-else />
 </template>
-
-<style scoped>
-.shell {
-  display: grid;
-  place-items: center;
-  height: 100vh;
-}
-
-.wordmark {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-weight: 400;
-  font-size: 2.5rem;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-}
-</style>
