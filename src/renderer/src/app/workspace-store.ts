@@ -6,6 +6,7 @@ import type {
   ProjectSummaryDto,
   RecentProjectDto
 } from '../../../contract/dtos'
+import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 
 /** Which top-level screen the window shows. */
@@ -37,16 +38,18 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     recents.value = await api().listRecentProjects()
   }
 
+  function showProject(summary: ProjectSummaryDto): void {
+    project.value = summary
+    chosenFolder.value = null
+    screen.value = 'project'
+  }
+
   async function openProject(root: string): Promise<void> {
+    if (!(await leaveCurrentProject())) return
     await run(async () => {
       const result = await api().openProject(root)
-      if (result.ok) {
-        project.value = result.value
-        chosenFolder.value = null
-        screen.value = 'project'
-      } else {
-        errorMessage.value = describeError(result.error)
-      }
+      if (result.ok) showProject(result.value)
+      else errorMessage.value = describeError(result.error)
       await loadRecents()
     })
   }
@@ -69,9 +72,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     await run(async () => {
       const result = await api().initializeProject(folder.root, title)
       if (result.ok) {
-        project.value = result.value
-        chosenFolder.value = null
-        screen.value = 'project'
+        showProject(result.value)
         await loadRecents()
       } else {
         errorMessage.value = describeError(result.error)
@@ -84,10 +85,28 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     await loadRecents()
   }
 
+  /**
+   * Saves and closes the open project, if any. Returns false (and stays put) when unsaved text
+   * can't be saved, so nothing the writer typed is dropped.
+   */
+  async function leaveCurrentProject(): Promise<boolean> {
+    if (project.value === null) return true
+    const manuscript = useManuscriptStore()
+    await manuscript.flush()
+    if (manuscript.hasStuckChanges) {
+      errorMessage.value = 'Resolve the unsaved changes in the open chapter first.'
+      return false
+    }
+    await manuscript.close()
+    await api().closeProject()
+    project.value = null
+    return true
+  }
+
   async function backToWelcome(): Promise<void> {
+    if (!(await leaveCurrentProject())) return
     screen.value = 'welcome'
     chosenFolder.value = null
-    project.value = null
     errorMessage.value = null
     await loadRecents()
   }

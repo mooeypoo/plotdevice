@@ -1,26 +1,58 @@
-:root {
-  --background: #faf8f5;
-  --surface: #f2efea;
-  --border: #e2ddd5;
-  --text: #2b2a28;
-  --text-muted: #7d786f;
-  --accent: #4f7cac;
-  --danger: #b5483a;
-  --warning: #c49a3a;
-  color-scheme: light dark;
-}
+@import '../assets/fonts/fonts.css';
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1d1c1a;
-    --surface: #262522;
-    --border: #3a3834;
-    --text: #e8e4dc;
-    --text-muted: #9a958b;
-    --accent: #8fb3d9;
-    --danger: #e08b7f;
-    --warning: #d9b45f;
-  }
+/* Design tokens: a dark writing room. Off-black grounds, warm off-white prose, one amber accent.
+   Text colors pass 4.5:1 on every surface they sit on, except --text-faint, which is decorative. */
+:root {
+  color-scheme: dark;
+
+  --bg: #141518;
+  --bg-sunken: #111215;
+  --panel: #17181c;
+  --raised: #1e1f24;
+  --hover: #22232a;
+  --active: #26272e;
+  --line: #222328;
+  --line-strong: #2c2d33;
+
+  --text: #e3ddd1;
+  --text-strong: #f0eadf;
+  --prose: #ded8cc;
+  --text-dim: #b9b4aa;
+  --text-muted: #98948b;
+  --text-faint: #55524c;
+
+  --accent: #d8b26e;
+  --accent-soft: rgba(216, 178, 110, 0.14);
+  --selection: rgba(216, 178, 110, 0.24);
+  --ok: #7fb89a;
+  --warning: #d8b26e;
+  --danger: #e39b7b;
+
+  --link-character: #e6c48a;
+  --link-location: #9cc9c2;
+  --link-note: #b7a6e0;
+  --link-other: #b9b4aa;
+  --link-missing: #e39b7b;
+
+  --status-idea: #7f8a99;
+  --status-outline: #7c9cc4;
+  --status-draft: #d8b26e;
+  --status-revised: #7fb89a;
+  --status-final: #e3ddd1;
+  --status-other: #b7a6e0;
+  --status-none: #3a3b42;
+
+  --font-prose: 'Literata Variable', 'Frank Ruhl Libre', Georgia, serif;
+  --font-ui: 'IBM Plex Sans', 'IBM Plex Sans Hebrew', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'DejaVu Sans Mono', monospace;
+  --prose-size: 19px;
+  --measure: 66ch;
+  --radius: 8px;
+
+  /* Older names still used by the welcome screens. */
+  --background: var(--bg);
+  --surface: var(--raised);
+  --border: var(--line-strong);
 }
 
 *,
@@ -29,35 +61,105 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#app {
+  height: 100%;
+}
+
 body {
   margin: 0;
-  background: var(--background);
+  overflow: hidden;
+  background: var(--bg);
   color: var(--text);
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
 }
 
 button {
   padding: 0.5rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--raised);
   color: var(--text);
   font: inherit;
   cursor: pointer;
 }
 
+button:hover:not(:disabled) {
+  background: var(--hover);
+}
+
 button:disabled {
   cursor: default;
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
 button.primary {
   border-color: var(--accent);
   background: var(--accent);
-  color: var(--background);
+  color: #1a1610;
+  font-weight: 500;
+}
+
+button.primary:hover:not(:disabled) {
+  background: #e3c084;
+}
+
+button.quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+button.quiet:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 code {
-  font-family: ui-monospace, 'Cascadia Code', 'DejaVu Sans Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.85em;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.wordmark {
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--text-strong);
+}
+
+.wordmark .dot {
+  color: var(--accent);
+  font-style: normal;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 10px;
+  background: var(--line-strong) padding-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }

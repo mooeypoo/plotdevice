@@ -143,6 +143,7 @@ Prose goes here, in plain markdown.
 ### Order
 
 - Parts are sorted by `order`. Chapters with a `part` are sorted by `order` within that part.
+- A part without an integer `order` is **outside the numbered sequence**: it is listed separately ("Not in sequence", sorted by title, with a warning), and neither it nor its chapters get numbers. Its chapters still appear in their `order`.
 - In a project with no part files, chapters are sorted by `order` at the top level.
 - The chapter number shown in the app ("Part Two, Chapter 1") is the chapter's position within its part. It isn't the raw `order` value, so gaps such as `10, 20, 30` are fine.
 - A chapter goes to the **unordered tray** when:
@@ -249,7 +250,14 @@ When the app writes a key, it keeps the style the key already uses. If a single 
 | Timeline | `story_date` and `threads` per chapter |
 | Character "appears in" | Chapters whose `characters` or `pov` link to the character |
 | Interactions | Pairs of characters linked from the same chapter's `characters` or `pov` |
-| Word counts | Part and chapter bodies, excluding frontmatter |
+| Word counts | Part and chapter bodies, excluding frontmatter (see "Word counts") |
+
+## Word counts
+
+- Words are found by Unicode word segmentation, so Hebrew (including niqqud and attached prefixes) and other scripts count correctly.
+- Obsidian comments (`%% … %%`) and HTML comments (`<!-- … -->`) are left out.
+- A wikilink counts its visible text (`[[Mira Kovač|Mira]]` is one word); an embed (`![[…]]`) counts nothing; a markdown link counts its text.
+- Markdown symbols don't count. A hyphenated word (`well-known`) counts once.
 
 ## Rules for writers of this format (including the app)
 

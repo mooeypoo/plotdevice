@@ -5,3 +5,4 @@
 
 # Fixture bytes are test data (CRLF, BOM, no trailing newline). Git must never convert them.
 fixtures/** -text
+*.woff2 binary

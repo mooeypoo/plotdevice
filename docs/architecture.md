@@ -77,6 +77,7 @@ src/
       features/
         welcome/  binder/  editor/  inspector/  outline/  timeline/  codex/  interactions/
       shared/                 # generic UI components and composables
+      assets/fonts/           # bundled OFL fonts (Literata, Frank Ruhl Libre, IBM Plex Sans + Hebrew); the CSP blocks remote fonts
 ```
 
 `contract/` is the only code shared between main and renderer. The renderer imports DTOs, never domain classes.
@@ -94,6 +95,10 @@ src/
 **Reordering and moving.** Order lives in frontmatter, so `ReorderChapters` rewrites only the `order` key of the affected chapters and renames no files. `MoveChapter` updates `part` and `order`. It moves the file only if the file is in its old part's default folder. Both compute a plan in the domain, so they can be unit-tested without touching the disk.
 
 **Renames.** `RenameEntry` happens when a title changes (depending on `settings.file_names`) or when the writer asks for it. It computes a rename plan (old path → new path), applies it, then calls `UpdateWikiLinks`, which rewrites matching links across the project. Rename plans use temporary names when needed, so swaps and case-only renames work on case-insensitive file systems.
+
+**The open project.** `ipc/project-session.ts` holds the one open project and the per-project use cases the composition root builds for it (a manuscript repository bound to that folder). Opening another project replaces it; closing clears it.
+
+**Saving safely.** Each opened part or chapter carries a version (a hash of the file). A save re-reads the file first: if it changed since it was opened, the save is refused (`changed-on-disk`) and the editor asks the writer to load the file's version or keep theirs. Unchanged text is never written, so opening and reading a chapter never touches the file. When the window closes, `ipc/close-guard.ts` waits for the renderer to save; if text can't be saved, the writer is asked before it is lost.
 
 **Path safety.** The main process only opens project folders the writer chose in the native dialog or that are in the recents list (`ipc/workspace-handlers.ts`), so the renderer can't make it read an arbitrary folder. Every path coming in through IPC is resolved against the project root and rejected if it escapes. File names are built through `FileName`, which rejects names that are invalid on Windows or that break links.
 

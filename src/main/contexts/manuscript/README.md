@@ -1,9 +1,9 @@
 # manuscript
 
-**Purpose.** The book's structure and prose: parts and chapters, their order, status, synopsis, and word counts.
+**Purpose.** The book's structure and prose: parts and chapters, their order from frontmatter, and word counts. Saves change only a file's body.
 
-**Main concepts.** `Manuscript`, `Part`, `Chapter`, `ChapterOrder` (from the `part` and `order` keys), `Status`, `Synopsis`, `WordCount`. `Scene` is reserved for later.
+**Main concepts.** `Part`, `Chapter`, `Manuscript` (numbered parts, unnumbered parts, a flat chapter list for books without parts, the unordered tray, warnings), `countWords`. `Scene` is reserved for later.
 
-**Must not know about.** Folders or file names as structure (`docs/adr/0002-frontmatter-defines-structure.md`), the codex, chronology, Electron, or the filesystem. It refers to characters and threads only as `WikiLink`s and keys.
+**Use cases.** Queries: `GetManuscript`, `OpenEntry`. Command: `SaveEntryText` (refuses when the file changed on disk since it was opened, unless told to overwrite; refuses in read-only projects). Port: `ManuscriptRepository`, with an in-memory fake beside it.
 
-**Status.** Empty until Phase 2.
+**Must not know about.** Folders or file names as structure (ADR 0002), the codex, chronology, Electron, or which project is open (a repository is built per project by the composition root).

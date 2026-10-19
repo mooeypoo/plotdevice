@@ -10,9 +10,11 @@ import { createWorkspaceHandlers, type WorkspaceHandlers } from './workspace-han
 
 let workspace: InMemoryWorkspace
 let handlers: WorkspaceHandlers
+let opened: [string, boolean][]
 
 beforeEach(() => {
   workspace = new InMemoryWorkspace()
+  opened = []
   const openProject = createOpenProject({
     folders: workspace,
     novelFiles: workspace,
@@ -31,7 +33,13 @@ beforeEach(() => {
     listRecentProjects: createListRecentProjects({ folders: workspace, recents: workspace }),
     removeRecentProject: createRemoveRecentProject({ folders: workspace, recents: workspace }),
     toProjectRoot: (osPath) => osPath as Parameters<typeof openProject>[0],
-    rootKey: (root) => root
+    rootKey: (root) => root,
+    onProjectOpened: (root, readOnly) => {
+      opened.push([root, readOnly])
+    },
+    onProjectClosed: () => {
+      opened.push(['closed', false])
+    }
   })
 })
 
@@ -85,6 +93,21 @@ describe('workspace handlers', () => {
         ]
       }
     })
+  })
+
+  it('starts and ends the project session', async () => {
+    workspace.addFolder('/novels/preservers', {
+      novel: { kind: 'read', frontmatter: { format: 2 } }
+    })
+    await handlers.chooseFolder(() => Promise.resolve('/novels/preservers'))
+
+    await handlers.openProject(['/novels/preservers'])
+    await handlers.closeProject()
+
+    expect(opened).toEqual([
+      ['/novels/preservers', true],
+      ['closed', false]
+    ])
   })
 
   it('returns null when the dialog is cancelled', async () => {

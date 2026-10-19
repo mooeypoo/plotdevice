@@ -1,0 +1,151 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import type { PartDto } from '../../../../contract/dtos'
+import { formatWordCount, romanNumeral } from './binder-labels'
+import BinderRow from './BinderRow.vue'
+
+const props = defineProps<{
+  part: PartDto
+  selectedPath: string | null
+}>()
+
+defineEmits<{ open: [path: string] }>()
+
+const expanded = ref(true)
+const marker = props.part.number === undefined ? '◇' : romanNumeral(props.part.number)
+</script>
+
+<template>
+  <section class="part">
+    <div class="header" :class="{ active: selectedPath === part.path }">
+      <button
+        type="button"
+        class="toggle"
+        :aria-expanded="expanded"
+        :aria-label="`${expanded ? 'Collapse' : 'Expand'} ${part.title}`"
+        @click="expanded = !expanded"
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          :style="{ transform: expanded ? 'rotate(90deg)' : 'none' }"
+        >
+          <path d="M9 6l6 6-6 6"></path>
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="open"
+        :title="`Open the text of ${part.title}`"
+        @click="$emit('open', part.path)"
+      >
+        <span class="marker">{{ marker }}</span>
+        <span class="title" dir="auto">{{ part.title }}</span>
+        <span class="words">{{ formatWordCount(part.wordCount) }}</span>
+      </button>
+    </div>
+    <ul v-if="expanded" class="chapters">
+      <li v-for="chapter in part.chapters" :key="chapter.path">
+        <BinderRow
+          :title="chapter.title"
+          :number="chapter.number"
+          :status="chapter.status"
+          :word-count="chapter.wordCount"
+          :active="selectedPath === chapter.path"
+          :warning="chapter.duplicateOrder ? 'Shares its order with another chapter' : undefined"
+          @open="$emit('open', chapter.path)"
+        />
+      </li>
+      <li v-if="part.chapters.length === 0" class="empty">No chapters yet</li>
+    </ul>
+  </section>
+</template>
+
+<style scoped>
+.part {
+  margin-bottom: 8px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  border-radius: 7px;
+}
+
+.header.active {
+  background: var(--active);
+}
+
+.toggle {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.toggle svg {
+  transition: transform 120ms ease;
+}
+
+.open {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 10px 6px 0;
+  border: none;
+  background: transparent;
+  text-align: start;
+}
+
+.open:hover .title {
+  color: var(--text-strong);
+}
+
+.marker {
+  min-width: 20px;
+  font-family: var(--font-prose);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  overflow: hidden;
+  font-weight: 500;
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.words {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.chapters {
+  margin: 0;
+  padding: 0 0 0 14px;
+  list-style: none;
+}
+
+.empty {
+  padding: 6px 10px 6px 36px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+</style>

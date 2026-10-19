@@ -8,7 +8,7 @@ const workspace = useWorkspaceStore()
 <template>
   <main class="welcome">
     <header>
-      <h1 class="wordmark">Plot Device</h1>
+      <h1 class="wordmark">Plot<span class="dot">·</span>Device</h1>
       <p class="tagline">Your novel, as plain markdown files.</p>
     </header>
 
@@ -48,10 +48,7 @@ const workspace = useWorkspaceStore()
 
 .wordmark {
   margin: 0;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-weight: 400;
-  font-size: 2.75rem;
-  letter-spacing: 0.04em;
+  font-size: 3rem;
 }
 
 .tagline {

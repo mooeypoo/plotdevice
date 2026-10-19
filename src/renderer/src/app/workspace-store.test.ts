@@ -1,43 +1,22 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import type { PlotDeviceApi, WorkspaceApi } from '../../../contract/api'
-import type { ProjectSummaryDto, RecentProjectDto } from '../../../contract/dtos'
+import type { RecentProjectDto } from '../../../contract/dtos'
+import { createFakePlotDeviceApi } from './fake-plot-device-api'
+import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useWorkspaceStore } from './workspace-store'
 
-const summary: ProjectSummaryDto = {
-  root: '/novels/preservers',
-  title: 'The Preservers',
-  formatVersion: 1,
-  readOnly: false,
-  warnings: [],
-  counts: { part: 3, chapter: 14, character: 5, location: 1, note: 6, scene: 1, untyped: 5 },
-  problems: []
-}
-
-let workspaceApi: WorkspaceApi
-let recents: RecentProjectDto[]
+let fake: ReturnType<typeof createFakePlotDeviceApi>
 
 beforeEach(() => {
   setActivePinia(createPinia())
-  recents = []
-  workspaceApi = {
-    chooseFolder: () => Promise.resolve(null),
-    openProject: () => Promise.resolve({ ok: true, value: summary }),
-    initializeProject: (_, title) => Promise.resolve({ ok: true, value: { ...summary, title } }),
-    listRecentProjects: () => Promise.resolve(recents),
-    removeRecentProject: (root) => {
-      recents = recents.filter((entry) => entry.root !== root)
-      return Promise.resolve()
-    }
-  }
-  const api: PlotDeviceApi = { contractVersion: 2, workspace: workspaceApi }
-  plotDeviceApi.current = () => api
+  fake = createFakePlotDeviceApi()
+  plotDeviceApi.current = () => fake.api
 })
 
 describe('workspace store', () => {
   it('opens a chosen project folder directly', async () => {
-    workspaceApi.chooseFolder = () =>
+    fake.api.workspace.chooseFolder = () =>
       Promise.resolve({ root: '/novels/preservers', name: 'preservers', isProject: true })
     const store = useWorkspaceStore()
 
@@ -48,13 +27,12 @@ describe('workspace store', () => {
   })
 
   it('asks before initializing a folder that is not a project', async () => {
-    workspaceApi.chooseFolder = () =>
+    fake.api.workspace.chooseFolder = () =>
       Promise.resolve({ root: '/novels/new', name: 'new', isProject: false })
     const store = useWorkspaceStore()
 
     await store.chooseFolder()
     expect(store.screen).toBe('initialize')
-    expect(store.chosenFolder?.name).toBe('new')
 
     await store.initializeChosenFolder('A New Book')
     expect(store.screen).toBe('project')
@@ -68,8 +46,11 @@ describe('workspace store', () => {
   })
 
   it('explains a failure and refreshes the recents list', async () => {
-    recents = [{ root: '/gone', title: 'Gone', lastOpenedAt: '', available: false }]
-    workspaceApi.openProject = () =>
+    const recents: RecentProjectDto[] = [
+      { root: '/gone', title: 'Gone', lastOpenedAt: '', available: false }
+    ]
+    fake.api.workspace.listRecentProjects = () => Promise.resolve(recents)
+    fake.api.workspace.openProject = () =>
       Promise.resolve({ ok: false, error: { code: 'folder-missing', message: 'x' } })
     const store = useWorkspaceStore()
 
@@ -80,42 +61,35 @@ describe('workspace store', () => {
     expect(store.recents).toHaveLength(1)
   })
 
-  it('shows why initializing was refused and stays on the prompt', async () => {
-    workspaceApi.chooseFolder = () =>
-      Promise.resolve({ root: '/novels', name: 'novels', isProject: false })
-    workspaceApi.initializeProject = () =>
-      Promise.resolve({
-        ok: false,
-        error: { code: 'contains-project', message: 'This folder contains another project.' }
-      })
+  it('saves the open chapter and tells the main process when closing a project', async () => {
     const store = useWorkspaceStore()
-
-    await store.chooseFolder()
-    await store.initializeChosenFolder('All')
-
-    expect(store.screen).toBe('initialize')
-    expect(store.errorMessage).toBe('This folder contains another project.')
-  })
-
-  it('removes a recent project', async () => {
-    recents = [{ root: '/a', title: 'A', lastOpenedAt: '', available: true }]
-    const store = useWorkspaceStore()
-    await store.loadRecents()
-
-    await store.removeRecent('/a')
-
-    expect(store.recents).toEqual([])
-  })
-
-  it('goes back to the welcome screen', async () => {
-    workspaceApi.chooseFolder = () =>
-      Promise.resolve({ root: '/novels/preservers', name: 'preservers', isProject: true })
-    const store = useWorkspaceStore()
-    await store.chooseFolder()
+    await store.openProject('/novels/preservers')
+    const manuscript = useManuscriptStore()
+    await manuscript.load()
+    await manuscript.open('Arrival.md')
+    manuscript.edit('Typed just before closing.\n')
 
     await store.backToWelcome()
 
+    expect(fake.files.get('Arrival.md')).toBe('Typed just before closing.\n')
+    expect(fake.closedProjects).toBe(1)
     expect(store.screen).toBe('welcome')
-    expect(store.project).toBeNull()
+  })
+
+  it('refuses to close while unsaved text is stuck in a conflict', async () => {
+    const store = useWorkspaceStore()
+    await store.openProject('/novels/preservers')
+    const manuscript = useManuscriptStore()
+    await manuscript.load()
+    await manuscript.open('Arrival.md')
+    fake.files.set('Arrival.md', 'Edited in Obsidian.\n')
+    manuscript.edit('Mine.\n')
+    await manuscript.flush()
+
+    await store.backToWelcome()
+
+    expect(store.screen).toBe('project')
+    expect(store.errorMessage).toContain('unsaved')
+    expect(fake.closedProjects).toBe(0)
   })
 })

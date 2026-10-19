@@ -23,8 +23,8 @@ export interface FolderChoiceDto {
   readonly projectBelow?: string
 }
 
-/** Something about novel.md the writer should know. */
-export interface ProjectWarningDto {
+/** Something the writer should know. */
+export interface WarningDto {
   readonly code: string
   readonly message: string
 }
@@ -55,7 +55,7 @@ export interface ProjectSummaryDto {
   readonly author?: string
   readonly formatVersion: number
   readonly readOnly: boolean
-  readonly warnings: readonly ProjectWarningDto[]
+  readonly warnings: readonly WarningDto[]
   readonly counts: EntryCountsDto
   readonly problems: readonly FileProblemDto[]
 }
@@ -67,4 +67,74 @@ export interface RecentProjectDto {
   readonly lastOpenedAt: string
   /** False when the folder no longer exists. */
   readonly available: boolean
+}
+
+/** A chapter in the binder. */
+export interface ChapterDto {
+  readonly path: string
+  readonly title: string
+  /** Position in its numbered part (or the book); absent outside the sequence. */
+  readonly number?: number
+  readonly status?: string
+  readonly synopsis?: string
+  readonly wordCount: number
+  /** Another chapter in the same part has the same `order`. */
+  readonly duplicateOrder: boolean
+}
+
+/** A part in the binder, with its chapters in order. */
+export interface PartDto {
+  readonly path: string
+  readonly title: string
+  /** Position in the sequence; absent for parts without an `order`. */
+  readonly number?: number
+  readonly synopsis?: string
+  /** The part's own text plus its chapters. */
+  readonly wordCount: number
+  readonly chapters: readonly ChapterDto[]
+}
+
+/** Why a chapter is in the unordered tray. */
+export type UnorderedReasonDto =
+  'missing-order' | 'no-part' | 'part-not-a-link' | 'part-not-found' | 'part-ambiguous'
+
+/** A chapter the book can't place. */
+export interface UnorderedChapterDto {
+  readonly chapter: ChapterDto
+  readonly reason: UnorderedReasonDto
+}
+
+/** A file links can point to, by name, with its type for styling. */
+export interface LinkTargetDto {
+  /** The file name without `.md`, as on disk. */
+  readonly name: string
+  readonly type?: string
+}
+
+/** The book's structure. */
+export interface ManuscriptDto {
+  readonly parts: readonly PartDto[]
+  readonly unnumberedParts: readonly PartDto[]
+  /** In a book without parts: its chapters. */
+  readonly chapters: readonly ChapterDto[]
+  readonly unordered: readonly UnorderedChapterDto[]
+  readonly warnings: readonly (WarningDto & { readonly paths: readonly string[] })[]
+  readonly wordCount: number
+  readonly linkTargets: readonly LinkTargetDto[]
+}
+
+/** A part's or chapter's prose for the editor. */
+export interface EntryTextDto {
+  readonly path: string
+  /** The body, with `\n` line endings. */
+  readonly text: string
+  /** Pass back when saving, so the app can tell if the file changed meanwhile. */
+  readonly version: string
+  readonly wordCount: number
+}
+
+/** The result of a save. */
+export interface SavedEntryDto {
+  readonly version: string
+  readonly wordCount: number
 }

@@ -1,4 +1,8 @@
 import { app } from 'electron'
+import { createSaveEntryText } from './contexts/manuscript/application/commands/save-entry-text'
+import { createGetManuscript } from './contexts/manuscript/application/queries/get-manuscript'
+import { createOpenEntry } from './contexts/manuscript/application/queries/open-entry'
+import { createMarkdownManuscriptRepository } from './contexts/manuscript/infrastructure/markdown-manuscript-repository'
 import { createInitializeProject } from './contexts/workspace/application/commands/initialize-project'
 import { createOpenProject } from './contexts/workspace/application/commands/open-project'
 import { createRemoveRecentProject } from './contexts/workspace/application/commands/remove-recent-project'
@@ -10,6 +14,9 @@ import { createNodeProjectFolders } from './contexts/workspace/infrastructure/no
 import { projectRootFromOsPath } from './contexts/workspace/infrastructure/project-root-from-os-path'
 import { systemClock } from './contexts/workspace/infrastructure/system-clock'
 import { scanProject } from './infrastructure/project-scan/scan-project'
+import { createManuscriptHandlers, type ManuscriptUseCases } from './ipc/manuscript-handlers'
+import { registerManuscriptIpc } from './ipc/manuscript-ipc'
+import { createProjectSession } from './ipc/project-session'
 import { createWorkspaceHandlers } from './ipc/workspace-handlers'
 import { registerWorkspaceIpc } from './ipc/workspace-ipc'
 
@@ -29,6 +36,15 @@ export function composeApplication(): void {
     clock: systemClock
   })
 
+  const session = createProjectSession((root, readOnly): ManuscriptUseCases => {
+    const repository = createMarkdownManuscriptRepository(root)
+    return {
+      getManuscript: createGetManuscript({ repository }),
+      openEntry: createOpenEntry({ repository }),
+      saveEntryText: createSaveEntryText({ repository, readOnly })
+    }
+  })
+
   registerWorkspaceIpc(
     createWorkspaceHandlers({
       inspectFolder: createInspectFolder({ folders, novelFiles }),
@@ -37,7 +53,14 @@ export function composeApplication(): void {
       listRecentProjects: createListRecentProjects({ folders, recents }),
       removeRecentProject: createRemoveRecentProject({ folders, recents }),
       toProjectRoot: projectRootFromOsPath,
-      rootKey: (root) => (process.platform === 'win32' ? root.toLowerCase() : root)
+      rootKey: (root) => (process.platform === 'win32' ? root.toLowerCase() : root),
+      onProjectOpened: (root, readOnly) => {
+        session.open(root, readOnly)
+      },
+      onProjectClosed: () => {
+        session.close()
+      }
     })
   )
+  registerManuscriptIpc(createManuscriptHandlers(() => session.current()))
 }

@@ -25,6 +25,9 @@ export interface WorkspaceHandlerDependencies {
   readonly toProjectRoot: (osPath: string) => ProjectRoot
   /** A key under which two paths to the same folder are equal (case-insensitive on Windows). */
   readonly rootKey: (root: ProjectRoot) => string
+  /** Called when a project opens (or is initialized), so per-project use cases can be built. */
+  readonly onProjectOpened: (root: ProjectRoot, readOnly: boolean) => void
+  readonly onProjectClosed: () => void
 }
 
 /** The workspace API as plain functions of untrusted arguments. Electron wiring is separate. */
@@ -32,6 +35,7 @@ export interface WorkspaceHandlers {
   chooseFolder(showFolderDialog: () => Promise<string | undefined>): Promise<FolderChoiceDto | null>
   openProject(args: readonly unknown[]): Promise<ApiResult<ProjectSummaryDto>>
   initializeProject(args: readonly unknown[]): Promise<ApiResult<ProjectSummaryDto>>
+  closeProject(): Promise<void>
   listRecentProjects(): Promise<readonly RecentProjectDto[]>
   removeRecentProject(args: readonly unknown[]): Promise<void>
 }
@@ -102,6 +106,7 @@ export function createWorkspaceHandlers(deps: WorkspaceHandlerDependencies): Wor
         }
         return { ok: false, error: toApiError(result.error) }
       }
+      deps.onProjectOpened(root, result.value.project.readOnly)
       return { ok: true, value: toProjectSummaryDto(result.value) }
     },
 
@@ -118,7 +123,13 @@ export function createWorkspaceHandlers(deps: WorkspaceHandlerDependencies): Wor
         }
         return { ok: false, error: toApiError(result.error) }
       }
+      deps.onProjectOpened(root, result.value.project.readOnly)
       return { ok: true, value: toProjectSummaryDto(result.value) }
+    },
+
+    closeProject() {
+      deps.onProjectClosed()
+      return Promise.resolve()
     },
 
     async listRecentProjects() {

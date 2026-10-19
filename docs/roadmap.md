@@ -24,12 +24,13 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 **Done when:** you can open the fixture, reopen it from the recents list, and initialize an empty folder.
 
 ## Phase 2: Binder and editor
-- [ ] Single-instance lock (`app.requestSingleInstanceLock()`), so two windows can never autosave the same file. Phase 1 testing showed two instances can run side by side.
-- [ ] Manuscript domain: `Manuscript`, `Part`, `Chapter`, order from `part` and `order` in frontmatter, the unordered tray, `WordCount`.
-- [ ] `MarkdownChapterRepository` with byte-exact round-tripping (test it), including BOM and line-ending preservation.
-- [ ] Binder tree in the left sidebar (parts → chapters, plus the unordered tray), a CodeMirror 6 markdown editor in the center, and chapter, part, and total word counts.
-- [ ] Hebrew and other right-to-left text display and edit correctly in the editor (per-line text direction).
-- [ ] Autosave of the body only.
+- [x] Single-instance lock (`app.requestSingleInstanceLock()`), so two windows can never autosave the same file. Phase 1 testing showed two instances can run side by side.
+- [x] Manuscript domain: `Manuscript`, `Part`, `Chapter`, order from `part` and `order` in frontmatter, the unordered tray, `WordCount`.
+- [x] `MarkdownChapterRepository` with byte-exact round-tripping (test it), including BOM and line-ending preservation.
+- [x] Binder tree in the left sidebar (parts → chapters, plus the unordered tray), a CodeMirror 6 markdown editor in the center, and chapter, part, and total word counts.
+- [x] Hebrew and other right-to-left text display and edit correctly in the editor (per-line text direction).
+- [x] Autosave of the body only.
+- [x] Dark writing-room design (see the UI direction canvas), bundled fonts, focus mode, links styled by type, and an early "changed outside" check so no save overwrites an edit made in another program.
 
 **Done when:** you can write in a chapter, see the change in Obsidian, and frontmatter is untouched.
 
@@ -57,6 +58,7 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 
 ## Phase 6: Outline view
 - [ ] Derived outline: parts and chapters with status chips and synopses. Edit synopses inline, filter by status, POV, or thread.
+- [ ] **Writer's outline (MVP requirement).** An outline the writer writes and reads alongside the draft: how they see chapters and sequences going, independent of what is written so far and of story dates (unlike the timeline, which is derived). Readable as a reference panel while writing. Storage and format (plain markdown in the project, linking to chapters) to be designed before this phase.
 
 ## Phase 7: Timeline
 - [ ] Grid with threads (or characters) as rows and chapters as columns. Chapters with a list of dates span their range.
@@ -78,6 +80,12 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Phase 2 follow-ups:
+  - A light theme. Only the dark theme exists.
+  - The panel framework (reference panel, timeline drawer) arrives with Phases 5 and 7, as drawn in the UI direction canvas.
+  - Remember which binder parts are collapsed; typewriter scrolling; adjustable prose size and line width.
+  - Embeds show their target as `Harbor#Docks`; render headings as `Harbor › Docks`.
+  - Clicking a link in the editor to open its target (Phase 5, with the codex).
 - Phase 1 follow-ups:
   - `write-file-atomic` 8 ships no types; `@types/write-file-atomic` 4.0.3 describes the same `writeFile(path, data, options)` API. Recheck when either updates.
   - `findProjectBelow` stops after 10,000 folders, so choosing a huge folder can't hang the app. Past that, nesting isn't checked.

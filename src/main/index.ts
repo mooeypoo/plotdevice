@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'node:path'
 import icon from '../../resources/icon.png?asset'
 import { composeApplication } from './composition-root'
+import { guardWindowClose } from './ipc/close-guard'
 
 // Electron would name the settings folder after productName ("Plot Device", with a space).
 // The folder name is part of the app identity (AGENTS.md) and must happen before `ready`.
@@ -27,6 +28,8 @@ function createMainWindow(): BrowserWindow {
     }
   })
 
+  guardWindowClose(window)
+
   window.once('ready-to-show', () => {
     window.show()
   })
@@ -50,11 +53,24 @@ function createMainWindow(): BrowserWindow {
   return window
 }
 
-void app.whenReady().then(() => {
-  if (process.platform === 'win32') app.setAppUserModelId('tech.moriel.plotdevice')
-  composeApplication()
-  createMainWindow()
-})
+// Two instances could autosave the same chapter and overwrite each other's writing.
+if (!app.requestSingleInstanceLock()) {
+  app.quit()
+} else {
+  let mainWindow: BrowserWindow | undefined
+
+  app.on('second-instance', () => {
+    if (mainWindow === undefined) return
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.focus()
+  })
+
+  void app.whenReady().then(() => {
+    if (process.platform === 'win32') app.setAppUserModelId('tech.moriel.plotdevice')
+    composeApplication()
+    mainWindow = createMainWindow()
+  })
+}
 
 app.on('window-all-closed', () => {
   app.quit()
