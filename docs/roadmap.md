@@ -116,8 +116,11 @@ R2 now assembles unpublished drafts for validated annotated version tags after b
 x64 platform builds. Local tests cover assembly/retries; the first tagged Actions
 rehearsal and real installer qualification remain pending.
 R3 adds a local VitePress manual, search, production link/publication checks, and a
-manually gated Pages workflow. Public deployment, published-release JSON, and the
-in-app update checker remain separate work.
+manually gated Pages workflow. R4 provides the published-release JSON below;
+public deployment and the in-app update checker remain separate work.
+R4 now derives download information and version JSON from verified published stable
+releases. Offline previews emit no feed; hosted discovery/deployment verification
+is pending a push and later explicit launch approval. The app checker remains R5.
 
 ## Decide after MVP
 - Edge cases in part and chapter structure beyond what `docs/file-format.md` defines (nested parts, chapters belonging to several parts).

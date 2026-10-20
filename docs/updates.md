@@ -1,7 +1,18 @@
 # Updates, on your terms
 
-Plot Device is preparing its first public release. There is no published stable
-version, in-app update checker, or public version feed yet.
+<script setup>
+import { withBase } from 'vitepress'
+import { data as release } from './release.data'
+</script>
+
+<p v-if="release.source === 'preview'"><strong>Offline site preview:</strong> no live release discovery or public version feed is included in this build.</p>
+<template v-else>
+  <p v-if="release.stable">Latest verified stable release: <a :href="release.stable.releaseUrl">{{ release.stable.version }}</a>.</p>
+  <p v-else>No stable release has been published. The version feed explicitly reports no stable version.</p>
+  <p>Release state checked at {{ release.generatedAt }}. <a :href="withBase('/updates/v1/latest.json')">Raw version-1 JSON feed</a>.</p>
+</template>
+
+The installed-app update checker is not implemented yet.
 
 ## Manual upgrades
 
@@ -27,7 +38,23 @@ the installed version, and offer to open the official release page in a browser.
 
 It will not download/install an update, restart the app, or make background checks.
 An unavailable or invalid response must say the check failed, not that you are
-up to date. This feature and its endpoint are not implemented yet.
+up to date.
+
+## Machine-readable version feed
+
+Published site builds expose `/plotdevice/updates/v1/latest.json`. The feed is
+generated from GitHub's designated latest stable release, never the version in the
+development branch. Drafts and prereleases do not replace stable releases.
+
+The response has `schemaVersion: 1`, a `generatedAt` timestamp, and `stable`, which
+is either `null` or an object with `version`, `tag`, `publishedAt`, and `releaseUrl`.
+Preview builds deliberately do not emit this endpoint. It becomes public only
+after Pages deployment is approved and verified.
+
+This is an update-notification contract, not an automatic-installation feed.
+Pages/CDN updates are eventually consistent; a recently published release may
+take time to appear. Apps must distinguish network/schema errors from "up to date"
+and must not suggest downgrades based on an older cached response.
 
 ## Privacy
 

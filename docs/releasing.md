@@ -135,7 +135,7 @@ Unlike the four local helpers, `assemble` performs authenticated GitHub writes.
 It requires a pushed-tag Actions context, repository identity, a reviewed `main`
 commit, and a token scoped to release contents. Do not invoke it as a local shortcut.
 
-## Publish and verify (planned R4/R7)
+## Publish and verify (R4 tooling ready; qualification/publication pending R7)
 
 - [ ] Explicit maintainer approval: make the repository public only at the agreed launch.
 - [ ] Publish the complete draft with the correct prerelease/latest flags.
@@ -144,6 +144,47 @@ commit, and a token scoped to release contents. Do not invoke it as a local shor
 - [ ] Deploy and verify the documentation, download page, and raw version JSON.
   Stable metadata must never advertise a draft or beta as latest stable.
 - [ ] Record publication evidence and begin collecting the next `Unreleased` changes.
+
+### Site and version-feed refresh (R4 tooling implemented)
+
+Local documentation commands remain offline. For authenticated discovery without
+deployment, run `npm run docs:build:published`; inspect the generated
+`docs/.vitepress/dist/updates/v1/latest.json` and download page. An empty verified
+stable-release inventory produces `stable: null`, not the current package version.
+Beta releases do not become stable merely because no final release exists.
+
+After a normal push, **Actions -> Documentation -> Run workflow**, leaving `deploy`
+unchecked, exercises hosted build-only discovery. A push is needed before GitHub can
+run new workflow code. This does not require a version tag or public repository.
+
+Only after launch approval:
+
+1. Confirm source visibility, Pages configuration (GitHub Actions), and the
+   `github-pages` environment. Keep any required reviewers enabled.
+2. Run Documentation from `main` with `deploy` checked for the first deliberate
+   deployment. Private repositories remain blocked by the workflow gate.
+3. Check the job's anonymous verification result and open the page/feed yourself.
+4. If automatic refresh is approved, set repository variable
+   `PAGES_DEPLOYMENT_APPROVED` to `true`. Until then it must remain unset/false.
+5. Subsequent main pushes, release publication/withdrawal/edits/deletion, and a daily scheduled
+   reconciliation can refresh the site. The schedule is a recovery path, not instant
+   availability. All deploys are serialized and rebuild from current `main`.
+
+The selected stable release is GitHub's designated latest stable release. Explicitly
+manage that designation for maintenance releases and withdrawals; the generator does
+not pick the highest SemVer or newest publication date. It refuses incomplete/mismatched
+metadata rather than silently promoting an older release. Publish a stable release
+with all assets before pointing download/update consumers to it.
+
+If freshness checks fail, rerun the workflow against current state. Do not bypass
+them or edit generated JSON. If public verification fails after deployment, read
+the logged attempts, inspect Pages/API availability, and rerun after fixing the
+cause. A failure must remain visible even if the site eventually catches up.
+
+Human publication can trigger the release workflow event. If publication later uses
+`GITHUB_TOKEN`, explicitly invoke/dispatch Documentation (with an explicit approved
+deployment input or reusable workflow); do not assume that token chains events.
+No PAT is needed for the current human-publish workflow.
 
 If a build/upload fails, retry the unpublished draft only after checking tag/commit
 identity. Never replace published binaries or reuse a version. If Pages fails after

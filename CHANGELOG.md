@@ -27,6 +27,8 @@ the novel file format, which remains `format: 1`.
   build metadata, and verified retry behavior.
 - A locally previewable writer's manual with installation and safety guides,
   local search, mixed-direction examples, and gated GitHub Pages deployment.
+- Published-release discovery powering consistent download links and a version-1
+  JSON feed, with stale-deployment guards and anonymous post-deployment checks.
 
 ### Known limitations before the first release
 
@@ -34,6 +36,6 @@ the novel file format, which remains `format: 1`.
   installation or VM.
 - Windows installers are not signed. Signing policy remains a launch decision.
 - The draft release pipeline still needs a real tagged Actions rehearsal. The
-  documentation site is not publicly deployed; public publication, the version
-  feed, and in-app update checks are not available yet.
+  documentation site and version feed are not publicly deployed; public publication
+  and in-app update checks are not available yet.
 - Recovery is session-local; persistent crash recovery is not provided.

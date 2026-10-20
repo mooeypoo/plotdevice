@@ -54,6 +54,7 @@ export default defineConfig(
       'src/renderer/src/env.d.ts',
       '*.config.{ts,mts,mjs}',
       'docs/.vitepress/config.mts',
+      'docs/*.data.ts',
       'docs/.vitepress/theme/index.ts'
     ],
     rules: { 'no-restricted-syntax': 'off' }

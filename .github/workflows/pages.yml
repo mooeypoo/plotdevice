@@ -1,6 +1,12 @@
 name: Documentation
 
 on:
+  push:
+    branches: [main]
+  release:
+    types: [published, unpublished, edited, deleted]
+  schedule:
+    - cron: '23 6 * * *'
   workflow_dispatch:
     inputs:
       deploy:
@@ -18,33 +24,73 @@ concurrency:
 jobs:
   build:
     name: Build public manual
+    # Automatic publishing stays off until the maintainer explicitly opens the launch gate.
+    if: github.event_name == 'workflow_dispatch' || (!github.event.repository.private && vars.PAGES_DEPLOYMENT_APPROVED == 'true')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          ref: main
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npm run docs:build
+      - name: Discover published release state and build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: npm run docs:build:published
+      - name: Reject stale release state or main revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node --experimental-strip-types tools/docs/release-data.ts fresh
       - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
           path: docs/.vitepress/dist
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: verified-release-state
+          path: |
+            docs/.vitepress/release-state.json
+            docs/.vitepress/site-commit.txt
+          include-hidden-files: true
 
   deploy:
     name: Deploy approved public manual
     needs: build
-    if: inputs.deploy && !github.event.repository.private && github.ref == 'refs/heads/main'
+    if: >-
+      !github.event.repository.private &&
+      ((github.event_name == 'workflow_dispatch' && inputs.deploy && github.ref == 'refs/heads/main') ||
+      (github.event_name != 'workflow_dispatch' && vars.PAGES_DEPLOYMENT_APPROVED == 'true'))
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: verified-release-state
+          path: docs/.vitepress
+      - name: Reject stale release state before deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node --experimental-strip-types tools/docs/release-data.ts fresh
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
         id: deployment
+      - name: Verify anonymous public feed and downloads
+        run: node --experimental-strip-types tools/docs/verify-deployment.ts

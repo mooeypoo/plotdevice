@@ -1,5 +1,8 @@
 import { defineConfig } from 'vitepress'
-import { readFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { releaseStatePath } from '../../tools/docs/release-data.ts'
+import { releaseStateSchema, versionFeed } from '../../tools/release/published-release.ts'
 
 const icon = `data:image/svg+xml,${encodeURIComponent(
   readFileSync(new URL('../../build/icon-small.svg', import.meta.url), 'utf8')
@@ -11,6 +14,19 @@ export default defineConfig({
   lang: 'en',
   base: '/plotdevice/',
   srcExclude: ['adr/**', 'release-plan.md', 'roadmap.md', 'releasing.md', 'testing-windows.md'],
+  buildEnd(site) {
+    const state = releaseStateSchema.parse(
+      JSON.parse(readFileSync(releaseStatePath, 'utf8')) as unknown
+    )
+    if (state.source === 'github') {
+      const directory = join(site.outDir, 'updates/v1')
+      mkdirSync(directory, { recursive: true })
+      writeFileSync(
+        join(directory, 'latest.json'),
+        `${JSON.stringify(versionFeed(state), null, 2)}\n`
+      )
+    }
+  },
   head: [
     ['meta', { name: 'theme-color', content: '#f7f3eb' }],
     ['link', { rel: 'icon', type: 'image/svg+xml', href: icon }]

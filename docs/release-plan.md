@@ -63,10 +63,42 @@ No deployment is performed. Local preview needs no push. A normal branch push is
 needed for hosted CI; a version-tag push is needed only for the later approved
 candidate rehearsal. Neither has been performed.
 
-Next handoff after R3: propose R4's published-release metadata/feed implementation
-and obtain phase approval. Replace honest pre-launch download/update notices with
-derived data, never a branch-version promise. Keep Pages deployment disabled until
-launch approval. Manual app update checks are R5, not already provided by this site.
+The maintainer approved continuing with R4 on 2026-10-20. It now derives home/download
+and update-page data from GitHub's designated latest complete stable release, verified
+against R2 asset digests, build metadata, and checksums. The raw version-1 JSON
+contract is emitted only for authenticated-discovery builds. Ordinary docs commands
+are explicitly offline previews and emit no public feed. No dependency was added.
+
+R4 extends the single Pages deployment owner with release/main/schedule triggers,
+but automatic runs require a public repository AND the initially unset
+`PAGES_DEPLOYMENT_APPROVED=true` variable. Manual runs remain build-only by default.
+Source/metadata freshness checks reject stale builds before deployment; anonymous
+post-deploy checks retry boundedly for CDN propagation. See ADR 0010 and the runbook.
+No repository variable, visibility, Pages setting, release, or workflow run was changed.
+
+R4 local validation (2026-10-20): lint/dependency rules, typecheck, all 124 test files /
+1038 tests, Electron/Vue production build, offline docs build, and link/feed checks
+passed. New discovery/freshness/deployment/site tests cover designated-latest
+selection, beta/draft exclusion, explicit no-stable state, API failures, invalid
+URLs/digests/inventory/metadata/checksums, stale commits/releases, preview-feed
+exclusion, rendered links, anonymous reachability, and wrong CDN responses.
+The authenticated real build succeeded with this repository's empty release
+inventory and emitted `stable: null`. A synthetic complete stable state also passed
+the actual VitePress render and all five download-link/feed checks; offline rebuild
+restored preview state and removed the feed. No synthetic data was committed.
+The real freshness command correctly rejected unpushed local-vs-remote main.
+There is still no real published stable release, so the first public release's
+metadata/download checks remain an explicit rehearsal gate. Existing Node module
+classification/future Vite native-loader warnings remain visible; current builds
+pass without broad package-type changes or warning suppression.
+Find the checkpoint in git history as "feat: derive site downloads and version feed from published releases".
+
+Next handoff after R4: R5, the manual installed-app update notification, needs its
+own scoped plan and approval, including an explicitly approved maintained SemVer
+dependency and the fixed feed origin. Keep Pages deployment disabled until launch.
+A normal push is now needed for hosted CI/discovery verification, but not local
+implementation. Local freshness correctly rejects unpushed commits that differ
+from remote main; do not bypass this guard to claim hosted qualification.
 
 R3 local validation (2026-10-20): lint/dependency rules, typecheck, 121 test files /
 995 tests, Electron/Vue production build, production docs build, and publication/link
@@ -481,7 +513,7 @@ merely because the endpoint exists.
 | R1 | Implemented and verified | Copilot, current checkout | Beta metadata, changelog, read-only helpers and runbook; full validation gate passed; no remote writes |
 | R2 | Implemented locally; remote rehearsal pending | Copilot, current checkout | CI draft assembler and retry/identity tests; no tag push, draft, or publication performed |
 | R3 | Implemented and locally verified; deployment pending launch | Copilot, current checkout | Approved pinned VitePress 2 alpha; 16-page manual, search, publication/link checks and browser QA; no push/deployment |
-| R4 | Not started | Unassigned | Depends on R2 and R3 |
+| R4 | Implemented and verified locally; hosted checks pending | Copilot, current checkout | Derived stable feed and human downloads; freshness and gated refresh workflow; no public deployment |
 | R5 | Planned for MVP, not started | Unassigned | Depends on R4 and UX/dependency approval |
 | R6 | Not started | Unassigned | Candidate installer evidence required |
 | R7 | Not started | Maintainer | Publication is an explicit human action |

@@ -7,6 +7,7 @@ description: A quiet writing desk and a clearer view of your story. Your novel s
 
 <script setup>
 import { withBase } from 'vitepress'
+import { data as release } from './release.data'
 </script>
 
 <div class="field-guide">
@@ -21,7 +22,11 @@ import { withBase } from 'vitepress'
         <a :href="withBase('/guide/start.html')">Start with the guide</a>
         <a :href="withBase('/download.html')">Get Plot Device</a>
       </div>
-      <p class="caption">Linux &amp; Windows · Local-first · Plain Markdown<br>Preparing the first public release. No installer is published yet.</p>
+      <p class="caption">Linux &amp; Windows · Local-first · Plain Markdown<br>
+        <span v-if="release.source === 'preview'">Offline site preview. Published-release discovery is not enabled.</span>
+        <span v-else-if="release.stable">Latest stable: <a :href="release.stable.releaseUrl">{{ release.stable.version }}</a></span>
+        <span v-else>No stable installer has been published yet.</span>
+      </p>
     </div>
   </div>
   <figure>

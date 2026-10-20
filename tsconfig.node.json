@@ -9,7 +9,8 @@
     "tools/**/*",
     "fixtures/*.test.ts"
     ,
-    "docs/.vitepress/config.mts"
+    "docs/.vitepress/config.mts",
+    "docs/*.data.ts"
   ],
   "exclude": ["tools/dependency-rules/fixture/**"],
   "compilerOptions": {

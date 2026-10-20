@@ -1,9 +1,26 @@
 # A place to begin
 
-Plot Device runs on Linux and Windows. **The first public release is being prepared;
-no installer is published yet.** The development version is not a downloadable release.
+<script setup>
+import { data as release } from './release.data'
+</script>
 
-When installers are available, they will appear on
+Plot Device runs on Linux and Windows. The development version is not a downloadable
+release. Only complete, published stable releases are listed below.
+
+<div class="release-downloads">
+  <p v-if="release.source === 'preview'"><strong>Offline site preview.</strong> Release discovery was not run. This page makes no claim about the currently published version.</p>
+  <template v-else-if="release.stable">
+    <p><strong>Latest stable: {{ release.stable.version }}</strong> · Published {{ release.stable.publishedAt.slice(0, 10) }} · <a :href="release.stable.releaseUrl">Read this release's notes</a></p>
+    <ul>
+      <li v-for="asset in release.stable.downloads" :key="asset.name">
+        <a :href="asset.url">{{ asset.name }}</a>
+      </li>
+    </ul>
+  </template>
+  <p v-else><strong>No stable release has been published yet.</strong> Preview/beta releases, when available, are listed separately on GitHub and are not recommended here as stable.</p>
+</div>
+
+Installers and preview releases appear on
 [GitHub Releases](https://github.com/mooeypoo/plotdevice/releases), with release
 notes, build metadata, and a `SHA256SUMS` file. There is no macOS or ARM build planned
 for the first release. The release pipeline currently targets x64.
@@ -71,9 +88,9 @@ corruption; it does not independently establish the publisher's identity.
 
 ## Run from source
 
-While public installers are being prepared, contributors with repository access can
-follow [Development](development.md). Source access will become public deliberately
-at launch. A GitHub login is not intended to be required for the public downloads.
+Contributors can follow [Development](development.md). Public source access and
+anonymous installer downloads are required at launch; while preparation is private,
+repository access is necessary to use these resources.
 
 Already installed? Read [updates and upgrades](updates.md). Ready to write?
 [Open your first project](guide/start.md).

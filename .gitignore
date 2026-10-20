@@ -6,3 +6,5 @@ out
 *.log*
 docs/.vitepress/cache
 docs/.vitepress/dist
+docs/.vitepress/release-state.json
+docs/.vitepress/site-commit.txt

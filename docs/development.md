@@ -80,6 +80,13 @@ npm run docs:build     # production build plus publication-boundary and link che
 npm run docs:preview   # inspect /plotdevice/ on the printed local URL
 ```
 
+These commands are offline previews: no release API requests and no public version
+feed. `npm run docs:build:published` uses the authenticated `gh` CLI to discover
+published releases, verifies their metadata/checksums, and emits the raw
+`/plotdevice/updates/v1/latest.json` endpoint alongside matching download links.
+It does not publish, deploy, or create a release. Failed discovery aborts the build.
+Generated state and build outputs are ignored by git. Do not commit them.
+
 The site uses pinned VitePress `2.0.0-alpha.20`, approved to use the current Vite 8
 toolchain instead of stable VitePress 1's older development-server dependencies.
 Treat upgrades as deliberate changes: review advisories and release notes, rebuild,
@@ -87,15 +94,29 @@ and check search, mobile/keyboard navigation, and light/dark rendering.
 The [decision record](https://github.com/mooeypoo/plotdevice/blob/main/docs/adr/0009-vitepress-manual-and-publication-boundary.md)
 explains the trade-off.
 
-CI checks the production site on Linux. The separate **Documentation** workflow
-is manual and builds by default; deployment requires the explicit `deploy` input,
-`main`, a public repository, and Pages configured for GitHub Actions. It cannot
-deploy while this repository is private. Keep that gate until launch is approved.
-Do not enable Pages or make the repository public just to test a local build.
+CI checks the offline production site on Linux. The separate **Documentation**
+workflow builds authenticated published-release data on manual runs, with deployment
+off by default. Manual deployment requires the explicit `deploy` input, `main`,
+a public repository, and Pages configured for GitHub Actions.
+
+After launch approval, setting the repository variable
+`PAGES_DEPLOYMENT_APPROVED=true` also enables automatic refresh on main pushes,
+published/unpublished/edited/deleted releases, and daily reconciliation. Leave it unset during
+private preparation. Neither setting the variable nor making the repository public
+is performed by the workflow. A private repository cannot deploy through this gate.
+Do not enable Pages or change visibility just to test a local build.
+
+Deployment rechecks both release state and main's commit. If either changed during
+the build, the job fails with a rerun instruction. The post-deploy check verifies
+the raw JSON and anonymous download reachability with bounded retries for CDN lag.
+These checks require a push/approved deployment; they are not local-preview guarantees.
+If a future workflow publishes using `GITHUB_TOKEN`, explicitly dispatch the
+Documentation workflow; that token's release event generally does not start it.
 
 The expected project URL after approval is `https://mooeypoo.github.io/plotdevice/`.
 It is not live yet. A push will be needed to run hosted CI and, later, deploy; it is
-not needed for local preview. R4 will add published-release data and the version feed.
+not needed for local preview. The local generator/feed are implemented, but their
+first hosted run and public verification remain pending.
 
 ## Troubleshooting
 

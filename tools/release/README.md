@@ -7,3 +7,5 @@ draft releases with exact x64 assets, hashes, and build metadata; it never publi
 Retries verify existing bytes without replacing assets or deleting a draft.
 Neither tool certifies installer readiness or accesses a writer's novel.
 Policy/progress: `docs/release-plan.md`. Maintainer instructions: `docs/releasing.md`.
+`published-release.ts` validates the designated stable release, asset digests,
+build metadata, checksum inventory, safe URLs, and the version-1 site/client feed.

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, extname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { releaseStateSchema, versionFeed, type ReleaseState } from '../release/published-release.ts'
 
 export const siteBase = '/plotdevice/'
 export const publicPages = [
@@ -48,6 +49,7 @@ export function verifySite(directory: string): string[] {
       `Published HTML inventory differs from the approved public pages: ${pages.join(', ')}.`
     )
   }
+
   const html = new Map(htmlFiles.map((file) => [file, readFileSync(file, 'utf8')]))
   const base = new URL(`https://docs.example.invalid${siteBase}`)
   for (const [file, text] of html) {
@@ -87,6 +89,29 @@ export function verifySite(directory: string): string[] {
   return errors
 }
 
+/** Verifies that human download links and raw feed match the same discovered state. */
+export function verifyReleaseOutput(directory: string, state: ReleaseState): void {
+  const validated = releaseStateSchema.parse(state)
+  const feedPath = join(directory, 'updates/v1/latest.json')
+  if (validated.source === 'preview') {
+    if (existsSync(feedPath))
+      throw new Error('Offline preview must not contain a public version feed.')
+    return
+  }
+  const actual: unknown = JSON.parse(readFileSync(feedPath, 'utf8'))
+  if (JSON.stringify(actual) !== JSON.stringify(versionFeed(validated))) {
+    throw new Error('Generated feed does not match discovered published state.')
+  }
+  if (validated.stable !== null) {
+    const html = readFileSync(join(directory, 'download.html'), 'utf8')
+    for (const asset of validated.stable.downloads) {
+      if (!html.includes(`href="${asset.url}"`)) {
+        throw new Error(`Download page is missing the verified published asset ${asset.name}.`)
+      }
+    }
+  }
+}
+
 if (
   process.argv[1] !== undefined &&
   import.meta.url === pathToFileURL(resolve(process.argv[1])).href
@@ -95,6 +120,10 @@ if (
     const directory = resolve(dirname(fileURLToPath(import.meta.url)), '../../docs/.vitepress/dist')
     const errors = verifySite(directory)
     if (errors.length > 0) throw new Error(errors.join('\n'))
+    const state = releaseStateSchema.parse(
+      JSON.parse(readFileSync(resolve(directory, '../release-state.json'), 'utf8')) as unknown
+    )
+    verifyReleaseOutput(directory, state)
     console.log(
       `Verified ${String(publicPages.length)} public pages, local links, fragments, and static asset references under ${siteBase}.`
     )

@@ -30,8 +30,9 @@
     "release:prepare": "node --experimental-strip-types tools/release/release.ts prepare",
     "release:check": "node --experimental-strip-types tools/release/release.ts check",
     "release:notes": "node --experimental-strip-types tools/release/release.ts notes",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs && node --experimental-strip-types tools/docs/verify-site.ts",
+    "docs:dev": "node --experimental-strip-types tools/docs/release-data.ts preview && vitepress dev docs",
+    "docs:build": "node --experimental-strip-types tools/docs/release-data.ts preview && vitepress build docs && node --experimental-strip-types tools/docs/verify-site.ts",
+    "docs:build:published": "node --experimental-strip-types tools/docs/release-data.ts github && vitepress build docs && node --experimental-strip-types tools/docs/verify-site.ts",
     "docs:preview": "vitepress preview docs",
     "docs:check": "node --experimental-strip-types tools/docs/verify-site.ts"
   },
