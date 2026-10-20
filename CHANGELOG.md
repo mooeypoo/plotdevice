@@ -25,12 +25,15 @@ the novel file format, which remains `format: 1`.
 - Read-only release preparation helpers and a maintainer release checklist.
 - Tag-triggered draft release assembly with x64 installers, SHA-256 checksums,
   build metadata, and verified retry behavior.
+- A locally previewable writer's manual with installation and safety guides,
+  local search, mixed-direction examples, and gated GitHub Pages deployment.
 
 ### Known limitations before the first release
 
 - Installer qualification is still required, including testing on a real Windows
   installation or VM.
 - Windows installers are not signed. Signing policy remains a launch decision.
-- The draft release pipeline still needs a real tagged Actions rehearsal. Public
-  publication, the documentation site, and in-app update checks are not available yet.
+- The draft release pipeline still needs a real tagged Actions rehearsal. The
+  documentation site is not publicly deployed; public publication, the version
+  feed, and in-app update checks are not available yet.
 - Recovery is session-local; persistent crash recovery is not provided.

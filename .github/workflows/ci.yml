@@ -42,6 +42,9 @@ jobs:
       - run: npm run test
       # Compiles the Vue templates too, which lint and typecheck don't.
       - run: npx electron-vite build
+      - name: Build and verify public documentation
+        if: runner.os == 'Linux'
+        run: npm run docs:build
 
   build:
     name: Build (${{ matrix.os }})

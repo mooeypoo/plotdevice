@@ -8,6 +8,8 @@
     "src/contract/**/*",
     "tools/**/*",
     "fixtures/*.test.ts"
+    ,
+    "docs/.vitepress/config.mts"
   ],
   "exclude": ["tools/dependency-rules/fixture/**"],
   "compilerOptions": {

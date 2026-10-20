@@ -59,6 +59,10 @@ npx electron-vite build
 
 See [Development](docs/development.md) for packaging, troubleshooting, and Windows testing; the [roadmap](docs/roadmap.md) describes planned work.
 
+The writer's manual is being prepared for GitHub Pages. Preview it locally with
+`npm run docs:dev`, or run `npm run docs:build && npm run docs:preview` to check the
+production site at `/plotdevice/`. It is not publicly deployed yet.
+
 ## Credits and license
 
 Created by [Moriel Schottlender](https://moriel.tech). Plot Device is licensed under [GPL-3.0-or-later](LICENSE).

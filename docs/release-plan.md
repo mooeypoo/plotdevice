@@ -48,10 +48,39 @@ local-only clean-tree/unused-tag checks. No dependency was added.
 
 Next handoff: R2 still needs its first real tagged Actions rehearsal and installer
 qualification. No remote draft/tag/run was created during implementation; notes
-remain `Unreleased`. Propose R3 (VitePress site) separately, including the new
-dependency approval and Pages/publication boundary. Signing, domain, and supported-OS
-policy remain open before their release gates. Do not publish or enable Pages
-merely because a workflow file exists.
+remain `Unreleased`. The maintainer approved R3, including VitePress, then explicitly
+approved pinning `2.0.0-alpha.20` after stable 1.6.4 introduced older Vite toolchain
+advisories. The alpha reuses Vite 8; its pre-release upgrade risk is recorded in
+ADR 0009. Signing, domain, and supported-OS policy remain open before their release
+gates. Do not publish or enable Pages merely because a workflow file exists.
+
+R3 adds an editorial writer-facing manual, local search, existing canonical references,
+and changelog inclusion. Internal planning/ADRs are excluded; a tested post-build
+checker asserts the exact 16-page inventory and local page/fragment/asset references
+under `/plotdevice/`. CI builds it on Linux. The Pages workflow defaults to build-only
+and deploys only with explicit manual input, on `main`, when the repository is public.
+No deployment is performed. Local preview needs no push. A normal branch push is
+needed for hosted CI; a version-tag push is needed only for the later approved
+candidate rehearsal. Neither has been performed.
+
+Next handoff after R3: propose R4's published-release metadata/feed implementation
+and obtain phase approval. Replace honest pre-launch download/update notices with
+derived data, never a branch-version promise. Keep Pages deployment disabled until
+launch approval. Manual app update checks are R5, not already provided by this site.
+
+R3 local validation (2026-10-20): lint/dependency rules, typecheck, 121 test files /
+995 tests, Electron/Vue production build, production docs build, and publication/link
+checks passed. Five new tests cover page inventory, escaped/relative URLs, fragments,
+missing assets, accidental planning-page publication, and gated workflow wiring.
+An isolated Chrome production-preview check verified desktop light/mobile dark,
+no horizontal overflow, loaded images and local fonts, keyboard skip link, local
+search results and Escape dismissal, excluded planning-page results, mobile menu,
+Hebrew RTL rendering, and the 404 page's project-base home link. Integrated browser
+interaction tools timed out, so the fallback used Chrome's local debugging protocol.
+No hosted CI/Pages deployment was performed. `npm audit --omit=dev` found zero
+advisories; the full install retains eight moderate existing electron-builder
+toolchain advisories, with no newly introduced VitePress/Vite advisory.
+Find the checkpoint in git history as "feat: add writer documentation and gated Pages workflow".
 
 R1 validation (2026-10-20): lint and dependency rules passed; typecheck passed;
 119 test files / 969 tests passed, including 26 release-helper tests; Electron/Vue
@@ -451,7 +480,7 @@ merely because the endpoint exists.
 | R0 | Local preparation approved | Maintainer | Four initial choices recorded; signing/domain/OS/publication gates remain open |
 | R1 | Implemented and verified | Copilot, current checkout | Beta metadata, changelog, read-only helpers and runbook; full validation gate passed; no remote writes |
 | R2 | Implemented locally; remote rehearsal pending | Copilot, current checkout | CI draft assembler and retry/identity tests; no tag push, draft, or publication performed |
-| R3 | Not started | Unassigned | Depends on R0 |
+| R3 | Implemented and locally verified; deployment pending launch | Copilot, current checkout | Approved pinned VitePress 2 alpha; 16-page manual, search, publication/link checks and browser QA; no push/deployment |
 | R4 | Not started | Unassigned | Depends on R2 and R3 |
 | R5 | Planned for MVP, not started | Unassigned | Depends on R4 and UX/dependency approval |
 | R6 | Not started | Unassigned | Candidate installer evidence required |

@@ -115,6 +115,9 @@ their own approval; public deployment and publication are not authorized.
 R2 now assembles unpublished drafts for validated annotated version tags after both
 x64 platform builds. Local tests cover assembly/retries; the first tagged Actions
 rehearsal and real installer qualification remain pending.
+R3 adds a local VitePress manual, search, production link/publication checks, and a
+manually gated Pages workflow. Public deployment, published-release JSON, and the
+in-app update checker remain separate work.
 
 ## Decide after MVP
 - Edge cases in part and chapter structure beyond what `docs/file-format.md` defines (nested parts, chapters belonging to several parts).

@@ -10,7 +10,8 @@ export default defineConfig(
       '**/dist',
       '**/out',
       'fixtures/sample-novel/**',
-      'tools/dependency-rules/fixture/**'
+      'tools/dependency-rules/fixture/**',
+      'docs/.vitepress/cache'
     ]
   },
   tseslint.configs.strictTypeChecked,
@@ -48,7 +49,13 @@ export default defineConfig(
   },
   {
     // Vue SFCs (and their module declaration) and tool configs need a default export.
-    files: ['**/*.vue', 'src/renderer/src/env.d.ts', '*.config.{ts,mts,mjs}'],
+    files: [
+      '**/*.vue',
+      'src/renderer/src/env.d.ts',
+      '*.config.{ts,mts,mjs}',
+      'docs/.vitepress/config.mts',
+      'docs/.vitepress/theme/index.ts'
+    ],
     rules: { 'no-restricted-syntax': 'off' }
   },
   {

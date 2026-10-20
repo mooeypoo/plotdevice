@@ -1,0 +1,204 @@
+:root {
+  --vp-font-family-base: 'IBM Plex Sans', 'IBM Plex Sans Hebrew', sans-serif;
+  --vp-c-bg: #f7f3eb;
+  --vp-c-bg-alt: #eee9df;
+  --vp-c-bg-soft: #efe9de;
+  --vp-c-text-1: #262d2a;
+  --vp-c-text-2: #505b55;
+  --vp-c-text-3: #626d66;
+  --vp-c-brand-1: #38634f;
+  --vp-c-brand-2: #2b5140;
+  --vp-c-brand-3: #38634f;
+  --vp-c-brand-soft: #38634f14;
+  --vp-button-brand-text: #fffdf7;
+  --vp-button-brand-bg: #38634f;
+  --vp-button-brand-hover-bg: #2b5140;
+  --vp-button-brand-hover-text: #fffdf7;
+  --vp-home-hero-name-color: var(--vp-c-text-1);
+}
+
+.dark {
+  --vp-c-bg: #1c2420;
+  --vp-c-bg-alt: #171d1a;
+  --vp-c-bg-soft: #25302a;
+  --vp-c-text-1: #ede9df;
+  --vp-c-text-2: #c2c9c1;
+  --vp-c-text-3: #a2b1a5;
+  --vp-c-brand-1: #a9cdb5;
+  --vp-c-brand-2: #c2dfcb;
+  --vp-c-brand-3: #a9cdb5;
+  --vp-c-brand-soft: #a9cdb51a;
+}
+
+.VPNavBarTitle .title,
+.vp-doc h1,
+.vp-doc h2,
+.vp-doc h3 {
+  font-family: 'Literata Variable', 'Frank Ruhl Libre', serif;
+  font-weight: 500;
+}
+
+.VPNavBarTitle .title {
+  letter-spacing: -0.04em;
+  font-size: 23px;
+}
+
+.vp-doc h1 {
+  letter-spacing: -0.045em;
+  line-height: 1.22;
+}
+
+.vp-doc p,
+.vp-doc li {
+  line-height: 1.85;
+}
+
+.vp-doc a:focus-visible,
+.field-guide a:focus-visible {
+  outline: 3px solid var(--vp-c-brand-1);
+  outline-offset: 4px;
+}
+
+.field-guide {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 76px 32px 64px;
+}
+
+.field-guide .edition,
+.field-guide .section-number {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-weight: 600;
+  color: var(--vp-c-brand-1);
+}
+
+.field-guide .masthead {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 56px;
+  align-items: end;
+  border-top: 1px solid var(--vp-c-divider);
+  padding-top: 32px;
+}
+
+.field-guide h1 {
+  font-family: 'Literata Variable', serif;
+  font-size: clamp(48px, 6.8vw, 82px);
+  font-weight: 450;
+  line-height: 1.12;
+  letter-spacing: -0.065em;
+  margin: 28px 0 0;
+}
+
+.field-guide h1 em {
+  font-weight: 400;
+  color: var(--vp-c-brand-1);
+}
+
+.field-guide .introduction {
+  font-size: 19px;
+  line-height: 1.75;
+  max-width: 31rem;
+  color: var(--vp-c-text-2);
+}
+
+.field-guide .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.field-guide .actions a {
+  border: 1px solid var(--vp-c-brand-1);
+  border-radius: 3px;
+  padding: 12px 20px;
+  color: var(--vp-c-brand-1);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.field-guide .actions a:first-child {
+  background: var(--vp-c-brand-1);
+  color: var(--vp-c-bg);
+}
+
+.field-guide .caption {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--vp-c-text-2);
+  margin: 12px 0 0;
+}
+
+.field-guide figure {
+  margin: 48px 0 0;
+}
+
+.field-guide .desk {
+  width: 100%;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  box-shadow: 0 16px 40px #17221a18;
+}
+
+.field-guide .chapters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 36px;
+  margin: 64px 0 0;
+  padding-top: 30px;
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+.field-guide h2 {
+  font-family: 'Literata Variable', serif;
+  font-weight: 450;
+  font-size: 25px;
+  line-height: 1.4;
+  letter-spacing: -0.035em;
+  margin: 12px 0;
+}
+
+.field-guide .chapters p {
+  line-height: 1.8;
+  color: var(--vp-c-text-2);
+}
+
+.field-guide .chapters a {
+  display: inline-block;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  margin-top: 16px;
+  color: var(--vp-c-brand-1);
+}
+
+.field-guide .colophon {
+  margin-top: 60px;
+  padding-top: 24px;
+  border-top: 1px solid var(--vp-c-divider);
+  color: var(--vp-c-text-2);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+@media (max-width: 700px) {
+  .field-guide {
+    padding: 40px 24px;
+  }
+
+  .field-guide .masthead,
+  .field-guide .chapters {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .field-guide .introduction {
+    font-size: 17px;
+  }
+
+  .field-guide figure {
+    margin-top: 32px;
+  }
+}

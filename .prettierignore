@@ -10,3 +10,5 @@ tsconfig.*.json
 fixtures/
 tools/dependency-rules/fixture/
 src/renderer/src/assets/fonts/
+docs/.vitepress/cache/
+docs/.vitepress/dist/

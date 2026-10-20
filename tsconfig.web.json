@@ -5,6 +5,8 @@
     "src/renderer/src/**/*.vue",
     "src/contract/**/*",
     "src/preload/*.d.ts"
+    ,
+    "docs/.vitepress/theme/**/*.ts"
   ],
   "compilerOptions": {
     "composite": true,

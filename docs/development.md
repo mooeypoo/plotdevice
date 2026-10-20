@@ -39,7 +39,8 @@ sudo apt install ./dist/plotdevice_0.1.0-beta.1_amd64.deb      # remove with: su
 CI builds both installers on `v*` tags, or on demand: GitHub → Actions → CI → "Run workflow".
 
 For release preparation, start with `npm run release:guide` and the
-[release checklist](releasing.md). The [release plan](release-plan.md) tracks the
+[release checklist](https://github.com/mooeypoo/plotdevice/blob/main/docs/releasing.md).
+The [release plan](https://github.com/mooeypoo/plotdevice/blob/main/docs/release-plan.md) tracks the
 approved phases and remaining work. Pushed annotated version tags with dated notes
 assemble unpublished GitHub release drafts after both platform builds; publication
 and installer qualification remain manual. The first tagged rehearsal is pending.
@@ -58,7 +59,8 @@ It writes `build/icons/<size>x<size>.png` (Linux), `build/icon.ico` (Windows, sm
 
 ## Testing on Windows
 
-CI builds and unit-tests on Windows, but the installer needs a person: follow [testing-windows.md](testing-windows.md).
+CI builds and unit-tests on Windows, but the installer needs a person: follow
+[the Windows test guide](https://github.com/mooeypoo/plotdevice/blob/main/docs/testing-windows.md).
 
 ## Test data
 
@@ -69,6 +71,31 @@ cp -r fixtures/sample-novel ~/sample-novel
 ```
 
 The app keeps its own settings (the recents list) in `~/.config/plotdevice/` on Linux and `%APPDATA%\plotdevice\` on Windows. Delete `recent-projects.json` there to start fresh.
+
+## Documentation
+
+```bash
+npm run docs:dev       # local authoring
+npm run docs:build     # production build plus publication-boundary and link checks
+npm run docs:preview   # inspect /plotdevice/ on the printed local URL
+```
+
+The site uses pinned VitePress `2.0.0-alpha.20`, approved to use the current Vite 8
+toolchain instead of stable VitePress 1's older development-server dependencies.
+Treat upgrades as deliberate changes: review advisories and release notes, rebuild,
+and check search, mobile/keyboard navigation, and light/dark rendering.
+The [decision record](https://github.com/mooeypoo/plotdevice/blob/main/docs/adr/0009-vitepress-manual-and-publication-boundary.md)
+explains the trade-off.
+
+CI checks the production site on Linux. The separate **Documentation** workflow
+is manual and builds by default; deployment requires the explicit `deploy` input,
+`main`, a public repository, and Pages configured for GitHub Actions. It cannot
+deploy while this repository is private. Keep that gate until launch is approved.
+Do not enable Pages or make the repository public just to test a local build.
+
+The expected project URL after approval is `https://mooeypoo.github.io/plotdevice/`.
+It is not live yet. A push will be needed to run hosted CI and, later, deploy; it is
+not needed for local preview. R4 will add published-release data and the version feed.
 
 ## Troubleshooting
 
