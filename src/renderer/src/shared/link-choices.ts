@@ -42,3 +42,49 @@ export function choiceFor(choices: readonly LinkChoice[], written: string): Link
     choices.find((choice) => nameKey(choice.name) === key)
   )
 }
+
+/**
+ * The one file a written link target means, or `undefined` when it means none or several (an
+ * ambiguous name). Path forms match the end of a path, as in "Resolving links".
+ */
+export function resolveWritten(
+  choices: readonly LinkChoice[],
+  written: string
+): LinkChoice | undefined {
+  const key = nameKey(written.trim().replace(/\.md$/iu, ''))
+  if (key === '') return undefined
+  const withoutExtension = (choice: LinkChoice): string =>
+    nameKey(choice.path.replace(/\.md$/iu, ''))
+  const matches = key.includes('/')
+    ? choices.filter((choice) => {
+        const path = withoutExtension(choice)
+        return path === key || path.endsWith(`/${key}`)
+      })
+    : choices.filter((choice) => nameKey(choice.name) === key)
+  return matches.length === 1 ? matches[0] : undefined
+}
+
+/**
+ * The project path a markdown link's address points to, from the file it's written in:
+ * `../characters/Ilka%20Szab%C3%B3.md` from `manuscript/One.md` is `characters/Ilka Szabó.md`.
+ */
+export function markdownLinkPath(address: string, fromPath: string): string | undefined {
+  if (/^[a-z][a-z0-9+.-]*:/iu.test(address) || address.startsWith('#')) return undefined
+  let decoded: string
+  try {
+    decoded = decodeURIComponent(address.split('#')[0] ?? '')
+  } catch {
+    return undefined
+  }
+  const segments = decoded.startsWith('/') ? [] : fromPath.split('/').slice(0, -1)
+  for (const segment of decoded.split('/')) {
+    if (segment === '' || segment === '.') continue
+    if (segment === '..') {
+      if (segments.length === 0) return undefined
+      segments.pop()
+    } else {
+      segments.push(segment)
+    }
+  }
+  return segments.length === 0 ? undefined : segments.join('/')
+}

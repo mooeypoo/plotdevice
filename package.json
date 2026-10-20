@@ -57,6 +57,7 @@
     "vue-tsc": "^3.3.13"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.20.4",
     "chokidar": "^5.0.0",
     "write-file-atomic": "^8.0.0",
     "yaml": "^2.9.1",

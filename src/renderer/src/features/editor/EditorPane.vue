@@ -8,6 +8,7 @@ import ProjectOverview from '../welcome/ProjectOverview.vue'
 import ChapterEditor from './ChapterEditor.vue'
 import ConflictBanner from './ConflictBanner.vue'
 import MissingFileBanner from './MissingFileBanner.vue'
+import { useEditorLinks } from './use-editor-links'
 
 const manuscript = useManuscriptStore()
 const editor = useEditorStore()
@@ -15,6 +16,7 @@ const workspace = useWorkspaceStore()
 const layout = useLayoutStore()
 
 const readOnly = computed(() => workspace.project?.readOnly ?? false)
+const { completions, openLink, linkNotice } = useEditorLinks()
 const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
 </script>
 
@@ -39,6 +41,7 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
         @save-as-new="editor.saveMissingAsNew()"
         @discard="editor.discardMissing()"
       />
+      <p v-if="linkNotice" class="notice" role="status">{{ linkNotice }}</p>
       <p v-if="editor.diskNotice" class="notice" role="status">
         {{ editor.diskNotice }}
       </p>
@@ -55,8 +58,10 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
         :read-only="readOnly"
         :focus-mode="layout.focusMode"
         :link-targets="linkTargets"
+        :completions="completions"
         @change="editor.edit($event)"
         @blur="editor.flush()"
+        @open-link="openLink"
       />
     </div>
     <ProjectOverview v-else />

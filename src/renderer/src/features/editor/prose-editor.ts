@@ -1,3 +1,4 @@
+import { autocompletion } from '@codemirror/autocomplete'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { Compartment, EditorState } from '@codemirror/state'
@@ -7,6 +8,8 @@ import { focusDimming } from './focus-dimming'
 import { autoLineDirection } from './line-direction'
 import { proseAppearance } from './prose-theme'
 import { wikiLinkDecorations } from './wiki-link-decorations'
+import { linkAt, type LinkAt } from './link-at'
+import { linkCompletionSource, type LinkCompletionTarget } from './link-completion'
 import { createLinkKindLookup } from './wiki-link-scan'
 
 /** What the editor needs when it is created. */
@@ -17,6 +20,10 @@ export interface ProseEditorOptions {
   readonly linkTargets: readonly LinkTargetDto[]
   readonly onChange: (text: string) => void
   readonly onBlur: () => void
+  /** What `[[` offers; read each time, so it follows the project as files change. */
+  readonly completions: () => readonly LinkCompletionTarget[]
+  /** Ctrl/Cmd+click on a link. */
+  readonly onOpenLink: (link: LinkAt) => void
 }
 
 /** A mounted prose editor and the settings that can change while it is open. */
@@ -55,6 +62,25 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
         EditorView.editable.of(!options.readOnly),
         focusCompartment.of(options.focusMode ? focusDimming() : []),
         linksCompartment.of(wikiLinkDecorations(createLinkKindLookup(options.linkTargets))),
+        autocompletion({
+          override: [linkCompletionSource(options.completions)],
+          icons: false,
+          activateOnTyping: true
+        }),
+        completionTheme,
+        EditorView.domEventHandlers({
+          mousedown(event, view) {
+            if (!(event.ctrlKey || event.metaKey) || event.button !== 0) return false
+            const position = view.posAtCoords({ x: event.clientX, y: event.clientY })
+            if (position === null) return false
+            const line = view.state.doc.lineAt(position)
+            const link = linkAt(line.text, line.from, position)
+            if (link === undefined) return false
+            event.preventDefault()
+            options.onOpenLink(link)
+            return true
+          }
+        }),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) options.onChange(update.state.doc.toString())
           if (update.focusChanged && !update.view.hasFocus) options.onBlur()
@@ -80,3 +106,28 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
     }
   }
 }
+
+/** The link suggestions, in the app's dark palette. */
+const completionTheme = EditorView.theme({
+  '.cm-tooltip.cm-tooltip-autocomplete': {
+    border: '1px solid var(--line-strong)',
+    borderRadius: '8px',
+    background: 'var(--raised)',
+    fontFamily: 'var(--font-ui)',
+    fontSize: '13px',
+    overflow: 'hidden'
+  },
+  '.cm-tooltip-autocomplete > ul > li': {
+    padding: '4px 10px',
+    color: 'var(--text)'
+  },
+  '.cm-tooltip-autocomplete > ul > li[aria-selected]': {
+    background: 'var(--active)',
+    color: 'var(--text-strong)'
+  },
+  '.cm-completionDetail': {
+    marginInlineStart: '10px',
+    fontStyle: 'normal',
+    color: 'var(--text-muted)'
+  }
+})

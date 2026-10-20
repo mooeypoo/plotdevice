@@ -30,6 +30,13 @@ describe('GetAppearsIn', () => {
       characters: ['[[Ilka Szabó]]', '[[Marrow]]']
     })
     repository.put('Stray.md', { type: 'chapter', characters: '[[Ilka Szabó]]' })
+    repository.put('Third.md', {
+      type: 'chapter',
+      part: '[[Part One]]',
+      order: 3,
+      // Decomposed ó in the address; the file name is composed.
+      pov: '[Ilka](characters/Ilka%20Szabo%CC%81.md)'
+    })
 
     const appearsIn = createGetAppearsIn({
       listChapterReferences: createListChapterReferences({ repository })
@@ -37,6 +44,7 @@ describe('GetAppearsIn', () => {
     expect(await appearsIn(p('characters/Ilka Szabó.md'))).toEqual([
       { path: 'First.md', title: 'First', keys: ['pov', 'characters'] },
       { path: 'Second.md', title: 'Second', keys: ['characters'] },
+      { path: 'Third.md', title: 'Third', keys: ['pov'] },
       { path: 'Stray.md', title: 'Stray', keys: ['characters'] }
     ])
     // The shared name settles by key: `characters` means the character, `location` the place.
