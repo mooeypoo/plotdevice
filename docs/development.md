@@ -40,6 +40,15 @@ CI packages Linux x64 on `v*` tags. Manual runs also package Windows for future
 qualification: GitHub → Actions → CI → "Run workflow". Windows artifacts from
 manual runs are not public release assets. Both OSes still run all code checks.
 
+The deb installs `build/tech.moriel.plotdevice.metainfo.xml` under
+`/usr/share/metainfo/`, linked to `plotdevice.desktop`, plus copyright/license
+files under `/usr/share/doc/plotdevice/`. Its AppStream metadata alone is CC0;
+the application remains GPL-3.0-or-later. When available, check it with
+`appstreamcli validate --no-net build/tech.moriel.plotdevice.metainfo.xml`.
+The release checklist keeps AppStream dates aligned with actual candidate notes.
+Metadata improves software-center descriptions but does not verify publisher
+identity or confine native deb permissions; local-file displays vary by center.
+
 For release preparation, start with `npm run release:guide` and the
 [release checklist](https://github.com/mooeypoo/plotdevice/blob/main/docs/releasing.md).
 The [release plan](https://github.com/mooeypoo/plotdevice/blob/main/docs/release-plan.md) tracks the

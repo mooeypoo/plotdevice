@@ -49,6 +49,41 @@ must pass installer qualification before a separate publication approval.
 No tag or app release exists. Notes remain `Unreleased`. R5 is unimplemented and
 disclosed as a beta limitation; completing it remains a stable-MVP gate.
 
+**Installer presentation follow-up (2026-10-20):** The maintainer reported unknown
+publisher/license/update fields in Ubuntu App Center and approved improving deb
+metadata, including CC0-1.0 for the descriptive AppStream file only. The app remains
+GPL-3.0-or-later. Package homepage now points to the public manual; the deb includes
+developer attribution, description, screenshot, source/help/issue URLs, and installed
+copyright/full GPL text. Its AppStream ID matches the immutable app ID and references
+the existing `plotdevice.desktop`. Native-deb permissions stay unrestricted, and
+attribution is not publisher authentication. Local App Center rendering may still
+omit fields without repository catalog data; no promise was made to remove all
+unknown labels.
+
+The candidate has no dated notes yet, so AppStream release history is intentionally
+empty. The release checklist and a regression test require a matching version/date
+entry when dated notes are prepared, rather than inventing a build/publication date.
+The screenshot URL was checked publicly; the raw repository image is used because
+VitePress fingerprints its deployed image assets. No dependency was added.
+
+Validation passed: lint/dependency rules, typecheck, 125 test files / 1044 tests,
+Electron/Vue build, docs build/link checks, both Linux package builds, and diff
+hygiene. The actual deb's extracted AppStream file matches the source and passes
+AppStream 1.0.2 validation (only the informational missing-content-rating notice).
+Installed metadata/license paths and deb fields were inspected; Ubuntu App Center
+presentation still requires the maintainer to reopen the rebuilt package.
+Updated local worktree build hashes (not tagged artifacts):
+
+- AppImage: `996b5696e96b25a94323cdce7d778500032d340047f114faa6b632d7f8810788`
+- deb: `b2cd692a5fd45cd80f4a36211caf26c24e0e509493f6730d4e88fab9a28be08c`
+
+The first full run correctly failed four fixture-dependent tests after the sample
+novel was opened directly and acquired an outline/templates. With explicit approval,
+those four new files were preserved under the maintainer's
+`~/plotdevice-test-backups/2026-10-20-fixture-metadata-check/`; no user work was deleted.
+The restored fixture passed the complete gate. Test against copies in future.
+Find this checkpoint as "feat: enrich Linux installer software-center metadata".
+
 Linux-only preparation validation: lint/dependency rules, typecheck, 124 test files /
 1041 tests, Electron/Vue compilation, offline docs build/link/feed checks, and
 `git diff --check` passed. A real local `npm run build:linux -- --x64` succeeded,

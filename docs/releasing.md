@@ -57,6 +57,12 @@ actually prepared: `release:check` and `release:notes` should fail until then.
 - [ ] Curate the root [changelog](../CHANGELOG.md). Move only included changes from
   `Unreleased` to `## [<version>] - YYYY-MM-DD`; keep an `Unreleased` section for
   subsequent work. Use the intended release date, not an invented historical date.
+- [ ] Replace the empty `<releases/>` in
+  `build/tech.moriel.plotdevice.metainfo.xml` with a matching candidate entry, e.g.
+  `<releases><release version="0.1.0-beta.1" date="YYYY-MM-DD" type="development"/></releases>`.
+  Use the same real date as the changelog, and `type="stable"` for final versions.
+  Keep prior release entries when adding a later one. Tests require version/date
+  agreement. Do not use the local package build timestamp as a release date.
 - [ ] Update installation/upgrade guidance and known issues for this candidate.
 - [ ] Run the full completion gate:
 
@@ -120,6 +126,12 @@ be checked again before publishing if they differ from the rehearsal bytes.
   app version, build commit/run, and SHA-256 hashes. Do not claim untested distros.
 - [ ] Install the `.deb`, launch from the desktop and terminal, verify About,
   and test folder opening. Package installation may require maintainer-run `sudo`.
+- [ ] Inspect the software-center presentation. The deb includes AppStream
+  developer/license/help/screenshot information, with the documentation homepage.
+  Local-deb handling varies: Ubuntu App Center may still show unknown publisher
+  or dates without catalog data. This metadata is attribution, not authenticated
+  publisher verification. Native deb permissions remain unrestricted; Electron's
+  internal sandbox does not provide Flatpak/Snap-style application confinement.
 - [ ] Run the AppImage with the sandbox enabled. Record any FUSE/AppArmor setup;
   never qualify a workaround using `--no-sandbox`.
 - [ ] Use a temporary copy of `fixtures/sample-novel/`, not a real manuscript or

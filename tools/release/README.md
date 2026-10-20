@@ -10,3 +10,4 @@ Policy/progress: `docs/release-plan.md`. Maintainer instructions: `docs/releasin
 `published-release.ts` validates the designated stable release, asset digests,
 build metadata, checksum inventory, safe URLs, and the version-1 site/client feed.
 Windows checks remain in CI; Windows installers are withheld pending qualification.
+`linux-metadata.test.ts` checks deb metadata wiring, attribution, and candidate dates.

@@ -110,7 +110,7 @@ const checklist = `
 Release checklist (local helper only)
 1. Read docs/releasing.md and docs/release-plan.md. Resolve the signing/OS/publication gates.
 2. Preview preparation: npm run release:prepare -- <version>
-3. Update package metadata and curate/date the matching CHANGELOG.md section.
+3. Update package metadata, curate/date CHANGELOG.md, and sync the AppStream release entry (docs/releasing.md).
 4. Run npm run lint && npm run typecheck && npm run test && npx electron-vite build
 5. Review and commit preparation. Run npm run release:check
 6. Check remote tags/releases and the reviewed commit; local checks do not query GitHub.

@@ -123,6 +123,9 @@ releases. Offline previews emit no feed. Hosted Linux/Windows checks and manual
 Pages deployment passed; the repository and site are public. Automatic Pages
 refresh is approved and enabled. The first beta is Linux-only; Windows installers
 are withheld pending real Windows qualification (ADR 0011). The app checker remains R5.
+The deb now includes AppStream developer/license/help/screenshot metadata and the
+documentation homepage. Local App Center presentation still needs a visual recheck;
+native deb permissions and publisher authentication are not changed by metadata.
 
 ## Decide after MVP
 - Edge cases in part and chapter structure beyond what `docs/file-format.md` defines (nested parts, chapters belonging to several parts).

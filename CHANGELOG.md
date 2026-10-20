@@ -30,6 +30,8 @@ the novel file format, which remains `format: 1`.
   local search, mixed-direction examples, and gated GitHub Pages deployment.
 - Published-release discovery powering consistent download links and a version-1
   JSON feed, with stale-deployment guards and anonymous post-deployment checks.
+- Linux software-center metadata with developer attribution, GPL license,
+  documentation/help links, a screenshot, and packaged license information.
 
 ### Known limitations before the first release
 

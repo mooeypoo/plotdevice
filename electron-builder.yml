@@ -35,8 +35,13 @@ linux:
   # Wayland/X11 window association: the running window's app_id must match the .desktop file.
   syncDesktopName: true
   maintainer: Moriel Schottlender <mooeypoo@gmail.com>
+  vendor: Moriel Schottlender
   category: Office
   synopsis: Write a novel in plain markdown files
+  description: >-
+    A local writing and story-planning app for novelists. Organize chapters,
+    characters, outlines, and timelines while keeping your novel in ordinary
+    Markdown files. Supports English, Hebrew, and mixed-direction prose.
   # "Open With → Plot Device" on folders in file managers; the folder arrives as a file:// address.
   mimeTypes:
     - inode/directory
@@ -44,5 +49,10 @@ appImage:
   artifactName: ${name}-${version}.${ext}
 deb:
   artifactName: ${name}_${version}_${arch}.${ext}
+  packageCategory: editors
+  fpm:
+    - build/tech.moriel.plotdevice.metainfo.xml=/usr/share/metainfo/tech.moriel.plotdevice.metainfo.xml
+    - build/debian-copyright=/usr/share/doc/plotdevice/copyright
+    - LICENSE=/usr/share/doc/plotdevice/LICENSE
 npmRebuild: false
 publish: null
