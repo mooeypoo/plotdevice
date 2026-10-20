@@ -2,8 +2,8 @@
 
 **Purpose.** Story time and plotlines: reading and checking story dates under the project's calendar, and the threads defined in `novel.md`.
 
-**Main concepts.** `StoryDate` (single dates and ranges, any year including negative ones), `Calendar` (`gregorian` or `day-count`), `Thread`. `TimelineEntry` arrives with the timeline (Phase 7).
+**Main concepts.** `StoryDate` (single dates and ranges, any year including negative ones), `Calendar` (`gregorian` or `day-count`), `Thread`, `StorySpan` (a date or range as inclusive day numbers on one axis, with its precision; proleptic Gregorian days from 1970, or the day itself in a day-count project).
 
-**Use cases.** Queries: `GetChronologySettings`, `CheckStoryDate`. Port: `ChronologyRepository` (reads novel.md).
+**Use cases.** Queries: `GetChronologySettings`, `CheckStoryDate`, `ReadStoryDates` (many values at once, with spans, for the timeline). Port: `ChronologyRepository` (reads novel.md).
 
-**Must not know about.** Chapter order, prose, or codex entries. The timeline grid that combines chapters with dates will be a read model in `src/main/queries/`.
+**Must not know about.** Chapter order, prose, or codex entries. The timeline that combines chapters with dates is the read model `src/main/queries/get-timeline.ts`.

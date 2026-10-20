@@ -376,3 +376,49 @@ export interface AppearanceDto {
 
 /** The types an untyped file can be given. */
 export type SettableTypeDto = 'part' | 'chapter' | 'character' | 'location' | 'note' | 'outline'
+
+/** A chapter's story date on the timeline: its span in days, or why it has none. */
+export type TimelineDateDto =
+  | { readonly kind: 'undated' }
+  | { readonly kind: 'invalid'; readonly message: string }
+  | {
+      readonly kind: 'dated'
+      /** "3 October 1952", "October 1952 – March 1953", "Day 14". */
+      readonly description: string
+      /** Days from 1 January 1970 (Gregorian) or the day number (day-count), inclusive. */
+      readonly start: number
+      readonly end: number
+      readonly precision: 'year' | 'month' | 'day'
+    }
+
+/** A chapter on the timeline, in reading order. */
+export interface TimelineChapterDto {
+  readonly path: string
+  readonly title: string
+  readonly number?: number
+  readonly partNumber?: number
+  readonly partTitle?: string
+  readonly status?: string
+  readonly synopsis?: string
+  readonly storyTime?: string
+  readonly threads: readonly string[]
+  readonly characters: readonly { readonly path: string; readonly pov: boolean }[]
+  readonly date: TimelineDateDto
+}
+
+/** A row the timeline can show: a thread (by key) or a character (by path). */
+export interface TimelineRowDto {
+  readonly key: string
+  readonly name: string
+  readonly color?: string
+}
+
+/** Everything the timeline draws. */
+export interface TimelineDto {
+  readonly calendar: 'gregorian' | 'day-count'
+  readonly threads: readonly TimelineRowDto[]
+  readonly characters: readonly TimelineRowDto[]
+  readonly chapters: readonly TimelineChapterDto[]
+  /** Chapters outside the reading order, not shown. */
+  readonly outside: number
+}

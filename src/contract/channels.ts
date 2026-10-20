@@ -1,4 +1,4 @@
-import type { CodexApi, InspectorApi, ManuscriptApi, WorkspaceApi } from './api'
+import type { CodexApi, InspectorApi, ManuscriptApi, TimelineApi, WorkspaceApi } from './api'
 
 /** IPC channel names, shared by the preload (which invokes) and main (which handles). */
 export const WORKSPACE_CHANNELS = {
@@ -48,6 +48,10 @@ export const CODEX_CHANNELS = {
   renameEntry: 'codex:rename-entry',
   getAppearsIn: 'codex:get-appears-in'
 } as const satisfies Record<keyof CodexApi, string>
+
+export const TIMELINE_CHANNELS = {
+  getTimeline: 'timeline:get'
+} as const satisfies Record<keyof TimelineApi, string>
 
 export const INSPECTOR_CHANNELS = {
   getVocabulary: 'inspector:get-vocabulary',

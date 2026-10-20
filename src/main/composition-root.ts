@@ -22,6 +22,10 @@ import { createMarkdownCodexRepository } from './contexts/codex/infrastructure/m
 import { createListChapterReferences } from './contexts/manuscript/application/queries/list-chapter-references'
 import { createCodexHandlers, type CodexUseCases } from './ipc/codex-handlers'
 import { registerCodexIpc } from './ipc/codex-ipc'
+import { createReadStoryDates } from './contexts/chronology/application/queries/read-story-dates'
+import { createTimelineHandlers, type TimelineUseCases } from './ipc/timeline-handlers'
+import { registerTimelineIpc } from './ipc/timeline-ipc'
+import { createGetTimeline } from './queries/get-timeline'
 import { createGetAppearsIn } from './queries/get-appears-in'
 import { createAddStatus } from './contexts/manuscript/application/commands/add-status'
 import {
@@ -77,6 +81,7 @@ import { parseProjectPath, type ProjectPath } from './shared-kernel/project-path
 interface ProjectUseCases {
   readonly manuscript: ManuscriptUseCases
   readonly codex: CodexUseCases
+  readonly timeline: TimelineUseCases
   readonly inspector: InspectorUseCases
 }
 
@@ -174,6 +179,14 @@ export function composeApplication(): void {
           listChapterReferences: createListChapterReferences({ repository })
         })
       },
+      timeline: {
+        getTimeline: createGetTimeline({
+          listChapterReferences: createListChapterReferences({ repository }),
+          readStoryDates: createReadStoryDates({ getSettings: getChronologySettings }),
+          getChronologySettings,
+          listCodex: createListCodex({ repository: codexRepository, settings: codexSettings })
+        })
+      },
       inspector: {
         getVocabulary: createGetInspectorVocabulary({
           listStatuses: createListStatuses({ repository }),
@@ -228,6 +241,7 @@ export function composeApplication(): void {
   )
   registerManuscriptIpc(createManuscriptHandlers(() => session.current()?.manuscript))
   registerCodexIpc(createCodexHandlers(() => session.current()?.codex))
+  registerTimelineIpc(createTimelineHandlers(() => session.current()?.timeline))
   registerInspectorIpc(createInspectorHandlers(() => session.current()?.inspector))
 }
 

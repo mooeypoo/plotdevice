@@ -12,6 +12,7 @@ const layout = useLayoutStore()
 
 const crumbs = computed(() => {
   if (layout.mainView === 'overview') return ['Overview']
+  if (layout.mainView === 'timeline') return ['Timeline']
   const entry = editor.entry
   if (entry === null) return []
   const part = manuscript.currentPart
@@ -55,6 +56,15 @@ const crumbs = computed(() => {
           @click="layout.mainView = 'overview'"
         >
           Overview
+        </button>
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="layout.mainView === 'timeline'"
+          :class="{ on: layout.mainView === 'timeline' }"
+          @click="layout.mainView = 'timeline'"
+        >
+          Timeline
         </button>
       </div>
       <span class="divider" aria-hidden="true"></span>

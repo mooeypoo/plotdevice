@@ -6,7 +6,8 @@ import type {
   CodexPropertiesDto,
   ProjectChangeDto,
   ProjectSummaryDto,
-  RenamePlanDto
+  RenamePlanDto,
+  TimelineDto
 } from '../../../contract/dtos'
 
 /** A project summary for tests. */
@@ -116,6 +117,56 @@ export const sampleCodex: CodexListingDto = {
   outlines: [{ path: 'Outline.md', title: 'Outline' }]
 }
 
+/** Two dated chapters in Part One, the second earlier in the story; one undated. */
+export const sampleTimeline: TimelineDto = {
+  calendar: 'gregorian',
+  threads: [{ key: 'main', name: 'Main plot', color: '#4f7cac' }],
+  characters: [{ key: 'characters/Ilka.md', name: 'Ilka' }],
+  chapters: [
+    {
+      path: 'The Ferry.md',
+      title: 'The Ferry',
+      number: 1,
+      partNumber: 1,
+      storyTime: 'morning',
+      threads: ['main'],
+      characters: [{ path: 'characters/Ilka.md', pov: true }],
+      date: {
+        kind: 'dated',
+        description: '3 October 1952',
+        start: -6299,
+        end: -6299,
+        precision: 'day'
+      }
+    },
+    {
+      path: 'First frost.md',
+      title: 'First frost',
+      number: 2,
+      partNumber: 1,
+      threads: [],
+      characters: [],
+      date: {
+        kind: 'dated',
+        description: 'September 1952',
+        start: -6331,
+        end: -6302,
+        precision: 'month'
+      }
+    },
+    {
+      path: 'Lost.md',
+      title: 'Lost',
+      number: 3,
+      partNumber: 1,
+      threads: ['main'],
+      characters: [],
+      date: { kind: 'invalid', message: '1952-02-30: that day doesn’t exist in that month.' }
+    }
+  ],
+  outside: 0
+}
+
 export function createFakePlotDeviceApi(): {
   api: PlotDeviceApi
   files: Map<string, string>
@@ -134,6 +185,8 @@ export function createFakePlotDeviceApi(): {
   codexProperties: Map<string, CodexPropertiesDto>
   /** Codex entries created, and types set on untyped files. */
   codexWrites: string[]
+  /** What `getTimeline` returns. */
+  timeline: { current: TimelineDto }
   /** What `refreshProject` returns next. */
   summary: { current: ProjectSummaryDto }
 } {
@@ -158,6 +211,7 @@ export function createFakePlotDeviceApi(): {
     renames: [] as string[]
   }
   const renamePlan: { current: RenamePlanDto | null } = { current: null }
+  const timeline = { current: sampleTimeline }
   const codexWrites: string[] = []
   let codex: CodexListingDto = sampleCodex
   const codexProperties = new Map<string, CodexPropertiesDto>(
@@ -198,7 +252,7 @@ export function createFakePlotDeviceApi(): {
     `${files.get(path) ?? ''}#${String(revisions.get(path) ?? 0)}`
 
   const api: PlotDeviceApi = {
-    contractVersion: 8,
+    contractVersion: 9,
     workspace: {
       chooseFolder: () => Promise.resolve(null),
       openProject: () => Promise.resolve({ ok: true, value: sampleSummary }),
@@ -465,6 +519,9 @@ export function createFakePlotDeviceApi(): {
               : []
         })
     },
+    timeline: {
+      getTimeline: () => Promise.resolve({ ok: true, value: timeline.current })
+    },
     inspector: {
       getVocabulary: () =>
         Promise.resolve({
@@ -498,6 +555,7 @@ export function createFakePlotDeviceApi(): {
     },
     properties,
     moves: state.moves,
+    timeline,
     codexWrites,
     codexProperties,
     summary,

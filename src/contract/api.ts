@@ -6,6 +6,7 @@ import type {
   CodexPropertiesViewDto,
   RelationshipEditDto,
   SettableTypeDto,
+  TimelineDto,
   ApiResult,
   ChapterDestinationDto,
   ChosenFixDto,
@@ -133,6 +134,11 @@ export interface CodexApi {
   getAppearsIn(path: string): Promise<ApiResult<readonly AppearanceDto[]>>
 }
 
+/** The timeline of the open project. */
+export interface TimelineApi {
+  getTimeline(): Promise<ApiResult<TimelineDto>>
+}
+
 /** Choices and checks for the inspector, drawn from several parts of the project. */
 export interface InspectorApi {
   getVocabulary(): Promise<ApiResult<InspectorVocabularyDto>>
@@ -153,10 +159,11 @@ export interface AppApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 8
+  readonly contractVersion: 9
   readonly workspace: WorkspaceApi
   readonly manuscript: ManuscriptApi
   readonly codex: CodexApi
+  readonly timeline: TimelineApi
   readonly inspector: InspectorApi
   readonly app: AppApi
 }

@@ -77,9 +77,9 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [x] **Writer's outline (MVP requirement).** An outline the writer writes and reads alongside the draft: how they see chapters and sequences going, independent of what is written so far and of story dates (unlike the timeline, which is derived). Readable as a reference panel while writing. Storage and format (plain markdown in the project, linking to chapters) to be designed before this phase.
 
 ## Phase 7: Timeline
-- [ ] Grid with threads (or characters) as rows and chapters as columns. Chapters with a list of dates span their range.
-- [ ] Toggle between manuscript order and story-date order.
-- [ ] Filters, an undated tray, and a "missing for N chapters" highlight for threads and characters.
+- [x] Grid with threads (or characters) as rows and chapters as columns. Chapters with a list of dates span their range.
+- [x] Toggle between manuscript order and story-date order.
+- [x] Filters, an undated tray, and a "missing for N chapters" highlight for threads and characters.
 
 ## Phase 8: Interactions
 - [ ] Co-appearance matrix (characters × characters, counts, click a cell to list the chapters), from `characters` and `pov`.
@@ -96,6 +96,11 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Phase 7 follow-ups:
+  - Changing a chapter's date by dragging it on the time axis; dates are edited in the inspector today.
+  - Ordering chapters on the same day by `story_time`; it's shown in the tooltip only.
+  - Remember the timeline's options (order, rows, gap length, zoom) per project.
+  - Filters by status or POV on the timeline, as in the Overview.
 - Phase 6 follow-ups:
   - Plan meets draft (deferred until the outline has been used for a while): mark outline lines whose chapters exist (with their status), chapters the outline never mentions, and offer "create this chapter" for links to chapters that don't exist yet.
   - Editing the outline in the side panel; today it's read-only there, with "Edit" opening it in the main editor.

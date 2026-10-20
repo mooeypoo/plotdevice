@@ -6,6 +6,7 @@ import {
   EVENT_CHANNELS,
   INSPECTOR_CHANNELS,
   MANUSCRIPT_CHANNELS,
+  TIMELINE_CHANNELS,
   WORKSPACE_CHANNELS
 } from '../contract/channels'
 import type {
@@ -22,6 +23,7 @@ import type {
   RenamePlanDto,
   RenumberedDto,
   StoryDateCheckDto,
+  TimelineDto,
   FolderChoiceDto,
   ManuscriptDto,
   ProjectChangeDto,
@@ -36,7 +38,7 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 8,
+  contractVersion: 9,
   workspace: {
     chooseFolder: () => invoke<FolderChoiceDto | null>(WORKSPACE_CHANNELS.chooseFolder),
     openProject: (root) =>
@@ -130,6 +132,9 @@ const plotDevice: PlotDeviceApi = {
     renameEntry: (path) => invoke<ApiResult<RenamedDto>>(CODEX_CHANNELS.renameEntry, path),
     getAppearsIn: (path) =>
       invoke<ApiResult<readonly AppearanceDto[]>>(CODEX_CHANNELS.getAppearsIn, path)
+  },
+  timeline: {
+    getTimeline: () => invoke<ApiResult<TimelineDto>>(TIMELINE_CHANNELS.getTimeline)
   },
   inspector: {
     getVocabulary: () =>

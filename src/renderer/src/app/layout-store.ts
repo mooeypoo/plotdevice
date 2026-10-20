@@ -5,7 +5,7 @@ import { ref, watch } from 'vue'
 export type SideTab = 'manuscript' | 'codex'
 
 /** The main area's views. */
-export type MainView = 'write' | 'overview'
+export type MainView = 'write' | 'overview' | 'timeline'
 
 /** The right-hand panel's tabs. */
 export type RightTab = 'properties' | 'outline'
