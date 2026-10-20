@@ -90,6 +90,10 @@ export interface ChapterDto {
   readonly order?: number
   readonly status?: string
   readonly synopsis?: string
+  /** The `pov` link targets, as written. */
+  readonly pov: readonly string[]
+  /** The `threads` keys. */
+  readonly threads: readonly string[]
   readonly wordCount: number
   /** Another chapter in the same part has the same `order`. */
   readonly duplicateOrder: boolean

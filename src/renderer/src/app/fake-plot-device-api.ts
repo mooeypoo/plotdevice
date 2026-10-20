@@ -43,14 +43,18 @@ export const sampleManuscript: ManuscriptDto = {
           title: 'The Ferry',
           number: 1,
           wordCount: 3,
-          duplicateOrder: false
+          duplicateOrder: false,
+          pov: ['Ilka'],
+          threads: ['main']
         },
         {
           path: 'First frost.md',
           title: 'First frost',
           number: 2,
           wordCount: 4,
-          duplicateOrder: false
+          duplicateOrder: false,
+          pov: [],
+          threads: []
         }
       ]
     }
@@ -59,7 +63,14 @@ export const sampleManuscript: ManuscriptDto = {
   chapters: [],
   unordered: [
     {
-      chapter: { path: 'Lost.md', title: 'Lost', wordCount: 1, duplicateOrder: false },
+      chapter: {
+        path: 'Lost.md',
+        title: 'Lost',
+        wordCount: 1,
+        duplicateOrder: false,
+        pov: [],
+        threads: []
+      },
       reason: 'part-not-found'
     }
   ],
@@ -254,6 +265,7 @@ export function createFakePlotDeviceApi(): {
           ...props,
           ...(changes.title !== undefined ? { title: changes.title } : {}),
           ...(changes.status !== undefined ? { status: changes.status } : {}),
+          ...(changes.synopsis !== undefined ? { synopsis: changes.synopsis } : {}),
           ...(changes.pov !== undefined ? { pov: changes.pov.map((t) => `[[${t}]]`) } : {})
         }
         properties.set(path, next)
@@ -278,7 +290,7 @@ export function createFakePlotDeviceApi(): {
           unordered: [
             ...manuscript.unordered,
             {
-              chapter: { path, title, wordCount: 0, duplicateOrder: false },
+              chapter: { path, title, wordCount: 0, duplicateOrder: false, pov: [], threads: [] },
               reason: 'missing-order'
             }
           ]

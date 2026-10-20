@@ -4,6 +4,9 @@ import { ref, watch } from 'vue'
 /** The side panel's tabs. */
 export type SideTab = 'manuscript' | 'codex'
 
+/** The main area's views. */
+export type MainView = 'write' | 'overview'
+
 /** The right-hand panel's tabs. */
 export type RightTab = 'properties' | 'outline'
 
@@ -25,6 +28,8 @@ export const useLayoutStore = defineStore('layout', () => {
   const sideTab = ref<SideTab>(saved['sideTab'] === 'codex' ? 'codex' : 'manuscript')
   /** Which view the right-hand panel shows. */
   const rightTab = ref<RightTab>(saved['rightTab'] === 'outline' ? 'outline' : 'properties')
+  /** What the main area shows: the editor, or the Overview of the whole book. */
+  const mainView = ref<MainView>('write')
   /** The outline last shown in the panel, by path. */
   const outlinePath = ref<string | null>(
     typeof saved['outlinePath'] === 'string' ? saved['outlinePath'] : null
@@ -72,6 +77,7 @@ export const useLayoutStore = defineStore('layout', () => {
     focusMode,
     sideTab,
     rightTab,
+    mainView,
     outlinePath,
     toggleOutline,
     toggleBinder,

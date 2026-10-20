@@ -168,7 +168,9 @@ describe('manuscript store: properties and new entries', () => {
                 path: 'The Mill.md',
                 title: 'The Mill',
                 wordCount: 0,
-                duplicateOrder: false
+                duplicateOrder: false,
+                pov: [],
+                threads: []
               },
               reason: 'missing-order'
             }
@@ -368,5 +370,30 @@ describe('manuscript store: fixing warnings', () => {
     expect(fake.saves).toEqual(['Typed at [[Marrow]].\n'])
     expect(store.text).toBe('Typed at [[locations/Marrow|Marrow]].\n')
     expect(store.saveState).toBe('saved')
+  })
+})
+
+describe('manuscript store: synopsis from the Overview', () => {
+  it('saves typing in the open chapter first, then its synopsis, with no false conflict', async () => {
+    const store = useEditorStore()
+    const manuscript = useManuscriptStore()
+    await store.open('The Ferry.md')
+    store.edit('Typed before editing the synopsis.\n')
+    expect(await manuscript.updateSynopsis('The Ferry.md', 'Ilka arrives.')).toBe(true)
+    expect(fake.files.get('The Ferry.md')).toBe('Typed before editing the synopsis.\n')
+    expect(fake.properties.get('The Ferry.md')?.synopsis).toBe('Ilka arrives.')
+    expect(store.saveState).toBe('saved')
+  })
+
+  it('writes nothing when the synopsis didn’t change', async () => {
+    const manuscript = useManuscriptStore()
+    await manuscript.updateSynopsis('First frost.md', 'Frost.')
+    const versionOf = async (): Promise<string | undefined> => {
+      const read = await fake.api.manuscript.getEntryProperties('First frost.md')
+      return read.ok ? read.value.version : undefined
+    }
+    const before = await versionOf()
+    expect(await manuscript.updateSynopsis('First frost.md', ' Frost. ')).toBe(true)
+    expect(await versionOf()).toBe(before)
   })
 })

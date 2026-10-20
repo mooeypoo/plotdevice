@@ -11,6 +11,7 @@ const editor = useEditorStore()
 const layout = useLayoutStore()
 
 const crumbs = computed(() => {
+  if (layout.mainView === 'overview') return ['Overview']
   const entry = editor.entry
   if (entry === null) return []
   const part = manuscript.currentPart
@@ -36,6 +37,27 @@ const crumbs = computed(() => {
     </nav>
 
     <div class="tools">
+      <div class="views" role="tablist" aria-label="View">
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="layout.mainView === 'write'"
+          :class="{ on: layout.mainView === 'write' }"
+          @click="layout.mainView = 'write'"
+        >
+          Write
+        </button>
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="layout.mainView === 'overview'"
+          :class="{ on: layout.mainView === 'overview' }"
+          @click="layout.mainView = 'overview'"
+        >
+          Overview
+        </button>
+      </div>
+      <span class="divider" aria-hidden="true"></span>
       <button
         type="button"
         class="icon"
@@ -159,6 +181,27 @@ const crumbs = computed(() => {
 
 .crumbs .current {
   color: var(--text);
+}
+
+.views {
+  display: flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--raised);
+}
+
+.views button {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.views button.on {
+  background: var(--active);
+  color: var(--text-strong);
 }
 
 .tools {

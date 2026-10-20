@@ -92,6 +92,28 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     return true
   }
 
+  /**
+   * Saves a chapter's synopsis from the Overview. The chapter open in the editor goes through
+   * its version as the inspector does; any other is read first, so an outside edit isn't lost.
+   */
+  async function updateSynopsis(path: string, synopsis: string): Promise<boolean> {
+    const editor = useEditorStore()
+    if (editor.entry?.path === path) return updateProperties({ synopsis })
+    const read = await api().getEntryProperties(path)
+    if (!read.ok) {
+      editor.actionError = read.error.message
+      return false
+    }
+    if ((read.value.properties.synopsis ?? '').trim() === synopsis.trim()) return true
+    const result = await api().updateEntryProperties(path, read.value.version, { synopsis })
+    if (!result.ok) {
+      editor.actionError = result.error.message
+      return false
+    }
+    await reload()
+    return true
+  }
+
   /** Runs a structural change after saving the open text; refuses if that text is stuck. */
   async function restructure(
     change: () => Promise<
@@ -217,6 +239,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     reload,
     readProperties,
     updateProperties,
+    updateSynopsis,
     moveChapter,
     movePart,
     renumberPart,

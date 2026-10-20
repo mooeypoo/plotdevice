@@ -17,6 +17,11 @@ const codex = useCodexStore()
 const editor = useEditorStore()
 const layout = useLayoutStore()
 
+/** Opening an entry from either list shows it in the editor, leaving the Overview. */
+async function openEntry(path: string): Promise<void> {
+  if (await editor.open(path)) layout.mainView = 'write'
+}
+
 const TABS: readonly { readonly id: SideTab; readonly label: string }[] = [
   { id: 'manuscript', label: 'Manuscript' },
   { id: 'codex', label: 'Codex' }
@@ -44,7 +49,7 @@ const TABS: readonly { readonly id: SideTab; readonly label: string }[] = [
       :selected-path="editor.entry?.path ?? null"
       :attention-count="attentionCount"
       :read-only="workspace.project?.readOnly ?? false"
-      @open="editor.open($event)"
+      @open="openEntry($event)"
       @show-overview="editor.closeEntry()"
       @create-chapter="(part, title) => manuscript.createChapter(part, title)"
       @create-part="manuscript.createPart($event)"
@@ -55,7 +60,7 @@ const TABS: readonly { readonly id: SideTab; readonly label: string }[] = [
         :listing="codex.listing"
         :selected-path="editor.entry?.path ?? null"
         :read-only="workspace.project?.readOnly ?? false"
-        @open="editor.open($event)"
+        @open="openEntry($event)"
         @create="(kind, title) => codex.createEntry(kind, title)"
         @set-type="(path, type) => codex.setEntryType(path, type)"
         @edit-template="codex.editTemplate($event)"

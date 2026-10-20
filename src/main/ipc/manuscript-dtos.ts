@@ -58,6 +58,8 @@ function toChapterDto(placed: PlacedChapter): ChapterDto {
     ...(chapter.order !== undefined ? { order: chapter.order } : {}),
     ...(chapter.status !== undefined ? { status: chapter.status } : {}),
     ...(chapter.synopsis !== undefined ? { synopsis: chapter.synopsis } : {}),
+    pov: [...chapter.pov],
+    threads: [...chapter.threads],
     wordCount: chapter.wordCount,
     duplicateOrder: placed.duplicateOrder
   }

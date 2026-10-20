@@ -273,7 +273,7 @@ When the app writes a key, it keeps the style the key already uses. If a single 
 
 | View | Derived from |
 |---|---|
-| Outline | Part and chapter order, plus each entry's `title`, `status`, and `synopsis` |
+| Overview | Part and chapter order, plus each entry's `title`, `status`, `pov`, `threads`, and `synopsis` |
 | Timeline | `story_date` and `threads` per chapter |
 | Character "appears in" | Chapters whose `characters` or `pov` link to the character |
 | Interactions | Pairs of characters linked from the same chapter's `characters` or `pov` |

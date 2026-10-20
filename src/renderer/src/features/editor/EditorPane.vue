@@ -4,6 +4,7 @@ import { useLayoutStore } from '../../app/layout-store'
 import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
+import OverviewView from '../overview/OverviewView.vue'
 import ProjectOverview from '../welcome/ProjectOverview.vue'
 import ChapterEditor from './ChapterEditor.vue'
 import ConflictBanner from './ConflictBanner.vue'
@@ -22,7 +23,8 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
 
 <template>
   <div class="pane" :class="{ focus: layout.focusMode }">
-    <div v-if="editor.entry" class="page">
+    <OverviewView v-if="layout.mainView === 'overview'" />
+    <div v-else-if="editor.entry" class="page">
       <header class="heading">
         <div class="eyebrow" dir="auto">{{ editor.entry.label }}</div>
         <h1 dir="auto">{{ editor.entry.title }}</h1>

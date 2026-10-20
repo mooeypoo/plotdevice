@@ -43,9 +43,33 @@ describe('describeUnorderedReason', () => {
 
 describe('clashDescription', () => {
   it('names the chapters that share the order', () => {
-    const a = { path: 'a', title: 'Café Ñandú', order: 2, wordCount: 0, duplicateOrder: true }
-    const b = { path: 'b', title: 'Duplicate order', order: 2, wordCount: 0, duplicateOrder: true }
-    const c = { path: 'c', title: 'Shapes', order: 3, wordCount: 0, duplicateOrder: false }
+    const a = {
+      path: 'a',
+      title: 'Café Ñandú',
+      order: 2,
+      wordCount: 0,
+      duplicateOrder: true,
+      pov: [],
+      threads: []
+    }
+    const b = {
+      path: 'b',
+      title: 'Duplicate order',
+      order: 2,
+      wordCount: 0,
+      duplicateOrder: true,
+      pov: [],
+      threads: []
+    }
+    const c = {
+      path: 'c',
+      title: 'Shapes',
+      order: 3,
+      wordCount: 0,
+      duplicateOrder: false,
+      pov: [],
+      threads: []
+    }
     expect(clashDescription(a, [a, b, c])).toBe('Shares order 2 with “Duplicate order”')
     expect(clashDescription(c, [a, b, c])).toBeUndefined()
   })

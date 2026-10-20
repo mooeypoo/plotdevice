@@ -72,8 +72,8 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [x] Fix-it actions in the warnings panel: write an ambiguous link with its folder, quote an unquoted link.
 - [x] Templates for new characters, locations, and notes that the writer can change (`templates/` by default; the built-in default when a file is missing).
 
-## Phase 6: Outline view
-- [ ] Derived outline: parts and chapters with status chips and synopses. Edit synopses inline, filter by status, POV, or thread.
+## Phase 6: Outline and Overview
+- [x] Overview (the derived view): parts and chapters with status, POV, threads, and synopses. Edit synopses inline, filter by status, POV, or thread. Opened from Write | Overview in the top bar.
 - [x] **Writer's outline (MVP requirement).** An outline the writer writes and reads alongside the draft: how they see chapters and sequences going, independent of what is written so far and of story dates (unlike the timeline, which is derived). Readable as a reference panel while writing. Storage and format (plain markdown in the project, linking to chapters) to be designed before this phase.
 
 ## Phase 7: Timeline
