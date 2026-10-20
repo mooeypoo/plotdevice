@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join, relative, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   composeMarkdownFile,
@@ -15,7 +15,7 @@ const decoder = new TextDecoder()
 
 const fixtureFiles = readdirSync(fixture, { recursive: true, withFileTypes: true })
   .filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
-  .map((entry) => relative(fixture, join(entry.parentPath, entry.name)))
+  .map((entry) => relative(fixture, join(entry.parentPath, entry.name)).split(sep).join('/'))
   .sort()
 
 function partsOf(path: string): MarkdownFileParts {
