@@ -105,6 +105,13 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [x] Keep a pending decision explicit when the file reappears or changes again. Failed reads/writes retain the draft, and failed reopening of a published copy can retry without duplicate copies.
 - [x] Serialize recovery actions, freeze editing without resetting history while they run, and guard entry/project/window navigation. Snapshots are session-local; this is not persistent crash recovery.
 
+## Proposed release and documentation program
+
+The [release plan](release-plan.md) is a draft for discussion: MVP version policy,
+draft/immutable releases, a documentation site, and a published-version feed.
+Local release preparation (R1) is approved and in progress. Remaining phases need
+their own approval; public deployment and publication are not authorized.
+
 ## Decide after MVP
 - Edge cases in part and chapter structure beyond what `docs/file-format.md` defines (nested parts, chapters belonging to several parts).
 - Relationship direction, and what happens when both characters declare the same relationship.
