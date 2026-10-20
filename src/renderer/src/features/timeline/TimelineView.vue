@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import type { TimelineChapterDto } from '../../../../contract/dtos'
+import { isolate } from '../../shared/isolate'
 import { chapterLabel } from './reading-grid'
 import { axisTicks, PX_PER_DAY, type Zoom } from './story-axis'
 import { useTimeline } from './use-timeline'
@@ -37,7 +38,7 @@ function describe(chapter: TimelineChapterDto): string {
         : 'Undated'
   const time = chapter.storyTime === undefined ? '' : `, ${chapter.storyTime}`
   const synopsis = chapter.synopsis === undefined ? '' : `\n${chapter.synopsis}`
-  return `${chapter.title} · ${date}${time}${synopsis}`
+  return `${isolate(chapter.title)} · ${date}${time}${synopsis}`
 }
 
 const chapterAt = (path: string): TimelineChapterDto | undefined =>
@@ -165,7 +166,7 @@ function setMinGap(event: Event): void {
           :class="[cell, { gap: row.gaps.some((gap) => index >= gap.from && index <= gap.to) }]"
           :style="cell === 'out' ? undefined : { '--row-color': row.color ?? 'var(--accent)' }"
           :title="describe(timeline.chapters[index] as TimelineChapterDto)"
-          :aria-label="`${row.name} in ${timeline.chapters[index]?.title}: ${cell === 'out' ? 'no' : cell === 'pov' ? 'point of view' : 'yes'}`"
+          :aria-label="`${isolate(row.name)} in ${isolate(timeline.chapters[index]?.title ?? '')}: ${cell === 'out' ? 'no' : cell === 'pov' ? 'point of view' : 'yes'}`"
           @click="view.open(timeline.chapters[index]?.path ?? '')"
         ></button>
       </template>

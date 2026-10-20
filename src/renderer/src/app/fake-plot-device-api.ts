@@ -6,6 +6,7 @@ import type {
   CodexPropertiesDto,
   ProjectChangeDto,
   ProjectSummaryDto,
+  InteractionsDto,
   RenamePlanDto,
   TimelineDto
 } from '../../../contract/dtos'
@@ -167,6 +168,21 @@ export const sampleTimeline: TimelineDto = {
   outside: 0
 }
 
+/** Three characters over three chapters: Ilka with Bea once and with יעל twice; Bea and יעל never. */
+export const sampleInteractions: InteractionsDto = {
+  chapters: [
+    { path: 'The Ferry.md', title: 'The Ferry' },
+    { path: 'First frost.md', title: 'First frost' },
+    { path: 'Lost.md', title: 'Lost' }
+  ],
+  characters: [
+    { path: 'characters/Aunt Bea.md', name: 'Aunt Bea', chapters: [1], povChapters: [] },
+    { path: 'characters/Ilka.md', name: 'Ilka', chapters: [0, 1, 2], povChapters: [0] },
+    { path: 'characters/יעל.md', name: 'יעל', chapters: [0, 2], povChapters: [2] }
+  ],
+  outside: 1
+}
+
 export function createFakePlotDeviceApi(): {
   api: PlotDeviceApi
   files: Map<string, string>
@@ -252,7 +268,7 @@ export function createFakePlotDeviceApi(): {
     `${files.get(path) ?? ''}#${String(revisions.get(path) ?? 0)}`
 
   const api: PlotDeviceApi = {
-    contractVersion: 9,
+    contractVersion: 10,
     workspace: {
       chooseFolder: () => Promise.resolve(null),
       openProject: () => Promise.resolve({ ok: true, value: sampleSummary }),
@@ -521,6 +537,9 @@ export function createFakePlotDeviceApi(): {
     },
     timeline: {
       getTimeline: () => Promise.resolve({ ok: true, value: timeline.current })
+    },
+    interactions: {
+      getInteractions: () => Promise.resolve({ ok: true, value: sampleInteractions })
     },
     inspector: {
       getVocabulary: () =>

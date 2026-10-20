@@ -7,6 +7,7 @@ import type {
   RelationshipEditDto,
   SettableTypeDto,
   TimelineDto,
+  InteractionsDto,
   ApiResult,
   ChapterDestinationDto,
   ChosenFixDto,
@@ -139,6 +140,11 @@ export interface TimelineApi {
   getTimeline(): Promise<ApiResult<TimelineDto>>
 }
 
+/** Who appears with whom in the open project. */
+export interface InteractionsApi {
+  getInteractions(): Promise<ApiResult<InteractionsDto>>
+}
+
 /** Choices and checks for the inspector, drawn from several parts of the project. */
 export interface InspectorApi {
   getVocabulary(): Promise<ApiResult<InspectorVocabularyDto>>
@@ -159,11 +165,12 @@ export interface AppApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 9
+  readonly contractVersion: 10
   readonly workspace: WorkspaceApi
   readonly manuscript: ManuscriptApi
   readonly codex: CodexApi
   readonly timeline: TimelineApi
+  readonly interactions: InteractionsApi
   readonly inspector: InspectorApi
   readonly app: AppApi
 }

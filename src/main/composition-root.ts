@@ -25,6 +25,9 @@ import { registerCodexIpc } from './ipc/codex-ipc'
 import { createReadStoryDates } from './contexts/chronology/application/queries/read-story-dates'
 import { createTimelineHandlers, type TimelineUseCases } from './ipc/timeline-handlers'
 import { registerTimelineIpc } from './ipc/timeline-ipc'
+import { createInteractionsHandlers, type InteractionsUseCases } from './ipc/interactions-handlers'
+import { registerInteractionsIpc } from './ipc/interactions-ipc'
+import { createGetInteractions } from './queries/get-interactions'
 import { createGetTimeline } from './queries/get-timeline'
 import { createGetAppearsIn } from './queries/get-appears-in'
 import { createAddStatus } from './contexts/manuscript/application/commands/add-status'
@@ -82,6 +85,7 @@ interface ProjectUseCases {
   readonly manuscript: ManuscriptUseCases
   readonly codex: CodexUseCases
   readonly timeline: TimelineUseCases
+  readonly interactions: InteractionsUseCases
   readonly inspector: InspectorUseCases
 }
 
@@ -187,6 +191,12 @@ export function composeApplication(): void {
           listCodex: createListCodex({ repository: codexRepository, settings: codexSettings })
         })
       },
+      interactions: {
+        getInteractions: createGetInteractions({
+          listChapterReferences: createListChapterReferences({ repository }),
+          listCodex: createListCodex({ repository: codexRepository, settings: codexSettings })
+        })
+      },
       inspector: {
         getVocabulary: createGetInspectorVocabulary({
           listStatuses: createListStatuses({ repository }),
@@ -242,6 +252,7 @@ export function composeApplication(): void {
   registerManuscriptIpc(createManuscriptHandlers(() => session.current()?.manuscript))
   registerCodexIpc(createCodexHandlers(() => session.current()?.codex))
   registerTimelineIpc(createTimelineHandlers(() => session.current()?.timeline))
+  registerInteractionsIpc(createInteractionsHandlers(() => session.current()?.interactions))
   registerInspectorIpc(createInspectorHandlers(() => session.current()?.inspector))
 }
 

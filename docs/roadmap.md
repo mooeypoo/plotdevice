@@ -82,7 +82,7 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [x] Filters, an undated tray, and a "missing for N chapters" highlight for threads and characters.
 
 ## Phase 8: Interactions
-- [ ] Co-appearance matrix (characters × characters, counts, click a cell to list the chapters), from `characters` and `pov`.
+- [x] Co-appearance matrix (characters × characters, counts, click a cell to list the chapters), from `characters` and `pov`.
 - [ ] Optional relationship graph later.
 
 ## Phase 9: Packaging polish
@@ -96,6 +96,9 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Phase 8 follow-ups:
+  - A relationship graph (from `relationships` and co-appearances).
+  - Bidi isolation audit: the Interactions view, timeline tooltips, and the rename prompt isolate names (`<bdi>`, or FSI/PDI via `shared/isolate.ts`). Check the remaining messages that embed names or titles, such as warnings built in the main process, status messages, and the outline panel's hints.
 - Phase 7 follow-ups:
   - Changing a chapter's date by dragging it on the time axis; dates are edited in the inspector today.
   - Ordering chapters on the same day by `story_time`; it's shown in the tooltip only.

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useEditorStore } from '../../app/editor-store'
+import { isolate } from '../../shared/isolate'
 
 defineProps<{ disabled: boolean }>()
 
@@ -20,7 +21,7 @@ const question = computed(() => {
     current.linkCount === 0
       ? ''
       : ` This also updates ${String(current.linkCount)} ${current.linkCount === 1 ? 'link' : 'links'} in ${String(current.fileCount)} ${current.fileCount === 1 ? 'file' : 'files'}.`
-  return `Rename the file to “${current.newName}”?${links}`
+  return `Rename the file to “${isolate(current.newName)}”?${links}`
 })
 
 async function accept(): Promise<void> {

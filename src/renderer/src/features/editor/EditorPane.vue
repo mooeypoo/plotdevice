@@ -5,6 +5,7 @@ import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import OverviewView from '../overview/OverviewView.vue'
+import InteractionsView from '../interactions/InteractionsView.vue'
 import TimelineView from '../timeline/TimelineView.vue'
 import ProjectOverview from '../welcome/ProjectOverview.vue'
 import ChapterEditor from './ChapterEditor.vue'
@@ -26,6 +27,7 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
   <div class="pane" :class="{ focus: layout.focusMode }">
     <OverviewView v-if="layout.mainView === 'overview'" />
     <TimelineView v-else-if="layout.mainView === 'timeline'" />
+    <InteractionsView v-else-if="layout.mainView === 'interactions'" />
     <div v-else-if="editor.entry" class="page">
       <header class="heading">
         <div class="eyebrow" dir="auto">{{ editor.entry.label }}</div>

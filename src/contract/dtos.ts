@@ -422,3 +422,20 @@ export interface TimelineDto {
   /** Chapters outside the reading order, not shown. */
   readonly outside: number
 }
+
+/** A character who appears in the book, and which chapters (indexes into `chapters`). */
+export interface InteractingCharacterDto {
+  readonly path: string
+  readonly name: string
+  readonly chapters: readonly number[]
+  /** The chapters where this character is the point of view. */
+  readonly povChapters: readonly number[]
+}
+
+/** Who appears with whom, from chapters' `pov` and `characters`. */
+export interface InteractionsDto {
+  readonly chapters: readonly { readonly path: string; readonly title: string }[]
+  readonly characters: readonly InteractingCharacterDto[]
+  /** Chapters outside the reading order, not counted. */
+  readonly outside: number
+}

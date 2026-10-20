@@ -7,6 +7,7 @@ import {
   INSPECTOR_CHANNELS,
   MANUSCRIPT_CHANNELS,
   TIMELINE_CHANNELS,
+  INTERACTIONS_CHANNELS,
   WORKSPACE_CHANNELS
 } from '../contract/channels'
 import type {
@@ -24,6 +25,7 @@ import type {
   RenumberedDto,
   StoryDateCheckDto,
   TimelineDto,
+  InteractionsDto,
   FolderChoiceDto,
   ManuscriptDto,
   ProjectChangeDto,
@@ -38,7 +40,7 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 9,
+  contractVersion: 10,
   workspace: {
     chooseFolder: () => invoke<FolderChoiceDto | null>(WORKSPACE_CHANNELS.chooseFolder),
     openProject: (root) =>
@@ -135,6 +137,9 @@ const plotDevice: PlotDeviceApi = {
   },
   timeline: {
     getTimeline: () => invoke<ApiResult<TimelineDto>>(TIMELINE_CHANNELS.getTimeline)
+  },
+  interactions: {
+    getInteractions: () => invoke<ApiResult<InteractionsDto>>(INTERACTIONS_CHANNELS.getInteractions)
   },
   inspector: {
     getVocabulary: () =>

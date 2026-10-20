@@ -101,6 +101,10 @@ src/
 
 **Timeline.** `queries/get-timeline.ts` combines the manuscript's chapters in reading order (with threads and the files their `pov`/`characters` point to), chronology's reading of each `story_date` as a span of days, and the codex's character names. The renderer (`features/timeline/`) draws it two ways from pure, tested functions: a reading-order grid (one column per chapter, gaps of N chapters highlighted, "↶ earlier" when a chapter certainly happens before the one before it) and a story-order view on a real time scale (bars from first to last day, dashed when only the month or year is known, stacked into lanes where they overlap). It is read-only; clicking a chapter opens it.
 
+**Interactions.** `queries/get-interactions.ts` lists, for each character in the book, the chapters (in reading order) whose `pov` or `characters` name them, with the POV ones. The renderer builds the symmetric co-appearance matrix from that (`features/interactions/interaction-matrix.ts`); a picked cell lists the shared chapters.
+
+**Mixed-direction text.** Names and titles can be Hebrew next to Latin text. In templates they go in their own `<bdi>` (or an element with `dir="auto"`); in strings that can't hold markup (tooltips, `aria-label`s) they're wrapped by `shared/isolate.ts` (FSI…PDI), so a right-to-left name never reorders the words or numbers around it.
+
 **Side panels.** The left panel has Manuscript and Codex tabs; the right panel has Properties (the inspector for the open entry's kind) and Outline. The outline panel (`features/outline/`) is a read-only CodeMirror view that highlights lines linking to the open entry and opens links on click; "Edit" opens the outline in the main editor, and the panel steps aside while it's there, so one file is never edited in two places.
 
 **Shared file access.** `infrastructure/markdown/entry-files.ts` reads and writes one project's files (body-only saves, key edits, new files, version checks). The manuscript and codex repositories both delegate to it.
