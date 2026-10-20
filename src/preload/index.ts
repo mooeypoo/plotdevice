@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { PlotDeviceApi } from '../contract/api'
+import type { AppMenuCommand, PlotDeviceApi } from '../contract/api'
 import {
   APP_CHANNELS,
   CODEX_CHANNELS,
@@ -40,7 +40,7 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 11,
+  contractVersion: 12,
   workspace: {
     chooseFolder: () => invoke<FolderChoiceDto | null>(WORKSPACE_CHANNELS.chooseFolder),
     openProject: (root) =>
@@ -156,6 +156,13 @@ const plotDevice: PlotDeviceApi = {
       invoke<ApiResult<StoryDateCheckDto>>(INSPECTOR_CHANNELS.checkStoryDate, text)
   },
   app: {
+    onMenuCommand: (listener) => {
+      const handler = (_: unknown, command: AppMenuCommand): void => {
+        listener(command)
+      }
+      ipcRenderer.on(APP_CHANNELS.menuCommand, handler)
+      return () => ipcRenderer.removeListener(APP_CHANNELS.menuCommand, handler)
+    },
     onBeforeClose: (listener) => {
       const handler = (): void => {
         listener()

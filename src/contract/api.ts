@@ -158,8 +158,21 @@ export interface InspectorApi {
   checkStoryDate(text: string): Promise<ApiResult<StoryDateCheckDto>>
 }
 
-/** The window's lifecycle. */
+/** Layout actions requested by the native application menu. */
+export type AppMenuCommand =
+  | 'toggle-binder'
+  | 'toggle-inspector'
+  | 'toggle-outline'
+  | 'toggle-focus-mode'
+  | 'write'
+  | 'overview'
+  | 'timeline'
+  | 'interactions'
+
+/** The window's lifecycle and native menu. */
 export interface AppApi {
+  /** Subscribes to native menu actions. Returns a function that stops listening. */
+  onMenuCommand(listener: (command: AppMenuCommand) => void): () => void
   /** Called when the window is about to close; save, then call `readyToClose`. */
   onBeforeClose(listener: () => void): () => void
   readyToClose(): void
@@ -172,7 +185,7 @@ export interface AppApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 11
+  readonly contractVersion: 12
   readonly workspace: WorkspaceApi
   readonly manuscript: ManuscriptApi
   readonly codex: CodexApi

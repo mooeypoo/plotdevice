@@ -14,6 +14,7 @@ import StatusBar from './StatusBar.vue'
 import TopBar from './TopBar.vue'
 import { useWarnings } from '../features/warnings/use-warnings'
 import { useLiveSync } from './use-live-sync'
+import { useMenuCommands } from './use-menu-commands'
 import { useShortcuts } from './use-shortcuts'
 import { useWorkspaceStore } from './workspace-store'
 
@@ -25,6 +26,7 @@ const layout = useLayoutStore()
 const inspector = useInspectorStore()
 
 useLiveSync()
+useMenuCommands()
 
 function move(request: DropRequest): void {
   if (request.kind === 'move-part') void manuscript.movePart(request.path, request.index)
@@ -54,37 +56,6 @@ watch(
 )
 
 useShortcuts([
-  {
-    key: '\\',
-    mod: true,
-    run: () => {
-      layout.toggleBinder()
-    }
-  },
-  {
-    key: 'f',
-    mod: true,
-    shift: true,
-    run: () => {
-      layout.toggleFocusMode()
-    }
-  },
-  {
-    key: 'i',
-    mod: true,
-    shift: true,
-    run: () => {
-      layout.toggleInspector()
-    }
-  },
-  {
-    key: 'o',
-    mod: true,
-    shift: true,
-    run: () => {
-      layout.toggleOutline()
-    }
-  },
   {
     key: 'Escape',
     run: () => {

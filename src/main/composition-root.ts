@@ -80,6 +80,13 @@ import { createWorkspaceHandlers } from './ipc/workspace-handlers'
 import { createLaunchFolders, type LaunchFolders } from './ipc/launch-folders'
 import { registerWorkspaceIpc } from './ipc/workspace-ipc'
 import { parseProjectPath, type ProjectPath } from './shared-kernel/project-path'
+import { createJsonWindowStateStore } from './infrastructure/window/json-window-state-store'
+import type { WindowStateStore } from './window-state'
+
+/** Builds the app-shell settings adapter outside every novel folder. */
+export function composeWindowStateStore(): WindowStateStore {
+  return createJsonWindowStateStore(app.getPath('userData'))
+}
 
 /** The use cases built for each open project. */
 interface ProjectUseCases {

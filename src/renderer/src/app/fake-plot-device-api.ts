@@ -1,4 +1,4 @@
-import type { PlotDeviceApi } from '../../../contract/api'
+import type { AppMenuCommand, PlotDeviceApi } from '../../../contract/api'
 import type {
   EntryPropertiesDto,
   ManuscriptDto,
@@ -200,6 +200,8 @@ export function createFakePlotDeviceApi(): {
   openFolder(choice: FolderChoiceDto): void
   /** Simulates the main process reporting changes made by another program. */
   emitChanges(changes: readonly ProjectChangeDto[]): void
+  /** Simulates choosing a native menu action. */
+  emitMenuCommand(command: AppMenuCommand): void
   /** Simulates another program rewriting a file without changing its text (line endings). */
   touch(path: string): void
   /** A codex entry's properties, to set up a test (for example, relationships it can't edit). */
@@ -253,6 +255,7 @@ export function createFakePlotDeviceApi(): {
   const summary = { current: sampleSummary }
   const listeners = new Set<(changes: readonly ProjectChangeDto[]) => void>()
   const folderListeners = new Set<(choice: FolderChoiceDto) => void>()
+  const menuListeners = new Set<(command: AppMenuCommand) => void>()
   const launch: { folder: FolderChoiceDto | null } = { folder: null }
   // New chapters join the unordered tray, so the store can open them.
   let manuscript: ManuscriptDto = sampleManuscript
@@ -275,7 +278,7 @@ export function createFakePlotDeviceApi(): {
     `${files.get(path) ?? ''}#${String(revisions.get(path) ?? 0)}`
 
   const api: PlotDeviceApi = {
-    contractVersion: 11,
+    contractVersion: 12,
     workspace: {
       chooseFolder: () => Promise.resolve(null),
       takeLaunchFolder: () => {
@@ -574,6 +577,10 @@ export function createFakePlotDeviceApi(): {
         })
     },
     app: {
+      onMenuCommand: (listener) => {
+        menuListeners.add(listener)
+        return () => menuListeners.delete(listener)
+      },
       onBeforeClose: () => () => undefined,
       readyToClose: () => undefined,
       cancelClose: () => undefined
@@ -603,6 +610,9 @@ export function createFakePlotDeviceApi(): {
     },
     emitChanges: (changes) => {
       for (const listener of listeners) listener(changes)
+    },
+    emitMenuCommand: (command) => {
+      for (const listener of menuListeners) listener(command)
     },
     renames: state.renames,
     renamePlan,

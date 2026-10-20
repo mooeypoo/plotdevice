@@ -92,8 +92,8 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [ ] Test an install on a Windows machine or VM: follow `docs/testing-windows.md`.
 
 ## Phase 10: App menu and window
-- [ ] Replace the default menu: Edit (undo, cut, copy, paste, select all), View (panels, focus mode, the four views), Help → About Plot Device (version, GPL-3.0, project link). Developer tools only in development builds.
-- [ ] Remember the window's size, position, and maximized state between sessions, in the settings folder (`userData`), never in the novel folder.
+- [x] Replace the default menu: Edit (undo, redo, cut, copy, paste, select all), View (panels, focus mode, the four views), Help → About Plot Device (version, GPL-3.0-or-later, project link). Reload and developer tools only in development builds.
+- [x] Remember the window's size, position, and maximized state between sessions, in the settings folder (`userData`), never in the novel folder.
 
 ## Decide after MVP
 - Edge cases in part and chapter structure beyond what `docs/file-format.md` defines (nested parts, chapters belonging to several parts).
@@ -149,7 +149,6 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
   - Running `npm run dev` from a process that inherits `ELECTRON_RUN_AS_NODE=1` (for example, a VS Code extension host) starts Electron as plain Node, and `app` is undefined. Unset it.
   - `npm audit` reports moderate issues in electron-builder's own build tooling (`sprintf-js` via `global-agent`). Not shipped in the app; recheck when electron-builder updates.
   - npm 12 blocks `electron-winstaller`'s install script. It is only used for Squirrel installers, which aren't built here.
-  - The production menu still has the default developer tools entry; replace the menu in Phase 10.
 - Scene files (`type: scene`, belonging to a chapter), when chapter-level metadata isn't enough.
 - "Body mentions" for interactions (characters mentioned in prose but not listed). Suggestions only, never counted; Hebrew prefixes (ו, ה, ב, ל, מ, ש) make name matching unreliable.
 - Rewriting markdown links (`[text](file.md)`) on rename.

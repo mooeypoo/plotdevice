@@ -74,8 +74,9 @@ export const INSPECTOR_CHANNELS = {
   checkStoryDate: 'inspector:check-story-date'
 } as const satisfies Record<keyof InspectorApi, string>
 
-/** Main → renderer: the window wants to close. Renderer → main: done saving. */
+/** Native menu commands and the window-close handshake with the renderer. */
 export const APP_CHANNELS = {
+  menuCommand: 'app:menu-command',
   beforeClose: 'app:before-close',
   readyToClose: 'app:ready-to-close',
   cancelClose: 'app:cancel-close'
