@@ -1,0 +1,12 @@
+# Renderer
+
+**Purpose.** Presents the novel through Vue components, Pinia stores, and UI composables.
+
+**Main concepts.** `app/` owns project navigation, layout, shared editor state, and user preferences.
+`features/` contains the binder, editor, inspector, outline, timeline, codex, and interactions views.
+The Writing appearance controls set prose size/width without changing markdown or editor history.
+The preferences store keeps typography and per-project collapsed binder parts in `userData` browser storage.
+Invalid or unavailable preferences storage is reported without blocking writing.
+
+**Must not know about.** Node, Electron, filesystem access, domain classes, or concrete adapters.
+All project reads and writes go through the typed `window.plotDevice` API in `src/contract/`.

@@ -7,8 +7,10 @@ import BinderRow from './BinderRow.vue'
 import NewEntryInput from './NewEntryInput.vue'
 import type { DropRequest, DropSpot } from './binder-drop'
 import { provideBinderDrag } from './use-binder-drag'
+import { useBinderCollapse } from './use-binder-collapse'
 
 const props = defineProps<{
+  projectRoot: string
   manuscript: ManuscriptDto
   selectedPath: string | null
   /** How many files or warnings need the writer's attention. */
@@ -27,6 +29,7 @@ const emit = defineEmits<{
 const drag = provideBinderDrag((request) => {
   emit('move', request)
 })
+const collapse = useBinderCollapse(() => props.projectRoot)
 const partPaths = computed(() => props.manuscript.parts.map((part) => part.path))
 const flatPaths = computed(() => props.manuscript.chapters.map((chapter) => chapter.path))
 const lastFlat = computed(() => props.manuscript.chapters.length - 1)
@@ -78,11 +81,13 @@ function createChapter(title: string): void {
         v-for="(part, index) in manuscript.parts"
         :key="part.path"
         :part="part"
+        :expanded="collapse.isExpanded(part.path)"
         :selected-path="selectedPath"
         :read-only="readOnly"
         :part-paths="partPaths"
         :part-index="index"
         @open="$emit('open', $event)"
+        @set-expanded="collapse.setExpanded(part.path, $event)"
         @create-chapter="(part, title) => $emit('createChapter', part, title)"
       />
 
@@ -149,10 +154,12 @@ function createChapter(title: string): void {
           v-for="part in manuscript.unnumberedParts"
           :key="part.path"
           :part="part"
+          :expanded="collapse.isExpanded(part.path)"
           :selected-path="selectedPath"
           :read-only="readOnly"
           :part-paths="partPaths"
           @open="$emit('open', $event)"
+          @set-expanded="collapse.setExpanded(part.path, $event)"
           @create-chapter="(part, title) => $emit('createChapter', part, title)"
         />
       </template>

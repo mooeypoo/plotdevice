@@ -1,0 +1,145 @@
+import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
+import { z } from 'zod'
+import type { ApiResult } from '../../../contract/dtos'
+
+/** Supported display sizes; these never change the markdown itself. */
+export const PROSE_FONT_SIZE = { min: 14, max: 28, default: 19 } as const
+/** Preferred maximum line lengths, measured in the prose font's character units. */
+export const PROSE_LINE_WIDTH = { min: 45, max: 90, default: 66 } as const
+
+const KEY = 'plotdevice.writingPreferences'
+const fontSizeSchema = z.number().int().min(PROSE_FONT_SIZE.min).max(PROSE_FONT_SIZE.max)
+const lineWidthSchema = z.number().int().min(PROSE_LINE_WIDTH.min).max(PROSE_LINE_WIDTH.max)
+const preferencesSchema = z.object({
+  version: z.literal(1),
+  fontSize: fontSizeSchema,
+  lineWidth: lineWidthSchema,
+  collapsedParts: z.record(z.string(), z.array(z.string()))
+})
+type WritingPreferences = z.infer<typeof preferencesSchema>
+
+function defaults(): WritingPreferences {
+  return {
+    version: 1,
+    fontSize: PROSE_FONT_SIZE.default,
+    lineWidth: PROSE_LINE_WIDTH.default,
+    collapsedParts: {}
+  }
+}
+
+/** Per-user display preferences in Chromium's userData storage, never in the novel folder. */
+export const useWritingPreferencesStore = defineStore('writing-preferences', () => {
+  const storageNotice = ref('')
+  const preferences = ref(load())
+
+  function reportStorageFailure(message: string, error: unknown): void {
+    storageNotice.value = message
+    console.warn(message, error)
+  }
+
+  function load(): WritingPreferences {
+    let text: string | null
+    try {
+      text = localStorage.getItem(KEY)
+    } catch (error) {
+      reportStorageFailure('Writing preferences could not be loaded. Using the defaults.', error)
+      return defaults()
+    }
+    if (text === null) return defaults()
+    let value: unknown
+    try {
+      value = JSON.parse(text) as unknown
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error
+      reportStorageFailure('Saved writing preferences are invalid. Using the defaults.', error)
+      return defaults()
+    }
+    const parsed = preferencesSchema.safeParse(value)
+    if (parsed.success) return parsed.data
+    reportStorageFailure('Saved writing preferences are invalid. Using the defaults.', parsed.error)
+    return defaults()
+  }
+
+  function save(): void {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(preferences.value))
+      storageNotice.value = ''
+    } catch (error) {
+      reportStorageFailure(
+        'Writing preferences could not be saved. Changes apply only to this session.',
+        error
+      )
+    }
+  }
+
+  function setTypography(key: 'fontSize' | 'lineWidth', value: number): ApiResult<void> {
+    const parsed = (key === 'fontSize' ? fontSizeSchema : lineWidthSchema).safeParse(value)
+    if (!parsed.success) {
+      const error = { code: 'invalid-writing-preference', message: parsed.error.message }
+      console.warn('Invalid writing preference.', error)
+      return { ok: false, error }
+    }
+    preferences.value[key] = parsed.data
+    save()
+    return { ok: true, value: undefined }
+  }
+
+  function setFontSize(value: number): ApiResult<void> {
+    return setTypography('fontSize', value)
+  }
+
+  function setLineWidth(value: number): ApiResult<void> {
+    return setTypography('lineWidth', value)
+  }
+
+  function resetTypography(): void {
+    preferences.value.fontSize = PROSE_FONT_SIZE.default
+    preferences.value.lineWidth = PROSE_LINE_WIDTH.default
+    save()
+  }
+
+  function isPartCollapsed(root: string, path: string): boolean {
+    return preferences.value.collapsedParts[root]?.includes(path) ?? false
+  }
+
+  function setPartCollapsed(root: string, path: string, collapsed: boolean): void {
+    const paths = preferences.value.collapsedParts[root] ?? []
+    const next = paths.filter((existing) => existing !== path)
+    if (collapsed) next.push(path)
+    const others = Object.entries(preferences.value.collapsedParts).filter(([key]) => key !== root)
+    preferences.value.collapsedParts = Object.fromEntries(
+      next.length === 0 ? others : [...others, [root, next]]
+    )
+    save()
+  }
+
+  const fontSize = computed({
+    get: () => preferences.value.fontSize,
+    set: (value: number) => {
+      setFontSize(value)
+    }
+  })
+  const lineWidth = computed({
+    get: () => preferences.value.lineWidth,
+    set: (value: number) => {
+      setLineWidth(value)
+    }
+  })
+  const proseStyle = computed(() => ({
+    '--prose-size': `${String(fontSize.value)}px`,
+    '--measure': `${String(lineWidth.value)}ch`
+  }))
+
+  return {
+    fontSize,
+    lineWidth,
+    proseStyle,
+    storageNotice,
+    setFontSize,
+    setLineWidth,
+    resetTypography,
+    isPartCollapsed,
+    setPartCollapsed
+  }
+})

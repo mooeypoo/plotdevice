@@ -9,6 +9,7 @@ import { useBinderDrag } from './use-binder-drag'
 
 const props = defineProps<{
   part: PartDto
+  expanded: boolean
   selectedPath: string | null
   readOnly: boolean
   /** The numbered parts' paths, in order, for dragging parts. */
@@ -20,6 +21,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   open: [path: string]
   createChapter: [partPath: string, title: string]
+  setExpanded: [expanded: boolean]
 }>()
 
 const drag = useBinderDrag()
@@ -46,7 +48,7 @@ function overHeader(event: DragEvent): void {
 const droppingInto = computed(
   () =>
     drag.isChapterGap(props.part.path, props.part.chapters.length) &&
-    (!expanded.value || props.part.chapters.length === 0)
+    (!props.expanded || props.part.chapters.length === 0)
 )
 const partGapBefore = computed(
   () => props.partIndex !== undefined && drag.isPartGap(props.partIndex)
@@ -58,11 +60,10 @@ const partGapAfter = computed(
     drag.isPartGap(props.partIndex + 1)
 )
 
-const expanded = ref(true)
 const adding = ref(false)
 
 function startAdding(): void {
-  expanded.value = true
+  emit('setExpanded', true)
   adding.value = true
 }
 
@@ -92,7 +93,7 @@ const marker = computed(() =>
         class="toggle"
         :aria-expanded="expanded"
         :aria-label="`${expanded ? 'Collapse' : 'Expand'} ${part.title}`"
-        @click="expanded = !expanded"
+        @click="$emit('setExpanded', !expanded)"
       >
         <svg
           width="12"

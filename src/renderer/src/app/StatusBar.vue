@@ -4,6 +4,7 @@ import { formatWordCount } from '../features/binder/binder-labels'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useWorkspaceStore } from './workspace-store'
+import WritingAppearance from './WritingAppearance.vue'
 
 const manuscript = useManuscriptStore()
 const editor = useEditorStore()
@@ -55,6 +56,7 @@ const saveTone = computed(() => {
       Manuscript {{ formatWordCount(manuscript.manuscript.wordCount) }}
     </span>
     <span class="spacer"></span>
+    <WritingAppearance />
     <span v-if="editor.entry" class="save" role="status" aria-live="polite">
       <span class="dot" :style="{ background: saveTone }" aria-hidden="true"></span>
       {{ saveLabel }}

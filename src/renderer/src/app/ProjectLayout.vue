@@ -17,6 +17,7 @@ import { useLiveSync } from './use-live-sync'
 import { useMenuCommands } from './use-menu-commands'
 import { useShortcuts } from './use-shortcuts'
 import { useWorkspaceStore } from './workspace-store'
+import { useWritingPreferencesStore } from './writing-preferences-store'
 
 const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
@@ -24,6 +25,7 @@ const codex = useCodexStore()
 const editor = useEditorStore()
 const layout = useLayoutStore()
 const inspector = useInspectorStore()
+const writingPreferences = useWritingPreferencesStore()
 
 useLiveSync()
 useMenuCommands()
@@ -58,6 +60,7 @@ watch(
 useShortcuts([
   {
     key: 'Escape',
+    preventDefault: false,
     run: () => {
       layout.exitFocusMode()
     }
@@ -73,7 +76,7 @@ useShortcuts([
 </script>
 
 <template>
-  <div class="layout" :class="{ focus: layout.focusMode }">
+  <div class="layout" :class="{ focus: layout.focusMode }" :style="writingPreferences.proseStyle">
     <TopBar v-if="!layout.focusMode" />
 
     <div class="body">

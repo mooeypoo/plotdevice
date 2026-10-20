@@ -95,6 +95,10 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [x] Replace the default menu: Edit (undo, redo, cut, copy, paste, select all), View (panels, focus mode, the four views), Help → About Plot Device (version, GPL-3.0-or-later, project link). Reload and developer tools only in development builds.
 - [x] Remember the window's size, position, and maximized state between sessions, in the settings folder (`userData`), never in the novel folder.
 
+## Phase 11: Writing comfort
+- [x] Adjustable prose size (14–28 px) and line width (45–90 ch), with live preview and Reset in the status bar's Writing appearance popover. Defaults remain 19 px and 66 ch. Per-user settings apply across projects and in focus mode, without changing markdown or resetting editor history.
+- [x] Remember collapsed binder parts per project, including parts outside the sequence. Reordering preserves collapse state; creating a chapter expands its part. Preferences stay in `userData` browser storage, never in the novel folder.
+
 ## Decide after MVP
 - Edge cases in part and chapter structure beyond what `docs/file-format.md` defines (nested parts, chapters belonging to several parts).
 - Relationship direction, and what happens when both characters declare the same relationship.
@@ -138,7 +142,7 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - Phase 2 follow-ups:
   - A light theme. Only the dark theme exists.
   - The panel framework (reference panel, timeline drawer) arrives with Phases 5 and 7, as drawn in the UI direction canvas.
-  - Remember which binder parts are collapsed; typewriter scrolling; adjustable prose size and line width.
+  - Typewriter scrolling.
   - Embeds show their target as `Marrow#Mill`; render headings as `Marrow › Mill`.
   - Clicking a link in the editor to open its target (Phase 5, with the codex).
 - Phase 1 follow-ups:

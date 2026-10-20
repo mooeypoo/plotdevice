@@ -28,6 +28,7 @@ export interface ProseEditorOptions {
 
 /** A mounted prose editor and the settings that can change while it is open. */
 export interface ProseEditor {
+  remeasure(): void
   setFocusMode(on: boolean): void
   setLinkTargets(targets: readonly LinkTargetDto[]): void
   focus(): void
@@ -90,6 +91,9 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
   })
 
   return {
+    remeasure() {
+      view.requestMeasure()
+    },
     setFocusMode(on) {
       view.dispatch({ effects: focusCompartment.reconfigure(on ? focusDimming() : []) })
     },

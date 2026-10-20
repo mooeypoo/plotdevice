@@ -5,6 +5,8 @@ export interface Shortcut {
   readonly key: string
   readonly mod?: boolean
   readonly shift?: boolean
+  /** False when the browser should also handle the key, such as dismissing a popover on Escape. */
+  readonly preventDefault?: boolean
   readonly run: () => void
 }
 
@@ -18,7 +20,7 @@ export function useShortcuts(shortcuts: readonly Shortcut[]): void {
         mod === (shortcut.mod ?? false) &&
         event.shiftKey === (shortcut.shift ?? false)
       ) {
-        event.preventDefault()
+        if (shortcut.preventDefault !== false) event.preventDefault()
         shortcut.run()
         return
       }

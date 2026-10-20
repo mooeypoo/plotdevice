@@ -44,7 +44,8 @@ const TABS: readonly { readonly id: SideTab; readonly label: string }[] = [
       </button>
     </div>
     <BinderTree
-      v-if="layout.sideTab === 'manuscript' && manuscript.manuscript"
+      v-if="layout.sideTab === 'manuscript' && manuscript.manuscript && workspace.project"
+      :project-root="workspace.project.root"
       :manuscript="manuscript.manuscript"
       :selected-path="editor.entry?.path ?? null"
       :attention-count="attentionCount"
