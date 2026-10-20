@@ -112,6 +112,9 @@ draft/immutable releases, a documentation site, and a published-version feed.
 Local release preparation (R1) is implemented: beta metadata, changelog, read-only
 guided helpers, and a [release checklist](releasing.md). Remaining phases need
 their own approval; public deployment and publication are not authorized.
+R2 now assembles unpublished drafts for validated annotated version tags after both
+x64 platform builds. Local tests cover assembly/retries; the first tagged Actions
+rehearsal and real installer qualification remain pending.
 
 ## Decide after MVP
 - Edge cases in part and chapter structure beyond what `docs/file-format.md` defines (nested parts, chapters belonging to several parts).

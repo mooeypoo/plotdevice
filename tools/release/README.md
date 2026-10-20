@@ -1,7 +1,9 @@
 # Release tools
 
-Read-only maintainer helpers for release guidance, preparation previews, local
-pre-tag validation, and changelog extraction. Run through the `release:*` npm scripts.
-They do not modify files, create tags, contact GitHub, or certify installer readiness.
-Policy and progress live in `docs/release-plan.md`; instructions in `docs/releasing.md`.
-These tools must not import app domain code or access a writer's novel.
+`release.ts` provides read-only release guidance, preparation previews, local
+pre-tag validation, and changelog extraction through the `release:*` npm scripts.
+`draft.ts` is CI-only: it validates tag identity and assembles authenticated GitHub
+draft releases with exact x64 assets, hashes, and build metadata; it never publishes.
+Retries verify existing bytes without replacing assets or deleting a draft.
+Neither tool certifies installer readiness or accesses a writer's novel.
+Policy/progress: `docs/release-plan.md`. Maintainer instructions: `docs/releasing.md`.

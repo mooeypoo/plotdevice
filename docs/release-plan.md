@@ -25,7 +25,8 @@ is approved by this document.
 ### Resume here
 
 The maintainer approved committing this plan and starting local preparation on
-2026-10-20, including guided release helper scripts. R1 is implemented.
+2026-10-20, including guided release helper scripts. R1 is implemented; the maintainer
+subsequently approved starting R2, the tag-triggered draft-release pipeline.
 Do not interpret that approval as permission to publish, push tags, change repository
 visibility, add dependencies, or start all remaining phases at once.
 
@@ -37,11 +38,20 @@ has been fabricated. Local release checks should fail until a dated candidate
 section is prepared. The planning checkpoint is commit `ce10f91`; find the R1
 implementation checkpoint in git history by its release-preparation commit title.
 
-Next handoff: propose R2's exact CI/draft-release changes and obtain approval.
-Reuse the local validation and release-note extraction logic, but do not run the
-pre-tag clean-tree/unused-local-tag check unchanged on an already tagged CI checkout.
-Domain, signing, and supported-OS policy can remain open for local tooling but must
-be resolved before the affected release gates. No dependency was added in R1.
+R2 implements annotated-tag/package/changelog/main-branch validation, explicit x64
+builds, and draft assembly after both platform builds. Drafts contain three
+installers, checksums, and deterministic build metadata. Existing assets are
+downloaded and compared before missing uploads; published or mismatched drafts
+are refused. Only the assembly job gets release write permission. Release actions
+are pinned to resolved SHAs. Shared version/notes validation is reused without the
+local-only clean-tree/unused-tag checks. No dependency was added.
+
+Next handoff: R2 still needs its first real tagged Actions rehearsal and installer
+qualification. No remote draft/tag/run was created during implementation; notes
+remain `Unreleased`. Propose R3 (VitePress site) separately, including the new
+dependency approval and Pages/publication boundary. Signing, domain, and supported-OS
+policy remain open before their release gates. Do not publish or enable Pages
+merely because a workflow file exists.
 
 R1 validation (2026-10-20): lint and dependency rules passed; typecheck passed;
 119 test files / 969 tests passed, including 26 release-helper tests; Electron/Vue
@@ -50,7 +60,17 @@ at the current beta version and checks correctly rejected undated candidate note
 Tests run helpers against temporary git repositories and verify no file/tag/commit
 mutation, successful clean pre-tag checks, and rejection of reused local tags.
 
-## 2. Verified starting point
+R2 local validation (2026-10-20): lint/dependency rules, typecheck, all 120 test
+files / 990 tests, Electron/Vue production build, and `git diff --check` passed.
+The 21 new draft-pipeline tests cover exact installer inventory, actual checksum
+contents, successful/partial retries, changed bytes/run identity/notes/commit/channel,
+published-release refusal, discovery errors, and workflow wiring. CLI tests run
+against temporary git repositories for annotated/lightweight tags, off-main commits,
+event/commit mismatch, and manual-run rejection. No hosted Actions run, real
+installer build, GitHub draft creation, or publication was performed for R2.
+Find this checkpoint in git history as "feat: assemble verified draft releases on version tags".
+
+## 2. Original verified starting point (before R1/R2)
 
 - `package.json` and the root package entries in `package-lock.json` use `0.1.0`.
   About uses Electron's `app.getVersion()` rather than a separate version literal.
@@ -430,7 +450,7 @@ merely because the endpoint exists.
 | --- | --- | --- | --- |
 | R0 | Local preparation approved | Maintainer | Four initial choices recorded; signing/domain/OS/publication gates remain open |
 | R1 | Implemented and verified | Copilot, current checkout | Beta metadata, changelog, read-only helpers and runbook; full validation gate passed; no remote writes |
-| R2 | Not started | Unassigned | Depends on R1 |
+| R2 | Implemented locally; remote rehearsal pending | Copilot, current checkout | CI draft assembler and retry/identity tests; no tag push, draft, or publication performed |
 | R3 | Not started | Unassigned | Depends on R0 |
 | R4 | Not started | Unassigned | Depends on R2 and R3 |
 | R5 | Planned for MVP, not started | Unassigned | Depends on R4 and UX/dependency approval |

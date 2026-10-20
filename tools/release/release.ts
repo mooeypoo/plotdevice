@@ -53,7 +53,7 @@ export function releaseNotes(
   return { notes }
 }
 
-interface ReleaseSnapshot {
+export interface ReleaseSnapshot {
   readonly manifest: unknown
   readonly lockfile: unknown
   readonly changelog: string
@@ -62,8 +62,10 @@ interface ReleaseSnapshot {
   readonly dirty: boolean
 }
 
-/** Reports local release blockers; it does not certify remote or installer readiness. */
-export function checkRelease(snapshot: ReleaseSnapshot): string[] {
+/** Validates shared package, tag, and changelog identity without pre-tag git checks. */
+export function checkReleaseIdentity(
+  snapshot: Pick<ReleaseSnapshot, 'manifest' | 'lockfile' | 'changelog' | 'tag'>
+): string[] {
   const manifest = packageSchema.safeParse(snapshot.manifest)
   const lockfile = lockfileSchema.safeParse(snapshot.lockfile)
   if (!manifest.success || !lockfile.success) {
@@ -81,6 +83,12 @@ export function checkRelease(snapshot: ReleaseSnapshot): string[] {
   }
   const notes = releaseNotes(snapshot.changelog, version)
   if ('error' in notes) errors.push(notes.error)
+  return errors
+}
+
+/** Reports local release blockers; it does not certify remote or installer readiness. */
+export function checkRelease(snapshot: ReleaseSnapshot): string[] {
+  const errors = checkReleaseIdentity(snapshot)
   if (snapshot.tags.includes(snapshot.tag)) {
     errors.push(`Local tag ${snapshot.tag} already exists; never reuse a release tag.`)
   }
@@ -106,8 +114,8 @@ Release checklist (local helper only)
 4. Run npm run lint && npm run typecheck && npm run test && npx electron-vite build
 5. Review and commit preparation. Run npm run release:check
 6. Check remote tags/releases and the reviewed commit; local checks do not query GitHub.
-7. STOP: draft-release automation is not implemented yet. Do not push a tag to publish.
-8. When implemented: build draft, verify hashes, test actual Linux/Windows installers and upgrades.
+7. After explicit approval, push the reviewed annotated tag; CI assembles an unpublished draft.
+8. Verify hashes and test the actual Linux/Windows installers and upgrades; a draft is not QA approval.
 9. Maintainer explicitly publishes; verify public downloads, Pages, and version JSON.
 
 No files changed; no commit, tag, push, network request, or publication performed.

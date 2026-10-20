@@ -40,7 +40,9 @@ CI builds both installers on `v*` tags, or on demand: GitHub → Actions → CI 
 
 For release preparation, start with `npm run release:guide` and the
 [release checklist](releasing.md). The [release plan](release-plan.md) tracks the
-approved phases and remaining work; current CI does not publish GitHub Releases.
+approved phases and remaining work. Pushed annotated version tags with dated notes
+assemble unpublished GitHub release drafts after both platform builds; publication
+and installer qualification remain manual. The first tagged rehearsal is pending.
 
 To start the app with a project, as `plotdevice <folder>` does once installed, pass the folder to the unpacked build: `./dist/linux-unpacked/plotdevice <folder>`.
 

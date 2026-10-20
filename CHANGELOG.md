@@ -23,12 +23,14 @@ the novel file format, which remains `format: 1`.
   separate recovered copy without replacing the original.
 - Linux AppImage and Debian packages, and a Windows installer built by CI.
 - Read-only release preparation helpers and a maintainer release checklist.
+- Tag-triggered draft release assembly with x64 installers, SHA-256 checksums,
+  build metadata, and verified retry behavior.
 
 ### Known limitations before the first release
 
 - Installer qualification is still required, including testing on a real Windows
   installation or VM.
 - Windows installers are not signed. Signing policy remains a launch decision.
-- Draft release publication, the documentation site, and in-app update checks are
-  planned, not implemented.
+- The draft release pipeline still needs a real tagged Actions rehearsal. Public
+  publication, the documentation site, and in-app update checks are not available yet.
 - Recovery is session-local; persistent crash recovery is not provided.
