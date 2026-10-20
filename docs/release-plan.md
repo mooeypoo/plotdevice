@@ -50,6 +50,16 @@ No tag or app release exists. Notes remain `Unreleased`. R5 is unimplemented and
 disclosed as a beta limitation; completing it remains a stable-MVP gate.
 
 **Installer presentation follow-up (2026-10-20):** The maintainer reported unknown
+fields again after rebuilding. Upstream source investigation confirmed this is
+Ubuntu App Center's local-deb path, not missing package metadata: the local title
+omits publisher, the date getter returns null, and PackageKit's APT details emitter
+hardcodes license as unknown. AppStream data is not consumed by this path.
+Dating the release will NOT fix that screen; earlier expectations are superseded.
+Unrestricted is the correct native-deb classification. Upstream source links are
+recorded in the qualification checklist. Keep valid AppStream metadata for other
+consumers, but do not keep modifying packaging in pursuit of those UI labels.
+
+Initial metadata work: the maintainer reported unknown
 publisher/license/update fields in Ubuntu App Center and approved improving deb
 metadata, including CC0-1.0 for the descriptive AppStream file only. The app remains
 GPL-3.0-or-later. Package homepage now points to the public manual; the deb includes

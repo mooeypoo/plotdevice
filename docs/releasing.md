@@ -128,10 +128,15 @@ be checked again before publishing if they differ from the rehearsal bytes.
   and test folder opening. Package installation may require maintainer-run `sudo`.
 - [ ] Inspect the software-center presentation. The deb includes AppStream
   developer/license/help/screenshot information, with the documentation homepage.
-  Local-deb handling varies: Ubuntu App Center may still show unknown publisher
-  or dates without catalog data. This metadata is attribution, not authenticated
-  publisher verification. Native deb permissions remain unrestricted; Electron's
-  internal sandbox does not provide Flatpak/Snap-style application confinement.
+  Ubuntu App Center's local-deb screen does not consume the bundled AppStream
+  metadata: its title omits publisher attribution, its publication date is null,
+  and PackageKit's APT backend supplies a literal unknown license. These labels
+  cannot be fixed by adding more package metadata or dating the release.
+  Native deb permissions remain unrestricted; Electron's internal sandbox does
+  not provide Flatpak/Snap-style application confinement. See the upstream
+  [local-package model](https://github.com/ubuntu/app-center/blob/main/packages/app_center/lib/deb/local_deb_model.dart),
+  [title widget](https://github.com/ubuntu/app-center/blob/main/packages/app_center/lib/widgets/app_title.dart),
+  and [APT details implementation](https://github.com/PackageKit/PackageKit/blob/main/backends/apt/apt-job.cpp).
 - [ ] Run the AppImage with the sandbox enabled. Record any FUSE/AppArmor setup;
   never qualify a workaround using `--no-sandbox`.
 - [ ] Use a temporary copy of `fixtures/sample-novel/`, not a real manuscript or

@@ -46,8 +46,11 @@ files under `/usr/share/doc/plotdevice/`. Its AppStream metadata alone is CC0;
 the application remains GPL-3.0-or-later. When available, check it with
 `appstreamcli validate --no-net build/tech.moriel.plotdevice.metainfo.xml`.
 The release checklist keeps AppStream dates aligned with actual candidate notes.
-Metadata improves software-center descriptions but does not verify publisher
-identity or confine native deb permissions; local-file displays vary by center.
+Metadata is available to AppStream consumers, but Ubuntu App Center's local-deb
+screen uses PackageKit details instead: publisher/date are not populated and
+the APT backend reports license as unknown. Adding a release date will not fix
+that screen. Native deb permissions remain unrestricted. The release checklist
+links to the upstream implementations; this is not a failed metadata validation.
 
 For release preparation, start with `npm run release:guide` and the
 [release checklist](https://github.com/mooeypoo/plotdevice/blob/main/docs/releasing.md).
