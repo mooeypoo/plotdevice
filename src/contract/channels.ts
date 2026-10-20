@@ -42,6 +42,7 @@ export const CODEX_CHANNELS = {
   updateRelationships: 'codex:update-relationships',
   createEntry: 'codex:create-entry',
   editTemplate: 'codex:edit-template',
+  createOutline: 'codex:create-outline',
   setEntryType: 'codex:set-entry-type',
   planRename: 'codex:plan-rename',
   renameEntry: 'codex:rename-entry',

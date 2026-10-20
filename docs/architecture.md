@@ -99,6 +99,8 @@ src/
 
 **Renderer state.** `app/editor-store.ts` owns the one open entry, whatever its kind: its text, version, autosave, conflicts, the missing-file state, and the rename prompt. `manuscript-store.ts` (binder, part and chapter properties, moves) and `codex-store.ts` (codex list, codex properties, Appears in) register as the owners of their entry kinds in `app/entry-owners.ts`, which the editor store asks instead of importing them. Both inspectors write properties through the editor store's version, after saving the text first, so the two writes to one file never conflict.
 
+**Side panels.** The left panel has Manuscript and Codex tabs; the right panel has Properties (the inspector for the open entry's kind) and Outline. The outline panel (`features/outline/`) is a read-only CodeMirror view that highlights lines linking to the open entry and opens links on click; "Edit" opens the outline in the main editor, and the panel steps aside while it's there, so one file is never edited in two places.
+
 **Shared file access.** `infrastructure/markdown/entry-files.ts` reads and writes one project's files (body-only saves, key edits, new files, version checks). The manuscript and codex repositories both delegate to it.
 
 **The open project.** `ipc/project-session.ts` holds the one open project and the per-project use cases the composition root builds for it (repositories bound to that folder, and the project's folder settings). The inspector's choices come from `queries/get-inspector-vocabulary.ts`, which combines the manuscript's statuses with chronology's threads and calendar. Opening another project replaces it; closing clears it.

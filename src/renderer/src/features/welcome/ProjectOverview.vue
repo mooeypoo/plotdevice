@@ -17,6 +17,7 @@ const COUNT_LABELS: ReadonlyArray<[keyof EntryCountsDto, string, string]> = [
   ['character', 'character', 'characters'],
   ['location', 'location', 'locations'],
   ['note', 'note', 'notes'],
+  ['outline', 'outline', 'outlines'],
   ['scene', 'scene', 'scenes'],
   ['untyped', 'untyped file', 'untyped files']
 ]

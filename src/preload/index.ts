@@ -36,7 +36,7 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 7,
+  contractVersion: 8,
   workspace: {
     chooseFolder: () => invoke<FolderChoiceDto | null>(WORKSPACE_CHANNELS.chooseFolder),
     openProject: (root) =>
@@ -122,6 +122,8 @@ const plotDevice: PlotDeviceApi = {
       ),
     createEntry: (kind, title) =>
       invoke<ApiResult<CreatedEntryDto>>(CODEX_CHANNELS.createEntry, kind, title),
+    createOutline: (title) =>
+      invoke<ApiResult<CreatedEntryDto>>(CODEX_CHANNELS.createOutline, title),
     editTemplate: (kind) => invoke<ApiResult<CreatedEntryDto>>(CODEX_CHANNELS.editTemplate, kind),
     setEntryType: (path, type) => invoke<ApiResult<null>>(CODEX_CHANNELS.setEntryType, path, type),
     planRename: (path) => invoke<ApiResult<RenamePlanDto | null>>(CODEX_CHANNELS.planRename, path),

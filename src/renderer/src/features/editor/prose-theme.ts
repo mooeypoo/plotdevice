@@ -36,6 +36,7 @@ const proseTheme = EditorView.theme(
     '.cm-wikilink-character': { color: 'var(--link-character)' },
     '.cm-wikilink-location': { color: 'var(--link-location)' },
     '.cm-wikilink-note': { color: 'var(--link-note)' },
+    '.cm-wikilink-outline': { color: 'var(--link-note)' },
     '.cm-wikilink-part, .cm-wikilink-chapter, .cm-wikilink-scene, .cm-wikilink-untyped': {
       color: 'var(--link-other)'
     },

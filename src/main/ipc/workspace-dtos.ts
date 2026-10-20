@@ -16,6 +16,7 @@ export function toProjectSummaryDto(opened: OpenedProject): ProjectSummaryDto {
     character: 0,
     location: 0,
     note: 0,
+    outline: 0,
     scene: 0,
     untyped: 0
   }

@@ -28,6 +28,8 @@ const KIND_LABELS: Readonly<Record<CodexKindDto, string>> = {
  */
 export const useCodexStore = defineStore('codex', () => {
   const listing = shallowRef<CodexListingDto | null>(null)
+  /** Increments on every reload, so views of a file (the outline panel) know to re-read it. */
+  const revision = ref(0)
   const loadError = ref<string | null>(null)
   const properties = shallowRef<CodexPropertiesDto | null>(null)
   const appearsIn = shallowRef<readonly AppearanceDto[]>([])
@@ -43,6 +45,10 @@ export const useCodexStore = defineStore('codex', () => {
         ...(listing.value?.entries ?? []).map((entry): [string, EntryPlace] => [
           entry.path,
           { kind: entry.kind, title: entry.title, label: KIND_LABELS[entry.kind] }
+        ]),
+        ...(listing.value?.outlines ?? []).map((outline): [string, EntryPlace] => [
+          outline.path,
+          { kind: 'outline', title: outline.title, label: 'Outline' }
         ]),
         ...(listing.value?.templates ?? []).map((template): [string, EntryPlace] => [
           template.path,
@@ -60,6 +66,7 @@ export const useCodexStore = defineStore('codex', () => {
     const result = await api().listCodex()
     if (result.ok) {
       listing.value = result.value
+      revision.value += 1
       loadError.value = null
     } else {
       loadError.value = result.error.message
@@ -74,8 +81,9 @@ export const useCodexStore = defineStore('codex', () => {
 
   /** Reads a codex entry's properties and appearances; returns the file version they came from. */
   async function readProperties(path: string): Promise<string | undefined> {
-    if (places.value.get(path)?.kind === 'template') {
-      // A template has no properties; only its text is edited.
+    const kind = places.value.get(path)?.kind
+    if (kind === 'template' || kind === 'outline') {
+      // Templates and outlines have no properties to edit; only their text.
       properties.value = null
       appearsIn.value = []
       listedBy.value = []
@@ -164,6 +172,20 @@ export const useCodexStore = defineStore('codex', () => {
     return editor.open(result.value.path)
   }
 
+  /** Creates an outline at the project root and opens it in the editor. */
+  async function createOutline(title: string): Promise<boolean> {
+    const editor = useEditorStore()
+    await editor.flush()
+    if (editor.hasStuckChanges) return false
+    const result = await api().createOutline(title)
+    if (!result.ok) {
+      editor.actionError = result.error.message
+      return false
+    }
+    await reload()
+    return editor.open(result.value.path)
+  }
+
   /** Opens the template new entries of `kind` start from, creating it from the default if needed. */
   async function editTemplate(kind: CodexKindDto): Promise<boolean> {
     const editor = useEditorStore()
@@ -197,6 +219,7 @@ export const useCodexStore = defineStore('codex', () => {
 
   return {
     listing,
+    revision,
     loadError,
     properties,
     appearsIn,
@@ -208,6 +231,7 @@ export const useCodexStore = defineStore('codex', () => {
     updateProperties,
     updateRelationships,
     createEntry,
+    createOutline,
     editTemplate,
     setEntryType,
     close,
@@ -217,4 +241,4 @@ export const useCodexStore = defineStore('codex', () => {
   }
 })
 
-registerEntryOwner(['character', 'location', 'note', 'template'], () => useCodexStore())
+registerEntryOwner(['character', 'location', 'note', 'template', 'outline'], () => useCodexStore())

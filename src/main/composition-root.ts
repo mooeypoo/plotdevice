@@ -3,6 +3,7 @@ import { createCheckStoryDate } from './contexts/chronology/application/queries/
 import { createGetChronologySettings } from './contexts/chronology/application/queries/get-chronology-settings'
 import { describeStoryDateReading } from './contexts/chronology/domain/story-date'
 import { createMarkdownChronologyRepository } from './contexts/chronology/infrastructure/markdown-chronology-repository'
+import { createCreateOutline } from './contexts/codex/application/commands/create-outline'
 import { createEditTemplate } from './contexts/codex/application/commands/edit-template'
 import { createCreateCodexEntry } from './contexts/codex/application/commands/create-codex-entry'
 import {
@@ -136,6 +137,10 @@ export function composeApplication(): void {
       codex: {
         listCodex: createListCodex({ repository: codexRepository, settings: codexSettings }),
         editTemplate: createEditTemplate({ repository: codexRepository, settings: codexSettings }),
+        createOutline: createCreateOutline({
+          repository: codexRepository,
+          settings: codexSettings
+        }),
         openEntry: createOpenCodexEntry({ repository: codexRepository }),
         saveEntryText: createSaveCodexText({
           repository: codexRepository,

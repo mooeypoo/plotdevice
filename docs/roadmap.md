@@ -74,7 +74,7 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 
 ## Phase 6: Outline view
 - [ ] Derived outline: parts and chapters with status chips and synopses. Edit synopses inline, filter by status, POV, or thread.
-- [ ] **Writer's outline (MVP requirement).** An outline the writer writes and reads alongside the draft: how they see chapters and sequences going, independent of what is written so far and of story dates (unlike the timeline, which is derived). Readable as a reference panel while writing. Storage and format (plain markdown in the project, linking to chapters) to be designed before this phase.
+- [x] **Writer's outline (MVP requirement).** An outline the writer writes and reads alongside the draft: how they see chapters and sequences going, independent of what is written so far and of story dates (unlike the timeline, which is derived). Readable as a reference panel while writing. Storage and format (plain markdown in the project, linking to chapters) to be designed before this phase.
 
 ## Phase 7: Timeline
 - [ ] Grid with threads (or characters) as rows and chapters as columns. Chapters with a list of dates span their range.
@@ -96,6 +96,9 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Phase 6 follow-ups:
+  - Plan meets draft (deferred until the outline has been used for a while): mark outline lines whose chapters exist (with their status), chapters the outline never mentions, and offer "create this chapter" for links to chapters that don't exist yet.
+  - Editing the outline in the side panel; today it's read-only there, with "Edit" opening it in the main editor.
 - Phase 5b follow-ups:
   - Fix-its cover parts and chapters; ambiguous links in notes and codex entries are not checked yet.
   - Relationships can't be reordered in the app, and removing an entry's first field (`with`) is refused (ADR 0007).

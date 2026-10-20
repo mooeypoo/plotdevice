@@ -1,5 +1,13 @@
 /** What a file is, from its frontmatter `type` key (see "Entry types" in docs/file-format.md). */
-export const ENTRY_TYPES = ['part', 'chapter', 'character', 'location', 'note', 'scene'] as const
+export const ENTRY_TYPES = [
+  'part',
+  'chapter',
+  'character',
+  'location',
+  'note',
+  'outline',
+  'scene'
+] as const
 
 /** One of the entry types the app knows. */
 export type EntryType = (typeof ENTRY_TYPES)[number]

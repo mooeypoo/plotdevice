@@ -1,5 +1,6 @@
 import { domainError } from '../../../shared-kernel/domain-error'
-import { isMapping } from '../../../shared-kernel/frontmatter-values'
+import { isMapping, readEntryText } from '../../../shared-kernel/frontmatter-values'
+import { projectPathStem } from '../../../shared-kernel/project-path'
 import type { LinkCandidate } from '../../../shared-kernel/link-index'
 import { err, ok } from '../../../shared-kernel/result'
 import { createEntryFiles } from '../../../infrastructure/markdown/entry-files'
@@ -7,6 +8,7 @@ import { scanProject } from '../../../infrastructure/project-scan/scan-project'
 import { CODEX_KINDS, readCodexEntry, type CodexEntry, type CodexKind } from '../domain/codex-entry'
 import type { CodexRepository } from '../domain/ports/codex-repository'
 import type { CodexSource } from '../domain/relationships'
+import type { OutlineFile } from '../domain/outline-file'
 import type { UntypedFile } from '../domain/untyped-file'
 
 const isCodexKind = (value: unknown): value is CodexKind => CODEX_KINDS.includes(value as CodexKind)
@@ -22,6 +24,7 @@ export function createMarkdownCodexRepository(rootOsPath: string): CodexReposito
       const untyped: UntypedFile[] = []
       const linkCandidates: LinkCandidate[] = []
       const sources: CodexSource[] = []
+      const outlines: OutlineFile[] = []
       for (const file of scan.files) {
         const { classification } = file
         if (classification.kind !== 'typed') {
@@ -35,6 +38,15 @@ export function createMarkdownCodexRepository(rootOsPath: string): CodexReposito
           continue
         }
         linkCandidates.push({ path: file.path, type: classification.type })
+        if (classification.type === 'outline') {
+          const read = await files.readFrontmatter(file.path)
+          const keys = read.ok && isMapping(read.value.frontmatter) ? read.value.frontmatter : {}
+          outlines.push({
+            path: file.path,
+            title: readEntryText(keys['title']) ?? projectPathStem(file.path)
+          })
+          continue
+        }
         if (!isCodexKind(classification.type)) continue
         const read = await files.readFrontmatter(file.path)
         if (!read.ok) continue
@@ -42,7 +54,7 @@ export function createMarkdownCodexRepository(rootOsPath: string): CodexReposito
         entries.push(entry)
         sources.push({ path: file.path, title: entry.title, frontmatter: read.value.frontmatter })
       }
-      return { entries, untyped, linkCandidates, sources }
+      return { entries, untyped, linkCandidates, sources, outlines }
     },
 
     readText: (path) => files.readText(path),

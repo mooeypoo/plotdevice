@@ -47,6 +47,7 @@ export type LinkKind =
   | 'character'
   | 'location'
   | 'note'
+  | 'outline'
   | 'scene'
   | 'untyped'
   | 'ambiguous'
@@ -58,6 +59,7 @@ const TYPED_KINDS: ReadonlySet<string> = new Set([
   'character',
   'location',
   'note',
+  'outline',
   'scene'
 ])
 

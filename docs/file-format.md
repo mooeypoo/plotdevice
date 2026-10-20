@@ -64,6 +64,7 @@ Each file's `type` key says what it is:
 | `character` | A codex entry for a character |
 | `location` | A codex entry for a location |
 | `note` | A free-form note; the app lists notes and assigns them no meaning |
+| `outline` | The writer's outline: a free-form plan, shown beside the draft. The app reads its links but nothing else |
 | `scene` | Reserved for a later version (see "Scenes") |
 
 - `novel.md` is identified by its name and needs no `type`.
@@ -158,6 +159,22 @@ Prose goes here, in plain markdown.
 - **Taking a chapter out of the order** (dropping it on the unordered tray) removes its `order` key. The file and its `part` stay.
 - **Moving a chapter to another part** updates `part` and `order`. If the file is in its old part's folder (the folder that holds that part's own file), the app also moves it to the new part's folder. A file the writer filed somewhere else stays where it is.
 - **New entries.** A new chapter goes at the end of its part, in that part's folder (in a book without parts, in `settings.folders.chapter`), with only `type`, `title`, `part`, and `order`. A new part goes after the others, in its own folder under `settings.folders.part`.
+
+## Outlines
+
+```yaml
+---
+type: outline
+title: Working plan
+---
+## Part One
+- [[The Ferry]]: Ilka arrives; Bea is already at the gate.
+- Ilka finds the ledger. Bea lies about it.
+```
+
+- The body is free markdown: headings, lists, questions, anything. The app never parses its structure or changes it.
+- Links (`[[…]]` or markdown links) tie lines to chapters. Lines linking to the chapter being written are highlighted beside it.
+- A project can have several outlines. The app creates new ones at the project root, named after their title.
 
 ## Scenes
 

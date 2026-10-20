@@ -9,7 +9,8 @@ describe('codexSections', () => {
         { path: 'a.md', kind: 'character', title: 'Ilka', aliases: [] }
       ],
       untyped: [],
-      templates: []
+      templates: [],
+      outlines: []
     })
     expect(sections.map((section) => [section.heading, section.entries.length])).toEqual([
       ['Characters', 1],

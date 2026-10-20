@@ -11,6 +11,7 @@ describe('CodexList', () => {
   it('lists entries by section, with a role or other names beside them', () => {
     const list = mountList()
     expect(list.findAll('h2').map((heading) => heading.text())).toEqual([
+      'Outlines',
       'Characters',
       'Locations',
       'Notes',
@@ -45,6 +46,16 @@ describe('CodexList', () => {
       .find((button) => button.text().startsWith('New location'))
     await template?.trigger('click')
     expect(list.emitted('editTemplate')).toEqual([['location']])
+  })
+
+  it('lists outlines first and creates one by name', async () => {
+    const list = mountList()
+    expect(list.text()).toContain('Outline')
+    const button = list.findAll('button').find((candidate) => candidate.text() === '+ New outline')
+    await button?.trigger('click')
+    await list.get('input').setValue('Revision plan')
+    await list.get('form').trigger('submit')
+    expect(list.emitted('createOutline')).toEqual([['Revision plan']])
   })
 
   it('offers no changes in a read-only project', () => {

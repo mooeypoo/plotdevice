@@ -93,7 +93,16 @@ describe('workspace handlers', () => {
         formatVersion: 1,
         readOnly: false,
         warnings: [],
-        counts: { part: 1, chapter: 2, character: 0, location: 0, note: 0, scene: 0, untyped: 3 },
+        counts: {
+          part: 1,
+          chapter: 2,
+          character: 0,
+          location: 0,
+          note: 0,
+          outline: 0,
+          scene: 0,
+          untyped: 3
+        },
         problems: [
           { path: 'e.md', problem: 'unknown-type', detail: 'spaceship' },
           { path: 'f.md', problem: 'unparseable-frontmatter' },

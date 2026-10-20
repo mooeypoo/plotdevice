@@ -16,7 +16,16 @@ export const sampleSummary: ProjectSummaryDto = {
   formatVersion: 1,
   readOnly: false,
   warnings: [],
-  counts: { part: 1, chapter: 2, character: 0, location: 0, note: 0, scene: 0, untyped: 0 },
+  counts: {
+    part: 1,
+    chapter: 2,
+    character: 0,
+    location: 0,
+    note: 0,
+    outline: 0,
+    scene: 0,
+    untyped: 0
+  },
   problems: []
 }
 
@@ -60,7 +69,12 @@ export const sampleManuscript: ManuscriptDto = {
     { name: 'Ilka', path: 'characters/Ilka.md', type: 'character' },
     { name: 'Aunt Bea', path: 'characters/Aunt Bea.md', type: 'character' },
     { name: 'Marrow', path: 'locations/Marrow.md', type: 'location' },
-    { name: 'Research', path: 'notes/Research.md', type: 'note' }
+    { name: 'Research', path: 'notes/Research.md', type: 'note' },
+    { name: 'Part One', path: 'Part One.md', type: 'part' },
+    { name: 'The Ferry', path: 'The Ferry.md', type: 'chapter' },
+    { name: 'First frost', path: 'First frost.md', type: 'chapter' },
+    { name: 'Lost', path: 'Lost.md', type: 'chapter' },
+    { name: 'Outline', path: 'Outline.md', type: 'outline' }
   ]
 }
 
@@ -87,7 +101,8 @@ export const sampleCodex: CodexListingDto = {
     { kind: 'character', path: 'templates/character.md', exists: false },
     { kind: 'location', path: 'templates/location.md', exists: false },
     { kind: 'note', path: 'templates/note.md', exists: false }
-  ]
+  ],
+  outlines: [{ path: 'Outline.md', title: 'Outline' }]
 }
 
 export function createFakePlotDeviceApi(): {
@@ -113,6 +128,10 @@ export function createFakePlotDeviceApi(): {
 } {
   const files = new Map([
     ['characters/Ilka.md', 'Ilka grafts pear trees.\n'],
+    [
+      'Outline.md',
+      '## Part One\n- [[The Ferry]]: Ilka arrives.\n- [[First frost]]: the frost.\n- Ilka finds the ledger.\n'
+    ],
     ['locations/Marrow.md', 'A village on the marsh.\n'],
     ['notes/Research.md', 'Smudge pots.\n'],
     ['Part One.md', 'Two words.\n'],
@@ -168,7 +187,7 @@ export function createFakePlotDeviceApi(): {
     `${files.get(path) ?? ''}#${String(revisions.get(path) ?? 0)}`
 
   const api: PlotDeviceApi = {
-    contractVersion: 7,
+    contractVersion: 8,
     workspace: {
       chooseFolder: () => Promise.resolve(null),
       openProject: () => Promise.resolve({ ok: true, value: sampleSummary }),
@@ -394,6 +413,16 @@ export function createFakePlotDeviceApi(): {
           otherKeys: []
         })
         codexWrites.push(`created ${path}`)
+        return Promise.resolve({ ok: true, value: { path } })
+      },
+      createOutline: (title) => {
+        const path = `${title === '' ? 'Outline' : title}.md`
+        files.set(path, '')
+        codex = {
+          ...codex,
+          outlines: [...codex.outlines, { path, title: title === '' ? 'Outline' : title }]
+        }
+        codexWrites.push(`outline ${path}`)
         return Promise.resolve({ ok: true, value: { path } })
       },
       editTemplate: (kind) => {

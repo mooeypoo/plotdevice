@@ -1,10 +1,10 @@
 # codex
 
-**Purpose.** Story-world entries and free-form notes: characters, locations, notes, and the untyped files the writer can give a type. Edits change only the body or only the edited keys.
+**Purpose.** Story-world entries and free-form writing: characters, locations, notes, the writer's outlines (`type: outline`), and the untyped files the writer can give a type. Edits change only the body or only the edited keys.
 
 **Main concepts.** `CodexEntry` (`character`, `location`, `note`), `CodexProperties` (the inspector's view: the keys the app edits, `relationships` with "listed by" from other characters, and every other key shown as written), `CodexChanges` → `CodexWrite`, `newCodexText` (templates that only seed new files), `UntypedFile`.
 
-**Use cases.** Queries: `ListCodex`, `OpenCodexEntry`, `GetCodexProperties`, `PlanCodexRename`. Commands: `SaveCodexText`, `UpdateCodexProperties`, `UpdateRelationships` (ADR 0007), `CreateCodexEntry` (from `templates/<kind>.md` or the default), `EditTemplate`, `SetEntryType`, `RenameCodexEntry`. Every command refuses read-only projects.
+**Use cases.** Queries: `ListCodex`, `OpenCodexEntry`, `GetCodexProperties`, `PlanCodexRename`. Commands: `SaveCodexText`, `UpdateCodexProperties`, `UpdateRelationships` (ADR 0007), `CreateCodexEntry` (from `templates/<kind>.md` or the default), `EditTemplate`, `CreateOutline`, `SetEntryType`, `RenameCodexEntry`. Every command refuses read-only projects.
 
 **Ports.** `CodexRepository` (in-memory fake beside it) and the shared `EntryRelocator`.
 

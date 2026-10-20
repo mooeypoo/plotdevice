@@ -1,11 +1,12 @@
 import { domainError } from '../../../../shared-kernel/domain-error'
 import { ENTRY_TYPES, type EntryType } from '../../../../shared-kernel/entry-type'
 import type { LinkCandidate } from '../../../../shared-kernel/link-index'
-import type { ProjectPath } from '../../../../shared-kernel/project-path'
+import { projectPathStem, type ProjectPath } from '../../../../shared-kernel/project-path'
 import { err, ok, type Result } from '../../../../shared-kernel/result'
 import type { CodexWrite } from '../codex-changes'
 import { CODEX_KINDS, readCodexEntry, type CodexEntry, type CodexKind } from '../codex-entry'
 import type { CodexSource, RelationshipFields } from '../relationships'
+import type { OutlineFile } from '../outline-file'
 import type { UntypedFile } from '../untyped-file'
 import type {
   CodexEntryFile,
@@ -46,9 +47,14 @@ export class InMemoryCodex implements CodexRepository {
     const untyped: UntypedFile[] = []
     const linkCandidates: LinkCandidate[] = []
     const sources: CodexSource[] = []
+    const outlines: OutlineFile[] = []
     for (const [key, file] of this.files) {
       const path = key as ProjectPath
       const type = file.frontmatter['type']
+      if (type === 'outline') {
+        const title = file.frontmatter['title']
+        outlines.push({ path, title: typeof title === 'string' ? title : projectPathStem(path) })
+      }
       if (isCodexKind(type)) {
         const entry = readCodexEntry(path, type, file.frontmatter)
         entries.push(entry)
@@ -57,7 +63,7 @@ export class InMemoryCodex implements CodexRepository {
       if (isEntryType(type)) linkCandidates.push({ path, type })
       else untyped.push(typeof type === 'string' ? { path, rawType: type } : { path })
     }
-    return Promise.resolve({ entries, untyped, linkCandidates, sources })
+    return Promise.resolve({ entries, untyped, linkCandidates, sources, outlines })
   }
 
   readText(path: ProjectPath): Promise<Result<{ text: string; version: string }, ReadCodexError>> {

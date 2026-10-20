@@ -9,7 +9,10 @@ import type { LinkCompletionTarget } from './link-completion'
 /** The editor's links: what `[[` suggests, and opening a link's target. */
 export function useEditorLinks(): {
   readonly completions: ComputedRef<readonly LinkCompletionTarget[]>
-  readonly openLink: (link: LinkAt) => Promise<void>
+  /** Opens a link's target; a markdown link is read relative to `fromPath` (the open entry). */
+  readonly openLink: (link: LinkAt, fromPath?: string) => Promise<void>
+  /** Whether a link means the file at `path`, read from the file at `fromPath`. */
+  readonly linkMeans: (link: LinkAt, path: string, fromPath: string) => boolean
   /** Why the last Ctrl/Cmd+click opened nothing; clears itself after a few seconds. */
   readonly linkNotice: Ref<string | null>
 } {
@@ -34,18 +37,16 @@ export function useEditorLinks(): {
     choices.value.map((choice) => ({ ...choice, aliases: aliases.value.get(choice.path) ?? [] }))
   )
 
-  async function openLink(link: LinkAt): Promise<void> {
-    let path: string | undefined
-    if (link.kind === 'wiki') {
-      path = resolveWritten(choices.value, link.target)?.path
-    } else {
-      const from = editor.entry?.path
-      const address = from === undefined ? undefined : markdownLinkPath(link.address, from)
-      path =
-        address === undefined
-          ? undefined
-          : choices.value.find((choice) => nameKey(choice.path) === nameKey(address))?.path
-    }
+  function targetOf(link: LinkAt, from: string | undefined): string | undefined {
+    if (link.kind === 'wiki') return resolveWritten(choices.value, link.target)?.path
+    const address = from === undefined ? undefined : markdownLinkPath(link.address, from)
+    return address === undefined
+      ? undefined
+      : choices.value.find((choice) => nameKey(choice.path) === nameKey(address))?.path
+  }
+
+  async function openLink(link: LinkAt, fromPath?: string): Promise<void> {
+    const path = targetOf(link, fromPath ?? editor.entry?.path)
     if (path === undefined) {
       notify(
         link.kind === 'wiki'
@@ -59,5 +60,13 @@ export function useEditorLinks(): {
       editor.actionError = `${path} isn’t a part, chapter, or codex entry, so it can’t open here.`
   }
 
-  return { completions, openLink, linkNotice }
+  return {
+    completions,
+    openLink,
+    linkNotice,
+    linkMeans: (link, path, fromPath) => {
+      const target = targetOf(link, fromPath)
+      return target !== undefined && nameKey(target) === nameKey(path)
+    }
+  }
 }

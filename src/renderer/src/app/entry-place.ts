@@ -1,5 +1,6 @@
 /** What can be open in the editor: a part or chapter, or a codex entry. */
-export type EntryKind = 'part' | 'chapter' | 'character' | 'location' | 'note' | 'template'
+export type EntryKind =
+  'part' | 'chapter' | 'character' | 'location' | 'note' | 'template' | 'outline'
 
 /** Where an entry sits, as the store that lists it describes it. */
 export interface EntryPlace {

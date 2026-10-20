@@ -4,6 +4,9 @@ import { ref, watch } from 'vue'
 /** The side panel's tabs. */
 export type SideTab = 'manuscript' | 'codex'
 
+/** The right-hand panel's tabs. */
+export type RightTab = 'properties' | 'outline'
+
 const LAYOUT_KEY = 'plotdevice.layout'
 const LAST_ENTRY_KEY = 'plotdevice.lastEntry'
 
@@ -20,10 +23,32 @@ export const useLayoutStore = defineStore('layout', () => {
   const focusMode = ref(false)
   /** Which list the side panel shows. */
   const sideTab = ref<SideTab>(saved['sideTab'] === 'codex' ? 'codex' : 'manuscript')
+  /** Which view the right-hand panel shows. */
+  const rightTab = ref<RightTab>(saved['rightTab'] === 'outline' ? 'outline' : 'properties')
+  /** The outline last shown in the panel, by path. */
+  const outlinePath = ref<string | null>(
+    typeof saved['outlinePath'] === 'string' ? saved['outlinePath'] : null
+  )
 
-  watch([binderOpen, inspectorOpen, sideTab], ([binder, inspector, tab]) => {
-    writeRecord(LAYOUT_KEY, { binderOpen: binder, inspectorOpen: inspector, sideTab: tab })
+  watch([binderOpen, inspectorOpen, sideTab, rightTab, outlinePath], () => {
+    writeRecord(LAYOUT_KEY, {
+      binderOpen: binderOpen.value,
+      inspectorOpen: inspectorOpen.value,
+      sideTab: sideTab.value,
+      rightTab: rightTab.value,
+      outlinePath: outlinePath.value
+    })
   })
+
+  /** Shows the outline beside the draft, or hides the panel if the outline is already showing. */
+  function toggleOutline(): void {
+    if (inspectorOpen.value && rightTab.value === 'outline') {
+      inspectorOpen.value = false
+      return
+    }
+    inspectorOpen.value = true
+    rightTab.value = 'outline'
+  }
 
   function toggleBinder(): void {
     binderOpen.value = !binderOpen.value
@@ -46,6 +71,9 @@ export const useLayoutStore = defineStore('layout', () => {
     inspectorOpen,
     focusMode,
     sideTab,
+    rightTab,
+    outlinePath,
+    toggleOutline,
     toggleBinder,
     toggleInspector,
     toggleFocusMode,

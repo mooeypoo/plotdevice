@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
+import { onBeforeUnmount, onMounted, watch } from 'vue'
 import EditorPane from '../features/editor/EditorPane.vue'
-import CodexInspector from '../features/inspector/CodexInspector.vue'
-import InspectorPanel from '../features/inspector/InspectorPanel.vue'
-import TemplateInspector from '../features/inspector/TemplateInspector.vue'
 import { useInspectorStore } from './inspector-store'
 import { formatWordCount } from '../features/binder/binder-labels'
 import type { DropRequest } from '../features/binder/binder-drop'
@@ -11,6 +8,7 @@ import { lastEntryOf, rememberLastEntry, useLayoutStore } from './layout-store'
 import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
+import RightPanel from './RightPanel.vue'
 import SidePanel from './SidePanel.vue'
 import StatusBar from './StatusBar.vue'
 import TopBar from './TopBar.vue'
@@ -34,9 +32,6 @@ function move(request: DropRequest): void {
 }
 
 const { count: attentionCount } = useWarnings()
-const isManuscriptEntry = computed(
-  () => editor.entry?.kind === 'part' || editor.entry?.kind === 'chapter'
-)
 
 onMounted(async () => {
   void inspector.loadVocabulary()
@@ -83,6 +78,14 @@ useShortcuts([
     }
   },
   {
+    key: 'o',
+    mod: true,
+    shift: true,
+    run: () => {
+      layout.toggleOutline()
+    }
+  },
+  {
     key: 'Escape',
     run: () => {
       layout.exitFocusMode()
@@ -111,11 +114,7 @@ useShortcuts([
       <main class="main">
         <EditorPane />
       </main>
-      <template v-if="layout.inspectorOpen && !layout.focusMode && editor.entry">
-        <InspectorPanel v-if="isManuscriptEntry" />
-        <TemplateInspector v-else-if="editor.entry.kind === 'template'" />
-        <CodexInspector v-else />
-      </template>
+      <RightPanel v-if="layout.inspectorOpen && !layout.focusMode" />
     </div>
 
     <StatusBar v-if="!layout.focusMode" />

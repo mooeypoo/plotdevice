@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { createCreateOutline } from '../contexts/codex/application/commands/create-outline'
 import { createEditTemplate } from '../contexts/codex/application/commands/edit-template'
 import { createCreateCodexEntry } from '../contexts/codex/application/commands/create-codex-entry'
 import {
@@ -47,6 +48,7 @@ function useCasesFor(repo: InMemoryCodex): CodexUseCases {
     updateRelationships: createUpdateRelationships(ports),
     createEntry: createCreateCodexEntry(ports),
     editTemplate: createEditTemplate(ports),
+    createOutline: createCreateOutline(ports),
     setEntryType: createSetEntryType(ports),
     planRename: createPlanCodexRename({ ...ports, relocator }),
     renameEntry: createRenameCodexEntry({ ...ports, relocator }),

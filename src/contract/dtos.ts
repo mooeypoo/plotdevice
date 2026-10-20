@@ -37,7 +37,10 @@ export interface ProjectChangeDto {
 
 /** How many files of each kind the project has. */
 export type EntryCountsDto = Readonly<
-  Record<'part' | 'chapter' | 'character' | 'location' | 'note' | 'scene' | 'untyped', number>
+  Record<
+    'part' | 'chapter' | 'character' | 'location' | 'note' | 'outline' | 'scene' | 'untyped',
+    number
+  >
 >
 
 /** A file the app found but can't fully use. */
@@ -303,6 +306,8 @@ export interface CodexListingDto {
   readonly entries: readonly CodexEntryDto[]
   readonly untyped: readonly UntypedFileDto[]
   readonly templates: readonly CodexTemplateDto[]
+  /** The writer's outlines (`type: outline`), by title. */
+  readonly outlines: readonly { readonly path: string; readonly title: string }[]
 }
 
 /** One of a character's relationships, as written. */
@@ -366,4 +371,4 @@ export interface AppearanceDto {
 }
 
 /** The types an untyped file can be given. */
-export type SettableTypeDto = 'part' | 'chapter' | 'character' | 'location' | 'note'
+export type SettableTypeDto = 'part' | 'chapter' | 'character' | 'location' | 'note' | 'outline'

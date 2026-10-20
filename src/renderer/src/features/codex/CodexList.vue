@@ -15,10 +15,17 @@ const emit = defineEmits<{
   create: [kind: CodexKindDto, title: string]
   setType: [path: string, type: SettableTypeDto]
   editTemplate: [kind: CodexKindDto]
+  createOutline: [title: string]
 }>()
 
 const sections = computed(() => codexSections(props.listing))
 const adding = ref<CodexKindDto | null>(null)
+const addingOutline = ref(false)
+
+function createOutline(title: string): void {
+  addingOutline.value = false
+  emit('createOutline', title)
+}
 const TEMPLATE_NAMES: Readonly<Record<CodexKindDto, string>> = {
   character: 'New character',
   location: 'New location',
@@ -41,6 +48,36 @@ function chooseType(path: string, event: Event): void {
 
 <template>
   <div class="codex">
+    <section class="section">
+      <div class="divider">
+        <h2 class="eyebrow">Outlines</h2>
+        <span class="rule" aria-hidden="true"></span>
+        <span class="count">{{ listing.outlines.length }}</span>
+      </div>
+      <ul>
+        <li v-for="outline in listing.outlines" :key="outline.path">
+          <button
+            type="button"
+            class="row"
+            :class="{ active: selectedPath === outline.path }"
+            :aria-current="selectedPath === outline.path ? 'true' : undefined"
+            @click="$emit('open', outline.path)"
+          >
+            <span class="title" dir="auto">{{ outline.title }}</span>
+          </button>
+        </li>
+      </ul>
+      <NewEntryInput
+        v-if="addingOutline"
+        placeholder="Outline’s name"
+        @create="createOutline"
+        @cancel="addingOutline = false"
+      />
+      <button v-else-if="!readOnly" type="button" class="new" @click="addingOutline = true">
+        + New outline
+      </button>
+    </section>
+
     <section v-for="section in sections" :key="section.kind" class="section">
       <div class="divider">
         <h2 class="eyebrow">{{ section.heading }}</h2>

@@ -234,11 +234,13 @@ export const useEditorStore = defineStore('editor', () => {
     const result =
       current.kind === 'template'
         ? await api.codex.editTemplate(current.templateOf ?? 'note')
-        : current.kind === 'part'
-          ? await api.manuscript.createPart(current.title)
-          : current.kind === 'chapter'
-            ? await api.manuscript.createChapter(partPath, current.title)
-            : await api.codex.createEntry(current.kind, current.title)
+        : current.kind === 'outline'
+          ? await api.codex.createOutline(current.title)
+          : current.kind === 'part'
+            ? await api.manuscript.createPart(current.title)
+            : current.kind === 'chapter'
+              ? await api.manuscript.createChapter(partPath, current.title)
+              : await api.codex.createEntry(current.kind, current.title)
     if (!result.ok) {
       actionError.value = result.error.message
       return false

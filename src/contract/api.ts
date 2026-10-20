@@ -123,6 +123,8 @@ export interface CodexApi {
    * has none yet. It opens like an entry; only its text is edited.
    */
   editTemplate(kind: CodexKindDto): Promise<ApiResult<CreatedEntryDto>>
+  /** A new outline at the project root, named after its title. */
+  createOutline(title: string): Promise<ApiResult<CreatedEntryDto>>
   /** Writes `type` into an untyped file, and nothing else. */
   setEntryType(path: string, type: SettableTypeDto): Promise<ApiResult<null>>
   planRename(path: string): Promise<ApiResult<RenamePlanDto | null>>
@@ -151,7 +153,7 @@ export interface AppApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 7
+  readonly contractVersion: 8
   readonly workspace: WorkspaceApi
   readonly manuscript: ManuscriptApi
   readonly codex: CodexApi

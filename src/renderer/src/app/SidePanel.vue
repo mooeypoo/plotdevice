@@ -59,6 +59,7 @@ const TABS: readonly { readonly id: SideTab; readonly label: string }[] = [
         @create="(kind, title) => codex.createEntry(kind, title)"
         @set-type="(path, type) => codex.setEntryType(path, type)"
         @edit-template="codex.editTemplate($event)"
+        @create-outline="codex.createOutline($event)"
       />
     </nav>
   </div>

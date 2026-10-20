@@ -4,6 +4,7 @@ import type { ProjectPath } from '../../../../shared-kernel/project-path'
 import { CODEX_KINDS, type CodexEntry, type CodexKind } from '../../domain/codex-entry'
 import type { CodexSettings } from '../../domain/codex-settings'
 import type { CodexRepository } from '../../domain/ports/codex-repository'
+import type { OutlineFile } from '../../domain/outline-file'
 import type { UntypedFile } from '../../domain/untyped-file'
 import { templatePath } from '../template-path'
 
@@ -20,9 +21,11 @@ export interface CodexListing {
   readonly untyped: readonly UntypedFile[]
   /** Empty when the template folder setting is unusable. */
   readonly templates: readonly CodexTemplate[]
+  /** The writer's outlines, by title. */
+  readonly outlines: readonly OutlineFile[]
 }
 
-/** Lists the project's characters, locations, notes, untyped files, and templates. */
+/** Lists the project's characters, locations, notes, outlines, untyped files, and templates. */
 export type ListCodex = () => Promise<CodexListing>
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true })
@@ -48,6 +51,9 @@ export function createListCodex(ports: {
             collator.compare(a.path, b.path)
         ),
       untyped: files.untyped.filter(outside).sort((a, b) => collator.compare(a.path, b.path)),
+      outlines: files.outlines
+        .filter(outside)
+        .sort((a, b) => collator.compare(a.title, b.title) || collator.compare(a.path, b.path)),
       templates: CODEX_KINDS.flatMap((kind) => {
         const path = templatePath(ports.settings, kind)
         return path === undefined
