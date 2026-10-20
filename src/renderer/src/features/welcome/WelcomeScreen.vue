@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Wordmark from '../../shared/Wordmark.vue'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import RecentProjectList from './RecentProjectList.vue'
 
@@ -8,7 +9,7 @@ const workspace = useWorkspaceStore()
 <template>
   <main class="welcome">
     <header>
-      <h1 class="wordmark">Plot<span class="dot">·</span>Device</h1>
+      <h1 class="title"><Wordmark /></h1>
       <p class="tagline">Your novel, as plain markdown files.</p>
     </header>
 
@@ -46,9 +47,10 @@ const workspace = useWorkspaceStore()
   text-align: center;
 }
 
-.wordmark {
+.title {
   margin: 0;
   font-size: 3rem;
+  font-weight: 400;
 }
 
 .tagline {

@@ -30,6 +30,8 @@ linux:
     - AppImage
     - deb
   executableName: plotdevice
+  # One PNG per size (build/icons/16x16.png …), rendered by `npm run icons`.
+  icon: build/icons
   # Wayland/X11 window association: the running window's app_id must match the .desktop file.
   syncDesktopName: true
   maintainer: Moriel Schottlender <mooeypoo@gmail.com>

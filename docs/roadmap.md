@@ -86,16 +86,24 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [ ] Optional relationship graph later.
 
 ## Phase 9: Packaging polish
-- [ ] App icon and a stylized "Plot Device" wordmark in the UI.
-- [ ] Ubuntu 24.04+ sandbox: ship an AppArmor profile in the deb (as VS Code and Chrome do) and decide how the AppImage handles it (see `docs/development.md`, "Troubleshooting"). Check whether the deb already sets up `chrome-sandbox`.
-- [ ] Project-file association (optional).
-- [ ] Test an install on a Windows machine or VM.
+- [x] App icon (a pen nib whose line runs on as the plot; a simpler drawing at 16–32 px) and a matching wordmark in the UI. `npm run icons` renders every size.
+- [x] Ubuntu 24.04+ sandbox: the `.deb` installs electron-builder's AppArmor profile (checked in the package); the AppImage can't, so the README recommends the `.deb` and `docs/development.md` gives the AppImage's one-time profile.
+- [x] Opening a project from outside the app: `plotdevice <folder>` (into the running window if there is one), and "Open With → Plot Device" on folders on Linux.
+- [ ] Test an install on a Windows machine or VM: follow `docs/testing-windows.md`.
+
+## Phase 10: App menu and window
+- [ ] Replace the default menu: Edit (undo, cut, copy, paste, select all), View (panels, focus mode, the four views), Help → About Plot Device (version, GPL-3.0, project link). Developer tools only in development builds.
+- [ ] Remember the window's size, position, and maximized state between sessions, in the settings folder (`userData`), never in the novel folder.
 
 ## Decide after MVP
 - Edge cases in part and chapter structure beyond what `docs/file-format.md` defines (nested parts, chapters belonging to several parts).
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Phase 9 follow-ups:
+  - Sign the Windows installer, so SmartScreen doesn't warn (needs a code-signing certificate).
+  - A Windows Explorer "Open with Plot Device" entry for folders.
+  - A Flatpak, if the AppImage's sandbox step proves a nuisance.
 - Phase 8 follow-ups:
   - A relationship graph (from `relationships` and co-appearances).
   - Bidi isolation audit: the Interactions view, timeline tooltips, and the rename prompt isolate names (`<bdi>`, or FSI/PDI via `shared/isolate.ts`). Check the remaining messages that embed names or titles, such as warnings built in the main process, status messages, and the outline panel's hints.
@@ -141,7 +149,7 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
   - Running `npm run dev` from a process that inherits `ELECTRON_RUN_AS_NODE=1` (for example, a VS Code extension host) starts Electron as plain Node, and `app` is undefined. Unset it.
   - `npm audit` reports moderate issues in electron-builder's own build tooling (`sprintf-js` via `global-agent`). Not shipped in the app; recheck when electron-builder updates.
   - npm 12 blocks `electron-winstaller`'s install script. It is only used for Squirrel installers, which aren't built here.
-  - The production menu still has the default developer tools entry; replace the menu in Phase 9.
+  - The production menu still has the default developer tools entry; replace the menu in Phase 10.
 - Scene files (`type: scene`, belonging to a chapter), when chapter-level metadata isn't enough.
 - "Body mentions" for interactions (characters mentioned in prose but not listed). Suggestions only, never counted; Hebrew prefixes (ו, ה, ב, ל, מ, ש) make name matching unreliable.
 - Rewriting markdown links (`[text](file.md)`) on rename.

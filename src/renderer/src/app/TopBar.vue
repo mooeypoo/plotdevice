@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Wordmark from '../shared/Wordmark.vue'
 import { computed } from 'vue'
 import { useLayoutStore } from './layout-store'
 import { useEditorStore } from './editor-store'
@@ -27,7 +28,7 @@ const crumbs = computed(() => {
 <template>
   <header class="top-bar">
     <div class="identity">
-      <span class="wordmark">Plot<span class="dot">·</span>Device</span>
+      <span class="mark"><Wordmark /></span>
       <span class="project" dir="auto">{{ workspace.project?.title }}</span>
     </div>
 
@@ -177,7 +178,7 @@ const crumbs = computed(() => {
   min-width: 0;
 }
 
-.wordmark {
+.mark {
   font-size: 16px;
 }
 

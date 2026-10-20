@@ -40,6 +40,20 @@ CI builds both installers on `v*` tags, or on demand: GitHub → Actions → CI 
 
 To start the app with a project, as `plotdevice <folder>` does once installed, pass the folder to the unpacked build: `./dist/linux-unpacked/plotdevice <folder>`.
 
+## Icons
+
+The app's icons are drawn in two SVGs: `build/icon.svg` (48 px and up) and `build/icon-small.svg` (a simpler version for 16–32 px, where detail turns to mush). After changing either, render every icon the builds use:
+
+```bash
+env -u ELECTRON_RUN_AS_NODE npm run icons
+```
+
+It writes `build/icons/<size>x<size>.png` (Linux), `build/icon.ico` (Windows, small design at 16–32 px), and `build/icon.png` and `resources/icon.png` (512 px). Electron itself renders them (`tools/render-icons.mjs`), so there's no image library to install. Commit the rendered files.
+
+## Testing on Windows
+
+CI builds and unit-tests on Windows, but the installer needs a person: follow [testing-windows.md](testing-windows.md).
+
 ## Test data
 
 Never test against `fixtures/sample-novel/` directly: tests depend on its exact bytes. Copy it first:
