@@ -25,20 +25,30 @@ is approved by this document.
 ### Resume here
 
 The maintainer approved committing this plan and starting local preparation on
-2026-10-20, including guided release helper scripts. R1 is the current phase.
+2026-10-20, including guided release helper scripts. R1 is implemented.
 Do not interpret that approval as permission to publish, push tags, change repository
 visibility, add dependencies, or start all remaining phases at once.
 
-Current work: establish the beta candidate version, changelog, release runbook, and
-read-only helpers for preparation, local validation, and release-note extraction.
-Expected files: package metadata/lockfile, `CHANGELOG.md`, `tools/release/`,
-`docs/releasing.md`, and progress links in this plan, development guide, and roadmap.
-The helpers must explain which manual and future automation steps remain; passing
-local validation must not claim the entire release is ready.
+Completed: beta candidate package metadata (`0.1.0-beta.1`), an initial changelog,
+the [release runbook](releasing.md), and read-only `release:guide`,
+`release:prepare`, `release:check`, and `release:notes` helpers with tests.
+Notes intentionally remain `Unreleased`: no candidate date, tag, or publication
+has been fabricated. Local release checks should fail until a dated candidate
+section is prepared. The planning checkpoint is commit `ce10f91`; find the R1
+implementation checkpoint in git history by its release-preparation commit title.
 
-Next handoff: finish R1 tests and the full project validation gate, record evidence
-below, then propose R2's exact changes. Domain, signing, and supported-OS policy can
-remain open for local tooling but must be resolved before the affected release gates.
+Next handoff: propose R2's exact CI/draft-release changes and obtain approval.
+Reuse the local validation and release-note extraction logic, but do not run the
+pre-tag clean-tree/unused-local-tag check unchanged on an already tagged CI checkout.
+Domain, signing, and supported-OS policy can remain open for local tooling but must
+be resolved before the affected release gates. No dependency was added in R1.
+
+R1 validation (2026-10-20): lint and dependency rules passed; typecheck passed;
+119 test files / 969 tests passed, including 26 release-helper tests; Electron/Vue
+production build passed; `git diff --check` passed. The CLI preview was exercised
+at the current beta version and checks correctly rejected undated candidate notes.
+Tests run helpers against temporary git repositories and verify no file/tag/commit
+mutation, successful clean pre-tag checks, and rejection of reused local tags.
 
 ## 2. Verified starting point
 
@@ -419,7 +429,7 @@ merely because the endpoint exists.
 | Phase | Status | Owner / branch / PR | Evidence and next action |
 | --- | --- | --- | --- |
 | R0 | Local preparation approved | Maintainer | Four initial choices recorded; signing/domain/OS/publication gates remain open |
-| R1 | In progress | Copilot, current checkout | Add local guided helpers, beta metadata, changelog, runbook, and tests; no remote writes |
+| R1 | Implemented and verified | Copilot, current checkout | Beta metadata, changelog, read-only helpers and runbook; full validation gate passed; no remote writes |
 | R2 | Not started | Unassigned | Depends on R1 |
 | R3 | Not started | Unassigned | Depends on R0 |
 | R4 | Not started | Unassigned | Depends on R2 and R3 |

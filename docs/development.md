@@ -32,11 +32,15 @@ npm run lint && npm run typecheck && npm run test
 | `npm run build:win` | `dist/plotdevice-<version>-setup.exe` | Windows installer (normally built in CI) |
 
 ```bash
-chmod +x dist/plotdevice-0.1.0.AppImage && ./dist/plotdevice-0.1.0.AppImage
-sudo apt install ./dist/plotdevice_0.1.0_amd64.deb      # remove with: sudo apt remove plotdevice
+chmod +x dist/plotdevice-0.1.0-beta.1.AppImage && ./dist/plotdevice-0.1.0-beta.1.AppImage
+sudo apt install ./dist/plotdevice_0.1.0-beta.1_amd64.deb      # remove with: sudo apt remove plotdevice
 ```
 
 CI builds both installers on `v*` tags, or on demand: GitHub → Actions → CI → "Run workflow".
+
+For release preparation, start with `npm run release:guide` and the
+[release checklist](releasing.md). The [release plan](release-plan.md) tracks the
+approved phases and remaining work; current CI does not publish GitHub Releases.
 
 To start the app with a project, as `plotdevice <folder>` does once installed, pass the folder to the unpacked build: `./dist/linux-unpacked/plotdevice <folder>`.
 

@@ -109,7 +109,8 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 
 The [release plan](release-plan.md) is a draft for discussion: MVP version policy,
 draft/immutable releases, a documentation site, and a published-version feed.
-Local release preparation (R1) is approved and in progress. Remaining phases need
+Local release preparation (R1) is implemented: beta metadata, changelog, read-only
+guided helpers, and a [release checklist](releasing.md). Remaining phases need
 their own approval; public deployment and publication are not authorized.
 
 ## Decide after MVP

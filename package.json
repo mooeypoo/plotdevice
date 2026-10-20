@@ -1,7 +1,7 @@
 {
   "name": "plotdevice",
   "productName": "Plot Device",
-  "version": "0.1.0",
+  "version": "0.1.0-beta.1",
   "private": true,
   "description": "A desktop app for writing a novel in plain markdown files.",
   "author": "Moriel Schottlender <mooeypoo@gmail.com>",
@@ -25,7 +25,11 @@
     "build:unpack": "npm run build && electron-builder --dir --publish never",
     "build:linux": "npm run build && electron-builder --linux --publish never",
     "build:win": "npm run build && electron-builder --win --publish never",
-    "icons": "electron tools/render-icons.mjs --app-icons"
+    "icons": "electron tools/render-icons.mjs --app-icons",
+    "release:guide": "node --experimental-strip-types tools/release/release.ts guide",
+    "release:prepare": "node --experimental-strip-types tools/release/release.ts prepare",
+    "release:check": "node --experimental-strip-types tools/release/release.ts check",
+    "release:notes": "node --experimental-strip-types tools/release/release.ts notes"
   },
   "devDependencies": {
     "@codemirror/commands": "^6.11.1",
