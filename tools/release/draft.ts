@@ -50,14 +50,10 @@ export interface DraftRemote {
   download(assetId: number, path: string): Promise<void>
 }
 
-/** Returns the exact x64 installer inventory; architecture policy is explicit in CI. */
+/** Returns the exact Linux x64 release inventory until Windows installers are qualified. */
 export function installerNames(version: string): string[] {
   if (!validateReleaseVersion(version)) throw new Error('Invalid installer version.')
-  return [
-    `plotdevice-${version}.AppImage`,
-    `plotdevice_${version}_amd64.deb`,
-    `plotdevice-${version}-setup.exe`
-  ]
+  return [`plotdevice-${version}.AppImage`, `plotdevice_${version}_amd64.deb`]
 }
 
 async function digest(path: string): Promise<string> {
@@ -98,6 +94,7 @@ export async function assembleDraft(
       schemaVersion: 1,
       ...context,
       architecture: 'x64',
+      platforms: ['linux'],
       fileFormat: 1,
       buildUrl: `https://github.com/${context.repository}/actions/runs/${context.runId}`,
       assets

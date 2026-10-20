@@ -4,9 +4,9 @@
 
 [![CI](https://github.com/mooeypoo/plotdevice/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mooeypoo/plotdevice/actions/workflows/ci.yml)
 [![License: GPL-3.0-or-later](https://img.shields.io/github/license/mooeypoo/plotdevice)](LICENSE)
-![Platforms: Linux and Windows](https://img.shields.io/badge/platforms-Linux%20%7C%20Windows-59636e)
+![Release target: Linux x64](https://img.shields.io/badge/release%20target-Linux%20x64-59636e)
 
-Plot Device is a local writing and story-planning app for novelists. Your project stays a folder of plain Markdown files: open it in Plot Device, Obsidian, Git, or any text editor. There is no database or lock-in. It runs on Linux and Windows, with support for English, Hebrew, and other writing systems.
+Plot Device is a local writing and story-planning app for novelists. Your project stays a folder of plain Markdown files: open it in Plot Device, Obsidian, Git, or any text editor. There is no database or lock-in. The first release targets Linux x64, with support for English, Hebrew, and other writing systems. Windows code is checked in CI, but its installer remains unqualified and is not distributed yet.
 
 | Write in the chapter editor | See the story take shape |
 | --- | --- |
@@ -27,7 +27,7 @@ Download an installer from [Releases](https://github.com/mooeypoo/plotdevice/rel
 
 - **Ubuntu and Debian:** install the `.deb` with `sudo apt install ./plotdevice_<version>_amd64.deb`. On Ubuntu 24.04 and later, use the `.deb` for its required app sandbox setup.
 - **Other Linux:** make the AppImage executable with `chmod +x plotdevice-<version>.AppImage`, then run it. On Ubuntu 24.04 and later, see the [AppImage note](docs/development.md#the-appimage-wont-start-on-ubuntu-2404).
-- **Windows:** run `plotdevice-<version>-setup.exe`. The installer is not signed yet, so Windows may ask you to confirm that you want to run it.
+- **Windows:** distribution is deferred until the actual installer can be tested on Windows. CI success is not installer qualification.
 
 Open a project with **Open folder…**, or launch it from a terminal:
 
@@ -41,7 +41,7 @@ A project is a folder containing `novel.md` and Markdown entries. The [file form
 
 Plot Device is built with Electron, Vue 3, and TypeScript. The main process owns file access; the renderer uses a typed API. Read the [architecture](docs/architecture.md) before changing those boundaries.
 
-Requires Node.js 22.22.2 or newer and npm. Linux and Windows are supported; CI checks both.
+Requires Node.js 22.22.2 or newer and npm. CI checks Linux and Windows; Windows installer qualification is pending.
 
 ```bash
 npm ci
@@ -59,9 +59,9 @@ npx electron-vite build
 
 See [Development](docs/development.md) for packaging, troubleshooting, and Windows testing; the [roadmap](docs/roadmap.md) describes planned work.
 
-The writer's manual is being prepared for GitHub Pages. Preview it locally with
+Read the [writer's manual](https://mooeypoo.github.io/plotdevice/). Preview it locally with
 `npm run docs:dev`, or run `npm run docs:build && npm run docs:preview` to check the
-production site at `/plotdevice/`. It is not publicly deployed yet.
+production site at `/plotdevice/`.
 
 ## Credits and license
 

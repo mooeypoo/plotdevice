@@ -21,7 +21,8 @@ the novel file format, which remains `format: 1`.
 - Hebrew and mixed-direction prose support, focus mode, and writing appearance settings.
 - Outside-edit detection and explicit conflict recovery, including saving a
   separate recovered copy without replacing the original.
-- Linux AppImage and Debian packages, and a Windows installer built by CI.
+- Linux x64 AppImage and Debian packages. Windows code remains checked in CI,
+  with manual installer builds available for future qualification.
 - Read-only release preparation helpers and a maintainer release checklist.
 - Tag-triggered draft release assembly with x64 installers, SHA-256 checksums,
   build metadata, and verified retry behavior.
@@ -32,10 +33,11 @@ the novel file format, which remains `format: 1`.
 
 ### Known limitations before the first release
 
-- Installer qualification is still required, including testing on a real Windows
-  installation or VM.
-- Windows installers are not signed. Signing policy remains a launch decision.
-- The draft release pipeline still needs a real tagged Actions rehearsal. The
-  documentation site and version feed are not publicly deployed; public publication
-  and in-app update checks are not available yet.
+- The first candidate is Linux-only. Actual packaged Linux installation and
+  data-safety qualification are still required before publication.
+- Windows installers are not distributed: real Windows/VM installation testing is
+  pending, and signing policy is unresolved. Passing CI is not installer qualification.
+- The draft release pipeline still needs a real tagged Actions rehearsal.
+  The public documentation and version feed are deployed; no stable app release
+  exists yet, and the in-app update checker is not implemented.
 - Recovery is session-local; persistent crash recovery is not provided.

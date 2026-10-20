@@ -2,6 +2,8 @@
 
 The [release plan](release-plan.md) is the policy, phase tracker, and cross-session
 handoff. This runbook is the maintainer's checklist. **Publication remains manual.**
+The first candidate is **Linux x64 only** (ADR 0011). Windows CI stays enabled,
+but Windows installers are withheld until actual Windows/VM qualification.
 On pushed annotated version tags, CI validates and builds installers, then assembles
 an unpublished draft. This pipeline still needs its first real tagged Actions rehearsal.
 
@@ -92,22 +94,46 @@ git push origin v0.1.0-beta.1
 - [ ] Wait for **Assemble unpublished release** to finish. It attaches:
   - `plotdevice-<version>.AppImage`
   - `plotdevice_<version>_amd64.deb`
-  - `plotdevice-<version>-setup.exe`
-  - `release-metadata.json` (version, commit, architecture, format, build run, installer hashes)
+  - `release-metadata.json` (version, commit, Linux platform, architecture, format, build run, installer hashes)
   - `SHA256SUMS` (installers and metadata)
-- [ ] Verify downloaded bytes: on Linux, put all five assets in one folder and run
-  `sha256sum --check SHA256SUMS`. On Windows use PowerShell
-  `Get-FileHash <installer-path> -Algorithm SHA256` and compare to the matching line.
+- [ ] Verify downloaded bytes: put all four assets in one folder and run
+  `sha256sum --check SHA256SUMS`.
   The assembler also downloads and hashes every attached asset before declaring success.
-- [ ] Download and test those exact installers. Follow the refreshed
-  [Windows test guide](testing-windows.md); it still needs updating for current
-  recovery wording before qualification. Test Linux installation and sandbox behavior too.
+- [ ] Download and test those exact Linux installers using the checklist below.
+  Windows qualification is deferred, not waived: before adding Windows distribution,
+  refresh the [Windows test guide](testing-windows.md) for current recovery wording
+  and test on a real Windows machine or VM.
 - [ ] Test upgrades/settings preservation, safe closure, outside edits, recovered
   copies, non-ASCII paths, uninstall, and untouched novel files using disposable copies.
 - [ ] Record candidate tag/commit, workflow run, hashes, platform versions, test
   results, unresolved issues, and maintainer approval in the release handoff.
 - [ ] Resolve signing disclosure, supported OS matrix, license/source availability,
   support route, and publication visibility before public release.
+
+### Linux candidate qualification
+
+Start with a manual CI packaging run or local `npm run build:linux -- --x64`;
+packaging success alone is not qualification. The exact tagged draft assets must
+be checked again before publishing if they differ from the rehearsal bytes.
+
+- [ ] Record distro/version, desktop/session, CPU architecture, package type,
+  app version, build commit/run, and SHA-256 hashes. Do not claim untested distros.
+- [ ] Install the `.deb`, launch from the desktop and terminal, verify About,
+  and test folder opening. Package installation may require maintainer-run `sudo`.
+- [ ] Run the AppImage with the sandbox enabled. Record any FUSE/AppArmor setup;
+  never qualify a workaround using `--no-sandbox`.
+- [ ] Use a temporary copy of `fixtures/sample-novel/`, not a real manuscript or
+  the tracked fixture. Exercise writing, autosave/reopen, chapters/parts, codex,
+  links, outline/timeline, Hebrew prose, and non-ASCII project paths.
+- [ ] Exercise external edits/deletion, conflicts, recovered copies, and pending
+  saves when closing/switching. Confirm original files and unknown YAML are preserved.
+- [ ] Check settings/recent-project persistence across restart. For this first
+  release, record that no previously published version exists for upgrade testing;
+  do not fabricate upgrade qualification. Test replacement/reinstallation as feasible.
+- [ ] Uninstall the `.deb`; confirm novel folders survive and document settings
+  retention. Reinstall if needed. Do not delete real user data as part of testing.
+- [ ] Record results and known limitations before explicit publication approval.
+  The beta has no in-app update checker; manual upgrades use GitHub Releases.
 
 ### Retry rules
 

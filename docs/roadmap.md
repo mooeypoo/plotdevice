@@ -107,20 +107,22 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 
 ## Proposed release and documentation program
 
-The [release plan](release-plan.md) is a draft for discussion: MVP version policy,
+The [release plan](release-plan.md) tracks approved work: MVP version policy,
 draft/immutable releases, a documentation site, and a published-version feed.
 Local release preparation (R1) is implemented: beta metadata, changelog, read-only
 guided helpers, and a [release checklist](releasing.md). Remaining phases need
-their own approval; public deployment and publication are not authorized.
+their own approval; app release publication is not authorized.
 R2 now assembles unpublished drafts for validated annotated version tags after both
-x64 platform builds. Local tests cover assembly/retries; the first tagged Actions
+platform checks and Linux x64 packaging. Local tests cover assembly/retries; the first tagged Actions
 rehearsal and real installer qualification remain pending.
 R3 adds a local VitePress manual, search, production link/publication checks, and a
 manually gated Pages workflow. R4 provides the published-release JSON below;
-public deployment and the in-app update checker remain separate work.
+the in-app update checker remains separate work.
 R4 now derives download information and version JSON from verified published stable
-releases. Offline previews emit no feed; hosted discovery/deployment verification
-is pending a push and later explicit launch approval. The app checker remains R5.
+releases. Offline previews emit no feed. Hosted Linux/Windows checks and manual
+Pages deployment passed; the repository and site are public. Automatic Pages
+refresh is approved and enabled. The first beta is Linux-only; Windows installers
+are withheld pending real Windows qualification (ADR 0011). The app checker remains R5.
 
 ## Decide after MVP
 - Edge cases in part and chapter structure beyond what `docs/file-format.md` defines (nested parts, chapters belonging to several parts).

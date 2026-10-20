@@ -98,7 +98,6 @@ describe('site/feed consistency', () => {
         downloads: [
           `plotdevice-${version}.AppImage`,
           `plotdevice_${version}_amd64.deb`,
-          `plotdevice-${version}-setup.exe`,
           'release-metadata.json',
           'SHA256SUMS'
         ].map((name) => ({

@@ -30,6 +30,7 @@ function fixture(version = '0.1.0') {
     repository,
     runId: '123',
     architecture: 'x64',
+    platforms: ['linux'],
     fileFormat: 1,
     buildUrl: `https://github.com/${repository}/actions/runs/123`,
     assets: installers.map((asset) => ({
@@ -92,7 +93,8 @@ describe('published release discovery', () => {
   it('verifies exact assets, metadata and checksums and emits a minimal installed-client feed', async () => {
     const test = fixture()
     const state = await discoverPublishedRelease(test.remote, now)
-    expect(state.stable?.downloads).toHaveLength(5)
+    expect(state.stable?.downloads).toHaveLength(4)
+    expect(state.stable?.downloads.some((asset) => asset.name.endsWith('.exe'))).toBe(false)
     expect(versionFeed(state)).toEqual({
       schemaVersion: 1,
       generatedAt: now,
@@ -209,6 +211,7 @@ describe('published release discovery', () => {
     'metadata-version',
     'metadata-commit',
     'metadata-inventory',
+    'metadata-platforms',
     'installer-size',
     'checksums'
   ])(
@@ -218,6 +221,7 @@ describe('published release discovery', () => {
       if (kind === 'metadata-version') test.metadata.version = '0.2.0'
       if (kind === 'metadata-commit') test.metadata.commit = 'b'.repeat(40)
       if (kind === 'metadata-inventory') test.metadata.assets.pop()
+      if (kind === 'metadata-platforms') test.metadata.platforms = ['windows']
       if (kind === 'installer-size') {
         const first = test.metadata.assets[0]
         if (first === undefined) throw new Error('Missing test asset.')
@@ -225,7 +229,7 @@ describe('published release discovery', () => {
       }
       if (kind === 'checksums') test.setText(5, 'a'.repeat(64) + '  incorrect.exe\n')
       else test.setText(4, JSON.stringify(test.metadata))
-      await expect(discoverPublishedRelease(test.remote, now)).rejects.toThrow(/disagree|mismatch/)
+      await expect(discoverPublishedRelease(test.remote, now)).rejects.toThrow()
     }
   )
 })

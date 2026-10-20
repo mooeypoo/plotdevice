@@ -36,13 +36,16 @@ chmod +x dist/plotdevice-0.1.0-beta.1.AppImage && ./dist/plotdevice-0.1.0-beta.1
 sudo apt install ./dist/plotdevice_0.1.0-beta.1_amd64.deb      # remove with: sudo apt remove plotdevice
 ```
 
-CI builds both installers on `v*` tags, or on demand: GitHub → Actions → CI → "Run workflow".
+CI packages Linux x64 on `v*` tags. Manual runs also package Windows for future
+qualification: GitHub → Actions → CI → "Run workflow". Windows artifacts from
+manual runs are not public release assets. Both OSes still run all code checks.
 
 For release preparation, start with `npm run release:guide` and the
 [release checklist](https://github.com/mooeypoo/plotdevice/blob/main/docs/releasing.md).
 The [release plan](https://github.com/mooeypoo/plotdevice/blob/main/docs/release-plan.md) tracks the
 approved phases and remaining work. Pushed annotated version tags with dated notes
-assemble unpublished GitHub release drafts after both platform builds; publication
+assemble unpublished Linux-only GitHub release drafts after both platform checks
+and Linux packaging; publication
 and installer qualification remain manual. The first tagged rehearsal is pending.
 
 To start the app with a project, as `plotdevice <folder>` does once installed, pass the folder to the unpacked build: `./dist/linux-unpacked/plotdevice <folder>`.
@@ -59,7 +62,8 @@ It writes `build/icons/<size>x<size>.png` (Linux), `build/icon.ico` (Windows, sm
 
 ## Testing on Windows
 
-CI builds and unit-tests on Windows, but the installer needs a person: follow
+CI typechecks, compiles, and unit-tests on Windows; manual runs can package it,
+but Windows distribution is deferred until the installer is tested by a person. Follow
 [the Windows test guide](https://github.com/mooeypoo/plotdevice/blob/main/docs/testing-windows.md).
 
 ## Test data

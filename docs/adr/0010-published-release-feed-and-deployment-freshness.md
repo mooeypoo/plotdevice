@@ -14,6 +14,7 @@ Require the exact R2 asset inventory, safe repository URLs, full commit identity
 GitHub SHA-256 asset digests, matching small release metadata, and consistent
 checksums before advertising a stable version. A stable release without this
 metadata fails the build; it is not silently skipped in favor of an older release.
+ADR 0011 narrows the initial asset inventory to Linux and requires explicit platform metadata.
 No stable candidates after a successful release listing means `stable: null`;
 API/access/validation failures never mean "no release".
 

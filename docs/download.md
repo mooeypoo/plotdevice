@@ -4,8 +4,11 @@
 import { data as release } from './release.data'
 </script>
 
-Plot Device runs on Linux and Windows. The development version is not a downloadable
-release. Only complete, published stable releases are listed below.
+The first Plot Device release is being prepared for **Linux x64 only**. Windows
+code is checked in CI, but its installer has not been validated on a real Windows
+machine or VM. No Windows installer will be distributed for this candidate.
+The development version is not a downloadable release. Only complete, published
+stable releases are listed below.
 
 <div class="release-downloads">
   <p v-if="release.source === 'preview'"><strong>Offline site preview.</strong> Release discovery was not run. This page makes no claim about the currently published version.</p>
@@ -31,7 +34,7 @@ for the first release. The release pipeline currently targets x64.
 | --- | --- | --- |
 | Ubuntu / Debian | `.deb` | Recommended on Ubuntu; includes the app sandbox setup |
 | Other Linux | `.AppImage` | A single executable file; may need FUSE or sandbox setup |
-| Windows | `-setup.exe` | A per-user installer; currently unsigned |
+| Windows | Not distributed yet | Installer qualification is pending; CI success is not installation testing |
 
 The supported OS-version matrix is still being qualified. Do not treat a successful
 CI build as proof that every Linux distribution or Windows version is supported.
@@ -62,10 +65,10 @@ Never disable the application sandbox to make an installer work.
 
 ### Windows
 
-Run `plotdevice-<version>-setup.exe`. The installer is not signed yet; Windows may
-ask for confirmation. Only use files from the project's release page, and do not
-disable antivirus or system-wide security settings. If Windows or a managed machine
-blocks the installer, stop and ask your administrator rather than bypassing policy.
+Windows distribution is deferred until the actual installer can be tested.
+Contributors can build from source, but this is not a supported Windows release.
+Signing policy is also unresolved. Do not download unofficial Windows installers
+or disable antivirus or system-wide security settings to run a development build.
 
 ## Check a download
 
@@ -77,20 +80,13 @@ sha256sum --check SHA256SUMS
 ```
 
 If you downloaded only your platform's installer, other entries will be reported
-missing; its own checksum must still match. On Windows, use PowerShell:
-
-```powershell
-Get-FileHash .\plotdevice-<version>-setup.exe -Algorithm SHA256
-```
-
-Compare the result with the matching line in `SHA256SUMS`. A checksum catches
+missing; its own checksum must still match. A checksum catches
 corruption; it does not independently establish the publisher's identity.
 
 ## Run from source
 
-Contributors can follow [Development](development.md). Public source access and
-anonymous installer downloads are required at launch; while preparation is private,
-repository access is necessary to use these resources.
+Contributors can follow [Development](development.md). Source is publicly available;
+installer availability is determined by the published releases, not branch versions.
 
 Already installed? Read [updates and upgrades](updates.md). Ready to write?
 [Open your first project](guide/start.md).

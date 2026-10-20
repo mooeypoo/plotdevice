@@ -115,7 +115,7 @@ Release checklist (local helper only)
 5. Review and commit preparation. Run npm run release:check
 6. Check remote tags/releases and the reviewed commit; local checks do not query GitHub.
 7. After explicit approval, push the reviewed annotated tag; CI assembles an unpublished draft.
-8. Verify hashes and test the actual Linux/Windows installers and upgrades; a draft is not QA approval.
+8. Verify hashes and test the actual Linux installers and upgrades; Windows distribution is deferred.
 9. Maintainer explicitly publishes; verify public downloads, Pages, and version JSON.
 
 No files changed; no commit, tag, push, network request, or publication performed.

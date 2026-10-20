@@ -53,15 +53,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-            script: build:linux
-            artifacts: |
-              dist/*.AppImage
-              dist/*.deb
-          - os: windows-latest
-            script: build:win
-            artifacts: dist/*-setup.exe
+        # Keep manual Windows packaging for future qualification, not public tag releases.
+        os: ${{ github.event_name == 'workflow_dispatch' && fromJSON('["ubuntu-latest", "windows-latest"]') || fromJSON('["ubuntu-latest"]') }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -72,11 +65,14 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npm run ${{ matrix.script }} -- --x64
+      - run: npm run ${{ runner.os == 'Linux' && 'build:linux' || 'build:win' }} -- --x64
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: plotdevice-${{ runner.os }}
-          path: ${{ matrix.artifacts }}
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/*-setup.exe
           if-no-files-found: error
 
   draft-release:
@@ -98,8 +94,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          pattern: plotdevice-*
-          merge-multiple: true
+          name: plotdevice-Linux
           path: release-installers
       - name: Assemble and verify draft assets
         env:

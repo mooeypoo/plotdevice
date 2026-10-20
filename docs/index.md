@@ -22,7 +22,7 @@ import { data as release } from './release.data'
         <a :href="withBase('/guide/start.html')">Start with the guide</a>
         <a :href="withBase('/download.html')">Get Plot Device</a>
       </div>
-      <p class="caption">Linux &amp; Windows · Local-first · Plain Markdown<br>
+      <p class="caption">Linux x64 · Windows qualification pending · Plain Markdown<br>
         <span v-if="release.source === 'preview'">Offline site preview. Published-release discovery is not enabled.</span>
         <span v-else-if="release.stable">Latest stable: <a :href="release.stable.releaseUrl">{{ release.stable.version }}</a></span>
         <span v-else>No stable installer has been published yet.</span>

@@ -1,6 +1,6 @@
 # Release and documentation program
 
-Status: **Preparation approved; implementation proceeds one phase at a time. No publication authorized.**
+Status: **Repository/site public; Linux-only beta preparation approved. No app release publication authorized.**
 Researched: 2026-10-20. Owner: project maintainer.
 
 This is the shared planning and handoff document for release engineering, public
@@ -23,6 +23,49 @@ No new dependency, public deployment, repository visibility change, release, or 
 is approved by this document.
 
 ### Resume here
+
+**Current handoff (2026-10-20):** The maintainer made the repository public and
+pushed through `0a88078`. CI run `39475570440` passed Linux and Windows checks.
+Packaging/draft jobs correctly skipped on the ordinary branch push; release-tag
+validation correctly skipped until a version tag exists. Windows-only docs-build
+skipping is intentional because Linux builds and verifies the site.
+Documentation run `39476037236` passed build, deployment, and anonymous verification.
+The live feed reports `stable: null`. The push-triggered Docs run skipped because
+the launch variable was unset, not because checks were lost.
+
+The maintainer explicitly approved enabling `PAGES_DEPLOYMENT_APPROVED=true`; it was
+set and read back on 2026-10-20. Future main pushes/release events/schedules may deploy.
+They also approved preparing `0.1.0-beta.1` as **Linux x64 only**, retaining Windows
+code checks but withholding its installer pending real Windows/VM qualification.
+ADR 0011 records this adjustment to the original two-platform release plan.
+Tag packaging and draft/discovery inventories now target two Linux installers plus
+metadata/checksums; metadata explicitly identifies Linux. Manual CI packaging still
+supports Windows for future testing, not release publication.
+
+Next gates: push this preparation change, verify the changed hosted workflow,
+package/test Linux on a disposable novel copy, prepare dated candidate notes,
+then obtain explicit annotated-tag rehearsal approval. The actual draft artifacts
+must pass installer qualification before a separate publication approval.
+No tag or app release exists. Notes remain `Unreleased`. R5 is unimplemented and
+disclosed as a beta limitation; completing it remains a stable-MVP gate.
+
+Linux-only preparation validation: lint/dependency rules, typecheck, 124 test files /
+1041 tests, Electron/Vue compilation, offline docs build/link/feed checks, and
+`git diff --check` passed. A real local `npm run build:linux -- --x64` succeeded,
+producing both installers. The deb identifies `plotdevice`, `0.1.0~beta.1`, `amd64`
+(Debian's `~` prerelease ordering is intentional). No installation or GUI
+qualification was performed. These are precommit local worktree builds, not
+frozen/tagged release artifacts:
+
+- AppImage SHA-256: `9869efdcc7ca8a8a95dc4f4633b2b930b26d2784b5100a002446ec71265b6fea`
+- deb SHA-256: `037edffac7b570dbc0bf4b1201dce7c62db8c605d59111d4f828d26a25a7e7ca`
+
+The editor test runner did not discover the requested test files; the existing
+Vitest CLI successfully ran the focused suite, then the complete test gate.
+Find this checkpoint as "feat: prepare Linux-only beta distribution".
+
+The following entries retain the preparation history; older private/not-deployed
+statements describe those earlier checkpoints, not current repository visibility.
 
 The maintainer approved committing this plan and starting local preparation on
 2026-10-20, including guided release helper scripts. R1 is implemented; the maintainer
@@ -513,7 +556,7 @@ merely because the endpoint exists.
 | R1 | Implemented and verified | Copilot, current checkout | Beta metadata, changelog, read-only helpers and runbook; full validation gate passed; no remote writes |
 | R2 | Implemented locally; remote rehearsal pending | Copilot, current checkout | CI draft assembler and retry/identity tests; no tag push, draft, or publication performed |
 | R3 | Implemented and locally verified; deployment pending launch | Copilot, current checkout | Approved pinned VitePress 2 alpha; 16-page manual, search, publication/link checks and browser QA; no push/deployment |
-| R4 | Implemented and verified locally; hosted checks pending | Copilot, current checkout | Derived stable feed and human downloads; freshness and gated refresh workflow; no public deployment |
+| R4 | Implemented; hosted build/deploy/anonymous verification passed | Copilot, current checkout | Public site/feed verified; automatic refresh explicitly enabled |
 | R5 | Planned for MVP, not started | Unassigned | Depends on R4 and UX/dependency approval |
 | R6 | Not started | Unassigned | Candidate installer evidence required |
 | R7 | Not started | Maintainer | Publication is an explicit human action |

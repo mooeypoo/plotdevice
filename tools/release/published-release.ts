@@ -32,6 +32,7 @@ const metadataSchema = z.object({
   repository: z.literal(repository),
   runId: z.string().regex(/^[1-9]\d*$/),
   architecture: z.literal('x64'),
+  platforms: z.tuple([z.literal('linux')]),
   fileFormat: z.literal(1),
   buildUrl: z.string(),
   assets: z.array(z.object({ name: z.string(), size: z.number().int().positive(), sha256 }))
@@ -49,7 +50,7 @@ export const stableReleaseSchema = z
     tag: z.string(),
     publishedAt: z.iso.datetime(),
     releaseUrl: z.url(),
-    downloads: z.array(downloadSchema).length(5)
+    downloads: z.array(downloadSchema).length(4)
   })
   .superRefine((value, ctx) => {
     if (

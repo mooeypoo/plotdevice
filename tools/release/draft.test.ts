@@ -82,7 +82,14 @@ function fixture() {
 }
 
 describe('draft release assembly', () => {
-  it('uploads exactly three installers, deterministic metadata and matching checksums, never publishing', async () => {
+  it('defines only the approved Linux x64 installers', () => {
+    expect(installerNames(context.version)).toEqual([
+      'plotdevice-0.1.0-beta.1.AppImage',
+      'plotdevice_0.1.0-beta.1_amd64.deb'
+    ])
+  })
+
+  it('uploads exactly two Linux installers, deterministic metadata and matching checksums, never publishing', async () => {
     const test = fixture()
     await assembleDraft(context, test.directory, notes, test.remote)
     expect(test.draft?.draft).toBe(true)
@@ -99,6 +106,7 @@ describe('draft release assembly', () => {
       version: context.version,
       runId: '123',
       architecture: 'x64',
+      platforms: ['linux'],
       fileFormat: 1
     })
     const sums = test.draft?.assets.find((asset) => asset.name === 'SHA256SUMS')
@@ -108,7 +116,7 @@ describe('draft release assembly', () => {
         ?.toString()
         .trim()
         .split('\n') ?? []
-    expect(lines).toHaveLength(4)
+    expect(lines).toHaveLength(3)
     for (const line of lines) {
       const [hash, name] = line.split('  ')
       const asset = test.draft?.assets.find((candidate) => candidate.name === name)
@@ -116,9 +124,9 @@ describe('draft release assembly', () => {
       if (assetBytes === undefined) throw new Error('Missing checksum target.')
       expect(hash).toBe(createHash('sha256').update(assetBytes).digest('hex'))
     }
-    expect(readdirSync(test.directory)).toHaveLength(3)
+    expect(readdirSync(test.directory)).toHaveLength(2)
     await assembleDraft(context, test.directory, notes, test.remote)
-    expect(test.uploads).toBe(5)
+    expect(test.uploads).toBe(4)
   })
 
   it('resumes an interrupted draft without overwriting matching existing assets', async () => {
@@ -130,7 +138,7 @@ describe('draft release assembly', () => {
     expect(test.draft?.assets).toHaveLength(2)
     test.failAfter(Infinity)
     await assembleDraft(context, test.directory, notes, test.remote)
-    expect(test.uploads).toBe(5)
+    expect(test.uploads).toBe(4)
   })
 
   it.each(['published', 'commit', 'notes', 'channel', 'unexpected', 'bytes', 'run'])(
@@ -155,11 +163,11 @@ describe('draft release assembly', () => {
           test.remote
         )
       ).rejects.toThrow()
-      expect(test.uploads).toBe(5)
+      expect(test.uploads).toBe(4)
     }
   )
 
-  it.each(['missing', 'extra', 'empty'])(
+  it.each(['missing', 'extra', 'empty', 'windows'])(
     'rejects %s installer inventory without creating a release',
     async (kind) => {
       const test = fixture()
@@ -167,6 +175,11 @@ describe('draft release assembly', () => {
       if (name === undefined) throw new Error('Missing name.')
       if (kind === 'missing') rmSync(join(test.directory, name))
       if (kind === 'extra') writeFileSync(join(test.directory, 'surprise.exe'), 'extra')
+      if (kind === 'windows')
+        writeFileSync(
+          join(test.directory, `plotdevice-${context.version}-setup.exe`),
+          'unqualified'
+        )
       if (kind === 'empty') writeFileSync(join(test.directory, name), '')
       await expect(assembleDraft(context, test.directory, notes, test.remote)).rejects.toThrow()
       expect(test.draft).toBeUndefined()
@@ -275,11 +288,12 @@ it('shares identity checks with CI without rejecting the existing tag or generat
 })
 
 describe('release workflow wiring', () => {
-  it('requires both platform builds, gates remote writes on tag pushes, pins actions, and builds explicit x64', () => {
+  it('keeps both platform checks, packages only Linux on tags, and gates remote writes', () => {
     const workflow: unknown = parse(readFileSync('.github/workflows/ci.yml', 'utf8'))
     expect(workflow).toMatchObject({
       permissions: { contents: 'read' },
       jobs: {
+        checks: { strategy: { matrix: { os: ['ubuntu-latest', 'windows-latest'] } } },
         build: { needs: 'checks' },
         'draft-release': {
           needs: 'build',
@@ -289,8 +303,10 @@ describe('release workflow wiring', () => {
       }
     })
     const text = readFileSync('.github/workflows/ci.yml', 'utf8')
-    expect(text).toContain('npm run ${{ matrix.script }} -- --x64')
-    expect(text).toContain('merge-multiple: true')
+    expect(text).toContain("github.event_name == 'workflow_dispatch' && fromJSON")
+    expect(text).toContain('|| fromJSON(\'["ubuntu-latest"]\')')
+    expect(text).toContain('-- --x64')
+    expect(text).toContain('name: plotdevice-Linux')
     expect(text).not.toMatch(/uses: actions\/[\w-]+@v/)
     expect(text).toContain('cancel-in-progress: ${{ !startsWith(github.ref')
   })
