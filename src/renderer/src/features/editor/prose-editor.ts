@@ -28,6 +28,7 @@ export interface ProseEditorOptions {
 
 /** A mounted prose editor and the settings that can change while it is open. */
 export interface ProseEditor {
+  setReadOnly(on: boolean): void
   remeasure(): void
   setFocusMode(on: boolean): void
   setLinkTargets(targets: readonly LinkTargetDto[]): void
@@ -39,6 +40,7 @@ export interface ProseEditor {
 export function createProseEditor(parent: HTMLElement, options: ProseEditorOptions): ProseEditor {
   const focusCompartment = new Compartment()
   const linksCompartment = new Compartment()
+  const editingCompartment = new Compartment()
 
   const view = new EditorView({
     parent,
@@ -59,8 +61,10 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
           'aria-label': 'Prose'
         }),
         placeholder('Begin writing…'),
-        EditorState.readOnly.of(options.readOnly),
-        EditorView.editable.of(!options.readOnly),
+        editingCompartment.of([
+          EditorState.readOnly.of(options.readOnly),
+          EditorView.editable.of(!options.readOnly)
+        ]),
         focusCompartment.of(options.focusMode ? focusDimming() : []),
         linksCompartment.of(wikiLinkDecorations(createLinkKindLookup(options.linkTargets))),
         autocompletion({
@@ -91,6 +95,14 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
   })
 
   return {
+    setReadOnly(on) {
+      view.dispatch({
+        effects: editingCompartment.reconfigure([
+          EditorState.readOnly.of(on),
+          EditorView.editable.of(!on)
+        ])
+      })
+    },
     remeasure() {
       view.requestMeasure()
     },

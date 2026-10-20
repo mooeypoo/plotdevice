@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { undo, undoDepth } from '@codemirror/commands'
 import { EditorView } from '@codemirror/view'
+import { EditorState } from '@codemirror/state'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -20,6 +21,36 @@ afterEach(() => {
 })
 
 describe('ChapterEditor appearance', () => {
+  it('temporarily freezes editing during recovery without losing the draft, selection or undo history', async () => {
+    const wrapper = mount(ChapterEditor, {
+      props: {
+        initialText: 'Draft',
+        readOnly: false,
+        focusMode: false,
+        linkTargets: [],
+        completions: []
+      },
+      attachTo: document.body
+    })
+    const dom = wrapper.get('.cm-editor').element
+    if (!(dom instanceof HTMLElement)) throw new Error('Expected CodeMirror')
+    const view = EditorView.findFromDOM(dom)
+    if (view === null) throw new Error('Expected editor view')
+    view.dispatch({ changes: { from: 5, insert: ' text' }, selection: { anchor: 3 } })
+    await wrapper.setProps({ readOnly: true })
+    expect(view.state.facet(EditorState.readOnly)).toBe(true)
+    expect(wrapper.get('.cm-content').attributes('contenteditable')).toBe('false')
+    expect(wrapper.get('.cm-editor').element).toBe(dom)
+    expect(view.state.doc.toString()).toBe('Draft text')
+    expect(view.state.selection.main.anchor).toBe(3)
+    expect(undoDepth(view.state)).toBe(1)
+    await wrapper.setProps({ readOnly: false })
+    expect(view.state.facet(EditorState.readOnly)).toBe(false)
+    expect(undo(view)).toBe(true)
+    expect(view.state.doc.toString()).toBe('Draft')
+    wrapper.unmount()
+  })
+
   it('remeasures without replacing the editor or changing text, selection, or undo history', async () => {
     const wrapper = mount(ChapterEditor, {
       props: {

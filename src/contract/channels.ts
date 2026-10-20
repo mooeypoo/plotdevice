@@ -3,9 +3,16 @@ import type {
   InspectorApi,
   InteractionsApi,
   ManuscriptApi,
+  RecoveryApi,
   TimelineApi,
   WorkspaceApi
 } from './api'
+
+/** Explicit recovery requests. */
+export const RECOVERY_CHANNELS = {
+  capture: 'recovery:capture',
+  saveCopy: 'recovery:save-copy'
+} as const satisfies Record<keyof RecoveryApi, string>
 
 /** IPC channel names, shared by the preload (which invokes) and main (which handles). */
 export const WORKSPACE_CHANNELS = {

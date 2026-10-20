@@ -276,9 +276,114 @@ export function createFakePlotDeviceApi(): {
   const revisions = new Map<string, number>()
   const versionOf = (path: string): string =>
     `${files.get(path) ?? ''}#${String(revisions.get(path) ?? 0)}`
+  const recoverySnapshots = new Map<
+    string,
+    {
+      path: string
+      manuscript: EntryPropertiesDto | undefined
+      codex: CodexPropertiesDto | undefined
+    }
+  >()
 
   const api: PlotDeviceApi = {
-    contractVersion: 12,
+    contractVersion: 13,
+    recovery: {
+      capture: (path, version) => {
+        if (!files.has(path) || versionOf(path) !== version)
+          return Promise.resolve({
+            ok: false,
+            error: { code: 'snapshot-unavailable', message: 'Snapshot is unavailable.' }
+          })
+        const token = `snapshot-${String(recoverySnapshots.size)}`
+        const manuscriptProperties = properties.get(path)
+        const characterProperties = codexProperties.get(path)
+        recoverySnapshots.set(token, {
+          path,
+          manuscript: manuscriptProperties === undefined ? undefined : { ...manuscriptProperties },
+          codex: characterProperties === undefined ? undefined : { ...characterProperties }
+        })
+        return Promise.resolve({ ok: true, value: token })
+      },
+      saveCopy: (token, text) => {
+        const snapshot = recoverySnapshots.get(token)
+        if (snapshot === undefined)
+          return Promise.resolve({
+            ok: false,
+            error: { code: 'snapshot-unavailable', message: 'Snapshot is unavailable.' }
+          })
+        const source = snapshot.path
+        const template = source.startsWith('templates/')
+        const base = (template ? source.slice(source.lastIndexOf('/') + 1) : source).replace(
+          /\.md$/u,
+          ''
+        )
+        let path = `${base} (recovered).md`
+        let number = 2
+        while (files.has(path)) {
+          path = `${base} (recovered ${String(number)}).md`
+          number += 1
+        }
+        files.set(path, text)
+        state.created.push(path)
+        const sourceChapter = manuscript.parts
+          .flatMap((part) => part.chapters)
+          .concat(
+            manuscript.chapters,
+            manuscript.unordered.map((entry) => entry.chapter)
+          )
+          .find((chapter) => chapter.path === source)
+        const sourcePart = [...manuscript.parts, ...manuscript.unnumberedParts].find(
+          (part) => part.path === source
+        )
+        if (sourcePart !== undefined) {
+          manuscript = {
+            ...manuscript,
+            unnumberedParts: [...manuscript.unnumberedParts, { ...sourcePart, path, chapters: [] }]
+          }
+        } else if (sourceChapter !== undefined) {
+          manuscript = {
+            ...manuscript,
+            unordered: [
+              ...manuscript.unordered,
+              { chapter: { ...sourceChapter, path }, reason: 'missing-order' }
+            ]
+          }
+        } else if (codex.outlines.some((outline) => outline.path === source)) {
+          codex = { ...codex, outlines: [...codex.outlines, { path, title: 'Recovered outline' }] }
+        } else {
+          const kind = template ? 'note' : (snapshot.codex?.kind ?? 'note')
+          codex = {
+            ...codex,
+            entries: [
+              ...codex.entries,
+              {
+                path,
+                kind,
+                title: snapshot.codex?.title ?? 'Recovered note',
+                aliases: snapshot.codex?.aliases ?? []
+              }
+            ]
+          }
+          codexProperties.set(
+            path,
+            snapshot.codex !== undefined
+              ? { ...snapshot.codex, path, kind }
+              : {
+                  path,
+                  kind,
+                  title: 'Recovered note',
+                  aliases: [],
+                  relationships: [],
+                  relationshipsEditable: false,
+                  otherKeys: []
+                }
+          )
+        }
+        if (snapshot.manuscript !== undefined)
+          properties.set(path, { ...snapshot.manuscript, path })
+        return Promise.resolve({ ok: true, value: { path } })
+      }
+    },
     workspace: {
       chooseFolder: () => Promise.resolve(null),
       takeLaunchFolder: () => {
@@ -294,6 +399,7 @@ export function createFakePlotDeviceApi(): {
       initializeProject: (_, title) =>
         Promise.resolve({ ok: true, value: { ...sampleSummary, title } }),
       closeProject: () => {
+        recoverySnapshots.clear()
         state.closedProjects += 1
         return Promise.resolve()
       },
@@ -319,6 +425,11 @@ export function createFakePlotDeviceApi(): {
         )
       },
       saveEntryText: (path, text, version, overwrite) => {
+        if (!files.has(path))
+          return Promise.resolve({
+            ok: false,
+            error: { code: 'not-found', message: 'gone' }
+          })
         if (!overwrite && versionOf(path) !== version) {
           return Promise.resolve({
             ok: false,

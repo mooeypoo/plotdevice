@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
-import { computed, ref, shallowRef } from 'vue'
+import { computed, ref, shallowRef, watch } from 'vue'
 import type { ApiError, ProjectChangeDto, RenamePlanDto } from '../../../contract/dtos'
 import { createAutosaver } from './autosaver'
 import { entryOwner, placeOf } from './entry-owners'
 import type { EntryKind, EntryPlace } from './entry-place'
 import { plotDeviceApi } from './plot-device-api'
+import { useEntryRecovery } from './entry-recovery'
 
 export type { EntryKind, EntryPlace } from './entry-place'
 
@@ -45,10 +46,42 @@ export const useEditorStore = defineStore('editor', () => {
   const diskNotice = ref<string | null>(null)
   const pendingRename = shallowRef<PendingRename | null>(null)
   const actionError = ref<string | null>(null)
+  const recovery = useEntryRecovery()
+  const recoveryBusy = recovery.busy
+  const recoveryError = recovery.error
+  const recoveredPath = recovery.recoveredPath
+  const missingReappeared = ref(false)
   // The open file's version, shared by the editor and the inspector: both write the same file.
   let version = ''
   let savedText = ''
   let revision = 0
+  let recoveryToken: string | undefined
+  let recoveredText: string | undefined
+  let syncAfterRecovery: string | undefined
+
+  watch(
+    recoveryBusy,
+    (busy) => {
+      if (busy || syncAfterRecovery === undefined) return
+      const path = syncAfterRecovery
+      syncAfterRecovery = undefined
+      void syncFromDisk([{ path, kind: 'changed' }])
+    },
+    { flush: 'sync' }
+  )
+
+  async function captureRecovery(): Promise<void> {
+    const current = entry.value
+    if (current === null) return
+    const capturingVersion = version
+    const captured = await plotDeviceApi.current().recovery.capture(current.path, capturingVersion)
+    if (entry.value?.path !== current.path || version !== capturingVersion) return
+    if (captured.ok) recoveryToken = captured.value
+    else {
+      recoveryToken = undefined
+      recoveryError.value = captured.error.message
+    }
+  }
 
   /** The API for the open entry's kind: manuscript entries and codex entries have their own. */
   const apiFor = (
@@ -58,23 +91,31 @@ export const useEditorStore = defineStore('editor', () => {
     | ReturnType<typeof plotDeviceApi.current>['manuscript'] =>
     isManuscriptKind(kind) ? plotDeviceApi.current().manuscript : plotDeviceApi.current().codex
 
-  async function save(overwrite = false): Promise<void> {
+  async function save(replacementVersion?: string): Promise<void> {
     const current = entry.value
-    if (current === null || saveState.value === 'missing') return
-    if (saveState.value === 'conflict' && !overwrite) return
+    if (
+      current === null ||
+      saveState.value === 'missing' ||
+      (recoveryBusy.value && replacementVersion === undefined)
+    )
+      return
+    if (saveState.value === 'conflict' && replacementVersion === undefined) return
     const sending = text.value
-    if (sending === savedText && !overwrite) {
+    if (sending === savedText && replacementVersion === undefined) {
       saveState.value = 'saved'
       return
     }
     saveState.value = 'saving'
+    saveError.value = null
     const result = await apiFor(current.kind).saveEntryText(
       current.path,
       sending,
-      version,
-      overwrite
+      replacementVersion ?? version,
+      false
     )
     if (entry.value?.path !== current.path) return
+    // A watcher may have detected a deletion or conflict while this save was in flight.
+    if (['missing', 'conflict'].includes(saveState.value)) return
 
     if (result.ok) {
       version = result.value.version
@@ -84,10 +125,15 @@ export const useEditorStore = defineStore('editor', () => {
       entryOwner(current.kind)?.addWords(current.path, delta)
       saveState.value = text.value === sending ? 'saved' : 'unsaved'
       saveError.value = null
+      await captureRecovery()
       if (saveState.value === 'unsaved') autosaver.schedule()
     } else if (result.error.code === 'changed-on-disk') {
       saveState.value = 'conflict'
       saveError.value = null
+    } else if (result.error.code === 'not-found' || result.error.code === 'entry-not-allowed') {
+      autosaver.cancel()
+      saveState.value = 'missing'
+      missingReappeared.value = false
     } else {
       saveState.value = 'error'
       saveError.value = describeSaveError(result.error)
@@ -97,13 +143,17 @@ export const useEditorStore = defineStore('editor', () => {
   const autosaver = createAutosaver({ delayMs: AUTOSAVE_DELAY_MS, save: () => save() })
 
   /** Unsaved text that saving can't fix by itself (a conflict, a failed save, or a missing file). */
-  const hasStuckChanges = computed(
-    () =>
+  function needsRecovery(): boolean {
+    return (
       saveState.value === 'missing' ||
-      ((saveState.value === 'conflict' || saveState.value === 'error') && text.value !== savedText)
-  )
+      saveState.value === 'conflict' ||
+      (saveState.value === 'error' && text.value !== savedText)
+    )
+  }
+  const hasStuckChanges = computed(() => recoveryBusy.value || needsRecovery())
 
   async function open(path: string): Promise<boolean> {
+    if (recoveryBusy.value) return false
     await flush()
     // Switching now would silently drop the writer's unsaved text.
     if (hasStuckChanges.value) return false
@@ -125,6 +175,10 @@ export const useEditorStore = defineStore('editor', () => {
     actionError.value = null
     diskNotice.value = null
     pendingRename.value = null
+    recovery.clear()
+    recoveryToken = undefined
+    missingReappeared.value = false
+    await captureRecovery()
     await readProperties()
     return true
   }
@@ -138,7 +192,11 @@ export const useEditorStore = defineStore('editor', () => {
     if (current === null) return
     const read = await entryOwner(current.kind)?.readProperties(current.path)
     if (read !== undefined && entry.value?.path === current.path && saveState.value === 'saved') {
-      version = read
+      if (read !== version) {
+        await syncFromDisk([{ path: current.path, kind: 'changed' }])
+      } else {
+        await captureRecovery()
+      }
     }
   }
 
@@ -163,11 +221,18 @@ export const useEditorStore = defineStore('editor', () => {
     if (result.ok) {
       version = result.version
       actionError.value = null
+      void captureRecovery()
     } else if (result.conflict) {
       saveState.value = 'conflict'
     } else {
       actionError.value = result.message
     }
+  }
+
+  function deferSyncWhileRecovering(path: string): boolean {
+    if (!recoveryBusy.value) return false
+    syncAfterRecovery = path
+    return true
   }
 
   /**
@@ -180,28 +245,37 @@ export const useEditorStore = defineStore('editor', () => {
     refreshPlace()
     const current = entry.value
     if (current === null || !changes.some((change) => change.path === current.path)) return
+    if (deferSyncWhileRecovering(current.path)) return
 
     const result = await apiFor(current.kind).openEntry(current.path)
     if (entry.value?.path !== current.path) return
+    if (deferSyncWhileRecovering(current.path)) return
     if (!result.ok) {
       if (result.error.code === 'not-found' || result.error.code === 'entry-not-allowed') {
         autosaver.cancel()
         saveState.value = 'missing'
         diskNotice.value = null
+        missingReappeared.value = false
+      } else {
+        autosaver.cancel()
+        saveState.value = 'conflict'
+        recoveryError.value = result.error.message
       }
       return
     }
 
     const disk = result.value
     const wasMissing = saveState.value === 'missing'
+    if (wasMissing) {
+      missingReappeared.value = true
+      return
+    }
+    if (saveState.value === 'conflict') return
     if (disk.text === savedText || disk.text === text.value) {
       version = disk.version
       savedText = disk.text
-      if (wasMissing || saveState.value === 'conflict') {
-        saveState.value = text.value === savedText ? 'saved' : 'unsaved'
-        if (saveState.value === 'unsaved') autosaver.schedule()
-      }
-    } else if (text.value === savedText && saveState.value !== 'conflict' && !wasMissing) {
+      await captureRecovery()
+    } else if (text.value === savedText) {
       autosaver.cancel()
       revision += 1
       entry.value = { ...current, revision }
@@ -211,6 +285,7 @@ export const useEditorStore = defineStore('editor', () => {
       wordCount.value = disk.wordCount
       saveState.value = 'saved'
       diskNotice.value = 'Updated from disk: this file changed in another program.'
+      await captureRecovery()
     } else {
       autosaver.cancel()
       saveState.value = 'conflict'
@@ -219,50 +294,64 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   /**
-   * The open file vanished: saves the writer's text as a new entry of the same kind and title (a
-   * chapter goes back into its part when that still exists), and opens it.
+   * Saves an explicitly chosen recovered copy, never recreating or replacing the source file.
+   * Failed writes or reloads leave the original draft and its decision state intact.
    */
   async function saveMissingAsNew(): Promise<boolean> {
-    const current = entry.value
-    if (current === null || saveState.value !== 'missing') return false
-    const keep = text.value
-    const partPath =
-      current.partPath !== undefined && placeOf(current.partPath) !== undefined
-        ? current.partPath
-        : null
-    const api = plotDeviceApi.current()
-    const result =
-      current.kind === 'template'
-        ? await api.codex.editTemplate(current.templateOf ?? 'note')
-        : current.kind === 'outline'
-          ? await api.codex.createOutline(current.title)
-          : current.kind === 'part'
-            ? await api.manuscript.createPart(current.title)
-            : current.kind === 'chapter'
-              ? await api.manuscript.createChapter(partPath, current.title)
-              : await api.codex.createEntry(current.kind, current.title)
-    if (!result.ok) {
-      actionError.value = result.error.message
-      return false
-    }
-    await entryOwner(current.kind)?.reload()
-    // The text is about to be saved into the new file; nothing is left behind.
-    saveState.value = 'saved'
-    savedText = text.value
-    if (!(await open(result.value.path))) return false
-    edit(keep)
-    await flush()
-    return true
+    return recovery.run(async () => {
+      const current = entry.value
+      if (current === null || !['missing', 'conflict'].includes(saveState.value)) return false
+      if (recoveryToken === undefined) {
+        recoveryError.value =
+          'The recovery snapshot is unavailable. Your draft is still open; no file was changed.'
+        return false
+      }
+      autosaver.cancel()
+      if (recoveredText !== text.value) recoveredPath.value = null
+      if (recoveredPath.value === null) {
+        const result = await plotDeviceApi.current().recovery.saveCopy(recoveryToken, text.value)
+        if (!result.ok) {
+          recoveryError.value = result.error.message
+          return false
+        }
+        recoveredPath.value = result.value.path
+        recoveredText = text.value
+      }
+      // Templates are recovered as notes outside the template folder.
+      await entryOwner(current.kind)?.reload()
+      const path = recoveredPath.value
+      const place = placeOf(path)
+      if (place === undefined) {
+        recoveryError.value =
+          'The recovered copy was saved, but could not be listed. Your draft is still open.'
+        return false
+      }
+      const read = await apiFor(place.kind).openEntry(path)
+      if (!read.ok) {
+        recoveryError.value = read.error.message
+        return false
+      }
+      if (read.value.text !== text.value) {
+        recoveryError.value =
+          'The recovered copy changed outside Plot Device. Your draft is still open; inspect the copy before continuing.'
+        return false
+      }
+      await adoptEntry(path, place, read.value)
+      diskNotice.value = 'Saved a recovered copy. The original file was left untouched.'
+      return true
+    })
   }
 
   /** The open file vanished and the writer doesn't want its text: closes it. */
   function discardMissing(): void {
-    if (saveState.value !== 'missing') return
+    if (saveState.value !== 'missing' || recoveryBusy.value) return
     autosaver.cancel()
     saveState.value = 'saved'
     entry.value = null
     text.value = ''
     savedText = ''
+    recoveryToken = undefined
+    recovery.clear()
   }
 
   /** After a title change: rename the file now (`always`), or ask first (`ask`). */
@@ -324,24 +413,78 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   /** In a conflict: drop the writer's unsaved text and load the file as it is on disk now. */
-  async function loadVersionOnDisk(): Promise<void> {
-    const current = entry.value
-    if (current === null) return
-    autosaver.cancel()
-    saveState.value = 'saved'
-    savedText = text.value
-    await open(current.path)
+  async function loadVersionOnDisk(): Promise<boolean> {
+    return recovery.run(async () => {
+      const current = entry.value
+      if (current === null) return false
+      autosaver.cancel()
+      const read = await apiFor(current.kind).openEntry(current.path)
+      if (!read.ok) {
+        recoveryError.value = read.error.message
+        if (read.error.code === 'not-found' || read.error.code === 'entry-not-allowed')
+          saveState.value = 'missing'
+        return false
+      }
+      await adoptEntry(current.path, current, read.value)
+      diskNotice.value = 'Loaded the disk version. No file was written.'
+      return true
+    })
   }
 
-  /** In a conflict: write the writer's text over the outside change. */
+  /** Replaces only the disk body after explicit confirmation, using the version shown then. */
   async function keepMine(): Promise<void> {
-    autosaver.cancel()
-    await save(true)
+    await recovery.run(async () => {
+      const current = entry.value
+      if (current === null || saveState.value !== 'conflict') return false
+      const read = await apiFor(current.kind).openEntry(current.path)
+      if (!read.ok) {
+        recoveryError.value = read.error.message
+        if (read.error.code === 'not-found' || read.error.code === 'entry-not-allowed')
+          saveState.value = 'missing'
+        return false
+      }
+      if (
+        !window.confirm(
+          'Replace the disk text with your draft? This overwrites the body edited outside Plot Device. Its current frontmatter will be kept. Save a recovered copy instead to keep both versions.'
+        )
+      )
+        return false
+      autosaver.cancel()
+      await save(read.value.version)
+      if (needsRecovery()) {
+        recoveryError.value =
+          saveError.value ??
+          'The file changed again. Nothing was replaced. Review your choices again.'
+        if (saveError.value !== null) saveState.value = 'conflict'
+      }
+      return !needsRecovery()
+    })
+  }
+
+  async function adoptEntry(
+    path: string,
+    place: EntryPlace,
+    opened: { text: string; version: string; wordCount: number }
+  ): Promise<void> {
+    revision += 1
+    entry.value = { ...place, path, revision }
+    text.value = opened.text
+    savedText = opened.text
+    version = opened.version
+    wordCount.value = opened.wordCount
+    saveState.value = 'saved'
+    saveError.value = null
+    recovery.clear()
+    recoveryToken = undefined
+    missingReappeared.value = false
+    await captureRecovery()
+    await readProperties()
   }
 
   /** Saves and closes the entry, back to the project overview. */
   function closeEntry(): void {
     void flush().then(() => {
+      if (hasStuckChanges.value) return
       entry.value = null
     })
   }
@@ -349,6 +492,7 @@ export const useEditorStore = defineStore('editor', () => {
   /** Saves and forgets everything, when the project closes. */
   async function close(): Promise<void> {
     await flush()
+    if (hasStuckChanges.value) return
     pendingRename.value = null
     entry.value = null
     text.value = ''
@@ -364,6 +508,10 @@ export const useEditorStore = defineStore('editor', () => {
     diskNotice,
     pendingRename,
     actionError,
+    recoveryBusy,
+    recoveryError,
+    recoveredPath,
+    missingReappeared,
     hasStuckChanges,
     open,
     edit,

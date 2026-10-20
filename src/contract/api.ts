@@ -180,12 +180,21 @@ export interface AppApi {
   cancelClose(): void
 }
 
+/** Explicit recovery of a draft without replacing its original file. */
+export interface RecoveryApi {
+  /** Pins already-read bytes by their version; no file is read from an arbitrary renderer path. */
+  capture(path: string, version: string): Promise<ApiResult<string>>
+  /** Creates a separate file using captured metadata and the current draft's body. */
+  saveCopy(token: string, text: string): Promise<ApiResult<CreatedEntryDto>>
+}
+
 /**
  * The whole renderer↔main surface, exposed to the renderer as `window.plotDevice`.
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 12
+  readonly contractVersion: 13
+  readonly recovery: RecoveryApi
   readonly workspace: WorkspaceApi
   readonly manuscript: ManuscriptApi
   readonly codex: CodexApi

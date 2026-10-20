@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
 import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
@@ -42,10 +42,11 @@ describe('EditorPane', () => {
     await flushPromises()
     expect(pane.text()).toContain('This file is gone.')
 
-    const save = pane.findAll('button').find((button) => button.text() === 'Save as a new chapter')
+    const save = pane.findAll('button').find((button) => button.text() === 'Save recovered copy')
     await save?.trigger('click')
     await flushPromises()
-    expect(fake.files.get('First frost.md')).toBe('Keep me.\n')
+    expect(fake.files.get('First frost (recovered).md')).toBe('Keep me.\n')
+    expect(fake.files.has('First frost.md')).toBe(false)
     expect(pane.text()).not.toContain('This file is gone.')
   })
 
@@ -58,5 +59,40 @@ describe('EditorPane', () => {
     await store.syncFromDisk([{ path: 'First frost.md', kind: 'changed' }])
     await flushPromises()
     expect(pane.text()).toContain('Changed outside Plot Device.')
+    expect(pane.findAll('button').map((button) => button.text())).toEqual(
+      expect.arrayContaining(['Use disk version', 'Save recovered copy', 'Replace disk text…'])
+    )
+  })
+
+  it('disables all decisions and freezes the editor while a copy is being written', async () => {
+    const store = useEditorStore()
+    await store.open('First frost.md')
+    store.edit('Keep this draft\n')
+    fake.files.delete('First frost.md')
+    await store.syncFromDisk([{ path: 'First frost.md', kind: 'removed' }])
+    const original = fake.api.recovery.saveCopy.bind(fake.api.recovery)
+    let release: () => void = () => {
+      throw new Error('Recovery did not start')
+    }
+    const copy = vi.spyOn(fake.api.recovery, 'saveCopy').mockImplementation(async (...args) => {
+      await new Promise<void>((resolve) => {
+        release = resolve
+      })
+      return original(...args)
+    })
+    const pane = mountPane()
+    await pane
+      .findAll('button')
+      .find((button) => button.text() === 'Save recovered copy')
+      ?.trigger('click')
+    expect(
+      pane.findAll('.banner button').every((button) => button.attributes('disabled') !== undefined)
+    ).toBe(true)
+    expect(pane.getComponent({ name: 'ChapterEditor' }).props('readOnly')).toBe(true)
+    release()
+    await flushPromises()
+    expect(pane.getComponent({ name: 'ChapterEditor' }).props('readOnly')).toBe(false)
+    copy.mockRestore()
+    pane.unmount()
   })
 })

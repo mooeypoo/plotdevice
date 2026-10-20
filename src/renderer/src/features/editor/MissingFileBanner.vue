@@ -1,23 +1,51 @@
 <script setup lang="ts">
-defineProps<{ kind: string; busy: boolean }>()
+defineProps<{
+  kind: string
+  busy: boolean
+  readOnly: boolean
+  reappeared: boolean
+  error: string | null
+  recoveredPath: string | null
+}>()
 
 defineEmits<{
   saveAsNew: []
   discard: []
+  loadTheirs: []
 }>()
 </script>
 
 <template>
-  <div class="banner" role="alert">
+  <div class="banner" role="alert" :aria-busy="busy">
     <div class="text">
       <strong>This file is gone.</strong>
-      Another program moved or deleted it. Your text is still here, but it isn’t being saved. Saving
-      it as a new {{ kind }} keeps the text and the title; other properties went with the file.
+      Another program may have intentionally moved or deleted this {{ kind }}. Your draft is still
+      here, and autosave is paused. Keep it deleted and close this draft, or save a separate
+      recovered copy with the last captured metadata. Neither action recreates the original path or
+      changes its links.
+      <p v-if="reappeared">
+        The original path is readable again. You can use its current disk version; your draft will
+        not overwrite it automatically.
+      </p>
+      <p v-if="error" class="error" role="status">{{ error }}</p>
+      <p v-if="recoveredPath">
+        Recovered copy: <bdi>{{ recoveredPath }}</bdi>
+      </p>
     </div>
     <div class="actions">
-      <button type="button" :disabled="busy" @click="$emit('discard')">Discard</button>
-      <button type="button" class="primary" :disabled="busy" @click="$emit('saveAsNew')">
-        Save as a new {{ kind }}
+      <button type="button" :disabled="busy" @click="$emit('discard')">
+        {{ reappeared ? 'Close draft / leave disk unchanged' : 'Keep deleted / close draft' }}
+      </button>
+      <button v-if="reappeared" type="button" :disabled="busy" @click="$emit('loadTheirs')">
+        Use disk version
+      </button>
+      <button
+        type="button"
+        class="primary"
+        :disabled="busy || readOnly"
+        @click="$emit('saveAsNew')"
+      >
+        Save recovered copy
       </button>
     </div>
   </div>
@@ -51,5 +79,10 @@ strong {
 .actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.error {
+  color: var(--danger);
 }
 </style>

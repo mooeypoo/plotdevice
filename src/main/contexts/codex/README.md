@@ -8,4 +8,6 @@
 
 **Ports.** `CodexRepository` (in-memory fake beside it) and the shared `EntryRelocator`.
 
+**Recovery.** The markdown adapter records exact versioned bytes for shared recovery; recovered templates are separate notes, never replacements for active templates.
+
 **Must not know about.** Chapters, parts, or story dates. "Appears in" is the cross-context query `src/main/queries/get-appears-in.ts`, built on the manuscript's `ListChapterReferences`.

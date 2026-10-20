@@ -1,25 +1,42 @@
 <script setup lang="ts">
-defineProps<{ busy: boolean }>()
+defineProps<{
+  busy: boolean
+  readOnly: boolean
+  error: string | null
+  recoveredPath: string | null
+}>()
 
 defineEmits<{
   loadTheirs: []
   keepMine: []
+  recoverCopy: []
 }>()
 </script>
 
 <template>
-  <div class="banner" role="alert">
+  <div class="banner" role="alert" :aria-busy="busy">
     <div class="text">
       <strong>Changed outside Plot Device.</strong>
-      This file was edited in another program after you opened it. Your latest changes aren’t saved
-      yet.
+      Both the file and your draft have changes. Autosave is paused. Choose which text to keep;
+      nothing on disk will be replaced unless you explicitly confirm it. A recovered copy keeps your
+      draft with its last captured metadata, without changing the original or its links.
+      <p v-if="error" class="error" role="status">{{ error }}</p>
+      <p v-if="recoveredPath" class="copy-path">
+        Recovered copy: <bdi>{{ recoveredPath }}</bdi>
+      </p>
     </div>
     <div class="actions">
-      <button type="button" :disabled="busy" @click="$emit('loadTheirs')">
-        Load the file’s version
+      <button type="button" :disabled="busy" @click="$emit('loadTheirs')">Use disk version</button>
+      <button
+        type="button"
+        class="primary"
+        :disabled="busy || readOnly"
+        @click="$emit('recoverCopy')"
+      >
+        Save recovered copy
       </button>
-      <button type="button" class="primary" :disabled="busy" @click="$emit('keepMine')">
-        Keep mine
+      <button type="button" :disabled="busy || readOnly" @click="$emit('keepMine')">
+        Replace disk text…
       </button>
     </div>
   </div>
@@ -53,5 +70,15 @@ strong {
 .actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.error {
+  color: var(--danger);
+  margin: 8px 0 0;
+}
+
+.copy-path {
+  margin: 8px 0 0;
 }
 </style>

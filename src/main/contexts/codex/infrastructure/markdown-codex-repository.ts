@@ -10,12 +10,16 @@ import type { CodexRepository } from '../domain/ports/codex-repository'
 import type { CodexSource } from '../domain/relationships'
 import type { OutlineFile } from '../domain/outline-file'
 import type { UntypedFile } from '../domain/untyped-file'
+import type { RememberEntryBytes } from '../../../recovery/recovery-session'
 
 const isCodexKind = (value: unknown): value is CodexKind => CODEX_KINDS.includes(value as CodexKind)
 
 /** The characters, locations, and notes of the project at `rootOsPath`, as markdown files. */
-export function createMarkdownCodexRepository(rootOsPath: string): CodexRepository {
-  const files = createEntryFiles(rootOsPath)
+export function createMarkdownCodexRepository(
+  rootOsPath: string,
+  remember?: RememberEntryBytes
+): CodexRepository {
+  const files = createEntryFiles(rootOsPath, remember)
 
   return {
     async load() {

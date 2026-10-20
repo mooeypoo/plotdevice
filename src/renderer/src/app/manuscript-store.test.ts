@@ -9,6 +9,7 @@ let fake: ReturnType<typeof createFakePlotDeviceApi>
 
 beforeEach(async () => {
   vi.useFakeTimers()
+  vi.stubGlobal('window', { confirm: vi.fn(() => true) })
   setActivePinia(createPinia())
   fake = createFakePlotDeviceApi()
   plotDeviceApi.current = () => fake.api
@@ -17,6 +18,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   vi.useRealTimers()
+  vi.unstubAllGlobals()
 })
 
 describe('manuscript store', () => {
@@ -331,9 +333,10 @@ describe('manuscript store: changes made in other programs', () => {
     expect(await store.open('The Ferry.md')).toBe(false)
 
     expect(await store.saveMissingAsNew()).toBe(true)
-    expect(fake.created).toEqual(['First frost.md'])
-    expect(store.entry?.path).toBe('First frost.md')
-    expect(fake.files.get('First frost.md')).toBe('Words worth keeping.\n')
+    expect(fake.created).toEqual(['First frost (recovered).md'])
+    expect(store.entry?.path).toBe('First frost (recovered).md')
+    expect(fake.files.get('First frost (recovered).md')).toBe('Words worth keeping.\n')
+    expect(fake.files.has('First frost.md')).toBe(false)
     expect(store.saveState).toBe('saved')
   })
 

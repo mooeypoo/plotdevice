@@ -40,12 +40,26 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
       <p v-else-if="editor.saveState === 'error'" class="notice error" role="alert">
         {{ editor.saveError }}
       </p>
+      <p
+        v-if="
+          editor.recoveryError && editor.saveState !== 'missing' && editor.saveState !== 'conflict'
+        "
+        class="notice error"
+        role="alert"
+      >
+        {{ editor.recoveryError }}
+      </p>
       <MissingFileBanner
         v-if="editor.saveState === 'missing'"
         :kind="editor.entry.kind"
-        :busy="false"
+        :busy="editor.recoveryBusy"
+        :read-only="readOnly"
+        :error="editor.recoveryError"
+        :recovered-path="editor.recoveredPath"
+        :reappeared="editor.missingReappeared"
         @save-as-new="editor.saveMissingAsNew()"
         @discard="editor.discardMissing()"
+        @load-theirs="editor.loadVersionOnDisk()"
       />
       <p v-if="linkNotice" class="notice" role="status">{{ linkNotice }}</p>
       <p v-if="editor.diskNotice" class="notice" role="status">
@@ -53,15 +67,19 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
       </p>
       <ConflictBanner
         v-if="editor.saveState === 'conflict'"
-        :busy="false"
+        :busy="editor.recoveryBusy"
+        :read-only="readOnly"
+        :error="editor.recoveryError"
+        :recovered-path="editor.recoveredPath"
         @load-theirs="editor.loadVersionOnDisk()"
         @keep-mine="editor.keepMine()"
+        @recover-copy="editor.saveMissingAsNew()"
       />
 
       <ChapterEditor
         :key="`${editor.entry.path}#${editor.entry.revision}`"
         :initial-text="editor.text"
-        :read-only="readOnly"
+        :read-only="readOnly || editor.recoveryBusy"
         :focus-mode="layout.focusMode"
         :link-targets="linkTargets"
         :completions="completions"

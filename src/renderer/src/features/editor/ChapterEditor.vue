@@ -55,6 +55,13 @@ onMounted(() => {
 })
 
 watch(
+  () => props.readOnly,
+  (on) => {
+    editor?.setReadOnly(on)
+  }
+)
+
+watch(
   () => props.focusMode,
   (on) => {
     editor?.setFocusMode(on)

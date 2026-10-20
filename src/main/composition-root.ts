@@ -82,6 +82,10 @@ import { registerWorkspaceIpc } from './ipc/workspace-ipc'
 import { parseProjectPath, type ProjectPath } from './shared-kernel/project-path'
 import { createJsonWindowStateStore } from './infrastructure/window/json-window-state-store'
 import type { WindowStateStore } from './window-state'
+import { createFileRecovery } from './infrastructure/recovery/file-recovery'
+import type { RecoverySession } from './recovery/recovery-session'
+import { createRecoveryHandlers } from './ipc/recovery-handlers'
+import { registerRecoveryIpc } from './ipc/recovery-ipc'
 
 /** Builds the app-shell settings adapter outside every novel folder. */
 export function composeWindowStateStore(): WindowStateStore {
@@ -90,6 +94,7 @@ export function composeWindowStateStore(): WindowStateStore {
 
 /** The use cases built for each open project. */
 interface ProjectUseCases {
+  readonly recovery: RecoverySession
   readonly manuscript: ManuscriptUseCases
   readonly codex: CodexUseCases
   readonly timeline: TimelineUseCases
@@ -128,13 +133,18 @@ export function composeApplication(): LaunchFolders {
 
   const session = createProjectSession((root, context: ProjectContext): ProjectUseCases => {
     const settings = context.manuscript
-    const repository = createMarkdownManuscriptRepository(root)
-    const codexRepository = createMarkdownCodexRepository(root)
+    const recovery = createFileRecovery(root, {
+      readOnly: settings.readOnly,
+      templateFolder: context.codex.templateFolder
+    })
+    const repository = createMarkdownManuscriptRepository(root, recovery.remember)
+    const codexRepository = createMarkdownCodexRepository(root, recovery.remember)
     const codexSettings = context.codex
     const relocator = createMarkdownEntryRelocator(root)
     const chronology = createMarkdownChronologyRepository(root)
     const getChronologySettings = createGetChronologySettings({ repository: chronology })
     return {
+      recovery,
       manuscript: {
         getManuscript: createGetManuscript({ repository }),
         openEntry: createOpenEntry({ repository }),
@@ -264,6 +274,7 @@ export function composeApplication(): LaunchFolders {
   registerTimelineIpc(createTimelineHandlers(() => session.current()?.timeline))
   registerInteractionsIpc(createInteractionsHandlers(() => session.current()?.interactions))
   registerInspectorIpc(createInspectorHandlers(() => session.current()?.inspector))
+  registerRecoveryIpc(createRecoveryHandlers(() => session.current()?.recovery))
   return launch
 }
 

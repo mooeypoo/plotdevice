@@ -13,12 +13,16 @@ import type { EntrySource } from '../domain/entry-warnings'
 import { isMapping } from '../../../shared-kernel/frontmatter-values'
 import { readPart, type Part } from '../domain/part'
 import type { ManuscriptRepository } from '../domain/ports/manuscript-repository'
+import type { RememberEntryBytes } from '../../../recovery/recovery-session'
 
 const NOVEL_FILE = parseProjectPath('novel.md')
 
 /** The manuscript of the project at `rootOsPath`, as markdown files on disk. */
-export function createMarkdownManuscriptRepository(rootOsPath: string): ManuscriptRepository {
-  const files = createEntryFiles(rootOsPath)
+export function createMarkdownManuscriptRepository(
+  rootOsPath: string,
+  remember?: RememberEntryBytes
+): ManuscriptRepository {
+  const files = createEntryFiles(rootOsPath, remember)
 
   return {
     async load() {

@@ -19,6 +19,7 @@ import {
   type MarkdownFileParts
 } from './markdown-file'
 import { readFrontmatter } from './read-frontmatter'
+import type { RememberEntryBytes } from '../../recovery/recovery-session'
 
 /** Why a file couldn't be read. */
 export type ReadFileError = DomainError<'not-found' | 'unreadable'>
@@ -90,7 +91,7 @@ export interface EntryFiles {
 }
 
 /** The markdown files of the project at `rootOsPath`. */
-export function createEntryFiles(rootOsPath: string): EntryFiles {
+export function createEntryFiles(rootOsPath: string, remember?: RememberEntryBytes): EntryFiles {
   const osPathOf = (path: ProjectPath): string | undefined => {
     const osPath = join(rootOsPath, ...path.split('/'))
     const back = toProjectPath(rootOsPath, osPath)
@@ -129,17 +130,27 @@ export function createEntryFiles(rootOsPath: string): EntryFiles {
     if (split.kind !== 'parts') {
       return err(domainError('unreadable', `"${path}" can't be written safely (${split.kind}).`))
     }
+    const frontmatter = readFrontmatter(bytes)
+    if (frontmatter.kind !== 'read' && frontmatter.kind !== 'none') {
+      return err(
+        domainError('unreadable', `"${path}" can't be written safely (${frontmatter.kind}).`)
+      )
+    }
     const updated = transform(split.parts)
     if (!updated.ok) return updated
-    if (Buffer.from(updated.value).equals(Buffer.from(bytes)))
+    if (Buffer.from(updated.value).equals(Buffer.from(bytes))) {
+      remember?.(path, currentVersion, bytes)
       return ok({ version: currentVersion })
+    }
     try {
       await writeFileAtomically(osPath, updated.value)
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error)
       return err(domainError('write-failed', `Couldn't save "${path}": ${reason}`))
     }
-    return ok({ version: versionOf(updated.value) })
+    const version = versionOf(updated.value)
+    remember?.(path, version, updated.value)
+    return ok({ version })
   }
 
   return {
@@ -150,6 +161,7 @@ export function createEntryFiles(rootOsPath: string): EntryFiles {
       if (split.kind !== 'parts') {
         return err(domainError('unreadable', `"${path}" can't be read safely (${split.kind}).`))
       }
+      remember?.(path, versionOf(read.value.bytes), read.value.bytes)
       return ok({ text: toEditorText(split.parts.body), version: versionOf(read.value.bytes) })
     },
 
@@ -167,6 +179,7 @@ export function createEntryFiles(rootOsPath: string): EntryFiles {
           domainError('unreadable', `"${path}" can't be read safely (${frontmatter.kind}).`)
         )
       }
+      remember?.(path, versionOf(read.value.bytes), read.value.bytes)
       return ok({ frontmatter: frontmatter.data, version: versionOf(read.value.bytes) })
     },
 

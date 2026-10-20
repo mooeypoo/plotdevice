@@ -99,6 +99,12 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [x] Adjustable prose size (14–28 px) and line width (45–90 ch), with live preview and Reset in the status bar's Writing appearance popover. Defaults remain 19 px and 66 ch. Per-user settings apply across projects and in focus mode, without changing markdown or resetting editor history.
 - [x] Remember collapsed binder parts per project, including parts outside the sequence. Reordering preserves collapse state; creating a chapter expands its part. Preferences stay in `userData` browser storage, never in the novel folder.
 
+## Phase 12: Explicit, safe recovery
+- [x] Preserve the open draft's last safely captured frontmatter (including inspector changes, unknown keys, comments, BOM, and line endings) when saving a separate recovered copy. Keep the original path, other files, and links untouched; recover templates as ordinary notes.
+- [x] Respect intentional outside edits and deletions: clean changes load with a notice; conflicts pause autosave and offer Use disk version, Save recovered copy, or explicitly confirmed Replace disk text with a fresh version check. A deletion offers recovery or closing the draft without recreating the source.
+- [x] Keep a pending decision explicit when the file reappears or changes again. Failed reads/writes retain the draft, and failed reopening of a published copy can retry without duplicate copies.
+- [x] Serialize recovery actions, freeze editing without resetting history while they run, and guard entry/project/window navigation. Snapshots are session-local; this is not persistent crash recovery.
+
 ## Decide after MVP
 - Edge cases in part and chapter structure beyond what `docs/file-format.md` defines (nested parts, chapters belonging to several parts).
 - Relationship direction, and what happens when both characters declare the same relationship.
@@ -127,7 +133,6 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
   - The editor, inspector, and side panel share one open entry (`app/editor-store.ts`); stores register as owners of entry kinds (`app/entry-owners.ts`) to avoid import cycles.
   - Codex entries have no word counts in their list, and notes have no aliases field (their other keys are shown read-only).
 - Phase 4 follow-ups:
-  - "Save as a new chapter" after the open file vanished keeps the text and title, not the other properties (POV, status, dates). Carry them over through the inspector's changes.
   - Changes to `novel.md` settings (`file_names`, folders) take effect when the project is reopened; statuses and threads update live.
   - Each change batch re-reads the whole project (scan, manuscript, warnings). Fine at novel scale; cache per file if it ever isn't.
   - The warnings panel only lists problems. Fix-it actions (rewrite an ambiguous link in path form, quote a link) come with the codex in Phase 5.

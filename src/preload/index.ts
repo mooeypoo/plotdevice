@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { AppMenuCommand, PlotDeviceApi } from '../contract/api'
 import {
   APP_CHANNELS,
+  RECOVERY_CHANNELS,
   CODEX_CHANNELS,
   EVENT_CHANNELS,
   INSPECTOR_CHANNELS,
@@ -40,7 +41,12 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 12,
+  contractVersion: 13,
+  recovery: {
+    capture: (path, version) => invoke<ApiResult<string>>(RECOVERY_CHANNELS.capture, path, version),
+    saveCopy: (token, text) =>
+      invoke<ApiResult<CreatedEntryDto>>(RECOVERY_CHANNELS.saveCopy, token, text)
+  },
   workspace: {
     chooseFolder: () => invoke<FolderChoiceDto | null>(WORKSPACE_CHANNELS.chooseFolder),
     openProject: (root) =>

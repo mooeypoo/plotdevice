@@ -8,4 +8,6 @@
 
 **Ports.** `ManuscriptRepository` (files' frontmatter and bodies) and `EntryRelocator` (moving or renaming a file and updating links to it), each with an in-memory fake beside it.
 
+**Recovery.** The markdown adapter records exact versioned bytes for the shared project recovery service; domain models never reconstruct or store recovery metadata.
+
 **Must not know about.** Folders or file names as structure (ADR 0002; a move only decides whether the file follows its part), the codex, chronology, Electron, or which project is open (repositories are built per project by the composition root).

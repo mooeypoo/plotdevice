@@ -21,12 +21,20 @@ onMounted(() => {
   })
   // Save the last keystrokes before the window closes.
   stopListening = plotDeviceApi.current().app.onBeforeClose(() => {
+    if (editor.recoveryBusy) {
+      plotDeviceApi.current().app.cancelClose()
+      return
+    }
     void editor.flush().finally(() => {
       const app = plotDeviceApi.current().app
+      if (editor.recoveryBusy) {
+        app.cancelClose()
+        return
+      }
       const discard =
         !editor.hasStuckChanges ||
         window.confirm(
-          'Your latest changes to this chapter couldn’t be saved. Close anyway and lose them?'
+          'Your open draft has unresolved changes. Close anyway and lose the draft? Files on disk will not be changed.'
         )
       if (discard) app.readyToClose()
       else app.cancelClose()
