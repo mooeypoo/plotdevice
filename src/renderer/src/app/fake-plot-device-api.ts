@@ -3,6 +3,7 @@ import type {
   EntryPropertiesDto,
   ManuscriptDto,
   CodexListingDto,
+  FolderChoiceDto,
   CodexPropertiesDto,
   ProjectChangeDto,
   ProjectSummaryDto,
@@ -193,6 +194,10 @@ export function createFakePlotDeviceApi(): {
   moves: string[]
   renames: string[]
   renamePlan: { current: RenamePlanDto | null }
+  /** The folder `takeLaunchFolder` returns (once), as if the app was started with it. */
+  launch: { folder: FolderChoiceDto | null }
+  /** Simulates the app being started again with a folder. */
+  openFolder(choice: FolderChoiceDto): void
   /** Simulates the main process reporting changes made by another program. */
   emitChanges(changes: readonly ProjectChangeDto[]): void
   /** Simulates another program rewriting a file without changing its text (line endings). */
@@ -247,6 +252,8 @@ export function createFakePlotDeviceApi(): {
   )
   const summary = { current: sampleSummary }
   const listeners = new Set<(changes: readonly ProjectChangeDto[]) => void>()
+  const folderListeners = new Set<(choice: FolderChoiceDto) => void>()
+  const launch: { folder: FolderChoiceDto | null } = { folder: null }
   // New chapters join the unordered tray, so the store can open them.
   let manuscript: ManuscriptDto = sampleManuscript
   const countWords = (text: string): number => text.split(/\s+/u).filter(Boolean).length
@@ -268,9 +275,18 @@ export function createFakePlotDeviceApi(): {
     `${files.get(path) ?? ''}#${String(revisions.get(path) ?? 0)}`
 
   const api: PlotDeviceApi = {
-    contractVersion: 10,
+    contractVersion: 11,
     workspace: {
       chooseFolder: () => Promise.resolve(null),
+      takeLaunchFolder: () => {
+        const choice = launch.folder
+        launch.folder = null
+        return Promise.resolve(choice)
+      },
+      onOpenFolder: (listener) => {
+        folderListeners.add(listener)
+        return () => folderListeners.delete(listener)
+      },
       openProject: () => Promise.resolve({ ok: true, value: sampleSummary }),
       initializeProject: (_, title) =>
         Promise.resolve({ ok: true, value: { ...sampleSummary, title } }),
@@ -580,6 +596,10 @@ export function createFakePlotDeviceApi(): {
     summary,
     touch: (path) => {
       revisions.set(path, (revisions.get(path) ?? 0) + 1)
+    },
+    launch,
+    openFolder: (choice) => {
+      for (const listener of folderListeners) listener(choice)
     },
     emitChanges: (changes) => {
       for (const listener of listeners) listener(changes)

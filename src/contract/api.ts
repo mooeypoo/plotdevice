@@ -42,6 +42,13 @@ export interface WorkspaceApi {
   listRecentProjects(): Promise<readonly RecentProjectDto[]>
   /** Forgets a recent project. The folder is not touched. */
   removeRecentProject(root: string): Promise<void>
+  /**
+   * The folder the app was started with (`plotdevice ~/novels/book`, or "Open With" in a file
+   * manager), inspected like a chosen folder; `null` when there was none. Answers once.
+   */
+  takeLaunchFolder(): Promise<FolderChoiceDto | null>
+  /** Called when the app is started again with a folder while already running. */
+  onOpenFolder(listener: (choice: FolderChoiceDto) => void): () => void
   /** Re-reads the open project (its warnings and file problems) after files changed. */
   refreshProject(): Promise<ApiResult<ProjectSummaryDto>>
   /**
@@ -165,7 +172,7 @@ export interface AppApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 10
+  readonly contractVersion: 11
   readonly workspace: WorkspaceApi
   readonly manuscript: ManuscriptApi
   readonly codex: CodexApi

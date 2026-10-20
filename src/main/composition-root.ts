@@ -77,6 +77,7 @@ import { sendProjectChanges } from './ipc/project-events'
 import { watchProject, type ProjectWatcher } from './infrastructure/watching/project-watcher'
 import { createProjectSession } from './ipc/project-session'
 import { createWorkspaceHandlers } from './ipc/workspace-handlers'
+import { createLaunchFolders, type LaunchFolders } from './ipc/launch-folders'
 import { registerWorkspaceIpc } from './ipc/workspace-ipc'
 import { parseProjectPath, type ProjectPath } from './shared-kernel/project-path'
 
@@ -99,7 +100,7 @@ interface ProjectContext {
  * Wires concrete adapters into use cases and registers IPC handlers. It is the only module allowed
  * to import infrastructure adapters.
  */
-export function composeApplication(): void {
+export function composeApplication(): LaunchFolders {
   const folders = createNodeProjectFolders()
   const novelFiles = createMarkdownNovelFileStore()
   const recents = createJsonRecentProjectsStore(app.getPath('userData'))
@@ -208,52 +209,55 @@ export function composeApplication(): void {
     }
   })
 
-  registerWorkspaceIpc(
-    createWorkspaceHandlers({
-      inspectFolder: createInspectFolder({ folders, novelFiles }),
-      openProject,
-      readProject: createReadProject({ folders, novelFiles, scanner: { scan: scanProject } }),
-      initializeProject: createInitializeProject({ folders, novelFiles, openProject }),
-      listRecentProjects: createListRecentProjects({ folders, recents }),
-      removeRecentProject: createRemoveRecentProject({ folders, recents }),
-      toProjectRoot: projectRootFromOsPath,
-      rootKey: (root) => (process.platform === 'win32' ? root.toLowerCase() : root),
-      onProjectOpened: (root, project) => {
-        const { folders, fileNames } = project.settings
-        session.open(root, {
-          manuscript: {
-            readOnly: project.readOnly,
-            partFolder: folderPath(folders.part),
-            chapterFolder: folderPath(folders.chapter),
-            fileNames
+  const workspaceHandlers = createWorkspaceHandlers({
+    inspectFolder: createInspectFolder({ folders, novelFiles }),
+    openProject,
+    readProject: createReadProject({ folders, novelFiles, scanner: { scan: scanProject } }),
+    initializeProject: createInitializeProject({ folders, novelFiles, openProject }),
+    listRecentProjects: createListRecentProjects({ folders, recents }),
+    removeRecentProject: createRemoveRecentProject({ folders, recents }),
+    toProjectRoot: projectRootFromOsPath,
+    rootKey: (root) => (process.platform === 'win32' ? root.toLowerCase() : root),
+    onProjectOpened: (root, project) => {
+      const { folders, fileNames } = project.settings
+      session.open(root, {
+        manuscript: {
+          readOnly: project.readOnly,
+          partFolder: folderPath(folders.part),
+          chapterFolder: folderPath(folders.chapter),
+          fileNames
+        },
+        codex: {
+          readOnly: project.readOnly,
+          folders: {
+            character: folderPath(folders.character),
+            location: folderPath(folders.location),
+            note: folderPath(folders.note)
           },
-          codex: {
-            readOnly: project.readOnly,
-            folders: {
-              character: folderPath(folders.character),
-              location: folderPath(folders.location),
-              note: folderPath(folders.note)
-            },
-            templateFolder: folderPath(folders.template),
-            fileNames
-          }
-        })
-        stopWatching()
-        watcher = watchProject(root, (changes) => {
-          sendProjectChanges(changes.map(({ path, kind }) => ({ path, kind })))
-        })
-      },
-      onProjectClosed: () => {
-        stopWatching()
-        session.close()
-      }
-    })
+          templateFolder: folderPath(folders.template),
+          fileNames
+        }
+      })
+      stopWatching()
+      watcher = watchProject(root, (changes) => {
+        sendProjectChanges(changes.map(({ path, kind }) => ({ path, kind })))
+      })
+    },
+    onProjectClosed: () => {
+      stopWatching()
+      session.close()
+    }
+  })
+  const launch = createLaunchFolders((path) =>
+    workspaceHandlers.chooseFolder(() => Promise.resolve(path))
   )
+  registerWorkspaceIpc(workspaceHandlers, launch)
   registerManuscriptIpc(createManuscriptHandlers(() => session.current()?.manuscript))
   registerCodexIpc(createCodexHandlers(() => session.current()?.codex))
   registerTimelineIpc(createTimelineHandlers(() => session.current()?.timeline))
   registerInteractionsIpc(createInteractionsHandlers(() => session.current()?.interactions))
   registerInspectorIpc(createInspectorHandlers(() => session.current()?.inspector))
+  return launch
 }
 
 function folderPath(folder: string): ProjectPath | undefined {

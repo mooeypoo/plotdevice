@@ -35,6 +35,9 @@ linux:
   maintainer: Moriel Schottlender <mooeypoo@gmail.com>
   category: Office
   synopsis: Write a novel in plain markdown files
+  # "Open With → Plot Device" on folders in file managers; the folder arrives as a file:// address.
+  mimeTypes:
+    - inode/directory
 appImage:
   artifactName: ${name}-${version}.${ext}
 deb:

@@ -40,7 +40,7 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 10,
+  contractVersion: 11,
   workspace: {
     chooseFolder: () => invoke<FolderChoiceDto | null>(WORKSPACE_CHANNELS.chooseFolder),
     openProject: (root) =>
@@ -52,6 +52,14 @@ const plotDevice: PlotDeviceApi = {
       invoke<readonly RecentProjectDto[]>(WORKSPACE_CHANNELS.listRecentProjects),
     removeRecentProject: (root) => invoke<undefined>(WORKSPACE_CHANNELS.removeRecentProject, root),
     refreshProject: () => invoke<ApiResult<ProjectSummaryDto>>(WORKSPACE_CHANNELS.refreshProject),
+    takeLaunchFolder: () => invoke<FolderChoiceDto | null>(WORKSPACE_CHANNELS.takeLaunchFolder),
+    onOpenFolder: (listener) => {
+      const handler = (_: unknown, choice: FolderChoiceDto): void => {
+        listener(choice)
+      }
+      ipcRenderer.on(EVENT_CHANNELS.openFolder, handler)
+      return () => ipcRenderer.removeListener(EVENT_CHANNELS.openFolder, handler)
+    },
     onProjectChanged: (listener) => {
       const handler = (_: unknown, changes: readonly ProjectChangeDto[]): void => {
         listener(changes)

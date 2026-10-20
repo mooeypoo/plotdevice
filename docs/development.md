@@ -38,6 +38,8 @@ sudo apt install ./dist/plotdevice_0.1.0_amd64.deb      # remove with: sudo apt 
 
 CI builds both installers on `v*` tags, or on demand: GitHub → Actions → CI → "Run workflow".
 
+To start the app with a project, as `plotdevice <folder>` does once installed, pass the folder to the unpacked build: `./dist/linux-unpacked/plotdevice <folder>`.
+
 ## Test data
 
 Never test against `fixtures/sample-novel/` directly: tests depend on its exact bytes. Copy it first:
@@ -75,6 +77,25 @@ Quick alternative, which has to be repeated whenever npm reinstalls Electron:
 sudo chown root:root node_modules/electron/dist/chrome-sandbox
 sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
 ```
+
+### The AppImage won't start on Ubuntu 24.04+
+
+Same cause as above. The `.deb` needs nothing: electron-builder's install script adds an AppArmor profile for the installed app (`/etc/apparmor.d/plotdevice`), so prefer it on Ubuntu. An AppImage runs from a temporary mount and can't add a profile for itself, so give it one, once:
+
+```bash
+sudo tee /etc/apparmor.d/plotdevice-appimage > /dev/null <<'EOF'
+abi <abi/4.0>,
+include <tunables/global>
+
+profile plotdevice-appimage /tmp/.mount_plotde*/plotdevice flags=(unconfined) {
+  userns,
+  include if exists <local/plotdevice-appimage>
+}
+EOF
+sudo apparmor_parser -r /etc/apparmor.d/plotdevice-appimage
+```
+
+The AppImage mounts itself at `/tmp/.mount_` plus the first six letters of its file name and a random suffix, so the profile matches as long as the file's name starts with `plotdevice`.
 
 ### "Cannot read properties of undefined (reading 'setPath')"
 

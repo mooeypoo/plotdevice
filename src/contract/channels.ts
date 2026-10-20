@@ -15,12 +15,17 @@ export const WORKSPACE_CHANNELS = {
   closeProject: 'workspace:close-project',
   listRecentProjects: 'workspace:list-recent-projects',
   removeRecentProject: 'workspace:remove-recent-project',
-  refreshProject: 'workspace:refresh-project'
-} as const satisfies Record<Exclude<keyof WorkspaceApi, 'onProjectChanged'>, string>
+  refreshProject: 'workspace:refresh-project',
+  takeLaunchFolder: 'workspace:take-launch-folder'
+} as const satisfies Record<
+  Exclude<keyof WorkspaceApi, 'onProjectChanged' | 'onOpenFolder'>,
+  string
+>
 
 /** Main → renderer events. */
 export const EVENT_CHANNELS = {
-  projectChanged: 'project:changed'
+  projectChanged: 'project:changed',
+  openFolder: 'workspace:open-folder'
 } as const
 
 export const MANUSCRIPT_CHANNELS = {

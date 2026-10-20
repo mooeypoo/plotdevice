@@ -94,3 +94,36 @@ describe('workspace store', () => {
     expect(fake.closedProjects).toBe(0)
   })
 })
+
+describe('workspace store: folders from outside the app', () => {
+  it('opens the project the app was started with, once', async () => {
+    fake.launch.folder = { root: '/novels/salt-orchard', name: 'salt-orchard', isProject: true }
+    const store = useWorkspaceStore()
+    await store.openLaunchFolder()
+    expect(store.screen).toBe('project')
+    expect(fake.launch.folder).toBeNull()
+  })
+
+  it('offers a plain folder as a new project', async () => {
+    fake.launch.folder = { root: '/novels/new', name: 'new', isProject: false }
+    const store = useWorkspaceStore()
+    await store.openLaunchFolder()
+    expect(store.screen).toBe('initialize')
+    expect(store.chosenFolder?.root).toBe('/novels/new')
+  })
+
+  it('saves the open chapter before switching to a folder from a later launch', async () => {
+    const store = useWorkspaceStore()
+    await store.openProject('/novels/salt-orchard')
+    await useManuscriptStore().load()
+    const editor = useEditorStore()
+    await editor.open('The Ferry.md')
+    editor.edit('Typed before the second launch.\n')
+
+    await store.useFolder({ root: '/novels/new', name: 'new', isProject: false })
+
+    expect(fake.files.get('The Ferry.md')).toBe('Typed before the second launch.\n')
+    expect(fake.closedProjects).toBe(1)
+    expect(store.screen).toBe('initialize')
+  })
+})

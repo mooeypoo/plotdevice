@@ -70,13 +70,27 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   async function chooseFolder(): Promise<void> {
     errorMessage.value = null
     const choice = await api().chooseFolder()
-    if (choice === null) return
+    if (choice !== null) await useFolder(choice)
+  }
+
+  /**
+   * Opens a chosen folder: a project opens, any other folder is offered as a new project. Used by
+   * the dialog and by folders given from outside (the command line, a file manager).
+   */
+  async function useFolder(choice: FolderChoiceDto): Promise<void> {
     if (choice.isProject) {
       await openProject(choice.root)
       return
     }
+    if (!(await leaveCurrentProject())) return
     chosenFolder.value = choice
     screen.value = 'initialize'
+  }
+
+  /** Opens the folder the app was started with, if any. */
+  async function openLaunchFolder(): Promise<void> {
+    const choice = await api().takeLaunchFolder()
+    if (choice !== null) await useFolder(choice)
   }
 
   async function initializeChosenFolder(title: string): Promise<void> {
@@ -137,6 +151,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     openProject,
     refresh,
     chooseFolder,
+    useFolder,
+    openLaunchFolder,
     initializeChosenFolder,
     removeRecent,
     backToWelcome

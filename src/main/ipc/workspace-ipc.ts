@@ -1,10 +1,12 @@
 import { BrowserWindow, dialog } from 'electron'
 import { WORKSPACE_CHANNELS } from '../../contract/channels'
 import { handleTrusted } from './handle-trusted'
+import type { LaunchFolders } from './launch-folders'
 import type { WorkspaceHandlers } from './workspace-handlers'
 
 /** Registers the workspace handlers on their fixed channels. */
-export function registerWorkspaceIpc(handlers: WorkspaceHandlers): void {
+export function registerWorkspaceIpc(handlers: WorkspaceHandlers, launch: LaunchFolders): void {
+  handleTrusted(WORKSPACE_CHANNELS.takeLaunchFolder, () => launch.take())
   handleTrusted(WORKSPACE_CHANNELS.chooseFolder, (event) =>
     handlers.chooseFolder(() => showFolderDialog(BrowserWindow.fromWebContents(event.sender)))
   )

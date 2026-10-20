@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import icon from '../../resources/icon.png?asset'
 import { composeApplication } from './composition-root'
 import { guardWindowClose } from './ipc/close-guard'
+import { launchFolder, userArguments } from './launch-folder'
 
 // Electron would name the settings folder after productName ("Plot Device", with a space).
 // The folder name is part of the app identity (AGENTS.md) and must happen before `ready`.
@@ -59,15 +60,22 @@ if (!app.requestSingleInstanceLock()) {
 } else {
   let mainWindow: BrowserWindow | undefined
 
-  app.on('second-instance', () => {
+  let launch: ReturnType<typeof composeApplication> | undefined
+
+  // Started again (another `plotdevice <folder>`, or "Open With"): bring this window forward and
+  // open the folder here.
+  app.on('second-instance', (_event, argv, workingDirectory) => {
     if (mainWindow === undefined) return
     if (mainWindow.isMinimized()) mainWindow.restore()
     mainWindow.focus()
+    const folder = launchFolder(userArguments(argv, app.isPackaged), workingDirectory)
+    if (folder !== undefined) void launch?.send(mainWindow, folder)
   })
 
   void app.whenReady().then(() => {
     if (process.platform === 'win32') app.setAppUserModelId('tech.moriel.plotdevice')
-    composeApplication()
+    launch = composeApplication()
+    launch.remember(launchFolder(userArguments(process.argv, app.isPackaged), process.cwd()))
     mainWindow = createMainWindow()
   })
 }
