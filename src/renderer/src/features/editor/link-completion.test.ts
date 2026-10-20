@@ -23,7 +23,13 @@ const targets: LinkCompletionTarget[] = [
 describe('linkCompletions', () => {
   it('offers names with their type, aliases, and path forms for shared names', () => {
     expect(linkCompletions(targets)).toEqual([
-      { label: 'Ilka Szabó', detail: 'character', apply: 'Ilka Szabó', type: 'character' },
+      {
+        label: 'Ilka Szabó',
+        detail: 'character',
+        apply: 'Ilka Szabó',
+        type: 'character',
+        boost: 1
+      },
       {
         label: 'Ilk',
         detail: 'Ilka Szabó · character',
@@ -34,7 +40,8 @@ describe('linkCompletions', () => {
         label: 'Marrow',
         detail: 'location · locations/Marrow',
         apply: 'locations/Marrow',
-        type: 'location'
+        type: 'location',
+        boost: 1
       }
     ])
   })

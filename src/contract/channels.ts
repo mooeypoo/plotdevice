@@ -27,6 +27,7 @@ export const MANUSCRIPT_CHANNELS = {
   renumberPart: 'manuscript:renumber-part',
   addStatus: 'manuscript:add-status',
   moveChapter: 'manuscript:move-chapter',
+  fixWarning: 'manuscript:fix-warning',
   movePart: 'manuscript:move-part',
   planRename: 'manuscript:plan-rename',
   renameEntry: 'manuscript:rename-entry'

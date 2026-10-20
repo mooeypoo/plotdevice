@@ -124,7 +124,9 @@ function replaceValue(
 
   const wasFlowList = isSeq(node) && node.flow === true
   const wasBlockList = isSeq(node) && node.flow !== true
-  if (isSeq(node) && node.items.some((item) => !isScalar(item))) return undefined
+  // Lists of mappings (relationships) have their own editor (ADR 0007). Lists of lists are how
+  // YAML reads unquoted links (`pov: [[Ilka]]`), and are replaced whole like any value.
+  if (containsMapping(node)) return undefined
 
   if (Array.isArray(value)) {
     if (wasFlowList) return splice(yaml, start, valueEnd, flowList(value))
@@ -195,6 +197,13 @@ export function scalarText(value: string | number, quoting: Quoting): string {
     defaultStringType:
       wanted === 'double' ? 'QUOTE_DOUBLE' : wanted === 'single' ? 'QUOTE_SINGLE' : 'PLAIN'
   }).replace(/\n$/u, '')
+}
+
+function containsMapping(node: Node): boolean {
+  if (isMap(node)) return true
+  return (
+    isSeq(node) && node.items.some((item) => isMap(item) || (isSeq(item) && containsMapping(item)))
+  )
 }
 
 export function lineStart(text: string, position: number): number {

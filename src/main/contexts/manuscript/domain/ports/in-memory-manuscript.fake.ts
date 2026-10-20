@@ -5,7 +5,9 @@ import { err, ok, type Result } from '../../../../shared-kernel/result'
 import { readChapter, type Chapter } from '../chapter'
 import type { EntrySource } from '../entry-warnings'
 import { readPart, type Part } from '../part'
+import { rewriteWikiLinks } from '../../../../shared-kernel/link-rewriter'
 import type { PropertyWrite } from '../property-changes'
+import type { LinkRewrite } from '../warning-fixes'
 import type {
   CreateFileError,
   EntryFile,
@@ -126,6 +128,35 @@ export class InMemoryManuscript implements ManuscriptRepository {
     }
     const frontmatter = parseSimpleFrontmatter(text)
     return Promise.resolve(ok({ version: this.put(path, frontmatter, '') }))
+  }
+
+  /** Rewrites wikilinks in the fake file's body and in string frontmatter values. */
+  rewriteLinks(
+    path: ProjectPath,
+    decide: LinkRewrite,
+    expectedVersion: string | undefined
+  ): Promise<Result<{ version: string; count: number }, WritePropertiesError>> {
+    const file = this.files.get(path)
+    if (file === undefined) return Promise.resolve(err(domainError('not-found', 'No such file.')))
+    if (expectedVersion !== undefined && file.version !== expectedVersion) {
+      return Promise.resolve(err(domainError('changed-on-disk', 'Changed outside the app.')))
+    }
+    let count = 0
+    const rewrite = (text: string, key: string | undefined): string => {
+      const result = rewriteWikiLinks(text, (link) => decide(link, key), { skipCode: true })
+      count += result.count
+      return result.text
+    }
+    const frontmatter = Object.fromEntries(
+      Object.entries(file.frontmatter).map(([key, value]) => [
+        key,
+        typeof value === 'string' ? rewrite(value, key) : value
+      ])
+    )
+    const text = rewrite(file.text, undefined)
+    const version = count === 0 ? file.version : this.nextVersion()
+    this.files.set(path, { frontmatter, text, version })
+    return Promise.resolve(ok({ version, count }))
   }
 
   readNovelFrontmatter(): Promise<unknown> {

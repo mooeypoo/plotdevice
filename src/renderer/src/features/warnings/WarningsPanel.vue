@@ -1,13 +1,18 @@
 <script setup lang="ts">
+import type { ChosenFixDto } from '../../../../contract/dtos'
 import type { WarningGroup } from './warning-groups'
 
 defineProps<{
   groups: readonly WarningGroup[]
   /** Whether a path can be opened in the editor (only parts and chapters can). */
   canOpen: (path: string) => boolean
+  readOnly: boolean
 }>()
 
-defineEmits<{ open: [path: string] }>()
+defineEmits<{ open: [path: string]; fix: [path: string, fix: ChosenFixDto] }>()
+
+/** "locations/Marrow.md" → "locations/Marrow", as a link would name it. */
+const linkName = (path: string): string => path.replace(/\.md$/iu, '')
 </script>
 
 <template>
@@ -35,6 +40,28 @@ defineEmits<{ open: [path: string] }>()
           </button>
           <code v-else-if="item.path !== undefined" class="path" dir="auto">{{ item.path }}</code>
           <span class="message" dir="auto">{{ item.message }}</span>
+          <div v-if="item.path !== undefined && item.fix !== undefined && !readOnly" class="fixes">
+            <template v-if="item.fix.kind === 'path-form'">
+              <button
+                v-for="choice in item.fix.choices"
+                :key="choice"
+                type="button"
+                class="fix"
+                dir="auto"
+                @click="$emit('fix', item.path, { kind: 'path-form', name: item.fix.name, choice })"
+              >
+                Means {{ linkName(choice) }}
+              </button>
+            </template>
+            <button
+              v-else
+              type="button"
+              class="fix"
+              @click="$emit('fix', item.path, { kind: 'quote', key: item.fix.key })"
+            >
+              Add quotes
+            </button>
+          </div>
         </li>
       </ul>
     </section>
@@ -98,6 +125,18 @@ button.path {
   color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.fixes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.fix {
+  padding: 3px 10px;
+  font-size: 12px;
 }
 
 .message {

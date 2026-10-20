@@ -249,7 +249,8 @@ When the app writes a key, it keeps the style the key already uses. If a single 
   - A name link gets the new name. A path-form link keeps its depth: `[[Part One/The Ferry]]` becomes `[[Part Two/The Ferry]]`. A move to another folder leaves name links as they are, since they still resolve.
   - Links in code, and in YAML comments, are left alone.
   - A file the app can't change safely (invalid YAML, unclosed frontmatter, not UTF-8, or a rewrite that would change any other value) is left untouched and listed for the writer.
-- **Markdown links.** Links like `[Marrow](../locations/Marrow.md)` are read but not rewritten.
+- **Markdown links.** Links like `[Marrow](../locations/Marrow.md)` are read, relative to the file they're in, but not rewritten. In `pov`, `characters`, and `location` they count for "Appears in".
+- **Relationships are one-way.** A character's `relationships` are written only in that character's file; the other character shows them read-only. Editing them changes only the entries that differ (ADR 0007).
 
 ## Derived data (never stored)
 

@@ -5,7 +5,7 @@ import { projectPathStem, type ProjectPath } from '../../../shared-kernel/projec
 import { readLinkValue } from '../../../shared-kernel/read-link-value'
 import { formatWikiLink, type WikiLink } from '../../../shared-kernel/wiki-link'
 import { isMapping, readEntryText } from '../../../shared-kernel/frontmatter-values'
-import type { ManuscriptWarning } from './manuscript'
+import type { ManuscriptWarning, WarningFix } from './manuscript'
 
 /** A part's or chapter's file as read: its frontmatter values and its body. */
 export interface EntrySource {
@@ -31,8 +31,13 @@ function warningsFor(source: EntrySource, links: LinkIndex): ManuscriptWarning[]
   const keys = isMapping(source.frontmatter) ? source.frontmatter : {}
   const name = readEntryText(keys['title']) ?? projectPathStem(source.path)
   const warnings: ManuscriptWarning[] = []
-  const unusable = (message: string): void => {
-    warnings.push({ code: 'unusable-value', message: `${name}: ${message}`, paths: [source.path] })
+  const unusable = (message: string, fix?: WarningFix): void => {
+    warnings.push({
+      code: 'unusable-value',
+      message: `${name}: ${message}`,
+      paths: [source.path],
+      ...(fix !== undefined ? { fix } : {})
+    })
   }
   const reported = new Set<string>()
   const checkAmbiguous = (link: WikiLink, where: string, key?: string): void => {
@@ -42,6 +47,7 @@ function warningsFor(source: EntrySource, links: LinkIndex): ManuscriptWarning[]
     if (resolution.kind !== 'ambiguous' || reported.has(text)) return
     reported.add(text)
     warnings.push({
+      fix: { kind: 'path-form', name: link.target, choices: resolution.paths },
       code: 'ambiguous-link',
       message: `${name}: ${text} ${where} could mean ${resolution.paths.join(' or ')}. Write it with its folder, like [[${resolution.paths[0]?.replace(/\.md$/iu, '') ?? ''}]].`,
       paths: [source.path]
@@ -59,7 +65,8 @@ function warningsFor(source: EntrySource, links: LinkIndex): ManuscriptWarning[]
       if (read.kind === 'link') {
         if (read.recovered === true) {
           unusable(
-            `${key}: ${formatWikiLink(read.link)} isn’t in quotes, so YAML reads it as a list. Write ${key}: "${formatWikiLink(read.link)}".`
+            `${key}: ${formatWikiLink(read.link)} isn’t in quotes, so YAML reads it as a list. Write ${key}: "${formatWikiLink(read.link)}".`,
+            { kind: 'quote', key }
           )
         }
         checkAmbiguous(read.link, `in ${key}`, key)

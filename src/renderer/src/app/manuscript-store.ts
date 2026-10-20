@@ -3,6 +3,7 @@ import { computed, ref, shallowRef } from 'vue'
 import type {
   ChapterDestinationDto,
   ChapterDto,
+  ChosenFixDto,
   EntryPropertiesDto,
   ManuscriptDto,
   PartDto,
@@ -178,6 +179,24 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     return true
   }
 
+  /**
+   * Applies a warning's fix to one file, after saving the open text. If that file is open, the
+   * editor picks up its new text like any other change on disk.
+   */
+  async function fixWarning(path: string, fix: ChosenFixDto): Promise<boolean> {
+    const editor = useEditorStore()
+    await editor.flush()
+    if (editor.entry?.path === path && editor.hasStuckChanges) return false
+    const result = await api().fixWarning(path, fix)
+    if (!result.ok) {
+      editor.actionError = result.error.message
+      return false
+    }
+    await reload()
+    if (editor.entry?.path === path) await editor.syncFromDisk([{ path, kind: 'changed' }])
+    return true
+  }
+
   /** Keeps the binder's word counts current as the open part or chapter is saved. */
   function addWords(path: string, delta: number): void {
     const current = manuscript.value
@@ -201,6 +220,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     moveChapter,
     movePart,
     renumberPart,
+    fixWarning,
     createChapter,
     createPart,
     addWords,

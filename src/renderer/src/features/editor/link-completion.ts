@@ -20,7 +20,9 @@ export function linkCompletions(targets: readonly LinkCompletionTarget[]): Compl
       label: target.name.normalize('NFC'),
       detail: target.target === target.name.normalize('NFC') ? type : `${type} · ${target.target}`,
       apply: target.target,
-      type
+      type,
+      // A file's own name comes before its other names when both match what was typed.
+      boost: 1
     }
     const byAlias = target.aliases.map((alias): Completion => ({
       label: alias,

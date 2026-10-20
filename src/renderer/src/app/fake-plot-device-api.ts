@@ -273,6 +273,14 @@ export function createFakePlotDeviceApi(): {
       },
       renumberPart: () => Promise.resolve({ ok: true, value: { changed: 1, failed: [] } }),
       addStatus: (status) => Promise.resolve({ ok: true, value: ['idea', 'draft', status] }),
+      fixWarning: (path, fix) => {
+        state.moves.push(
+          fix.kind === 'path-form'
+            ? `fix ${path}: ${fix.name} → ${fix.choice}`
+            : `fix ${path}: quote ${fix.key}`
+        )
+        return Promise.resolve({ ok: true, value: null })
+      },
       moveChapter: (path, destination) => {
         state.moves.push(
           destination === null

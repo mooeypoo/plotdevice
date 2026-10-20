@@ -16,6 +16,7 @@ import type {
   CreateChapter,
   CreatePart
 } from '../contexts/manuscript/application/commands/create-entries'
+import type { FixWarning } from '../contexts/manuscript/application/commands/fix-warning'
 import type {
   MoveChapter,
   MovePart
@@ -46,6 +47,7 @@ export interface ManuscriptUseCases {
   readonly renumberPart: RenumberPart
   readonly addStatus: AddStatus
   readonly moveChapter: MoveChapter
+  readonly fixWarning: FixWarning
   readonly movePart: MovePart
   readonly planRename: PlanRename
   readonly renameEntry: RenameEntry
@@ -63,6 +65,7 @@ export interface ManuscriptHandlers {
   renumberPart(args: readonly unknown[]): Promise<ApiResult<RenumberedDto>>
   addStatus(args: readonly unknown[]): Promise<ApiResult<readonly string[]>>
   moveChapter(args: readonly unknown[]): Promise<ApiResult<MovedDto>>
+  fixWarning(args: readonly unknown[]): Promise<ApiResult<null>>
   movePart(args: readonly unknown[]): Promise<ApiResult<MovedDto>>
   planRename(args: readonly unknown[]): Promise<ApiResult<RenamePlanDto | null>>
   renameEntry(args: readonly unknown[]): Promise<ApiResult<RenamedDto>>
@@ -110,6 +113,17 @@ const moveChapterArgs = z.tuple([
   z.object({ part: path.nullable(), index: position }).strict().nullable()
 ])
 const movePartArgs = z.tuple([path, position])
+const fixArgs = z.tuple([
+  path,
+  z.discriminatedUnion('kind', [
+    z
+      .object({ kind: z.literal('path-form'), name: z.string().min(1).max(500), choice: path })
+      .strict(),
+    z
+      .object({ kind: z.literal('quote'), key: z.enum(['part', 'pov', 'characters', 'location']) })
+      .strict()
+  ])
+])
 
 const noProject: ApiResult<never> = {
   ok: false,
@@ -309,6 +323,22 @@ export function createManuscriptHandlers(
           return { ok: true, value: { ...moved.value, failed: [...moved.value.failed] } }
         }
       ),
+
+    fixWarning: (args) =>
+      withProject<z.infer<typeof fixArgs>, null>(fixArgs, args, async (useCases, [raw, fix]) => {
+        const entry = allowed(useCases, raw)
+        if (entry === undefined) return notAllowed
+        let chosen: Parameters<FixWarning>[1]
+        if (fix.kind === 'path-form') {
+          const choice = parseProjectPath(fix.choice)
+          if (!choice.ok) return invalidRequest
+          chosen = { kind: 'path-form', name: fix.name, choice: choice.value }
+        } else {
+          chosen = fix
+        }
+        const fixed = await useCases.fixWarning(entry, chosen)
+        return fixed.ok ? { ok: true, value: null } : { ok: false, error: toApiError(fixed.error) }
+      }),
 
     movePart: (args) =>
       withProject<z.infer<typeof movePartArgs>, MovedDto>(

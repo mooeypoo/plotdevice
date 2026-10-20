@@ -39,7 +39,16 @@ export interface ManuscriptWarning {
     | 'unusable-value'
   readonly message: string
   readonly paths: readonly ProjectPath[]
+  /** A change the writer can ask for in one click; the file is never changed without asking. */
+  readonly fix?: WarningFix
 }
+
+/** What a warning's one-click fix does. */
+export type WarningFix =
+  /** Write each link with this ambiguous name with the chosen file's folder. */
+  | { readonly kind: 'path-form'; readonly name: string; readonly choices: readonly ProjectPath[] }
+  /** Put the unquoted links of this key in quotes. */
+  | { readonly kind: 'quote'; readonly key: string }
 
 /** The book's structure, derived from frontmatter alone (ADR 0002). */
 export interface Manuscript {

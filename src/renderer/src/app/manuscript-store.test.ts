@@ -345,3 +345,28 @@ describe('manuscript store: changes made in other programs', () => {
     expect(await store.open('The Ferry.md')).toBe(true)
   })
 })
+
+describe('manuscript store: fixing warnings', () => {
+  it('saves the open text first, applies the fix, and picks up the changed file', async () => {
+    const store = useEditorStore()
+    const manuscript = useManuscriptStore()
+    await store.open('The Ferry.md')
+    store.edit('Typed at [[Marrow]].\n')
+    // The main process rewrites the file; the fake stands in by changing its text.
+    const fix = fake.api.manuscript.fixWarning.bind(fake.api.manuscript)
+    fake.api.manuscript.fixWarning = async (path, chosen) => {
+      fake.files.set('The Ferry.md', 'Typed at [[locations/Marrow|Marrow]].\n')
+      return fix(path, chosen)
+    }
+    expect(
+      await manuscript.fixWarning('The Ferry.md', {
+        kind: 'path-form',
+        name: 'Marrow',
+        choice: 'locations/Marrow.md'
+      })
+    ).toBe(true)
+    expect(fake.saves).toEqual(['Typed at [[Marrow]].\n'])
+    expect(store.text).toBe('Typed at [[locations/Marrow|Marrow]].\n')
+    expect(store.saveState).toBe('saved')
+  })
+})

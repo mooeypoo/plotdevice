@@ -117,6 +117,9 @@ const completionTheme = EditorView.theme({
     fontSize: '13px',
     overflow: 'hidden'
   },
+  '.cm-tooltip.cm-tooltip-autocomplete > ul': {
+    fontFamily: 'var(--font-ui)'
+  },
   '.cm-tooltip-autocomplete > ul > li': {
     padding: '4px 10px',
     color: 'var(--text)'

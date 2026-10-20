@@ -14,6 +14,7 @@ import {
   createPlanRename,
   createRenameEntry
 } from '../contexts/manuscript/application/commands/rename-entry'
+import { createFixWarning } from '../contexts/manuscript/application/commands/fix-warning'
 import { createRenumberPart } from '../contexts/manuscript/application/commands/renumber-part'
 import { createSaveEntryText } from '../contexts/manuscript/application/commands/save-entry-text'
 import { createUpdateEntryProperties } from '../contexts/manuscript/application/commands/update-entry-properties'
@@ -59,6 +60,7 @@ function useCasesFor(repo: InMemoryManuscript): ManuscriptUseCases {
     renumberPart: createRenumberPart({ repository: repo, settings }),
     addStatus: createAddStatus({ repository: repo, settings }),
     moveChapter: createMoveChapter({ repository: repo, relocator, settings }),
+    fixWarning: createFixWarning({ repository: repo, settings }),
     movePart: createMovePart({ repository: repo, settings }),
     planRename: createPlanRename({ repository: repo, relocator, settings }),
     renameEntry: createRenameEntry({ repository: repo, relocator, settings })
@@ -243,6 +245,24 @@ describe('manuscript handlers', () => {
       value: { path: newPath, linkCount: 1, fileCount: 1, skipped: [] }
     })
     expect(await handlers.openEntry([newPath])).toMatchObject({ ok: true })
+  })
+
+  it('fixes a warning in a listed file only, validating the fix', async () => {
+    repository.put(ferry, { type: 'chapter', part: '[[Part One]]', order: 1, pov: [['Ilka']] })
+    await handlers.getManuscript()
+    expect(await handlers.fixWarning([ferry, { kind: 'quote', key: 'pov' }])).toEqual({
+      ok: true,
+      value: null
+    })
+    expect(repository.get(ferry)?.frontmatter['pov']).toBe('[[Ilka]]')
+    expect(await handlers.fixWarning([marrow, { kind: 'quote', key: 'pov' }])).toMatchObject({
+      ok: false,
+      error: { code: 'entry-not-allowed' }
+    })
+    expect(await handlers.fixWarning([ferry, { kind: 'quote', key: 'title' }])).toMatchObject({
+      ok: false,
+      error: { code: 'invalid-request' }
+    })
   })
 
   it('passes a changed-on-disk refusal through', async () => {

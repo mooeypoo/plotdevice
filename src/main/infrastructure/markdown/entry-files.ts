@@ -7,6 +7,9 @@ import { err, ok, type Result } from '../../shared-kernel/result'
 import { toProjectPath } from '../fs/to-project-path'
 import { writeFileAtomically } from '../fs/write-text-file-atomically'
 import { editFrontmatter, type KeyEdit } from './frontmatter-editor'
+import type { WikiLink } from '../../shared-kernel/wiki-link'
+import { rewriteWikiLinks } from '../../shared-kernel/link-rewriter'
+import { rewriteFrontmatterLinks } from './frontmatter-link-rewriter'
 import { editMappingList, type MappingItem } from './mapping-list-editor'
 import {
   composeMarkdownFile,
@@ -70,6 +73,15 @@ export interface EntryFiles {
     items: readonly MappingItem[],
     expectedVersion: string | undefined
   ): Promise<Result<{ readonly version: string }, WriteFileError>>
+  /**
+   * Rewrites links in one file: in the body outside code, and in frontmatter values (checked by
+   * re-parsing, ADR 0005). `decide` gets the key a frontmatter link is under.
+   */
+  rewriteLinks(
+    path: ProjectPath,
+    decide: (link: WikiLink, key: string | undefined) => string | undefined,
+    expectedVersion: string | undefined
+  ): Promise<Result<{ readonly version: string; readonly count: number }, WriteFileError>>
   /** Creates a new file, and its folders. Never replaces an existing file. */
   createFile(
     path: ProjectPath,
@@ -183,6 +195,22 @@ export function createEntryFiles(rootOsPath: string): EntryFiles {
           ? ok(composeMarkdownFile(edited.value))
           : err(domainError('cannot-edit', edited.error.message))
       }),
+
+    async rewriteLinks(path, decide, expectedVersion) {
+      let count = 0
+      const written = await rewrite(path, expectedVersion, (parts) => {
+        const body = rewriteWikiLinks(parts.body, (link) => decide(link, undefined), {
+          skipCode: true
+        })
+        const head = rewriteFrontmatterLinks(parts.head, (link, key) => decide(link, key))
+        if (head.kind !== 'rewritten') {
+          return err(domainError('cannot-edit', 'Its frontmatter can’t be changed safely.'))
+        }
+        count = body.count + head.count
+        return ok(composeMarkdownFile({ ...parts, head: head.head, body: body.text }))
+      })
+      return written.ok ? ok({ ...written.value, count }) : written
+    },
 
     async createFile(path, text) {
       const osPath = osPathOf(path)

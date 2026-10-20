@@ -188,6 +188,25 @@ describe('editFrontmatter: preserving the file', () => {
       ok: false,
       error: { code: 'unsupported-value' }
     })
+    expect(editFrontmatter(partsOf(text), [{ key: 'relationships', value: 'x' }])).toMatchObject({
+      ok: false,
+      error: { code: 'unsupported-value' }
+    })
+  })
+
+  it('quotes an unquoted link, which YAML read as a list in a list', () => {
+    const text = '---\npov: [[Ilka Szabó]]   # she narrates\ncharacters:\n  - [[Aunt Bea]]\n---\n'
+    expect(
+      editFrontmatter(partsOf(text), [
+        { key: 'pov', value: '[[Ilka Szabó]]' },
+        { key: 'characters', value: ['[[Aunt Bea]]'] }
+      ])
+    ).toMatchObject({
+      ok: true,
+      value: {
+        head: '---\npov: "[[Ilka Szabó]]"   # she narrates\ncharacters:\n  - "[[Aunt Bea]]"\n---\n'
+      }
+    })
   })
 })
 

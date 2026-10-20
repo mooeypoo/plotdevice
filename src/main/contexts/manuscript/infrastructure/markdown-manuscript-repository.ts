@@ -78,6 +78,9 @@ export function createMarkdownManuscriptRepository(rootOsPath: string): Manuscri
 
     createFile: (path, text) => files.createFile(path, text),
 
+    rewriteLinks: (path, decide, expectedVersion) =>
+      files.rewriteLinks(path, decide, expectedVersion),
+
     async readNovelFrontmatter() {
       if (!NOVEL_FILE.ok) return undefined
       const read = await files.readFrontmatter(NOVEL_FILE.value)

@@ -124,6 +124,22 @@ export interface LinkTargetDto {
   readonly type?: string
 }
 
+/** What a warning's one-click fix offers. */
+export type WarningFixDto =
+  | { readonly kind: 'path-form'; readonly name: string; readonly choices: readonly string[] }
+  | { readonly kind: 'quote'; readonly key: string }
+
+/** A fix as the writer chose it (for an ambiguous link: which file it means). */
+export type ChosenFixDto =
+  | { readonly kind: 'path-form'; readonly name: string; readonly choice: string }
+  | { readonly kind: 'quote'; readonly key: string }
+
+/** A warning about the manuscript, with the files it concerns and, sometimes, a fix. */
+export interface ManuscriptWarningDto extends WarningDto {
+  readonly paths: readonly string[]
+  readonly fix?: WarningFixDto
+}
+
 /** The book's structure. */
 export interface ManuscriptDto {
   readonly parts: readonly PartDto[]
@@ -131,7 +147,7 @@ export interface ManuscriptDto {
   /** In a book without parts: its chapters. */
   readonly chapters: readonly ChapterDto[]
   readonly unordered: readonly UnorderedChapterDto[]
-  readonly warnings: readonly (WarningDto & { readonly paths: readonly string[] })[]
+  readonly warnings: readonly ManuscriptWarningDto[]
   readonly wordCount: number
   readonly linkTargets: readonly LinkTargetDto[]
 }

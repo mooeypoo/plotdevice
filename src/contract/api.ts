@@ -8,6 +8,7 @@ import type {
   SettableTypeDto,
   ApiResult,
   ChapterDestinationDto,
+  ChosenFixDto,
   CreatedEntryDto,
   EntryPropertiesViewDto,
   EntryTextDto,
@@ -82,6 +83,8 @@ export interface ManuscriptApi {
    * `null` takes it out of the book's order.
    */
   moveChapter(path: string, destination: ChapterDestinationDto | null): Promise<ApiResult<MovedDto>>
+  /** Applies a warning's fix to one part or chapter; only the links concerned change. */
+  fixWarning(path: string, fix: ChosenFixDto): Promise<ApiResult<null>>
   /** Puts a part at a position among the numbered parts. */
   movePart(path: string, index: number): Promise<ApiResult<MovedDto>>
   /** Whether the file should be renamed to match its title; `null` when not. */

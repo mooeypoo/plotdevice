@@ -86,6 +86,7 @@ const plotDevice: PlotDeviceApi = {
       invoke<ApiResult<readonly string[]>>(MANUSCRIPT_CHANNELS.addStatus, status),
     moveChapter: (path, destination) =>
       invoke<ApiResult<MovedDto>>(MANUSCRIPT_CHANNELS.moveChapter, path, destination),
+    fixWarning: (path, fix) => invoke<ApiResult<null>>(MANUSCRIPT_CHANNELS.fixWarning, path, fix),
     movePart: (path, index) =>
       invoke<ApiResult<MovedDto>>(MANUSCRIPT_CHANNELS.movePart, path, index),
     planRename: (path) =>

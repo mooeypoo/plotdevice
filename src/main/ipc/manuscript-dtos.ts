@@ -18,10 +18,13 @@ export function toManuscriptDto(view: ManuscriptView): ManuscriptDto {
       chapter: toChapterDto({ chapter, duplicateOrder: false }),
       reason
     })),
-    warnings: manuscript.warnings.map(({ code, message, paths }) => ({
+    warnings: manuscript.warnings.map(({ code, message, paths, fix }) => ({
       code,
       message,
-      paths: [...paths]
+      paths: [...paths],
+      ...(fix === undefined
+        ? {}
+        : { fix: fix.kind === 'path-form' ? { ...fix, choices: [...fix.choices] } : fix })
     })),
     wordCount: manuscript.wordCount,
     linkTargets: view.linkCandidates.map((candidate) => {

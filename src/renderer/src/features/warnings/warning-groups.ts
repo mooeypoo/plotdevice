@@ -1,4 +1,9 @@
-import type { FileProblemDto, ManuscriptDto, WarningDto } from '../../../../contract/dtos'
+import type {
+  FileProblemDto,
+  ManuscriptDto,
+  WarningDto,
+  WarningFixDto
+} from '../../../../contract/dtos'
 import { describeFileProblem } from '../welcome/describe-file-problem'
 
 /** One thing in the warnings panel. `path` is the file it's about, if there is one. */
@@ -6,6 +11,8 @@ export interface WarningItem {
   readonly key: string
   readonly message: string
   readonly path?: string
+  /** A one-click fix for the file at `path`. */
+  readonly fix?: WarningFixDto
 }
 
 /** Warnings of one kind, under a heading. */
@@ -71,7 +78,8 @@ export function groupWarnings(
     groups.get(manuscriptGroup(warning.code))?.push({
       key: `${warning.code}:${warning.message}`,
       message: warning.message,
-      ...(path !== undefined ? { path } : {})
+      ...(path !== undefined ? { path } : {}),
+      ...(path !== undefined && warning.fix !== undefined ? { fix: warning.fix } : {})
     })
   }
   return [...groups]

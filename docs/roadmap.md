@@ -65,11 +65,11 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [x] Renaming a codex entry's file to match its title, as for chapters.
 
 ## Phase 5b: Links and relationships
-- [ ] Relationships editor (one-way; the other character shows them read-only). When a file can't be edited safely, say so on the entry.
-- [ ] Link autocomplete that shows each candidate's type and writes the path form for names that aren't unique. Aliases match. Links styled by target type.
-- [ ] Ctrl/Cmd+click on a link opens its target.
-- [ ] Read markdown links (`[text](file.md)`) when resolving references.
-- [ ] Fix-it actions in the warnings panel: write an ambiguous link with its folder, quote an unquoted link.
+- [x] Relationships editor (one-way; the other character shows them read-only). When a file can't be edited safely, say so on the entry.
+- [x] Link autocomplete that shows each candidate's type and writes the path form for names that aren't unique. Aliases match. Links styled by target type.
+- [x] Ctrl/Cmd+click on a link opens its target.
+- [x] Read markdown links (`[text](file.md)`) when resolving references.
+- [x] Fix-it actions in the warnings panel: write an ambiguous link with its folder, quote an unquoted link.
 - [x] Templates for new characters, locations, and notes that the writer can change (`templates/` by default; the built-in default when a file is missing).
 
 ## Phase 6: Outline view
@@ -96,6 +96,10 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Phase 5b follow-ups:
+  - Fix-its cover parts and chapters; ambiguous links in notes and codex entries are not checked yet.
+  - Relationships can't be reordered in the app, and removing an entry's first field (`with`) is refused (ADR 0007).
+  - Markdown links are read for Appears in and Ctrl/Cmd+click, not for chapter placement (`part:`) or renames.
 - Phase 5a follow-ups:
   - The editor, inspector, and side panel share one open entry (`app/editor-store.ts`); stores register as owners of entry kinds (`app/entry-owners.ts`) to avoid import cycles.
   - Codex entries have no word counts in their list, and notes have no aliases field (their other keys are shown read-only).

@@ -6,6 +6,7 @@ import type { Chapter } from '../chapter'
 import type { EntrySource } from '../entry-warnings'
 import type { Part } from '../part'
 import type { PropertyWrite } from '../property-changes'
+import type { LinkRewrite } from '../warning-fixes'
 
 /** Everything the manuscript is built from, read from one project. */
 export interface ManuscriptFiles {
@@ -63,6 +64,12 @@ export interface ManuscriptRepository {
     path: ProjectPath,
     text: string
   ): Promise<Result<{ readonly version: string }, CreateFileError>>
+  /** Rewrites links in one file, body and frontmatter; see `LinkRewrite`. */
+  rewriteLinks(
+    path: ProjectPath,
+    decide: LinkRewrite,
+    expectedVersion: string | undefined
+  ): Promise<Result<{ readonly version: string; readonly count: number }, WritePropertiesError>>
   /** novel.md's frontmatter values, or `undefined` if it can't be read. */
   readNovelFrontmatter(): Promise<unknown>
   /** Changes only the given keys of novel.md. */

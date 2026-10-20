@@ -35,6 +35,7 @@ import {
   createPlanRename,
   createRenameEntry
 } from './contexts/manuscript/application/commands/rename-entry'
+import { createFixWarning } from './contexts/manuscript/application/commands/fix-warning'
 import { createRenumberPart } from './contexts/manuscript/application/commands/renumber-part'
 import { createSaveEntryText } from './contexts/manuscript/application/commands/save-entry-text'
 import { createUpdateEntryProperties } from './contexts/manuscript/application/commands/update-entry-properties'
@@ -127,6 +128,7 @@ export function composeApplication(): void {
         renumberPart: createRenumberPart({ repository, settings }),
         addStatus: createAddStatus({ repository, settings }),
         moveChapter: createMoveChapter({ repository, relocator, settings }),
+        fixWarning: createFixWarning({ repository, settings }),
         movePart: createMovePart({ repository, settings }),
         planRename: createPlanRename({ repository, relocator, settings }),
         renameEntry: createRenameEntry({ repository, relocator, settings })
