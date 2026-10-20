@@ -175,6 +175,7 @@ title: Working plan
 - The body is free markdown: headings, lists, questions, anything. The app never parses its structure or changes it.
 - Links (`[[…]]` or markdown links) tie lines to chapters. Lines linking to the chapter being written are highlighted beside it.
 - A project can have several outlines. The app creates new ones at the project root, named after their title.
+- The reference panel renders Markdown; editing opens the unchanged Markdown source in the main editor. HTML and images are not executed or loaded. External links are displayed as text; project links remain navigable.
 
 ## Scenes
 
@@ -188,6 +189,7 @@ type: character
 title: Ilka Szabó
 aliases: [Ilk]
 role: protagonist
+groups: [Main cast, Part 2]    # optional, overlapping character groups
 born: 1931                     # same rules as story_date
 relationships:
   - with: "[[Aunt Bea]]"
@@ -202,6 +204,7 @@ relationships:
 - The body is free markdown. The headings above are a template the app inserts for new characters; the app does not depend on them.
 - Location files follow the same pattern with `type: location`.
 - `aliases` are alternate names for search and autocomplete. They don't change which file a link points to.
+- **Character `groups`.** A name or list of names, for example `groups: [Main cast, Part 2]`. Membership is optional and overlapping; a character may appear under several collapsible group headings, but each row refers to the same file. Group names are discovered from character files, not registered in `novel.md`. Names are trimmed and compared after NFC normalization and case-folding; empty names and duplicates are ignored. With no memberships a character appears under Ungrouped. Removing the last membership removes the key; a group disappears when no characters use it. Structured or non-text group values are retained and shown read-only with an inspector warning; valid text memberships in a mixed list can still be displayed. `groups` on locations or notes, and `tags` on every entry, remain unknown keys and are not edited. Collapse state, list mode, and filters are per-user preferences, never project metadata.
 - **New entries.** A new character, location, or note goes in `settings.folders.character`, `.location`, or `.note`, named after its title (unique across the project), with only `type` and `title`. New entries start from the project's template for their kind: `character.md`, `location.md`, or `note.md` in `settings.folders.template`. A template's body and frontmatter keys are copied, except `type` and `title`, which the app sets. Without a template file, characters start with the headings above, locations with `## Description` and `## History`, and notes empty. Templates only seed new files: edit, remove, or add any heading in any entry. Files in the template folder are not listed as entries or untyped files.
 - **Setting a type.** For an untyped file, the app writes only a `type` line, and only on request.
 

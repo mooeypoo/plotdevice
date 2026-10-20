@@ -7,14 +7,26 @@ import type { ApiResult } from '../../../contract/dtos'
 export const PROSE_FONT_SIZE = { min: 14, max: 28, default: 19 } as const
 /** Preferred maximum line lengths, measured in the prose font's character units. */
 export const PROSE_LINE_WIDTH = { min: 45, max: 90, default: 66 } as const
+/** The reference outline's preferred width; smaller windows constrain its displayed width. */
+export const OUTLINE_WIDTH = { min: 240, max: 720, default: 320 } as const
 
 const KEY = 'plotdevice.writingPreferences'
 const fontSizeSchema = z.number().int().min(PROSE_FONT_SIZE.min).max(PROSE_FONT_SIZE.max)
 const lineWidthSchema = z.number().int().min(PROSE_LINE_WIDTH.min).max(PROSE_LINE_WIDTH.max)
+const outlineWidthSchema = z.number().int().min(OUTLINE_WIDTH.min).max(OUTLINE_WIDTH.max)
+const characterViewSchema = z.object({
+  mode: z.enum(['all', 'grouped']),
+  filters: z.array(z.string()),
+  collapsed: z.array(z.string())
+})
+/** Per-project character navigation; membership itself stays in the Markdown files. */
+export type CharacterViewPreferences = z.infer<typeof characterViewSchema>
 const preferencesSchema = z.object({
   version: z.literal(1),
   fontSize: fontSizeSchema,
   lineWidth: lineWidthSchema,
+  outlineWidth: outlineWidthSchema.default(OUTLINE_WIDTH.default),
+  characterViews: z.record(z.string(), characterViewSchema).default({}),
   collapsedParts: z.record(z.string(), z.array(z.string()))
 })
 type WritingPreferences = z.infer<typeof preferencesSchema>
@@ -24,6 +36,8 @@ function defaults(): WritingPreferences {
     version: 1,
     fontSize: PROSE_FONT_SIZE.default,
     lineWidth: PROSE_LINE_WIDTH.default,
+    outlineWidth: OUTLINE_WIDTH.default,
+    characterViews: {},
     collapsedParts: {}
   }
 }
@@ -99,6 +113,28 @@ export const useWritingPreferencesStore = defineStore('writing-preferences', () 
     save()
   }
 
+  function setOutlineWidth(value: number): ApiResult<void> {
+    const parsed = outlineWidthSchema.safeParse(value)
+    if (!parsed.success) {
+      const error = { code: 'invalid-writing-preference', message: parsed.error.message }
+      console.warn('Invalid outline width.', error)
+      return { ok: false, error }
+    }
+
+    preferences.value.outlineWidth = parsed.data
+    save()
+    return { ok: true, value: undefined }
+  }
+
+  function characterView(root: string): CharacterViewPreferences {
+    return preferences.value.characterViews[root] ?? { mode: 'all', filters: [], collapsed: [] }
+  }
+
+  function setCharacterView(root: string, view: CharacterViewPreferences): void {
+    preferences.value.characterViews = { ...preferences.value.characterViews, [root]: view }
+    save()
+  }
+
   function isPartCollapsed(root: string, path: string): boolean {
     return preferences.value.collapsedParts[root]?.includes(path) ?? false
   }
@@ -139,6 +175,10 @@ export const useWritingPreferencesStore = defineStore('writing-preferences', () 
     setFontSize,
     setLineWidth,
     resetTypography,
+    outlineWidth: computed(() => preferences.value.outlineWidth),
+    setOutlineWidth,
+    characterView,
+    setCharacterView,
     isPartCollapsed,
     setPartCollapsed
   }

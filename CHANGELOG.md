@@ -16,8 +16,12 @@ the novel file format, which remains `format: 1`.
   editor, autosave, and frontmatter property editing.
 - Parts and chapters with reordering, file renames, and wikilink updates.
 - Characters, locations, notes, templates, link completion, and relationships.
+- Overlapping character groups with inspector assignment, collapsible cast lists,
+  name/alias search, group filters, and remembered per-project navigation preferences.
 - Writer-authored outlines, a manuscript overview, story timelines, and character
   co-appearance views.
+- Rendered Markdown outline references with raw editing, explicit loading/error
+  states, stale-load protection, and an expandable, resizable panel with remembered width.
 - Hebrew and mixed-direction prose support, focus mode, and writing appearance settings.
 - Outside-edit detection and explicit conflict recovery, including saving a
   separate recovered copy without replacing the original.

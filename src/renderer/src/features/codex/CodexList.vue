@@ -2,12 +2,15 @@
 import { computed, ref } from 'vue'
 import type { CodexKindDto, CodexListingDto, SettableTypeDto } from '../../../../contract/dtos'
 import NewEntryInput from '../binder/NewEntryInput.vue'
-import { codexSections, entryDetail } from './codex-sections'
+import { codexSections } from './codex-sections'
+import CharacterList from './CharacterList.vue'
+import CodexEntryList from './CodexEntryList.vue'
 
 const props = defineProps<{
   listing: CodexListingDto
   selectedPath: string | null
   readOnly: boolean
+  projectRoot: string
 }>()
 
 const emit = defineEmits<{
@@ -84,20 +87,19 @@ function chooseType(path: string, event: Event): void {
         <span class="rule" aria-hidden="true"></span>
         <span class="count">{{ section.entries.length }}</span>
       </div>
-      <ul>
-        <li v-for="entry in section.entries" :key="entry.path">
-          <button
-            type="button"
-            class="row"
-            :class="{ active: selectedPath === entry.path }"
-            :aria-current="selectedPath === entry.path ? 'true' : undefined"
-            @click="$emit('open', entry.path)"
-          >
-            <span class="title" dir="auto">{{ entry.title }}</span>
-            <span v-if="entryDetail(entry)" class="meta" dir="auto">{{ entryDetail(entry) }}</span>
-          </button>
-        </li>
-      </ul>
+      <CharacterList
+        v-if="section.kind === 'character'"
+        :entries="section.entries"
+        :project-root="projectRoot"
+        :selected-path="selectedPath"
+        @open="$emit('open', $event)"
+      />
+      <CodexEntryList
+        v-else
+        :entries="section.entries"
+        :selected-path="selectedPath"
+        @open="$emit('open', $event)"
+      />
       <NewEntryInput
         v-if="adding === section.kind"
         :placeholder="`New ${section.newLabel}’s name`"

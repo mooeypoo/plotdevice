@@ -1,3 +1,5 @@
+import { characterGroups } from './character-groups'
+
 /** What the writer changed in a codex entry's inspector. Only present fields change. */
 export interface CodexChanges {
   readonly title?: string
@@ -5,6 +7,7 @@ export interface CodexChanges {
   readonly role?: string
   /** As typed; commas separate several dates, like `story_date`. */
   readonly born?: string
+  readonly groups?: readonly string[]
 }
 
 /** One frontmatter key to set, or to remove when `value` is `undefined`. */
@@ -29,6 +32,10 @@ export function codexWrites(changes: CodexChanges): CodexWrite[] {
     writes.push({ key: 'aliases', value: aliases.length === 0 ? undefined : aliases })
   }
   textKey('role', changes.role)
+  if (changes.groups !== undefined) {
+    const groups = characterGroups(changes.groups)
+    writes.push({ key: 'groups', value: groups.length === 0 ? undefined : groups })
+  }
   if (changes.born !== undefined) {
     const dates = changes.born
       .split(',')

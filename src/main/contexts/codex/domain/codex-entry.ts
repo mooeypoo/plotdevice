@@ -1,5 +1,6 @@
 import { isMapping, readEntryText } from '../../../shared-kernel/frontmatter-values'
 import { projectPathStem, type ProjectPath } from '../../../shared-kernel/project-path'
+import { characterGroups } from './character-groups'
 
 /** The kinds of codex entry, each a `type` value. */
 export type CodexKind = 'character' | 'location' | 'note'
@@ -15,6 +16,8 @@ export interface CodexEntry {
   readonly aliases: readonly string[]
   /** A character's `role`. */
   readonly role?: string
+  /** Overlapping character groups; absent for other entry kinds. */
+  readonly groups?: readonly string[]
 }
 
 /** Reads a codex entry from its frontmatter values. */
@@ -30,6 +33,7 @@ export function readCodexEntry(
     kind,
     title: readEntryText(keys['title']) ?? projectPathStem(path),
     aliases: readTextList(keys['aliases']),
+    ...(kind === 'character' ? { groups: characterGroups(keys['groups']) } : {}),
     ...(role !== undefined ? { role } : {})
   }
 }

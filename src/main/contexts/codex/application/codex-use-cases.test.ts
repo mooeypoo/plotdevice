@@ -69,6 +69,54 @@ describe('ListCodex', () => {
 })
 
 describe('opening, saving, and properties', () => {
+  it('updates overlapping groups and exposes them in the listing without changing tags', async () => {
+    const version = repository.put(ilka, { type: 'character', tags: ['cast'] })
+    const updated = await createUpdateCodexProperties({ repository, settings })(ilka, version, {
+      groups: ['Main cast', 'Part 2', 'main CAST']
+    })
+    expect(updated).toMatchObject({
+      ok: true,
+      value: { properties: { groups: ['Main cast', 'Part 2'] } }
+    })
+    expect(repository.get(ilka)?.frontmatter).toEqual({
+      type: 'character',
+      tags: ['cast'],
+      groups: ['Main cast', 'Part 2']
+    })
+    const listing = await createListCodex({ repository, settings })()
+    expect(listing.entries.find((entry) => entry.path === ilka)?.groups).toEqual([
+      'Main cast',
+      'Part 2'
+    ])
+  })
+
+  it('refuses group edits on other entry kinds, malformed metadata, read-only projects, and stale versions', async () => {
+    const update = createUpdateCodexProperties({ repository, settings })
+    for (const [path, frontmatter] of [
+      [marrow, { type: 'location', groups: ['Old'] }],
+      [ilka, { type: 'character', groups: { main: true } }]
+    ] as const) {
+      const version = repository.put(path, frontmatter)
+      expect(await update(path, version, { groups: ['New'], title: 'Changed' })).toMatchObject({
+        ok: false,
+        error: { code: 'cannot-edit' }
+      })
+      expect(repository.get(path)?.frontmatter).toEqual(frontmatter)
+    }
+    const version = repository.put(ilka, { type: 'character', groups: ['Old'] })
+    expect(await update(ilka, 'stale', { groups: ['New'] })).toMatchObject({
+      ok: false,
+      error: { code: 'changed-on-disk' }
+    })
+    expect(
+      await createUpdateCodexProperties({ repository, settings: { ...settings, readOnly: true } })(
+        ilka,
+        version,
+        { groups: ['New'] }
+      )
+    ).toMatchObject({ ok: false, error: { code: 'read-only' } })
+  })
+
   it('opens and saves a body, refusing a stale version', async () => {
     const opened = await createOpenCodexEntry({ repository })(ilka)
     expect(opened).toMatchObject({ ok: true, value: { text: 'Bio.\n', wordCount: 1 } })

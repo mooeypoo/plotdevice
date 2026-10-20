@@ -16,6 +16,58 @@ afterEach(() => {
 })
 
 describe('writing preferences', () => {
+  it('keeps per-project character choices across restarts without changing writing or binder preferences', () => {
+    const preferences = useWritingPreferencesStore()
+    preferences.setPartCollapsed('/book', 'Part.md', true)
+    preferences.setFontSize(24)
+    preferences.setCharacterView('/book', {
+      mode: 'grouped',
+      filters: ['Main'],
+      collapsed: ['group:main']
+    })
+    setActivePinia(createPinia())
+    const restored = useWritingPreferencesStore()
+    expect(restored.characterView('/book')).toEqual({
+      mode: 'grouped',
+      filters: ['Main'],
+      collapsed: ['group:main']
+    })
+    expect(restored.characterView('/other')).toEqual({ mode: 'all', filters: [], collapsed: [] })
+    expect(restored.fontSize).toBe(24)
+    expect(restored.isPartCollapsed('/book', 'Part.md')).toBe(true)
+  })
+
+  it('loads old preferences without losing typography or collapsed parts', () => {
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        version: 1,
+        fontSize: 24,
+        lineWidth: 80,
+        collapsedParts: { '/book': ['Part One.md'] }
+      })
+    )
+    const preferences = useWritingPreferencesStore()
+    expect(preferences.outlineWidth).toBe(320)
+    expect(preferences.fontSize).toBe(24)
+    expect(preferences.isPartCollapsed('/book', 'Part One.md')).toBe(true)
+    expect(preferences.storageNotice).toBe('')
+  })
+
+  it('persists outline width, validates its exact limits, and retains it on typography reset', () => {
+    const preferences = useWritingPreferencesStore()
+    expect(preferences.setOutlineWidth(240).ok).toBe(true)
+    expect(preferences.setOutlineWidth(720).ok).toBe(true)
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    for (const value of [239, 721, 320.5, NaN, Infinity]) {
+      expect(preferences.setOutlineWidth(value).ok).toBe(false)
+    }
+    expect(warn).toHaveBeenCalledTimes(5)
+    preferences.resetTypography()
+    setActivePinia(createPinia())
+    expect(useWritingPreferencesStore().outlineWidth).toBe(720)
+  })
+
   it('keeps the existing typography as the default', () => {
     const preferences = useWritingPreferencesStore()
     expect(preferences.fontSize).toBe(19)

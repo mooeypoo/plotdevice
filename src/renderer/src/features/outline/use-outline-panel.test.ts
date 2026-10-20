@@ -1,6 +1,6 @@
 import { flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
@@ -19,6 +19,61 @@ beforeEach(async () => {
 })
 
 describe('useOutlinePanel', () => {
+  it('keeps each outline title, path, and body paired when switching in both directions', async () => {
+    await useCodexStore().createOutline('Clue ledger')
+    fake.files.set('Clue ledger.md', '## Clues\nThe key is missing.')
+    const panel = useOutlinePanel()
+    await flushPromises()
+    for (const path of ['Clue ledger.md', 'Outline.md', 'Clue ledger.md']) {
+      panel.choose(path)
+      await flushPromises()
+      expect(panel.path.value).toBe(path)
+      expect(panel.text.value).toBe(fake.files.get(path))
+      expect(panel.outlines.value.find((outline) => outline.path === path)?.title).toBe(
+        path.replace('.md', '')
+      )
+    }
+  })
+
+  it('clears the old body while loading and rejects stale A → B → A responses', async () => {
+    await useCodexStore().createOutline('Clue ledger')
+    const pending: ((result: Awaited<ReturnType<typeof fake.api.codex.openEntry>>) => void)[] = []
+    vi.spyOn(fake.api.codex, 'openEntry').mockImplementation(
+      () => new Promise((resolve) => pending.push(resolve))
+    )
+    const panel = useOutlinePanel()
+    panel.choose('Outline.md')
+    await flushPromises()
+    panel.choose('Clue ledger.md')
+    await flushPromises()
+    panel.choose('Outline.md')
+    await flushPromises()
+    expect(panel.loading.value).toBe(true)
+    expect(panel.text.value).toBeNull()
+    const success = (text: string): Awaited<ReturnType<typeof fake.api.codex.openEntry>> => ({
+      ok: true,
+      value: { path: 'Outline.md', text, version: 'v1', wordCount: 1 }
+    })
+    pending[2]?.(success('Newest A'))
+    await flushPromises()
+    pending[0]?.(success('Old A'))
+    pending[1]?.(success('B'))
+    await flushPromises()
+    expect(panel.text.value).toBe('Newest A')
+    expect(panel.loading.value).toBe(false)
+  })
+
+  it('shows read failures without retaining another outline’s body', async () => {
+    const panel = useOutlinePanel()
+    await flushPromises()
+    fake.files.delete('Outline.md')
+    await useCodexStore().reload()
+    await flushPromises()
+    expect(panel.text.value).toBeNull()
+    expect(panel.error.value).toBe('gone')
+    expect(panel.loading.value).toBe(false)
+  })
+
   it('shows the outline, and knows which links mean the open chapter', async () => {
     await useEditorStore().open('First frost.md')
     const panel = useOutlinePanel()

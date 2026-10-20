@@ -67,6 +67,27 @@ beforeEach(() => {
 })
 
 describe('codex handlers', () => {
+  it('validates and round-trips character groups through properties and listing', async () => {
+    await handlers.listCodex()
+    const read = await handlers.getProperties([ilka])
+    if (!read.ok) throw new Error('expected properties')
+    expect(
+      await handlers.updateProperties([ilka, read.value.version, { groups: ['Main', 'Part 2'] }])
+    ).toMatchObject({ ok: true, value: { properties: { groups: ['Main', 'Part 2'] } } })
+    expect(await handlers.listCodex()).toMatchObject({
+      ok: true,
+      value: { entries: [{ path: ilka, groups: ['Main', 'Part 2'] }] }
+    })
+    for (const groups of ['Main', [42], ['x'.repeat(501)], Array<string>(501).fill('Main')]) {
+      expect(await handlers.updateProperties([ilka, read.value.version, { groups }])).toMatchObject(
+        {
+          ok: false,
+          error: { code: 'invalid-request' }
+        }
+      )
+    }
+  })
+
   it('lists the codex and opens listed entries only', async () => {
     expect(await handlers.openEntry([ilka])).toMatchObject({
       ok: false,

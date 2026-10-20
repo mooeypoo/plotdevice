@@ -569,9 +569,21 @@ export function createFakePlotDeviceApi(): {
           ...(changes.title !== undefined ? { title: changes.title } : {}),
           ...(changes.aliases !== undefined ? { aliases: changes.aliases } : {}),
           ...(changes.role !== undefined ? { role: changes.role } : {}),
-          ...(changes.born !== undefined ? { born: changes.born } : {})
+          ...(changes.born !== undefined ? { born: changes.born } : {}),
+          ...(changes.groups !== undefined ? { groups: changes.groups } : {})
         }
         codexProperties.set(path, next)
+        codex = {
+          ...codex,
+          entries: codex.entries.map((entry) =>
+            entry.path === path
+              ? {
+                  ...entry,
+                  ...(changes.groups !== undefined ? { groups: changes.groups } : {})
+                }
+              : entry
+          )
+        }
         revisions.set(path, (revisions.get(path) ?? 0) + 1)
         return Promise.resolve({
           ok: true,

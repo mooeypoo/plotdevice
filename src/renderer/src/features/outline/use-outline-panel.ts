@@ -11,6 +11,9 @@ export function useOutlinePanel(): {
   readonly outlines: ComputedRef<readonly { readonly path: string; readonly title: string }[]>
   readonly path: ComputedRef<string | null>
   readonly text: Ref<string | null>
+  readonly loading: Ref<boolean>
+  readonly error: Ref<string | null>
+  readonly linkNotice: Ref<string | null>
   /** The outline is open in the main editor, so the panel defers to it. */
   readonly openInEditor: ComputedRef<boolean>
   readonly choose: (path: string) => void
@@ -24,6 +27,9 @@ export function useOutlinePanel(): {
   const layout = useLayoutStore()
   const links = useEditorLinks()
   const text = ref<string | null>(null)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+  let request = 0
 
   const outlines = computed(() => codex.listing?.outlines ?? [])
   const path = computed(() => {
@@ -35,13 +41,17 @@ export function useOutlinePanel(): {
   const openInEditor = computed(() => path.value !== null && editor.entry?.path === path.value)
 
   async function load(): Promise<void> {
+    const identity = ++request
     const current = path.value
-    if (current === null) {
-      text.value = null
-      return
-    }
+    text.value = null
+    error.value = null
+    loading.value = current !== null
+    if (current === null) return
     const result = await plotDeviceApi.current().codex.openEntry(current)
-    if (path.value === current) text.value = result.ok ? result.value.text : null
+    if (identity !== request || path.value !== current) return
+    loading.value = false
+    if (result.ok) text.value = result.value.text
+    else error.value = result.error.message
   }
 
   // Re-read when the outline changes, the codex reloads (outside edits), or the main editor lets
@@ -59,6 +69,9 @@ export function useOutlinePanel(): {
     outlines,
     path,
     text,
+    loading,
+    error,
+    linkNotice: links.linkNotice,
     openInEditor,
     choose: (chosen) => {
       layout.outlinePath = chosen

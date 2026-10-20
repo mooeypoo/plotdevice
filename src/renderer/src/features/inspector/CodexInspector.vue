@@ -8,6 +8,7 @@ import { useWorkspaceStore } from '../../app/workspace-store'
 import RelationshipsEditor from './RelationshipsEditor.vue'
 import RenameOffer from './RenameOffer.vue'
 import TextListInput from './TextListInput.vue'
+import { characterGroupNames } from '../codex/character-list'
 
 const codex = useCodexStore()
 const editor = useEditorStore()
@@ -15,6 +16,13 @@ const inspector = useInspectorStore()
 const workspace = useWorkspaceStore()
 
 const properties = computed(() => codex.properties)
+const groupNames = computed(() =>
+  characterGroupNames(
+    (codex.listing?.entries ?? [])
+      .filter((entry) => entry.kind === 'character')
+      .flatMap((entry) => entry.groups ?? [])
+  )
+)
 const busy = ref(false)
 // A file that vanished can't take property changes; its banner offers what can be done.
 const disabled = computed(
@@ -93,6 +101,19 @@ const KEY_NAMES = { pov: 'point of view', characters: 'characters', location: 'l
       />
 
       <template v-if="properties.kind === 'character'">
+        <TextListInput
+          :key="properties.path"
+          label="Groups"
+          :items="properties.groups ?? []"
+          placeholder="Choose or add a group…"
+          :suggestions="groupNames"
+          :disabled="disabled || properties.groupsEditable === false"
+          @change="save({ groups: characterGroupNames($event) })"
+        />
+        <p v-if="properties.groupsEditable === false" class="hint bad" role="alert">
+          Groups must be text or a list of names. This field is read-only; the original value is
+          shown below. Edit it in the file to enable group changes.
+        </p>
         <div class="field">
           <label class="eyebrow" for="codex-role">Role</label>
           <input

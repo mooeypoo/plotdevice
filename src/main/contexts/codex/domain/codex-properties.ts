@@ -2,6 +2,7 @@ import { isMapping, readEntryText } from '../../../shared-kernel/frontmatter-val
 import type { ProjectPath } from '../../../shared-kernel/project-path'
 import { readTextList, type CodexKind } from './codex-entry'
 import { canEditRelationships, type Relationship } from './relationships'
+import { canEditCharacterGroups, characterGroups } from './character-groups'
 
 /** A key the app doesn't edit, shown read-only so the writer sees the whole file. */
 export interface OtherKey {
@@ -16,6 +17,9 @@ export interface CodexProperties {
   readonly title?: string
   readonly aliases: readonly string[]
   readonly role?: string
+  readonly groups?: readonly string[]
+  /** False when existing group metadata cannot be safely edited. Only present for characters. */
+  readonly groupsEditable?: boolean
   /** A character's `born`, as written; a list is shown comma-separated. */
   readonly born?: string
   readonly relationships: readonly Relationship[]
@@ -25,7 +29,7 @@ export interface CodexProperties {
 }
 
 const OWN_KEYS: Readonly<Record<CodexKind, readonly string[]>> = {
-  character: ['type', 'title', 'aliases', 'role', 'born', 'relationships'],
+  character: ['type', 'title', 'aliases', 'role', 'born', 'relationships', 'groups'],
   location: ['type', 'title', 'aliases'],
   note: ['type', 'title']
 }
@@ -45,12 +49,22 @@ export function readCodexProperties(
     kind,
     ...(title !== undefined ? { title } : {}),
     aliases: kind === 'note' ? [] : readTextList(keys['aliases']),
+    ...(kind === 'character'
+      ? {
+          groups: characterGroups(keys['groups']),
+          groupsEditable: canEditCharacterGroups(keys['groups'])
+        }
+      : {}),
     ...(role !== undefined ? { role } : {}),
     ...(born !== '' ? { born } : {}),
     relationships: kind === 'character' ? readRelationships(keys['relationships']) : [],
     relationshipsEditable: kind === 'character' && canEditRelationships(keys['relationships']),
     otherKeys: Object.entries(keys)
-      .filter(([key]) => !OWN_KEYS[kind].includes(key))
+      .filter(
+        ([key]) =>
+          !OWN_KEYS[kind].includes(key) ||
+          (key === 'groups' && kind === 'character' && !canEditCharacterGroups(keys['groups']))
+      )
       .map(([key, value]) => ({ key, value: describeValue(value) }))
   }
 }

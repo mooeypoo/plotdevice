@@ -1,11 +1,19 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
 import { sampleCodex } from '../../app/fake-plot-device-api'
 import CodexList from './CodexList.vue'
 
 const mountList = (readOnly = false): ReturnType<typeof mount> =>
-  mount(CodexList, { props: { listing: sampleCodex, selectedPath: null, readOnly } })
+  mount(CodexList, {
+    props: { listing: sampleCodex, selectedPath: null, readOnly, projectRoot: '/book' }
+  })
+
+beforeEach(() => {
+  localStorage.clear()
+  setActivePinia(createPinia())
+})
 
 describe('CodexList', () => {
   it('lists entries by section, with a role or other names beside them', () => {
@@ -26,7 +34,7 @@ describe('CodexList', () => {
     const list = mountList()
     const button = list.findAll('button').find((candidate) => candidate.text() === '+ New location')
     await button?.trigger('click')
-    await list.get('input').setValue('The Cannery')
+    await list.get('form input').setValue('The Cannery')
     await list.get('form').trigger('submit')
     expect(list.emitted('create')).toEqual([['location', 'The Cannery']])
   })
@@ -53,7 +61,7 @@ describe('CodexList', () => {
     expect(list.text()).toContain('Outline')
     const button = list.findAll('button').find((candidate) => candidate.text() === '+ New outline')
     await button?.trigger('click')
-    await list.get('input').setValue('Revision plan')
+    await list.get('form input').setValue('Revision plan')
     await list.get('form').trigger('submit')
     expect(list.emitted('createOutline')).toEqual([['Revision plan']])
   })

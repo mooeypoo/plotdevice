@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, ref, watch } from 'vue'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import { createOutlineView, type OutlineView } from './outline-view'
@@ -8,7 +8,7 @@ import { useOutlinePanel } from './use-outline-panel'
 const manuscript = useManuscriptStore()
 const workspace = useWorkspaceStore()
 const panel = useOutlinePanel()
-const { outlines, path, text, openInEditor } = panel
+const { outlines, path, text, openInEditor, loading, error, linkNotice } = panel
 
 const host = ref<HTMLElement | null>(null)
 let view: OutlineView | undefined
@@ -23,8 +23,11 @@ function mount(): void {
   view.highlight(panel.pointsHere.value)
 }
 
-onMounted(mount)
-watch(host, mount)
+watch(host, () => {
+  view?.destroy()
+  view = undefined
+  mount()
+})
 watch(text, (next) => {
   if (next === null) return
   if (view === undefined) mount()
@@ -35,13 +38,6 @@ watch(
   () => manuscript.manuscript?.linkTargets,
   (targets) => view?.setLinkTargets(targets ?? [])
 )
-watch(openInEditor, (open) => {
-  // The host element goes away while the outline is in the main editor.
-  if (open) {
-    view?.destroy()
-    view = undefined
-  }
-})
 
 onBeforeUnmount(() => {
   view?.destroy()
@@ -63,7 +59,12 @@ function choose(event: Event): void {
         aria-label="Outline to show"
         @change="choose"
       >
-        <option v-for="outline in outlines" :key="outline.path" :value="outline.path">
+        <option
+          v-for="outline in outlines"
+          :key="outline.path"
+          :value="outline.path"
+          :title="outline.path"
+        >
           {{ outline.title }}
         </option>
       </select>
@@ -79,6 +80,8 @@ function choose(event: Event): void {
         Edit
       </button>
     </header>
+    <span v-if="path" class="file-path" dir="auto" :title="path">{{ path }}</span>
+    <p v-if="linkNotice" class="empty" role="status">{{ linkNotice }}</p>
 
     <div v-if="outlines.length === 0" class="empty">
       <p>
@@ -97,7 +100,9 @@ function choose(event: Event): void {
     <p v-else-if="openInEditor" class="empty">
       This outline is open in the editor. It shows here again when you open a chapter.
     </p>
-    <div v-else ref="host" class="view"></div>
+    <p v-else-if="loading" class="empty" role="status">Loading outline…</p>
+    <p v-else-if="error" class="empty error" role="alert">{{ error }}</p>
+    <div v-else-if="text !== null" ref="host" class="view" dir="auto"></div>
   </section>
 </template>
 
@@ -123,6 +128,7 @@ header {
 
 .choose {
   flex: 1;
+  min-width: 0;
   padding: 4px 8px;
 }
 
@@ -133,9 +139,119 @@ header {
 
 .view {
   font-size: 15px;
-  /* The panel is narrow: smaller prose, and the outline's own lines, not the editor's measure. */
-  --prose-size: 15px;
-  --measure: 100%;
+  font-family: var(--font-prose);
+  line-height: 1.72;
+  color: var(--prose);
+  overflow-wrap: anywhere;
+}
+
+.view :deep(:first-child) {
+  margin-top: 0;
+}
+
+.view :deep(h1),
+.view :deep(h2),
+.view :deep(h3),
+.view :deep(h4),
+.view :deep(h5),
+.view :deep(h6) {
+  margin-block: 1.5em 0.5em;
+  line-height: 1.3;
+  color: var(--text-strong);
+}
+
+.view :deep(h1) {
+  font-size: 1.6em;
+}
+
+.view :deep(h2) {
+  font-size: 1.3em;
+}
+
+.view :deep(h3),
+.view :deep(h4),
+.view :deep(h5),
+.view :deep(h6) {
+  font-size: 1.1em;
+}
+
+.view :deep(ul),
+.view :deep(ol) {
+  padding-inline-start: 1.5em;
+}
+
+.view :deep(blockquote) {
+  margin-inline: 0;
+  padding-inline-start: 1em;
+  border-inline-start: 2px solid var(--line-strong);
+  color: var(--text-dim);
+}
+
+.view :deep(pre) {
+  overflow-x: auto;
+  padding: 10px;
+  background: var(--bg-sunken);
+}
+
+.view :deep(code) {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+.view :deep(table) {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.view :deep(th),
+.view :deep(td) {
+  padding: 4px 8px;
+  border: 1px solid var(--line-strong);
+}
+
+.view :deep(.outline-current) {
+  background: var(--accent-soft);
+  border-radius: 4px;
+}
+
+.view :deep(.outline-link) {
+  color: var(--link-other);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.view :deep(.outline-link-character) {
+  color: var(--link-character);
+}
+
+.view :deep(.outline-link-location) {
+  color: var(--link-location);
+}
+
+.view :deep(.outline-link-note),
+.view :deep(.outline-link-outline) {
+  color: var(--link-note);
+}
+
+.view :deep(.outline-link-missing) {
+  color: var(--link-missing);
+}
+
+.view :deep(.outline-link-ambiguous) {
+  color: var(--warning);
+}
+
+.file-path {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.error {
+  color: var(--danger);
 }
 
 .empty {

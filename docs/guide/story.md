@@ -6,8 +6,24 @@ Step back from the chapter without leaving the manuscript behind.
 
 An outline is a plan you write, not a report generated from your chapters. Use an
 outline entry to think about sequences and link to chapters, then read it beside
-the draft. The side panel is a reference view; open the outline in the editor to
-change its text.
+the draft. The side panel renders Markdown headings, lists, emphasis, quotes, code,
+and tables. Click a project link to open its file; passages linking to the open
+chapter are highlighted. Choose **Edit** to change the raw Markdown in the main
+editor. The reference returns when you open another entry.
+
+If you have several outlines, choose one from the dropdown. Its label comes from
+the file's frontmatter `title`, or its filename when no title is set. The selected
+path appears below it, so you can distinguish files with similar titles.
+
+Choose **Expand** for a wider reference view and **Restore** to return to your
+preferred width. You can also drag the panel's inner edge. With that edge focused,
+Left/Right resize it and Home/End choose the smallest/largest available width.
+The preferred width is remembered on this computer; narrower windows constrain
+it to leave room for the editor. Properties keeps its usual width.
+
+Raw HTML is displayed as text, images show their descriptions rather than loading
+content, and external web links are text with their URL in a tooltip. Only project
+links open from this reference view.
 
 An outline does not change chapter order simply because you rearrange its paragraphs.
 

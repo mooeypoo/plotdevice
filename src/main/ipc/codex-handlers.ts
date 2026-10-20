@@ -74,6 +74,7 @@ const changes = z
   .object({
     title: z.string().max(10_000).optional(),
     aliases: z.array(z.string().max(500)).max(500).optional(),
+    groups: z.array(z.string().max(500)).max(500).optional(),
     role: z.string().max(500).optional(),
     born: z.string().max(500).optional()
   })

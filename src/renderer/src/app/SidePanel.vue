@@ -56,9 +56,14 @@ const TABS: readonly { readonly id: SideTab; readonly label: string }[] = [
       @create-part="manuscript.createPart($event)"
       @move="$emit('move', $event)"
     />
-    <nav v-else-if="layout.sideTab === 'codex' && codex.listing" class="codex" aria-label="Codex">
+    <nav
+      v-else-if="layout.sideTab === 'codex' && codex.listing && workspace.project"
+      class="codex"
+      aria-label="Codex"
+    >
       <CodexList
         :listing="codex.listing"
+        :project-root="workspace.project.root"
         :selected-path="editor.entry?.path ?? null"
         :read-only="workspace.project?.readOnly ?? false"
         @open="openEntry($event)"

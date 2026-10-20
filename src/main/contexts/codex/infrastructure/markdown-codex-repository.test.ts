@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { ProjectPath } from '../../../shared-kernel/project-path'
@@ -32,6 +32,27 @@ afterEach(async () => {
 })
 
 describe('the sample novel’s codex', () => {
+  it('changes and removes groups while preserving every other byte, including CRLF, BOM, comments, tags and body', async () => {
+    const repository = createMarkdownCodexRepository(copy.root)
+    const path = p('characters/Ilka Szabó.md')
+    const source =
+      '\uFEFF---\r\ntype: character\r\n# Cast organization\r\ngroups: [Main] # keep\r\ntags: [cast]\r\ncustom: yes\r\n---\r\n## Bio\r\nUnchanged.'
+    await writeFile(join(copy.root, path), source)
+    const read = await createGetCodexProperties({ repository })(path)
+    if (!read.ok) throw new Error('expected properties')
+    const update = createUpdateCodexProperties({ repository, settings })
+    const updated = await update(path, read.value.version, { groups: ['Main', 'Part 2'] })
+    expect(updated.ok).toBe(true)
+    expect(await text(path)).toBe(source.replace('[Main]', '[Main, Part 2]'))
+    if (!updated.ok) throw new Error('expected updated groups')
+    const unchanged = await text(path)
+    await update(path, updated.value.version, { groups: ['Main', 'Part 2'] })
+    expect(await text(path)).toBe(unchanged)
+    const removed = await update(path, updated.value.version, { groups: [] })
+    expect(removed.ok).toBe(true)
+    expect(await text(path)).toBe(source.replace('groups: [Main] # keep\r\n', ''))
+  })
+
   it('lists characters, locations, notes, and readable untyped files', async () => {
     const listing = await createListCodex({
       repository: createMarkdownCodexRepository(copy.root),

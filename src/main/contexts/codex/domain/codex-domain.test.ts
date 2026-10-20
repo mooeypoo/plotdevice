@@ -20,6 +20,7 @@ describe('readCodexEntry', () => {
       kind: 'character',
       title: 'Ilka Szabó',
       aliases: ['Ilk'],
+      groups: [],
       role: 'protagonist'
     })
     expect(readCodexEntry(ilka, 'location', { aliases: 'Ilk', role: 'x' })).toEqual({
@@ -50,6 +51,8 @@ describe('readCodexProperties', () => {
       kind: 'character',
       title: 'Ilka Szabó',
       aliases: [],
+      groups: [],
+      groupsEditable: true,
       born: '1931',
       relationships: [{ with: '[[Aunt Bea]]', kind: 'mentor', note: 'Taught her to graft.' }],
       relationshipsEditable: true,

@@ -290,6 +290,8 @@ export interface CodexEntryDto {
   readonly title: string
   readonly aliases: readonly string[]
   readonly role?: string
+  /** Overlapping memberships, only for characters. */
+  readonly groups?: readonly string[]
 }
 
 /** A markdown file with no `type`, or an unknown one (`rawType`). */
@@ -329,6 +331,8 @@ export interface CodexPropertiesDto {
   readonly aliases: readonly string[]
   readonly role?: string
   readonly born?: string
+  readonly groups?: readonly string[]
+  readonly groupsEditable?: boolean
   readonly relationships: readonly RelationshipDto[]
   /** False when the file writes `relationships` in a shape the app can't edit safely. */
   readonly relationshipsEditable: boolean
@@ -365,6 +369,7 @@ export interface CodexChangesDto {
   readonly aliases?: readonly string[]
   readonly role?: string
   readonly born?: string
+  readonly groups?: readonly string[]
 }
 
 /** A chapter a character or location appears in. */

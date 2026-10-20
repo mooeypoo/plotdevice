@@ -1,26 +1,121 @@
-import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
-import { Compartment, EditorState, RangeSetBuilder } from '@codemirror/state'
-import { Decoration, EditorView } from '@codemirror/view'
+import MarkdownIt from 'markdown-it'
+import type Token from 'markdown-it/lib/token.mjs'
 import type { LinkTargetDto } from '../../../../contract/dtos'
-import { linkAt, type LinkAt } from '../editor/link-at'
-import { autoLineDirection } from '../editor/line-direction'
-import { proseAppearance } from '../editor/prose-theme'
-import { wikiLinkDecorations } from '../editor/wiki-link-decorations'
-import { createLinkKindLookup } from '../editor/wiki-link-scan'
-import { linesLinkingHere } from './outline-highlight'
+import type { LinkAt } from '../editor/link-at'
+import { createLinkKindLookup, findWikiLinks } from '../editor/wiki-link-scan'
 
-/** A read-only view of an outline, beside the draft. */
+/** A rendered, read-only outline beside the draft. */
 export interface OutlineView {
   setText(text: string): void
   setLinkTargets(targets: readonly LinkTargetDto[]): void
-  /** Highlights the lines linking to the open entry and scrolls the first into view. */
+  /** Highlights passages linking to the open entry and reveals the first one. */
   highlight(pointsHere: (link: LinkAt) => boolean): void
   destroy(): void
 }
 
-const currentLine = Decoration.line({ class: 'cm-outline-current' })
+const markdown = new MarkdownIt({ html: false })
 
-/** Mounts a read-only prose view; a click on a link calls `onOpenLink`. */
+markdown.inline.ruler.before('link', 'wikilink', (state, silent) => {
+  if ('linkLevel' in state && typeof state.linkLevel === 'number' && state.linkLevel > 0)
+    return false
+  const link = findWikiLinks(state.src.slice(state.pos, state.posMax))[0]
+  if (link === undefined || link.from !== 0 || link.target === '') return false
+  if (!silent) {
+    const open = state.push('link_open', 'a', 1)
+    open.attrSet('data-outline-kind', 'wiki')
+    open.attrSet('data-outline-target', link.target)
+    const text = state.push('text', '', 0)
+    text.content = state.src.slice(state.pos + link.labelFrom, state.pos + link.labelTo)
+    state.push('link_close', 'a', -1)
+  }
+  state.pos += link.to
+  return true
+})
+
+// A reference must not fetch remote images or embed arbitrary local files.
+markdown.renderer.rules.image = (tokens, index) =>
+  markdown.utils.escapeHtml(tokens[index]?.content ?? '')
+
+function projectAddress(address: string): boolean {
+  return (
+    address !== '' &&
+    !/^[a-z][a-z0-9+.-]*:/iu.test(address) &&
+    !address.startsWith('//') &&
+    !address.startsWith('#') &&
+    !address.includes('\\')
+  )
+}
+
+function decorateLinks(
+  tokens: readonly Token[],
+  kindOf: ReturnType<typeof createLinkKindLookup>,
+  pointsHere: (link: LinkAt) => boolean
+): boolean {
+  let current = false
+  let closingTag = 'a'
+  for (const token of tokens) {
+    if (token.type === 'link_open') {
+      const wiki = token.attrGet('data-outline-target')
+      const address = token.attrGet('href') ?? ''
+      const link: LinkAt | undefined =
+        wiki !== null
+          ? { kind: 'wiki', target: wiki }
+          : projectAddress(address)
+            ? { kind: 'markdown', address }
+            : undefined
+      token.attrs = null
+      if (link === undefined) {
+        token.tag = 'span'
+        token.attrSet('title', address)
+        token.attrSet('class', 'outline-reference')
+      } else {
+        token.attrSet('href', '#')
+        token.attrSet('dir', 'auto')
+        token.attrSet('data-outline-kind', link.kind)
+        token.attrSet('data-outline-target', link.kind === 'wiki' ? link.target : link.address)
+        token.attrSet(
+          'class',
+          `outline-link outline-link-${link.kind === 'wiki' ? kindOf(link.target) : 'chapter'}`
+        )
+        current ||= pointsHere(link)
+      }
+      closingTag = token.tag
+    } else if (token.type === 'link_close') {
+      token.tag = closingTag
+    }
+  }
+  return current
+}
+
+/** Renders Markdown with inert HTML/images and explicitly routed project links. */
+export function renderOutlineMarkdown(
+  text: string,
+  targets: readonly LinkTargetDto[],
+  pointsHere: (link: LinkAt) => boolean
+): string {
+  const tokens = markdown.parse(text, {})
+  const parents: Token[] = []
+  const kindOf = createLinkKindLookup(targets)
+  for (const token of tokens) {
+    if (
+      ['paragraph_open', 'heading_open', 'list_item_open', 'th_open', 'td_open'].includes(
+        token.type
+      )
+    )
+      token.attrSet('dir', 'auto')
+    if (token.nesting === -1) parents.pop()
+    if (token.type === 'inline' && token.children !== null) {
+      if (decorateLinks(token.children, kindOf, pointsHere)) {
+        const block = parents.findLast((parent) => !parent.hidden)
+        block?.attrJoin('class', 'outline-current')
+      }
+    }
+    if (token.nesting === 1) parents.push(token)
+  }
+  return markdown.renderer.render(tokens, markdown.options, {})
+}
+
+/** Mounts rendered Markdown; project links open through the app rather than navigating. */
 export function createOutlineView(
   parent: HTMLElement,
   options: {
@@ -29,83 +124,48 @@ export function createOutlineView(
     readonly onOpenLink: (link: LinkAt) => void
   }
 ): OutlineView {
-  const links = new Compartment()
-  const highlights = new Compartment()
-
-  const view = new EditorView({
-    parent,
-    state: EditorState.create({
-      doc: options.text,
-      extensions: [
-        markdown({ base: markdownLanguage }),
-        proseAppearance(),
-        EditorView.lineWrapping,
-        EditorView.perLineTextDirection.of(true),
-        autoLineDirection(),
-        EditorState.readOnly.of(true),
-        EditorView.editable.of(false),
-        EditorView.contentAttributes.of({ 'aria-label': 'Outline', 'aria-readonly': 'true' }),
-        links.of(wikiLinkDecorations(createLinkKindLookup(options.linkTargets))),
-        highlights.of([]),
-        EditorView.theme({
-          '.cm-outline-current': {
-            background: 'var(--accent-soft)',
-            borderRadius: '4px'
-          }
-        }),
-        EditorView.domEventHandlers({
-          click(event, target) {
-            const position = target.posAtCoords({ x: event.clientX, y: event.clientY })
-            if (position === null) return false
-            const line = target.state.doc.lineAt(position)
-            const link = linkAt(line.text, line.from, position)
-            if (link === undefined) return false
-            options.onOpenLink(link)
-            return true
-          }
-        })
-      ]
-    })
-  })
-
-  let pointsHere: ((link: LinkAt) => boolean) | undefined
-
-  const applyHighlight = (): void => {
-    const doc = view.state.doc
-    const lines = pointsHere === undefined ? [] : linesLinkingHere(doc.toString(), pointsHere)
-    const builder = new RangeSetBuilder<Decoration>()
-    for (const number of lines) {
-      if (number <= doc.lines)
-        builder.add(doc.line(number).from, doc.line(number).from, currentLine)
-    }
-    const first = lines[0]
-    view.dispatch({
-      effects: [
-        highlights.reconfigure(EditorView.decorations.of(builder.finish())),
-        ...(first !== undefined && first <= doc.lines
-          ? [EditorView.scrollIntoView(doc.line(first).from, { y: 'center' })]
-          : [])
-      ]
-    })
+  let text = options.text
+  let targets = options.linkTargets
+  let pointsHere: (link: LinkAt) => boolean = () => false
+  const render = (): void => {
+    parent.innerHTML = renderOutlineMarkdown(text, targets, pointsHere)
   }
-
+  const reveal = (): void => {
+    parent.querySelector('.outline-current')?.scrollIntoView({ block: 'nearest' })
+  }
+  const click = (event: MouseEvent): void => {
+    const anchor = event.target instanceof Element ? event.target.closest('a') : null
+    if (anchor === null || !parent.contains(anchor)) return
+    event.preventDefault()
+    const target = anchor.getAttribute('data-outline-target')
+    if (target === null) return
+    options.onOpenLink(
+      anchor.getAttribute('data-outline-kind') === 'wiki'
+        ? { kind: 'wiki', target }
+        : { kind: 'markdown', address: target }
+    )
+  }
+  parent.addEventListener('click', click)
+  render()
   return {
-    setText(text) {
-      if (text === view.state.doc.toString()) return
-      view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: text } })
-      applyHighlight()
+    setText(next) {
+      if (text === next) return
+      text = next
+      render()
+      reveal()
     },
-    setLinkTargets(targets) {
-      view.dispatch({
-        effects: links.reconfigure(wikiLinkDecorations(createLinkKindLookup(targets)))
-      })
+    setLinkTargets(next) {
+      targets = next
+      render()
     },
     highlight(next) {
       pointsHere = next
-      applyHighlight()
+      render()
+      reveal()
     },
     destroy() {
-      view.destroy()
+      parent.removeEventListener('click', click)
+      parent.replaceChildren()
     }
   }
 }

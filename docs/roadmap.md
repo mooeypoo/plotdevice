@@ -105,6 +105,16 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [x] Keep a pending decision explicit when the file reappears or changes again. Failed reads/writes retain the draft, and failed reopening of a published copy can retry without duplicate copies.
 - [x] Serialize recovery actions, freeze editing without resetting history while they run, and guard entry/project/window navigation. Snapshots are session-local; this is not persistent crash recovery.
 
+## Phase 13: Outline reading comfort
+- [x] Render Markdown in the outline reference, retaining project-link navigation and linked-passage highlights. Edit opens raw Markdown in the existing main editor; HTML, remote images, and web navigation remain inert in the reference.
+- [x] Clear previous content during outline loads, show errors explicitly, and reject obsolete responses even when switching A → B → A. Show the selected path alongside the frontmatter-derived title.
+- [x] Expand/Restore and pointer/keyboard resizing for the outline panel. Remember the preferred width in user settings, constrain it for smaller windows, and leave Properties unchanged.
+
+## Phase 14: Character groups
+- [x] Optional overlapping `groups` membership in character frontmatter, discovered from files without a central registry. Normalize name identity, preserve tags and other metadata, and show malformed group fields read-only.
+- [x] Inspector group chips with existing-name suggestions and inline creation/removal, through validated, version-checked codex writes.
+- [x] All/Grouped character lists, collapsible headings and Ungrouped, name/alias search, and union-of-groups filters with unique file counts. Remember list mode, collapse state and filters per project in user preferences.
+
 ## Proposed release and documentation program
 
 The [release plan](release-plan.md) tracks approved work: MVP version policy,
@@ -132,6 +142,7 @@ native deb permissions and publisher authentication are not changed by metadata.
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Character-group follow-ups: persistent empty groups, custom ordering/colors/descriptions, bulk assignment, and group filters in Timeline/Interactions are not part of Phase 14.
 - Phase 9 follow-ups:
   - Sign the Windows installer, so SmartScreen doesn't warn (needs a code-signing certificate).
   - A Windows Explorer "Open with Plot Device" entry for folders.

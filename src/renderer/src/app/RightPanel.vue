@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import CodexInspector from '../features/inspector/CodexInspector.vue'
 import InspectorPanel from '../features/inspector/InspectorPanel.vue'
 import OutlineInspector from '../features/inspector/OutlineInspector.vue'
@@ -7,9 +7,13 @@ import TemplateInspector from '../features/inspector/TemplateInspector.vue'
 import OutlinePanel from '../features/outline/OutlinePanel.vue'
 import { useEditorStore } from './editor-store'
 import { useLayoutStore, type RightTab } from './layout-store'
+import { useOutlineWidth } from './use-outline-width'
 
 const editor = useEditorStore()
 const layout = useLayoutStore()
+const panel = ref<HTMLElement | null>(null)
+const resize = useOutlineWidth(panel)
+const { width, minimum, maximum, expanded } = resize
 
 const TABS: readonly { readonly id: RightTab; readonly label: string }[] = [
   { id: 'properties', label: 'Properties' },
@@ -20,18 +24,53 @@ const kind = computed(() => editor.entry?.kind)
 </script>
 
 <template>
-  <div class="right">
-    <div class="tabs" role="tablist" aria-label="Right panel">
+  <div
+    id="right-panel"
+    ref="panel"
+    class="right"
+    :style="layout.rightTab === 'outline' ? { width: `${width}px` } : undefined"
+  >
+    <div
+      v-if="layout.rightTab === 'outline'"
+      class="resize-handle"
+      role="separator"
+      tabindex="0"
+      aria-label="Outline panel width"
+      aria-orientation="vertical"
+      aria-controls="right-panel"
+      :aria-valuemin="minimum"
+      :aria-valuemax="maximum"
+      :aria-valuenow="width"
+      @pointerdown="resize.start"
+      @pointermove="resize.move"
+      @pointerup="resize.finish"
+      @pointercancel="resize.cancel"
+      @lostpointercapture="resize.finish"
+      @keydown="resize.keydown"
+    ></div>
+    <div class="panel-header">
+      <div class="tabs" role="tablist" aria-label="Right panel">
+        <button
+          v-for="tab in TABS"
+          :key="tab.id"
+          type="button"
+          role="tab"
+          :aria-selected="layout.rightTab === tab.id"
+          :class="{ selected: layout.rightTab === tab.id }"
+          @click="layout.rightTab = tab.id"
+        >
+          {{ tab.label }}
+        </button>
+      </div>
       <button
-        v-for="tab in TABS"
-        :key="tab.id"
+        v-if="layout.rightTab === 'outline'"
         type="button"
-        role="tab"
-        :aria-selected="layout.rightTab === tab.id"
-        :class="{ selected: layout.rightTab === tab.id }"
-        @click="layout.rightTab = tab.id"
+        class="quiet expand"
+        :aria-expanded="expanded"
+        aria-controls="right-panel"
+        @click="expanded = !expanded"
       >
-        {{ tab.label }}
+        {{ expanded ? 'Restore' : 'Expand' }}
       </button>
     </div>
     <template v-if="layout.rightTab === 'properties'">
@@ -51,6 +90,7 @@ const kind = computed(() => editor.entry?.kind)
 
 <style scoped>
 .right {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 320px;
@@ -59,8 +99,38 @@ const kind = computed(() => editor.entry?.kind)
   background: var(--panel);
 }
 
+.panel-header {
+  display: flex;
+  align-items: center;
+}
+
+.expand {
+  margin: 10px 8px 0 0;
+  padding: 4px 6px;
+  font-size: 11px;
+}
+
+.resize-handle {
+  position: absolute;
+  z-index: 1;
+  inset-inline-start: -4px;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.resize-handle:hover,
+.resize-handle:focus-visible {
+  background: var(--accent-soft);
+  outline: 1px solid var(--accent);
+}
+
 .tabs {
   display: flex;
+  flex: 1;
+  min-width: 0;
   gap: 4px;
   padding: 10px 10px 0;
 }

@@ -6,6 +6,7 @@ const props = defineProps<{
   items: readonly string[]
   placeholder: string
   disabled: boolean
+  suggestions?: readonly string[]
 }>()
 
 const emit = defineEmits<{ change: [items: string[]] }>()
@@ -51,9 +52,13 @@ function remove(item: string): void {
       dir="auto"
       :placeholder="placeholder"
       :disabled="disabled"
+      :list="suggestions === undefined ? undefined : `${id}-suggestions`"
       @keydown.enter.prevent="add"
       @change="add"
     />
+    <datalist v-if="suggestions !== undefined" :id="`${id}-suggestions`">
+      <option v-for="suggestion in suggestions" :key="suggestion" :value="suggestion" />
+    </datalist>
   </div>
 </template>
 
