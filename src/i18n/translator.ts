@@ -6,6 +6,22 @@ import he from './he.json'
 /** Stable catalog keys, excluding translator metadata. */
 export type MessageKey = Exclude<keyof typeof en, '@metadata'>
 type ParameterizedMessages = {
+  'chrome-binder-tooltip': [shortcut: string]
+  'chrome-inspector-tooltip': [shortcut: string]
+  'chrome-focus-tooltip': [shortcut: string]
+  'chrome-leave-focus': [shortcut: string]
+  'chrome-count-part': [count: number, formatted: string]
+  'chrome-count-chapter': [count: number, formatted: string]
+  'chrome-count-character': [count: number, formatted: string]
+  'chrome-count-location': [count: number, formatted: string]
+  'chrome-count-note': [count: number, formatted: string]
+  'chrome-count-template': [count: number, formatted: string]
+  'chrome-count-outline': [count: number, formatted: string]
+  'chrome-count-words': [count: number, formatted: string]
+  'chrome-count-manuscript': [count: number, formatted: string]
+  'chrome-count-named-part': [count: number, title: string, formatted: string]
+  'appearance-pixels': [formatted: string]
+  'appearance-characters': [formatted: string]
   'initialize-heading': [folder: string]
   'initialize-description': [marker: string]
   'initialize-inside-description': [folder: string, project: string]

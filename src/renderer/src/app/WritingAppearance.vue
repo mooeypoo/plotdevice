@@ -4,8 +4,12 @@ import {
   PROSE_LINE_WIDTH,
   useWritingPreferencesStore
 } from './writing-preferences-store'
+import { useUiLanguageStore } from './ui-language-store'
+import { useChromePresentation } from '../shared/use-chrome-presentation'
 
 const preferences = useWritingPreferencesStore()
+const language = useUiLanguageStore()
+const { formatNumber } = useChromePresentation()
 </script>
 
 <template>
@@ -13,11 +17,11 @@ const preferences = useWritingPreferencesStore()
     type="button"
     class="appearance-trigger quiet"
     popovertarget="writing-appearance"
-    aria-label="Writing appearance"
-    title="Writing appearance"
+    :aria-label="language.t('appearance-heading')"
+    :title="language.t('appearance-heading')"
   >
     <span class="sample" aria-hidden="true">Aa</span>
-    Appearance
+    {{ language.t('appearance-trigger') }}
   </button>
   <section
     id="writing-appearance"
@@ -26,21 +30,23 @@ const preferences = useWritingPreferencesStore()
     aria-labelledby="writing-appearance-title"
   >
     <header>
-      <h2 id="writing-appearance-title">Writing appearance</h2>
+      <h2 id="writing-appearance-title">{{ language.t('appearance-heading') }}</h2>
       <button
         type="button"
         class="quiet close"
         popovertarget="writing-appearance"
         popovertargetaction="hide"
-        aria-label="Close writing appearance"
+        :aria-label="language.t('appearance-close-label')"
       >
-        Close
+        {{ language.t('appearance-close') }}
       </button>
     </header>
-    <p class="hint">A comfortable page. Your words stay unchanged.</p>
+    <p class="hint">{{ language.t('appearance-hint') }}</p>
     <div class="control">
-      <label for="prose-size">Prose size</label>
-      <output for="prose-size">{{ preferences.fontSize }} px</output>
+      <label for="prose-size">{{ language.t('appearance-size') }}</label>
+      <output for="prose-size">{{
+        language.t('appearance-pixels', formatNumber(preferences.fontSize))
+      }}</output>
       <input
         id="prose-size"
         v-model.number="preferences.fontSize"
@@ -52,8 +58,10 @@ const preferences = useWritingPreferencesStore()
       />
     </div>
     <div class="control">
-      <label for="prose-width">Line width</label>
-      <output for="prose-width">{{ preferences.lineWidth }} ch</output>
+      <label for="prose-width">{{ language.t('appearance-width') }}</label>
+      <output for="prose-width">{{
+        language.t('appearance-characters', formatNumber(preferences.lineWidth))
+      }}</output>
       <input
         id="prose-width"
         v-model.number="preferences.lineWidth"
@@ -64,9 +72,9 @@ const preferences = useWritingPreferencesStore()
       />
     </div>
     <footer>
-      <span>For all your projects</span>
+      <span>{{ language.t('appearance-all-projects') }}</span>
       <button type="button" class="quiet reset" @click="preferences.resetTypography()">
-        Reset
+        {{ language.t('appearance-reset') }}
       </button>
     </footer>
     <p v-if="preferences.storageNotice" class="notice" role="status">

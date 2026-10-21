@@ -182,8 +182,10 @@ acceptance criteria, and the cross-session checklist.
 - [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
   - [x] I3a: Welcome/initialization controls and nesting explanations, recent-list
     accessibility/labels and dates following the selected interface language.
-  - [ ] Next approval: bounded project chrome/status/appearance translation, then
-    remaining components and native/startup text.
+  - [x] I3b: Project top-bar accessibility/tooltips, complete save/status/focus
+    labels/counts, and writing appearance with UI-locale numeric presentation.
+  - [ ] Next approval: bounded document-tab/sidebar translation, then remaining
+    components, formatting surfaces and native/startup text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.

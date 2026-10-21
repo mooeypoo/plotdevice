@@ -104,8 +104,10 @@ progress, remaining limitations, and the next slice before ending a session.
   controlled destructive confirmations; complete Hebrew and qqq coverage.
   - [x] **I3a Welcome/initialization:** creation and nesting explanations,
     controls, recent-project labels/accessibility and UI-locale timestamp dates.
-  - [ ] **I3b Next approval:** project chrome/status/appearance labels, then
-    remaining component/native/startup text in bounded slices.
+  - [x] **I3b Project chrome:** top-bar accessibility/tooltips, status/focus
+    counts and save labels, complete writing-appearance controls.
+  - [ ] **Next approval:** document tabs and sidebar chrome, then remaining
+    component/native/startup text in bounded slices.
 - [ ] **I4 RTL interface:** binder indentation/disclosures, logical layout,
   icons, responsive chrome, timeline coordinates/scroll, sticky matrix headers,
   keyboard/pointer interaction, selection retained by identity.
@@ -902,3 +904,64 @@ status/focus-mode counts and save labels, appearance/tab/sidebar/inspector/view
 text, native dialog/close-confirmation wording and startup fallback. I3 remains
 in progress; I4-I6 and the separate Hebrew manual remain unfinished. Consult this
 latest handoff rather than historical next-session notes.
+
+Committed as `956fab9 feat: localize welcome and project initialization`.
+
+### I3b project chrome/status/appearance handoff
+
+The user approved translating the project chrome, status and writing appearance,
+including UI-locale numeric presentation on these surfaces without migrating the
+shared binder formatter yet. Added 37 documented en/he/qqq messages and 16 typed
+parameter signatures; no contract change (still **23**) or new dependencies.
+
+Top-bar navigation/tab-list accessible names, binder/inspector/focus button
+accessible names and tooltips now translate live. Shortcuts remain unchanged,
+isolated only in presentation. Controls, pressed/selected state, commands,
+accelerators and icons are unchanged. Existing view/close labels already used
+catalog messages. Generated entry-place breadcrumb labels still belong to the
+remaining binder/document-label translation work; user titles are not translated.
+
+StatusBar translates all six save states and the read-only override, preserving
+tone, precedence and live-status behavior. `useChromePresentation` owns the
+computed UI-locale number formatter and complete plural-aware count messages.
+Each of the seven writable kinds has a complete sentence rather than a
+concatenated kind label; manuscript/current-part and focus-mode counts use the
+same conventions. Raw counts choose plural forms, separately formatted numbers
+are displayed. Zero is now explicit `0 words`/`0 מילים`, not an ambiguous dash;
+manuscript/current-part counts now include the unit and complete sentence
+punctuation. These are approved presentation changes only. Current-part titles
+are escaped/isolated without changing the source. Whole-sentence translation
+replaces the former count-only bold span so parameter order is not constrained
+by inline markup. Binder and other surfaces keep their existing formatter until
+their own I3 slices.
+
+Focus-mode count and exit label translate without recreating its button or
+changing Escape/exit actions. WritingAppearance translates trigger/heading,
+accessible close name, help, both slider labels/outputs, global scope reminder
+and reset action. Number outputs follow the interface locale; CSS px/ch remain
+the same underlying units and numeric input values/limits/steps are unchanged.
+The decorative `Aa` sample remains noninteractive and aria-hidden, not translated
+prose. The native popover ID/target/dismissal attributes, panel/control identity,
+focus, typography values, storage policy and reset behavior stay unchanged.
+Language changes never write preferences or save/reopen project documents.
+
+Ten mounted regressions first failed on the original untranslated chrome. The
+completed tests cover all save states and colors, read-only priority, zero/large
+counts, exact escaped current-part titles, all document kinds, English/Hebrew
+plural boundaries, accessible top-bar labels/tooltips and unchanged panel
+actions, the same focused appearance range/popover, unchanged limits and
+preference persistence, explicit reset, conflicted drafts, focus-mode identity
+and exit action. Shared count tests cover 0, 1, 2, 3, 10, 21 and 1000 for every
+kind. Verified lint/dependency boundaries, typecheck, **1,509 tests across 165
+files**, the production electron-vite build, and documentation build/link/asset
+checks across all 16 public pages. No manuscript changes, push,
+release or real-browser/native-popover/bidi qualification; shared browser pages
+were not reloaded.
+
+**Next session:** propose a bounded document-tab/sidebar translation slice before
+editing. Remaining I3 work includes generated entry-place labels, tab/sidebar
+chrome, inspector/overview/timeline/interactions/reading text, native dialog and
+close-confirmation wording, and startup fallback. Locale-aware binder/other
+number/date/collation surfaces remain to migrate explicitly. I3 is incomplete;
+RTL geometry/directional controls and packaged qualification remain I4-I6, and
+the separate Hebrew manual is not implemented.

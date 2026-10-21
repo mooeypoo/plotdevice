@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { formatWordCount } from '../features/binder/binder-labels'
+import { useChromePresentation } from '../shared/use-chrome-presentation'
+import { useUiLanguageStore } from './ui-language-store'
+import { isolate } from '../shared/isolate'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useWorkspaceStore } from './workspace-store'
@@ -9,22 +11,24 @@ import WritingAppearance from './WritingAppearance.vue'
 const manuscript = useManuscriptStore()
 const editor = useEditorStore()
 const workspace = useWorkspaceStore()
+const language = useUiLanguageStore()
+const { formatNumber, documentCount } = useChromePresentation()
 
 const saveLabel = computed(() => {
-  if (workspace.project?.readOnly === true) return 'Read-only'
+  if (workspace.project?.readOnly === true) return language.t('chrome-save-read-only')
   switch (editor.saveState) {
     case 'saved':
-      return 'Saved'
+      return language.t('chrome-save-saved')
     case 'unsaved':
-      return 'Editing…'
+      return language.t('chrome-save-unsaved')
     case 'saving':
-      return 'Saving…'
+      return language.t('chrome-save-saving')
     case 'conflict':
-      return 'Not saved: changed outside'
+      return language.t('chrome-save-conflict')
     case 'error':
-      return 'Not saved'
+      return language.t('chrome-save-error')
     case 'missing':
-      return 'Not saved: file missing'
+      return language.t('chrome-save-missing')
   }
 })
 
@@ -44,16 +48,26 @@ const saveTone = computed(() => {
 <template>
   <footer class="status-bar">
     <template v-if="editor.entry">
-      <span>
-        <span class="strong">{{ formatWordCount(editor.wordCount) }}</span>
-        words in {{ editor.entry.kind }}
-      </span>
-      <span v-if="manuscript.currentPart" dir="auto">
-        {{ manuscript.currentPart.title }} {{ formatWordCount(manuscript.currentPart.wordCount) }}
+      <span>{{ documentCount(editor.wordCount, editor.entry.kind) }}</span>
+      <span v-if="manuscript.currentPart">
+        {{
+          language.t(
+            'chrome-count-named-part',
+            manuscript.currentPart.wordCount,
+            isolate(manuscript.currentPart.title),
+            formatNumber(manuscript.currentPart.wordCount)
+          )
+        }}
       </span>
     </template>
     <span v-if="manuscript.manuscript">
-      Manuscript {{ formatWordCount(manuscript.manuscript.wordCount) }}
+      {{
+        language.t(
+          'chrome-count-manuscript',
+          manuscript.manuscript.wordCount,
+          formatNumber(manuscript.manuscript.wordCount)
+        )
+      }}
     </span>
     <span class="spacer"></span>
     <WritingAppearance />
@@ -77,10 +91,6 @@ const saveTone = computed(() => {
   color: var(--text-muted);
   font-size: 12px;
   white-space: nowrap;
-}
-
-.strong {
-  color: var(--text);
 }
 
 .spacer {

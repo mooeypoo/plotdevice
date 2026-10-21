@@ -2,7 +2,9 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 import EditorPane from '../features/editor/EditorPane.vue'
 import { useInspectorStore } from './inspector-store'
-import { formatWordCount } from '../features/binder/binder-labels'
+import { useChromePresentation } from '../shared/use-chrome-presentation'
+import { useUiLanguageStore } from './ui-language-store'
+import { isolate } from '../shared/isolate'
 import type { DropRequest } from '../features/binder/binder-drop'
 import { lastEntryOf, useLayoutStore } from './layout-store'
 import { useCodexStore } from './codex-store'
@@ -29,6 +31,8 @@ const layout = useLayoutStore()
 const inspector = useInspectorStore()
 const writingPreferences = useWritingPreferencesStore()
 const tabs = useDocumentTabsStore()
+const language = useUiLanguageStore()
+const { wordCount } = useChromePresentation()
 let disposed = false
 
 useLiveSync()
@@ -143,8 +147,10 @@ useShortcuts([
     <StatusBar v-if="!layout.focusMode" />
 
     <div v-else class="focus-chrome">
-      <span v-if="editor.entry">{{ formatWordCount(editor.wordCount) }} words</span>
-      <button type="button" class="quiet" @click="layout.exitFocusMode()">Leave focus (Esc)</button>
+      <span v-if="editor.entry">{{ wordCount(editor.wordCount) }}</span>
+      <button type="button" class="quiet" @click="layout.exitFocusMode()">
+        {{ language.t('chrome-leave-focus', isolate('Esc')) }}
+      </button>
     </div>
   </div>
 </template>

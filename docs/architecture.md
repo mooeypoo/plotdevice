@@ -153,6 +153,11 @@ Welcome initialization/nesting sentences and recent-list accessibility labels us
 whole translated messages with isolated exact names/paths. Recent-project
 timestamps use a computed UI-locale date formatter with the existing local
 timezone; changing language preserves row/input identity and never rereads recents.
+Project chrome translates accessible names, shortcut tooltips, save states and
+appearance controls without remounting them. `useChromePresentation` formats
+UI-locale numbers and whole plural-aware status/focus count messages, separating
+raw plural selectors from formatted counts. This display-only policy does not
+alter numeric typography preferences, popover behavior or manuscript word counts.
 Unmigrated failures explicitly display their original message until their producers are migrated.
 Remaining action failures/strings, full RTL geometry and independent content-direction controls
 remain tracked in ADR 0016. No language switch changes novel files or existing writing preferences.

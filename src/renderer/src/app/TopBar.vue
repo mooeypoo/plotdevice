@@ -7,6 +7,7 @@ import { useManuscriptStore } from './manuscript-store'
 import { useWorkspaceStore } from './workspace-store'
 import { useUiLanguageStore } from './ui-language-store'
 import LanguageSelector from '../shared/LanguageSelector.vue'
+import { isolate } from '../shared/isolate'
 
 const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
@@ -35,7 +36,7 @@ const crumbs = computed(() => {
       <span class="project" dir="auto">{{ workspace.project?.title }}</span>
     </div>
 
-    <nav class="crumbs" aria-label="Location">
+    <nav class="crumbs" :aria-label="language.t('chrome-location')">
       <template v-for="(crumb, index) in crumbs" :key="index">
         <span v-if="index > 0" class="separator" aria-hidden="true">›</span>
         <span :class="{ current: index === crumbs.length - 1 }" dir="auto">{{ crumb }}</span>
@@ -43,7 +44,7 @@ const crumbs = computed(() => {
     </nav>
 
     <div class="tools">
-      <div class="views" role="tablist" aria-label="View">
+      <div class="views" role="tablist" :aria-label="language.t('chrome-view')">
         <button
           type="button"
           role="tab"
@@ -87,8 +88,8 @@ const crumbs = computed(() => {
         class="icon"
         :class="{ on: layout.binderOpen }"
         :aria-pressed="layout.binderOpen"
-        aria-label="Binder"
-        title="Binder (Ctrl+\)"
+        :aria-label="language.t('chrome-binder')"
+        :title="language.t('chrome-binder-tooltip', isolate('Ctrl+\\'))"
         @click="layout.toggleBinder()"
       >
         <svg
@@ -111,8 +112,8 @@ const crumbs = computed(() => {
         class="icon"
         :class="{ on: layout.inspectorOpen }"
         :aria-pressed="layout.inspectorOpen"
-        aria-label="Inspector"
-        title="Inspector (Ctrl+Shift+I)"
+        :aria-label="language.t('chrome-inspector')"
+        :title="language.t('chrome-inspector-tooltip', isolate('Ctrl+Shift+I'))"
         @click="layout.toggleInspector()"
       >
         <svg
@@ -134,8 +135,8 @@ const crumbs = computed(() => {
       <button
         type="button"
         class="icon"
-        aria-label="Focus mode"
-        title="Focus mode (Ctrl+Shift+F)"
+        :aria-label="language.t('chrome-focus')"
+        :title="language.t('chrome-focus-tooltip', isolate('Ctrl+Shift+F'))"
         @click="layout.toggleFocusMode()"
       >
         <svg
