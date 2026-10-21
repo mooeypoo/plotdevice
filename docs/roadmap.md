@@ -153,7 +153,11 @@ acceptance criteria, and the cross-session checklist.
         - [x] I2b.2b.1: Property/relationship refusals, cached read/write and
           background synopsis errors, localized relationship safety explanation.
         - [ ] I2b.2b.2: Remaining action/query failures, partial-success summaries
-          and cached consumers. Next approval boundary.
+          and cached consumers.
+          - [x] Rename/move/renumber failures, reactive partial-success summaries
+            and explicitly reported rename-plan refusals.
+          - [ ] Creation/template/type/status/fix actions and listing/workspace/
+            reference/inspector queries. Next approval boundary.
 - [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.

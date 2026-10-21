@@ -3,8 +3,12 @@ import type { MessageKey, Translator } from '../../../i18n/translator'
 import { isolate } from './isolate'
 
 export type EditorNoticeKey = Extract<MessageKey, `editor-${string}`>
+export type StructureNotice =
+  | { readonly notice: 'structure-renumber-failed'; readonly count: number }
+  | { readonly notice: 'structure-rename-skipped'; readonly paths: readonly string[] }
 export type ErrorNotice =
   | ApiError
+  | StructureNotice
   | { readonly notice: EditorNoticeKey }
   | { readonly notice: 'relationships-cannot-edit'; readonly error: ApiError }
   | string
@@ -17,6 +21,16 @@ export function formatApiError(error: ApiError, t: Translator['t']): string {
   switch (diagnostic.reason) {
     case 'read-only':
       return t('error-read-only')
+    case 'name-matches':
+      return t('error-name-matches')
+    case 'part-required':
+      return t('error-part-required')
+    case 'chapter-missing':
+      return t('error-chapter-missing')
+    case 'part-missing':
+      return t('error-part-missing')
+    case 'file-move-failed':
+      return t('error-file-move-failed', isolate(diagnostic.path))
     case 'groups-not-editable':
       return t('error-groups-not-editable')
     case 'not-a-character':
@@ -93,5 +107,9 @@ export function formatApiError(error: ApiError, t: Translator['t']): string {
 export function formatErrorNotice(source: ErrorNotice, t: Translator['t']): string | null {
   if (source === null || typeof source === 'string') return source
   if ('error' in source) return t(source.notice, formatApiError(source.error, t))
+  if ('notice' in source && source.notice === 'structure-renumber-failed')
+    return t(source.notice, source.count)
+  if ('notice' in source && source.notice === 'structure-rename-skipped')
+    return t(source.notice, source.paths.length, source.paths.map(isolate).join(', '))
   return 'notice' in source ? t(source.notice) : formatApiError(source, t)
 }

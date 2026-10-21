@@ -11,6 +11,7 @@ import { useDocumentTabsStore } from './document-tabs-store'
 import { useLayoutStore } from './layout-store'
 import { useUiLanguageStore } from './ui-language-store'
 import { useErrorNotice } from '../shared/use-error-notice'
+import type { StructureNotice } from '../shared/error-format'
 
 export type { EntryKind, EntryPlace } from './entry-place'
 
@@ -348,6 +349,11 @@ export const useEditorStore = defineStore('editor', () => {
     actionErrorSource.value = error
   }
 
+  /** Keeps partial structural results reactive without repeating an operation on locale changes. */
+  function reportStructureNotice(notice: StructureNotice | null): void {
+    actionErrorSource.value = notice
+  }
+
   function deferSyncWhileRecovering(path: string): boolean {
     if (!recoveryBusy.value) return false
     syncAfterRecovery = path
@@ -481,7 +487,12 @@ export const useEditorStore = defineStore('editor', () => {
     const current = entry.value
     if (current?.path !== path) return
     const result = await apiFor(current.kind).planRename(path)
-    if (!result.ok || result.value === null || entry.value?.path !== path) return
+    if (entry.value?.path !== path) return
+    if (!result.ok) {
+      reportActionError(result.error)
+      return
+    }
+    if (result.value === null) return
     if (result.value.policy === 'always') await renameEntry(path)
     else pendingRename.value = { path, plan: result.value }
   }
@@ -499,10 +510,9 @@ export const useEditorStore = defineStore('editor', () => {
       return false
     }
     const { skipped } = result.value
-    actionError.value =
-      skipped.length > 0
-        ? `Renamed, but links in ${String(skipped.length)} ${skipped.length === 1 ? 'file' : 'files'} couldn’t be updated safely: ${skipped.join(', ')}.`
-        : null
+    reportStructureNotice(
+      skipped.length > 0 ? { notice: 'structure-rename-skipped', paths: [...skipped] } : null
+    )
     followMove(path, result.value.path)
     await entryOwner(current.kind)?.reload()
     refreshPlace()
@@ -656,6 +666,7 @@ export const useEditorStore = defineStore('editor', () => {
     versionForPropertyChange,
     propertiesWritten,
     reportActionError,
+    reportStructureNotice,
     syncFromDisk,
     saveMissingAsNew,
     discardMissing,

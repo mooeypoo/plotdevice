@@ -67,6 +67,15 @@ beforeEach(() => {
 })
 
 describe('codex handlers', () => {
+  it('preserves a semantic unchanged-name refusal through the rename handler', async () => {
+    await handlers.listCodex()
+    expect(await handlers.renameEntry([ilka])).toMatchObject({
+      ok: false,
+      error: { code: 'name-matches', diagnostic: { reason: 'name-matches' } }
+    })
+    expect(repository.get(ilka)?.text).toBe('Bio.\n')
+  })
+
   it('passes semantic property/relationship failures and shared guard diagnostics through IPC', async () => {
     await handlers.listCodex()
     const read = await handlers.getProperties([ilka])

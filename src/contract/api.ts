@@ -202,7 +202,7 @@ export interface RecoveryApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 18
+  readonly contractVersion: 19
   readonly uiLanguage: UiLanguageApi
   readonly recovery: RecoveryApi
   readonly workspace: WorkspaceApi

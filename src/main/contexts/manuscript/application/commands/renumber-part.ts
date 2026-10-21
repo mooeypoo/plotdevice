@@ -29,7 +29,9 @@ export function createRenumberPart(ports: {
 }): RenumberPart {
   return async (partPath) => {
     if (ports.settings.readOnly)
-      return err(domainError('read-only', 'This project is open read-only.'))
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     const files = await ports.repository.load()
     const manuscript = arrangeManuscript(
       files.parts,
@@ -42,7 +44,9 @@ export function createRenumberPart(ports: {
         : [...manuscript.parts, ...manuscript.unnumberedParts].find((s) => s.part.path === partPath)
             ?.chapters
     if (chapters === undefined)
-      return err(domainError('part-not-found', 'That part no longer exists.'))
+      return err(
+        domainError('part-not-found', 'That part no longer exists.', { reason: 'part-missing' })
+      )
 
     const versions: Record<string, string> = {}
     const failed: ProjectPath[] = []

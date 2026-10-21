@@ -24,11 +24,17 @@ export class InMemoryRelocator implements EntryRelocator {
 
   relocate(from: ProjectPath, to: ProjectPath): Promise<Result<LinkUpdates, RelocateError>> {
     const file = this.manuscript.files.get(from)
-    if (file === undefined) return Promise.resolve(err(domainError('move-failed', 'Gone.')))
+    if (file === undefined)
+      return Promise.resolve(
+        err(domainError('move-failed', 'Gone.', { reason: 'file-move-failed', path: from }))
+      )
     const clash = [...this.manuscript.files.keys()].some(
       (path) => path !== from && nameComparisonKey(path) === nameComparisonKey(to)
     )
-    if (clash) return Promise.resolve(err(domainError('already-exists', 'That file exists.')))
+    if (clash)
+      return Promise.resolve(
+        err(domainError('already-exists', 'That file exists.', { reason: 'file-exists', path: to }))
+      )
     this.manuscript.files.delete(from)
     this.manuscript.files.set(to, file)
     this.moves.push({ from, to })

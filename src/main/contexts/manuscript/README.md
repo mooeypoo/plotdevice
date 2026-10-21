@@ -10,6 +10,6 @@
 
 **Recovery.** The markdown adapter records exact versioned bytes for the shared project recovery service; domain models never reconstruct or store recovery metadata.
 
-**Diagnostics.** Warnings retain semantic source/fix parameters; property refusals retain semantic reasons/paths. Presentation language is renderer-owned and never triggers repairs.
+**Diagnostics.** Warnings retain source/fix parameters; property/rename/move/renumber refusals retain semantic reasons/paths. Presentation language is renderer-owned and never triggers repairs.
 
 **Must not know about.** Folders or file names as structure (ADR 0002; a move only decides whether the file follows its part), the codex, chronology, Electron, or which project is open (repositories are built per project by the composition root).

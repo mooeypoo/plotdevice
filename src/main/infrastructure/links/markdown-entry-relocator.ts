@@ -13,9 +13,19 @@ export function createMarkdownEntryRelocator(rootOsPath: string): EntryRelocator
         case 'moved':
           return ok(report)
         case 'target-exists':
-          return err(domainError('already-exists', `"${to}" already exists.`))
+          return err(
+            domainError('already-exists', `"${to}" already exists.`, {
+              reason: 'file-exists',
+              path: to
+            })
+          )
         case 'failed':
-          return err(domainError('move-failed', `"${from}" couldn't be moved.`))
+          return err(
+            domainError('move-failed', `"${from}" couldn't be moved.`, {
+              reason: 'file-move-failed',
+              path: from
+            })
+          )
       }
     }
   }

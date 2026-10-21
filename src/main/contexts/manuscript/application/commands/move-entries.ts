@@ -60,7 +60,9 @@ interface Ports {
   readonly settings: ManuscriptSettings
 }
 
-const readOnly = domainError('read-only', 'This project is open read-only.')
+const readOnly = domainError('read-only', 'This project is open read-only.', {
+  reason: 'read-only'
+})
 
 /** Builds the `MoveChapter` command. */
 export function createMoveChapter(ports: Ports): MoveChapter {
@@ -71,7 +73,9 @@ export function createMoveChapter(ports: Ports): MoveChapter {
     const manuscript = arrangeManuscript(files.parts, files.chapters, links)
     const chapter = files.chapters.find((candidate) => candidate.path === path)
     if (chapter === undefined)
-      return err(domainError('not-found', 'That chapter no longer exists.'))
+      return err(
+        domainError('not-found', 'That chapter no longer exists.', { reason: 'chapter-missing' })
+      )
 
     if (destination === null) {
       if (chapter.order === undefined) return ok({ path, changed: 0, failed: [] })
@@ -137,7 +141,10 @@ export function createMovePart(ports: Omit<Ports, 'relocator'>): MovePart {
       buildLinkIndex(files.linkCandidates)
     )
     const part = files.parts.find((candidate) => candidate.path === path)
-    if (part === undefined) return err(domainError('not-found', 'That part no longer exists.'))
+    if (part === undefined)
+      return err(
+        domainError('not-found', 'That part no longer exists.', { reason: 'part-missing' })
+      )
     const numbered = manuscript.parts.map((section) => section.part)
 
     const changes = orderChanges(placeAt(numbered, part, index))
@@ -164,14 +171,19 @@ function chaptersAt(
   part: ProjectPath | undefined
 ): Result<Chapter[], DomainError<'part-not-found' | 'part-required'>> {
   if (part === undefined) {
-    if (hasParts) return err(domainError('part-required', 'Choose a part for the chapter.'))
+    if (hasParts)
+      return err(
+        domainError('part-required', 'Choose a part for the chapter.', { reason: 'part-required' })
+      )
     return ok(manuscript.chapters.map((entry) => entry.chapter))
   }
   const section = [...manuscript.parts, ...manuscript.unnumberedParts].find(
     (candidate) => candidate.part.path === part
   )
   if (section === undefined)
-    return err(domainError('part-not-found', 'That part no longer exists.'))
+    return err(
+      domainError('part-not-found', 'That part no longer exists.', { reason: 'part-missing' })
+    )
   return ok(section.chapters.map((entry) => entry.chapter))
 }
 

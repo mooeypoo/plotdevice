@@ -279,6 +279,28 @@ describe('manuscript handlers', () => {
     expect(await handlers.movePart([partOne, 0])).toMatchObject({ ok: true })
   })
 
+  it('retains semantic structural refusals across the IPC boundary', async () => {
+    await handlers.getManuscript()
+    expect(await handlers.moveChapter([ferry, { part: null, index: 0 }])).toMatchObject({
+      ok: false,
+      error: { code: 'part-required', diagnostic: { reason: 'part-required' } }
+    })
+    repository.files.delete(partOne)
+    expect(await handlers.movePart([partOne, 0])).toMatchObject({
+      ok: false,
+      error: { code: 'not-found', diagnostic: { reason: 'part-missing' } }
+    })
+    expect(await handlers.renumberPart([partOne])).toMatchObject({
+      ok: false,
+      error: { code: 'part-not-found', diagnostic: { reason: 'part-missing' } }
+    })
+    repository.files.delete(ferry)
+    expect(await handlers.moveChapter([ferry, null])).toMatchObject({
+      ok: false,
+      error: { code: 'not-found', diagnostic: { reason: 'chapter-missing' } }
+    })
+  })
+
   it('plans no rename for an entry without a title', async () => {
     await handlers.getManuscript()
     expect(await handlers.planRename([ferry])).toEqual({ ok: true, value: null })

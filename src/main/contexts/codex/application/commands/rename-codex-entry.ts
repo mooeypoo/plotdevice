@@ -68,12 +68,18 @@ export function createPlanCodexRename(ports: Ports): PlanCodexRename {
 export function createRenameCodexEntry(ports: Ports): RenameCodexEntry {
   return async (path) => {
     if (ports.settings.readOnly) {
-      return err(domainError('read-only', 'This project is open read-only.'))
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     }
     const target = await renameTarget(ports.repository, path)
     if (!target.ok) return target
     if (target.value === undefined) {
-      return err(domainError('name-matches', 'The file name already matches the title.'))
+      return err(
+        domainError('name-matches', 'The file name already matches the title.', {
+          reason: 'name-matches'
+        })
+      )
     }
     const moved = await ports.relocator.relocate(path, target.value)
     return moved.ok ? ok({ path: target.value, links: moved.value }) : moved

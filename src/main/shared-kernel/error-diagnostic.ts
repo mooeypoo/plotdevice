@@ -3,6 +3,10 @@ export type ErrorDiagnostic =
   | {
       readonly reason:
         | 'read-only'
+        | 'name-matches'
+        | 'part-required'
+        | 'chapter-missing'
+        | 'part-missing'
         | 'groups-not-editable'
         | 'not-a-character'
         | 'no-project'
@@ -24,6 +28,7 @@ export type ErrorDiagnostic =
         | 'file-unreadable'
         | 'file-changed'
         | 'file-exists'
+        | 'file-move-failed'
         | 'manuscript-type-unreadable'
         | 'codex-type-unreadable'
       readonly path: string

@@ -70,6 +70,25 @@ describe('ListCodex', () => {
 })
 
 describe('opening, saving, and properties', () => {
+  it('provides semantic rename refusals while leaving the character untouched', async () => {
+    const before = JSON.stringify(repository.get(ilka))
+    expect(await createRenameCodexEntry({ repository, settings, relocator })(ilka)).toMatchObject({
+      ok: false,
+      error: { code: 'name-matches', diagnostic: { reason: 'name-matches' } }
+    })
+    expect(
+      await createRenameCodexEntry({
+        repository,
+        settings: { ...settings, readOnly: true },
+        relocator
+      })(ilka)
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'read-only', diagnostic: { reason: 'read-only' } }
+    })
+    expect(JSON.stringify(repository.get(ilka))).toBe(before)
+    expect(moves).toEqual([])
+  })
   it('updates overlapping groups and exposes them in the listing without changing tags', async () => {
     const version = repository.put(ilka, { type: 'character', tags: ['cast'] })
     const updated = await createUpdateCodexProperties({ repository, settings })(ilka, version, {

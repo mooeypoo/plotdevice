@@ -9,6 +9,11 @@ const hebrew = createTranslator('he')
 describe('semantic save/recovery error presentation', () => {
   it.each([
     { reason: 'read-only' },
+    { reason: 'name-matches' },
+    { reason: 'part-required' },
+    { reason: 'chapter-missing' },
+    { reason: 'part-missing' },
+    { reason: 'file-move-failed', path: 'יעל (draft).md' },
     { reason: 'groups-not-editable' },
     { reason: 'not-a-character' },
     { reason: 'manuscript-type-unreadable', path: 'יעל (draft).md' },
@@ -77,4 +82,25 @@ describe('semantic save/recovery error presentation', () => {
     expect(formatErrorNotice(null, hebrew.t)).toBeNull()
     expect(formatErrorNotice({ notice: 'editor-changed-again' }, hebrew.t)).toContain('השתנה שוב')
   })
+
+  it.each([0, 1, 2, 3, 10, 21])(
+    'formats structural counts %i without leaking plural markup',
+    (count) => {
+      const en = formatErrorNotice({ notice: 'structure-renumber-failed', count }, english.t)
+      const he = formatErrorNotice({ notice: 'structure-renumber-failed', count }, hebrew.t)
+      expect(en).toBe(
+        `${String(count)} ${count === 1 ? 'file couldn’t be renumbered and was left as it was' : 'files couldn’t be renumbered and were left as they were'}.`
+      )
+      expect(he).toMatch(/[\u0590-\u05ff]/u)
+      expect(he).not.toMatch(/\{\{|\$\d|PLURAL/u)
+      if (count === 1) expect(he).toContain('קובץ אחד')
+      else expect(he).toContain(`${String(count)} קבצים`)
+      const paths = Array.from({ length: count }, (_, index) => `notes/יעל (${String(index)}).md`)
+      const source = { notice: 'structure-rename-skipped', paths } as const
+      const formatted = formatErrorNotice(source, hebrew.t)
+      for (const path of paths) expect(formatted).toContain(`\u2068${path}\u2069`)
+      expect(formatted).not.toMatch(/\{\{|\$\d|PLURAL/u)
+      expect(source.paths).toEqual(paths)
+    }
+  )
 })

@@ -5,6 +5,7 @@ import { InMemoryManuscript } from '../domain/ports/in-memory-manuscript.fake'
 import { InMemoryRelocator } from '../domain/ports/in-memory-relocator.fake'
 import { createMoveChapter, createMovePart } from './commands/move-entries'
 import { createPlanRename, createRenameEntry } from './commands/rename-entry'
+import { createRenumberPart } from './commands/renumber-part'
 
 const p = (value: string): ProjectPath => value as ProjectPath
 const partOne = p('manuscript/Part One/Part One.md')
@@ -50,6 +51,51 @@ const retitle = (path: ProjectPath, title: string): void => {
 const order = (path: ProjectPath): unknown => repository.get(path)?.frontmatter['order']
 
 describe('MoveChapter within a part', () => {
+  it('returns distinct semantic missing-entry and destination refusals without changing files', async () => {
+    const before = [...repository.files.entries()].map(([path, file]) => [
+      path,
+      JSON.stringify(file)
+    ])
+    expect(await moveChapter()(p('Missing.md'), null)).toMatchObject({
+      ok: false,
+      error: { code: 'not-found', diagnostic: { reason: 'chapter-missing' } }
+    })
+    expect(await moveChapter()(ferry, { part: p('Missing.md'), index: 0 })).toMatchObject({
+      ok: false,
+      error: { code: 'part-not-found', diagnostic: { reason: 'part-missing' } }
+    })
+    expect(await moveChapter()(ferry, { part: undefined, index: 0 })).toMatchObject({
+      ok: false,
+      error: { code: 'part-required', diagnostic: { reason: 'part-required' } }
+    })
+    expect(await createMovePart({ repository, settings })(p('Missing.md'), 0)).toMatchObject({
+      ok: false,
+      error: { code: 'not-found', diagnostic: { reason: 'part-missing' } }
+    })
+    expect(await createRenumberPart({ repository, settings })(p('Missing.md'))).toMatchObject({
+      ok: false,
+      error: { code: 'part-not-found', diagnostic: { reason: 'part-missing' } }
+    })
+    expect(
+      [...repository.files.entries()].map(([path, file]) => [path, JSON.stringify(file)])
+    ).toEqual(before)
+  })
+
+  it('retains semantic read-only refusals for every structural command', async () => {
+    const ports = { repository, relocator, settings: { ...settings, readOnly: true } }
+    for (const result of [
+      await createMoveChapter(ports)(ferry, null),
+      await createMovePart(ports)(partOne, 0),
+      await createRenumberPart(ports)(partOne),
+      await createRenameEntry(ports)(ferry)
+    ])
+      expect(result).toMatchObject({
+        ok: false,
+        error: { code: 'read-only', diagnostic: { reason: 'read-only' } }
+      })
+    expect(relocator.moves).toEqual([])
+  })
+
   it('rewrites only the orders that change', async () => {
     const versions = () =>
       [ferry, frost, orchard, elsewhere].map((path) => repository.get(path)?.version)
@@ -158,6 +204,10 @@ describe('PlanRename and RenameEntry', () => {
 
   it('plans nothing while the name matches the title', async () => {
     expect(await plan('ask')(ferry)).toEqual({ ok: true, value: null })
+    expect(await createRenameEntry({ repository, relocator, settings })(ferry)).toMatchObject({
+      ok: false,
+      error: { code: 'name-matches', diagnostic: { reason: 'name-matches' } }
+    })
   })
 
   it('plans a rename with the links it would update', async () => {

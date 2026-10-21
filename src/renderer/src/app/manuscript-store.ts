@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import type {
+  ApiError,
   ChapterDestinationDto,
   ChapterDto,
   ChosenFixDto,
@@ -121,7 +122,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
   async function restructure(
     change: () => Promise<
       | { ok: true; path?: string; from?: string; failed: readonly string[] }
-      | { ok: false; message: string }
+      | { ok: false; error: ApiError }
     >
   ): Promise<boolean> {
     const editor = useEditorStore()
@@ -129,14 +130,13 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     if (editor.hasStuckChanges) return false
     const result = await change()
     if (!result.ok) {
-      editor.actionError = result.message
+      editor.reportActionError(result.error)
       return false
     }
     const { failed } = result
-    editor.actionError =
-      failed.length > 0
-        ? `${String(failed.length)} ${failed.length === 1 ? 'file' : 'files'} couldn’t be renumbered and were left as they were.`
-        : null
+    editor.reportStructureNotice(
+      failed.length > 0 ? { notice: 'structure-renumber-failed', count: failed.length } : null
+    )
     if (result.from !== undefined && result.path !== undefined) {
       editor.followMove(result.from, result.path)
     }
@@ -155,7 +155,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
       const result = await api().moveChapter(path, destination)
       return result.ok
         ? { ok: true, from: path, path: result.value.path, failed: result.value.failed }
-        : { ok: false, message: result.error.message }
+        : { ok: false, error: result.error }
     })
   }
 
@@ -165,7 +165,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
       const result = await api().movePart(path, index)
       return result.ok
         ? { ok: true, failed: result.value.failed }
-        : { ok: false, message: result.error.message }
+        : { ok: false, error: result.error }
     })
   }
 
@@ -175,7 +175,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
       const result = await api().renumberPart(partPath)
       return result.ok
         ? { ok: true, failed: result.value.failed }
-        : { ok: false, message: result.error.message }
+        : { ok: false, error: result.error }
     })
   }
 

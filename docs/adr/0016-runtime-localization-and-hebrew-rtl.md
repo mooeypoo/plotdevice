@@ -73,6 +73,10 @@ progress, remaining limitations, and the next slice before ending a session.
           live editor/background-synopsis errors and relationship safety details.
         - [ ] **I2b.2b.2 Remaining operations/caches:** create/rename/move,
           workspace/reference/inspector queries and partial-success summaries.
+          - [x] **Structural operations:** rename/move/renumber refusals,
+            cached partial-success notices and explicit rename-plan errors.
+          - [ ] **Creation and remaining queries/actions:** create/template/
+            type/status/fix actions, listings, workspace/reference/inspector.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
   existing notices, number formatting, display collation, native dialogs and
   controlled destructive confirmations; complete Hebrew and qqq coverage.
@@ -278,12 +282,51 @@ tests across 150 files, and the production electron-vite build. Documentation
 build/link checks also pass. No real-browser/packaged qualification, push or
 release was performed.
 
+I2b.2b.1 was committed as `fb74094`. The user approved rename/move/renumber
+diagnostics and partial-success notices as the next bounded slice, including
+validation, documentation and commit.
+
+### I2b.2b.2 structural-operations handoff (2026-10-21)
+
+Manuscript/codex rename commands and manuscript move/renumber commands now emit
+semantic reasons for read-only, unchanged name, missing chapter/part and required
+destination refusals. The markdown relocator and in-memory relocation fake retain
+the source or destination path for move failure/collision diagnostics. Existing
+error codes, descriptions, link reports and file operations are unchanged; no
+technical detail is discarded or invented. The common IPC mapper preserves the
+new reasons, with handler regressions for the exposed paths. Contract version 19,
+preload and renderer fake agree; success-only fake structural actions are
+unchanged, with injected failure/partial-success results used in renderer tests.
+
+Structural operations retain the full API error instead of copying its English
+message. Partial renumbering and skipped-link rename results are semantic cached
+notices, formatted using documented English/Hebrew Banana PLURAL messages.
+Skipped paths are copied into source state and isolated only at presentation.
+English singular grammar is corrected without changing the notice's meaning.
+No language switch retries a move/rename, reloads files or changes the draft.
+Failed rename planning is explicitly shown in the existing action-error surface;
+results for a document that is no longer current are still ignored.
+
+Save-first sequencing, stuck-draft blockers, move-following tabs/references and
+partial-success behavior remain unchanged. In particular, moving between parts
+still keeps successful metadata changes if the optional physical file move fails;
+this slice does not redesign relocation, transactions or its reports. No new
+dependencies, project-file format changes or RTL-geometry changes.
+
+Regressions first reproduced frozen structural errors/notices and hidden plan
+errors. Tests cover semantic command and IPC refusals, fixture collision/failure
+paths without modified source/destination/linking files, English singular/plural
+and Hebrew counts, exact skipped paths, cached manuscript/codex rename errors,
+no retries/extra reads/writes on switches, saved drafts and stale-plan responses.
+Verified lint and dependency boundaries, typecheck, all 1,301 tests across 150
+files, and the production electron-vite build. Documentation build/link checks
+also pass. No real-browser/packaged qualification, push or release was performed.
+
 **Next session:** plan the next bounded part of I2b.2b.2 and obtain approval before
-changing code. Remaining work includes create/rename/move failures, partial
-renumber/link-update summaries, add-status/type/template actions, listing errors,
-workspace/reference/inspector query failures and remaining string-caching stores/
-composables/fakes. Reuse semantic diagnostics instead of inferring text from codes;
-preserve every diagnostic detail and recovery/navigation safeguard. I2b/I2 remain
-incomplete. Many interface/native strings remain I3, and RTL geometry/writing/
-reading qualification remains I4-I6. Restart the desktop process for contract
-version 18: renderer hot reload cannot upgrade an older preload.
+changing code. Remaining diagnostics include chapter/part/codex/outline creation,
+template/type/status/warning-fix actions, listing failures, workspace/reference/
+inspector queries and remaining string-caching stores/composables/fakes. Reuse
+semantic diagnostics; preserve all source details and existing safeguards.
+I2b/I2 remain incomplete. Many interface/native strings remain I3, and RTL
+geometry/writing/reading qualification remains I4-I6. Restart the desktop process
+for contract version 19: renderer hot reload cannot upgrade an older preload.

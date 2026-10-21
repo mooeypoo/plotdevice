@@ -7,6 +7,7 @@ import { useCodexStore } from './codex-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useUiLanguageStore } from './ui-language-store'
+import type { ApiResult, RenamePlanDto } from '../../../contract/dtos'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 beforeEach(async () => {
@@ -28,6 +29,155 @@ afterEach(() => {
 })
 
 describe('cached editor failures and notices', () => {
+  it.each(['First frost.md', 'characters/Ilka.md'])(
+    'retains a rename refusal for %s without moving or retrying',
+    async (path) => {
+      const editor = useEditorStore()
+      await editor.open(path)
+      const api = path.startsWith('characters/') ? fake.api.codex : fake.api.manuscript
+      const rename = vi.spyOn(api, 'renameEntry').mockResolvedValue({
+        ok: false,
+        error: {
+          code: 'move-failed',
+          message: 'Legacy',
+          diagnostic: { reason: 'file-move-failed', path }
+        }
+      })
+      const before = new Map(fake.files)
+      expect(await editor.renameEntry(path)).toBe(false)
+      expect(editor.actionError).toContain("couldn't be moved")
+      await useUiLanguageStore().change('he')
+      expect(editor.actionError).toContain(`\u2068${path}\u2069`)
+      expect(editor.actionError).toMatch(/[\u0590-\u05ff]/u)
+      expect(rename).toHaveBeenCalledOnce()
+      expect(editor.entry?.path).toBe(path)
+      expect(fake.files).toEqual(before)
+      expect(fake.renames).toEqual([])
+    }
+  )
+
+  it('ignores a failed rename plan for a document that is no longer current', async () => {
+    const editor = useEditorStore()
+    await editor.open('First frost.md')
+    let finish: (result: ApiResult<RenamePlanDto | null>) => void = () => {
+      throw new Error('expected pending rename plan')
+    }
+    const plan = new Promise<ApiResult<RenamePlanDto | null>>((resolve) => {
+      finish = resolve
+    })
+    vi.spyOn(fake.api.manuscript, 'planRename').mockReturnValueOnce(plan)
+    const pending = editor.offerRename('First frost.md')
+    await editor.open('The Ferry.md')
+    finish({
+      ok: false,
+      error: {
+        code: 'unreadable',
+        message: 'Stale failure',
+        diagnostic: { reason: 'file-unreadable', path: 'First frost.md' }
+      }
+    })
+    await pending
+    expect(editor.entry?.path).toBe('The Ferry.md')
+    expect(editor.actionError).toBeNull()
+    expect(editor.pendingRename).toBeNull()
+  })
+
+  it.each(['moveChapter', 'movePart', 'renumberPart'] as const)(
+    'reformats a cached %s failure without retrying or losing the draft',
+    async (operation) => {
+      const editor = useEditorStore()
+      await editor.open('First frost.md')
+      editor.edit('Draft טיוטה')
+      const failure = {
+        ok: false,
+        error: {
+          code: 'read-only',
+          message: 'Legacy',
+          diagnostic: { reason: 'read-only' }
+        }
+      } as const
+      const write = vi.spyOn(fake.api.manuscript, operation).mockResolvedValue(failure)
+      const manuscript = useManuscriptStore()
+      const result =
+        operation === 'moveChapter'
+          ? await manuscript.moveChapter('First frost.md', null)
+          : operation === 'movePart'
+            ? await manuscript.movePart('Part One.md', 0)
+            : await manuscript.renumberPart('Part One.md')
+      expect(result).toBe(false)
+      expect(editor.actionError).toContain('read-only')
+      const reads = vi.spyOn(fake.api.manuscript, 'openEntry')
+      const saves = [...fake.saves]
+      await useUiLanguageStore().change('he')
+      expect(editor.actionError).toContain('לקריאה בלבד')
+      expect(write).toHaveBeenCalledOnce()
+      expect(reads).not.toHaveBeenCalled()
+      expect(fake.saves).toEqual(saves)
+      expect(editor.text).toBe('Draft טיוטה')
+    }
+  )
+
+  it.each([1, 2])(
+    'reformats the %i-file partial renumber notice without rerunning it',
+    async (count) => {
+      const editor = useEditorStore()
+      await editor.open('First frost.md')
+      const failed = ['notes/יעל.md', 'notes/Second.md'].slice(0, count)
+      const renumber = vi.spyOn(fake.api.manuscript, 'renumberPart').mockResolvedValue({
+        ok: true,
+        value: { changed: 1, failed }
+      })
+      expect(await useManuscriptStore().renumberPart(null)).toBe(true)
+      expect(editor.actionError).toContain(`${String(count)} ${count === 1 ? 'file' : 'files'}`)
+      await useUiLanguageStore().change('he')
+      expect(editor.actionError).toMatch(/[\u0590-\u05ff]/u)
+      expect(renumber).toHaveBeenCalledOnce()
+      expect(fake.moves).toEqual([])
+    }
+  )
+
+  it.each(['First frost.md', 'characters/Ilka.md'])(
+    'keeps the exact skipped-link paths after renaming %s and switching language',
+    async (path) => {
+      const editor = useEditorStore()
+      await editor.open(path)
+      const api = path.startsWith('characters/') ? fake.api.codex : fake.api.manuscript
+      const skipped = ['notes/יעל (draft).md', 'notes/<img src=x>.md']
+      const rename = vi.spyOn(api, 'renameEntry').mockResolvedValue({
+        ok: true,
+        value: { path, linkCount: 1, fileCount: 1, skipped }
+      })
+      expect(await editor.renameEntry(path)).toBe(true)
+      expect(editor.actionError).toContain('Renamed, but links')
+      await useUiLanguageStore().change('he')
+      for (const skippedPath of skipped)
+        expect(editor.actionError).toContain(`\u2068${skippedPath}\u2069`)
+      expect(editor.actionError).toMatch(/[\u0590-\u05ff]/u)
+      expect(rename).toHaveBeenCalledOnce()
+      expect(editor.entry?.path).toBe(path)
+    }
+  )
+
+  it('reports a failed rename plan instead of silently dropping the reason', async () => {
+    const editor = useEditorStore()
+    await editor.open('First frost.md')
+    const plan = vi.spyOn(fake.api.manuscript, 'planRename').mockResolvedValue({
+      ok: false,
+      error: {
+        code: 'unreadable',
+        message: 'Legacy',
+        diagnostic: { reason: 'file-unreadable', path: 'First frost.md' }
+      }
+    })
+    await editor.offerRename('First frost.md')
+    expect(editor.pendingRename).toBeNull()
+    expect(editor.actionError).toContain("can't be read")
+    await useUiLanguageStore().change('he')
+    expect(editor.actionError).toMatch(/[\u0590-\u05ff]/u)
+    expect(plan).toHaveBeenCalledOnce()
+    expect(fake.renames).toEqual([])
+  })
+
   it('keeps fake group and relationship guard failures semantic without mutating properties', async () => {
     const path = 'characters/Ilka.md'
     const props = fake.codexProperties.get(path)

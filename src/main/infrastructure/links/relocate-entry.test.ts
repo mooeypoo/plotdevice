@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { ProjectPath } from '../../shared-kernel/project-path'
 import { copySampleNovel, type SampleNovelCopy } from '../testing/sample-novel'
 import { previewRelocation, relocateEntry } from './relocate-entry'
+import { createMarkdownEntryRelocator } from './markdown-entry-relocator'
 
 let copy: SampleNovelCopy
 const p = (value: string): ProjectPath => value as ProjectPath
@@ -65,6 +66,26 @@ describe('renaming a chapter', () => {
     const result = await relocateEntry(copy.root, from, p('manuscript/Part One/First frost.md'))
     expect(result.move).toBe('target-exists')
     expect(await read('notes/Scene idea.md')).toContain('[[The Ferry]]')
+  })
+
+  it('preserves semantic adapter failure paths while leaving existing fixture bytes unchanged', async () => {
+    const adapter = createMarkdownEntryRelocator(copy.root)
+    const existing = p('manuscript/Part One/First frost.md')
+    const before = await read(from)
+    const destination = await read(existing)
+    const linking = await read('notes/Scene idea.md')
+    expect(await adapter.relocate(from, existing)).toMatchObject({
+      ok: false,
+      error: { code: 'already-exists', diagnostic: { reason: 'file-exists', path: existing } }
+    })
+    expect(await adapter.relocate(p('Missing.md'), to)).toMatchObject({
+      ok: false,
+      error: { code: 'move-failed', diagnostic: { reason: 'file-move-failed', path: 'Missing.md' } }
+    })
+    expect(await read(from)).toBe(before)
+    expect(await read(existing)).toBe(destination)
+    expect(await read('notes/Scene idea.md')).toBe(linking)
+    await expect(read(to)).rejects.toThrow()
   })
 
   it('handles a case-only rename', async () => {

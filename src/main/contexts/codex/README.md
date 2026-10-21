@@ -8,7 +8,7 @@
 
 **Ports.** `CodexRepository` (in-memory fake beside it) and the shared `EntryRelocator`.
 
-**Recovery/diagnostics.** The adapter records exact versioned bytes for shared recovery; recovered templates are separate notes. Property/relationship refusals retain semantic reasons/keys/paths, never translated here.
+**Recovery/diagnostics.** The adapter records exact versioned bytes for shared recovery; recovered templates are separate notes. Property/relationship/rename refusals retain semantic reasons/keys/paths, never translated here.
 
 **Outline presentation.** The renderer provides a resizable rendered-Markdown reference with raw editing in the main editor. This context still reads/writes only plain Markdown, independent of its presentation.
 
