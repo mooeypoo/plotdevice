@@ -164,7 +164,9 @@ acceptance criteria, and the cross-session checklist.
             reactive reference/outline read failures, with source paths retained.
           - [x] Inspector vocabulary/date-query failures, independent reactive
             notices and stale document/calendar response guards.
-          - [ ] Cross-context queries and other notices/
+          - [x] Timeline/interactions and appearance query errors, reactive
+            alerts, retained last successful views and obsolete-response guards.
+          - [ ] Reference action/link and other notices/
             cached consumers. Next approval boundary.
 - [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.

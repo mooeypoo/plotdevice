@@ -36,6 +36,12 @@ export const useCodexStore = defineStore('codex', () => {
   let loadRequest = 0
   const properties = shallowRef<CodexPropertiesDto | null>(null)
   const appearsIn = shallowRef<readonly AppearanceDto[]>([])
+  const { message: appearanceError, source: appearanceErrorSource } = useErrorNotice()
+  const appearancePath = ref<string | null>(null)
+  const appearsInError = computed(() =>
+    useEditorStore().entry?.path === appearancePath.value ? appearanceError.value : null
+  )
+  let propertiesRequest = 0
   const listedBy = shallowRef<readonly ListedByDto[]>([])
   /** Why the last relationships change was refused, shown with the relationships. */
   const { message: relationshipsError, source: relationshipsErrorSource } = useErrorNotice()
@@ -87,6 +93,9 @@ export const useCodexStore = defineStore('codex', () => {
 
   /** Reads a codex entry's properties and appearances; returns the file version they came from. */
   async function readProperties(path: string): Promise<string | undefined> {
+    const request = ++propertiesRequest
+    appearanceErrorSource.value = null
+    appearancePath.value = path
     const kind = places.value.get(path)?.kind
     if (kind === 'template' || kind === 'outline') {
       // Templates and outlines have no properties to edit; only their text.
@@ -99,11 +108,12 @@ export const useCodexStore = defineStore('codex', () => {
       api().getProperties(path),
       api().getAppearsIn(path)
     ])
-    if (useEditorStore().entry?.path !== path) return undefined
+    if (request !== propertiesRequest || useEditorStore().entry?.path !== path) return undefined
     properties.value = read.ok ? read.value.properties : null
     if (!read.ok) useEditorStore().reportActionError(read.error)
     listedBy.value = read.ok ? read.value.listedBy : []
     appearsIn.value = appearances.ok ? appearances.value : []
+    if (!appearances.ok) appearanceErrorSource.value = appearances.error
     relationshipsError.value = null
     return read.ok ? read.value.version : undefined
   }
@@ -222,6 +232,9 @@ export const useCodexStore = defineStore('codex', () => {
   }
 
   function close(): void {
+    propertiesRequest += 1
+    appearancePath.value = null
+    appearanceErrorSource.value = null
     loadRequest += 1
     loadError.value = null
     listing.value = null
@@ -235,6 +248,7 @@ export const useCodexStore = defineStore('codex', () => {
     loadError,
     properties,
     appearsIn,
+    appearsInError,
     listedBy,
     relationshipsError,
     load,

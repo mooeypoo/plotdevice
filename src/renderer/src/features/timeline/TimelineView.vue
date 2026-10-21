@@ -10,7 +10,7 @@ import { formatStoryDateReading } from '../../shared/story-date-format'
 
 const view = useTimeline()
 const language = useUiLanguageStore()
-const { timeline, order, rows, minGap, zoom, grid, backInTime, story, range, undated } = view
+const { timeline, error, order, rows, minGap, zoom, grid, backInTime, story, range, undated } = view
 
 const host = ref<HTMLElement | null>(null)
 const LANE = 26
@@ -103,6 +103,7 @@ function setMinGap(event: Event): void {
       </p>
     </header>
 
+    <p v-if="error" class="hint query-error" role="alert" dir="auto">{{ error }}</p>
     <p v-if="timeline && timeline.chapters.length === 0" class="empty">
       No chapters in the book yet.
     </p>
@@ -325,6 +326,11 @@ h1 {
 
 .hint {
   margin: 10px 0 0;
+}
+
+.query-error {
+  color: var(--danger);
+  overflow-wrap: anywhere;
 }
 
 .grid {

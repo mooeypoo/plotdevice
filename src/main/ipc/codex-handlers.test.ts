@@ -67,6 +67,17 @@ beforeEach(() => {
 })
 
 describe('codex handlers', () => {
+  it('retains semantic appearance-query authorization and no-project refusals', async () => {
+    expect(await handlers.getAppearsIn([ilka])).toMatchObject({
+      ok: false,
+      error: { code: 'entry-not-allowed', diagnostic: { reason: 'codex-entry-not-allowed' } }
+    })
+    session = undefined
+    expect(await handlers.getAppearsIn([ilka])).toMatchObject({
+      ok: false,
+      error: { code: 'no-project', diagnostic: { reason: 'no-project' } }
+    })
+  })
   it('retains a semantic no-project failure for the codex listing', async () => {
     session = undefined
     expect(await handlers.listCodex()).toEqual({

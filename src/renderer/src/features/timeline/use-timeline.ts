@@ -1,5 +1,6 @@
 import {
   computed,
+  onScopeDispose,
   nextTick,
   ref,
   shallowRef,
@@ -16,6 +17,7 @@ import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { goesBackInTime, readingRows, type GridRow, type RowMode } from './reading-grid'
 import { fittingZoom, rowsRange, storyRows, type StoryRow, type Zoom } from './story-axis'
+import { useErrorNotice } from '../../shared/use-error-notice'
 
 /** Reading order (as the book runs) or story order (when things happen). */
 export type TimelineOrder = 'reading' | 'story'
@@ -23,6 +25,7 @@ export type TimelineOrder = 'reading' | 'story'
 /** The timeline view: its data, its options, and opening a chapter from it. */
 export function useTimeline(): {
   readonly timeline: ShallowRef<TimelineDto | null>
+  readonly error: Ref<string | null>
   readonly order: Ref<TimelineOrder>
   readonly rows: Ref<RowMode>
   readonly minGap: Ref<number>
@@ -41,14 +44,24 @@ export function useTimeline(): {
   const editor = useEditorStore()
   const layout = useLayoutStore()
   const timeline = shallowRef<TimelineDto | null>(null)
+  const { message: error, source: errorSource } = useErrorNotice()
+  let request = 0
+  onScopeDispose(() => {
+    request += 1
+  })
   const order = ref<TimelineOrder>('reading')
   const rows = ref<RowMode>('threads')
   const minGap = ref(5)
   const zoom = ref<Zoom | null>(null)
 
   async function load(): Promise<void> {
+    const identity = ++request
     const result = await plotDeviceApi.current().timeline.getTimeline()
-    if (result.ok) timeline.value = result.value
+    if (identity !== request) return
+    if (result.ok) {
+      timeline.value = result.value
+      errorSource.value = null
+    } else errorSource.value = result.error
   }
   // The manuscript and codex reload whenever files change, here or outside; follow them.
   watch([() => manuscript.manuscript, () => codex.revision], () => void load(), { immediate: true })
@@ -73,6 +86,7 @@ export function useTimeline(): {
 
   return {
     timeline,
+    error,
     order,
     rows,
     minGap,

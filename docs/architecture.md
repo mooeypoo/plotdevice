@@ -125,6 +125,9 @@ reject results from before close or a newer load. Reference selection/scroll nev
 Inspector vocabulary-query failures use a separate cache from status actions, displayed in both
 inspectors. A shared date-check composable distinguishes API failures from invalid readings and
 rejects obsolete input/document/calendar replies; locale switches never rerun date checks.
+Timeline/interactions failures retain the last successful view and use reactive alerts with
+request/disposal guards. Appearance failures have a current-document notice instead of a
+misleading empty chapter list; property-read generations reject stale results.
 Unmigrated failures explicitly display their original message until their producers are migrated.
 Remaining action failures/strings, full RTL geometry and independent content-direction controls
 remain tracked in ADR 0016. No language switch changes novel files or existing writing preferences.

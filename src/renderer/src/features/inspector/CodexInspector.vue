@@ -158,7 +158,15 @@ const KEY_NAMES = { pov: 'point of view', characters: 'characters', location: 'l
 
       <section v-if="properties.kind !== 'note'" class="field">
         <h3 class="eyebrow">Appears in</h3>
-        <ul v-if="codex.appearsIn.length > 0" class="plain">
+        <p
+          v-if="codex.appearsInError"
+          class="hint bad"
+          role="alert"
+          data-testid="appearances-error"
+        >
+          {{ codex.appearsInError }}
+        </p>
+        <ul v-else-if="codex.appearsIn.length > 0" class="plain">
           <li v-for="chapter in codex.appearsIn" :key="chapter.path">
             <button type="button" class="link" dir="auto" @click="editor.open(chapter.path)">
               {{ chapter.title }}

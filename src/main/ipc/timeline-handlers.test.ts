@@ -4,6 +4,16 @@ import { parseProjectPath } from '../shared-kernel/project-path'
 import { createTimelineHandlers } from './timeline-handlers'
 
 describe('timeline handlers', () => {
+  it('retains a semantic no-project refusal', async () => {
+    expect(await createTimelineHandlers(() => undefined).getTimeline()).toEqual({
+      ok: false,
+      error: {
+        code: 'no-project',
+        message: 'No project is open.',
+        diagnostic: { reason: 'no-project' }
+      }
+    })
+  })
   it.each([
     {
       kind: 'dated',

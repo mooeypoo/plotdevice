@@ -83,8 +83,10 @@ progress, remaining limitations, and the next slice before ending a session.
             visible sidebar failures and cached reference/outline read notices.
           - [x] **Inspector queries:** independent vocabulary/date-check errors,
             visible live notices and document/calendar-aware request guards.
-          - [ ] **Remaining queries:** cross-context queries,
-            failures and remaining string-caching stores/composables.
+          - [x] **Cross-context queries:** timeline/interactions and appearance
+            failures, live alerts and obsolete-request guards.
+          - [ ] **Remaining notices:** reference actions/links and remaining
+            string-caching stores/composables.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
   existing notices, number formatting, display collation, native dialogs and
   controlled destructive confirmations; complete Hebrew and qqq coverage.
@@ -503,9 +505,48 @@ Verified lint/dependency boundaries, typecheck, all 1,376 tests across 156 files
 the production electron-vite build and documentation build/link checks.
 No real-browser/packaged qualification, push or release.
 
-**Next session:** plan remaining I2 queries/caches and obtain approval before
-changing code. Trace timeline/interactions and appearance query errors,
-reference link/action notices and
+Inspector diagnostics were committed as `d16a54c`. The user approved timeline/
+interactions/appearance query failures as the next bounded slice, including
+validation, documentation and commit.
+
+### I2b.2b.2 cross-context-query handoff (2026-10-21)
+
+Timeline and interactions IPC now include the existing no-project semantic reason.
+Their view composables retain full failures and render escaped, reactive alerts.
+A failed refresh keeps the last successful grid/matrix and all existing controls,
+zoom, order and picked-pair state. A later successful query clears only its own
+notice. Request generations and scope disposal reject obsolete success/failure
+replies; no language switch queries, retries, replaces views or writes files.
+Existing refresh triggers remain manuscript/codex changes, not locale changes.
+
+Codex appearance failures were previously discarded into an empty array, making
+the inspector incorrectly claim no chapters listed the entry. They now have a
+separate semantic cache and alert beside Appears in, replacing that empty-state
+claim when the query failed. Existing property failures remain independent.
+The notice is scoped to the current editor path; another property read clears
+the old notice and project close clears its cache and invalidates pending reads. Property-read request
+generations plus current-path checks reject stale appearance/property results.
+Successful reads restore the normal chapter list. The failed appearance array
+still clears as before; this slice does not add cross-document cached appearances.
+
+The shared formatter/catalogs already cover these reasons; no new messages or
+diagnostic shapes were needed. Contract version remains 21. Success-only fake
+query methods are unchanged; injected failures exercise presentation. No new
+dependencies, file-format changes, new retry controls or transaction changes.
+Interaction selection behavior on successful data changes is not redesigned.
+
+Regressions first reproduced silent failures for all three query surfaces.
+Tests cover semantic IPC no-project/appearance-authorization refusals, initial
+query failures, cached English/Hebrew alerts without extra reads, exact escaped
+legacy detail, retained view DOM/controls/pair state and conflicted manuscript
+drafts on failed refresh, successful query clearing, unchanged inspector input/
+focus, obsolete/disposed replies and newer same-document appearance results.
+Verified lint/dependency boundaries, typecheck, all 1,390 tests across 158 files,
+the production electron-vite build and documentation build/link checks.
+No real-browser/packaged qualification, push or release.
+
+**Next session:** plan remaining I2 notices/caches and obtain approval before
+changing code. Trace reference link/action notices and
 remaining cached English notices, including fake APIs and presentation consumers.
 Preserve exact details and existing navigation/recovery behavior; avoid guessing
 text from broad codes. Recent-project/folder-choice failure API design remains

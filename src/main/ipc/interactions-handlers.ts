@@ -19,7 +19,14 @@ export function createInteractionsHandlers(
     async getInteractions() {
       const useCases = current()
       if (useCases === undefined) {
-        return { ok: false, error: { code: 'no-project', message: 'No project is open.' } }
+        return {
+          ok: false,
+          error: {
+            code: 'no-project',
+            message: 'No project is open.',
+            diagnostic: { reason: 'no-project' }
+          }
+        }
       }
       const interactions = await useCases.getInteractions()
       return {
