@@ -54,24 +54,24 @@ progress, remaining limitations, and the next slice before ending a session.
   persisted locale; welcome/project selectors; explicit root language/direction;
   main/renderer synchronization and native menu refresh. Limited translated
   shell only: not a claim of complete Hebrew or RTL support.
-- [ ] **I2 Diagnostics/dates:** structured errors, warnings and date readings
+- [x] **I2 Diagnostics/dates:** structured errors, warnings and date readings
   through every IPC/fake/store consumer; late presentation formatting; stable
   warning identity; preserve signed/large years, precision and day counts.
   - [x] **I2a Story dates:** structured readings/issues across chronology, IPC,
     fake API, inspectors and timeline; localized cached dates and axis labels.
-  - [ ] **I2b General diagnostics:** semantic failures/warnings, stable identity,
+  - [x] **I2b General diagnostics:** semantic failures/warnings, stable identity,
     and reactive formatting across all handlers, fakes, stores and consumers.
     - [x] **I2b.1 Warnings:** project/manuscript semantic warnings, file-problem
       descriptions, localized panel, locale-independent identities and fixes.
-    - [ ] **I2b.2 Action failures:** expected errors and cached failure state
+    - [x] **I2b.2 Action failures:** expected errors and cached failure state
       across editor/recovery/navigation, remaining stores, handlers and fakes.
       - [x] **I2b.2a Save/recovery:** semantic file-body/save/recovery failures,
         cached editor notices, recovery controls and replacement confirmation.
-      - [ ] **I2b.2b Remaining operations:** create/rename/move, property
+      - [x] **I2b.2b Remaining operations:** create/rename/move, property
         validation, workspace/reference/inspector errors and remaining caches.
         - [x] **I2b.2b.1 Properties/relationships:** semantic read/write refusals,
           live editor/background-synopsis errors and relationship safety details.
-        - [ ] **I2b.2b.2 Remaining operations/caches:** create/rename/move,
+        - [x] **I2b.2b.2 Remaining operations/caches:** create/rename/move,
           workspace/reference/inspector queries and partial-success summaries.
           - [x] **Structural operations:** rename/move/renumber refusals,
             cached partial-success notices and explicit rename-plan errors.
@@ -97,11 +97,15 @@ progress, remaining limitations, and the next slice before ending a session.
           - [x] **Folder inspection/dialog/launch:** typed filesystem failures,
             explicit inconclusive-search refusals, result-based native folder
             delivery and independent live notices without discarding drafts.
-          - [ ] **Remaining coverage:** audit remaining diagnostics and cached
-            consumers before closing I2.
+          - [x] **Remaining coverage:** production producer/fallback/cache audit;
+            internal/logging-only exceptions documented in the final I2 handoff.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
   existing notices, number formatting, display collation, native dialogs and
   controlled destructive confirmations; complete Hebrew and qqq coverage.
+  - [x] **I3a Welcome/initialization:** creation and nesting explanations,
+    controls, recent-project labels/accessibility and UI-locale timestamp dates.
+  - [ ] **I3b Next approval:** project chrome/status/appearance labels, then
+    remaining component/native/startup text in bounded slices.
 - [ ] **I4 RTL interface:** binder indentation/disclosures, logical layout,
   icons, responsive chrome, timeline coordinates/scroll, sticky matrix headers,
   keyboard/pointer interaction, selection retained by identity.
@@ -824,3 +828,77 @@ launch and recents failures are no longer deferred. Then propose a bounded I3
 component/native-interface translation slice; I3-I6 and the separately approved
 Hebrew manual remain unfinished. Consult this latest handoff rather than earlier
 historical "next session" notes.
+
+Committed as `b6528f8 feat: localize folder inspection and launch failures`.
+
+### Final I2 inventory and I3a welcome/initialization handoff (2026-10-21)
+
+The user approved completing the diagnostics inventory and translating the
+welcome/initialization flow. The audit traced production failure producers,
+IPC handlers/mappers, the browser fake, renderer failure caches and displayed
+consumers. No additional currently displayed expected-error cache was found
+holding a finished English failure message. I2 is complete for the existing
+displayed diagnostics, with these explicit boundaries:
+
+- `formatApiError` retains the original `message` when a diagnostic is absent,
+  and `ErrorNotice` retains a literal compatibility path. These are intentional,
+  tested fallback contracts, not guessed translations based on broad codes.
+- Shared filename/path/wikilink parser messages are internal validation results.
+  Their inspected call sites build safe names, ignore nonmatching links, refuse
+  authorization with an existing semantic IPC error, or skip an impossible move.
+  The diagnostic-free missing-marker branch in the manuscript adapter depends
+  on parsing the fixed valid `novel.md` constant failing; actual missing files
+  use the existing semantic file-missing diagnostic. No parser rewrite is needed.
+- Invalid programmatic writing preferences retain logged original Zod errors;
+  no displayed consumer reads their returned message. Actual storage failures
+  already use reactive catalog-key notices. Window-state errors are logging-only.
+- UI-language persistence errors retain original technical messages for logging,
+  but the visible load/invalid/save states are already localized. The service
+  retains the active language after a failed switch.
+- Save-state labels, native titles/confirmations, startup emergency text, and
+  remaining UI/accessibility/formatting strings belong to I3, not additional I2
+  failure transports. The emergency fallback runs before normal mounting and
+  still needs a bounded startup-presentation treatment. Best-effort optional
+  metadata readers are not being redesigned by this localization slice.
+
+I3a adds 14 documented en/he/qqq messages and six typed parameter signatures.
+Initialization translates all three branches: ordinary creation, a folder
+inside a project, and a folder containing a project. Complete sentences allow
+parameter reordering; exact names, titles, paths and the `novel.md` literal are
+escaped and isolated only at presentation. No translation-driven markup or
+sentence fragments were introduced. Previous inline bold/code emphasis in
+explanatory sentences becomes plain text so messages remain whole escaped
+sentences rather than requiring a rich-translation framework. Technical names
+and project metadata stay unchanged.
+
+The local title ref, form/input identity, autofocus/direction, disabled behavior,
+parent-project action, Back action and exact submitted title/root are unchanged.
+Recent-list headings, unavailable-folder text, removal tooltip and accessible
+names translate live. Stable root keys, source list order, exact title/path
+display and emitted roots remain unchanged; missing folders remain unopenable,
+and removal retains its existing independent availability.
+
+`useRecentProjectDates` owns a computed `Intl.DateTimeFormat` keyed by the active
+UI locale rather than the host's implicit locale. It retains medium dates, the
+local timezone and blank output for invalid timestamps. This is presentation
+only: ISO values and recents ordering never change. It does not use the novel's
+calendar or convert manuscript dates.
+
+Five mounted regressions first failed on the old English/unisolated copy.
+They now cover both nesting refusals, exact mixed-script escaped parameters,
+English/Hebrew/English switching with the same focused input and unsaved title,
+exact unchanged creation/open/removal arguments, stable recent-row/control/list
+identity, local-date formatting and invalid dates, unavailable/disabled states,
+empty lists, and no locale-triggered project reads/writes/navigation.
+Verified lint/dependency boundaries, typecheck, **1,491 tests across 163 files**
+and the production electron-vite build, plus documentation build/link/asset
+checks across all 16 public pages. Contract remains **23**; no new
+dependencies, manuscript-format changes, release or push. Shared browser pages
+were not reloaded; this is not real bidi geometry/native/packaged qualification.
+
+**Next session:** propose a bounded I3 project chrome/status/appearance slice
+before editing. Remaining work includes top-bar accessibility/tooltips, complete
+status/focus-mode counts and save labels, appearance/tab/sidebar/inspector/view
+text, native dialog/close-confirmation wording and startup fallback. I3 remains
+in progress; I4-I6 and the separate Hebrew manual remain unfinished. Consult this
+latest handoff rather than historical next-session notes.

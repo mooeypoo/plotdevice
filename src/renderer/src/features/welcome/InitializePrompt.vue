@@ -2,8 +2,11 @@
 import { ref } from 'vue'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import LanguageSelector from '../../shared/LanguageSelector.vue'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { isolate } from '../../shared/isolate'
 
 const workspace = useWorkspaceStore()
+const language = useUiLanguageStore()
 const title = ref(workspace.chosenFolder?.name ?? '')
 </script>
 
@@ -11,11 +14,15 @@ const title = ref(workspace.chosenFolder?.name ?? '')
   <main v-if="workspace.chosenFolder" class="prompt">
     <LanguageSelector />
     <template v-if="workspace.chosenFolder.projectAbove">
-      <h1>This folder is part of another project</h1>
-      <p dir="auto">
-        <strong>{{ workspace.chosenFolder.name }}</strong> is inside
-        <strong>{{ workspace.chosenFolder.projectAbove.title }}</strong
-        >. Projects can't be nested.
+      <h1>{{ language.t('initialize-inside-heading') }}</h1>
+      <p>
+        {{
+          language.t(
+            'initialize-inside-description',
+            isolate(workspace.chosenFolder.name),
+            isolate(workspace.chosenFolder.projectAbove.title)
+          )
+        }}
       </p>
       <div class="actions">
         <button
@@ -24,37 +31,50 @@ const title = ref(workspace.chosenFolder?.name ?? '')
           :disabled="workspace.busy"
           @click="workspace.openProject(workspace.chosenFolder.projectAbove.root)"
         >
-          Open {{ workspace.chosenFolder.projectAbove.title }}
+          {{
+            language.t('initialize-open-parent', isolate(workspace.chosenFolder.projectAbove.title))
+          }}
         </button>
-        <button type="button" @click="workspace.backToWelcome()">Back</button>
+        <button type="button" @click="workspace.backToWelcome()">
+          {{ language.t('initialize-back') }}
+        </button>
       </div>
     </template>
 
     <template v-else-if="workspace.chosenFolder.projectBelow">
-      <h1>This folder contains another project</h1>
-      <p dir="auto">
-        <strong>{{ workspace.chosenFolder.projectBelow }}</strong> is already a project. Projects
-        sit side by side; they can't be nested. Choose a different folder.
+      <h1>{{ language.t('initialize-contains-heading') }}</h1>
+      <p>
+        {{
+          language.t(
+            'initialize-contains-description',
+            isolate(workspace.chosenFolder.projectBelow)
+          )
+        }}
       </p>
       <div class="actions">
-        <button type="button" @click="workspace.backToWelcome()">Back</button>
+        <button type="button" @click="workspace.backToWelcome()">
+          {{ language.t('initialize-back') }}
+        </button>
       </div>
     </template>
 
     <template v-else>
-      <h1 dir="auto">Make “{{ workspace.chosenFolder.name }}” a project?</h1>
+      <h1>{{ language.t('initialize-heading', isolate(workspace.chosenFolder.name)) }}</h1>
       <p>
-        Plot Device will add one file, <code>novel.md</code>, with your project's settings. Nothing
-        else in the folder changes.
+        {{ language.t('initialize-description', isolate('novel.md')) }}
       </p>
       <form @submit.prevent="workspace.initializeChosenFolder(title)">
         <label>
-          Title
+          {{ language.t('initialize-title-label') }}
           <input v-model="title" type="text" maxlength="500" dir="auto" autofocus />
         </label>
         <div class="actions">
-          <button class="primary" type="submit" :disabled="workspace.busy">Create project</button>
-          <button type="button" @click="workspace.backToWelcome()">Back</button>
+          <button class="primary" type="submit" :disabled="workspace.busy">
+            {{ language.t('initialize-create') }}
+          </button>
+          <button type="button" @click="workspace.backToWelcome()">
+            {{ language.t('initialize-back') }}
+          </button>
         </div>
       </form>
     </template>

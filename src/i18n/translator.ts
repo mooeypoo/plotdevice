@@ -6,6 +6,12 @@ import he from './he.json'
 /** Stable catalog keys, excluding translator metadata. */
 export type MessageKey = Exclude<keyof typeof en, '@metadata'>
 type ParameterizedMessages = {
+  'initialize-heading': [folder: string]
+  'initialize-description': [marker: string]
+  'initialize-inside-description': [folder: string, project: string]
+  'initialize-contains-description': [projectPath: string]
+  'initialize-open-parent': [project: string]
+  'recents-remove-label': [project: string]
   'recents-read-failed': [path: string, detail: string]
   'recents-save-failed': [path: string, detail: string]
   'recents-invalid': [path: string, detail: string]

@@ -137,22 +137,22 @@ acceptance criteria, and the cross-session checklist.
   typed main/renderer synchronization and native menu refresh. Verified with
   full checks and an isolated browser preview; remaining limitations and next
   session instructions are recorded in ADR 0016.
-- [ ] I2: Structured diagnostics and story dates; reactive presentation formatting.
+- [x] I2: Structured diagnostics and story dates; reactive presentation formatting.
   - [x] I2a: Semantic date readings/issues over IPC; English/Hebrew inspector,
     timeline and axis formatting; cached readings retranslate without file writes.
-  - [ ] I2b: General semantic errors/warnings and reactive presentation; stable
+  - [x] I2b: General semantic errors/warnings and reactive presentation; stable
     warning identity and preserved recovery details.
     - [x] I2b.1: Semantic project/manuscript warnings, localized file problems/
       panel, stable rows/focus and explicit fix payloads across language switches.
-    - [ ] I2b.2: Action failures and cached errors, including recovery/navigation
+    - [x] I2b.2: Action failures and cached errors, including recovery/navigation
       details.
       - [x] I2b.2a: Semantic save/recovery failures, reactive cached editor notices,
         localized recovery controls and safe replacement confirmation.
-      - [ ] I2b.2b: Remaining create/rename/move/property/workspace/reference/
+      - [x] I2b.2b: Remaining create/rename/move/property/workspace/reference/
         inspector failures and cached consumers.
         - [x] I2b.2b.1: Property/relationship refusals, cached read/write and
           background synopsis errors, localized relationship safety explanation.
-        - [ ] I2b.2b.2: Remaining action/query failures, partial-success summaries
+        - [x] I2b.2b.2: Remaining action/query failures, partial-success summaries
           and cached consumers.
           - [x] Rename/move/renumber failures, reactive partial-success summaries
             and explicitly reported rename-plan refusals.
@@ -176,10 +176,14 @@ acceptance criteria, and the cross-session checklist.
             settings and independent non-blocking warnings after project open.
           - [x] Explicit folder inspection/dialog/launch failures, fail-closed
             nesting checks and live notices preserving the current workspace.
-          - [ ] Audit remaining diagnostic/cached-consumer coverage before
-            closing I2; final producer/fallback/cache inventory remains.
-            Next approval boundary, followed by bounded I3 translation slices.
+          - [x] Final production producer/fallback/cache inventory; internal and
+            logging-only exceptions recorded in ADR 0016. I2 complete for existing
+            displayed diagnostics; untranslated interface text continues under I3.
 - [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
+  - [x] I3a: Welcome/initialization controls and nesting explanations, recent-list
+    accessibility/labels and dates following the selected interface language.
+  - [ ] Next approval: bounded project chrome/status/appearance translation, then
+    remaining components and native/startup text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.
@@ -256,7 +260,9 @@ native deb permissions and publisher authentication are not changed by metadata.
   - Clicking a link in the editor to open its target (Phase 5, with the codex).
 - Phase 1 follow-ups:
   - `write-file-atomic` 8 ships no types; `@types/write-file-atomic` 4.0.3 describes the same `writeFile(path, data, options)` API. Recheck when either updates.
-  - `findProjectBelow` stops after 10,000 folders, so choosing a huge folder can't hang the app. Past that, nesting isn't checked.
+  - `findProjectBelow` remains bounded at 10,000 visited folders; an incomplete
+    search now explicitly refuses inspection/initialization (ADR 0016), rather
+    than treating unchecked nesting as safe.
   - The project screen is a placeholder (counts and problem files) until Phase 2's binder replaces it.
 - Phase 0 follow-ups:
   - Running `npm run dev` from a process that inherits `ELECTRON_RUN_AS_NODE=1` (for example, a VS Code extension host) starts Electron as plain Node, and `app` is undefined. Unset it.

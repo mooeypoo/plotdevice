@@ -149,6 +149,10 @@ startup delivery and later-launch events carry explicit results; cancellation/no
 launch remain successful null. Failed inspections grant no new root access and
 leave the current workspace/drafts unchanged. Separate folder notices reformat
 live on every workspace screen; request generations suppress obsolete results.
+Welcome initialization/nesting sentences and recent-list accessibility labels use
+whole translated messages with isolated exact names/paths. Recent-project
+timestamps use a computed UI-locale date formatter with the existing local
+timezone; changing language preserves row/input identity and never rereads recents.
 Unmigrated failures explicitly display their original message until their producers are migrated.
 Remaining action failures/strings, full RTL geometry and independent content-direction controls
 remain tracked in ADR 0016. No language switch changes novel files or existing writing preferences.

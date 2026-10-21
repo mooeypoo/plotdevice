@@ -8,7 +8,7 @@ References read beside the draft without replacing it or changing Properties; re
 The Writing appearance controls set prose size/width without changing markdown or editor history.
 Tabs preserve session undo, selection and scroll; only navigation metadata persists in `userData`, never drafts.
 Settings/recents/folder failures use live localized notices preserving drafts; failed list reads retain the last list.
-Interface language uses typed IPC and bundled Banana catalogs; ADR 0016 tracks incomplete Hebrew/RTL support.
+Bundled Banana catalogs translate welcome/initialization and recent dates; ADR 0016 tracks remaining Hebrew/RTL work.
 Dates/warnings, placement and migrated action/query/link notices stay semantic; locale switches never reread/rewrite files.
 Recovery keeps outside changes authoritative until an explicit choice; localized failures retain drafts and freeze editing.
 **Must not know about.** Node, Electron, filesystem access, domain classes, or concrete adapters.

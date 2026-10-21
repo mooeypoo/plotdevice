@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import type { RecentProjectDto } from '../../../../contract/dtos'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { isolate } from '../../shared/isolate'
+import { useRecentProjectDates } from './use-recent-project-dates'
 
 defineProps<{
   recents: readonly RecentProjectDto[]
@@ -11,17 +14,13 @@ defineEmits<{
   remove: [root: string]
 }>()
 
-const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' })
-
-function formatDate(isoDate: string): string {
-  const date = new Date(isoDate)
-  return Number.isNaN(date.getTime()) ? '' : dateFormat.format(date)
-}
+const language = useUiLanguageStore()
+const { formatDate } = useRecentProjectDates()
 </script>
 
 <template>
   <section v-if="recents.length > 0" class="recents" aria-labelledby="recents-heading">
-    <h2 id="recents-heading">Recent projects</h2>
+    <h2 id="recents-heading">{{ language.t('recents-heading') }}</h2>
     <ul>
       <li v-for="project in recents" :key="project.root" :class="{ missing: !project.available }">
         <button
@@ -31,16 +30,16 @@ function formatDate(isoDate: string): string {
           @click="$emit('open', project.root)"
         >
           <span class="title" dir="auto">{{ project.title }}</span>
-          <span class="details" dir="auto">
-            {{ project.available ? project.root : 'Folder not found' }}
+          <span class="details" :dir="project.available ? 'auto' : undefined">
+            {{ project.available ? project.root : language.t('recents-folder-missing') }}
           </span>
         </button>
         <span class="date">{{ formatDate(project.lastOpenedAt) }}</span>
         <button
           class="remove"
           type="button"
-          :aria-label="`Remove ${project.title} from recent projects`"
-          title="Remove from list (the folder is not touched)"
+          :aria-label="language.t('recents-remove-label', isolate(project.title))"
+          :title="language.t('recents-remove-tooltip')"
           @click="$emit('remove', project.root)"
         >
           ×
