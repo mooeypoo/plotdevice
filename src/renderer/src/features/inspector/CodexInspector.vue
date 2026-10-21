@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import type { CodexChangesDto, StoryDateCheckDto } from '../../../../contract/dtos'
+import type { CodexChangesDto } from '../../../../contract/dtos'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { useInspectorStore } from '../../app/inspector-store'
@@ -11,6 +11,7 @@ import TextListInput from './TextListInput.vue'
 import { characterGroupNames } from '../codex/character-list'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { formatStoryDateReading } from '../../shared/story-date-format'
+import { useStoryDateCheck } from './use-story-date-check'
 
 const codex = useCodexStore()
 const editor = useEditorStore()
@@ -35,7 +36,6 @@ const disabled = computed(
 const title = ref('')
 const role = ref('')
 const born = ref('')
-const bornCheck = ref<StoryDateCheckDto | undefined>(undefined)
 
 watch(
   properties,
@@ -43,9 +43,13 @@ watch(
     title.value = current?.title ?? ''
     role.value = current?.role ?? ''
     born.value = current?.born ?? ''
-    void checkBorn()
   },
   { immediate: true }
+)
+
+const { reading: bornCheck, error: bornCheckError } = useStoryDateCheck(
+  () => born.value,
+  () => (properties.value?.kind === 'character' ? properties.value.path : undefined)
 )
 
 const KIND_NAMES = { character: 'Character', location: 'Location', note: 'Note' } as const
@@ -63,16 +67,14 @@ function saveText(field: 'title' | 'role' | 'born', value: string): void {
   if (value.trim() !== (properties.value?.[field] ?? '').trim()) void save({ [field]: value })
 }
 
-async function checkBorn(): Promise<void> {
-  bornCheck.value =
-    born.value.trim() === '' ? undefined : await inspector.checkStoryDate(born.value)
-}
-
 const KEY_NAMES = { pov: 'point of view', characters: 'characters', location: 'location' } as const
 </script>
 
 <template>
   <aside class="inspector" aria-label="Inspector">
+    <p v-if="inspector.vocabularyError" class="hint bad" role="alert">
+      {{ inspector.vocabularyError }}
+    </p>
     <template v-if="properties">
       <header>
         <span class="eyebrow">{{ KIND_NAMES[properties.kind] }}</span>
@@ -139,9 +141,9 @@ const KEY_NAMES = { pov: 'point of view', characters: 'characters', location: 'l
               inspector.vocabulary?.calendar === 'day-count' ? 'Day, for example -4000' : 'YYYY'
             "
             :disabled="disabled"
-            @input="checkBorn"
             @change="saveText('born', born)"
           />
+          <p v-if="bornCheckError" class="hint bad" role="alert">{{ bornCheckError }}</p>
           <p
             v-if="bornCheck && bornCheck.kind !== 'undated'"
             class="hint"

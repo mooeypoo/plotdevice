@@ -81,7 +81,9 @@ progress, remaining limitations, and the next slice before ending a session.
             creation details, live notices and explicit current-project errors.
           - [x] **Listings/readers:** live manuscript/codex listing errors,
             visible sidebar failures and cached reference/outline read notices.
-          - [ ] **Remaining queries:** inspector and cross-context queries,
+          - [x] **Inspector queries:** independent vocabulary/date-check errors,
+            visible live notices and document/calendar-aware request guards.
+          - [ ] **Remaining queries:** cross-context queries,
             failures and remaining string-caching stores/composables.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
   existing notices, number formatting, display collation, native dialogs and
@@ -458,9 +460,52 @@ the production electron-vite build and documentation build/link checks.
 No new dependencies, file-format changes, real-browser/packaged qualification,
 push or release.
 
+Listing/reference diagnostics were committed as `dd1b69f`. The user approved
+inspector vocabulary/date-check diagnostics as the next bounded slice, including
+validation, documentation and commit.
+
+### I2b.2b.2 inspector-query handoff (2026-10-21)
+
+Inspector IPC now retains existing no-project/invalid-request reasons as semantic
+diagnostics, reusing the English/Hebrew catalogs and shared formatter. Contract
+version remains 21: no new boundary shapes/reasons, dependencies or disk-format
+changes. Legacy technical descriptions remain explicit escaped text when no
+semantic diagnostic is available.
+
+Vocabulary-query failures have a separate reactive cache from status-add failures.
+Both manuscript and codex inspectors expose the vocabulary alert even without
+properties. A failed reload keeps the last vocabulary; a successful reload clears
+only its own notice, and a successful status action cannot hide it. Generations
+reject vocabulary replies after clear or newer queries; status results completing
+after clear cannot restore prior-project error state. Status writes and their
+existing visible chapter controls otherwise remain unchanged.
+
+Date-check failures were previously discarded as undefined readings. Shared
+`useStoryDateCheck` now owns per-field reading/error state for chapter story dates
+and character birth dates. A query failure is shown beside its input, distinct
+from an invalid-date reading. New input clears the previous reading/notice;
+empty input or no document clears locally without querying. Successful subsequent
+checks clear the failure. No retry button/automatic retry loop was added.
+Document/input/calendar identity, request generations and scope disposal reject
+old replies, including A-to-B-to-A navigation. A real project calendar change
+rechecks unchanged text, while switching interface language only reformats cached
+readings/failures and never queries or writes. Components retain existing local
+input values, DOM identity, focus and change-to-save behavior.
+
+Regressions first reproduced invisible query failures in both inspectors. Tests
+cover semantic IPC refusals without running invalid requests, vocabulary/status
+notice independence, retained vocabulary, clear/newer-request races, mounted
+English/Hebrew error switching without retries/writes/input/focus replacement,
+exact escaped legacy details, successful later checks, blank input, stale document
+replies, out-of-order/disposed checks and project-calendar changes. Existing
+English/Hebrew date-reading and property-write tests continue to pass.
+Verified lint/dependency boundaries, typecheck, all 1,376 tests across 156 files,
+the production electron-vite build and documentation build/link checks.
+No real-browser/packaged qualification, push or release.
+
 **Next session:** plan remaining I2 queries/caches and obtain approval before
-changing code. Trace inspector vocabulary/date-check refusals, timeline/
-interactions and appearance query errors, reference link/action notices and
+changing code. Trace timeline/interactions and appearance query errors,
+reference link/action notices and
 remaining cached English notices, including fake APIs and presentation consumers.
 Preserve exact details and existing navigation/recovery behavior; avoid guessing
 text from broad codes. Recent-project/folder-choice failure API design remains

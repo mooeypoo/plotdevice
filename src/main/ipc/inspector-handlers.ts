@@ -17,7 +17,11 @@ export interface InspectorHandlers {
 
 const noProject: ApiResult<never> = {
   ok: false,
-  error: { code: 'no-project', message: 'No project is open.' }
+  error: {
+    code: 'no-project',
+    message: 'No project is open.',
+    diagnostic: { reason: 'no-project' }
+  }
 }
 const textArgs = z.tuple([z.string().max(500)])
 
@@ -47,7 +51,11 @@ export function createInspectorHandlers(
       if (!parsed.success) {
         return {
           ok: false,
-          error: { code: 'invalid-request', message: 'The request was not understood.' }
+          error: {
+            code: 'invalid-request',
+            message: 'The request was not understood.',
+            diagnostic: { reason: 'invalid-request' }
+          }
         }
       }
       return { ok: true, value: await useCases.checkStoryDate(parsed.data[0]) }

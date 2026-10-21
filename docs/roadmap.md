@@ -162,7 +162,9 @@ acceptance criteria, and the cross-session checklist.
             notices and visible current-project failures with stale-reply guards.
           - [x] Live manuscript/codex listing errors and visible sidebar alerts;
             reactive reference/outline read failures, with source paths retained.
-          - [ ] Inspector/cross-context queries and other notices/
+          - [x] Inspector vocabulary/date-query failures, independent reactive
+            notices and stale document/calendar response guards.
+          - [ ] Cross-context queries and other notices/
             cached consumers. Next approval boundary.
 - [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.

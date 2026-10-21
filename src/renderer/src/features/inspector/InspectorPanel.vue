@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import type { PropertyChangesDto, StoryDateCheckDto } from '../../../../contract/dtos'
+import type { PropertyChangesDto } from '../../../../contract/dtos'
 import { useInspectorStore } from '../../app/inspector-store'
 import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
@@ -12,6 +12,7 @@ import RenameOffer from './RenameOffer.vue'
 import { usePositionMoves } from './use-position-moves'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { formatStoryDateReading } from '../../shared/story-date-format'
+import { useStoryDateCheck } from './use-story-date-check'
 
 const manuscript = useManuscriptStore()
 const editor = useEditorStore()
@@ -31,7 +32,6 @@ const orderHint = ref<string | null>(null)
 const storyDate = ref('')
 const storyTime = ref('')
 const synopsis = ref('')
-const dateCheck = ref<StoryDateCheckDto | undefined>(undefined)
 
 watch(
   properties,
@@ -42,9 +42,13 @@ watch(
     storyDate.value = current?.storyDate ?? ''
     storyTime.value = current?.storyTime ?? ''
     synopsis.value = current?.synopsis ?? ''
-    void checkDate()
   },
   { immediate: true }
+)
+
+const { reading: dateCheck, error: dateCheckError } = useStoryDateCheck(
+  () => storyDate.value,
+  () => properties.value?.path
 )
 
 const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
@@ -132,11 +136,6 @@ function toggleThread(key: string): void {
   })
 }
 
-async function checkDate(): Promise<void> {
-  dateCheck.value =
-    storyDate.value.trim() === '' ? undefined : await inspector.checkStoryDate(storyDate.value)
-}
-
 function saveDate(): void {
   if (storyDate.value.trim() !== (properties.value?.storyDate ?? '').trim()) {
     void save({ storyDate: storyDate.value })
@@ -184,6 +183,9 @@ const partName = computed(() => {
 
 <template>
   <aside class="inspector" aria-label="Inspector">
+    <p v-if="inspector.vocabularyError" class="hint bad" role="alert">
+      {{ inspector.vocabularyError }}
+    </p>
     <template v-if="properties">
       <header>
         <span class="eyebrow">{{ properties.kind === 'part' ? 'Part' : 'Chapter' }}</span>
@@ -366,9 +368,9 @@ const partName = computed(() => {
               inspector.vocabulary?.calendar === 'day-count' ? 'Day, for example 14' : 'YYYY-MM-DD'
             "
             :disabled="disabled"
-            @input="checkDate"
             @change="saveDate"
           />
+          <p v-if="dateCheckError" class="hint bad" role="alert">{{ dateCheckError }}</p>
           <p
             v-if="dateCheck && dateCheck.kind !== 'undated'"
             class="hint"

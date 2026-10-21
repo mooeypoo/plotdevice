@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
-import type { InspectorVocabularyDto, StoryDateCheckDto } from '../../../contract/dtos'
+import type { InspectorVocabularyDto } from '../../../contract/dtos'
 import { plotDeviceApi } from './plot-device-api'
 import { useErrorNotice } from '../shared/use-error-notice'
 
@@ -8,16 +8,25 @@ import { useErrorNotice } from '../shared/use-error-notice'
 export const useInspectorStore = defineStore('inspector', () => {
   const vocabulary = shallowRef<InspectorVocabularyDto | null>(null)
   const { message: error, source: errorSource } = useErrorNotice()
+  const { message: vocabularyError, source: vocabularyErrorSource } = useErrorNotice()
+  let vocabularyRequest = 0
+  let statusRequest = 0
 
   async function loadVocabulary(): Promise<void> {
+    const request = ++vocabularyRequest
     const result = await plotDeviceApi.current().inspector.getVocabulary()
-    if (result.ok) vocabulary.value = result.value
-    else errorSource.value = result.error
+    if (request !== vocabularyRequest) return
+    if (result.ok) {
+      vocabulary.value = result.value
+      vocabularyErrorSource.value = null
+    } else vocabularyErrorSource.value = result.error
   }
 
   /** Adds a status to novel.md's list. */
   async function addStatus(status: string): Promise<void> {
+    const request = statusRequest
     const result = await plotDeviceApi.current().manuscript.addStatus(status)
+    if (request !== statusRequest) return
     if (!result.ok) {
       errorSource.value = result.error
       return
@@ -27,16 +36,13 @@ export const useInspectorStore = defineStore('inspector', () => {
     error.value = null
   }
 
-  /** Checks a story date as typed, under the project's calendar. */
-  async function checkStoryDate(text: string): Promise<StoryDateCheckDto | undefined> {
-    const result = await plotDeviceApi.current().inspector.checkStoryDate(text)
-    return result.ok ? result.value : undefined
-  }
-
   function clear(): void {
+    vocabularyRequest += 1
+    statusRequest += 1
     vocabulary.value = null
     error.value = null
+    vocabularyErrorSource.value = null
   }
 
-  return { vocabulary, error, loadVocabulary, addStatus, checkStoryDate, clear }
+  return { vocabulary, error, vocabularyError, loadVocabulary, addStatus, clear }
 })

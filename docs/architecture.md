@@ -122,6 +122,9 @@ semantic cache and rejects stale replies by request generation and project ident
 Listing/reference/outline read errors also retain semantic state. Sidebar alerts expose
 listing failures without discarding the last successful listing; per-store request generations
 reject results from before close or a newer load. Reference selection/scroll never depends on locale.
+Inspector vocabulary-query failures use a separate cache from status actions, displayed in both
+inspectors. A shared date-check composable distinguishes API failures from invalid readings and
+rejects obsolete input/document/calendar replies; locale switches never rerun date checks.
 Unmigrated failures explicitly display their original message until their producers are migrated.
 Remaining action failures/strings, full RTL geometry and independent content-direction controls
 remain tracked in ADR 0016. No language switch changes novel files or existing writing preferences.
