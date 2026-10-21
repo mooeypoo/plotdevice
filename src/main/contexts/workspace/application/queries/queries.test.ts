@@ -17,9 +17,8 @@ describe('InspectFolder', () => {
       novel: { kind: 'read', frontmatter: {} }
     })
     expect(await createInspectFolder({ folders: workspace, novelFiles: workspace })(root)).toEqual({
-      root,
-      name: 'salt-orchard',
-      isProject: true
+      ok: true,
+      value: { root, name: 'salt-orchard', isProject: true }
     })
   })
 
@@ -31,10 +30,13 @@ describe('InspectFolder', () => {
 
     expect(await createInspectFolder({ folders: workspace, novelFiles: workspace })(notes)).toEqual(
       {
-        root: notes,
-        name: 'notes',
-        isProject: false,
-        projectAbove: { root: '/novels/salt-orchard', title: 'The Salt Orchard' }
+        ok: true,
+        value: {
+          root: notes,
+          name: 'notes',
+          isProject: false,
+          projectAbove: { root: '/novels/salt-orchard', title: 'The Salt Orchard' }
+        }
       }
     )
   })
@@ -45,15 +47,14 @@ describe('InspectFolder', () => {
 
     expect(
       await createInspectFolder({ folders: workspace, novelFiles: workspace })(novels)
-    ).toMatchObject({ isProject: false, projectBelow: '/novels/salt-orchard' })
+    ).toMatchObject({ ok: true, value: { isProject: false, projectBelow: '/novels/salt-orchard' } })
   })
 
   it('reports a plain folder', async () => {
     const root = workspace.addFolder('/empty')
     expect(await createInspectFolder({ folders: workspace, novelFiles: workspace })(root)).toEqual({
-      root,
-      name: 'empty',
-      isProject: false
+      ok: true,
+      value: { root, name: 'empty', isProject: false }
     })
   })
 })

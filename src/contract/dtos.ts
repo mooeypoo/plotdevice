@@ -28,6 +28,17 @@ export interface ApiError {
 /** Language-independent failure details for migrated operations; technical details stay untranslated. */
 export type ErrorDiagnosticDto =
   | {
+      readonly reason: 'workspace-folder-inspection-failed'
+      readonly path: string
+      readonly detail: string
+    }
+  | {
+      readonly reason: 'workspace-folder-search-limit'
+      readonly path: string
+      readonly limit: number
+    }
+  | { readonly reason: 'workspace-folder-dialog-failed'; readonly detail: string }
+  | {
       readonly reason: 'recents-read-failed' | 'recents-save-failed' | 'recents-invalid'
       readonly path: string
       readonly detail: string

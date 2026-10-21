@@ -62,6 +62,9 @@ const title = ref(workspace.chosenFolder?.name ?? '')
     <p v-if="workspace.errorMessage" class="error" role="alert" dir="auto">
       {{ workspace.errorMessage }}
     </p>
+    <p v-if="workspace.folderErrorMessage" class="error" role="alert" data-testid="folder-error">
+      {{ workspace.folderErrorMessage }}
+    </p>
   </main>
 </template>
 

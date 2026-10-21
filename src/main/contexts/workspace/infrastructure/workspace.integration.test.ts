@@ -17,6 +17,7 @@ import { createNodeProjectFolders } from './node-project-folders'
 import { projectRootFromOsPath } from './project-root-from-os-path'
 import { systemClock } from './system-clock'
 import { createRemoveRecentProject } from '../application/commands/remove-recent-project'
+import { createInspectFolder } from '../application/queries/inspect-folder'
 
 let project: SampleNovelCopy
 let settings: SampleNovelCopy
@@ -32,12 +33,11 @@ afterEach(async () => {
   await settings.remove()
 })
 
-function wire(): {
+function wire(folders = createNodeProjectFolders()): {
   openProject: ReturnType<typeof createOpenProject>
   initializeProject: ReturnType<typeof createInitializeProject>
   listRecentProjects: ReturnType<typeof createListRecentProjects>
 } {
-  const folders = createNodeProjectFolders()
   const novelFiles = createMarkdownNovelFileStore()
   const recents = createJsonRecentProjectsStore(settings.root)
   const openProject = createOpenProject({
@@ -67,6 +67,57 @@ async function hashEveryFile(folder: string): Promise<Record<string, string>> {
 }
 
 describe('workspace on real files', () => {
+  it.each(['missing', 'novel.md'])(
+    'reports selected %s as a missing folder, without inspecting it as a new project',
+    async (name) => {
+      const before = await hashEveryFile(project.root)
+      const root = projectRootFromOsPath(join(project.root, name))
+      expect(
+        await createInspectFolder({
+          folders: createNodeProjectFolders(),
+          novelFiles: createMarkdownNovelFileStore()
+        })(root)
+      ).toMatchObject({
+        ok: false,
+        error: {
+          code: 'folder-missing',
+          diagnostic: { reason: 'workspace-folder-missing', path: root }
+        }
+      })
+      expect(await hashEveryFile(project.root)).toEqual(before)
+      expect(await readdir(settings.root)).toEqual([])
+    }
+  )
+
+  it.each(['folder-inspection-failed', 'folder-search-limit'] as const)(
+    'leaves every novel byte and settings untouched when inspection/initialization encounters %s',
+    async (code) => {
+      await rm(join(project.root, 'novel.md'))
+      const before = await hashEveryFile(project.root)
+      const folders = createNodeProjectFolders()
+      const root = projectRootFromOsPath(project.root)
+      const error = {
+        code,
+        message: 'Cannot establish project nesting',
+        diagnostic:
+          code === 'folder-search-limit'
+            ? ({ reason: 'workspace-folder-search-limit', path: root, limit: 10_000 } as const)
+            : ({
+                reason: 'workspace-folder-inspection-failed',
+                path: root,
+                detail: 'EACCES'
+              } as const)
+      }
+      vi.spyOn(folders, 'findProjectBelow').mockResolvedValue({ ok: false, error })
+      expect(await wire(folders).initializeProject(root, 'New')).toEqual({ ok: false, error })
+      expect(
+        await createInspectFolder({ folders, novelFiles: createMarkdownNovelFileStore() })(root)
+      ).toEqual({ ok: false, error })
+      expect(await hashEveryFile(project.root)).toEqual(before)
+      expect(await readdir(settings.root)).toEqual([])
+    }
+  )
+
   it('preserves invalid settings and every novel byte while opening with a warning', async () => {
     const original = '{ broken settings יעל'
     const file = join(settings.root, 'recent-projects.json')

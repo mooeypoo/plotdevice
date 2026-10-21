@@ -30,6 +30,9 @@ const language = useUiLanguageStore()
     <p v-if="workspace.errorMessage" class="error" role="alert" dir="auto">
       {{ workspace.errorMessage }}
     </p>
+    <p v-if="workspace.folderErrorMessage" class="error" role="alert" data-testid="folder-error">
+      {{ workspace.folderErrorMessage }}
+    </p>
     <p
       v-if="workspace.recentsLoadErrorMessage"
       class="error"

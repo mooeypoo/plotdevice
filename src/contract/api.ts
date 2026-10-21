@@ -40,8 +40,8 @@ export interface UiLanguageApi {
 
 /** Opening, initializing, and remembering projects. */
 export interface WorkspaceApi {
-  /** Shows the native folder dialog. `null` when the writer cancels. */
-  chooseFolder(): Promise<FolderChoiceDto | null>
+  /** Shows the native folder dialog; successful `null` when the writer cancels. */
+  chooseFolder(): Promise<ApiResult<FolderChoiceDto | null>>
   /** Opens a project. Only folders from `chooseFolder` or the recents list are accepted. */
   openProject(root: string): Promise<ApiResult<ProjectSummaryDto>>
   /** Writes novel.md into a folder from `chooseFolder`, then opens it. */
@@ -55,9 +55,9 @@ export interface WorkspaceApi {
    * The folder the app was started with (`plotdevice ~/novels/book`, or "Open With" in a file
    * manager), inspected like a chosen folder; `null` when there was none. Answers once.
    */
-  takeLaunchFolder(): Promise<FolderChoiceDto | null>
+  takeLaunchFolder(): Promise<ApiResult<FolderChoiceDto | null>>
   /** Called when the app is started again with a folder while already running. */
-  onOpenFolder(listener: (choice: FolderChoiceDto) => void): () => void
+  onOpenFolder(listener: (result: ApiResult<FolderChoiceDto | null>) => void): () => void
   /** Re-reads the open project (its warnings and file problems) after files changed. */
   refreshProject(): Promise<ApiResult<ProjectSummaryDto>>
   /**
@@ -202,7 +202,7 @@ export interface RecoveryApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 22
+  readonly contractVersion: 23
   readonly uiLanguage: UiLanguageApi
   readonly recovery: RecoveryApi
   readonly workspace: WorkspaceApi

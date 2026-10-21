@@ -43,7 +43,7 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 22,
+  contractVersion: 23,
   uiLanguage: {
     get: () => invoke<UiLanguageDto>(UI_LANGUAGE_CHANNELS.get),
     set: (locale) => invoke<ApiResult<UiLanguageDto>>(UI_LANGUAGE_CHANNELS.set, locale),
@@ -61,7 +61,7 @@ const plotDevice: PlotDeviceApi = {
       invoke<ApiResult<CreatedEntryDto>>(RECOVERY_CHANNELS.saveCopy, token, text)
   },
   workspace: {
-    chooseFolder: () => invoke<FolderChoiceDto | null>(WORKSPACE_CHANNELS.chooseFolder),
+    chooseFolder: () => invoke<ApiResult<FolderChoiceDto | null>>(WORKSPACE_CHANNELS.chooseFolder),
     openProject: (root) =>
       invoke<ApiResult<ProjectSummaryDto>>(WORKSPACE_CHANNELS.openProject, root),
     initializeProject: (root, title) =>
@@ -72,10 +72,11 @@ const plotDevice: PlotDeviceApi = {
     removeRecentProject: (root) =>
       invoke<ApiResult<null>>(WORKSPACE_CHANNELS.removeRecentProject, root),
     refreshProject: () => invoke<ApiResult<ProjectSummaryDto>>(WORKSPACE_CHANNELS.refreshProject),
-    takeLaunchFolder: () => invoke<FolderChoiceDto | null>(WORKSPACE_CHANNELS.takeLaunchFolder),
+    takeLaunchFolder: () =>
+      invoke<ApiResult<FolderChoiceDto | null>>(WORKSPACE_CHANNELS.takeLaunchFolder),
     onOpenFolder: (listener) => {
-      const handler = (_: unknown, choice: FolderChoiceDto): void => {
-        listener(choice)
+      const handler = (_: unknown, result: ApiResult<FolderChoiceDto | null>): void => {
+        listener(result)
       }
       ipcRenderer.on(EVENT_CHANNELS.openFolder, handler)
       return () => ipcRenderer.removeListener(EVENT_CHANNELS.openFolder, handler)

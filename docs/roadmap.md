@@ -174,9 +174,11 @@ acceptance criteria, and the cross-session checklist.
             shared binder/inspector duplicate-order diagnostics.
           - [x] Recent-project persistence/list/removal failures, preserved corrupt
             settings and independent non-blocking warnings after project open.
+          - [x] Explicit folder inspection/dialog/launch failures, fail-closed
+            nesting checks and live notices preserving the current workspace.
           - [ ] Audit remaining diagnostic/cached-consumer coverage before
-            closing I2; native folder-choice/launch inspection failures remain.
-            Next approval boundary.
+            closing I2; final producer/fallback/cache inventory remains.
+            Next approval boundary, followed by bounded I3 translation slices.
 - [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.

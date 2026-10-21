@@ -32,7 +32,9 @@ export interface InitializeProjectPorts {
 /** Builds the `InitializeProject` use case. */
 export function createInitializeProject(ports: InitializeProjectPorts): InitializeProject {
   return async (root, title) => {
-    if (!(await ports.folders.exists(root))) {
+    const exists = await ports.folders.exists(root)
+    if (!exists.ok) return exists
+    if (!exists.value) {
       return err(
         domainError('folder-missing', 'This folder no longer exists.', {
           reason: 'workspace-folder-missing',
@@ -50,7 +52,9 @@ export function createInitializeProject(ports: InitializeProjectPorts): Initiali
     }
 
     // Projects sit side by side; they are never nested.
-    const projectAbove = await ports.folders.findProjectAbove(root)
+    const above = await ports.folders.findProjectAbove(root)
+    if (!above.ok) return above
+    const projectAbove = above.value
     if (projectAbove !== undefined) {
       return err({
         ...domainError('inside-project', 'This folder is inside another project.', {
@@ -60,7 +64,9 @@ export function createInitializeProject(ports: InitializeProjectPorts): Initiali
         projectAbove
       })
     }
-    const projectBelow = await ports.folders.findProjectBelow(root)
+    const below = await ports.folders.findProjectBelow(root)
+    if (!below.ok) return below
+    const projectBelow = below.value
     if (projectBelow !== undefined) {
       return err({
         ...domainError('contains-project', 'This folder contains another project.', {

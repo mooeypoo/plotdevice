@@ -35,6 +35,9 @@ describe('semantic save/recovery error presentation', () => {
   })
 
   it.each([
+    { reason: 'workspace-folder-inspection-failed', path: '/יעל <img>', detail: 'EACCES <b>' },
+    { reason: 'workspace-folder-search-limit', path: '/יעל <img>', limit: 10_000 },
+    { reason: 'workspace-folder-dialog-failed', detail: 'EIO <img>' },
     { reason: 'recents-read-failed', path: '/settings/יעל.json', detail: 'EACCES <img>' },
     { reason: 'recents-save-failed', path: '/settings/יעל.json', detail: 'ENOSPC <img>' },
     { reason: 'recents-invalid', path: '/settings/יעל.json', detail: 'Invalid JSON <img>' },

@@ -94,6 +94,9 @@ progress, remaining limitations, and the next slice before ending a session.
           - [x] **Recent projects:** typed persistence/list/removal failures,
             non-blocking recording warnings on successful open/initialize,
             preserved invalid settings and reactive independent notices.
+          - [x] **Folder inspection/dialog/launch:** typed filesystem failures,
+            explicit inconclusive-search refusals, result-based native folder
+            delivery and independent live notices without discarding drafts.
           - [ ] **Remaining coverage:** audit remaining diagnostics and cached
             consumers before closing I2.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
@@ -731,7 +734,7 @@ documentation build/link/asset checks across all 16 public pages.
 No new dependencies, novel-file format changes, push, release or packaged/browser
 RTL qualification.
 
-**Next session:** trace remaining native folder-dialog/launch-folder inspection
+**Next slice at this handoff (completed below):** trace native folder-dialog/launch-folder inspection
 failure paths and propose a bounded plan before changing code. Their plain-value/
 event API and filesystem inspection fallbacks remain outstanding; I2 is not
 complete. Recent-project persistence/list/removal is no longer deferred.
@@ -743,3 +746,81 @@ text from broad codes. Folder-choice/launch failure API design remains outstandi
 I2b/I2 remain incomplete. Full interface/native translation remains I3, and RTL
 geometry/writing/reading qualification remains I4-I6. Restart the desktop process
 for contract version 22: renderer hot reload cannot upgrade an older preload.
+
+Committed as `291fd45 feat: localize recent-project persistence failures`.
+
+### I2b.2b.2 folder inspection/dialog/launch handoff (2026-10-21)
+
+The user approved the complete folder-failure repair, including the intentional
+fail-closed nesting policy, rather than only changing dialog/launch API shapes.
+Previously `ProjectFolders` swallowed all stat/readdir failures into false or
+an empty result, and search exhaustion looked like no nested project. Launch
+handling also swallowed stat failures and ignored invalid/missing paths, while
+native dialog rejection had no structured presentation.
+
+Folder existence and ancestor/descendant searches now return typed results.
+Missing/non-directory existence checks remain successful false; missing ancestor
+markers remain normal absence. Other filesystem failures carry the exact failing
+OS path (including ancestor marker or descendant folder) and original technical
+detail, with explicit adapter-site logging. A disappeared/non-directory
+descendant may be skipped during traversal; a vanished/unreadable search root
+or an inaccessible subtree fails the inspection instead of appearing empty.
+Existing Windows root comparison and dot-folder/symlink traversal rules remain.
+
+The 10,000-visited-folder bound is unchanged, but remaining queued folders now
+produce a distinct semantic search-limit refusal and logged root/limit. A
+completed search of exactly 10,000 folders succeeds. Neither inspection nor
+initialization may infer safe nesting from an incomplete search; no marker,
+recents setting or other file is written. The use cases propagate these failures
+before their dependent reads/writes. Recent-list availability failures return an
+explicit error and preserve the renderer's last good list; genuinely missing
+folders still show unavailable.
+
+Folder selection returns `ApiResult<FolderChoiceDto | null>`: cancellation is
+successful null, inspection errors remain structured, and native dialog failure
+is logged and wrapped with original technical detail. Authorization is granted
+only after successful inspection. Startup delivery and later-launch events use
+the same result shape and validated inspection path; there is no second silent
+stat precheck. Missing/non-directory external paths are now visible failures,
+not ignored launches. Startup results are consumed once, and superseded later
+launch inspections cannot emit stale navigation/error events to a live window.
+
+The renderer uses a dedicated semantic folder-error cache, separate from open,
+refresh, recents and draft-safety notices. Failures do not navigate, flush, close
+or replace the project or initialization choice. They appear on welcome,
+initialization and project screens, including focus mode. Cancellation creates
+no notice and does not erase an earlier failure; a subsequent successful folder
+inspection clears only the folder cache before the existing navigation/save
+guards run. Generations reject obsolete dialog/startup replies after newer folder
+events or explicit navigation. Existing main/renderer startup and event wiring
+and browser fake are migrated end to end; listeners unsubscribe on app unmount.
+
+Three documented en/he/qqq messages cover inspection, limit and dialog failures.
+Exact paths/details are escaped and isolated only at presentation, with no
+language-triggered filesystem operations. Contract version is **23** in
+API/preload/browser fake: restart the desktop process after rebuilding. Native
+dialog titles, close confirmations and other untranslated interface text still
+belong to I3; this slice changes their failure handling, not their full wording.
+
+Regressions first reproduced swallowed errors, unsafe initialization and missing
+renderer notices. Tests cover injected permission/I/O failures against fixture
+copies, disappearing folders, exact 10,000/10,001 traversal boundaries, no writes
+after inconclusive searches, byte-identical real novel/settings state, preserved
+technical diagnostics through IPC, authorization refusal after failed inspection,
+one-shot startup results, later-launch failure delivery and supersession,
+destroyed windows, live Hebrew with escaped mixed-script details, stable focus/
+initialization input, conflicted drafts, focus-mode visibility, independent
+notice clearing, availability-list retention and subscription cleanup.
+
+Verified lint/dependency boundaries, typecheck, all **1,486 tests across 162
+files**, the production electron-vite build, and documentation build/link/asset
+checks across all 16 public pages. No dependencies, novel format
+changes, push, release or real-browser/packaged bidi qualification.
+
+**Next session:** do the final I2 producer/fallback/cache coverage inventory and
+explicitly account for logging-only invalid programmatic preferences and
+unmigrated compatibility messages before closing I2. Folder inspection, dialog,
+launch and recents failures are no longer deferred. Then propose a bounded I3
+component/native-interface translation slice; I3-I6 and the separately approved
+Hebrew manual remain unfinished. Consult this latest handoff rather than earlier
+historical "next session" notes.

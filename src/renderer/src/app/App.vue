@@ -16,8 +16,8 @@ onMounted(() => {
   void workspace.loadRecents()
   // `plotdevice <folder>` or "Open With": now, and whenever the app is started again with one.
   void workspace.openLaunchFolder()
-  stopOpenFolder = plotDeviceApi.current().workspace.onOpenFolder((choice) => {
-    void workspace.useFolder(choice)
+  stopOpenFolder = plotDeviceApi.current().workspace.onOpenFolder((result) => {
+    void workspace.useFolderResult(result)
   })
   // Save the last keystrokes before the window closes.
   stopListening = plotDeviceApi.current().app.onBeforeClose(() => {

@@ -1,7 +1,9 @@
 import type { NovelFileStore } from '../../domain/ports/novel-file-store'
-import type { ProjectFolders } from '../../domain/ports/project-folders'
+import type { ProjectFolders, ProjectFoldersError } from '../../domain/ports/project-folders'
 import { readProject } from '../../domain/project'
 import type { ProjectRoot } from '../../domain/project-root'
+import { domainError, type DomainError } from '../../../../shared-kernel/domain-error'
+import { err, ok, type Result } from '../../../../shared-kernel/result'
 
 /** What a chosen folder is, so the app can offer the right next step. */
 export interface FolderInspection {
@@ -15,7 +17,9 @@ export interface FolderInspection {
 }
 
 /** Tells whether a folder is a project, is inside one, or contains one. */
-export type InspectFolder = (root: ProjectRoot) => Promise<FolderInspection>
+export type InspectFolder = (
+  root: ProjectRoot
+) => Promise<Result<FolderInspection, ProjectFoldersError | DomainError<'folder-missing'>>>
 
 /** Builds the `InspectFolder` query. */
 export function createInspectFolder(ports: {
@@ -23,12 +27,23 @@ export function createInspectFolder(ports: {
   readonly novelFiles: NovelFileStore
 }): InspectFolder {
   return async (root) => {
+    const exists = await ports.folders.exists(root)
+    if (!exists.ok) return exists
+    if (!exists.value)
+      return err(
+        domainError('folder-missing', 'This folder no longer exists.', {
+          reason: 'workspace-folder-missing',
+          path: root
+        })
+      )
     const name = ports.folders.nameOf(root)
     if ((await ports.novelFiles.read(root)).kind !== 'missing') {
-      return { root, name, isProject: true }
+      return ok({ root, name, isProject: true })
     }
 
-    const aboveRoot = await ports.folders.findProjectAbove(root)
+    const above = await ports.folders.findProjectAbove(root)
+    if (!above.ok) return above
+    const aboveRoot = above.value
     if (aboveRoot !== undefined) {
       const aboveNovel = await ports.novelFiles.read(aboveRoot)
       const aboveName = ports.folders.nameOf(aboveRoot)
@@ -36,10 +51,17 @@ export function createInspectFolder(ports: {
         aboveNovel.kind === 'read'
           ? readProject(aboveRoot, aboveName, aboveNovel.frontmatter).title
           : aboveName
-      return { root, name, isProject: false, projectAbove: { root: aboveRoot, title } }
+      return ok({ root, name, isProject: false, projectAbove: { root: aboveRoot, title } })
     }
 
-    const projectBelow = await ports.folders.findProjectBelow(root)
-    return { root, name, isProject: false, ...(projectBelow !== undefined ? { projectBelow } : {}) }
+    const below = await ports.folders.findProjectBelow(root)
+    if (!below.ok) return below
+    const projectBelow = below.value
+    return ok({
+      root,
+      name,
+      isProject: false,
+      ...(projectBelow !== undefined ? { projectBelow } : {})
+    })
   }
 }

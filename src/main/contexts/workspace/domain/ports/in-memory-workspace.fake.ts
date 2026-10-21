@@ -3,7 +3,7 @@ import type { ProjectRoot } from '../project-root'
 import type { RecentProject } from '../recent-projects'
 import type { Clock } from './clock'
 import type { CreateNovelFileError, NovelFileReading, NovelFileStore } from './novel-file-store'
-import type { ProjectFolders } from './project-folders'
+import type { ProjectFolders, ProjectFoldersError } from './project-folders'
 import type { ProjectScan, ProjectScanner } from './project-scanner'
 import type { RecentProjectsError, RecentProjectsStore } from './recent-projects-store'
 
@@ -33,28 +33,32 @@ export class InMemoryWorkspace
   // ProjectFolders
   readonly isSameRoot = (a: ProjectRoot, b: ProjectRoot): boolean => a === b
 
-  exists(root: ProjectRoot): Promise<boolean> {
-    return Promise.resolve(this.folders.has(root))
+  exists(root: ProjectRoot): Promise<Result<boolean, ProjectFoldersError>> {
+    return Promise.resolve(ok(this.folders.has(root)))
   }
 
   nameOf(root: ProjectRoot): string {
     return root.slice(root.lastIndexOf('/') + 1)
   }
 
-  findProjectAbove(root: ProjectRoot): Promise<ProjectRoot | undefined> {
+  findProjectAbove(
+    root: ProjectRoot
+  ): Promise<Result<ProjectRoot | undefined, ProjectFoldersError>> {
     let current = root.slice(0, root.lastIndexOf('/'))
     while (current !== '') {
-      if (this.isProject(current)) return Promise.resolve(current as ProjectRoot)
+      if (this.isProject(current)) return Promise.resolve(ok(current as ProjectRoot))
       current = current.slice(0, current.lastIndexOf('/'))
     }
-    return Promise.resolve(undefined)
+    return Promise.resolve(ok(undefined))
   }
 
-  findProjectBelow(root: ProjectRoot): Promise<ProjectRoot | undefined> {
+  findProjectBelow(
+    root: ProjectRoot
+  ): Promise<Result<ProjectRoot | undefined, ProjectFoldersError>> {
     const below = [...this.folders.keys()].find(
       (path) => path.startsWith(`${root}/`) && this.isProject(path)
     )
-    return Promise.resolve(below as ProjectRoot | undefined)
+    return Promise.resolve(ok(below as ProjectRoot | undefined))
   }
 
   // NovelFileStore

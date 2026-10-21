@@ -37,7 +37,9 @@ export interface WorkspaceHandlerDependencies {
 
 /** The workspace API as plain functions of untrusted arguments. Electron wiring is separate. */
 export interface WorkspaceHandlers {
-  chooseFolder(showFolderDialog: () => Promise<string | undefined>): Promise<FolderChoiceDto | null>
+  chooseFolder(
+    showFolderDialog: () => Promise<string | undefined>
+  ): Promise<ApiResult<FolderChoiceDto | null>>
   openProject(args: readonly unknown[]): Promise<ApiResult<ProjectSummaryDto>>
   initializeProject(args: readonly unknown[]): Promise<ApiResult<ProjectSummaryDto>>
   closeProject(): Promise<void>
@@ -91,25 +93,46 @@ export function createWorkspaceHandlers(deps: WorkspaceHandlerDependencies): Wor
 
   return {
     async chooseFolder(showFolderDialog) {
-      const chosen = await showFolderDialog()
-      if (chosen === undefined) return null
+      let chosen: string | undefined
+      try {
+        chosen = await showFolderDialog()
+      } catch (error) {
+        console.warn('Project folder dialog failed.', error)
+        const detail = error instanceof Error ? error.message : String(error)
+        return {
+          ok: false,
+          error: {
+            code: 'folder-dialog-failed',
+            message: detail,
+            diagnostic: { reason: 'workspace-folder-dialog-failed', detail }
+          }
+        }
+      }
+      if (chosen === undefined) return { ok: true, value: null }
 
-      const inspection = await deps.inspectFolder(deps.toProjectRoot(chosen))
+      const result = await deps.inspectFolder(deps.toProjectRoot(chosen))
+      if (!result.ok) return { ok: false, error: toApiError(result.error) }
+      const inspection = result.value
       allow(inspection.root)
       if (inspection.projectAbove !== undefined) allow(inspection.projectAbove.root)
       return {
-        root: inspection.root,
-        name: inspection.name,
-        isProject: inspection.isProject,
-        ...(inspection.projectAbove !== undefined
-          ? {
-              projectAbove: {
-                root: inspection.projectAbove.root,
-                title: inspection.projectAbove.title
+        ok: true,
+        value: {
+          root: inspection.root,
+          name: inspection.name,
+          isProject: inspection.isProject,
+          ...(inspection.projectAbove !== undefined
+            ? {
+                projectAbove: {
+                  root: inspection.projectAbove.root,
+                  title: inspection.projectAbove.title
+                }
               }
-            }
-          : {}),
-        ...(inspection.projectBelow !== undefined ? { projectBelow: inspection.projectBelow } : {})
+            : {}),
+          ...(inspection.projectBelow !== undefined
+            ? { projectBelow: inspection.projectBelow }
+            : {})
+        }
       }
     },
 

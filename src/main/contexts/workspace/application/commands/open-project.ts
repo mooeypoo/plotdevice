@@ -4,7 +4,7 @@ import { parseProjectPath } from '../../../../shared-kernel/project-path'
 import { err, ok, type Result } from '../../../../shared-kernel/result'
 import type { Clock } from '../../domain/ports/clock'
 import type { NovelFileStore } from '../../domain/ports/novel-file-store'
-import type { ProjectFolders } from '../../domain/ports/project-folders'
+import type { ProjectFolders, ProjectFoldersError } from '../../domain/ports/project-folders'
 import type { ProjectScan, ProjectScanner } from '../../domain/ports/project-scanner'
 import type {
   RecentProjectsError,
@@ -24,6 +24,7 @@ export interface OpenedProject {
 
 /** Why a folder couldn't be opened as a project. */
 export type OpenProjectError =
+  | ProjectFoldersError
   | DomainError<'folder-missing'>
   | (DomainError<'not-a-project'> & { readonly projectAbove?: ProjectRoot })
 
@@ -52,7 +53,9 @@ export interface OpenProjectPorts extends ReadProjectPorts {
 /** Builds the `ReadProject` query. */
 export function createReadProject(ports: ReadProjectPorts): ReadProject {
   return async (root) => {
-    if (!(await ports.folders.exists(root))) {
+    const exists = await ports.folders.exists(root)
+    if (!exists.ok) return exists
+    if (!exists.value) {
       return err(
         domainError('folder-missing', 'This folder no longer exists.', {
           reason: 'workspace-folder-missing',
@@ -63,7 +66,9 @@ export function createReadProject(ports: ReadProjectPorts): ReadProject {
 
     const reading = await ports.novelFiles.read(root)
     if (reading.kind === 'missing') {
-      const projectAbove = await ports.folders.findProjectAbove(root)
+      const above = await ports.folders.findProjectAbove(root)
+      if (!above.ok) return above
+      const projectAbove = above.value
       return err({
         ...domainError(
           'not-a-project',

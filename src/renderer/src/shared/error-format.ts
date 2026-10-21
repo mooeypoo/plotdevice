@@ -26,6 +26,16 @@ export function formatApiError(error: ApiError, t: Translator['t']): string {
   const diagnostic = error.diagnostic
   if (diagnostic === undefined) return error.message
   switch (diagnostic.reason) {
+    case 'workspace-folder-inspection-failed':
+      return t(
+        'error-workspace-folder-inspection-failed',
+        isolate(diagnostic.path),
+        isolate(diagnostic.detail)
+      )
+    case 'workspace-folder-search-limit':
+      return t('error-workspace-folder-search-limit', isolate(diagnostic.path), diagnostic.limit)
+    case 'workspace-folder-dialog-failed':
+      return t('error-workspace-folder-dialog-failed', isolate(diagnostic.detail))
     case 'recents-read-failed':
     case 'recents-save-failed':
     case 'recents-invalid':

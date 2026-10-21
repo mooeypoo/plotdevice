@@ -93,6 +93,12 @@ A usable novel still opens if remembering it fails. To recover, close the app,
 back up the settings file, and repair it or move it aside deliberately before
 reopening. A missing file starts an empty list; no novel files are affected.
 
+Folder selection and command-line/file-manager launches now report inspection
+failures instead of treating unreadable folders as empty. If a nesting search
+cannot finish within 10,000 folders, choose a smaller folder: initialization is
+refused without changing any novel files. A launch failure leaves the current
+project/draft open. Canceling the native chooser remains a no-op.
+
 ## Documentation
 
 ```bash

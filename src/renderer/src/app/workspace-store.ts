@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { FolderChoiceDto, ProjectSummaryDto, RecentProjectDto } from '../../../contract/dtos'
+import type {
+  ApiResult,
+  FolderChoiceDto,
+  ProjectSummaryDto,
+  RecentProjectDto
+} from '../../../contract/dtos'
 import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
@@ -22,10 +27,12 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const { message: recentsLoadErrorMessage, source: recentsLoadErrorSource } = useErrorNotice()
   const { message: recentsRemoveErrorMessage, source: recentsRemoveErrorSource } = useErrorNotice()
   const { message: rememberErrorMessage, source: rememberErrorSource } = useErrorNotice()
+  const { message: folderErrorMessage, source: folderErrorSource } = useErrorNotice()
   const busy = ref(false)
   let refreshRequest = 0
   let recentsRequest = 0
   let removeRequest = 0
+  let folderRequest = 0
 
   const api = (): ReturnType<typeof plotDeviceApi.current>['workspace'] =>
     plotDeviceApi.current().workspace
@@ -77,6 +84,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   }
 
   async function openProject(root: string): Promise<void> {
+    folderRequest += 1
     if (!(await leaveCurrentProject())) return
     await run(async () => {
       const result = await api().openProject(root)
@@ -87,9 +95,21 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   }
 
   async function chooseFolder(): Promise<void> {
-    errorMessage.value = null
-    const choice = await api().chooseFolder()
-    if (choice !== null) await useFolder(choice)
+    const request = ++folderRequest
+    const result = await api().chooseFolder()
+    if (request !== folderRequest) return
+    await useFolderResult(result)
+  }
+
+  async function useFolderResult(result: ApiResult<FolderChoiceDto | null>): Promise<void> {
+    folderRequest += 1
+    if (!result.ok) {
+      folderErrorSource.value = result.error
+      return
+    }
+    if (result.value === null) return
+    folderErrorSource.value = null
+    await useFolder(result.value)
   }
 
   /**
@@ -97,6 +117,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
    * the dialog and by folders given from outside (the command line, a file manager).
    */
   async function useFolder(choice: FolderChoiceDto): Promise<void> {
+    folderRequest += 1
     if (choice.isProject) {
       await openProject(choice.root)
       return
@@ -108,11 +129,14 @@ export const useWorkspaceStore = defineStore('workspace', () => {
 
   /** Opens the folder the app was started with, if any. */
   async function openLaunchFolder(): Promise<void> {
-    const choice = await api().takeLaunchFolder()
-    if (choice !== null) await useFolder(choice)
+    const request = ++folderRequest
+    const result = await api().takeLaunchFolder()
+    if (request !== folderRequest) return
+    await useFolderResult(result)
   }
 
   async function initializeChosenFolder(title: string): Promise<void> {
+    folderRequest += 1
     const folder = chosenFolder.value
     if (folder === null) return
     await run(async () => {
@@ -166,6 +190,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   }
 
   async function backToWelcome(): Promise<void> {
+    folderRequest += 1
     if (!(await leaveCurrentProject())) return
     screen.value = 'welcome'
     chosenFolder.value = null
@@ -183,12 +208,14 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     recentsLoadErrorMessage,
     recentsRemoveErrorMessage,
     rememberErrorMessage,
+    folderErrorMessage,
     busy,
     loadRecents,
     openProject,
     refresh,
     chooseFolder,
     useFolder,
+    useFolderResult,
     openLaunchFolder,
     initializeChosenFolder,
     removeRecent,

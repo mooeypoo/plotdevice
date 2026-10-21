@@ -116,6 +116,14 @@ useShortcuts([
         <p v-if="editor.actionError" class="navigation-notice error" role="alert">
           {{ editor.actionError }}
         </p>
+        <p
+          v-if="workspace.folderErrorMessage"
+          class="navigation-notice error"
+          role="alert"
+          data-testid="folder-error"
+        >
+          {{ workspace.folderErrorMessage }}
+        </p>
         <p v-if="workspace.errorMessage" class="navigation-notice error" role="alert" dir="auto">
           {{ workspace.errorMessage }}
         </p>

@@ -8,6 +8,6 @@
 
 **Warnings.** Semantic codes/parameters preserve invalid settings and unreadable/newer-format reasons; presentation language never changes read-only/default decisions or source files.
 
-**Failures.** Open/read/initialize and recents errors retain semantic reasons and exact OS paths/details; recents failures never block an otherwise successful open. Invalid settings stay untouched; failed reads prevent rewrites. Presentation language is never chosen here.
+**Failures.** Typed folder checks refuse inconclusive nesting/search exhaustion; errors retain exact OS paths/details without choosing presentation language. Recents errors never block a usable open; invalid settings stay untouched and failed reads prevent rewrites.
 
 **Must not know about.** Parts, chapters, characters, dates, or any other context. It reads only its own keys of `novel.md` (`format`, `title`, `author`, `settings`). Classification by `type` happens in `infrastructure/project-scan/`.

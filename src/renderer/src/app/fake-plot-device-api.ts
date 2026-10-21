@@ -1,5 +1,6 @@
 import type { AppMenuCommand, PlotDeviceApi } from '../../../contract/api'
 import type {
+  ApiResult,
   UiLanguageDto,
   EntryPropertiesDto,
   ManuscriptDto,
@@ -199,6 +200,8 @@ export function createFakePlotDeviceApi(): {
   launch: { folder: FolderChoiceDto | null }
   /** Simulates the app being started again with a folder. */
   openFolder(choice: FolderChoiceDto): void
+  /** Simulates either outcome of a later launch's folder inspection. */
+  emitFolderResult(result: ApiResult<FolderChoiceDto | null>): void
   /** Simulates the main process reporting changes made by another program. */
   emitChanges(changes: readonly ProjectChangeDto[]): void
   /** Simulates choosing a native menu action. */
@@ -255,7 +258,7 @@ export function createFakePlotDeviceApi(): {
   )
   const summary = { current: sampleSummary }
   const listeners = new Set<(changes: readonly ProjectChangeDto[]) => void>()
-  const folderListeners = new Set<(choice: FolderChoiceDto) => void>()
+  const folderListeners = new Set<(result: ApiResult<FolderChoiceDto | null>) => void>()
   const menuListeners = new Set<(command: AppMenuCommand) => void>()
   let language: UiLanguageDto = { locale: 'en' }
   const languageListeners = new Set<(settings: UiLanguageDto) => void>()
@@ -289,7 +292,7 @@ export function createFakePlotDeviceApi(): {
   >()
 
   const api: PlotDeviceApi = {
-    contractVersion: 22,
+    contractVersion: 23,
     uiLanguage: {
       get: () => Promise.resolve(language),
       set: (locale) => {
@@ -408,11 +411,11 @@ export function createFakePlotDeviceApi(): {
       }
     },
     workspace: {
-      chooseFolder: () => Promise.resolve(null),
+      chooseFolder: () => Promise.resolve({ ok: true, value: null }),
       takeLaunchFolder: () => {
         const choice = launch.folder
         launch.folder = null
-        return Promise.resolve(choice)
+        return Promise.resolve({ ok: true, value: choice })
       },
       onOpenFolder: (listener) => {
         folderListeners.add(listener)
@@ -856,7 +859,10 @@ export function createFakePlotDeviceApi(): {
     },
     launch,
     openFolder: (choice) => {
-      for (const listener of folderListeners) listener(choice)
+      for (const listener of folderListeners) listener({ ok: true, value: choice })
+    },
+    emitFolderResult: (result) => {
+      for (const listener of folderListeners) listener(result)
     },
     emitChanges: (changes) => {
       for (const listener of listeners) listener(changes)

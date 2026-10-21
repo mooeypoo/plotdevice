@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createInitializeProject } from '../contexts/workspace/application/commands/initialize-project'
 import {
   createOpenProject,
@@ -53,7 +53,40 @@ beforeEach(() => {
 
 const path = (value: string): ProjectPath => value as ProjectPath
 
+afterEach(() => vi.restoreAllMocks())
+
 describe('workspace handlers', () => {
+  it('returns a logged semantic dialog failure instead of rejecting the IPC call', async () => {
+    const error = new Error('Native dialog EIO <img>')
+    const log = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    expect(await handlers.chooseFolder(() => Promise.reject(error))).toEqual({
+      ok: false,
+      error: {
+        code: 'folder-dialog-failed',
+        message: error.message,
+        diagnostic: { reason: 'workspace-folder-dialog-failed', detail: error.message }
+      }
+    })
+    expect(log).toHaveBeenCalledExactlyOnceWith('Project folder dialog failed.', error)
+    expect(opened).toEqual([])
+  })
+
+  it('does not authorize or initialize a folder after inspection failed', async () => {
+    const root = workspace.addFolder('/novels/יעל')
+    const error = {
+      code: 'folder-inspection-failed',
+      message: 'EACCES',
+      diagnostic: { reason: 'workspace-folder-inspection-failed', path: root, detail: 'EACCES' }
+    } as const
+    vi.spyOn(workspace, 'findProjectBelow').mockResolvedValue({ ok: false, error })
+    expect(await handlers.chooseFolder(() => Promise.resolve(root))).toEqual({ ok: false, error })
+    expect(await handlers.initializeProject([root, 'New'])).toMatchObject({
+      ok: false,
+      error: { code: 'folder-not-allowed' }
+    })
+    expect(workspace.createdNovelFiles.size).toBe(0)
+  })
+
   it('returns explicit recents failures and keeps successful project opening independent', async () => {
     const root = workspace.addFolder('/novels/יעל', { novel: { kind: 'read', frontmatter: {} } })
     await handlers.chooseFolder(() => Promise.resolve(root))
@@ -195,7 +228,10 @@ describe('workspace handlers', () => {
     })
 
     const choice = await handlers.chooseFolder(() => Promise.resolve('/novels/salt-orchard'))
-    expect(choice).toEqual({ root: '/novels/salt-orchard', name: 'salt-orchard', isProject: true })
+    expect(choice).toEqual({
+      ok: true,
+      value: { root: '/novels/salt-orchard', name: 'salt-orchard', isProject: true }
+    })
 
     expect(await handlers.openProject(['/novels/salt-orchard'])).toEqual({
       ok: true,
@@ -266,7 +302,10 @@ describe('workspace handlers', () => {
   })
 
   it('returns null when the dialog is cancelled', async () => {
-    expect(await handlers.chooseFolder(() => Promise.resolve(undefined))).toBeNull()
+    expect(await handlers.chooseFolder(() => Promise.resolve(undefined))).toEqual({
+      ok: true,
+      value: null
+    })
   })
 
   it('allows the project above a chosen subfolder', async () => {
@@ -278,8 +317,11 @@ describe('workspace handlers', () => {
     const choice = await handlers.chooseFolder(() => Promise.resolve('/novels/salt-orchard/notes'))
 
     expect(choice).toMatchObject({
-      isProject: false,
-      projectAbove: { root: '/novels/salt-orchard', title: 'The Salt Orchard' }
+      ok: true,
+      value: {
+        isProject: false,
+        projectAbove: { root: '/novels/salt-orchard', title: 'The Salt Orchard' }
+      }
     })
     expect(await handlers.openProject(['/novels/salt-orchard'])).toMatchObject({ ok: true })
   })

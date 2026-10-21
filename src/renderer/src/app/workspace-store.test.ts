@@ -18,7 +18,10 @@ beforeEach(() => {
 describe('workspace store', () => {
   it('opens a chosen project folder directly', async () => {
     fake.api.workspace.chooseFolder = () =>
-      Promise.resolve({ root: '/novels/salt-orchard', name: 'salt-orchard', isProject: true })
+      Promise.resolve({
+        ok: true,
+        value: { root: '/novels/salt-orchard', name: 'salt-orchard', isProject: true }
+      })
     const store = useWorkspaceStore()
 
     await store.chooseFolder()
@@ -29,7 +32,7 @@ describe('workspace store', () => {
 
   it('asks before initializing a folder that is not a project', async () => {
     fake.api.workspace.chooseFolder = () =>
-      Promise.resolve({ root: '/novels/new', name: 'new', isProject: false })
+      Promise.resolve({ ok: true, value: { root: '/novels/new', name: 'new', isProject: false } })
     const store = useWorkspaceStore()
 
     await store.chooseFolder()
