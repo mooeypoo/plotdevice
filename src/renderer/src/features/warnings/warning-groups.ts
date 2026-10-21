@@ -5,6 +5,8 @@ import type {
   WarningFixDto
 } from '../../../../contract/dtos'
 import { describeFileProblem } from '../welcome/describe-file-problem'
+import type { MessageKey, Translator } from '../../../../i18n/translator'
+import { formatManuscriptWarning, formatProjectWarning } from './format-warning'
 
 /** One thing in the warnings panel. `path` is the file it's about, if there is one. */
 export interface WarningItem {
@@ -17,21 +19,22 @@ export interface WarningItem {
 
 /** Warnings of one kind, under a heading. */
 export interface WarningGroup {
+  readonly id: GroupId
   readonly heading: string
   readonly items: readonly WarningItem[]
 }
 
 type GroupId = 'unreadable' | 'names' | 'links' | 'values' | 'order' | 'types' | 'project'
 
-const HEADINGS: Readonly<Record<GroupId, string>> = {
-  unreadable: 'Files left untouched',
-  names: 'Names that break links',
-  links: 'Links that could mean two files',
-  values: 'Values the app can’t use',
-  order: 'Order',
-  types: 'Unknown types',
-  project: 'Project'
-}
+const HEADINGS = {
+  unreadable: 'warnings-group-unreadable',
+  names: 'warnings-group-names',
+  links: 'warnings-group-links',
+  values: 'warnings-group-values',
+  order: 'warnings-group-order',
+  types: 'warnings-group-types',
+  project: 'warnings-group-project'
+} as const satisfies Readonly<Record<GroupId, MessageKey>>
 
 const PROBLEM_GROUPS: Readonly<Record<FileProblemDto['problem'], GroupId>> = {
   'unreadable-file': 'unreadable',
@@ -56,35 +59,43 @@ function manuscriptGroup(code: string): GroupId {
 export function groupWarnings(
   problems: readonly FileProblemDto[],
   projectWarnings: readonly WarningDto[],
-  manuscript: ManuscriptDto | null
+  manuscript: ManuscriptDto | null,
+  t: Translator['t']
 ): WarningGroup[] {
   const groups = new Map<GroupId, WarningItem[]>(
     (Object.keys(HEADINGS) as GroupId[]).map((id) => [id, []])
   )
+  const occurrences = new Map<string, number>()
+  const identity = (source: unknown): string => {
+    const base = JSON.stringify(source)
+    const occurrence = occurrences.get(base) ?? 0
+    occurrences.set(base, occurrence + 1)
+    return `${base}:${String(occurrence)}`
+  }
   for (const problem of problems) {
     groups.get(PROBLEM_GROUPS[problem.problem])?.push({
-      key: `${problem.problem}:${problem.path}`,
-      message: describeFileProblem(problem),
+      key: identity(problem),
+      message: describeFileProblem(problem, t),
       path: problem.path
     })
   }
   for (const warning of projectWarnings) {
     groups
       .get('project')
-      ?.push({ key: `${warning.code}:${warning.message}`, message: warning.message })
+      ?.push({ key: identity(warning), message: formatProjectWarning(warning, t) })
   }
   for (const warning of manuscript?.warnings ?? []) {
     const path = warning.paths[0]
     groups.get(manuscriptGroup(warning.code))?.push({
-      key: `${warning.code}:${warning.message}`,
-      message: warning.message,
+      key: identity(warning),
+      message: formatManuscriptWarning(warning, t),
       ...(path !== undefined ? { path } : {}),
       ...(path !== undefined && warning.fix !== undefined ? { fix: warning.fix } : {})
     })
   }
   return [...groups]
     .filter(([, items]) => items.length > 0)
-    .map(([id, items]) => ({ heading: HEADINGS[id], items }))
+    .map(([id, items]) => ({ id, heading: t(HEADINGS[id]), items }))
 }
 
 /** How many things need attention, as the binder's footer counts them. */

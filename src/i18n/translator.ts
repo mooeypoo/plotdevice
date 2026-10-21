@@ -17,6 +17,32 @@ type ParameterizedMessages = {
   'date-error-not-date': [value: string]
   'date-error-invalid-month': [value: string, month: string]
   'date-error-invalid-day': [value: string]
+  'warnings-open': [path: string]
+  'warnings-means': [target: string]
+  'problem-unknown-type': [type: string]
+  'warning-format-invalid': [value: string]
+  'warning-format-newer': [version: string]
+  'warning-setting-file-name-sync': [key: string, value: string]
+  'warning-setting-boolean': [key: string, value: string]
+  'warning-setting-folder-mapping': [key: string, value: string]
+  'warning-setting-visible-folder': [key: string, value: string]
+  'warning-duplicate-chapter-order': [order: string, titles: string]
+  'warning-duplicate-part-order': [order: string, titles: string]
+  'warning-part-without-order': [titles: string]
+  'warning-ambiguous-body': [title: string, link: string, choices: string, example: string]
+  'warning-ambiguous-key': [
+    title: string,
+    link: string,
+    key: string,
+    choices: string,
+    example: string
+  ]
+  'warning-unquoted-link': [title: string, source: string, example: string]
+  'warning-not-link': [title: string, key: string, value: string]
+  'warning-not-integer': [title: string, key: string, value: string]
+  'warning-list': [list: string, next: string]
+  'warning-alternatives': [list: string, next: string]
+  'warning-quoted-title': [title: string]
 }
 type MessageArguments<Key extends MessageKey> = Key extends keyof ParameterizedMessages
   ? ParameterizedMessages[Key]

@@ -123,9 +123,11 @@ describe('arrangeManuscript rules', () => {
     expect(outline(manuscript.unnumberedParts)).toEqual([
       ['- Interludes', '- Fog', '- Lamplighter']
     ])
-    expect(manuscript.warnings).toContainEqual(
-      expect.objectContaining({ code: 'part-without-order' })
-    )
+    expect(manuscript.warnings).toContainEqual({
+      code: 'part-without-order',
+      titles: ['Interludes'],
+      paths: [interludes.path]
+    })
   })
 
   it('lists chapters directly in a book without parts', () => {

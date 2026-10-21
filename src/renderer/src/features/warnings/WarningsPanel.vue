@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { ChosenFixDto } from '../../../../contract/dtos'
 import type { WarningGroup } from './warning-groups'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { isolate } from '../../shared/isolate'
+
+const language = useUiLanguageStore()
 
 defineProps<{
   groups: readonly WarningGroup[]
@@ -17,12 +21,11 @@ const linkName = (path: string): string => path.replace(/\.md$/iu, '')
 
 <template>
   <section class="warnings" aria-labelledby="warnings-heading">
-    <h2 id="warnings-heading" class="eyebrow">Needs attention</h2>
+    <h2 id="warnings-heading" class="eyebrow">{{ language.t('warnings-heading') }}</h2>
     <p class="intro">
-      Plot Device never changes files because of these. Fix them in the app or in any editor; this
-      list updates as you do.
+      {{ language.t('warnings-intro') }}
     </p>
-    <section v-for="group in groups" :key="group.heading" class="group">
+    <section v-for="group in groups" :key="group.id" class="group">
       <h3>
         {{ group.heading }} <span class="count">{{ group.items.length }}</span>
       </h3>
@@ -33,7 +36,7 @@ const linkName = (path: string): string => path.replace(/\.md$/iu, '')
             type="button"
             class="path"
             dir="auto"
-            :title="`Open ${item.path}`"
+            :title="language.t('warnings-open', isolate(item.path))"
             @click="$emit('open', item.path)"
           >
             {{ item.path }}
@@ -47,10 +50,9 @@ const linkName = (path: string): string => path.replace(/\.md$/iu, '')
                 :key="choice"
                 type="button"
                 class="fix"
-                dir="auto"
                 @click="$emit('fix', item.path, { kind: 'path-form', name: item.fix.name, choice })"
               >
-                Means {{ linkName(choice) }}
+                {{ language.t('warnings-means', isolate(linkName(choice))) }}
               </button>
             </template>
             <button
@@ -59,7 +61,7 @@ const linkName = (path: string): string => path.replace(/\.md$/iu, '')
               class="fix"
               @click="$emit('fix', item.path, { kind: 'quote', key: item.fix.key })"
             >
-              Add quotes
+              {{ language.t('warnings-add-quotes') }}
             </button>
           </div>
         </li>

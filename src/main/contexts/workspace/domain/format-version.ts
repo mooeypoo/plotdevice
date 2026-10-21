@@ -1,4 +1,5 @@
 import type { ProjectWarning } from './project-warning'
+import { describeFrontmatterValue } from '../../../shared-kernel/frontmatter-values'
 
 /** The newest `format` of novel.md this version of the app can write. */
 export const SUPPORTED_FORMAT_VERSION = 1
@@ -16,7 +17,7 @@ export function readFormatVersion(value: unknown): FormatVersionReading {
     return {
       version: 1,
       readOnly: false,
-      warning: { code: 'format-missing', message: 'novel.md has no "format" key; assuming 1.' }
+      warning: { code: 'format-missing' }
     }
   }
   if (typeof value !== 'number' || !Number.isInteger(value) || value < 1) {
@@ -25,7 +26,7 @@ export function readFormatVersion(value: unknown): FormatVersionReading {
       readOnly: false,
       warning: {
         code: 'format-invalid',
-        message: `"format" should be a whole number, not ${JSON.stringify(value)}; assuming 1.`
+        value: describeFrontmatterValue(value)
       }
     }
   }
@@ -35,7 +36,7 @@ export function readFormatVersion(value: unknown): FormatVersionReading {
       readOnly: true,
       warning: {
         code: 'format-newer',
-        message: `This project uses format ${String(value)}, which is newer than this app supports. It is open read-only.`
+        version: value
       }
     }
   }

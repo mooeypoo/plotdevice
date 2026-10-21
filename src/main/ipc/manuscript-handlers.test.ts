@@ -80,6 +80,47 @@ beforeEach(() => {
 })
 
 describe('manuscript handlers', () => {
+  it('preserves semantic warnings and explicit fixes across IPC without changing files', async () => {
+    repository.put(
+      ferry,
+      { type: 'chapter', title: 'יעל', part: '[[Part One]]', order: 1, pov: [['Ilka']] },
+      'At [[Marrow]].'
+    )
+    repository.otherCandidates = [
+      { path: marrow, type: 'location' },
+      { path: p('characters/Marrow.md'), type: 'character' }
+    ]
+    const before = JSON.stringify([...repository.files])
+    const result = await handlers.getManuscript()
+    expect(result.ok).toBe(true)
+    if (!result.ok) throw new Error('Expected manuscript')
+    expect(result.value.warnings).toEqual([
+      {
+        code: 'unusable-value',
+        title: 'יעל',
+        reason: 'unquoted-link',
+        key: 'pov',
+        value: '[[Ilka]]',
+        paths: [ferry],
+        fix: { kind: 'quote', key: 'pov' }
+      },
+      {
+        code: 'ambiguous-link',
+        title: 'יעל',
+        link: '[[Marrow]]',
+        location: { kind: 'body' },
+        choices: ['characters/Marrow.md', 'locations/Marrow.md'],
+        paths: [ferry],
+        fix: {
+          kind: 'path-form',
+          name: 'Marrow',
+          choices: ['characters/Marrow.md', 'locations/Marrow.md']
+        }
+      }
+    ])
+    expect(JSON.stringify([...repository.files])).toBe(before)
+  })
+
   it('maps the manuscript for the binder, including each chapter’s order', async () => {
     const result = await handlers.getManuscript()
     expect(result).toMatchObject({

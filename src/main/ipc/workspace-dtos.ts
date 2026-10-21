@@ -47,7 +47,7 @@ export function toProjectSummaryDto(opened: OpenedProject): ProjectSummaryDto {
     ...(project.author !== undefined ? { author: project.author } : {}),
     formatVersion: project.formatVersion,
     readOnly: project.readOnly,
-    warnings: project.warnings.map(({ code, message }) => ({ code, message })),
+    warnings: project.warnings.map((warning) => ({ ...warning })),
     counts,
     problems
   }

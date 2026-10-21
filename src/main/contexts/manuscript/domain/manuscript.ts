@@ -30,14 +30,28 @@ export interface UnorderedChapter {
 }
 
 /** Something about the structure the writer should know. Files are never changed because of it. */
-export interface ManuscriptWarning {
-  readonly code:
-    | 'duplicate-chapter-order'
-    | 'duplicate-part-order'
-    | 'part-without-order'
-    | 'ambiguous-link'
-    | 'unusable-value'
-  readonly message: string
+export type ManuscriptWarning = (
+  | {
+      readonly code: 'duplicate-chapter-order' | 'duplicate-part-order'
+      readonly order: number
+      readonly titles: readonly string[]
+    }
+  | { readonly code: 'part-without-order'; readonly titles: readonly string[] }
+  | {
+      readonly code: 'ambiguous-link'
+      readonly title: string
+      readonly link: string
+      readonly location: { readonly kind: 'body' } | { readonly kind: 'key'; readonly key: string }
+      readonly choices: readonly ProjectPath[]
+    }
+  | {
+      readonly code: 'unusable-value'
+      readonly title: string
+      readonly reason: 'unquoted-link' | 'not-link' | 'not-integer'
+      readonly key: string
+      readonly value: string
+    }
+) & {
   readonly paths: readonly ProjectPath[]
   /** A change the writer can ask for in one click; the file is never changed without asking. */
   readonly fix?: WarningFix
@@ -95,14 +109,15 @@ export function arrangeManuscript(
   for (const group of duplicateOrderGroups(numbered)) {
     warnings.push({
       code: 'duplicate-part-order',
-      message: `Parts share order ${String(group[0]?.order)}: ${titles(group)}.`,
+      order: duplicateOrder(group),
+      titles: group.map((part) => part.title),
       paths: group.map((part) => part.path)
     })
   }
   if (unnumbered.length > 0) {
     warnings.push({
       code: 'part-without-order',
-      message: `Not in the numbered sequence (no order): ${titles(unnumbered)}.`,
+      titles: unnumbered.map((part) => part.title),
       paths: unnumbered.map((part) => part.path)
     })
   }
@@ -172,7 +187,8 @@ function placeInOrder(
     for (const chapter of group) duplicates.add(chapter.path)
     warnings.push({
       code: 'duplicate-chapter-order',
-      message: `Chapters share order ${String(group[0]?.order)}: ${titles(group)}.`,
+      order: duplicateOrder(group),
+      titles: group.map((chapter) => chapter.title),
       paths: group.map((chapter) => chapter.path)
     })
   }
@@ -210,8 +226,10 @@ function compare(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0
 }
 
-function titles(entries: readonly Ordered[]): string {
-  return entries.map((entry) => `"${entry.title}"`).join(', ')
+function duplicateOrder(entries: readonly Ordered[]): number {
+  const order = entries[0]?.order
+  if (order === undefined) throw new Error('Duplicate order group must have an order')
+  return order
 }
 
 function sumWords(entries: readonly { readonly wordCount: number }[]): number {

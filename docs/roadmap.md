@@ -141,7 +141,11 @@ acceptance criteria, and the cross-session checklist.
   - [x] I2a: Semantic date readings/issues over IPC; English/Hebrew inspector,
     timeline and axis formatting; cached readings retranslate without file writes.
   - [ ] I2b: General semantic errors/warnings and reactive presentation; stable
-    warning identity and preserved recovery details. Next approval boundary.
+    warning identity and preserved recovery details.
+    - [x] I2b.1: Semantic project/manuscript warnings, localized file problems/
+      panel, stable rows/focus and explicit fix payloads across language switches.
+    - [ ] I2b.2: Action failures and cached errors, including recovery/navigation
+      details. Next approval boundary.
 - [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.

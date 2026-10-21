@@ -6,4 +6,6 @@
 
 **Use cases.** Commands: `OpenProject`, `InitializeProject`, `RemoveRecentProject`. Queries: `InspectFolder`, `ListRecentProjects`, `ReadProject` (re-reads the open project after outside changes, without touching recents). Ports (with an in-memory fake beside them): `ProjectFolders`, `NovelFileStore`, `ProjectScanner`, `RecentProjectsStore`, `Clock`.
 
+**Warnings.** Semantic codes/parameters preserve invalid settings and unreadable/newer-format reasons; presentation language never changes read-only/default decisions or source files.
+
 **Must not know about.** Parts, chapters, characters, dates, or any other context. It reads only its own keys of `novel.md` (`format`, `title`, `author`, `settings`). Classification by `type` happens in `infrastructure/project-scan/`.

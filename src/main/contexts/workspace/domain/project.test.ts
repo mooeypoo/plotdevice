@@ -67,7 +67,7 @@ describe('readUnreadableProject', () => {
       title: 'my-novel',
       readOnly: true,
       settings: DEFAULT_PROJECT_SETTINGS,
-      warnings: [{ code: 'novel-file-unreadable' }]
+      warnings: [{ code: 'novel-file-unreadable', problem: 'unparseable-frontmatter' }]
     })
   })
 })

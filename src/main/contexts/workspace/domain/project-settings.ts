@@ -1,5 +1,6 @@
 import { parseProjectPath, projectPathSegments } from '../../../shared-kernel/project-path'
 import type { ProjectWarning } from './project-warning'
+import { describeFrontmatterValue } from '../../../shared-kernel/frontmatter-values'
 
 /** When a title changes, whether the app renames the file to match. */
 export type FileNameSync = 'ask' | 'always' | 'never'
@@ -53,17 +54,21 @@ export function readProjectSettings(value: unknown): ProjectSettingsReading {
   if (!isMapping(value)) {
     return {
       settings: DEFAULT_PROJECT_SETTINGS,
-      warnings: [
-        { code: 'settings-invalid', message: '"settings" should be a mapping; using defaults.' }
-      ]
+      warnings: [{ code: 'settings-invalid' }]
     }
   }
 
   const warnings: ProjectWarning[] = []
-  const invalid = (key: string, raw: unknown, expected: string): void => {
+  const invalid = (
+    key: string,
+    raw: unknown,
+    expected: Extract<ProjectWarning, { code: 'setting-invalid' }>['expected']
+  ): void => {
     warnings.push({
       code: 'setting-invalid',
-      message: `settings.${key} should be ${expected}, not ${JSON.stringify(raw)}; using the default.`
+      key,
+      value: describeFrontmatterValue(raw),
+      expected
     })
   }
 
@@ -73,7 +78,7 @@ export function readProjectSettings(value: unknown): ProjectSettingsReading {
     if (typeof rawFileNames === 'string' && FILE_NAME_SYNC_VALUES.includes(rawFileNames)) {
       fileNames = rawFileNames as FileNameSync
     } else {
-      invalid('file_names', rawFileNames, 'ask, always, or never')
+      invalid('file_names', rawFileNames, 'file-name-sync')
     }
   }
 
@@ -81,20 +86,20 @@ export function readProjectSettings(value: unknown): ProjectSettingsReading {
   const rawOrderPrefix = value['order_prefix']
   if (rawOrderPrefix !== undefined) {
     if (typeof rawOrderPrefix === 'boolean') orderPrefix = rawOrderPrefix
-    else invalid('order_prefix', rawOrderPrefix, 'true or false')
+    else invalid('order_prefix', rawOrderPrefix, 'boolean')
   }
 
   const folders: Record<FolderKind, string> = { ...DEFAULT_PROJECT_SETTINGS.folders }
   const rawFolders = value['folders']
   if (rawFolders !== undefined && rawFolders !== null) {
     if (!isMapping(rawFolders)) {
-      invalid('folders', rawFolders, 'a mapping of entry types to folders')
+      invalid('folders', rawFolders, 'folder-mapping')
     } else {
       for (const kind of FOLDER_KINDS) {
         const rawFolder = rawFolders[kind]
         if (rawFolder === undefined) continue
         if (isUsableFolder(rawFolder)) folders[kind] = rawFolder
-        else invalid(`folders.${kind}`, rawFolder, 'a folder inside the project, not hidden')
+        else invalid(`folders.${kind}`, rawFolder, 'visible-folder')
       }
     }
   }

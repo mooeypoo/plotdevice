@@ -18,7 +18,7 @@ describe('readFormatVersion', () => {
     expect(readFormatVersion(SUPPORTED_FORMAT_VERSION + 1)).toMatchObject({
       version: SUPPORTED_FORMAT_VERSION + 1,
       readOnly: true,
-      warning: { code: 'format-newer' }
+      warning: { code: 'format-newer', version: SUPPORTED_FORMAT_VERSION + 1 }
     })
   })
 
@@ -26,7 +26,7 @@ describe('readFormatVersion', () => {
     expect(readFormatVersion(value)).toMatchObject({
       version: 1,
       readOnly: false,
-      warning: { code: 'format-invalid' }
+      warning: { code: 'format-invalid', value: JSON.stringify(value) }
     })
   })
 })

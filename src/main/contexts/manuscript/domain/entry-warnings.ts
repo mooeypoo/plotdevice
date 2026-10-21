@@ -4,7 +4,11 @@ import { findWikiLinks } from '../../../shared-kernel/link-rewriter'
 import { projectPathStem, type ProjectPath } from '../../../shared-kernel/project-path'
 import { readLinkValue } from '../../../shared-kernel/read-link-value'
 import { formatWikiLink, type WikiLink } from '../../../shared-kernel/wiki-link'
-import { isMapping, readEntryText } from '../../../shared-kernel/frontmatter-values'
+import {
+  describeFrontmatterValue,
+  isMapping,
+  readEntryText
+} from '../../../shared-kernel/frontmatter-values'
 import type { ManuscriptWarning, WarningFix } from './manuscript'
 
 /** A part's or chapter's file as read: its frontmatter values and its body. */
@@ -31,16 +35,24 @@ function warningsFor(source: EntrySource, links: LinkIndex): ManuscriptWarning[]
   const keys = isMapping(source.frontmatter) ? source.frontmatter : {}
   const name = readEntryText(keys['title']) ?? projectPathStem(source.path)
   const warnings: ManuscriptWarning[] = []
-  const unusable = (message: string, fix?: WarningFix): void => {
+  const unusable = (
+    reason: Extract<ManuscriptWarning, { code: 'unusable-value' }>['reason'],
+    key: string,
+    value: string,
+    fix?: WarningFix
+  ): void => {
     warnings.push({
       code: 'unusable-value',
-      message: `${name}: ${message}`,
+      title: name,
+      reason,
+      key,
+      value,
       paths: [source.path],
       ...(fix !== undefined ? { fix } : {})
     })
   }
   const reported = new Set<string>()
-  const checkAmbiguous = (link: WikiLink, where: string, key?: string): void => {
+  const checkAmbiguous = (link: WikiLink, key?: string): void => {
     const expected = key === undefined ? undefined : linkKeyType(key)
     const resolution = links.resolve(link, expected)
     const text = formatWikiLink({ target: link.target, embed: false })
@@ -49,7 +61,10 @@ function warningsFor(source: EntrySource, links: LinkIndex): ManuscriptWarning[]
     warnings.push({
       fix: { kind: 'path-form', name: link.target, choices: resolution.paths },
       code: 'ambiguous-link',
-      message: `${name}: ${text} ${where} could mean ${resolution.paths.join(' or ')}. Write it with its folder, like [[${resolution.paths[0]?.replace(/\.md$/iu, '') ?? ''}]].`,
+      title: name,
+      link: text,
+      location: key === undefined ? { kind: 'body' } : { kind: 'key', key },
+      choices: resolution.paths,
       paths: [source.path]
     })
   }
@@ -64,25 +79,22 @@ function warningsFor(source: EntrySource, links: LinkIndex): ManuscriptWarning[]
       const read = readLinkValue(item)
       if (read.kind === 'link') {
         if (read.recovered === true) {
-          unusable(
-            `${key}: ${formatWikiLink(read.link)} isn’t in quotes, so YAML reads it as a list. Write ${key}: "${formatWikiLink(read.link)}".`,
-            { kind: 'quote', key }
-          )
+          unusable('unquoted-link', key, formatWikiLink(read.link), { kind: 'quote', key })
         }
-        checkAmbiguous(read.link, `in ${key}`, key)
+        checkAmbiguous(read.link, key)
       } else {
-        unusable(`${key} should be a link like "[[Name]]", not ${JSON.stringify(item)}.`)
+        unusable('not-link', key, describeFrontmatterValue(item))
       }
     }
   }
 
   const order = keys['order']
   if (order !== undefined && order !== null && !Number.isInteger(order)) {
-    unusable(`order should be a whole number, not ${JSON.stringify(order)}.`)
+    unusable('not-integer', 'order', describeFrontmatterValue(order))
   }
 
   for (const link of findWikiLinks(source.body, { skipCode: true })) {
-    checkAmbiguous(link, 'in the text')
+    checkAmbiguous(link)
   }
   return warnings
 }

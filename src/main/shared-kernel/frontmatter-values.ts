@@ -15,3 +15,9 @@ export function readEntryText(value: unknown): string | undefined {
 export function readInteger(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isInteger(value) ? value : undefined
 }
+
+/** Describes a parsed frontmatter value for a semantic diagnostic, never for writing it back. */
+export function describeFrontmatterValue(value: unknown): string {
+  const serialized: unknown = JSON.stringify(value)
+  return typeof serialized === 'string' ? serialized : 'undefined'
+}

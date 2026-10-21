@@ -1,16 +1,16 @@
-/** Why a project opened with a warning. Each code maps to one rule in docs/file-format.md. */
-export type ProjectWarningCode =
-  | 'novel-file-unreadable'
-  | 'format-missing'
-  | 'format-invalid'
-  | 'format-newer'
-  | 'title-invalid'
-  | 'author-invalid'
-  | 'settings-invalid'
-  | 'setting-invalid'
-
-/** Something about `novel.md` the writer should know. The file itself is never changed because of it. */
-export interface ProjectWarning {
-  readonly code: ProjectWarningCode
-  readonly message: string
-}
+/** Something about novel.md the writer should know, independent of presentation language. */
+export type ProjectWarning =
+  | {
+      readonly code: 'novel-file-unreadable'
+      readonly problem:
+        'unreadable-file' | 'invalid-encoding' | 'unclosed-frontmatter' | 'unparseable-frontmatter'
+    }
+  | { readonly code: 'format-missing' | 'title-invalid' | 'author-invalid' | 'settings-invalid' }
+  | { readonly code: 'format-invalid'; readonly value: string }
+  | { readonly code: 'format-newer'; readonly version: number }
+  | {
+      readonly code: 'setting-invalid'
+      readonly key: string
+      readonly value: string
+      readonly expected: 'file-name-sync' | 'boolean' | 'folder-mapping' | 'visible-folder'
+    }

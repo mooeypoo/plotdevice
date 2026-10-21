@@ -1,21 +1,23 @@
 import type { FileProblemDto } from '../../../../contract/dtos'
+import type { Translator } from '../../../../i18n/translator'
+import { isolate } from '../../shared/isolate'
 
 /** A short, plain explanation of why a file can't be fully used. */
-export function describeFileProblem(problem: FileProblemDto): string {
+export function describeFileProblem(problem: FileProblemDto, t: Translator['t']): string {
   switch (problem.problem) {
     case 'unreadable-file':
-      return "Can't be read. Check the file's permissions."
+      return t('problem-unreadable-file')
     case 'invalid-encoding':
-      return 'Not saved as UTF-8 text, so it is left untouched.'
+      return t('problem-invalid-encoding')
     case 'unclosed-frontmatter':
-      return 'The frontmatter block is never closed with ---.'
+      return t('problem-unclosed-frontmatter')
     case 'unparseable-frontmatter':
-      return "The frontmatter isn't valid YAML, so it is left untouched."
+      return t('problem-unparseable-frontmatter')
     case 'unknown-type':
-      return `Unknown type "${problem.detail ?? ''}", so it is listed as untyped.`
+      return t('problem-unknown-type', isolate(problem.detail ?? ''))
     case 'nested-project':
-      return 'Another project (has its own novel.md). Its files are not part of this one.'
+      return t('problem-nested-project')
     case 'name-breaks-links':
-      return 'The file name contains # ^ [ ] or |, so links to it don’t work. Rename it.'
+      return t('problem-name-breaks-links')
   }
 }

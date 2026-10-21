@@ -32,11 +32,22 @@ export interface FolderChoiceDto {
   readonly projectBelow?: string
 }
 
-/** Something the writer should know. */
-export interface WarningDto {
-  readonly code: string
-  readonly message: string
-}
+/** A novel.md warning with semantic parameters, formatted only when displayed. */
+export type WarningDto =
+  | {
+      readonly code: 'novel-file-unreadable'
+      readonly problem:
+        'unreadable-file' | 'invalid-encoding' | 'unclosed-frontmatter' | 'unparseable-frontmatter'
+    }
+  | { readonly code: 'format-missing' | 'title-invalid' | 'author-invalid' | 'settings-invalid' }
+  | { readonly code: 'format-invalid'; readonly value: string }
+  | { readonly code: 'format-newer'; readonly version: number }
+  | {
+      readonly code: 'setting-invalid'
+      readonly key: string
+      readonly value: string
+      readonly expected: 'file-name-sync' | 'boolean' | 'folder-mapping' | 'visible-folder'
+    }
 
 /** A markdown file that another program added, changed, or removed while the project was open. */
 export interface ProjectChangeDto {
@@ -151,7 +162,28 @@ export type ChosenFixDto =
   | { readonly kind: 'quote'; readonly key: string }
 
 /** A warning about the manuscript, with the files it concerns and, sometimes, a fix. */
-export interface ManuscriptWarningDto extends WarningDto {
+export type ManuscriptWarningDto = (
+  | {
+      readonly code: 'duplicate-chapter-order' | 'duplicate-part-order'
+      readonly order: number
+      readonly titles: readonly string[]
+    }
+  | { readonly code: 'part-without-order'; readonly titles: readonly string[] }
+  | {
+      readonly code: 'ambiguous-link'
+      readonly title: string
+      readonly link: string
+      readonly location: { readonly kind: 'body' } | { readonly kind: 'key'; readonly key: string }
+      readonly choices: readonly string[]
+    }
+  | {
+      readonly code: 'unusable-value'
+      readonly title: string
+      readonly reason: 'unquoted-link' | 'not-link' | 'not-integer'
+      readonly key: string
+      readonly value: string
+    }
+) & {
   readonly paths: readonly string[]
   readonly fix?: WarningFixDto
 }

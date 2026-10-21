@@ -54,6 +54,31 @@ beforeEach(() => {
 const path = (value: string): ProjectPath => value as ProjectPath
 
 describe('workspace handlers', () => {
+  it('preserves project warning reasons and parameters without display text', async () => {
+    workspace.addFolder('/novels/warnings', {
+      novel: {
+        kind: 'read',
+        frontmatter: { format: 99, title: 42, settings: { file_names: 'sometimes' } }
+      }
+    })
+    await handlers.chooseFolder(() => Promise.resolve('/novels/warnings'))
+    const result = await handlers.openProject(['/novels/warnings'])
+    expect(result.ok).toBe(true)
+    if (!result.ok) throw new Error('Expected project')
+    expect(result.value.readOnly).toBe(true)
+    expect(result.value.warnings).toEqual([
+      { code: 'format-newer', version: 99 },
+      { code: 'title-invalid' },
+      {
+        code: 'setting-invalid',
+        key: 'file_names',
+        value: '"sometimes"',
+        expected: 'file-name-sync'
+      }
+    ])
+    expect(workspace.createdNovelFiles.size).toBe(0)
+  })
+
   it('refuses to open a folder the writer never chose', async () => {
     workspace.addFolder('/novels/salt-orchard', { novel: { kind: 'read', frontmatter: {} } })
     expect(await handlers.openProject(['/novels/salt-orchard'])).toMatchObject({

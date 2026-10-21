@@ -23,15 +23,7 @@ export interface Project {
 }
 
 /** Why novel.md exists but its keys can't be read. */
-export type NovelFileProblem =
-  'unreadable-file' | 'invalid-encoding' | 'unclosed-frontmatter' | 'unparseable-frontmatter'
-
-const PROBLEM_DESCRIPTIONS: Record<NovelFileProblem, string> = {
-  'unreadable-file': "can't be read (check its permissions)",
-  'invalid-encoding': 'is not valid UTF-8',
-  'unclosed-frontmatter': 'has a frontmatter block that is never closed',
-  'unparseable-frontmatter': 'has frontmatter that is not valid YAML'
-}
+export type NovelFileProblem = Extract<ProjectWarning, { code: 'novel-file-unreadable' }>['problem']
 
 /** Reads a project from the parsed frontmatter of its novel.md. */
 export function readProject(root: ProjectRoot, folderName: string, frontmatter: unknown): Project {
@@ -41,8 +33,8 @@ export function readProject(root: ProjectRoot, folderName: string, frontmatter: 
   const format = readFormatVersion(keys['format'])
   if (format.warning !== undefined) warnings.push(format.warning)
 
-  const title = readText(keys['title'], 'title-invalid', '"title" should be text.', warnings)
-  const author = readText(keys['author'], 'author-invalid', '"author" should be text.', warnings)
+  const title = readText(keys['title'], 'title-invalid', warnings)
+  const author = readText(keys['author'], 'author-invalid', warnings)
 
   const settings = readProjectSettings(keys['settings'])
   warnings.push(...settings.warnings)
@@ -73,7 +65,7 @@ export function readUnreadableProject(
     warnings: [
       {
         code: 'novel-file-unreadable',
-        message: `novel.md ${PROBLEM_DESCRIPTIONS[problem]}. The project is open read-only until it is fixed.`
+        problem
       }
     ]
   }
@@ -82,13 +74,12 @@ export function readUnreadableProject(
 /** Trimmed, non-empty text, or `undefined` (with a warning if the value had the wrong type). */
 function readText(
   value: unknown,
-  code: ProjectWarning['code'],
-  message: string,
+  code: 'title-invalid' | 'author-invalid',
   warnings: ProjectWarning[]
 ): string | undefined {
   if (value === undefined || value === null) return undefined
   if (typeof value !== 'string') {
-    warnings.push({ code, message })
+    warnings.push({ code })
     return undefined
   }
   const trimmed = value.trim()

@@ -61,6 +61,10 @@ progress, remaining limitations, and the next slice before ending a session.
     fake API, inspectors and timeline; localized cached dates and axis labels.
   - [ ] **I2b General diagnostics:** semantic failures/warnings, stable identity,
     and reactive formatting across all handlers, fakes, stores and consumers.
+    - [x] **I2b.1 Warnings:** project/manuscript semantic warnings, file-problem
+      descriptions, localized panel, locale-independent identities and fixes.
+    - [ ] **I2b.2 Action failures:** expected errors and cached failure state
+      across editor/recovery/navigation, remaining stores, handlers and fakes.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
   existing notices, number formatting, display collation, native dialogs and
   controlled destructive confirmations; complete Hebrew and qqq coverage.
@@ -148,12 +152,49 @@ across 144 files, and the production electron-vite build. The full suite include
 fixture round-trip and existing editor/recovery regressions. Patch whitespace
 checks passed. No packaged release or push was performed.
 
-**Next session:** plan I2b before implementation and obtain approval. Inventory
-domain/application failures and warnings, design discriminated semantic
-parameters rather than guessing translations from broad error codes, preserve
-warning identity, and migrate every handler, fake, store and display consumer.
-Include already-visible errors, ambiguous links, conflicts/recovery and failed
-writes; do not lose details or change recovery behavior. General errors and
-many labels/native dialogs remain English until I2b/I3. Restart the desktop
-development process when testing I2a: renderer hot reload cannot upgrade an
-already-running version-14 preload to version 15.
+I2a was committed as `2d4e069`. The user then approved I2b.1 warnings as a
+separate implementation/validation/documentation/commit slice. Action failures
+remain I2b.2; I2b and I2 overall are not complete.
+
+### I2b.1 handoff (2026-10-21)
+
+Project and manuscript warnings now carry discriminated semantic parameters
+instead of finished English sentences. Project warnings retain the unreadable
+novel.md reason, newer format version, invalid settings key/value and expected
+value category. Manuscript warnings retain duplicate order/titles, ambiguous
+link source location and every target, unusable values and exact explicit fix
+payloads. Domain code does not import translations; read-only/default decisions
+and warning detection/deduplication rules are unchanged.
+
+Contract version 16, both IPC mappers, preload and fake API share these warning
+shapes. `features/warnings/format-warning.ts` translates cached warnings at
+display time using English/Hebrew/qqq messages. File problems and all warning
+panel copy (including open tooltips and fix buttons) also translate. User titles,
+paths, YAML values and complete correction examples are display-only isolated;
+catalog output stays escaped text, never HTML. Source keys and values are not
+translated. General UI number formatting is still I3.
+
+Warning groups use semantic IDs rather than translated headings. Row keys use
+the serialized semantic source plus an occurrence number, never display text;
+identical repeated diagnostics have distinct keys. Language switches retain
+the same rows/buttons, keyboard focus and selected fix target. They do not
+cause project reads, warning fixes or file writes. Tests cover all warning/file
+problem branches, English detail preservation, source isolation, HTML escaping,
+IPC parameters, read-only behavior and live switch/fix identity.
+
+Verified lint and dependency boundaries, typecheck, all 1,207 tests across
+146 files, and the production electron-vite build. The full suite includes
+fixture-byte, recovery and editor regressions. A shared frontmatter-value
+description helper preserves textual diagnostics even for missing list members;
+it is not used for writing files. No dependencies or disk-format changes.
+No new real-browser/packaged qualification or push was performed.
+
+**Next session:** plan I2b.2 action failures and obtain approval before changing
+code. Inventory `DomainError`/`ApiError` producers and string-caching stores;
+design discriminated semantic parameters instead of inferring messages from
+broad error codes. Migrate every relevant handler/fake and cached renderer
+consumer, including already-visible failures, conflicts/recovery, navigation,
+inspector checks and failed writes. Preserve diagnostic detail and recovery
+behavior. Many labels/native dialogs remain English until I3, and RTL geometry/
+writing/reading qualification remains I4-I6. Restart the desktop process for
+contract version 16: renderer hot reload cannot upgrade an older preload.

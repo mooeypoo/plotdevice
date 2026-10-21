@@ -11,13 +11,23 @@ const links = buildLinkIndex([
   { path: p('manuscript/Part One.md'), type: 'part' }
 ])
 const ferry = p('manuscript/The Ferry.md')
-const warn = (frontmatter: unknown, body = ''): { code: string; message: string }[] =>
-  entryWarnings([{ path: ferry, frontmatter, body }], links).map(({ code, message }) => ({
-    code,
-    message
-  }))
+const warn = (frontmatter: unknown, body = '') =>
+  entryWarnings([{ path: ferry, frontmatter, body }], links)
 
 describe('entryWarnings', () => {
+  it('retains a textual description for a missing list member', () => {
+    expect(warn({ pov: [undefined] })).toEqual([
+      {
+        code: 'unusable-value',
+        title: 'The Ferry',
+        reason: 'not-link',
+        key: 'pov',
+        value: 'undefined',
+        paths: [ferry]
+      }
+    ])
+  })
+
   it('finds nothing wrong in a tidy chapter', () => {
     expect(
       warn(
@@ -35,8 +45,16 @@ describe('entryWarnings', () => {
     expect(warnings).toEqual([
       {
         code: 'ambiguous-link',
-        message:
-          'The Ferry: [[Marrow]] in the text could mean characters/Marrow.md or locations/Marrow.md. Write it with its folder, like [[characters/Marrow]].'
+        title: 'The Ferry',
+        link: '[[Marrow]]',
+        location: { kind: 'body' },
+        choices: [p('characters/Marrow.md'), p('locations/Marrow.md')],
+        paths: [ferry],
+        fix: {
+          kind: 'path-form',
+          name: 'Marrow',
+          choices: [p('characters/Marrow.md'), p('locations/Marrow.md')]
+        }
       }
     ])
   })
@@ -50,14 +68,29 @@ describe('entryWarnings', () => {
     expect(warn({ pov: [['Ilka Szabó']], characters: ['[[Ilka Szabó]]', 7], order: 1.5 })).toEqual([
       {
         code: 'unusable-value',
-        message:
-          'The Ferry: pov: [[Ilka Szabó]] isn’t in quotes, so YAML reads it as a list. Write pov: "[[Ilka Szabó]]".'
+        title: 'The Ferry',
+        reason: 'unquoted-link',
+        key: 'pov',
+        value: '[[Ilka Szabó]]',
+        paths: [ferry],
+        fix: { kind: 'quote', key: 'pov' }
       },
       {
         code: 'unusable-value',
-        message: 'The Ferry: characters should be a link like "[[Name]]", not 7.'
+        title: 'The Ferry',
+        reason: 'not-link',
+        key: 'characters',
+        value: '7',
+        paths: [ferry]
       },
-      { code: 'unusable-value', message: 'The Ferry: order should be a whole number, not 1.5.' }
+      {
+        code: 'unusable-value',
+        title: 'The Ferry',
+        reason: 'not-integer',
+        key: 'order',
+        value: '1.5',
+        paths: [ferry]
+      }
     ])
   })
 })

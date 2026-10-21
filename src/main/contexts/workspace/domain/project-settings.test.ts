@@ -71,7 +71,19 @@ describe('readProjectSettings', () => {
     expect(result.warnings.map((warning) => warning.code)).toEqual(
       Array.from({ length: 6 }, () => 'setting-invalid')
     )
-    expect(result.warnings[0]?.message).toContain('settings.file_names')
+    expect(result.warnings[0]).toEqual({
+      code: 'setting-invalid',
+      key: 'file_names',
+      value: '"sometimes"',
+      expected: 'file-name-sync'
+    })
+    expect(result.warnings[1]).toEqual({
+      code: 'setting-invalid',
+      key: 'order_prefix',
+      value: '"yes"',
+      expected: 'boolean'
+    })
+    expect(result.warnings[0]).not.toHaveProperty('message')
   })
 
   it('warns when settings is not a mapping', () => {

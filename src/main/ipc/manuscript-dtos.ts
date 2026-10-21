@@ -18,9 +18,8 @@ export function toManuscriptDto(view: ManuscriptView): ManuscriptDto {
       chapter: toChapterDto({ chapter, duplicateOrder: false }),
       reason
     })),
-    warnings: manuscript.warnings.map(({ code, message, paths, fix }) => ({
-      code,
-      message,
+    warnings: manuscript.warnings.map(({ paths, fix, ...warning }) => ({
+      ...warning,
       paths: [...paths],
       ...(fix === undefined
         ? {}
