@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef, watch } from 'vue'
-import type { ProjectChangeDto, RenamePlanDto } from '../../../contract/dtos'
+import type { ApiError, ProjectChangeDto, RenamePlanDto } from '../../../contract/dtos'
 import { createAutosaver } from './autosaver'
 import { entryOwner, placeOf } from './entry-owners'
 import type { EntryKind, EntryPlace } from './entry-place'
@@ -330,7 +330,7 @@ export const useEditorStore = defineStore('editor', () => {
 
   /** After a properties change: the file's new version, and a conflict if the change was refused. */
   function propertiesWritten(
-    result: { ok: true; version: string } | { ok: false; conflict: boolean; message: string }
+    result: { ok: true; version: string } | { ok: false; conflict: boolean; error: ApiError }
   ): void {
     if (result.ok) {
       version = result.version
@@ -339,8 +339,13 @@ export const useEditorStore = defineStore('editor', () => {
     } else if (result.conflict) {
       saveState.value = 'conflict'
     } else {
-      actionError.value = result.message
+      reportActionError(result.error)
     }
+  }
+
+  /** Retains the failure source so already-visible actions retranslate without being retried. */
+  function reportActionError(error: ApiError): void {
+    actionErrorSource.value = error
   }
 
   function deferSyncWhileRecovering(path: string): boolean {
@@ -650,6 +655,7 @@ export const useEditorStore = defineStore('editor', () => {
     refreshPlace,
     versionForPropertyChange,
     propertiesWritten,
+    reportActionError,
     syncFromDisk,
     saveMissingAsNew,
     discardMissing,

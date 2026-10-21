@@ -149,7 +149,11 @@ acceptance criteria, and the cross-session checklist.
       - [x] I2b.2a: Semantic save/recovery failures, reactive cached editor notices,
         localized recovery controls and safe replacement confirmation.
       - [ ] I2b.2b: Remaining create/rename/move/property/workspace/reference/
-        inspector failures and cached consumers. Next approval boundary.
+        inspector failures and cached consumers.
+        - [x] I2b.2b.1: Property/relationship refusals, cached read/write and
+          background synopsis errors, localized relationship safety explanation.
+        - [ ] I2b.2b.2: Remaining action/query failures, partial-success summaries
+          and cached consumers. Next approval boundary.
 - [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.

@@ -289,7 +289,7 @@ export function createFakePlotDeviceApi(): {
   >()
 
   const api: PlotDeviceApi = {
-    contractVersion: 17,
+    contractVersion: 18,
     uiLanguage: {
       get: () => Promise.resolve(language),
       set: (locale) => {
@@ -485,18 +485,36 @@ export function createFakePlotDeviceApi(): {
         const props = properties.get(path)
         return Promise.resolve(
           props === undefined
-            ? { ok: false, error: { code: 'not-found', message: 'gone' } }
+            ? {
+                ok: false,
+                error: {
+                  code: 'not-found',
+                  message: 'gone',
+                  diagnostic: { reason: 'file-missing', path }
+                }
+              }
             : { ok: true, value: { properties: props, version: versionOf(path) } }
         )
       },
       updateEntryProperties: (path, version, changes) => {
         const props = properties.get(path)
         if (props === undefined)
-          return Promise.resolve({ ok: false, error: { code: 'not-found', message: 'gone' } })
+          return Promise.resolve({
+            ok: false,
+            error: {
+              code: 'not-found',
+              message: 'gone',
+              diagnostic: { reason: 'file-missing', path }
+            }
+          })
         if (versionOf(path) !== version) {
           return Promise.resolve({
             ok: false,
-            error: { code: 'changed-on-disk', message: 'changed' }
+            error: {
+              code: 'changed-on-disk',
+              message: 'changed',
+              diagnostic: { reason: 'file-changed', path }
+            }
           })
         }
         const next: EntryPropertiesDto = {
@@ -585,7 +603,14 @@ export function createFakePlotDeviceApi(): {
         const props = codexProperties.get(path)
         return Promise.resolve(
           props === undefined
-            ? { ok: false, error: { code: 'not-found', message: 'gone' } }
+            ? {
+                ok: false,
+                error: {
+                  code: 'not-found',
+                  message: 'gone',
+                  diagnostic: { reason: 'file-missing', path }
+                }
+              }
             : {
                 ok: true,
                 value: { properties: props, version: versionOf(path), listedBy: [] }
@@ -595,11 +620,35 @@ export function createFakePlotDeviceApi(): {
       updateProperties: (path, version, changes) => {
         const props = codexProperties.get(path)
         if (props === undefined)
-          return Promise.resolve({ ok: false, error: { code: 'not-found', message: 'gone' } })
+          return Promise.resolve({
+            ok: false,
+            error: {
+              code: 'not-found',
+              message: 'gone',
+              diagnostic: { reason: 'file-missing', path }
+            }
+          })
         if (versionOf(path) !== version) {
           return Promise.resolve({
             ok: false,
-            error: { code: 'changed-on-disk', message: 'changed' }
+            error: {
+              code: 'changed-on-disk',
+              message: 'changed',
+              diagnostic: { reason: 'file-changed', path }
+            }
+          })
+        }
+        if (
+          changes.groups !== undefined &&
+          (props.kind !== 'character' || props.groupsEditable === false)
+        ) {
+          return Promise.resolve({
+            ok: false,
+            error: {
+              code: 'cannot-edit',
+              message: 'Groups cannot be edited safely. The file was left unchanged.',
+              diagnostic: { reason: 'groups-not-editable' }
+            }
           })
         }
         const next: CodexPropertiesDto = {
@@ -631,17 +680,42 @@ export function createFakePlotDeviceApi(): {
       updateRelationships: (path, version, relationships) => {
         const props = codexProperties.get(path)
         if (props === undefined)
-          return Promise.resolve({ ok: false, error: { code: 'not-found', message: 'gone' } })
+          return Promise.resolve({
+            ok: false,
+            error: {
+              code: 'not-found',
+              message: 'gone',
+              diagnostic: { reason: 'file-missing', path }
+            }
+          })
         if (versionOf(path) !== version) {
           return Promise.resolve({
             ok: false,
-            error: { code: 'changed-on-disk', message: 'changed' }
+            error: {
+              code: 'changed-on-disk',
+              message: 'changed',
+              diagnostic: { reason: 'file-changed', path }
+            }
+          })
+        }
+        if (props.kind !== 'character') {
+          return Promise.resolve({
+            ok: false,
+            error: {
+              code: 'not-a-character',
+              message: 'Only characters have relationships.',
+              diagnostic: { reason: 'not-a-character' }
+            }
           })
         }
         if (!props.relationshipsEditable) {
           return Promise.resolve({
             ok: false,
-            error: { code: 'cannot-edit', message: 'Can’t edit these relationships safely.' }
+            error: {
+              code: 'cannot-edit',
+              message: 'Can’t edit these relationships safely.',
+              diagnostic: { reason: 'frontmatter-unsupported', key: 'relationships' }
+            }
           })
         }
         const next: CodexPropertiesDto = {

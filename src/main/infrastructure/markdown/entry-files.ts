@@ -256,7 +256,7 @@ export function createEntryFiles(rootOsPath: string, remember?: RememberEntryByt
         const edited = editMappingList(parts, key, items)
         return edited.ok
           ? ok(composeMarkdownFile(edited.value))
-          : err(domainError('cannot-edit', edited.error.message))
+          : err(domainError('cannot-edit', edited.error.message, edited.error.diagnostic))
       }),
 
     async rewriteLinks(path, decide, expectedVersion) {

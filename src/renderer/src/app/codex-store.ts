@@ -16,6 +16,7 @@ import type { EntryPlace } from './entry-place'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useReferenceStore } from './reference-store'
+import { useErrorNotice } from '../shared/use-error-notice'
 
 const KIND_LABELS: Readonly<Record<CodexKindDto, string>> = {
   character: 'Character',
@@ -36,7 +37,7 @@ export const useCodexStore = defineStore('codex', () => {
   const appearsIn = shallowRef<readonly AppearanceDto[]>([])
   const listedBy = shallowRef<readonly ListedByDto[]>([])
   /** Why the last relationships change was refused, shown with the relationships. */
-  const relationshipsError = ref<string | null>(null)
+  const { message: relationshipsError, source: relationshipsErrorSource } = useErrorNotice()
 
   const api = (): ReturnType<typeof plotDeviceApi.current>['codex'] => plotDeviceApi.current().codex
 
@@ -97,6 +98,7 @@ export const useCodexStore = defineStore('codex', () => {
     ])
     if (useEditorStore().entry?.path !== path) return undefined
     properties.value = read.ok ? read.value.properties : null
+    if (!read.ok) useEditorStore().reportActionError(read.error)
     listedBy.value = read.ok ? read.value.listedBy : []
     appearsIn.value = appearances.ok ? appearances.value : []
     relationshipsError.value = null
@@ -116,7 +118,7 @@ export const useCodexStore = defineStore('codex', () => {
       editor.propertiesWritten({
         ok: false,
         conflict: result.error.code === 'changed-on-disk',
-        message: result.error.message
+        error: result.error
       })
       return false
     }
@@ -143,13 +145,16 @@ export const useCodexStore = defineStore('codex', () => {
     if (editor.entry?.path !== current.path) return false
     if (!result.ok) {
       if (result.error.code === 'cannot-edit') {
-        relationshipsError.value = `Plot Device can’t change the relationships in this file safely, so it left the file as it is. Edit them in the file itself. (${result.error.message})`
+        relationshipsErrorSource.value = {
+          notice: 'relationships-cannot-edit',
+          error: result.error
+        }
         return false
       }
       editor.propertiesWritten({
         ok: false,
         conflict: result.error.code === 'changed-on-disk',
-        message: result.error.message
+        error: result.error
       })
       return false
     }

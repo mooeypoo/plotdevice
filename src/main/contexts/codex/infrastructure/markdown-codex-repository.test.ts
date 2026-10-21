@@ -109,6 +109,39 @@ describe('the sample novel’s codex', () => {
 })
 
 describe('relationships on disk', () => {
+  it('preserves a refused relationship edit and its semantic detail through the repository', async () => {
+    const repository = createMarkdownCodexRepository(copy.root)
+    const path = p('characters/Ilka Szabó.md')
+    const source =
+      '\uFEFF---\r\ntype: character\r\n# keep\r\nrelationships: [{with: Bea}]\r\ncustom: yes\r\n---\r\nטיוטה'
+    await writeFile(join(copy.root, path), source)
+    const read = await createGetCodexProperties({ repository })(path)
+    if (!read.ok) throw new Error('expected properties')
+    expect(
+      await createUpdateRelationships({ repository, settings })(path, read.value.version, [
+        { with: 'יעל' }
+      ])
+    ).toMatchObject({
+      ok: false,
+      error: {
+        code: 'cannot-edit',
+        diagnostic: { reason: 'frontmatter-unsupported', key: 'relationships' }
+      }
+    })
+    expect(await text(path)).toBe(source)
+  })
+
+  it('reports the exact path when an entry is no longer a codex type', async () => {
+    const path = p('characters/יעל.md')
+    const source = '---\ntype: chapter\n---\nUnchanged\n'
+    await writeFile(join(copy.root, path), source)
+    expect(await createMarkdownCodexRepository(copy.root).readEntryFile(path)).toMatchObject({
+      ok: false,
+      error: { diagnostic: { reason: 'codex-type-unreadable', path } }
+    })
+    expect(await text(path)).toBe(source)
+  })
+
   it('changes one relationship’s kind and adds one, touching nothing else', async () => {
     const repository = createMarkdownCodexRepository(copy.root)
     const path = p('characters/Ilka Szabó.md')

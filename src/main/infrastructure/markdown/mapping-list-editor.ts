@@ -36,17 +36,29 @@ export function editMappingList(
 ): Result<MarkdownFileParts, FrontmatterEditError> {
   const block = splitHead(parts.head)
   if (block === undefined) {
-    return err(domainError('no-frontmatter', 'This file has no frontmatter to edit.'))
+    return err(
+      domainError('no-frontmatter', 'This file has no frontmatter to edit.', {
+        reason: 'frontmatter-missing'
+      })
+    )
   }
   const eol = dominantLineEnding(parts.head) ?? '\n'
   const yaml = block.yaml
   const document = parseDocument(yaml)
   if (document.errors.length > 0) {
-    return err(domainError('unparseable-frontmatter', 'The frontmatter is not valid YAML.'))
+    return err(
+      domainError('unparseable-frontmatter', 'The frontmatter is not valid YAML.', {
+        reason: 'frontmatter-unparseable'
+      })
+    )
   }
   const contents = document.contents
   if (contents !== null && !isMap(contents)) {
-    return err(domainError('not-a-mapping', 'The frontmatter is not a set of keys.'))
+    return err(
+      domainError('not-a-mapping', 'The frontmatter is not a set of keys.', {
+        reason: 'frontmatter-not-mapping'
+      })
+    )
   }
   const pair = contents?.items.find((item) => isScalar(item.key) && item.key.value === key) as
     Pair<Node, Node | null> | undefined
@@ -61,7 +73,10 @@ export function editMappingList(
         : editItems(yaml, pair.value, items, eol)
   if (edited === undefined) {
     return err(
-      domainError('unsupported-value', `"${key}" is written in a way the app can't edit safely.`)
+      domainError('unsupported-value', `"${key}" is written in a way the app can't edit safely.`, {
+        reason: 'frontmatter-unsupported',
+        key
+      })
     )
   }
 

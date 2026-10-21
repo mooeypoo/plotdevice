@@ -67,6 +67,29 @@ beforeEach(() => {
 })
 
 describe('codex handlers', () => {
+  it('passes semantic property/relationship failures and shared guard diagnostics through IPC', async () => {
+    await handlers.listCodex()
+    const read = await handlers.getProperties([ilka])
+    if (!read.ok) throw new Error('expected properties')
+    repository.put(ilka, { type: 'character', groups: { main: true } })
+    expect(
+      await handlers.updateProperties([ilka, read.value.version, { groups: ['Main'] }])
+    ).toMatchObject({
+      ok: false,
+      error: { diagnostic: { reason: 'groups-not-editable' } }
+    })
+    repository.put('locations/Marrow.md', { type: 'location' })
+    await handlers.listCodex()
+    expect(await handlers.updateRelationships(['locations/Marrow.md', 'v1', []])).toMatchObject({
+      ok: false,
+      error: { diagnostic: { reason: 'not-a-character' } }
+    })
+    expect(await handlers.updateProperties([ilka, 'v1', { aliases: [42] }])).toMatchObject({
+      ok: false,
+      error: { diagnostic: { reason: 'invalid-request' } }
+    })
+  })
+
   it('validates and round-trips character groups through properties and listing', async () => {
     await handlers.listCodex()
     const read = await handlers.getProperties([ilka])

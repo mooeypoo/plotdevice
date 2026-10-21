@@ -69,6 +69,10 @@ progress, remaining limitations, and the next slice before ending a session.
         cached editor notices, recovery controls and replacement confirmation.
       - [ ] **I2b.2b Remaining operations:** create/rename/move, property
         validation, workspace/reference/inspector errors and remaining caches.
+        - [x] **I2b.2b.1 Properties/relationships:** semantic read/write refusals,
+          live editor/background-synopsis errors and relationship safety details.
+        - [ ] **I2b.2b.2 Remaining operations/caches:** create/rename/move,
+          workspace/reference/inspector queries and partial-success summaries.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
   existing notices, number formatting, display collation, native dialogs and
   controlled destructive confirmations; complete Hebrew and qqq coverage.
@@ -233,11 +237,53 @@ switch. Verified lint and dependency boundaries, typecheck, all 1,250 tests acro
 150 files, and the production electron-vite build. This is not real-browser or
 packaged bidi certification; no push or release was performed.
 
-**Next session:** plan I2b.2b and obtain approval before changing code. Trace
-create/rename/move, property/relationship validation, workspace/reference/
-inspector failures and every remaining string-caching consumer, including fake
-API paths. Extend semantic diagnostics while preserving exact technical details,
-explicit failures and recovery/navigation safeguards. I2b/I2 remain incomplete.
-Many labels/native dialogs remain English until I3, and RTL geometry/writing/
+I2b.2a was committed as `d1a7f13`. The user approved the next bounded slice:
+property/relationship failures, including validation, documentation and commit.
+
+### I2b.2b.1 handoff (2026-10-21)
+
+Property and relationship commands now provide semantic diagnostics for read-only,
+stale-version, unsafe character groups and non-character relationship refusals.
+Both markdown adapters retain the exact path when an entry is no longer a
+readable manuscript/codex type. Mapping-list editing provides the same semantic
+frontmatter refusal reasons as scalar editing, and `writeMappingList` preserves
+them instead of dropping diagnostics while wrapping `cannot-edit`. Existing
+source-preservation checks, error codes and technical details remain unchanged.
+The common IPC mapper already preserves these parameters; handler regressions
+exercise the new failures. Contract version 18, preload and renderer fake agree.
+
+`propertiesWritten` now accepts the full API failure instead of an English string.
+Manuscript/codex property updates, background synopsis edits and relationship
+updates retain semantic source state. The relationship safety explanation is a
+documented English/Hebrew message wrapping a cached semantic failure, not a
+preformatted English sentence. Property-read failures for the current entry are
+now explicitly reported via the action-error surface rather than silently
+returning empty properties; stale responses for another entry are still ignored.
+Language switches reformat already-visible failures without triggering reads,
+writes or retries, changing the writing target or resetting input controls.
+
+The fake supplies semantic property/relationship missing/stale/unsafe/type
+failures, with matching group/character guards. No new domain rules, dependencies
+or disk-format changes. Save-first ordering, conflict transitions, read-only
+checks and version preconditions remain intact. Remaining static inspector
+labels/read-only explanations are I3, not claimed translated by this slice.
+
+Regressions first reproduced missing mapping-list diagnostics and frozen cached
+property/relationship messages. Tests now cover command/IPC diagnostics, refused
+edits with byte-identical BOM/CRLF/comment/body fixtures, entry-type changes,
+property reads and background synopsis failures, live cached English/Hebrew
+switches without retries, and escaped relationship details while preserving DOM
+controls/focus. Verified lint and dependency boundaries, typecheck, all 1,273
+tests across 150 files, and the production electron-vite build. Documentation
+build/link checks also pass. No real-browser/packaged qualification, push or
+release was performed.
+
+**Next session:** plan the next bounded part of I2b.2b.2 and obtain approval before
+changing code. Remaining work includes create/rename/move failures, partial
+renumber/link-update summaries, add-status/type/template actions, listing errors,
+workspace/reference/inspector query failures and remaining string-caching stores/
+composables/fakes. Reuse semantic diagnostics instead of inferring text from codes;
+preserve every diagnostic detail and recovery/navigation safeguard. I2b/I2 remain
+incomplete. Many interface/native strings remain I3, and RTL geometry/writing/
 reading qualification remains I4-I6. Restart the desktop process for contract
-version 17: renderer hot reload cannot upgrade an older preload.
+version 18: renderer hot reload cannot upgrade an older preload.

@@ -29,7 +29,9 @@ export function createUpdateCodexProperties(ports: {
   const read = createGetCodexProperties(ports)
   return async (path, version, changes) => {
     if (ports.settings.readOnly) {
-      return err(domainError('read-only', 'This project is open read-only.'))
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     }
     if (changes.groups !== undefined) {
       const entry = await ports.repository.readEntryFile(path)
@@ -39,7 +41,8 @@ export function createUpdateCodexProperties(ports: {
         return err(
           domainError(
             'cannot-edit',
-            'Groups can only be changed on characters with a text or list-of-text groups field. The file was left unchanged.'
+            'Groups can only be changed on characters with a text or list-of-text groups field. The file was left unchanged.',
+            { reason: 'groups-not-editable' }
           )
         )
       }

@@ -64,6 +64,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     const result = await api().getEntryProperties(path)
     if (useEditorStore().entry?.path !== path) return undefined
     properties.value = result.ok ? result.value.properties : null
+    if (!result.ok) useEditorStore().reportActionError(result.error)
     return result.ok ? result.value.version : undefined
   }
 
@@ -83,7 +84,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
       editor.propertiesWritten({
         ok: false,
         conflict: result.error.code === 'changed-on-disk',
-        message: result.error.message
+        error: result.error
       })
       return false
     }
@@ -103,13 +104,13 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     if (editor.entry?.path === path) return updateProperties({ synopsis })
     const read = await api().getEntryProperties(path)
     if (!read.ok) {
-      editor.actionError = read.error.message
+      editor.reportActionError(read.error)
       return false
     }
     if ((read.value.properties.synopsis ?? '').trim() === synopsis.trim()) return true
     const result = await api().updateEntryProperties(path, read.value.version, { synopsis })
     if (!result.ok) {
-      editor.actionError = result.error.message
+      editor.reportActionError(result.error)
       return false
     }
     await reload()

@@ -71,7 +71,10 @@ export function createMarkdownManuscriptRepository(
       const type = isMapping(frontmatter) ? frontmatter['type'] : undefined
       if (type !== 'part' && type !== 'chapter') {
         return err(
-          domainError('unreadable', `"${path}" isn't a part or chapter that can be read safely.`)
+          domainError('unreadable', `"${path}" isn't a part or chapter that can be read safely.`, {
+            reason: 'manuscript-type-unreadable',
+            path
+          })
         )
       }
       return ok({ path, kind: type, frontmatter, version })

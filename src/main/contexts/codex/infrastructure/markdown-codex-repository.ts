@@ -73,7 +73,12 @@ export function createMarkdownCodexRepository(
       const { frontmatter, version } = read.value
       const type = isMapping(frontmatter) ? frontmatter['type'] : undefined
       if (!isCodexKind(type)) {
-        return err(domainError('unreadable', `"${path}" isn't a character, location, or note.`))
+        return err(
+          domainError('unreadable', `"${path}" isn't a character, location, or note.`, {
+            reason: 'codex-type-unreadable',
+            path
+          })
+        )
       }
       return ok({ path, kind: type, frontmatter, version })
     },

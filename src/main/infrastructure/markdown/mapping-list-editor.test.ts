@@ -35,6 +35,21 @@ const yael: MappingItem = [
 ]
 
 describe('editMappingList', () => {
+  it.each([
+    { head: '', reason: 'frontmatter-missing' },
+    { head: '---\nrelationships: [\n---\n', reason: 'frontmatter-unparseable' },
+    { head: '---\n- character\n---\n', reason: 'frontmatter-not-mapping' },
+    { head: '---\nrelationships: [{with: Bea}]\n---\n', reason: 'frontmatter-unsupported' }
+  ])('retains semantic refusal $reason without changing the input', ({ head, reason }) => {
+    const source: MarkdownFileParts = { head, body: 'טיוטה\r\n', hasBom: true }
+    const before = { ...source }
+    expect(editMappingList(source, 'relationships', [bea])).toMatchObject({
+      ok: false,
+      error: { diagnostic: { reason } }
+    })
+    expect(source).toEqual(before)
+  })
+
   it('changes one field’s value only, keeping comments', () => {
     const changed: MappingItem = [bea[0], ['kind', 'teacher'], bea[2]] as MappingItem
     expect(headOf(editMappingList(parts(ILKA), 'relationships', [changed, yael]))).toBe(

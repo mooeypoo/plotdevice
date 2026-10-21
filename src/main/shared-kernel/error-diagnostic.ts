@@ -1,8 +1,10 @@
-/** Semantic save/recovery details; machine-readable codes continue to drive application behavior. */
+/** Semantic failure details for migrated operations; machine-readable codes still drive behavior. */
 export type ErrorDiagnostic =
   | {
       readonly reason:
         | 'read-only'
+        | 'groups-not-editable'
+        | 'not-a-character'
         | 'no-project'
         | 'invalid-request'
         | 'manuscript-entry-not-allowed'
@@ -17,7 +19,13 @@ export type ErrorDiagnostic =
     }
   | {
       readonly reason:
-        'file-outside-project' | 'file-missing' | 'file-unreadable' | 'file-changed' | 'file-exists'
+        | 'file-outside-project'
+        | 'file-missing'
+        | 'file-unreadable'
+        | 'file-changed'
+        | 'file-exists'
+        | 'manuscript-type-unreadable'
+        | 'codex-type-unreadable'
       readonly path: string
     }
   | {

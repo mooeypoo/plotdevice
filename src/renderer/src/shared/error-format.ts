@@ -3,7 +3,12 @@ import type { MessageKey, Translator } from '../../../i18n/translator'
 import { isolate } from './isolate'
 
 export type EditorNoticeKey = Extract<MessageKey, `editor-${string}`>
-export type ErrorNotice = ApiError | { readonly notice: EditorNoticeKey } | string | null
+export type ErrorNotice =
+  | ApiError
+  | { readonly notice: EditorNoticeKey }
+  | { readonly notice: 'relationships-cannot-edit'; readonly error: ApiError }
+  | string
+  | null
 
 /** Formats migrated failures semantically; unmigrated operations explicitly retain their message. */
 export function formatApiError(error: ApiError, t: Translator['t']): string {
@@ -12,6 +17,14 @@ export function formatApiError(error: ApiError, t: Translator['t']): string {
   switch (diagnostic.reason) {
     case 'read-only':
       return t('error-read-only')
+    case 'groups-not-editable':
+      return t('error-groups-not-editable')
+    case 'not-a-character':
+      return t('error-not-a-character')
+    case 'manuscript-type-unreadable':
+      return t('error-manuscript-type-unreadable', isolate(diagnostic.path))
+    case 'codex-type-unreadable':
+      return t('error-codex-type-unreadable', isolate(diagnostic.path))
     case 'no-project':
       return t('error-no-project')
     case 'invalid-request':
@@ -79,5 +92,6 @@ export function formatApiError(error: ApiError, t: Translator['t']): string {
 /** Formats cached semantic notices only when presented, so switching locale never changes state. */
 export function formatErrorNotice(source: ErrorNotice, t: Translator['t']): string | null {
   if (source === null || typeof source === 'string') return source
+  if ('error' in source) return t(source.notice, formatApiError(source.error, t))
   return 'notice' in source ? t(source.notice) : formatApiError(source, t)
 }

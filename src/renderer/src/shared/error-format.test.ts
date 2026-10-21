@@ -9,6 +9,10 @@ const hebrew = createTranslator('he')
 describe('semantic save/recovery error presentation', () => {
   it.each([
     { reason: 'read-only' },
+    { reason: 'groups-not-editable' },
+    { reason: 'not-a-character' },
+    { reason: 'manuscript-type-unreadable', path: 'יעל (draft).md' },
+    { reason: 'codex-type-unreadable', path: 'יעל (draft).md' },
     { reason: 'no-project' },
     { reason: 'invalid-request' },
     { reason: 'manuscript-entry-not-allowed' },

@@ -219,6 +219,18 @@ describe('editing properties on real files', () => {
     expect((await bytesOf(file)).equals(before)).toBe(true)
   })
 
+  it('reports the semantic path when a chapter has become a different type', async () => {
+    const file = 'manuscript/Part One/The Ferry.md'
+    const before = await textOf(file)
+    const outside = before.replace('type: chapter', 'type: character')
+    await writeFile(join(copy.root, file), outside)
+    expect(await repository().readEntryFile(path(file))).toMatchObject({
+      ok: false,
+      error: { diagnostic: { reason: 'manuscript-type-unreadable', path: file } }
+    })
+    expect(await textOf(file)).toBe(outside)
+  })
+
   it('refuses a stale version, leaving the file alone', async () => {
     const file = 'manuscript/Part One/The Ferry.md'
     const before = await bytesOf(file)

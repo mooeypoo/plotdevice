@@ -32,12 +32,19 @@ export function createUpdateEntryProperties(ports: {
 }): UpdateEntryProperties {
   return async (path, version, changes) => {
     if (ports.settings.readOnly) {
-      return err(domainError('read-only', 'This project is open read-only.'))
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     }
     const current = await ports.repository.readEntryFile(path)
     if (!current.ok) return current
     if (current.value.version !== version) {
-      return err(domainError('changed-on-disk', 'This file changed outside Plot Device.'))
+      return err(
+        domainError('changed-on-disk', 'This file changed outside Plot Device.', {
+          reason: 'file-changed',
+          path
+        })
+      )
     }
 
     const properties = readEntryProperties(path, current.value.kind, current.value.frontmatter)

@@ -6,6 +6,9 @@ import he from './he.json'
 /** Stable catalog keys, excluding translator metadata. */
 export type MessageKey = Exclude<keyof typeof en, '@metadata'>
 type ParameterizedMessages = {
+  'error-manuscript-type-unreadable': [path: string]
+  'error-codex-type-unreadable': [path: string]
+  'relationships-cannot-edit': [detail: string]
   'recovery-missing-description': [kind: string]
   'error-file-outside-project': [path: string]
   'error-file-missing': [path: string]

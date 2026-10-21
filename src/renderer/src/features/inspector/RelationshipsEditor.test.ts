@@ -1,12 +1,13 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 import RelationshipsEditor from './RelationshipsEditor.vue'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
@@ -19,6 +20,39 @@ beforeEach(async () => {
 })
 
 describe('RelationshipsEditor', () => {
+  it('retranslates an existing refusal as escaped text without replacing the editor controls', async () => {
+    await useUiLanguageStore().initialize()
+    await useEditorStore().open('characters/Ilka.md')
+    const write = vi.spyOn(fake.api.codex, 'updateRelationships').mockResolvedValue({
+      ok: false,
+      error: {
+        code: 'cannot-edit',
+        message: 'Legacy',
+        diagnostic: { reason: 'frontmatter-unsupported', key: '<img src=x>' }
+      }
+    })
+    const editor = mount(RelationshipsEditor, {
+      props: { disabled: false },
+      attachTo: document.body
+    })
+    await flushPromises()
+    const add = editor
+      .findAll<HTMLButtonElement>('button')
+      .find((button) => button.text().includes('Add relationship'))
+    if (add === undefined) throw new Error('expected Add relationship')
+    add.element.focus()
+    await useCodexStore().updateRelationships([{ with: 'יעל' }])
+    expect(editor.get('[role="alert"]').text()).toContain('left the file as it is')
+    await useUiLanguageStore().change('he')
+    expect(editor.get('[role="alert"]').text()).toMatch(/[\u0590-\u05ff]/u)
+    expect(editor.get('[role="alert"]').text()).toContain('<img src=x>')
+    expect(editor.find('img').exists()).toBe(false)
+    expect(editor.findAll('button').some((button) => button.element === add.element)).toBe(true)
+    expect(document.activeElement).toBe(add.element)
+    expect(write).toHaveBeenCalledOnce()
+    editor.unmount()
+  })
+
   it('adds a relationship with a character, never the open one', async () => {
     await useEditorStore().open('characters/Ilka.md')
     const editor = mount(RelationshipsEditor, { props: { disabled: false } })

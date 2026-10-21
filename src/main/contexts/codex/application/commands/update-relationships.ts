@@ -35,12 +35,18 @@ export function createUpdateRelationships(ports: {
   const read = createGetCodexProperties(ports)
   return async (path, version, relationships) => {
     if (ports.settings.readOnly) {
-      return err(domainError('read-only', 'This project is open read-only.'))
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     }
     const file = await ports.repository.readEntryFile(path)
     if (!file.ok) return file
     if (file.value.kind !== 'character') {
-      return err(domainError('not-a-character', 'Only characters have relationships.'))
+      return err(
+        domainError('not-a-character', 'Only characters have relationships.', {
+          reason: 'not-a-character'
+        })
+      )
     }
     const current = readCodexProperties(path, 'character', file.value.frontmatter)
     const files = await ports.repository.load()

@@ -25,11 +25,13 @@ export interface ApiError {
   readonly projectBelow?: string
 }
 
-/** Language-independent save/recovery failure details; raw technical details are never translated. */
+/** Language-independent failure details for migrated operations; technical details stay untranslated. */
 export type ErrorDiagnosticDto =
   | {
       readonly reason:
         | 'read-only'
+        | 'groups-not-editable'
+        | 'not-a-character'
         | 'no-project'
         | 'invalid-request'
         | 'manuscript-entry-not-allowed'
@@ -44,7 +46,13 @@ export type ErrorDiagnosticDto =
     }
   | {
       readonly reason:
-        'file-outside-project' | 'file-missing' | 'file-unreadable' | 'file-changed' | 'file-exists'
+        | 'file-outside-project'
+        | 'file-missing'
+        | 'file-unreadable'
+        | 'file-changed'
+        | 'file-exists'
+        | 'manuscript-type-unreadable'
+        | 'codex-type-unreadable'
       readonly path: string
     }
   | {

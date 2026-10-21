@@ -95,7 +95,7 @@ domain/application code must not import it (ADR 0016).
 
 ## Key mechanisms
 
-**App menu and window.** `app-menu.ts` owns the panel/focus accelerators and sends typed `app:menu-command` events through the preload API (currently contract version 17). The renderer's `use-menu-commands.ts` maps them to existing layout actions while a project is open; Escape and Save remain renderer shortcuts. About shows the app version, GPL-3.0-or-later license, and project link. Reload and developer tools are absent from packaged menus; development tools use F12 to avoid the inspector shortcut. Normal window bounds and maximized state live in `userData/window-state.json`, written atomically after the renderer's close guard permits closing and awaited before exit. Startup validates them with zod and checks overlap against current displays; invalid or wholly off-screen settings fall back to 1200×800. Settings failures are logged explicitly.
+**App menu and window.** `app-menu.ts` owns the panel/focus accelerators and sends typed `app:menu-command` events through the preload API (currently contract version 18). The renderer's `use-menu-commands.ts` maps them to existing layout actions while a project is open; Escape and Save remain renderer shortcuts. About shows the app version, GPL-3.0-or-later license, and project link. Reload and developer tools are absent from packaged menus; development tools use F12 to avoid the inspector shortcut. Normal window bounds and maximized state live in `userData/window-state.json`, written atomically after the renderer's close guard permits closing and awaited before exit. Startup validates them with zod and checks overlap against current displays; invalid or wholly off-screen settings fall back to 1200×800. Settings failures are logged explicitly.
 
 **Interface language.** Main restores validated `userData/ui-preferences.json` before creating the
 window. Without an explicit choice, the first supported system language wins, otherwise English.
@@ -108,8 +108,10 @@ readings/issues cross IPC without presentation text; the renderer localizes cach
 checks, timeline dates and axis labels without changing numeric spans or file contents.
 Project/manuscript warnings also carry semantic parameters; the renderer localizes cached warnings/
 file problems and keys rows/groups independently of displayed language, preserving focus and fixes.
-Save/recovery failures carry optional semantic diagnostics alongside stable control-flow codes and
-legacy descriptions; editor errors/notices retain source state and reformat on a language switch.
+Save/recovery and property/relationship failures carry optional semantic diagnostics alongside stable
+control-flow codes and legacy descriptions; cached errors/notices reformat on a language switch.
+Property results and relationship safety explanations retain the full API failure, including exact
+source keys/paths; failed current-entry property reads are explicitly shown in the action-error surface.
 Unmigrated failures explicitly display their original message until their producers are migrated.
 Remaining action failures/strings, full RTL geometry and independent content-direction controls
 remain tracked in ADR 0016. No language switch changes novel files or existing writing preferences.

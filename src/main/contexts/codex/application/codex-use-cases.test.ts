@@ -11,6 +11,7 @@ import { createPlanCodexRename, createRenameCodexEntry } from './commands/rename
 import { createSaveCodexText } from './commands/save-codex-text'
 import { createSetEntryType } from './commands/set-entry-type'
 import { createUpdateCodexProperties } from './commands/update-codex-properties'
+import { createUpdateRelationships } from './commands/update-relationships'
 import { createGetCodexProperties } from './queries/get-codex-properties'
 import { createListCodex } from './queries/list-codex'
 import { createOpenCodexEntry } from './queries/open-codex-entry'
@@ -99,7 +100,7 @@ describe('opening, saving, and properties', () => {
       const version = repository.put(path, frontmatter)
       expect(await update(path, version, { groups: ['New'], title: 'Changed' })).toMatchObject({
         ok: false,
-        error: { code: 'cannot-edit' }
+        error: { code: 'cannot-edit', diagnostic: { reason: 'groups-not-editable' } }
       })
       expect(repository.get(path)?.frontmatter).toEqual(frontmatter)
     }
@@ -114,7 +115,31 @@ describe('opening, saving, and properties', () => {
         version,
         { groups: ['New'] }
       )
-    ).toMatchObject({ ok: false, error: { code: 'read-only' } })
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'read-only', diagnostic: { reason: 'read-only' } }
+    })
+  })
+
+  it('returns semantic relationship refusals without touching either entry', async () => {
+    const before = repository.get(marrow)
+    expect(
+      await createUpdateRelationships({ repository, settings })(marrow, 'v1', [])
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'not-a-character', diagnostic: { reason: 'not-a-character' } }
+    })
+    expect(repository.get(marrow)).toEqual(before)
+    expect(
+      await createUpdateRelationships({
+        repository,
+        settings: { ...settings, readOnly: true }
+      })(ilka, 'v1', [])
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'read-only', diagnostic: { reason: 'read-only' } }
+    })
+    expect(repository.get(ilka)?.frontmatter).not.toHaveProperty('relationships')
   })
 
   it('opens and saves a body, refusing a stale version', async () => {

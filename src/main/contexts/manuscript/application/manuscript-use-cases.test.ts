@@ -131,7 +131,7 @@ describe('properties', () => {
     const update = createUpdateEntryProperties({ repository, settings })
     expect(await update(ferry, 'stale', { status: 'revised' })).toMatchObject({
       ok: false,
-      error: { code: 'changed-on-disk' }
+      error: { code: 'changed-on-disk', diagnostic: { reason: 'file-changed', path: ferry } }
     })
     expect(repository.get(ferry)?.frontmatter['status']).toBe('draft')
   })
@@ -143,7 +143,7 @@ describe('properties', () => {
     })
     expect(await update(ferry, 'v2', { status: 'revised' })).toMatchObject({
       ok: false,
-      error: { code: 'read-only' }
+      error: { code: 'read-only', diagnostic: { reason: 'read-only' } }
     })
   })
 })

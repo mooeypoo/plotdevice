@@ -329,6 +329,17 @@ describe('manuscript handlers', () => {
     ).toMatchObject({ ok: false, error: { code: 'changed-on-disk' } })
   })
 
+  it('passes a property version refusal through with its semantic path', async () => {
+    await handlers.getManuscript()
+    expect(
+      await handlers.updateEntryProperties([ferry, 'stale', { status: 'final' }])
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'changed-on-disk', diagnostic: { reason: 'file-changed', path: ferry } }
+    })
+    expect(repository.get(ferry)?.frontmatter['status']).toBe('draft')
+  })
+
   it('reports when no project is open', async () => {
     session = undefined
     expect(await handlers.getManuscript()).toMatchObject({
