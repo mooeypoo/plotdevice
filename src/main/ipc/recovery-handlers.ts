@@ -33,9 +33,17 @@ const captureArgs = z.tuple([z.string().min(1).max(4096), z.string().min(1).max(
 const copyArgs = z.tuple([z.uuid(), z.string().max(20_000_000)])
 const noProject = {
   ok: false,
-  error: { code: 'no-project', message: 'No project is open.' }
+  error: {
+    code: 'no-project',
+    message: 'No project is open.',
+    diagnostic: { reason: 'no-project' }
+  }
 } as const
 const invalid = {
   ok: false,
-  error: { code: 'invalid-request', message: 'The recovery request was not understood.' }
+  error: {
+    code: 'invalid-request',
+    message: 'The recovery request was not understood.',
+    diagnostic: { reason: 'invalid-recovery-request' }
+  }
 } as const

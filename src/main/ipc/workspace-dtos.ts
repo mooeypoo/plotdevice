@@ -4,6 +4,7 @@ import type {
   FileProblemDto,
   ProjectSummaryDto
 } from '../../contract/dtos'
+import type { DomainError } from '../shared-kernel/domain-error'
 import { breaksLinks } from '../shared-kernel/file-name'
 import { projectPathStem } from '../shared-kernel/project-path'
 import type { OpenedProject } from '../contexts/workspace/application/commands/open-project'
@@ -57,12 +58,14 @@ export function toProjectSummaryDto(opened: OpenedProject): ProjectSummaryDto {
 export function toApiError(error: {
   readonly code: string
   readonly message: string
+  readonly diagnostic?: DomainError['diagnostic']
   readonly projectAbove?: string
   readonly projectBelow?: string
 }): ApiError {
   return {
     code: error.code,
     message: error.message,
+    ...(error.diagnostic === undefined ? {} : { diagnostic: error.diagnostic }),
     ...(error.projectAbove !== undefined ? { projectAbove: error.projectAbove } : {}),
     ...(error.projectBelow !== undefined ? { projectBelow: error.projectBelow } : {})
   }

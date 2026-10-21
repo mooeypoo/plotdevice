@@ -23,7 +23,10 @@ export function createSaveCodexText(ports: {
   readonly readOnly: boolean
 }): SaveCodexText {
   return async (path, text, version, overwrite) => {
-    if (ports.readOnly) return err(domainError('read-only', 'This project is open read-only.'))
+    if (ports.readOnly)
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     const written = await ports.repository.writeText(path, text, overwrite ? undefined : version)
     return written.ok
       ? ok({ version: written.value.version, wordCount: countWords(text) })

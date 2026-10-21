@@ -13,12 +13,14 @@ import ConflictBanner from './ConflictBanner.vue'
 import MissingFileBanner from './MissingFileBanner.vue'
 import { useEditorLinks } from './use-editor-links'
 import { useDocumentTabsStore } from '../../app/document-tabs-store'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 
 const manuscript = useManuscriptStore()
 const editor = useEditorStore()
 const workspace = useWorkspaceStore()
 const layout = useLayoutStore()
 const tabs = useDocumentTabsStore()
+const language = useUiLanguageStore()
 
 const readOnly = computed(() => workspace.project?.readOnly ?? false)
 const { completions, openLink, linkNotice } = useEditorLinks()
@@ -47,7 +49,7 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
       </header>
 
       <p v-if="readOnly" class="notice" role="status">
-        This project is open read-only, so Plot Device won’t change its files.
+        {{ language.t('editor-read-only-notice') }}
       </p>
       <p v-else-if="editor.saveState === 'error'" class="notice error" role="alert">
         {{ editor.saveError }}

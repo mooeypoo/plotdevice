@@ -1,6 +1,20 @@
 <script setup lang="ts">
+import type { EntryKind } from '../../app/entry-place'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+
+const language = useUiLanguageStore()
+const KIND_KEYS = {
+  part: 'recovery-kind-part',
+  chapter: 'recovery-kind-chapter',
+  character: 'recovery-kind-character',
+  location: 'recovery-kind-location',
+  note: 'recovery-kind-note',
+  template: 'recovery-kind-template',
+  outline: 'recovery-kind-outline'
+} as const
+
 defineProps<{
-  kind: string
+  kind: EntryKind
   busy: boolean
   readOnly: boolean
   reappeared: boolean
@@ -18,26 +32,22 @@ defineEmits<{
 <template>
   <div class="banner" role="alert" :aria-busy="busy">
     <div class="text">
-      <strong>This file is gone.</strong>
-      Another program may have intentionally moved or deleted this {{ kind }}. Your draft is still
-      here, and autosave is paused. Keep it deleted and close this draft, or save a separate
-      recovered copy with the last captured metadata. Neither action recreates the original path or
-      changes its links.
+      <strong>{{ language.t('recovery-missing-heading') }}</strong>
+      {{ language.t('recovery-missing-description', language.t(KIND_KEYS[kind])) }}
       <p v-if="reappeared">
-        The original path is readable again. You can use its current disk version; your draft will
-        not overwrite it automatically.
+        {{ language.t('recovery-reappeared') }}
       </p>
       <p v-if="error" class="error" role="status">{{ error }}</p>
       <p v-if="recoveredPath">
-        Recovered copy: <bdi>{{ recoveredPath }}</bdi>
+        {{ language.t('recovery-copy-label') }} <bdi>{{ recoveredPath }}</bdi>
       </p>
     </div>
     <div class="actions">
       <button type="button" :disabled="busy" @click="$emit('discard')">
-        {{ reappeared ? 'Close draft / leave disk unchanged' : 'Keep deleted / close draft' }}
+        {{ language.t(reappeared ? 'recovery-close-leave-disk' : 'recovery-keep-deleted') }}
       </button>
       <button v-if="reappeared" type="button" :disabled="busy" @click="$emit('loadTheirs')">
-        Use disk version
+        {{ language.t('recovery-use-disk') }}
       </button>
       <button
         type="button"
@@ -45,7 +55,7 @@ defineEmits<{
         :disabled="busy || readOnly"
         @click="$emit('saveAsNew')"
       >
-        Save recovered copy
+        {{ language.t('recovery-save-copy') }}
       </button>
     </div>
   </div>

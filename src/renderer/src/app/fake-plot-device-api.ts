@@ -289,7 +289,7 @@ export function createFakePlotDeviceApi(): {
   >()
 
   const api: PlotDeviceApi = {
-    contractVersion: 16,
+    contractVersion: 17,
     uiLanguage: {
       get: () => Promise.resolve(language),
       set: (locale) => {
@@ -307,7 +307,11 @@ export function createFakePlotDeviceApi(): {
         if (!files.has(path) || versionOf(path) !== version)
           return Promise.resolve({
             ok: false,
-            error: { code: 'snapshot-unavailable', message: 'Snapshot is unavailable.' }
+            error: {
+              code: 'snapshot-unavailable',
+              message: 'Snapshot is unavailable.',
+              diagnostic: { reason: 'snapshot-unavailable' }
+            }
           })
         const token = `snapshot-${String(recoverySnapshots.size)}`
         const manuscriptProperties = properties.get(path)
@@ -324,7 +328,11 @@ export function createFakePlotDeviceApi(): {
         if (snapshot === undefined)
           return Promise.resolve({
             ok: false,
-            error: { code: 'snapshot-unavailable', message: 'Snapshot is unavailable.' }
+            error: {
+              code: 'snapshot-unavailable',
+              message: 'Snapshot is unavailable.',
+              diagnostic: { reason: 'snapshot-unavailable' }
+            }
           })
         const source = snapshot.path
         const template = source.startsWith('templates/')
@@ -432,7 +440,14 @@ export function createFakePlotDeviceApi(): {
         const text = files.get(path)
         return Promise.resolve(
           text === undefined
-            ? { ok: false, error: { code: 'not-found', message: 'gone' } }
+            ? {
+                ok: false,
+                error: {
+                  code: 'not-found',
+                  message: 'gone',
+                  diagnostic: { reason: 'file-missing', path }
+                }
+              }
             : {
                 ok: true,
                 value: { path, text, version: versionOf(path), wordCount: countWords(text) }
@@ -443,12 +458,20 @@ export function createFakePlotDeviceApi(): {
         if (!files.has(path))
           return Promise.resolve({
             ok: false,
-            error: { code: 'not-found', message: 'gone' }
+            error: {
+              code: 'not-found',
+              message: 'gone',
+              diagnostic: { reason: 'file-missing', path }
+            }
           })
         if (!overwrite && versionOf(path) !== version) {
           return Promise.resolve({
             ok: false,
-            error: { code: 'changed-on-disk', message: 'changed' }
+            error: {
+              code: 'changed-on-disk',
+              message: 'changed',
+              diagnostic: { reason: 'file-changed', path }
+            }
           })
         }
         files.set(path, text)

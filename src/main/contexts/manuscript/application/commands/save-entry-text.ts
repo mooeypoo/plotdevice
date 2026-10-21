@@ -35,7 +35,9 @@ export function createSaveEntryText(ports: {
 }): SaveEntryText {
   return async (path, text, version, overwrite) => {
     if (ports.readOnly) {
-      return err(domainError('read-only', 'This project is open read-only.'))
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     }
     const written = await ports.repository.writeText(path, text, overwrite ? undefined : version)
     if (!written.ok) return written

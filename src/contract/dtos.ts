@@ -17,11 +17,52 @@ export type ApiResult<T> =
 export interface ApiError {
   readonly code: string
   readonly message: string
+  /** Semantic presentation for migrated operations; message remains the explicit legacy fallback. */
+  readonly diagnostic?: ErrorDiagnosticDto
   /** For `not-a-project` and `inside-project`: the project this folder is inside. */
   readonly projectAbove?: string
   /** For `contains-project`: a project inside this folder. */
   readonly projectBelow?: string
 }
+
+/** Language-independent save/recovery failure details; raw technical details are never translated. */
+export type ErrorDiagnosticDto =
+  | {
+      readonly reason:
+        | 'read-only'
+        | 'no-project'
+        | 'invalid-request'
+        | 'manuscript-entry-not-allowed'
+        | 'codex-entry-not-allowed'
+        | 'invalid-recovery-request'
+        | 'snapshot-unavailable'
+        | 'snapshot-invalid'
+        | 'recovery-outside-project'
+        | 'recovery-nested-project'
+        | 'recovery-invalid-destination'
+        | 'recovery-collisions'
+    }
+  | {
+      readonly reason:
+        'file-outside-project' | 'file-missing' | 'file-unreadable' | 'file-changed' | 'file-exists'
+      readonly path: string
+    }
+  | {
+      readonly reason: 'file-unsafe'
+      readonly path: string
+      readonly operation: 'read' | 'write'
+      readonly problem: 'invalid-encoding' | 'unclosed' | 'unparseable' | 'none'
+    }
+  | {
+      readonly reason: 'file-write-failed' | 'file-create-failed'
+      readonly path: string
+      readonly detail: string
+    }
+  | { readonly reason: 'recovery-write-failed' | 'recovery-create-failed'; readonly detail: string }
+  | {
+      readonly reason: 'frontmatter-missing' | 'frontmatter-unparseable' | 'frontmatter-not-mapping'
+    }
+  | { readonly reason: 'frontmatter-unsupported'; readonly key: string }
 
 /** A folder the writer picked in the native dialog. */
 export interface FolderChoiceDto {

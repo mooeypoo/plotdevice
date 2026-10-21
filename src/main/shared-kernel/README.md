@@ -3,7 +3,7 @@
 **Purpose.** Small, stable types that every context uses. Pure TypeScript: no Node (not even `node:path`), Electron, Vue, or libraries.
 
 **Main concepts.**
-- `Result`, `ok`, `err`: expected failures without exceptions. `DomainError`: a failure as plain, IPC-safe data.
+- `Result`, `ok`, `err`: expected failures without exceptions. `DomainError`: stable code, legacy description and optional semantic `ErrorDiagnostic`, all IPC-safe.
 - `ProjectPath`: a project-relative, forward-slash path; an entry's identity, kept exactly as spelled on disk.
 - `FileName`: a name the app may write (Windows-safe, link-safe, NFC). `fileNameFromTitle` builds one from any title.
 - `WikiLink`: a parsed `[[target#subpath|shown text]]`. It doesn't resolve links; that needs the project's files.

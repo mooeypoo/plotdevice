@@ -1,19 +1,23 @@
 import { ref, type Ref } from 'vue'
+import { useErrorNotice } from '../shared/use-error-notice'
+import type { ErrorNotice } from '../shared/error-format'
 
 /** Serializes explicit recovery decisions and retains a created copy's path on later UI failures. */
 export function useEntryRecovery(): {
   busy: Ref<boolean>
   error: Ref<string | null>
+  errorSource: Ref<ErrorNotice>
   recoveredPath: Ref<string | null>
   run(action: () => Promise<boolean>): Promise<boolean>
   clear(): void
 } {
   const busy = ref(false)
-  const error = ref<string | null>(null)
+  const { message: error, source: errorSource } = useErrorNotice()
   const recoveredPath = ref<string | null>(null)
   return {
     busy,
     error,
+    errorSource,
     recoveredPath,
     async run(action) {
       if (busy.value) return false

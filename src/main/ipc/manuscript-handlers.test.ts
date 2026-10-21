@@ -80,6 +80,20 @@ beforeEach(() => {
 })
 
 describe('manuscript handlers', () => {
+  it('retains semantic save failures through the DTO mapper', async () => {
+    if (session === undefined) throw new Error('Expected session')
+    const error = {
+      code: 'write-failed' as const,
+      message: 'Legacy',
+      diagnostic: { reason: 'file-write-failed' as const, path: ferry, detail: 'ENOSPC' }
+    }
+    session = { ...session, saveEntryText: () => Promise.resolve({ ok: false, error }) }
+    await handlers.getManuscript()
+    expect(await handlers.saveEntryText([ferry, 'Draft', 'v1', false])).toEqual({
+      ok: false,
+      error
+    })
+  })
   it('preserves semantic warnings and explicit fixes across IPC without changing files', async () => {
     repository.put(
       ferry,

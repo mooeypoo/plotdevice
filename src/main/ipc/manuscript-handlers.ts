@@ -127,17 +127,26 @@ const fixArgs = z.tuple([
 
 const noProject: ApiResult<never> = {
   ok: false,
-  error: { code: 'no-project', message: 'No project is open.' }
+  error: {
+    code: 'no-project',
+    message: 'No project is open.',
+    diagnostic: { reason: 'no-project' }
+  }
 }
 const invalidRequest: ApiResult<never> = {
   ok: false,
-  error: { code: 'invalid-request', message: 'The request was not understood.' }
+  error: {
+    code: 'invalid-request',
+    message: 'The request was not understood.',
+    diagnostic: { reason: 'invalid-request' }
+  }
 }
 const notAllowed: ApiResult<never> = {
   ok: false,
   error: {
     code: 'entry-not-allowed',
-    message: 'That file is not a part or chapter of this project.'
+    message: 'That file is not a part or chapter of this project.',
+    diagnostic: { reason: 'manuscript-entry-not-allowed' }
   }
 }
 

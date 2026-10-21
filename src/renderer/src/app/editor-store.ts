@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef, watch } from 'vue'
-import type { ApiError, ProjectChangeDto, RenamePlanDto } from '../../../contract/dtos'
+import type { ProjectChangeDto, RenamePlanDto } from '../../../contract/dtos'
 import { createAutosaver } from './autosaver'
 import { entryOwner, placeOf } from './entry-owners'
 import type { EntryKind, EntryPlace } from './entry-place'
@@ -9,6 +9,8 @@ import { useEntryRecovery } from './entry-recovery'
 import { useReferenceStore } from './reference-store'
 import { useDocumentTabsStore } from './document-tabs-store'
 import { useLayoutStore } from './layout-store'
+import { useUiLanguageStore } from './ui-language-store'
+import { useErrorNotice } from '../shared/use-error-notice'
 
 export type { EntryKind, EntryPlace } from './entry-place'
 
@@ -44,14 +46,16 @@ export const useEditorStore = defineStore('editor', () => {
   const text = ref('')
   const wordCount = ref(0)
   const saveState = ref<SaveState>('saved')
-  const saveError = ref<string | null>(null)
+  const { message: saveError, source: saveErrorSource } = useErrorNotice()
   /** A short note after the open text was replaced by a newer version from disk. */
-  const diskNotice = ref<string | null>(null)
+  const { message: diskNotice, source: diskNoticeSource } = useErrorNotice()
   const pendingRename = shallowRef<PendingRename | null>(null)
-  const actionError = ref<string | null>(null)
+  const { message: actionError, source: actionErrorSource } = useErrorNotice()
+  const language = useUiLanguageStore()
   const recovery = useEntryRecovery()
   const recoveryBusy = recovery.busy
   const recoveryError = recovery.error
+  const recoveryErrorSource = recovery.errorSource
   const recoveredPath = recovery.recoveredPath
   const missingReappeared = ref(false)
   const tabs = useDocumentTabsStore()
@@ -86,7 +90,7 @@ export const useEditorStore = defineStore('editor', () => {
     if (captured.ok) recoveryToken = captured.value
     else {
       recoveryToken = undefined
-      recoveryError.value = captured.error.message
+      recoveryErrorSource.value = captured.error
     }
   }
 
@@ -143,7 +147,12 @@ export const useEditorStore = defineStore('editor', () => {
       missingReappeared.value = false
     } else {
       saveState.value = 'error'
-      saveError.value = describeSaveError(result.error)
+      saveErrorSource.value =
+        result.error.code === 'read-only'
+          ? { notice: 'editor-save-read-only' }
+          : result.error.code === 'not-found'
+            ? { notice: 'editor-save-missing' }
+            : result.error
     }
   }
 
@@ -161,7 +170,7 @@ export const useEditorStore = defineStore('editor', () => {
 
   function blocked(): boolean {
     if (!hasStuckChanges.value) return false
-    actionError.value = 'Resolve the unsaved changes in the current document before leaving it.'
+    actionErrorSource.value = { notice: 'editor-resolve-before-leaving' }
     return true
   }
 
@@ -192,12 +201,12 @@ export const useEditorStore = defineStore('editor', () => {
     if (blocked()) return false
     const place = placeOf(path)
     if (place === undefined) {
-      actionError.value = 'This document is no longer listed in the project.'
+      actionErrorSource.value = { notice: 'editor-not-listed' }
       return false
     }
     const result = await apiFor(place.kind).openEntry(path)
     if (!result.ok) {
-      actionError.value = result.error.message
+      actionErrorSource.value = result.error
       return false
     }
     // The previous editor can receive a final input before its read-only view update.
@@ -242,10 +251,10 @@ export const useEditorStore = defineStore('editor', () => {
   function closeDocument(path: string): Promise<boolean> {
     return enqueue(async () => {
       if (!tabs.canClose(path)) {
-        actionError.value =
+        actionErrorSource.value =
           path === tabs.writingPath
-            ? 'Choose another manuscript tab with Write here before closing your writing document.'
-            : 'Unpin this document before closing it.'
+            ? { notice: 'editor-writing-close-blocked' }
+            : { notice: 'editor-unpin-before-closing' }
         return false
       }
       await flush()
@@ -306,7 +315,7 @@ export const useEditorStore = defineStore('editor', () => {
 
   function propertyNavigationBlocked(): boolean {
     if (!navigationBusy.value) return false
-    actionError.value = 'Wait for document navigation to finish before changing properties.'
+    actionErrorSource.value = { notice: 'editor-wait-navigation' }
     return true
   }
 
@@ -364,7 +373,7 @@ export const useEditorStore = defineStore('editor', () => {
       } else {
         autosaver.cancel()
         saveState.value = 'conflict'
-        recoveryError.value = result.error.message
+        recoveryErrorSource.value = result.error
       }
       return
     }
@@ -389,7 +398,7 @@ export const useEditorStore = defineStore('editor', () => {
       version = disk.version
       wordCount.value = disk.wordCount
       saveState.value = 'saved'
-      diskNotice.value = 'Updated from disk: this file changed in another program.'
+      diskNoticeSource.value = { notice: 'editor-updated-from-disk' }
       await captureRecovery()
     } else {
       autosaver.cancel()
@@ -407,8 +416,7 @@ export const useEditorStore = defineStore('editor', () => {
       const current = entry.value
       if (current === null || !['missing', 'conflict'].includes(saveState.value)) return false
       if (recoveryToken === undefined) {
-        recoveryError.value =
-          'The recovery snapshot is unavailable. Your draft is still open; no file was changed.'
+        recoveryErrorSource.value = { notice: 'editor-snapshot-unavailable' }
         return false
       }
       autosaver.cancel()
@@ -416,7 +424,7 @@ export const useEditorStore = defineStore('editor', () => {
       if (recoveredPath.value === null) {
         const result = await plotDeviceApi.current().recovery.saveCopy(recoveryToken, text.value)
         if (!result.ok) {
-          recoveryError.value = result.error.message
+          recoveryErrorSource.value = result.error
           return false
         }
         recoveredPath.value = result.value.path
@@ -427,25 +435,23 @@ export const useEditorStore = defineStore('editor', () => {
       const path = recoveredPath.value
       const place = placeOf(path)
       if (place === undefined) {
-        recoveryError.value =
-          'The recovered copy was saved, but could not be listed. Your draft is still open.'
+        recoveryErrorSource.value = { notice: 'editor-recovered-not-listed' }
         return false
       }
       const read = await apiFor(place.kind).openEntry(path)
       if (!read.ok) {
-        recoveryError.value = read.error.message
+        recoveryErrorSource.value = read.error
         return false
       }
       if (read.value.text !== text.value) {
-        recoveryError.value =
-          'The recovered copy changed outside Plot Device. Your draft is still open; inspect the copy before continuing.'
+        recoveryErrorSource.value = { notice: 'editor-recovered-changed' }
         return false
       }
       const wasWriting = tabs.writingPath === current.path
       const pinned = tabs.writing?.pinned ?? false
       await adoptEntry(path, place, read.value)
       if (wasWriting) tabs.writeHere(path, pinned)
-      diskNotice.value = 'Saved a recovered copy. The original file was left untouched.'
+      diskNoticeSource.value = { notice: 'editor-recovered-saved' }
       return true
     })
   }
@@ -484,7 +490,7 @@ export const useEditorStore = defineStore('editor', () => {
     if (hasStuckChanges.value) return false
     const result = await apiFor(current.kind).renameEntry(path)
     if (!result.ok) {
-      actionError.value = result.error.message
+      actionErrorSource.value = result.error
       return false
     }
     const { skipped } = result.value
@@ -534,13 +540,13 @@ export const useEditorStore = defineStore('editor', () => {
       autosaver.cancel()
       const read = await apiFor(current.kind).openEntry(current.path)
       if (!read.ok) {
-        recoveryError.value = read.error.message
+        recoveryErrorSource.value = read.error
         if (read.error.code === 'not-found' || read.error.code === 'entry-not-allowed')
           saveState.value = 'missing'
         return false
       }
       await adoptEntry(current.path, current, read.value)
-      diskNotice.value = 'Loaded the disk version. No file was written.'
+      diskNoticeSource.value = { notice: 'editor-disk-loaded' }
       return true
     })
   }
@@ -552,23 +558,16 @@ export const useEditorStore = defineStore('editor', () => {
       if (current === null || saveState.value !== 'conflict') return false
       const read = await apiFor(current.kind).openEntry(current.path)
       if (!read.ok) {
-        recoveryError.value = read.error.message
+        recoveryErrorSource.value = read.error
         if (read.error.code === 'not-found' || read.error.code === 'entry-not-allowed')
           saveState.value = 'missing'
         return false
       }
-      if (
-        !window.confirm(
-          'Replace the disk text with your draft? This overwrites the body edited outside Plot Device. Its current frontmatter will be kept. Save a recovered copy instead to keep both versions.'
-        )
-      )
-        return false
+      if (!window.confirm(language.t('editor-confirm-replace'))) return false
       autosaver.cancel()
       await save(read.value.version)
       if (needsRecovery()) {
-        recoveryError.value =
-          saveError.value ??
-          'The file changed again. Nothing was replaced. Review your choices again.'
+        recoveryErrorSource.value = saveErrorSource.value ?? { notice: 'editor-changed-again' }
         if (saveError.value !== null) saveState.value = 'conflict'
       }
       return !needsRecovery()
@@ -661,14 +660,3 @@ export const useEditorStore = defineStore('editor', () => {
     canOpen: (path: string) => placeOf(path) !== undefined
   }
 })
-
-function describeSaveError(error: ApiError): string {
-  switch (error.code) {
-    case 'read-only':
-      return 'This project is open read-only, so changes aren’t saved.'
-    case 'not-found':
-      return 'This file was moved or deleted outside Plot Device.'
-    default:
-      return error.message
-  }
-}

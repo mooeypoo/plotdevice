@@ -41,7 +41,8 @@ export function createFileRecovery(
     err(
       domainError(
         'snapshot-unavailable',
-        'The draft’s recovery snapshot is no longer available. The draft has been kept open.'
+        'The draft’s recovery snapshot is no longer available. The draft has been kept open.',
+        { reason: 'snapshot-unavailable' }
       )
     )
 
@@ -71,7 +72,8 @@ export function createFileRecovery(
         return err(
           domainError(
             'cannot-edit',
-            'This snapshot has invalid frontmatter and cannot be recovered safely.'
+            'This snapshot has invalid frontmatter and cannot be recovered safely.',
+            { reason: 'snapshot-invalid' }
           )
         )
       }
@@ -84,7 +86,10 @@ export function createFileRecovery(
       return ok(token)
     },
     async saveCopy(token, text) {
-      if (options.readOnly) return err(domainError('read-only', 'This project is open read-only.'))
+      if (options.readOnly)
+        return err(
+          domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+        )
       const snapshot = pinned.get(token)
       if (snapshot === undefined) return unavailable()
       const split = splitMarkdownFile(snapshot.bytes)
@@ -97,7 +102,8 @@ export function createFileRecovery(
         // Recovered templates are ordinary notes, not a replacement for the active template.
         if (parts.head === '') parts = { ...parts, head: '---\ntype: note\n---\n' }
         const edited = editFrontmatter(parts, [{ key: 'type', value: 'note' }])
-        if (!edited.ok) return err(domainError('cannot-edit', edited.error.message))
+        if (!edited.ok)
+          return err(domainError('cannot-edit', edited.error.message, edited.error.diagnostic))
         parts = edited.value
       }
       const bytes = composeMarkdownFile({ ...parts, body: fromEditorText(text, parts) })
@@ -108,7 +114,11 @@ export function createFileRecovery(
         const actualFolder = await realpath(folder)
         const back = relative(actualRoot, actualFolder)
         if (back === '..' || back.startsWith(`..${sep}`) || isAbsolute(back)) {
-          return err(domainError('write-failed', 'The recovery folder is outside this project.'))
+          return err(
+            domainError('write-failed', 'The recovery folder is outside this project.', {
+              reason: 'recovery-outside-project'
+            })
+          )
         }
         const scan = await scanProject(root)
         if (
@@ -118,7 +128,8 @@ export function createFileRecovery(
           return err(
             domainError(
               'write-failed',
-              'The recovery folder now belongs to a different project. Your draft has been kept open.'
+              'The recovery folder now belongs to a different project. Your draft has been kept open.',
+              { reason: 'recovery-nested-project' }
             )
           )
         }
@@ -131,22 +142,32 @@ export function createFileRecovery(
           const path = joinProjectPath(parent, name)
           const destination = join(folder, name)
           if (dirname(destination) !== folder) {
-            return err(domainError('write-failed', 'The recovery destination is invalid.'))
+            return err(
+              domainError('write-failed', 'The recovery destination is invalid.', {
+                reason: 'recovery-invalid-destination'
+              })
+            )
           }
           const created = await createFileAtomically(destination, bytes)
           if (created.ok) return ok({ path })
           if (created.error.code !== 'already-exists')
-            return err(domainError('write-failed', created.error.message))
+            return err(domainError('write-failed', created.error.message, created.error.diagnostic))
           taken.add(nameComparisonKey(projectPathStem(path)))
         }
         return err(
           domainError(
             'write-failed',
-            'Too many recovery filename collisions. The draft has been kept open.'
+            'Too many recovery filename collisions. The draft has been kept open.',
+            { reason: 'recovery-collisions' }
           )
         )
       } catch (error) {
-        return err(domainError('write-failed', `Could not save a recovered copy: ${String(error)}`))
+        return err(
+          domainError('write-failed', `Could not save a recovered copy: ${String(error)}`, {
+            reason: 'recovery-write-failed',
+            detail: String(error)
+          })
+        )
       }
     }
   }

@@ -9,7 +9,7 @@ The Writing appearance controls set prose size/width without changing markdown o
 Tabs preserve session undo, selection and scroll; only navigation metadata persists in `userData`, never drafts.
 Invalid or unavailable preferences storage is reported without blocking writing.
 Interface language uses typed IPC and bundled Banana catalogs; ADR 0016 tracks incomplete Hebrew/RTL support.
-Dates/warnings stay semantic; renderer formatters localize cached values without changing source or fix identity.
-Recovery keeps outside changes authoritative until an explicit choice; failures retain drafts and freeze editing.
+Dates/warnings and migrated errors stay semantic; formatters localize cached values without changing source/fix identity.
+Recovery keeps outside changes authoritative until an explicit choice; localized failures retain drafts and freeze editing.
 **Must not know about.** Node, Electron, filesystem access, domain classes, or concrete adapters.
 All project reads and writes go through the typed `window.plotDevice` API in `src/contract/`.

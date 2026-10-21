@@ -13,6 +13,16 @@ function setup() {
   return { handlers, capture, saveCopy }
 }
 describe('recovery handlers', () => {
+  it('passes semantic technical details through recovery IPC unchanged', async () => {
+    const test = setup()
+    const error = {
+      code: 'write-failed' as const,
+      message: 'Legacy',
+      diagnostic: { reason: 'recovery-write-failed' as const, detail: 'EACCES (/יעל)' }
+    }
+    test.saveCopy.mockResolvedValue({ ok: false, error })
+    expect(await test.handlers.saveCopy([token, 'Draft'])).toEqual({ ok: false, error })
+  })
   it('accepts only bounded capture and copy requests', async () => {
     const test = setup()
     expect(await test.handlers.capture(['notes/A.md', 'version'])).toEqual(ok(token))

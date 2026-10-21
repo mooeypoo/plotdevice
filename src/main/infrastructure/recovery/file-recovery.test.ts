@@ -86,7 +86,7 @@ describe('file recovery', () => {
     const other = createFileRecovery(fixture.root, { readOnly: false, templateFolder: undefined })
     expect(await other.saveCopy(test.token, 'No')).toMatchObject({
       ok: false,
-      error: { code: 'snapshot-unavailable' }
+      error: { code: 'snapshot-unavailable', diagnostic: { reason: 'snapshot-unavailable' } }
     })
     expect(test.recovery.capture(test.path, 'invented')).toMatchObject({ ok: false })
   })
@@ -147,12 +147,12 @@ describe('file recovery', () => {
     if (!token.ok) throw new Error(token.error.message)
     expect(await recovery.saveCopy(token.value, 'Draft')).toMatchObject({
       ok: false,
-      error: { code: 'read-only' }
+      error: { code: 'read-only', diagnostic: { reason: 'read-only' } }
     })
     recovery.remember(path, 'bad', new TextEncoder().encode('---\nbroken: [\n---\nText'))
     expect(recovery.capture(path, 'bad')).toMatchObject({
       ok: false,
-      error: { code: 'cannot-edit' }
+      error: { code: 'cannot-edit', diagnostic: { reason: 'snapshot-invalid' } }
     })
   })
 
@@ -191,10 +191,17 @@ describe('file recovery', () => {
   it('does not recreate missing parent folders and reports failure without touching the draft snapshot', async () => {
     const test = await captured()
     await rename(join(fixture.root, 'notes'), join(fixture.root, 'moved-notes'))
-    expect(await test.recovery.saveCopy(test.token, 'Draft')).toMatchObject({
+    const result = await test.recovery.saveCopy(test.token, 'Draft')
+    expect(result).toMatchObject({
       ok: false,
-      error: { code: 'write-failed' }
+      error: {
+        code: 'write-failed',
+        diagnostic: { reason: 'recovery-write-failed' }
+      }
     })
+    if (result.ok || result.error.diagnostic?.reason !== 'recovery-write-failed')
+      throw new Error('Expected recovery filesystem failure')
+    expect(result.error.diagnostic.detail).toContain('ENOENT')
     expect(test.recovery.capture(test.path, test.version)).toEqual({ ok: true, value: test.token })
   })
 
@@ -203,7 +210,7 @@ describe('file recovery', () => {
     await writeFile(join(fixture.root, 'notes', 'novel.md'), '---\nformat: 1\n---\n')
     expect(await test.recovery.saveCopy(test.token, 'Draft')).toMatchObject({
       ok: false,
-      error: { code: 'write-failed' }
+      error: { code: 'write-failed', diagnostic: { reason: 'recovery-nested-project' } }
     })
     expect(
       (await readdir(join(fixture.root, 'notes'))).some((name) => name.includes('recovered'))

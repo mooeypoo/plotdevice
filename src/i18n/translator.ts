@@ -6,6 +6,19 @@ import he from './he.json'
 /** Stable catalog keys, excluding translator metadata. */
 export type MessageKey = Exclude<keyof typeof en, '@metadata'>
 type ParameterizedMessages = {
+  'recovery-missing-description': [kind: string]
+  'error-file-outside-project': [path: string]
+  'error-file-missing': [path: string]
+  'error-file-unreadable': [path: string]
+  'error-file-changed': [path: string]
+  'error-file-exists': [path: string]
+  'error-file-unsafe-read': [path: string, problem: string]
+  'error-file-unsafe-write': [path: string, problem: string]
+  'error-file-write-failed': [path: string, detail: string]
+  'error-file-create-failed': [path: string, detail: string]
+  'error-recovery-write-failed': [detail: string]
+  'error-recovery-create-failed': [detail: string]
+  'error-frontmatter-unsupported': [key: string]
   'about-detail': [version: string]
   'date-year-bce': [year: string]
   'date-day-count': [day: string]

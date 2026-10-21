@@ -103,13 +103,28 @@ export function createEntryFiles(rootOsPath: string, remember?: RememberEntryByt
   ): Promise<Result<{ osPath: string; bytes: Uint8Array }, ReadFileError>> => {
     const osPath = osPathOf(path)
     if (osPath === undefined)
-      return err(domainError('not-found', `"${path}" is not in the project.`))
+      return err(
+        domainError('not-found', `"${path}" is not in the project.`, {
+          reason: 'file-outside-project',
+          path
+        })
+      )
     try {
       return ok({ osPath, bytes: await readFile(osPath) })
     } catch (error) {
       return isMissing(error)
-        ? err(domainError('not-found', `"${path}" no longer exists.`))
-        : err(domainError('unreadable', `"${path}" can't be read.`))
+        ? err(
+            domainError('not-found', `"${path}" no longer exists.`, {
+              reason: 'file-missing',
+              path
+            })
+          )
+        : err(
+            domainError('unreadable', `"${path}" can't be read.`, {
+              reason: 'file-unreadable',
+              path
+            })
+          )
     }
   }
 
@@ -124,16 +139,33 @@ export function createEntryFiles(rootOsPath: string, remember?: RememberEntryByt
     const { osPath, bytes } = read.value
     const currentVersion = versionOf(bytes)
     if (expectedVersion !== undefined && expectedVersion !== currentVersion) {
-      return err(domainError('changed-on-disk', `"${path}" changed outside Plot Device.`))
+      return err(
+        domainError('changed-on-disk', `"${path}" changed outside Plot Device.`, {
+          reason: 'file-changed',
+          path
+        })
+      )
     }
     const split = splitMarkdownFile(bytes)
     if (split.kind !== 'parts') {
-      return err(domainError('unreadable', `"${path}" can't be written safely (${split.kind}).`))
+      return err(
+        domainError('unreadable', `"${path}" can't be written safely (${split.kind}).`, {
+          reason: 'file-unsafe',
+          path,
+          operation: 'write',
+          problem: split.kind
+        })
+      )
     }
     const frontmatter = readFrontmatter(bytes)
     if (frontmatter.kind !== 'read' && frontmatter.kind !== 'none') {
       return err(
-        domainError('unreadable', `"${path}" can't be written safely (${frontmatter.kind}).`)
+        domainError('unreadable', `"${path}" can't be written safely (${frontmatter.kind}).`, {
+          reason: 'file-unsafe',
+          path,
+          operation: 'write',
+          problem: frontmatter.kind
+        })
       )
     }
     const updated = transform(split.parts)
@@ -146,7 +178,13 @@ export function createEntryFiles(rootOsPath: string, remember?: RememberEntryByt
       await writeFileAtomically(osPath, updated.value)
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error)
-      return err(domainError('write-failed', `Couldn't save "${path}": ${reason}`))
+      return err(
+        domainError('write-failed', `Couldn't save "${path}": ${reason}`, {
+          reason: 'file-write-failed',
+          path,
+          detail: reason
+        })
+      )
     }
     const version = versionOf(updated.value)
     remember?.(path, version, updated.value)
@@ -159,7 +197,14 @@ export function createEntryFiles(rootOsPath: string, remember?: RememberEntryByt
       if (!read.ok) return read
       const split = splitMarkdownFile(read.value.bytes)
       if (split.kind !== 'parts') {
-        return err(domainError('unreadable', `"${path}" can't be read safely (${split.kind}).`))
+        return err(
+          domainError('unreadable', `"${path}" can't be read safely (${split.kind}).`, {
+            reason: 'file-unsafe',
+            path,
+            operation: 'read',
+            problem: split.kind
+          })
+        )
       }
       remember?.(path, versionOf(read.value.bytes), read.value.bytes)
       return ok({ text: toEditorText(split.parts.body), version: versionOf(read.value.bytes) })
@@ -176,7 +221,12 @@ export function createEntryFiles(rootOsPath: string, remember?: RememberEntryByt
       const frontmatter = readFrontmatter(read.value.bytes)
       if (frontmatter.kind !== 'read') {
         return err(
-          domainError('unreadable', `"${path}" can't be read safely (${frontmatter.kind}).`)
+          domainError('unreadable', `"${path}" can't be read safely (${frontmatter.kind}).`, {
+            reason: 'file-unsafe',
+            path,
+            operation: 'read',
+            problem: frontmatter.kind
+          })
         )
       }
       remember?.(path, versionOf(read.value.bytes), read.value.bytes)
@@ -198,7 +248,7 @@ export function createEntryFiles(rootOsPath: string, remember?: RememberEntryByt
         const edited = editFrontmatter(parts, edits)
         return edited.ok
           ? ok(composeMarkdownFile(edited.value))
-          : err(domainError('cannot-edit', edited.error.message))
+          : err(domainError('cannot-edit', edited.error.message, edited.error.diagnostic))
       }),
 
     writeMappingList: (path, key, items, expectedVersion) =>
@@ -228,9 +278,19 @@ export function createEntryFiles(rootOsPath: string, remember?: RememberEntryByt
     async createFile(path, text) {
       const osPath = osPathOf(path)
       if (osPath === undefined)
-        return err(domainError('write-failed', `"${path}" is not in the project.`))
+        return err(
+          domainError('write-failed', `"${path}" is not in the project.`, {
+            reason: 'file-outside-project',
+            path
+          })
+        )
       if (await stat(osPath).catch(() => undefined)) {
-        return err(domainError('already-exists', `"${path}" already exists.`))
+        return err(
+          domainError('already-exists', `"${path}" already exists.`, {
+            reason: 'file-exists',
+            path
+          })
+        )
       }
       try {
         await mkdir(dirname(osPath), { recursive: true })
@@ -239,7 +299,13 @@ export function createEntryFiles(rootOsPath: string, remember?: RememberEntryByt
         return ok({ version: versionOf(bytes) })
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error)
-        return err(domainError('write-failed', `Couldn't create "${path}": ${reason}`))
+        return err(
+          domainError('write-failed', `Couldn't create "${path}": ${reason}`, {
+            reason: 'file-create-failed',
+            path,
+            detail: reason
+          })
+        )
       }
     }
   }

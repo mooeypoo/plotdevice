@@ -65,6 +65,10 @@ progress, remaining limitations, and the next slice before ending a session.
       descriptions, localized panel, locale-independent identities and fixes.
     - [ ] **I2b.2 Action failures:** expected errors and cached failure state
       across editor/recovery/navigation, remaining stores, handlers and fakes.
+      - [x] **I2b.2a Save/recovery:** semantic file-body/save/recovery failures,
+        cached editor notices, recovery controls and replacement confirmation.
+      - [ ] **I2b.2b Remaining operations:** create/rename/move, property
+        validation, workspace/reference/inspector errors and remaining caches.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
   existing notices, number formatting, display collation, native dialogs and
   controlled destructive confirmations; complete Hebrew and qqq coverage.
@@ -189,12 +193,51 @@ description helper preserves textual diagnostics even for missing list members;
 it is not used for writing files. No dependencies or disk-format changes.
 No new real-browser/packaged qualification or push was performed.
 
-**Next session:** plan I2b.2 action failures and obtain approval before changing
-code. Inventory `DomainError`/`ApiError` producers and string-caching stores;
-design discriminated semantic parameters instead of inferring messages from
-broad error codes. Migrate every relevant handler/fake and cached renderer
-consumer, including already-visible failures, conflicts/recovery, navigation,
-inspector checks and failed writes. Preserve diagnostic detail and recovery
-behavior. Many labels/native dialogs remain English until I3, and RTL geometry/
-writing/reading qualification remains I4-I6. Restart the desktop process for
-contract version 16: renderer hot reload cannot upgrade an older preload.
+I2b.1 was committed as `217778c`. The user approved a bounded save/recovery
+slice of I2b.2, including validation, documentation and commit. Remaining
+operations require their own plan/approval rather than an unbounded migration.
+
+### I2b.2a handoff (2026-10-21)
+
+`DomainError` and `ApiError` now support optional discriminated diagnostics.
+Stable error codes still control behavior; legacy English descriptions remain
+for compatibility. The renderer formats migrated failures using their semantic
+reason, never by parsing English or guessing from broad codes like `unreadable`.
+Unmigrated failures explicitly retain their original message until I2b.2b.
+The pure shared-kernel type and standalone contract DTO stay structurally
+aligned through the IPC mapper. Contract version 17, preload and fake agree.
+
+File-body reads/writes, frontmatter editing used by recovered templates, recovery
+snapshots and recovered-copy publication retain semantic reasons and all existing
+path/parser/technical details. Shared manuscript/codex handler guards are also
+semantic. The main-process atomic writers, exclusive recovered-copy publication,
+version checks and read-only decisions are unchanged. No new dependency or
+on-disk format change was needed.
+
+Editor save/action/recovery errors and disk notices retain their semantic source
+and format reactively. Already-visible failures retranslate without retrying
+operations, rereading files or losing drafts. Conflict/missing-file controls,
+read-only copy, navigation blockers and the destructive replacement confirmation
+are translated, retaining their actions, disabled states and safety promises.
+Dynamic paths and technical details are isolated only in presentation; source
+values and persisted project files never acquire bidi control characters.
+Property-result and rename-skipped summaries remain deferred, not silently
+treated as fully translated.
+
+Regressions cover formatter branches and legacy compatibility, diagnostic IPC
+passthrough, exact failed-write details and unchanged fixture bytes, cached
+manuscript/codex save failures, explicit recovered-copy retries and a replacement
+race that preserves newer outside bytes. Banner tests preserve button identity/
+focus, raw isolated paths, emitted choices and read-only/busy behavior on a live
+switch. Verified lint and dependency boundaries, typecheck, all 1,250 tests across
+150 files, and the production electron-vite build. This is not real-browser or
+packaged bidi certification; no push or release was performed.
+
+**Next session:** plan I2b.2b and obtain approval before changing code. Trace
+create/rename/move, property/relationship validation, workspace/reference/
+inspector failures and every remaining string-caching consumer, including fake
+API paths. Extend semantic diagnostics while preserving exact technical details,
+explicit failures and recovery/navigation safeguards. I2b/I2 remain incomplete.
+Many labels/native dialogs remain English until I3, and RTL geometry/writing/
+reading qualification remains I4-I6. Restart the desktop process for contract
+version 17: renderer hot reload cannot upgrade an older preload.

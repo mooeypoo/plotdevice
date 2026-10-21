@@ -24,7 +24,8 @@ export async function createFileAtomically(
     return err(
       domainError(
         isAlreadyPresent(error) ? 'already-exists' : 'write-failed',
-        `Could not create recovered file: ${String(error)}`
+        `Could not create recovered file: ${String(error)}`,
+        { reason: 'recovery-create-failed', detail: String(error) }
       )
     )
   } finally {

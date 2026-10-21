@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useUiLanguageStore } from '../../app/ui-language-store'
+
+const language = useUiLanguageStore()
 defineProps<{
   busy: boolean
   readOnly: boolean
@@ -16,27 +19,27 @@ defineEmits<{
 <template>
   <div class="banner" role="alert" :aria-busy="busy">
     <div class="text">
-      <strong>Changed outside Plot Device.</strong>
-      Both the file and your draft have changes. Autosave is paused. Choose which text to keep;
-      nothing on disk will be replaced unless you explicitly confirm it. A recovered copy keeps your
-      draft with its last captured metadata, without changing the original or its links.
+      <strong>{{ language.t('recovery-conflict-heading') }}</strong>
+      {{ language.t('recovery-conflict-description') }}
       <p v-if="error" class="error" role="status">{{ error }}</p>
       <p v-if="recoveredPath" class="copy-path">
-        Recovered copy: <bdi>{{ recoveredPath }}</bdi>
+        {{ language.t('recovery-copy-label') }} <bdi>{{ recoveredPath }}</bdi>
       </p>
     </div>
     <div class="actions">
-      <button type="button" :disabled="busy" @click="$emit('loadTheirs')">Use disk version</button>
+      <button type="button" :disabled="busy" @click="$emit('loadTheirs')">
+        {{ language.t('recovery-use-disk') }}
+      </button>
       <button
         type="button"
         class="primary"
         :disabled="busy || readOnly"
         @click="$emit('recoverCopy')"
       >
-        Save recovered copy
+        {{ language.t('recovery-save-copy') }}
       </button>
       <button type="button" :disabled="busy || readOnly" @click="$emit('keepMine')">
-        Replace disk text…
+        {{ language.t('recovery-replace-disk') }}
       </button>
     </div>
   </div>
