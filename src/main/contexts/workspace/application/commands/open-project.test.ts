@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ProjectPath } from '../../../../shared-kernel/project-path'
 import { InMemoryWorkspace } from '../../domain/ports/in-memory-workspace.fake'
 import type { ProjectRoot } from '../../domain/project-root'
@@ -19,6 +19,25 @@ beforeEach(() => {
 })
 
 describe('OpenProject', () => {
+  it.each(['load', 'save'] as const)(
+    'opens with a warning when recents %s fails',
+    async (operation) => {
+      const root = workspace.addFolder('/novels/book', {
+        novel: { kind: 'read', frontmatter: { title: 'Book' } }
+      })
+      const error = { code: 'recents-read-failed', message: 'Denied' } as const
+      const save = vi.spyOn(workspace, 'save')
+      if (operation === 'load') vi.spyOn(workspace, 'load').mockResolvedValue({ ok: false, error })
+      else save.mockResolvedValue({ ok: false, error })
+      const result = await openProject(root)
+      expect(result).toMatchObject({
+        ok: true,
+        value: { project: { title: 'Book' }, recentProjectsError: error }
+      })
+      if (operation === 'load') expect(save).not.toHaveBeenCalled()
+      expect(workspace.recents).toEqual([])
+    }
+  )
   it('opens a project and returns its scan', async () => {
     const scan = {
       files: [

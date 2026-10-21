@@ -43,8 +43,8 @@ export interface WorkspaceHandlers {
   closeProject(): Promise<void>
   /** Re-reads the open project after files changed outside the app. */
   refreshProject(): Promise<ApiResult<ProjectSummaryDto>>
-  listRecentProjects(): Promise<readonly RecentProjectDto[]>
-  removeRecentProject(args: readonly unknown[]): Promise<void>
+  listRecentProjects(): Promise<ApiResult<readonly RecentProjectDto[]>>
+  removeRecentProject(args: readonly unknown[]): Promise<ApiResult<null>>
 }
 
 const MAX_PATH_LENGTH = 4096
@@ -172,19 +172,24 @@ export function createWorkspaceHandlers(deps: WorkspaceHandlerDependencies): Wor
 
     async listRecentProjects() {
       const recents = await deps.listRecentProjects()
-      for (const entry of recents) allow(entry.root)
-      return recents.map(({ root, title, lastOpenedAt, available }) => ({
-        root,
-        title,
-        lastOpenedAt,
-        available
-      }))
+      if (!recents.ok) return { ok: false, error: toApiError(recents.error) }
+      for (const entry of recents.value) allow(entry.root)
+      return {
+        ok: true,
+        value: recents.value.map(({ root, title, lastOpenedAt, available }) => ({
+          root,
+          title,
+          lastOpenedAt,
+          available
+        }))
+      }
     },
 
     async removeRecentProject(args) {
       const parsed = rootArgs.safeParse(args)
-      if (!parsed.success) return
-      await deps.removeRecentProject(deps.toProjectRoot(parsed.data[0]))
+      if (!parsed.success) return invalidRequest
+      const result = await deps.removeRecentProject(deps.toProjectRoot(parsed.data[0]))
+      return result.ok ? { ok: true, value: null } : { ok: false, error: toApiError(result.error) }
     }
   }
 }

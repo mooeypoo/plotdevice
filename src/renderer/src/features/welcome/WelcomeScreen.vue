@@ -30,6 +30,22 @@ const language = useUiLanguageStore()
     <p v-if="workspace.errorMessage" class="error" role="alert" dir="auto">
       {{ workspace.errorMessage }}
     </p>
+    <p
+      v-if="workspace.recentsLoadErrorMessage"
+      class="error"
+      role="alert"
+      data-testid="recents-load-error"
+    >
+      {{ workspace.recentsLoadErrorMessage }}
+    </p>
+    <p
+      v-if="workspace.recentsRemoveErrorMessage"
+      class="error"
+      role="alert"
+      data-testid="recents-remove-error"
+    >
+      {{ workspace.recentsRemoveErrorMessage }}
+    </p>
 
     <RecentProjectList
       :recents="workspace.recents"

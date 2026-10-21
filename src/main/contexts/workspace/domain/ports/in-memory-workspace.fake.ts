@@ -5,7 +5,7 @@ import type { Clock } from './clock'
 import type { CreateNovelFileError, NovelFileReading, NovelFileStore } from './novel-file-store'
 import type { ProjectFolders } from './project-folders'
 import type { ProjectScan, ProjectScanner } from './project-scanner'
-import type { RecentProjectsStore } from './recent-projects-store'
+import type { RecentProjectsError, RecentProjectsStore } from './recent-projects-store'
 
 /** A folder in the fake file system. */
 export interface FakeFolder {
@@ -81,13 +81,13 @@ export class InMemoryWorkspace
   }
 
   // RecentProjectsStore
-  load(): Promise<readonly RecentProject[]> {
-    return Promise.resolve(this.recents)
+  load(): Promise<Result<readonly RecentProject[], RecentProjectsError>> {
+    return Promise.resolve(ok(this.recents))
   }
 
-  save(list: readonly RecentProject[]): Promise<void> {
+  save(list: readonly RecentProject[]): Promise<Result<void, RecentProjectsError>> {
     this.recents = list
-    return Promise.resolve()
+    return Promise.resolve(ok(undefined))
   }
 
   // Clock

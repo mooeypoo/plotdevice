@@ -17,6 +17,7 @@ export type ErrorNotice =
   | { readonly notice: 'reference-not-listed'; readonly path: string }
   | { readonly notice: EditorNoticeKey | 'workspace-unsaved-changes' | 'reference-open-failed' }
   | { readonly notice: 'relationships-cannot-edit'; readonly error: ApiError }
+  | { readonly notice: 'recents-remember-failed'; readonly error: ApiError }
   | string
   | null
 
@@ -25,6 +26,10 @@ export function formatApiError(error: ApiError, t: Translator['t']): string {
   const diagnostic = error.diagnostic
   if (diagnostic === undefined) return error.message
   switch (diagnostic.reason) {
+    case 'recents-read-failed':
+    case 'recents-save-failed':
+    case 'recents-invalid':
+      return t(diagnostic.reason, isolate(diagnostic.path), isolate(diagnostic.detail))
     case 'read-only':
       return t('error-read-only')
     case 'workspace-folder-not-allowed':

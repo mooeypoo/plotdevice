@@ -19,8 +19,13 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const project = ref<ProjectSummaryDto | null>(null)
   const { message: errorMessage, source: errorSource } = useErrorNotice()
   const { message: refreshErrorMessage, source: refreshErrorSource } = useErrorNotice()
+  const { message: recentsLoadErrorMessage, source: recentsLoadErrorSource } = useErrorNotice()
+  const { message: recentsRemoveErrorMessage, source: recentsRemoveErrorSource } = useErrorNotice()
+  const { message: rememberErrorMessage, source: rememberErrorSource } = useErrorNotice()
   const busy = ref(false)
   let refreshRequest = 0
+  let recentsRequest = 0
+  let removeRequest = 0
 
   const api = (): ReturnType<typeof plotDeviceApi.current>['workspace'] =>
     plotDeviceApi.current().workspace
@@ -36,12 +41,22 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   }
 
   async function loadRecents(): Promise<void> {
-    recents.value = await api().listRecentProjects()
+    const request = ++recentsRequest
+    const result = await api().listRecentProjects()
+    if (request !== recentsRequest) return
+    if (result.ok) {
+      recents.value = result.value
+      recentsLoadErrorSource.value = null
+    } else recentsLoadErrorSource.value = result.error
   }
 
   function showProject(summary: ProjectSummaryDto): void {
     refreshRequest += 1
     refreshErrorSource.value = null
+    rememberErrorSource.value =
+      summary.recentProjectsError === undefined
+        ? null
+        : { notice: 'recents-remember-failed', error: summary.recentProjectsError }
     project.value = summary
     chosenFolder.value = null
     screen.value = 'project'
@@ -112,7 +127,16 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   }
 
   async function removeRecent(root: string): Promise<void> {
-    await api().removeRecentProject(root)
+    const request = ++removeRequest
+    // A list fetched before this mutation must not later restore an obsolete entry.
+    recentsRequest += 1
+    const result = await api().removeRecentProject(root)
+    if (request !== removeRequest) return
+    if (!result.ok) {
+      recentsRemoveErrorSource.value = result.error
+      return
+    }
+    recentsRemoveErrorSource.value = null
     await loadRecents()
   }
 
@@ -137,6 +161,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     refreshRequest += 1
     project.value = null
     refreshErrorSource.value = null
+    rememberErrorSource.value = null
     return true
   }
 
@@ -155,6 +180,9 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     project,
     errorMessage,
     refreshErrorMessage,
+    recentsLoadErrorMessage,
+    recentsRemoveErrorMessage,
+    rememberErrorMessage,
     busy,
     loadRecents,
     openProject,

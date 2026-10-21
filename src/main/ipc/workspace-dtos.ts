@@ -43,6 +43,9 @@ export function toProjectSummaryDto(opened: OpenedProject): ProjectSummaryDto {
 
   const { project } = opened
   return {
+    ...(opened.recentProjectsError !== undefined
+      ? { recentProjectsError: toApiError(opened.recentProjectsError) }
+      : {}),
     root: project.root,
     title: project.title,
     ...(project.author !== undefined ? { author: project.author } : {}),

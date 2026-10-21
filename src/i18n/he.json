@@ -1,5 +1,9 @@
 {
   "@metadata": { "authors": [] },
+  "recents-read-failed": "לא ניתן לקרוא את רשימת הפרויקטים האחרונים ב־$1: $2",
+  "recents-save-failed": "לא ניתן לשמור את רשימת הפרויקטים האחרונים ב־$1: $2",
+  "recents-invalid": "הגדרות הפרויקטים האחרונים ב־$1 אינן תקינות והושארו ללא שינוי: $2",
+  "recents-remember-failed": "הפרויקט פתוח, אך לא ניתן לזכור אותו ברשימת הפרויקטים האחרונים. $1",
   "placement-order-invalid": "המיקום חייב להיות מספר שלם.",
   "placement-missing-order": "נדרש מיקום",
   "placement-no-part": "נדרש חלק",

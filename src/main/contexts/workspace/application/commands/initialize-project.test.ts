@@ -24,6 +24,16 @@ beforeEach(() => {
 })
 
 describe('InitializeProject', () => {
+  it('keeps a newly initialized project open when remembering it fails', async () => {
+    const root = workspace.addFolder('/novels/new')
+    const error = { code: 'recents-save-failed', message: 'Full' } as const
+    vi.spyOn(workspace, 'save').mockResolvedValue({ ok: false, error })
+    expect(await initializeProject(root, 'New')).toMatchObject({
+      ok: true,
+      value: { project: { title: 'New' }, recentProjectsError: error }
+    })
+    expect(workspace.createdNovelFiles.size).toBe(1)
+  })
   it('writes novel.md, opens the project, and records it', async () => {
     const root = workspace.addFolder('/novels/new-book')
 

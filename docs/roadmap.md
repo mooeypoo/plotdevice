@@ -172,8 +172,11 @@ acceptance criteria, and the cross-session checklist.
             load/save/invalid notices; reactive cached keys preserve session state.
           - [x] Inspector integer-order validation, all unordered reasons and
             shared binder/inspector duplicate-order diagnostics.
+          - [x] Recent-project persistence/list/removal failures, preserved corrupt
+            settings and independent non-blocking warnings after project open.
           - [ ] Audit remaining diagnostic/cached-consumer coverage before
-            closing I2. Next approval boundary.
+            closing I2; native folder-choice/launch inspection failures remain.
+            Next approval boundary.
 - [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.

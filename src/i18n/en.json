@@ -1,5 +1,9 @@
 {
   "@metadata": { "authors": [] },
+  "recents-read-failed": "Couldn’t read the recent-project list at $1: $2",
+  "recents-save-failed": "Couldn’t save the recent-project list at $1: $2",
+  "recents-invalid": "The recent-project settings at $1 are invalid and were left unchanged: $2",
+  "recents-remember-failed": "The project is open, but couldn’t be remembered in recent projects. $1",
   "placement-order-invalid": "Order must be a whole number.",
   "placement-missing-order": "needs an order",
   "placement-no-part": "needs a part",

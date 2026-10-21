@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
-import { readdir, readFile, rm } from 'node:fs/promises'
+import { readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { scanProject } from '../../../infrastructure/project-scan/scan-project'
 import {
   copySampleNovel,
@@ -16,6 +16,7 @@ import { createMarkdownNovelFileStore } from './markdown-novel-file-store'
 import { createNodeProjectFolders } from './node-project-folders'
 import { projectRootFromOsPath } from './project-root-from-os-path'
 import { systemClock } from './system-clock'
+import { createRemoveRecentProject } from '../application/commands/remove-recent-project'
 
 let project: SampleNovelCopy
 let settings: SampleNovelCopy
@@ -26,6 +27,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  vi.restoreAllMocks()
   await project.remove()
   await settings.remove()
 })
@@ -65,6 +67,32 @@ async function hashEveryFile(folder: string): Promise<Record<string, string>> {
 }
 
 describe('workspace on real files', () => {
+  it('preserves invalid settings and every novel byte while opening with a warning', async () => {
+    const original = '{ broken settings יעל'
+    const file = join(settings.root, 'recent-projects.json')
+    await writeFile(file, original)
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const before = await hashEveryFile(project.root)
+    const root = projectRootFromOsPath(project.root)
+    const cases = wire()
+    expect(await cases.openProject(root)).toMatchObject({
+      ok: true,
+      value: { recentProjectsError: { diagnostic: { reason: 'recents-invalid', path: file } } }
+    })
+    expect(await cases.listRecentProjects()).toMatchObject({
+      ok: false,
+      error: { code: 'recents-invalid' }
+    })
+    const remove = createRemoveRecentProject({
+      folders: createNodeProjectFolders(),
+      recents: createJsonRecentProjectsStore(settings.root)
+    })
+    expect(await remove(root)).toMatchObject({ ok: false, error: { code: 'recents-invalid' } })
+    expect(await readFile(file, 'utf8')).toBe(original)
+    expect(await readdir(settings.root)).toEqual(['recent-projects.json'])
+    expect(await hashEveryFile(project.root)).toEqual(before)
+  })
+
   it('opens the sample novel and lists it in recents', async () => {
     const { openProject, listRecentProjects } = wire()
     const root = projectRootFromOsPath(project.root)
@@ -73,9 +101,10 @@ describe('workspace on real files', () => {
 
     expect(result).toMatchObject({ ok: true, value: { project: { title: 'The Salt Orchard' } } })
     if (result.ok) expect(result.value.scan.files).toHaveLength(30)
-    expect(await listRecentProjects()).toMatchObject([
-      { root, title: 'The Salt Orchard', available: true }
-    ])
+    expect(await listRecentProjects()).toMatchObject({
+      ok: true,
+      value: [{ root, title: 'The Salt Orchard', available: true }]
+    })
   })
 
   it('opening changes no file in the project', async () => {

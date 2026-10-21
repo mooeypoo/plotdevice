@@ -86,7 +86,12 @@ Never test against `fixtures/sample-novel/` directly: tests depend on its exact 
 cp -r fixtures/sample-novel ~/sample-novel
 ```
 
-The app keeps its own settings (the recents list) in `~/.config/plotdevice/` on Linux and `%APPDATA%\plotdevice\` on Windows. Delete `recent-projects.json` there to start fresh.
+The app keeps its recent-project settings in `~/.config/plotdevice/` on Linux and
+`%APPDATA%\plotdevice\` on Windows. An unreadable/invalid `recent-projects.json`
+now produces a visible warning; invalid settings remain at the original path.
+A usable novel still opens if remembering it fails. To recover, close the app,
+back up the settings file, and repair it or move it aside deliberately before
+reopening. A missing file starts an empty list; no novel files are affected.
 
 ## Documentation
 

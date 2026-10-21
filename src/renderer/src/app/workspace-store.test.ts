@@ -50,7 +50,7 @@ describe('workspace store', () => {
     const recents: RecentProjectDto[] = [
       { root: '/gone', title: 'Gone', lastOpenedAt: '', available: false }
     ]
-    fake.api.workspace.listRecentProjects = () => Promise.resolve(recents)
+    fake.api.workspace.listRecentProjects = () => Promise.resolve({ ok: true, value: recents })
     fake.api.workspace.openProject = () =>
       Promise.resolve({
         ok: false,

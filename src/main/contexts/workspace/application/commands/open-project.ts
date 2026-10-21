@@ -6,13 +6,18 @@ import type { Clock } from '../../domain/ports/clock'
 import type { NovelFileStore } from '../../domain/ports/novel-file-store'
 import type { ProjectFolders } from '../../domain/ports/project-folders'
 import type { ProjectScan, ProjectScanner } from '../../domain/ports/project-scanner'
-import type { RecentProjectsStore } from '../../domain/ports/recent-projects-store'
+import type {
+  RecentProjectsError,
+  RecentProjectsStore
+} from '../../domain/ports/recent-projects-store'
 import { readProject, readUnreadableProject, type Project } from '../../domain/project'
 import type { ProjectRoot } from '../../domain/project-root'
 import { recordOpened } from '../../domain/recent-projects'
 
 /** A project that is now open, with every markdown file it contains. */
 export interface OpenedProject {
+  /** Settings failure that must not prevent reading an otherwise usable project. */
+  readonly recentProjectsError?: RecentProjectsError
   readonly project: Project
   readonly scan: ProjectScan
 }
@@ -94,13 +99,14 @@ export function createOpenProject(ports: OpenProjectPorts): OpenProject {
     if (!opened.ok) return opened
 
     const recents = await ports.recents.load()
-    await ports.recents.save(
+    if (!recents.ok) return ok({ ...opened.value, recentProjectsError: recents.error })
+    const saved = await ports.recents.save(
       recordOpened(
-        recents,
+        recents.value,
         { root, title: opened.value.project.title, lastOpenedAt: ports.clock.now().toISOString() },
         ports.folders.isSameRoot
       )
     )
-    return opened
+    return saved.ok ? opened : ok({ ...opened.value, recentProjectsError: saved.error })
   }
 }

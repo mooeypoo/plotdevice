@@ -28,6 +28,11 @@ export interface ApiError {
 /** Language-independent failure details for migrated operations; technical details stay untranslated. */
 export type ErrorDiagnosticDto =
   | {
+      readonly reason: 'recents-read-failed' | 'recents-save-failed' | 'recents-invalid'
+      readonly path: string
+      readonly detail: string
+    }
+  | {
       readonly reason:
         | 'read-only'
         | 'workspace-folder-not-allowed'
@@ -146,6 +151,8 @@ export interface FileProblemDto {
 
 /** The open project, as the renderer sees it. */
 export interface ProjectSummaryDto {
+  /** Opening succeeded, but recording the project in per-user recents failed. */
+  readonly recentProjectsError?: ApiError
   readonly root: string
   readonly title: string
   readonly author?: string

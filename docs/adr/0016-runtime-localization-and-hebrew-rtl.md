@@ -91,6 +91,9 @@ progress, remaining limitations, and the next slice before ending a session.
             and writing-preference load/save/invalid notices.
           - [x] **Order/placement notices:** cached integer-validation hint,
             unordered reasons and shared binder/inspector clash descriptions.
+          - [x] **Recent projects:** typed persistence/list/removal failures,
+            non-blocking recording warnings on successful open/initialize,
+            preserved invalid settings and reactive independent notices.
           - [ ] **Remaining coverage:** audit remaining diagnostics and cached
             consumers before closing I2.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
@@ -664,15 +667,79 @@ internally. Those parser descriptions remain explicit English compatibility
 details, not inferred translations from broad codes. Do not localize domain code
 or add boundary reasons without a demonstrated consumer and approved scope.
 
-**Next session:** finish the remaining I2 coverage inventory, including
-compatibility fallbacks/fakes and deferred workspace APIs, and propose a bounded
-plan before changing code; do not mark I2 complete from this slice alone.
+Committed as `135e99c feat: localize order and placement diagnostics`.
+
+### I2b.2b.2 recent-project persistence handoff (2026-10-21)
+
+The remaining I2 inventory found no additional untranslated expected failures in
+the inspected renderer fake: its failure branches already carry semantic
+diagnostics. UI-language failures already have localized presentation, retaining
+technical errors for logging. The substantive remaining workspace gap was the
+plain-value/void recents API: reads silently returned empty, corruption was moved
+aside without notice, and write rejection could prevent an otherwise usable
+project from opening.
+
+The user explicitly approved changing this behavior. `RecentProjectsStore`
+load/save now return typed results, used by open, initialize, list and remove.
+A missing settings file remains a normal empty list. Invalid JSON/schema and
+other read failures report distinct semantic diagnostics; failed writes report
+their own diagnostic. Each includes the exact OS settings path and original
+technical detail, logged explicitly at the adapter operation site. Catalog
+presentation isolates both without changing stored values.
+
+Invalid settings now remain at the original path, byte for byte: no implicit
+archival/reset or write after a failed read. This supersedes the prior automatic
+`recent-projects.corrupt.json` rename. To recover, the writer deliberately repairs
+the file or backs it up/moves it aside while the app is closed; there is no new
+destructive reset control. Successful persistence retains the existing version-1
+schema and atomic-write helper. Read/modify/write concurrency across independent
+operations or app processes is not redesigned by this slice.
+
+A successful project read or initialization stays successful if recording it
+fails. `OpenedProject` and its summary DTO carry optional `recentProjectsError`;
+main still builds the project use cases and opens the project. The renderer
+retains this as a separate non-blocking notice, not an open failure or manuscript
+save failure. Project refresh and successful list reads cannot hide it; project
+close or another successful open replaces it.
+
+List/remove APIs now return `ApiResult`; invalid removal arguments explicitly
+return the existing semantic invalid-request error. Listing failures retain the
+last good list. Removal failures retain the list without claiming success or
+reloading it, and use a cache independent of list and open-recording notices.
+Successful list/removal attempts clear only their own errors. Listing generations
+reject superseded results and pre-removal replies; removal generations reject
+obsolete action notices. Existing folder-open/return-to-welcome/list and remove
+actions provide retries; no new automatic retry or persistence control was added.
+
+Welcome/project layouts show escaped errors, including project focus mode.
+Locale switches only reformat cached errors, preserving controls, focus,
+conflicted drafts and the last list without repeated operations. Four en/he/qqq
+messages cover the new reasons and the successful-open warning. Contract version
+is now **22** in API/preload/browser fake; restart the desktop process because
+renderer hot reload cannot update an older preload. Main's recents errors cross
+IPC through the shared explicit mapper; browser fake successes use the new shapes.
+
+Regressions first reproduced silent adapter failures, rejected/silent recording
+outcomes and missing renderer notices. Tests cover corrupt JSON/schema/relative
+roots/versions, real read/write failures, preserved original settings and novel
+hashes, initialization/open warnings, no writes after failed reads, list/remove
+propagation and successful retries, invalid IPC requests, independent cache
+clearing, stale list replies, escaped exact mixed-script details and live Hebrew
+without navigation/reads/writes. Verified lint/dependency boundaries, typecheck,
+all 1,454 tests across 160 files, the production electron-vite build, and the
+documentation build/link/asset checks across all 16 public pages.
+No new dependencies, novel-file format changes, push, release or packaged/browser
+RTL qualification.
+
+**Next session:** trace remaining native folder-dialog/launch-folder inspection
+failure paths and propose a bounded plan before changing code. Their plain-value/
+event API and filesystem inspection fallbacks remain outstanding; I2 is not
+complete. Recent-project persistence/list/removal is no longer deferred.
 Logging-only invalid programmatic writing-preference values still return the
 original Zod detail and have no displayed consumer; translating those diagnostics
 or adding a UI surface was outside this scope. Full appearance/tab labels remain I3.
 Preserve exact details and existing navigation/recovery behavior; avoid guessing
-text from broad codes. Recent-project/folder-choice failure API design remains
-explicitly deferred.
+text from broad codes. Folder-choice/launch failure API design remains outstanding.
 I2b/I2 remain incomplete. Full interface/native translation remains I3, and RTL
 geometry/writing/reading qualification remains I4-I6. Restart the desktop process
-for contract version 21: renderer hot reload cannot upgrade an older preload.
+for contract version 22: renderer hot reload cannot upgrade an older preload.

@@ -289,7 +289,7 @@ export function createFakePlotDeviceApi(): {
   >()
 
   const api: PlotDeviceApi = {
-    contractVersion: 21,
+    contractVersion: 22,
     uiLanguage: {
       get: () => Promise.resolve(language),
       set: (locale) => {
@@ -426,8 +426,8 @@ export function createFakePlotDeviceApi(): {
         state.closedProjects += 1
         return Promise.resolve()
       },
-      listRecentProjects: () => Promise.resolve([]),
-      removeRecentProject: () => Promise.resolve(),
+      listRecentProjects: () => Promise.resolve({ ok: true, value: [] }),
+      removeRecentProject: () => Promise.resolve({ ok: true, value: null }),
       refreshProject: () => Promise.resolve({ ok: true, value: summary.current }),
       onProjectChanged: (listener) => {
         listeners.add(listener)

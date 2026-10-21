@@ -71,7 +71,9 @@ describe('ListRecentProjects and RemoveRecentProject', () => {
     ]
     const list = createListRecentProjects({ folders: workspace, recents: workspace })
 
-    expect((await list()).map((entry) => [entry.title, entry.available])).toEqual([
+    const first = await list()
+    if (!first.ok) throw new Error(first.error.message)
+    expect(first.value.map((entry) => [entry.title, entry.available])).toEqual([
       ['Here', true],
       ['Gone', false]
     ])
@@ -79,6 +81,8 @@ describe('ListRecentProjects and RemoveRecentProject', () => {
     await createRemoveRecentProject({ folders: workspace, recents: workspace })(
       '/novels/gone' as ProjectRoot
     )
-    expect((await list()).map((entry) => entry.title)).toEqual(['Here'])
+    const second = await list()
+    if (!second.ok) throw new Error(second.error.message)
+    expect(second.value.map((entry) => entry.title)).toEqual(['Here'])
   })
 })

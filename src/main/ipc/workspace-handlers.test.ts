@@ -54,6 +54,31 @@ beforeEach(() => {
 const path = (value: string): ProjectPath => value as ProjectPath
 
 describe('workspace handlers', () => {
+  it('returns explicit recents failures and keeps successful project opening independent', async () => {
+    const root = workspace.addFolder('/novels/יעל', { novel: { kind: 'read', frontmatter: {} } })
+    await handlers.chooseFolder(() => Promise.resolve(root))
+    const error = {
+      code: 'recents-invalid',
+      message: 'Original settings detail',
+      diagnostic: { reason: 'recents-invalid', path: '/settings/יעל.json', detail: 'Invalid JSON' }
+    } as const
+    vi.spyOn(workspace, 'load').mockResolvedValue({ ok: false, error })
+    const save = vi.spyOn(workspace, 'save')
+    expect(await handlers.listRecentProjects()).toEqual({ ok: false, error })
+    expect(await handlers.removeRecentProject([root])).toEqual({ ok: false, error })
+    expect(await handlers.removeRecentProject([null])).toMatchObject({
+      ok: false,
+      error: { diagnostic: { reason: 'invalid-request' } }
+    })
+    const openedProject = await handlers.openProject([root])
+    expect(openedProject).toMatchObject({ ok: true, value: { root, recentProjectsError: error } })
+    expect(opened).toEqual([[root, false]])
+    expect(save).not.toHaveBeenCalled()
+    const refreshed = await handlers.refreshProject()
+    expect(refreshed.ok).toBe(true)
+    if (refreshed.ok) expect(refreshed.value).not.toHaveProperty('recentProjectsError')
+  })
+
   it.each(['open', 'initialize', 'refresh'] as const)(
     'preserves a missing folder diagnostic through %s',
     async (action) => {

@@ -89,6 +89,30 @@ useShortcuts([
         <p v-if="tabs.storageNotice" class="navigation-notice" role="status">
           {{ tabs.storageNotice }}
         </p>
+        <p
+          v-if="workspace.rememberErrorMessage"
+          class="navigation-notice"
+          role="alert"
+          data-testid="recents-remember-error"
+        >
+          {{ workspace.rememberErrorMessage }}
+        </p>
+        <p
+          v-if="workspace.recentsLoadErrorMessage"
+          class="navigation-notice error"
+          role="alert"
+          data-testid="recents-load-error"
+        >
+          {{ workspace.recentsLoadErrorMessage }}
+        </p>
+        <p
+          v-if="workspace.recentsRemoveErrorMessage"
+          class="navigation-notice error"
+          role="alert"
+          data-testid="recents-remove-error"
+        >
+          {{ workspace.recentsRemoveErrorMessage }}
+        </p>
         <p v-if="editor.actionError" class="navigation-notice error" role="alert">
           {{ editor.actionError }}
         </p>

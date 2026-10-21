@@ -1,5 +1,9 @@
 {
   "@metadata": { "authors": [] },
+  "recents-read-failed": "Recent-project user-settings read failure. $1 is the exact OS settings path; $2 is untranslated technical detail. Both are isolated by the caller. Not a novel-file failure.",
+  "recents-save-failed": "Recent-project user-settings write failure. $1 is the exact OS settings path; $2 is untranslated technical detail. Both are isolated by the caller. No project folder is deleted.",
+  "recents-invalid": "Malformed JSON or schema-invalid recent-project settings are preserved at the original path, not silently reset or archived. $1 is that exact isolated OS path; $2 is isolated untranslated validation detail.",
+  "recents-remember-failed": "Non-blocking warning after successful project open/initialization when recording recents failed. $1 is the localized specific failure with technical details. Do not imply the project failed to open or manuscript saving failed.",
   "placement-order-invalid": "Local inspector validation for a non-integer order. Order is the numeric manuscript position, not a date or word count. No save is attempted for this value.",
   "placement-missing-order": "Brief unordered-chapter reason, also inserted into placement-not-in-book: the chapter needs a numeric order.",
   "placement-no-part": "Brief unordered-chapter reason, also inserted into placement-not-in-book: the book has parts but this chapter has no part link.",

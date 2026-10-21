@@ -48,9 +48,9 @@ export interface WorkspaceApi {
   initializeProject(root: string, title: string): Promise<ApiResult<ProjectSummaryDto>>
   /** Closes the open project. */
   closeProject(): Promise<void>
-  listRecentProjects(): Promise<readonly RecentProjectDto[]>
+  listRecentProjects(): Promise<ApiResult<readonly RecentProjectDto[]>>
   /** Forgets a recent project. The folder is not touched. */
-  removeRecentProject(root: string): Promise<void>
+  removeRecentProject(root: string): Promise<ApiResult<null>>
   /**
    * The folder the app was started with (`plotdevice ~/novels/book`, or "Open With" in a file
    * manager), inspected like a chosen folder; `null` when there was none. Answers once.
@@ -202,7 +202,7 @@ export interface RecoveryApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 21
+  readonly contractVersion: 22
   readonly uiLanguage: UiLanguageApi
   readonly recovery: RecoveryApi
   readonly workspace: WorkspaceApi

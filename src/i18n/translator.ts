@@ -6,6 +6,10 @@ import he from './he.json'
 /** Stable catalog keys, excluding translator metadata. */
 export type MessageKey = Exclude<keyof typeof en, '@metadata'>
 type ParameterizedMessages = {
+  'recents-read-failed': [path: string, detail: string]
+  'recents-save-failed': [path: string, detail: string]
+  'recents-invalid': [path: string, detail: string]
+  'recents-remember-failed': [detail: string]
   'placement-clash': [order: string, titles: string]
   'placement-quoted-title': [title: string]
   'placement-not-in-book': [reason: string]

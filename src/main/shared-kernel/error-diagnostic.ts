@@ -1,6 +1,11 @@
 /** Semantic failure details for migrated operations; machine-readable codes still drive behavior. */
 export type ErrorDiagnostic =
   | {
+      readonly reason: 'recents-read-failed' | 'recents-save-failed' | 'recents-invalid'
+      readonly path: string
+      readonly detail: string
+    }
+  | {
       readonly reason:
         | 'read-only'
         | 'workspace-folder-not-allowed'
