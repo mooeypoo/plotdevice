@@ -37,6 +37,18 @@ const mountApp = () =>
   })
 
 describe('window close with unresolved recovery', () => {
+  it('cancels closing while document navigation is pending', async () => {
+    const cancel = vi.spyOn(fake.api.app, 'cancelClose')
+    const ready = vi.spyOn(fake.api.app, 'readyToClose')
+    const app = mountApp()
+    useEditorStore().discardMissing()
+    const opening = useEditorStore().open('The Ferry.md')
+    beforeClose()
+    expect(cancel).toHaveBeenCalledOnce()
+    expect(ready).not.toHaveBeenCalled()
+    await opening
+    app.unmount()
+  })
   it('cancels closing when the writer declines to lose the draft', async () => {
     const ready = vi.spyOn(fake.api.app, 'readyToClose')
     const cancel = vi.spyOn(fake.api.app, 'cancelClose')

@@ -21,13 +21,13 @@ onMounted(() => {
   })
   // Save the last keystrokes before the window closes.
   stopListening = plotDeviceApi.current().app.onBeforeClose(() => {
-    if (editor.recoveryBusy) {
+    if (editor.recoveryBusy || editor.navigationBusy) {
       plotDeviceApi.current().app.cancelClose()
       return
     }
     void editor.flush().finally(() => {
       const app = plotDeviceApi.current().app
-      if (editor.recoveryBusy) {
+      if (editor.recoveryBusy || editor.navigationBusy) {
         app.cancelClose()
         return
       }
@@ -51,5 +51,5 @@ onBeforeUnmount(() => {
 <template>
   <WelcomeScreen v-if="workspace.screen === 'welcome'" />
   <InitializePrompt v-else-if="workspace.screen === 'initialize'" />
-  <ProjectLayout v-else />
+  <ProjectLayout v-else :key="workspace.project?.root" />
 </template>

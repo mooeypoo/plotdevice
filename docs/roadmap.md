@@ -121,11 +121,11 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [x] Reuse inert outline rendering and reading width; retain per-reference scroll during the project session, refresh external changes, reject stale loads and follow app moves/renames.
 - [x] Route codex lookups and reference links without replacing the manuscript; preserve outline selection and existing conflict/recovery protections.
 
-## Phase 16: Writing anchor and document tabs (approved, next phase)
-- [ ] Keep an automatic manuscript Writing target based on actual writing, with an explicit pin to lock it and a Write here action to change it.
-- [ ] Temporary, kept and pinned document tabs; deduplicate open documents and offer quick Return to writing and keyboard cycling.
-- [ ] Preserve per-document CodeMirror history, selection and scroll while retaining one active writable surface and all save/recovery navigation guards.
-- [ ] Route every document-opening surface consistently; follow renames/moves and restore valid per-project tab metadata from user settings, never novel files or an implied unsaved-draft backup.
+## Phase 16: Writing anchor and document tabs
+- [x] Keep an automatic manuscript Writing target based on actual writing, with an explicit pin to lock it and a Write here action to change it.
+- [x] Temporary, kept and pinned document tabs; deduplicate open documents and offer quick Return to writing and keyboard cycling.
+- [x] Preserve per-document CodeMirror history, selection and scroll while retaining one active writable surface and all save/recovery navigation guards.
+- [x] Route every document-opening surface consistently; follow renames/moves and restore valid per-project tab metadata from user settings, never novel files or an implied unsaved-draft backup.
 
 ## Proposed release and documentation program
 
@@ -176,7 +176,7 @@ native deb permissions and publisher authentication are not changed by metadata.
   - Relationships can't be reordered in the app, and removing an entry's first field (`with`) is refused (ADR 0007).
   - Markdown links are read for Appears in and Ctrl/Cmd+click, not for chapter placement (`part:`) or renames.
 - Phase 5a follow-ups:
-  - The writable editor and Properties inspector still share one open entry; Phase 15 separates read-only references. Phase 16 will add document tabs without introducing competing writers.
+  - The writable editor and Properties inspector still share one open entry; Phase 15 separates read-only references and Phase 16 adds document tabs without competing writers.
   - Codex entries have no word counts in their list, and notes have no aliases field (their other keys are shown read-only).
 - Phase 4 follow-ups:
   - Changes to `novel.md` settings (`file_names`, folders) take effect when the project is reopened; statuses and threads update live.

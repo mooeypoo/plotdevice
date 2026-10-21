@@ -50,6 +50,38 @@ The preferred reading width is shared with **Outline** and remembered on this
 computer. References remain readable during a manuscript conflict, but **Open in
 editor** still requires resolving any unsaved changes before leaving that draft.
 
+### Keep your writing chapter close
+
+The first manuscript you open becomes **Writing**, shown first in the document
+tabs. While Writing is unpinned, actually editing another part or chapter makes
+that document your new Writing target. Reading another page or editing a
+character does not change it.
+
+Use **Pin** on Writing to lock your target while comparing or annotating other
+chapters. **Write here** on another manuscript tab explicitly chooses and pins
+that document instead. **Unpin** releases the lock; it does not close the tab.
+Pinning another document keeps it available without changing Writing.
+
+**Return to writing** brings you back from another document, Overview, Timeline,
+or Interactions. A document's undo history, selection and reading position survive
+switching tabs during this project session. If its text changes outside the app,
+reopening it loads the disk version with fresh editor history.
+
+Opening a different page normally reuses a single **Preview** tab. Use **Keep
+open**, double-click its tab, pin it, or edit its text to keep it. New documents
+start kept. Opening a page already in the strip activates its existing tab.
+
+Close an ordinary tab with its **×**, or use **Close other unpinned** to clear
+comparisons while keeping the current document, Writing and pinned tabs. Unpin
+other pinned tabs before closing them. To close Writing, first choose another
+manuscript with **Write here**. Closing tabs never deletes files.
+
+Switching or closing tabs saves first. A conflict, missing file or failed save
+keeps your draft open until you resolve it; read-only Reference lookups still work.
+Tab paths, order, pins and Writing are remembered per project on this computer.
+Reopening reads the files on disk: tabs are **not an unsaved-draft backup**, and
+undo, selection and scroll are not restored after closing the project or app.
+
 ### Adjust the writing surface
 
 Use **Writing appearance** in the status bar to adjust prose size and line width.
@@ -62,9 +94,13 @@ per-user settings, not the novel's Markdown.
 | Toggle inspector | `Ctrl+Shift+I` |
 | Toggle outline panel | `Ctrl+Shift+O` |
 | Focus mode | `Ctrl+Shift+F` |
+| Return to writing | `Ctrl+Shift+Enter` |
+| Next / previous document | `Ctrl+Tab` / `Ctrl+Shift+Tab` |
+| Close current document tab | `Ctrl+W` |
 
-These are the Linux/Windows menu shortcuts. The native **Edit** menu includes undo,
-redo, cut, copy, paste, and select all.
+These are the Linux/Windows shortcuts. Document shortcuts also work in focus mode.
+With the document strip focused, use Left/Right or Home/End to activate tabs.
+The native **Edit** menu includes undo, redo, cut, copy, paste, and select all.
 
 ## More than one writing direction
 

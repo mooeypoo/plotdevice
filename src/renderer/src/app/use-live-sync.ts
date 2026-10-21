@@ -6,6 +6,7 @@ import { useInspectorStore } from './inspector-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useWorkspaceStore } from './workspace-store'
+import { useDocumentTabsStore } from './document-tabs-store'
 
 /**
  * Keeps the open project in step with edits made in other programs while it's open: the binder,
@@ -25,6 +26,7 @@ export function useLiveSync(): void {
     await workspace.refresh()
     await Promise.all([manuscript.reload(), codex.reload()])
     await editor.syncFromDisk(changes)
+    useDocumentTabsStore().refresh(editor.entry?.path ?? null)
     if (changes.some((change) => change.path === 'novel.md')) await inspector.loadVocabulary()
   }
 

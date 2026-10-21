@@ -189,7 +189,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
       return false
     }
     await reload()
-    return editor.open(result.value.path)
+    return editor.open(result.value.path, { keep: true })
   }
 
   /** Creates a part after the others. */

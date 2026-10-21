@@ -21,6 +21,25 @@ afterEach(() => {
 })
 
 describe('ChapterEditor appearance', () => {
+  it('focuses a newly navigated document once it becomes editable, without stealing focus after later freezes', async () => {
+    const focus = vi.spyOn(EditorView.prototype, 'focus')
+    const wrapper = mount(ChapterEditor, {
+      props: {
+        initialText: 'Draft',
+        readOnly: true,
+        focusMode: false,
+        linkTargets: [],
+        completions: []
+      }
+    })
+    expect(focus).not.toHaveBeenCalled()
+    await wrapper.setProps({ readOnly: false })
+    expect(focus).toHaveBeenCalledOnce()
+    await wrapper.setProps({ readOnly: true })
+    await wrapper.setProps({ readOnly: false })
+    expect(focus).toHaveBeenCalledOnce()
+    wrapper.unmount()
+  })
   it('temporarily freezes editing during recovery without losing the draft, selection or undo history', async () => {
     const wrapper = mount(ChapterEditor, {
       props: {

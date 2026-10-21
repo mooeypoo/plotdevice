@@ -120,6 +120,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   async function leaveCurrentProject(): Promise<boolean> {
     if (project.value === null) return true
     const editor = useEditorStore()
+    await editor.waitForNavigation()
     await editor.flush()
     if (editor.hasStuckChanges) {
       errorMessage.value = 'Resolve the unsaved changes in the open chapter first.'

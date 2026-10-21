@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, watch } from 'vue'
+import { onBeforeUnmount, onMounted } from 'vue'
 import EditorPane from '../features/editor/EditorPane.vue'
 import { useInspectorStore } from './inspector-store'
 import { formatWordCount } from '../features/binder/binder-labels'
 import type { DropRequest } from '../features/binder/binder-drop'
-import { lastEntryOf, rememberLastEntry, useLayoutStore } from './layout-store'
+import { lastEntryOf, useLayoutStore } from './layout-store'
 import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
@@ -18,6 +18,8 @@ import { useMenuCommands } from './use-menu-commands'
 import { useShortcuts } from './use-shortcuts'
 import { useWorkspaceStore } from './workspace-store'
 import { useWritingPreferencesStore } from './writing-preferences-store'
+import { useDocumentTabsStore } from './document-tabs-store'
+import DocumentTabs from './DocumentTabs.vue'
 
 const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
@@ -26,6 +28,8 @@ const editor = useEditorStore()
 const layout = useLayoutStore()
 const inspector = useInspectorStore()
 const writingPreferences = useWritingPreferencesStore()
+const tabs = useDocumentTabsStore()
+let disposed = false
 
 useLiveSync()
 useMenuCommands()
@@ -38,24 +42,19 @@ function move(request: DropRequest): void {
 const { count: attentionCount } = useWarnings()
 
 onMounted(async () => {
+  const root = workspace.project?.root
   void inspector.loadVocabulary()
   await Promise.all([manuscript.load(), codex.load()])
-  const root = workspace.project?.root
-  const last = root === undefined ? undefined : lastEntryOf(root)
+  if (disposed || root === undefined || workspace.project?.root !== root) return
+  tabs.restore(root)
+  const last = tabs.activePath ?? lastEntryOf(root)
   if (last !== undefined && editor.canOpen(last)) await editor.open(last)
 })
 
 onBeforeUnmount(() => {
+  disposed = true
   inspector.clear()
 })
-
-watch(
-  () => editor.entry?.path ?? null,
-  (path) => {
-    const root = workspace.project?.root
-    if (root !== undefined) rememberLastEntry(root, path)
-  }
-)
 
 useShortcuts([
   {
@@ -86,6 +85,13 @@ useShortcuts([
         @move="move"
       />
       <main class="main">
+        <DocumentTabs v-show="!layout.focusMode" />
+        <p v-if="tabs.storageNotice" class="navigation-notice" role="status">
+          {{ tabs.storageNotice }}
+        </p>
+        <p v-if="editor.actionError" class="navigation-notice error" role="alert">
+          {{ editor.actionError }}
+        </p>
         <EditorPane />
       </main>
       <RightPanel v-if="layout.inspectorOpen && !layout.focusMode" />
@@ -114,8 +120,25 @@ useShortcuts([
 }
 
 .main {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-width: 0;
+}
+
+.main :deep(.pane) {
+  flex: 1;
+  min-height: 0;
+}
+
+.navigation-notice {
+  margin: 0;
+  padding: 8px 16px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.navigation-notice.error {
+  color: var(--danger);
 }
 
 .focus-chrome {

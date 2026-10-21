@@ -7,6 +7,8 @@ import type { EntryKind, EntryPlace } from './entry-place'
 import { plotDeviceApi } from './plot-device-api'
 import { useEntryRecovery } from './entry-recovery'
 import { useReferenceStore } from './reference-store'
+import { useDocumentTabsStore } from './document-tabs-store'
+import { useLayoutStore } from './layout-store'
 
 export type { EntryKind, EntryPlace } from './entry-place'
 
@@ -52,6 +54,10 @@ export const useEditorStore = defineStore('editor', () => {
   const recoveryError = recovery.error
   const recoveredPath = recovery.recoveredPath
   const missingReappeared = ref(false)
+  const tabs = useDocumentTabsStore()
+  const pendingNavigation = ref(0)
+  const navigationBusy = computed(() => pendingNavigation.value > 0)
+  let navigation: Promise<boolean> = Promise.resolve(true)
   // The open file's version, shared by the editor and the inspector: both write the same file.
   let version = ''
   let savedText = ''
@@ -153,19 +159,52 @@ export const useEditorStore = defineStore('editor', () => {
   }
   const hasStuckChanges = computed(() => recoveryBusy.value || needsRecovery())
 
-  async function open(path: string): Promise<boolean> {
-    if (recoveryBusy.value) return false
+  function blocked(): boolean {
+    if (!hasStuckChanges.value) return false
+    actionError.value = 'Resolve the unsaved changes in the current document before leaving it.'
+    return true
+  }
+
+  function enqueue(run: () => Promise<boolean>): Promise<boolean> {
+    pendingNavigation.value += 1
+    navigation = navigation.then(run, run).finally(() => {
+      pendingNavigation.value -= 1
+    })
+    return navigation
+  }
+
+  function open(path: string, options: { readonly keep?: boolean } = {}): Promise<boolean> {
+    return enqueue(() => navigate(path, options.keep ?? false))
+  }
+
+  async function navigate(path: string, keep: boolean): Promise<boolean> {
+    if (entry.value?.path === path) {
+      tabs.opened(path, keep)
+      useLayoutStore().mainView = 'write'
+      return true
+    }
+    if (recoveryBusy.value) {
+      blocked()
+      return false
+    }
     await flush()
     // Switching now would silently drop the writer's unsaved text.
-    if (hasStuckChanges.value) return false
+    if (blocked()) return false
     const place = placeOf(path)
-    if (place === undefined) return false
+    if (place === undefined) {
+      actionError.value = 'This document is no longer listed in the project.'
+      return false
+    }
     const result = await apiFor(place.kind).openEntry(path)
     if (!result.ok) {
       actionError.value = result.error.message
       return false
     }
+    // The previous editor can receive a final input before its read-only view update.
+    await flush()
+    if (blocked()) return false
     revision += 1
+    tabs.opened(path, keep)
     entry.value = { ...place, path, revision }
     text.value = result.value.text
     savedText = result.value.text
@@ -181,7 +220,64 @@ export const useEditorStore = defineStore('editor', () => {
     missingReappeared.value = false
     await captureRecovery()
     await readProperties()
+    useLayoutStore().mainView = 'write'
     return true
+  }
+
+  function returnToWriting(): Promise<boolean> {
+    const path = tabs.writingPath
+    return path === null ? Promise.resolve(false) : open(path)
+  }
+
+  function cycleDocument(direction: 1 | -1): Promise<boolean> {
+    return enqueue(async () => {
+      const documents = tabs.ordered
+      if (documents.length === 0) return false
+      const index = documents.findIndex((tab) => tab.path === entry.value?.path)
+      const next = documents[(index + direction + documents.length) % documents.length]
+      return next === undefined ? false : navigate(next.path, false)
+    })
+  }
+
+  function closeDocument(path: string): Promise<boolean> {
+    return enqueue(async () => {
+      if (!tabs.canClose(path)) {
+        actionError.value =
+          path === tabs.writingPath
+            ? 'Choose another manuscript tab with Write here before closing your writing document.'
+            : 'Unpin this document before closing it.'
+        return false
+      }
+      await flush()
+      if (blocked()) return false
+      if (entry.value?.path === path) {
+        const index = tabs.ordered.findIndex((tab) => tab.path === path)
+        const others = tabs.ordered.filter((tab) => tab.path !== path)
+        const next = others[Math.max(0, index - 1)] ?? others[0]
+        if (next !== undefined) {
+          if (!(await navigate(next.path, false))) return false
+        } else {
+          entry.value = null
+          text.value = ''
+          savedText = ''
+        }
+      }
+      tabs.remove(path)
+      actionError.value = null
+      return true
+    })
+  }
+
+  function closeOtherDocuments(): Promise<boolean> {
+    return enqueue(async () => {
+      await flush()
+      if (blocked()) return false
+      for (const tab of [...tabs.documents]) {
+        if (tab.path !== entry.value?.path && tabs.canClose(tab.path)) tabs.remove(tab.path)
+      }
+      actionError.value = null
+      return true
+    })
   }
 
   /**
@@ -208,9 +304,17 @@ export const useEditorStore = defineStore('editor', () => {
     if (current !== null && place !== undefined) entry.value = { ...current, ...place }
   }
 
+  function propertyNavigationBlocked(): boolean {
+    if (!navigationBusy.value) return false
+    actionError.value = 'Wait for document navigation to finish before changing properties.'
+    return true
+  }
+
   /** The version to send with a properties change, after saving the text first. */
   async function versionForPropertyChange(): Promise<string | undefined> {
+    if (propertyNavigationBlocked()) return undefined
     await flush()
+    if (propertyNavigationBlocked()) return undefined
     if (hasStuckChanges.value || saveState.value === 'conflict') return undefined
     return version
   }
@@ -337,7 +441,10 @@ export const useEditorStore = defineStore('editor', () => {
           'The recovered copy changed outside Plot Device. Your draft is still open; inspect the copy before continuing.'
         return false
       }
+      const wasWriting = tabs.writingPath === current.path
+      const pinned = tabs.writing?.pinned ?? false
       await adoptEntry(path, place, read.value)
+      if (wasWriting) tabs.writeHere(path, pinned)
       diskNotice.value = 'Saved a recovered copy. The original file was left untouched.'
       return true
     })
@@ -348,7 +455,9 @@ export const useEditorStore = defineStore('editor', () => {
     if (saveState.value !== 'missing' || recoveryBusy.value) return
     autosaver.cancel()
     saveState.value = 'saved'
+    const path = entry.value?.path
     entry.value = null
+    if (path !== undefined) tabs.remove(path)
     text.value = ''
     savedText = ''
     recoveryToken = undefined
@@ -397,13 +506,16 @@ export const useEditorStore = defineStore('editor', () => {
   /** The open entry's file moved (a rename or a move between parts): follow it, keeping the text. */
   function followMove(from: string, to: string): void {
     useReferenceStore().followMove(from, to)
+    tabs.followMove(from, to)
     const current = entry.value
     if (current !== null && current.path === from && to !== from)
       entry.value = { ...current, path: to }
   }
 
   function edit(newText: string): void {
+    if (newText === text.value) return
     text.value = newText
+    if (entry.value !== null) tabs.edited(entry.value.path)
     diskNotice.value = null
     if (saveState.value === 'conflict' || saveState.value === 'missing') return
     saveState.value = newText === savedText ? 'saved' : 'unsaved'
@@ -469,6 +581,7 @@ export const useEditorStore = defineStore('editor', () => {
     opened: { text: string; version: string; wordCount: number }
   ): Promise<void> {
     revision += 1
+    tabs.opened(path, true)
     entry.value = { ...place, path, revision }
     text.value = opened.text
     savedText = opened.text
@@ -485,20 +598,24 @@ export const useEditorStore = defineStore('editor', () => {
 
   /** Saves and closes the entry, back to the project overview. */
   function closeEntry(): void {
-    void flush().then(() => {
-      if (hasStuckChanges.value) return
+    void enqueue(async () => {
+      await flush()
+      if (blocked()) return false
       entry.value = null
+      return true
     })
   }
 
   /** Saves and forgets everything, when the project closes. */
   async function close(): Promise<void> {
+    await navigation
     await flush()
     if (hasStuckChanges.value) return
     pendingRename.value = null
     entry.value = null
     text.value = ''
     savedText = ''
+    tabs.clear()
   }
 
   return {
@@ -515,7 +632,15 @@ export const useEditorStore = defineStore('editor', () => {
     recoveredPath,
     missingReappeared,
     hasStuckChanges,
+    navigationBusy,
     open,
+    returnToWriting,
+    cycleDocument,
+    closeDocument,
+    closeOtherDocuments,
+    waitForNavigation: async (): Promise<void> => {
+      await navigation
+    },
     edit,
     flush,
     loadVersionOnDisk,

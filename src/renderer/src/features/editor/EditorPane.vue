@@ -12,11 +12,13 @@ import ChapterEditor from './ChapterEditor.vue'
 import ConflictBanner from './ConflictBanner.vue'
 import MissingFileBanner from './MissingFileBanner.vue'
 import { useEditorLinks } from './use-editor-links'
+import { useDocumentTabsStore } from '../../app/document-tabs-store'
 
 const manuscript = useManuscriptStore()
 const editor = useEditorStore()
 const workspace = useWorkspaceStore()
 const layout = useLayoutStore()
+const tabs = useDocumentTabsStore()
 
 const readOnly = computed(() => workspace.project?.readOnly ?? false)
 const { completions, openLink, linkNotice } = useEditorLinks()
@@ -24,7 +26,17 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
 </script>
 
 <template>
-  <div class="pane" :class="{ focus: layout.focusMode }">
+  <div
+    id="document-editor"
+    class="pane"
+    :class="{ focus: layout.focusMode }"
+    :role="layout.mainView === 'write' && editor.entry ? 'tabpanel' : undefined"
+    :aria-labelledby="
+      layout.mainView === 'write' && editor.entry
+        ? `tab-${tabs.documentId(editor.entry.path)}`
+        : undefined
+    "
+  >
     <OverviewView v-if="layout.mainView === 'overview'" />
     <TimelineView v-else-if="layout.mainView === 'timeline'" />
     <InteractionsView v-else-if="layout.mainView === 'interactions'" />
@@ -79,7 +91,8 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
       <ChapterEditor
         :key="`${editor.entry.path}#${editor.entry.revision}`"
         :initial-text="editor.text"
-        :read-only="readOnly || editor.recoveryBusy"
+        :document-id="tabs.documentId(editor.entry.path)"
+        :read-only="readOnly || editor.recoveryBusy || editor.navigationBusy"
         :focus-mode="layout.focusMode"
         :link-targets="linkTargets"
         :completions="completions"

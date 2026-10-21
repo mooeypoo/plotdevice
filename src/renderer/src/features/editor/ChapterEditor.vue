@@ -5,10 +5,12 @@ import type { LinkAt } from './link-at'
 import type { LinkCompletionTarget } from './link-completion'
 import { createProseEditor, type ProseEditor } from './prose-editor'
 import { useWritingPreferencesStore } from '../../app/writing-preferences-store'
+import { useDocumentView } from './use-document-view'
 
 const props = defineProps<{
   /** The text when the editor mounts. Remount (change the key) to load different text. */
   initialText: string
+  documentId?: string | undefined
   readOnly: boolean
   focusMode: boolean
   linkTargets: readonly LinkTargetDto[]
@@ -23,7 +25,20 @@ const emit = defineEmits<{
 
 const host = ref<HTMLElement | null>(null)
 let editor: ProseEditor | undefined
+let initialFocusPending = true
 const writingPreferences = useWritingPreferencesStore()
+const documentView = useDocumentView(
+  props.documentId,
+  () => host.value,
+  () => editor
+)
+
+function focusInitially(): void {
+  if (props.readOnly || !initialFocusPending) return
+  initialFocusPending = false
+  editor?.focus()
+  documentView.restoreScroll(props.initialText)
+}
 
 watch(
   () => [writingPreferences.fontSize, writingPreferences.lineWidth],
@@ -37,6 +52,7 @@ onMounted(() => {
   if (host.value === null) return
   editor = createProseEditor(host.value, {
     text: props.initialText,
+    state: documentView.state,
     readOnly: props.readOnly,
     focusMode: props.focusMode,
     linkTargets: props.linkTargets,
@@ -51,13 +67,15 @@ onMounted(() => {
       emit('openLink', link)
     }
   })
-  if (!props.readOnly) editor.focus()
+  documentView.restoreScroll(props.initialText)
+  focusInitially()
 })
 
 watch(
   () => props.readOnly,
   (on) => {
     editor?.setReadOnly(on)
+    focusInitially()
   }
 )
 

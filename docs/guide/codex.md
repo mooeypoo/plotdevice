@@ -14,6 +14,10 @@ Use **Edit** beside an entry, or **Open in editor** in the reference, to edit it
 raw Markdown in the center and its supported profile properties in **Properties**.
 A character can have other names, a role, groups, a birth date, and relationships.
 Creating an entry still opens it in the editor so you can write it immediately.
+Editor pages join the document tabs: keep or pin one for longer work, then use
+**Return to writing** to resume your manuscript. Pin your Writing chapter first
+when you want to annotate other manuscript pages without changing that target.
+[Learn the tab workflow](writing.md#keep-your-writing-chapter-close).
 
 The reference has its own reading position for each file during this project
 session. It supports the same inert Markdown as the outline: project links work,

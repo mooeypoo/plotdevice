@@ -1,7 +1,7 @@
 import { autocompletion } from '@codemirror/autocomplete'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
-import { Compartment, EditorState } from '@codemirror/state'
+import { Compartment, EditorState, StateEffect } from '@codemirror/state'
 import { EditorView, keymap, placeholder } from '@codemirror/view'
 import type { LinkTargetDto } from '../../../../contract/dtos'
 import { focusDimming } from './focus-dimming'
@@ -15,6 +15,8 @@ import { createLinkKindLookup } from './wiki-link-scan'
 /** What the editor needs when it is created. */
 export interface ProseEditorOptions {
   readonly text: string
+  /** Session state is reused only when its text still matches the freshly read file. */
+  readonly state?: EditorState | undefined
   readonly readOnly: boolean
   readonly focusMode: boolean
   readonly linkTargets: readonly LinkTargetDto[]
@@ -33,6 +35,7 @@ export interface ProseEditor {
   setFocusMode(on: boolean): void
   setLinkTargets(targets: readonly LinkTargetDto[]): void
   focus(): void
+  snapshot(): EditorState
   destroy(): void
 }
 
@@ -42,57 +45,57 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
   const linksCompartment = new Compartment()
   const editingCompartment = new Compartment()
 
-  const view = new EditorView({
-    parent,
-    state: EditorState.create({
-      doc: options.text,
-      extensions: [
-        history(),
-        keymap.of([...defaultKeymap, ...historyKeymap]),
-        markdown({ base: markdownLanguage }),
-        proseAppearance(),
-        EditorView.lineWrapping,
-        // Each line runs left-to-right or right-to-left by its own first strong character.
-        EditorView.perLineTextDirection.of(true),
-        autoLineDirection(),
-        EditorView.contentAttributes.of({
-          spellcheck: 'true',
-          autocorrect: 'on',
-          'aria-label': 'Prose'
-        }),
-        placeholder('Begin writing…'),
-        editingCompartment.of([
-          EditorState.readOnly.of(options.readOnly),
-          EditorView.editable.of(!options.readOnly)
-        ]),
-        focusCompartment.of(options.focusMode ? focusDimming() : []),
-        linksCompartment.of(wikiLinkDecorations(createLinkKindLookup(options.linkTargets))),
-        autocompletion({
-          override: [linkCompletionSource(options.completions)],
-          icons: false,
-          activateOnTyping: true
-        }),
-        completionTheme,
-        EditorView.domEventHandlers({
-          mousedown(event, view) {
-            if (!(event.ctrlKey || event.metaKey) || event.button !== 0) return false
-            const position = view.posAtCoords({ x: event.clientX, y: event.clientY })
-            if (position === null) return false
-            const line = view.state.doc.lineAt(position)
-            const link = linkAt(line.text, line.from, position)
-            if (link === undefined) return false
-            event.preventDefault()
-            options.onOpenLink(link)
-            return true
-          }
-        }),
-        EditorView.updateListener.of((update) => {
-          if (update.docChanged) options.onChange(update.state.doc.toString())
-          if (update.focusChanged && !update.view.hasFocus) options.onBlur()
-        })
-      ]
+  const extensions = [
+    history(),
+    keymap.of([...defaultKeymap, ...historyKeymap]),
+    markdown({ base: markdownLanguage }),
+    proseAppearance(),
+    EditorView.lineWrapping,
+    // Each line runs left-to-right or right-to-left by its own first strong character.
+    EditorView.perLineTextDirection.of(true),
+    autoLineDirection(),
+    EditorView.contentAttributes.of({
+      spellcheck: 'true',
+      autocorrect: 'on',
+      'aria-label': 'Prose'
+    }),
+    placeholder('Begin writing…'),
+    editingCompartment.of([
+      EditorState.readOnly.of(options.readOnly),
+      EditorView.editable.of(!options.readOnly)
+    ]),
+    focusCompartment.of(options.focusMode ? focusDimming() : []),
+    linksCompartment.of(wikiLinkDecorations(createLinkKindLookup(options.linkTargets))),
+    autocompletion({
+      override: [linkCompletionSource(options.completions)],
+      icons: false,
+      activateOnTyping: true
+    }),
+    completionTheme,
+    EditorView.domEventHandlers({
+      mousedown(event, view) {
+        if (!(event.ctrlKey || event.metaKey) || event.button !== 0) return false
+        const position = view.posAtCoords({ x: event.clientX, y: event.clientY })
+        if (position === null) return false
+        const line = view.state.doc.lineAt(position)
+        const link = linkAt(line.text, line.from, position)
+        if (link === undefined) return false
+        event.preventDefault()
+        options.onOpenLink(link)
+        return true
+      }
+    }),
+    EditorView.updateListener.of((update) => {
+      if (update.docChanged) options.onChange(update.state.doc.toString())
+      if (update.focusChanged && !update.view.hasFocus) options.onBlur()
     })
-  })
+  ]
+  const previous = options.state
+  const state =
+    previous !== undefined && previous.doc.toString() === options.text
+      ? previous.update({ effects: StateEffect.reconfigure.of(extensions) }).state
+      : EditorState.create({ doc: options.text, extensions })
+  const view = new EditorView({ parent, state })
 
   return {
     setReadOnly(on) {
@@ -116,6 +119,9 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
     },
     focus() {
       view.focus()
+    },
+    snapshot() {
+      return view.state
     },
     destroy() {
       view.destroy()

@@ -171,7 +171,7 @@ export const useCodexStore = defineStore('codex', () => {
       return false
     }
     await reload()
-    return editor.open(result.value.path)
+    return editor.open(result.value.path, { keep: true })
   }
 
   /** Creates an outline at the project root and opens it in the editor. */
@@ -185,7 +185,7 @@ export const useCodexStore = defineStore('codex', () => {
       return false
     }
     await reload()
-    return editor.open(result.value.path)
+    return editor.open(result.value.path, { keep: true })
   }
 
   /** Opens the template new entries of `kind` start from, creating it from the default if needed. */
@@ -199,7 +199,7 @@ export const useCodexStore = defineStore('codex', () => {
       return false
     }
     await reload()
-    return editor.open(result.value.path)
+    return editor.open(result.value.path, { keep: true })
   }
 
   /** Gives an untyped file a type; it moves to the codex list or the binder. */
