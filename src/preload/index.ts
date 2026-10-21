@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { AppMenuCommand, PlotDeviceApi } from '../contract/api'
 import {
   APP_CHANNELS,
+  UI_LANGUAGE_CHANNELS,
   RECOVERY_CHANNELS,
   CODEX_CHANNELS,
   EVENT_CHANNELS,
@@ -12,6 +13,7 @@ import {
   WORKSPACE_CHANNELS
 } from '../contract/channels'
 import type {
+  UiLanguageDto,
   ApiResult,
   AppearanceDto,
   CodexListingDto,
@@ -41,7 +43,18 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 13,
+  contractVersion: 14,
+  uiLanguage: {
+    get: () => invoke<UiLanguageDto>(UI_LANGUAGE_CHANNELS.get),
+    set: (locale) => invoke<ApiResult<UiLanguageDto>>(UI_LANGUAGE_CHANNELS.set, locale),
+    onChanged: (listener) => {
+      const handler = (_: unknown, settings: UiLanguageDto): void => {
+        listener(settings)
+      }
+      ipcRenderer.on(UI_LANGUAGE_CHANNELS.onChanged, handler)
+      return () => ipcRenderer.removeListener(UI_LANGUAGE_CHANNELS.onChanged, handler)
+    }
+  },
   recovery: {
     capture: (path, version) => invoke<ApiResult<string>>(RECOVERY_CHANNELS.capture, path, version),
     saveCopy: (token, text) =>

@@ -1,5 +1,6 @@
 import type { AppMenuCommand, PlotDeviceApi } from '../../../contract/api'
 import type {
+  UiLanguageDto,
   EntryPropertiesDto,
   ManuscriptDto,
   CodexListingDto,
@@ -256,6 +257,8 @@ export function createFakePlotDeviceApi(): {
   const listeners = new Set<(changes: readonly ProjectChangeDto[]) => void>()
   const folderListeners = new Set<(choice: FolderChoiceDto) => void>()
   const menuListeners = new Set<(command: AppMenuCommand) => void>()
+  let language: UiLanguageDto = { locale: 'en' }
+  const languageListeners = new Set<(settings: UiLanguageDto) => void>()
   const launch: { folder: FolderChoiceDto | null } = { folder: null }
   // New chapters join the unordered tray, so the store can open them.
   let manuscript: ManuscriptDto = sampleManuscript
@@ -286,7 +289,19 @@ export function createFakePlotDeviceApi(): {
   >()
 
   const api: PlotDeviceApi = {
-    contractVersion: 13,
+    contractVersion: 14,
+    uiLanguage: {
+      get: () => Promise.resolve(language),
+      set: (locale) => {
+        language = { locale }
+        for (const listener of languageListeners) listener(language)
+        return Promise.resolve({ ok: true, value: language })
+      },
+      onChanged: (listener) => {
+        languageListeners.add(listener)
+        return () => languageListeners.delete(listener)
+      }
+    },
     recovery: {
       capture: (path, version) => {
         if (!files.has(path) || versionOf(path) !== version)

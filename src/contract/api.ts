@@ -1,4 +1,6 @@
 import type {
+  UiLanguageDto,
+  UiLocale,
   AppearanceDto,
   CodexChangesDto,
   CodexKindDto,
@@ -28,6 +30,13 @@ import type {
   RecentProjectDto,
   SavedEntryDto
 } from './dtos'
+
+/** Persistent interface language and main-to-renderer synchronization. */
+export interface UiLanguageApi {
+  get(): Promise<UiLanguageDto>
+  set(locale: UiLocale): Promise<ApiResult<UiLanguageDto>>
+  onChanged(listener: (settings: UiLanguageDto) => void): () => void
+}
 
 /** Opening, initializing, and remembering projects. */
 export interface WorkspaceApi {
@@ -193,7 +202,8 @@ export interface RecoveryApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 13
+  readonly contractVersion: 14
+  readonly uiLanguage: UiLanguageApi
   readonly recovery: RecoveryApi
   readonly workspace: WorkspaceApi
   readonly manuscript: ManuscriptApi

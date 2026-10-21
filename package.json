@@ -70,6 +70,7 @@
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.4",
+    "banana-i18n": "^2.4.0",
     "chokidar": "^5.0.0",
     "markdown-it": "^14.1.0",
     "write-file-atomic": "^8.0.0",

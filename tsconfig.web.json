@@ -4,6 +4,7 @@
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.vue",
     "src/contract/**/*",
+    "src/i18n/**/*",
     "src/preload/*.d.ts"
     ,
     "docs/.vitepress/theme/**/*.ts"

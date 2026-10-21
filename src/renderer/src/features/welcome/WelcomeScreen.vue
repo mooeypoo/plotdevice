@@ -2,15 +2,18 @@
 import Wordmark from '../../shared/Wordmark.vue'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import RecentProjectList from './RecentProjectList.vue'
+import LanguageSelector from '../../shared/LanguageSelector.vue'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 
 const workspace = useWorkspaceStore()
+const language = useUiLanguageStore()
 </script>
 
 <template>
   <main class="welcome">
     <header>
       <h1 class="title"><Wordmark /></h1>
-      <p class="tagline">Your novel, as plain markdown files.</p>
+      <p class="tagline">{{ language.t('welcome-tagline') }}</p>
     </header>
 
     <button
@@ -19,8 +22,10 @@ const workspace = useWorkspaceStore()
       :disabled="workspace.busy"
       @click="workspace.chooseFolder()"
     >
-      Open folder…
+      {{ language.t('open-folder') }}
     </button>
+
+    <LanguageSelector />
 
     <p v-if="workspace.errorMessage" class="error" role="alert" dir="auto">
       {{ workspace.errorMessage }}

@@ -2,6 +2,7 @@ import { BrowserWindow, type MenuItemConstructorOptions } from 'electron'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { APP_CHANNELS } from '../contract/channels'
 import { installAppMenu } from './app-menu'
+import { createTranslator } from '../i18n/translator'
 
 const electronMock = vi.hoisted(() => ({
   packaged: false,
@@ -60,6 +61,20 @@ function click(item: MenuItemConstructorOptions | undefined): void {
 }
 
 describe('installAppMenu', () => {
+  it('rebuilds in Hebrew while preserving native edit roles and layout accelerators', () => {
+    const { window } = menuItems(true)
+    const translator = createTranslator('he')
+    installAppMenu(window, translator)
+    const items = electronMock.buildFromTemplate.mock.calls[1]?.[0]
+    if (items === undefined) throw new Error('No translated menu')
+    expect(items.map((item) => item.label)).toEqual(['עריכה', 'תצוגה', 'עזרה'])
+    expect(submenu(items, 'עריכה')[0]).toMatchObject({ role: 'undo', label: 'ביטול' })
+    const action = submenu(items, 'תצוגה')[0]
+    expect(action?.accelerator).toBe('CommandOrControl+\\')
+    click(action)
+    expect(electronMock.send).toHaveBeenLastCalledWith(APP_CHANNELS.menuCommand, 'toggle-binder')
+  })
+
   it('installs standard Edit roles and a visible View/Help menu', () => {
     const { items } = menuItems(true)
     expect(items.map((item) => item.label)).toEqual(['Edit', 'View', 'Help'])

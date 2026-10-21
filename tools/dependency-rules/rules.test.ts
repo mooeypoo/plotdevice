@@ -8,6 +8,7 @@ const fixtureDir = fileURLToPath(new URL('./fixture', import.meta.url))
 
 /** Files in the fixture named `violates-<rule>…` must break exactly that rule and nothing else. */
 const expectedViolations = [
+  ['i18n-is-presentation-only', 'src/i18n/violates-i18n-is-presentation-only.ts'],
   // A cycle is reported once, from the module where it is first found.
   ['no-circular', 'src/main/violates-no-circular-a.ts'],
   ['not-to-unresolvable', 'src/main/violates-not-to-unresolvable.ts'],

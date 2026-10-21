@@ -5,16 +5,19 @@ import { useLayoutStore } from './layout-store'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useWorkspaceStore } from './workspace-store'
+import { useUiLanguageStore } from './ui-language-store'
+import LanguageSelector from '../shared/LanguageSelector.vue'
 
 const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
 const editor = useEditorStore()
 const layout = useLayoutStore()
+const language = useUiLanguageStore()
 
 const crumbs = computed(() => {
-  if (layout.mainView === 'overview') return ['Overview']
-  if (layout.mainView === 'timeline') return ['Timeline']
-  if (layout.mainView === 'interactions') return ['Interactions']
+  if (layout.mainView === 'overview') return [language.t('view-overview')]
+  if (layout.mainView === 'timeline') return [language.t('view-timeline')]
+  if (layout.mainView === 'interactions') return [language.t('view-interactions')]
   const entry = editor.entry
   if (entry === null) return []
   const part = manuscript.currentPart
@@ -48,7 +51,7 @@ const crumbs = computed(() => {
           :class="{ on: layout.mainView === 'write' }"
           @click="layout.mainView = 'write'"
         >
-          Write
+          {{ language.t('view-write') }}
         </button>
         <button
           type="button"
@@ -57,7 +60,7 @@ const crumbs = computed(() => {
           :class="{ on: layout.mainView === 'overview' }"
           @click="layout.mainView = 'overview'"
         >
-          Overview
+          {{ language.t('view-overview') }}
         </button>
         <button
           type="button"
@@ -66,7 +69,7 @@ const crumbs = computed(() => {
           :class="{ on: layout.mainView === 'timeline' }"
           @click="layout.mainView = 'timeline'"
         >
-          Timeline
+          {{ language.t('view-timeline') }}
         </button>
         <button
           type="button"
@@ -75,7 +78,7 @@ const crumbs = computed(() => {
           :class="{ on: layout.mainView === 'interactions' }"
           @click="layout.mainView = 'interactions'"
         >
-          Interactions
+          {{ language.t('view-interactions') }}
         </button>
       </div>
       <span class="divider" aria-hidden="true"></span>
@@ -152,8 +155,9 @@ const crumbs = computed(() => {
           <path d="M20 15v4h-4"></path>
         </svg>
       </button>
+      <LanguageSelector />
       <button type="button" class="quiet close" @click="workspace.backToWelcome()">
-        Close project
+        {{ language.t('close-project') }}
       </button>
     </div>
   </header>
@@ -164,9 +168,11 @@ const crumbs = computed(() => {
   display: flex;
   align-items: center;
   gap: 16px;
-  height: 46px;
+  min-height: 46px;
+  flex-wrap: wrap;
   flex-shrink: 0;
-  padding: 0 12px 0 18px;
+  padding-block: 4px;
+  padding-inline: 18px 12px;
   border-bottom: 1px solid var(--line);
   background: var(--panel);
 }
@@ -227,6 +233,7 @@ const crumbs = computed(() => {
 
 .tools {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px;
 }

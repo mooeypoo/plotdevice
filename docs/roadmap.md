@@ -127,6 +127,23 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [x] Preserve per-document CodeMirror history, selection and scroll while retaining one active writable surface and all save/recovery navigation guards.
 - [x] Route every document-opening surface consistently; follow renames/moves and restore valid per-project tab metadata from user settings, never novel files or an implied unsaved-draft backup.
 
+## Runtime localization and Hebrew/RTL (ADR 0016)
+
+One installation with a live English/Hebrew selector; no language-specific builds.
+See [ADR 0016](adr/0016-runtime-localization-and-hebrew-rtl.md) for decisions,
+acceptance criteria, and the cross-session checklist.
+
+- [x] I1: Banana catalogs/runtime, persisted locale, selectors, root direction,
+  typed main/renderer synchronization and native menu refresh. Verified with
+  full checks and an isolated browser preview; remaining limitations and next
+  session instructions are recorded in ADR 0016.
+- [ ] I2: Structured diagnostics and story dates; reactive presentation formatting.
+- [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
+- [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
+- [ ] I5: Independent writing/reading direction and mixed-script editor support.
+- [ ] I6: Translation workflow and packaged Linux/Windows qualification.
+- [ ] D1: Public Hebrew manual/distribution text (separate approval).
+
 ## Proposed release and documentation program
 
 The [release plan](release-plan.md) tracks approved work: MVP version policy,

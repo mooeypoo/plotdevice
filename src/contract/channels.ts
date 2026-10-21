@@ -1,4 +1,5 @@
 import type {
+  UiLanguageApi,
   CodexApi,
   InspectorApi,
   InteractionsApi,
@@ -7,6 +8,13 @@ import type {
   TimelineApi,
   WorkspaceApi
 } from './api'
+
+/** App-wide interface language requests and notifications. */
+export const UI_LANGUAGE_CHANNELS = {
+  get: 'ui-language:get',
+  set: 'ui-language:set',
+  onChanged: 'ui-language:changed'
+} as const satisfies Record<keyof UiLanguageApi, string>
 
 /** Explicit recovery requests. */
 export const RECOVERY_CHANNELS = {

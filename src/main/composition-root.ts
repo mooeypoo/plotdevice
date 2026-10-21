@@ -1,4 +1,7 @@
 import { app } from 'electron'
+import { createJsonUiLanguageStore } from './infrastructure/window/json-ui-language-store'
+import { createUiLanguageService, type UiLanguageService } from './ui-language'
+import { registerUiLanguageIpc } from './ipc/ui-language-ipc'
 import { createCheckStoryDate } from './contexts/chronology/application/queries/check-story-date'
 import { createGetChronologySettings } from './contexts/chronology/application/queries/get-chronology-settings'
 import { describeStoryDateReading } from './contexts/chronology/domain/story-date'
@@ -90,6 +93,19 @@ import { registerRecoveryIpc } from './ipc/recovery-ipc'
 /** Builds the app-shell settings adapter outside every novel folder. */
 export function composeWindowStateStore(): WindowStateStore {
   return createJsonWindowStateStore(app.getPath('userData'))
+}
+
+/** Restores app language and registers its trusted API before the window opens. */
+export async function composeUiLanguage(): Promise<UiLanguageService> {
+  const service = await createUiLanguageService(
+    createJsonUiLanguageStore(app.getPath('userData')),
+    app.getPreferredSystemLanguages(),
+    (error) => {
+      console.error(`Interface language settings failed (${error.code}): ${error.message}`)
+    }
+  )
+  registerUiLanguageIpc(service)
+  return service
 }
 
 /** The use cases built for each open project. */

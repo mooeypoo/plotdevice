@@ -6,6 +6,8 @@
 [window-state.ts](window-state.ts) validates settings and checks current display overlap;
 [remember-window.ts](remember-window.ts) waits for the renderer's close guard, then awaits an atomic settings write before closing.
 Normal bounds and maximized state live only in `userData/window-state.json`, never in a novel folder.
+[ui-language.ts](ui-language.ts) restores `userData/ui-preferences.json` before window creation
+and persists language changes before broadcasting and rebuilding native menus (ADR 0016).
 [composition-root.ts](composition-root.ts) wires settings adapters and the contexts' use cases.
 
 **Must not know about.** Novel-specific rules or frontmatter editing; these belong to the contexts and infrastructure.

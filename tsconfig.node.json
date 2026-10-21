@@ -6,6 +6,7 @@
     "src/main/**/*",
     "src/preload/**/*",
     "src/contract/**/*",
+    "src/i18n/**/*",
     "tools/**/*",
     "fixtures/*.test.ts"
     ,

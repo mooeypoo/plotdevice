@@ -2,7 +2,10 @@ import { app, BrowserWindow, screen, shell } from 'electron'
 import { join } from 'node:path'
 import icon from '../../resources/icon.png?asset'
 import { installAppMenu } from './app-menu'
-import { composeApplication, composeWindowStateStore } from './composition-root'
+import { composeApplication, composeUiLanguage, composeWindowStateStore } from './composition-root'
+import { createTranslator } from '../i18n/translator'
+import { UI_LANGUAGE_CHANNELS } from '../contract/channels'
+import type { UiLanguageService } from './ui-language'
 import { guardWindowClose } from './ipc/close-guard'
 import { launchFolder, userArguments } from './launch-folder'
 import { rememberWindow } from './remember-window'
@@ -22,7 +25,10 @@ function reportWindowStateError(error: WindowStateError): void {
   )
 }
 
-async function createMainWindow(store: WindowStateStore): Promise<BrowserWindow> {
+async function createMainWindow(
+  store: WindowStateStore,
+  language: UiLanguageService
+): Promise<BrowserWindow> {
   const loaded = await store.load()
   if (!loaded.ok) reportWindowStateError(loaded.error)
   const saved = loaded.ok ? loaded.value : undefined
@@ -51,7 +57,14 @@ async function createMainWindow(store: WindowStateStore): Promise<BrowserWindow>
 
   guardWindowClose(window)
   rememberWindow(window, store, reportWindowStateError)
-  installAppMenu(window)
+  const translator = createTranslator(language.current().locale)
+  installAppMenu(window, translator)
+  const stopLanguage = language.onChanged((settings) => {
+    translator.setLocale(settings.locale)
+    installAppMenu(window, translator)
+    window.webContents.send(UI_LANGUAGE_CHANNELS.onChanged, settings)
+  })
+  window.once('closed', stopLanguage)
 
   window.once('ready-to-show', () => {
     if (visible && saved.maximized) window.maximize()
@@ -98,8 +111,9 @@ if (!app.requestSingleInstanceLock()) {
   void app.whenReady().then(async () => {
     if (process.platform === 'win32') app.setAppUserModelId('tech.moriel.plotdevice')
     launch = composeApplication()
+    const language = await composeUiLanguage()
     launch.remember(launchFolder(userArguments(process.argv, app.isPackaged), process.cwd()))
-    mainWindow = await createMainWindow(composeWindowStateStore())
+    mainWindow = await createMainWindow(composeWindowStateStore(), language)
   })
 }
 

@@ -1,5 +1,14 @@
 // Plain, serializable shapes that cross IPC. No classes, no methods, no imports.
 
+/** Bundled interface languages; manuscript language is independent. */
+export type UiLocale = 'en' | 'he'
+
+/** App-wide language settings, never project metadata. */
+export interface UiLanguageDto {
+  readonly locale: UiLocale
+  readonly notice?: 'load-failed' | 'invalid-settings'
+}
+
 /** The outcome of a request that can fail in an expected way. */
 export type ApiResult<T> =
   { readonly ok: true; readonly value: T } | { readonly ok: false; readonly error: ApiError }

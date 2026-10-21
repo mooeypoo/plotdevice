@@ -8,6 +8,13 @@ const ELECTRON = '(^|/)node_modules/electron/'
 module.exports = {
   forbidden: [
     {
+      name: 'i18n-is-presentation-only',
+      comment: 'Shared localization imports only catalogs, contract types and its runtime library.',
+      severity: 'error',
+      from: { path: '^src/i18n/', pathNot: TEST_FILE },
+      to: { pathNot: ['^src/(i18n|contract)/', '(^|/)node_modules/banana-i18n/'] }
+    },
+    {
       name: 'no-circular',
       comment: 'Import cycles make the layering meaningless.',
       severity: 'error',

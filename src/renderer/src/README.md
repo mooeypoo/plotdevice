@@ -8,8 +8,8 @@ References read beside the draft without replacing it or changing Properties; re
 The Writing appearance controls set prose size/width without changing markdown or editor history.
 Tabs preserve session undo, selection and scroll; only navigation metadata persists in `userData`, never drafts.
 Invalid or unavailable preferences storage is reported without blocking writing.
-Recovery banners keep outside changes authoritative until the writer chooses disk text, a separate copy,
-or confirmed replacement; failures retain the draft and actions temporarily freeze editing.
+Interface language uses typed IPC and bundled Banana catalogs; ADR 0016 tracks incomplete Hebrew/RTL support.
+Recovery keeps outside changes authoritative until an explicit choice; failures retain the draft and actions freeze editing.
 
 **Must not know about.** Node, Electron, filesystem access, domain classes, or concrete adapters.
 All project reads and writes go through the typed `window.plotDevice` API in `src/contract/`.

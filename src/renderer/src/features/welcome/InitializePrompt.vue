@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useWorkspaceStore } from '../../app/workspace-store'
+import LanguageSelector from '../../shared/LanguageSelector.vue'
 
 const workspace = useWorkspaceStore()
 const title = ref(workspace.chosenFolder?.name ?? '')
@@ -8,6 +9,7 @@ const title = ref(workspace.chosenFolder?.name ?? '')
 
 <template>
   <main v-if="workspace.chosenFolder" class="prompt">
+    <LanguageSelector />
     <template v-if="workspace.chosenFolder.projectAbove">
       <h1>This folder is part of another project</h1>
       <p dir="auto">
