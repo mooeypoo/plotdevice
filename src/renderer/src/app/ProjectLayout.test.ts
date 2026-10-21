@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
 import { useLayoutStore } from './layout-store'
 import { plotDeviceApi } from './plot-device-api'
@@ -11,6 +11,12 @@ import { useWritingPreferencesStore } from './writing-preferences-store'
 import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
+import { useUiLanguageStore } from './ui-language-store'
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+})
 
 const mountLayout = () =>
   mount(ProjectLayout, {
@@ -28,6 +34,62 @@ beforeEach(async () => {
 })
 
 describe('ProjectLayout writing preferences', () => {
+  it('retranslates a tab-storage notice while retaining the conflicted draft and tab focus', async () => {
+    localStorage.setItem('plotdevice.documentTabs', '{')
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const wrapper = mount(ProjectLayout, {
+      attachTo: document.body,
+      global: {
+        stubs: {
+          TopBar: true,
+          EditorPane: true,
+          SidePanel: true,
+          RightPanel: true,
+          StatusBar: true
+        }
+      }
+    })
+    await flushPromises()
+    const editor = useEditorStore()
+    await editor.open('The Ferry.md')
+    editor.edit('טיוטה שלא נשמרה / unsaved draft')
+    editor.saveState = 'conflict'
+    await flushPromises()
+    expect(wrapper.get('.navigation-notice[role=status]').text()).toContain('invalid')
+    const tab = wrapper.get<HTMLButtonElement>('[role=tab]').element
+    tab.focus()
+    const tabs = useDocumentTabsStore()
+    const documents = tabs.documents
+    const storage = localStorage
+    const get = vi.fn((key: string) => storage.getItem(key))
+    const set = vi.fn((key: string, value: string) => { storage.setItem(key, value); })
+    vi.stubGlobal('localStorage', { getItem: get, setItem: set })
+    const open = vi.spyOn(editor, 'open')
+    const api = plotDeviceApi.current()
+    const read = vi.spyOn(api.manuscript, 'openEntry')
+    const write = vi.spyOn(api.manuscript, 'saveEntryText')
+    warn.mockClear()
+    useUiLanguageStore().locale = 'he'
+    await wrapper.vm.$nextTick()
+    expect(wrapper.get('.navigation-notice[role=status]').text()).not.toContain('invalid')
+    expect(wrapper.get('.navigation-notice[role=status]').text()).toContain('אינן תקינות')
+    expect(wrapper.get('[role=tab]').element).toBe(tab)
+    expect(document.activeElement).toBe(tab)
+    expect(tabs.documents).toBe(documents)
+    expect(editor.text).toBe('טיוטה שלא נשמרה / unsaved draft')
+    expect(editor.saveState).toBe('conflict')
+    expect(open).not.toHaveBeenCalled()
+    expect(read).not.toHaveBeenCalled()
+    expect(write).not.toHaveBeenCalled()
+    expect(get).not.toHaveBeenCalled()
+    expect(set).not.toHaveBeenCalled()
+    expect(warn).not.toHaveBeenCalled()
+    useLayoutStore().focusMode = true
+    await wrapper.vm.$nextTick()
+    expect(wrapper.get('.navigation-notice[role=status]').text()).toContain('אינן תקינות')
+    wrapper.unmount()
+  })
+
   it('restores active tabs and Writing only after project listings have loaded', async () => {
     const root = useWorkspaceStore().project?.root
     if (root === undefined) throw new Error('Expected project')

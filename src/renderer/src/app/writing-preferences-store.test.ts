@@ -2,6 +2,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useWritingPreferencesStore } from './writing-preferences-store'
+import { useUiLanguageStore } from './ui-language-store'
 
 const KEY = 'plotdevice.writingPreferences'
 
@@ -16,6 +17,61 @@ afterEach(() => {
 })
 
 describe('writing preferences', () => {
+  it.each(['load', 'json', 'schema', 'save'] as const)(
+    'retranslates a cached %s notice without storage access or preference changes',
+    (failure) => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+      const storage = localStorage
+      const get = vi.fn((key: string) => storage.getItem(key))
+      const set = vi.fn((key: string, value: string) => { storage.setItem(key, value); })
+      vi.stubGlobal('localStorage', { getItem: get, setItem: set })
+      if (failure === 'load')
+        get.mockImplementation(() => {
+          throw new Error('Denied')
+        })
+      if (failure === 'json') localStorage.setItem(KEY, '{')
+      if (failure === 'schema') localStorage.setItem(KEY, '{"version":2}')
+      const preferences = useWritingPreferencesStore()
+      if (failure === 'save') {
+        set.mockImplementation(() => {
+          throw new Error('Full')
+        })
+        preferences.setFontSize(24)
+        preferences.setPartCollapsed('/book', 'Part.md', true)
+        preferences.setCharacterView('/book', { mode: 'grouped', filters: ['יעל'], collapsed: [] })
+      }
+      const english = preferences.storageNotice
+      expect(english).not.toBe('')
+      const values = {
+        fontSize: preferences.fontSize,
+        lineWidth: preferences.lineWidth,
+        outlineWidth: preferences.outlineWidth,
+        view: preferences.characterView('/book'),
+        collapsed: preferences.isPartCollapsed('/book', 'Part.md')
+      }
+      get.mockClear()
+      set.mockClear()
+      warn.mockClear()
+      useUiLanguageStore().locale = 'he'
+      expect(preferences.storageNotice).not.toBe(english)
+      expect(preferences.storageNotice).toMatch(/[\u0590-\u05ff]/u)
+      expect(preferences.storageNotice).not.toMatch(/could not|invalid|preferences-notice-/u)
+      expect(preferences.fontSize).toBe(values.fontSize)
+      expect(preferences.lineWidth).toBe(values.lineWidth)
+      expect(preferences.outlineWidth).toBe(values.outlineWidth)
+      expect(preferences.characterView('/book')).toEqual(values.view)
+      expect(preferences.isPartCollapsed('/book', 'Part.md')).toBe(values.collapsed)
+      expect(get).not.toHaveBeenCalled()
+      expect(set).not.toHaveBeenCalled()
+      expect(warn).not.toHaveBeenCalled()
+      useUiLanguageStore().locale = 'en'
+      expect(preferences.storageNotice).toBe(english)
+      vi.unstubAllGlobals()
+      preferences.setFontSize(23)
+      expect(preferences.storageNotice).toBe('')
+    }
+  )
+
   it('keeps per-project character choices across restarts without changing writing or binder preferences', () => {
     const preferences = useWritingPreferencesStore()
     preferences.setPartCollapsed('/book', 'Part.md', true)

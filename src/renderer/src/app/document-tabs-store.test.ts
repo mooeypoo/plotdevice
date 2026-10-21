@@ -1,12 +1,18 @@
 // @vitest-environment happy-dom
 import { EditorState } from '@codemirror/state'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from './codex-store'
 import { useDocumentTabsStore } from './document-tabs-store'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
+import { useUiLanguageStore } from './ui-language-store'
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+})
 
 beforeEach(async () => {
   localStorage.clear()
@@ -16,6 +22,98 @@ beforeEach(async () => {
 })
 
 describe('document tabs', () => {
+  it.each(['load', 'json', 'schema', 'save'] as const)(
+    'retranslates a cached %s notice without storage access or lost session state',
+    (failure) => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+      const storage = localStorage
+      const get = vi.fn((key: string) => storage.getItem(key))
+      const set = vi.fn((key: string, value: string) => { storage.setItem(key, value); })
+      vi.stubGlobal('localStorage', { getItem: get, setItem: set })
+      const tabs = useDocumentTabsStore()
+      if (failure === 'load')
+        get.mockImplementation(() => {
+          throw new Error('Denied')
+        })
+      if (failure === 'json') localStorage.setItem('plotdevice.documentTabs', '{')
+      if (failure === 'schema') localStorage.setItem('plotdevice.documentTabs', '{"version":2}')
+      tabs.restore('/book')
+      if (failure === 'save')
+        set.mockImplementation(() => {
+          throw new Error('Full')
+        })
+      tabs.opened('The Ferry.md')
+      tabs.togglePin('The Ferry.md')
+      const id = tabs.documentId('The Ferry.md')
+      if (id === undefined) throw new Error('Missing document identity')
+      const view = {
+        state: EditorState.create({ doc: 'טיוטה draft', selection: { anchor: 3 } }),
+        scrollTop: 125,
+        scrollLeft: 7
+      }
+      tabs.rememberView(id, view)
+      const documents = tabs.documents
+      const english = tabs.storageNotice
+      expect(english).not.toBe('')
+      get.mockClear()
+      set.mockClear()
+      warn.mockClear()
+      useUiLanguageStore().locale = 'he'
+      expect(tabs.storageNotice).not.toBe(english)
+      expect(tabs.storageNotice).toMatch(/[\u0590-\u05ff]/u)
+      expect(tabs.storageNotice).not.toMatch(/could not|invalid|tabs-notice-/u)
+      expect(tabs.documents).toBe(documents)
+      expect(tabs.writingPath).toBe('The Ferry.md')
+      expect(tabs.activePath).toBe('The Ferry.md')
+      expect(tabs.viewOf(id)).toBe(view)
+      expect(get).not.toHaveBeenCalled()
+      expect(set).not.toHaveBeenCalled()
+      expect(warn).not.toHaveBeenCalled()
+      useUiLanguageStore().locale = 'en'
+      expect(tabs.storageNotice).toBe(english)
+      tabs.clear()
+      expect(tabs.storageNotice).toBe('')
+    }
+  )
+
+  it('retranslates pruning without discarding an active missing document', () => {
+    const tabs = useDocumentTabsStore()
+    tabs.opened('The Ferry.md')
+    tabs.opened('First frost.md', true)
+    useManuscriptStore().manuscript = null
+    tabs.refresh('The Ferry.md')
+    expect(tabs.documents.map((tab) => tab.path)).toEqual(['The Ferry.md'])
+    expect(tabs.storageNotice).toContain('removed from the tabs')
+    useUiLanguageStore().locale = 'he'
+    expect(tabs.storageNotice).not.toContain('removed from the tabs')
+    expect(tabs.storageNotice).toMatch(/[\u0590-\u05ff]/u)
+    expect(tabs.activePath).toBeNull()
+    expect(tabs.documents[0]?.path).toBe('The Ferry.md')
+    tabs.restore('/other')
+    expect(tabs.storageNotice).toBe('')
+  })
+
+  it('keeps a tab-storage failure visible after a successful later save until restore or clear', () => {
+    const tabs = useDocumentTabsStore()
+    tabs.restore('/book')
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const storage = localStorage
+    const set = vi.fn(() => {
+      throw new Error('Full')
+    })
+    vi.stubGlobal('localStorage', { getItem: (key: string) => storage.getItem(key), setItem: set })
+    tabs.opened('The Ferry.md')
+    expect(tabs.storageNotice).toContain('could not be saved')
+    vi.unstubAllGlobals()
+    tabs.togglePin('The Ferry.md')
+    expect(tabs.storageNotice).toContain('could not be saved')
+    useUiLanguageStore().locale = 'he'
+    expect(tabs.storageNotice).toContain('לא ניתן לשמור')
+    tabs.restore('/book')
+    expect(tabs.storageNotice).toBe('')
+    expect(tabs.writing?.pinned).toBe(true)
+  })
+
   it('selects another manuscript if the Writing file changes type outside the app', () => {
     const tabs = useDocumentTabsStore()
     tabs.opened('The Ferry.md')

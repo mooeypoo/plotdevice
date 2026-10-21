@@ -168,8 +168,10 @@ acceptance criteria, and the cross-session checklist.
             alerts, retained last successful views and obsolete-response guards.
           - [x] Shared link notices and reference edit failures, reactive
             semantic snapshots, fixed expiry and obsolete-panel-action guards.
-          - [ ] Storage and other remaining notices/cached consumers.
-            Next approval boundary.
+          - [x] Document-tab load/save/invalid/pruning and writing-preference
+            load/save/invalid notices; reactive cached keys preserve session state.
+          - [ ] Audit remaining diagnostic/cached-consumer coverage before
+            closing I2. Next approval boundary.
 - [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.

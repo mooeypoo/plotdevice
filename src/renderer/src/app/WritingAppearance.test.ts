@@ -1,9 +1,15 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import WritingAppearance from './WritingAppearance.vue'
 import { useWritingPreferencesStore } from './writing-preferences-store'
+import { useUiLanguageStore } from './ui-language-store'
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+})
 
 beforeEach(() => {
   localStorage.clear()
@@ -47,9 +53,45 @@ describe('WritingAppearance', () => {
 
   it('shows storage failures rather than suggesting settings were saved', async () => {
     const wrapper = mount(WritingAppearance)
-    useWritingPreferencesStore().storageNotice = 'Writing preferences could not be saved.'
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    vi.stubGlobal('localStorage', {
+      setItem: () => {
+        throw new Error('Full')
+      }
+    })
+    useWritingPreferencesStore().setFontSize(24)
     await wrapper.vm.$nextTick()
     expect(wrapper.get('[role="status"]').text()).toContain('could not be saved')
+    wrapper.unmount()
+  })
+
+  it('retranslates a visible storage failure without resetting controls, focus or settings', async () => {
+    const wrapper = mount(WritingAppearance, { attachTo: document.body })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const get = vi.fn()
+    const set = vi.fn(() => {
+      throw new Error('Full')
+    })
+    vi.stubGlobal('localStorage', { getItem: get, setItem: set })
+    const preferences = useWritingPreferencesStore()
+    preferences.setFontSize(24)
+    const size = wrapper.get<HTMLInputElement>('#prose-size').element
+    size.focus()
+    await wrapper.vm.$nextTick()
+    expect(wrapper.get('[role=status]').text()).toContain('could not be saved')
+    set.mockClear()
+    warn.mockClear()
+    useUiLanguageStore().locale = 'he'
+    await wrapper.vm.$nextTick()
+    expect(wrapper.get('[role=status]').text()).not.toContain('could not be saved')
+    expect(wrapper.get('[role=status]').text()).toContain('לא ניתן לשמור')
+    expect(wrapper.get('#prose-size').element).toBe(size)
+    expect(size.value).toBe('24')
+    expect(document.activeElement).toBe(size)
+    expect(preferences.fontSize).toBe(24)
+    expect(get).not.toHaveBeenCalled()
+    expect(set).not.toHaveBeenCalled()
+    expect(warn).not.toHaveBeenCalled()
     wrapper.unmount()
   })
 })

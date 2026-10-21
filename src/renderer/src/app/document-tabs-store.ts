@@ -3,6 +3,8 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { z } from 'zod'
 import { placeOf } from './entry-owners'
+import { useUiLanguageStore } from './ui-language-store'
+import type { MessageKey } from '../../../i18n/translator'
 
 const KEY = 'plotdevice.documentTabs'
 const documentSchema = z.object({
@@ -21,6 +23,7 @@ const settingsSchema = z.object({
 })
 type SavedProject = z.infer<typeof projectSchema>
 type Settings = z.infer<typeof settingsSchema>
+type TabNotice = Extract<MessageKey, `tabs-notice-${string}`>
 
 /** Navigation metadata for a document, with a stable session identity across app renames. */
 export interface DocumentTab extends z.infer<typeof documentSchema> {
@@ -39,7 +42,11 @@ export const useDocumentTabsStore = defineStore('document-tabs', () => {
   const documents = ref<readonly DocumentTab[]>([])
   const activePath = ref<string | null>(null)
   const writingPath = ref<string | null>(null)
-  const storageNotice = ref('')
+  const language = useUiLanguageStore()
+  const storageNoticeKey = ref<TabNotice | null>(null)
+  const storageNotice = computed(() =>
+    storageNoticeKey.value === null ? '' : language.t(storageNoticeKey.value)
+  )
   const views = new Map<string, DocumentView>()
   let root: string | null = null
   let sequence = 0
@@ -54,9 +61,9 @@ export const useDocumentTabsStore = defineStore('document-tabs', () => {
     return kind === 'chapter' || kind === 'part'
   }
 
-  function report(message: string, error: unknown): void {
-    storageNotice.value = message
-    console.warn(message, error)
+  function report(notice: TabNotice, error: unknown): void {
+    storageNoticeKey.value = notice
+    console.warn('Document tab settings failure.', notice, error)
   }
 
   function readSettings(): Settings {
@@ -64,7 +71,7 @@ export const useDocumentTabsStore = defineStore('document-tabs', () => {
     try {
       raw = localStorage.getItem(KEY)
     } catch (error) {
-      report('Document tabs could not be loaded. This session still works.', error)
+      report('tabs-notice-load-failed', error)
       return { version: 1, projects: {} }
     }
     if (raw === null) return { version: 1, projects: {} }
@@ -73,12 +80,12 @@ export const useDocumentTabsStore = defineStore('document-tabs', () => {
       value = JSON.parse(raw) as unknown
     } catch (error) {
       if (!(error instanceof SyntaxError)) throw error
-      report('Saved document tabs are invalid. Starting a fresh session.', error)
+      report('tabs-notice-invalid', error)
       return { version: 1, projects: {} }
     }
     const parsed = settingsSchema.safeParse(value)
     if (parsed.success) return parsed.data
-    report('Saved document tabs are invalid. Starting a fresh session.', parsed.error)
+    report('tabs-notice-invalid', parsed.error)
     return { version: 1, projects: {} }
   }
 
@@ -103,7 +110,7 @@ export const useDocumentTabsStore = defineStore('document-tabs', () => {
         })
       )
     } catch (error) {
-      report('Document tabs could not be saved. Changes apply only to this session.', error)
+      report('tabs-notice-save-failed', error)
     }
   }
 
@@ -112,7 +119,7 @@ export const useDocumentTabsStore = defineStore('document-tabs', () => {
     documents.value = []
     activePath.value = null
     writingPath.value = null
-    storageNotice.value = ''
+    storageNoticeKey.value = null
     views.clear()
   }
 
@@ -237,8 +244,7 @@ export const useDocumentTabsStore = defineStore('document-tabs', () => {
       persist()
     }
     if (missing.length > 0) {
-      storageNotice.value =
-        'Some open documents are no longer in the project and were removed from the tabs.'
+      storageNoticeKey.value = 'tabs-notice-pruned'
     }
   }
 

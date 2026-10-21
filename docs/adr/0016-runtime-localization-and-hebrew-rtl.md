@@ -87,8 +87,10 @@ progress, remaining limitations, and the next slice before ending a session.
             failures, live alerts and obsolete-request guards.
           - [x] **Reference actions/links:** semantic editor/reference/outline
             link notices, reactive reference edit failures and stale-action guards.
-          - [ ] **Remaining notices:** storage notices and other
-            string-caching stores/composables.
+          - [x] **Storage notices:** document-tab load/save/invalid/pruning
+            and writing-preference load/save/invalid notices.
+          - [ ] **Remaining coverage:** audit remaining diagnostics and cached
+            consumers before closing I2.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
   existing notices, number formatting, display collation, native dialogs and
   controlled destructive confirmations; complete Hebrew and qqq coverage.
@@ -583,9 +585,48 @@ Contract version remains 21. No new dependencies, disk-format changes or main/
 preload/fake changes. Full RTL geometry and real-browser/packaged qualification
 remain separate work.
 
-**Next session:** plan remaining I2 notices/caches and obtain approval before
-changing code. Trace document-tab and writing-preference storage notices and
-other remaining cached English, including fake APIs and presentation consumers.
+Committed as `5a783a8 feat: localize reference actions and link notices`.
+
+### I2b.2b.2 preference/session-notice handoff (2026-10-21)
+
+Document tabs and writing preferences now retain typed catalog keys rather than
+English strings for their storage notices. The seven English/Hebrew/qqq messages
+cover tab load/save failures, invalid saved tab metadata, inactive-document
+pruning, and preference load/save failures or invalid saved preferences. Existing
+empty-string presentation interfaces and consumers are preserved through computed
+text. No new helper, boundary shape or persistence format was needed.
+
+Technical failures still log explicitly at the operation site, with a stable
+English diagnostic label, semantic key and original error object. A locale switch
+only formats cached keys: no storage reads/writes, logs, retries, navigation or
+preference mutations. Invalid JSON and schema-invalid settings share the same
+notice but keep their distinct original errors in the log.
+
+Existing lifecycle behavior is intentionally unchanged. Tab notices clear on
+clear/restore, not after an unrelated successful persistence operation; pruning
+may replace the previous notice and never discards an active missing draft.
+Writing-preference notices clear on a successful explicit save; failed saves
+still apply the requested preferences in memory. Defaulting, schema validation,
+tab restoration, corruption handling and storage keys/formats are not redesigned.
+The notice is read-only presentation; the old appearance test now triggers a
+real storage failure rather than injecting an English string into the store.
+
+Regressions first reproduced all seven frozen-English notices. Store tests cover
+malformed JSON, schema-invalid data, unavailable/full storage, round-trip locale
+switches, no repeated logging/storage access, retained tab IDs and CodeMirror
+state/selection/scroll, retained preference values and existing notice clearing.
+Mounted tests retain tab/control DOM and focus, conflicted drafts, current range
+values and visible tab notices in focus mode without language-triggered file or
+storage operations. No browser/packaged RTL qualification is claimed.
+Verified lint/dependency boundaries, typecheck, all 1,421 tests across 158 files,
+the production electron-vite build and documentation build/link checks.
+Contract version remains 21; no dependencies or novel-file changes.
+
+**Next session:** audit remaining I2 diagnostics/cached consumers and propose a
+bounded plan before changing code; do not mark I2 complete from this slice alone.
+Logging-only invalid programmatic writing-preference values still return the
+original Zod detail and have no displayed consumer; translating those diagnostics
+or adding a UI surface was outside this scope. Full appearance/tab labels remain I3.
 Preserve exact details and existing navigation/recovery behavior; avoid guessing
 text from broad codes. Recent-project/folder-choice failure API design remains
 explicitly deferred.

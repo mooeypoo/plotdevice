@@ -1,5 +1,12 @@
 {
   "@metadata": { "authors": [] },
+  "tabs-notice-load-failed": "User settings storage could not be read for document tabs. Navigation remains usable for this app session; this is not a manuscript-read failure.",
+  "tabs-notice-invalid": "Malformed or schema-invalid saved tab metadata. Starts fresh navigation state, not a new novel; no manuscript text is deleted.",
+  "tabs-notice-save-failed": "Document-tab metadata could not be persisted. Current session navigation still works. This does not describe saving manuscript text.",
+  "tabs-notice-pruned": "Inactive open documents absent from the current listing were removed from the tab strip, not deleted from disk. An active missing draft is retained.",
+  "preferences-notice-load-failed": "Writing display/navigation preferences could not be read from user settings. Defaults are used without altering novel files.",
+  "preferences-notice-invalid": "Malformed or schema-invalid writing preferences. Defaults are used; the saved settings are not replaced until an explicit preference change.",
+  "preferences-notice-save-failed": "Writing display/navigation settings could not be persisted, but changes remain in memory for this session. Not a manuscript-save failure.",
   "link-wiki-unresolved": "Temporary notice for a wikilink with no unique resolved target (missing or ambiguous). $1 is the exact written target, isolated by the caller. Keep folder-disambiguation advice; do not imply file deletion.",
   "link-markdown-unresolved": "Temporary notice for a Markdown link with no resolved project file. $1 is the exact written address, isolated by the caller; do not translate or normalize it.",
   "link-target-unsupported": "Refusal to open a resolved link target unsupported by the editor. $1 is the exact project-relative path, isolated by the caller. No file is modified.",

@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { z } from 'zod'
 import type { ApiResult } from '../../../contract/dtos'
+import type { MessageKey } from '../../../i18n/translator'
+import { useUiLanguageStore } from './ui-language-store'
 
 /** Supported display sizes; these never change the markdown itself. */
 export const PROSE_FONT_SIZE = { min: 14, max: 28, default: 19 } as const
@@ -30,6 +32,7 @@ const preferencesSchema = z.object({
   collapsedParts: z.record(z.string(), z.array(z.string()))
 })
 type WritingPreferences = z.infer<typeof preferencesSchema>
+type PreferenceNotice = Extract<MessageKey, `preferences-notice-${string}`>
 
 function defaults(): WritingPreferences {
   return {
@@ -44,12 +47,16 @@ function defaults(): WritingPreferences {
 
 /** Per-user display preferences in Chromium's userData storage, never in the novel folder. */
 export const useWritingPreferencesStore = defineStore('writing-preferences', () => {
-  const storageNotice = ref('')
+  const language = useUiLanguageStore()
+  const storageNoticeKey = ref<PreferenceNotice | null>(null)
+  const storageNotice = computed(() =>
+    storageNoticeKey.value === null ? '' : language.t(storageNoticeKey.value)
+  )
   const preferences = ref(load())
 
-  function reportStorageFailure(message: string, error: unknown): void {
-    storageNotice.value = message
-    console.warn(message, error)
+  function reportStorageFailure(notice: PreferenceNotice, error: unknown): void {
+    storageNoticeKey.value = notice
+    console.warn('Writing preferences storage failure.', notice, error)
   }
 
   function load(): WritingPreferences {
@@ -57,7 +64,7 @@ export const useWritingPreferencesStore = defineStore('writing-preferences', () 
     try {
       text = localStorage.getItem(KEY)
     } catch (error) {
-      reportStorageFailure('Writing preferences could not be loaded. Using the defaults.', error)
+      reportStorageFailure('preferences-notice-load-failed', error)
       return defaults()
     }
     if (text === null) return defaults()
@@ -66,24 +73,21 @@ export const useWritingPreferencesStore = defineStore('writing-preferences', () 
       value = JSON.parse(text) as unknown
     } catch (error) {
       if (!(error instanceof SyntaxError)) throw error
-      reportStorageFailure('Saved writing preferences are invalid. Using the defaults.', error)
+      reportStorageFailure('preferences-notice-invalid', error)
       return defaults()
     }
     const parsed = preferencesSchema.safeParse(value)
     if (parsed.success) return parsed.data
-    reportStorageFailure('Saved writing preferences are invalid. Using the defaults.', parsed.error)
+    reportStorageFailure('preferences-notice-invalid', parsed.error)
     return defaults()
   }
 
   function save(): void {
     try {
       localStorage.setItem(KEY, JSON.stringify(preferences.value))
-      storageNotice.value = ''
+      storageNoticeKey.value = null
     } catch (error) {
-      reportStorageFailure(
-        'Writing preferences could not be saved. Changes apply only to this session.',
-        error
-      )
+      reportStorageFailure('preferences-notice-save-failed', error)
     }
   }
 
