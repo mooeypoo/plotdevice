@@ -85,7 +85,9 @@ progress, remaining limitations, and the next slice before ending a session.
             visible live notices and document/calendar-aware request guards.
           - [x] **Cross-context queries:** timeline/interactions and appearance
             failures, live alerts and obsolete-request guards.
-          - [ ] **Remaining notices:** reference actions/links and remaining
+          - [x] **Reference actions/links:** semantic editor/reference/outline
+            link notices, reactive reference edit failures and stale-action guards.
+          - [ ] **Remaining notices:** storage notices and other
             string-caching stores/composables.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
   existing notices, number formatting, display collation, native dialogs and
@@ -545,9 +547,45 @@ Verified lint/dependency boundaries, typecheck, all 1,390 tests across 158 files
 the production electron-vite build and documentation build/link checks.
 No real-browser/packaged qualification, push or release.
 
+Committed as `8cea98c feat: localize cross-context query failures`.
+
+### I2b.2b.2 reference-action/link handoff (2026-10-21)
+
+Shared link navigation now retains semantic unresolved wikilink/Markdown-link
+notices and the unsupported-target refusal. English/Hebrew/qqq messages have
+typed parameters; exact written targets, addresses and project-relative paths
+are isolated only for display. Completion, resolution, routing and fallback
+behavior remain unchanged. The shared composable covers editor, outline and
+reference consumers. Unresolved notices still expire five seconds after the
+action, not after the last language switch; disposing their scope cancels the
+timer and clears the notice.
+
+Reference Open in editor now captures the editor's semantic failure source
+instead of copying already-formatted text. The editor exposes a narrow snapshot
+getter, not a writable source ref; subsequent unrelated editor notices cannot
+replace the reference's cached failure. Existing unsaved-navigation diagnostics
+and explicit legacy API details are retained, with a localized fallback only
+when no editor source exists. A new explicit attempt clears the reference action
+notice. Request generations invalidate panel actions on another attempt,
+reference selection changes (including A-to-B-to-A) and unmount. Obsolete
+completions cannot set a panel error or change the inspector tab. This does not
+cancel an already-requested editor navigation or redesign its serialized guards.
+
+Regressions first reproduced cached English, missing display isolation and
+obsolete panel failures. Coverage includes exact escaped mixed-script values,
+the unchanged five-second expiry across language switches, scope timer cleanup,
+semantic and explicit legacy failure snapshots, fallback and successful retry,
+stale success/failure results, retained conflicted drafts and reference/outline
+view DOM, scroll and focus without language-triggered reads/writes.
+Verified lint/dependency boundaries, typecheck, all 1,409 tests across 158 files,
+the production electron-vite build and documentation build/link checks.
+Contract version remains 21. No new dependencies, disk-format changes or main/
+preload/fake changes. Full RTL geometry and real-browser/packaged qualification
+remain separate work.
+
 **Next session:** plan remaining I2 notices/caches and obtain approval before
-changing code. Trace reference link/action notices and
-remaining cached English notices, including fake APIs and presentation consumers.
+changing code. Trace document-tab and writing-preference storage notices and
+other remaining cached English, including fake APIs and presentation consumers.
 Preserve exact details and existing navigation/recovery behavior; avoid guessing
 text from broad codes. Recent-project/folder-choice failure API design remains
 explicitly deferred.

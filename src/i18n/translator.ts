@@ -6,6 +6,9 @@ import he from './he.json'
 /** Stable catalog keys, excluding translator metadata. */
 export type MessageKey = Exclude<keyof typeof en, '@metadata'>
 type ParameterizedMessages = {
+  'link-wiki-unresolved': [target: string]
+  'link-markdown-unresolved': [address: string]
+  'link-target-unsupported': [path: string]
   'reference-not-listed': [path: string]
   'error-workspace-folder-missing': [path: string]
   'error-workspace-not-project': [path: string]

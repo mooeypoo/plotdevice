@@ -1,4 +1,4 @@
-import { computed, ref, type ComputedRef, type Ref } from 'vue'
+import { computed, getCurrentScope, onScopeDispose, type ComputedRef, type Ref } from 'vue'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
@@ -8,6 +8,8 @@ import { placeOf } from '../../app/entry-owners'
 import { linkChoices, markdownLinkPath, nameKey, resolveWritten } from '../../shared/link-choices'
 import type { LinkAt } from './link-at'
 import type { LinkCompletionTarget } from './link-completion'
+import { useErrorNotice } from '../../shared/use-error-notice'
+import type { LinkNotice } from '../../shared/error-format'
 
 /** Link completion and navigation: consult codex targets beside the draft, or open manuscript text. */
 export function useEditorLinks(navigate?: (path: string) => void | Promise<void>): {
@@ -22,15 +24,21 @@ export function useEditorLinks(navigate?: (path: string) => void | Promise<void>
   const manuscript = useManuscriptStore()
   const codex = useCodexStore()
   const editor = useEditorStore()
-  const linkNotice = ref<string | null>(null)
+  const { message: linkNotice, source: linkNoticeSource } = useErrorNotice()
   let clearTimer: ReturnType<typeof setTimeout> | undefined
-  const notify = (message: string): void => {
-    linkNotice.value = message
+  const notify = (notice: LinkNotice): void => {
+    linkNoticeSource.value = notice
     if (clearTimer !== undefined) clearTimeout(clearTimer)
     clearTimer = setTimeout(() => {
       linkNotice.value = null
+      clearTimer = undefined
     }, 5000)
   }
+  if (getCurrentScope() !== undefined)
+    onScopeDispose(() => {
+      if (clearTimer !== undefined) clearTimeout(clearTimer)
+      linkNotice.value = null
+    })
 
   const choices = computed(() => linkChoices(manuscript.manuscript?.linkTargets ?? []))
   const aliases = computed(
@@ -53,8 +61,8 @@ export function useEditorLinks(navigate?: (path: string) => void | Promise<void>
     if (path === undefined) {
       notify(
         link.kind === 'wiki'
-          ? `“${link.target}” doesn’t point to one file. Write it with its folder to open it.`
-          : `“${link.address}” isn’t a file in this project.`
+          ? { notice: 'link-wiki-unresolved', target: link.target }
+          : { notice: 'link-markdown-unresolved', address: link.address }
       )
       return
     }
@@ -63,8 +71,7 @@ export function useEditorLinks(navigate?: (path: string) => void | Promise<void>
       useReferenceStore().open(path)
     } else if (editor.canOpen(path)) {
       if (await editor.open(path)) useLayoutStore().mainView = 'write'
-    } else
-      editor.actionError = `${path} isn’t a part, chapter, or codex entry, so it can’t open here.`
+    } else editor.reportActionError({ notice: 'link-target-unsupported', path })
   }
 
   return {

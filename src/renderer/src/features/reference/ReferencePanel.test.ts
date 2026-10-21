@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
@@ -10,6 +10,8 @@ import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { useReferenceStore } from '../../app/reference-store'
 import ReferencePanel from './ReferencePanel.vue'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import type { ApiResult, EntryTextDto } from '../../../../contract/dtos'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 beforeEach(async () => {
@@ -23,6 +25,30 @@ beforeEach(async () => {
 })
 
 describe('ReferencePanel', () => {
+  it('retranslates a link notice beside the same reference without rereading or writing', async () => {
+    fake.files.set('characters/Ilka.md', '## History\n\n[[Nobody <img src=x> יעל]]')
+    useReferenceStore().open('characters/Ilka.md')
+    const wrapper = mount(ReferencePanel)
+    await flushPromises()
+    const view = wrapper.get('.view').element
+    const scroller = wrapper.get('.reference-panel').element
+    scroller.scrollTop = 125
+    await wrapper.get('.view a').trigger('click')
+    const english = wrapper.get('[role=status]').text()
+    const read = vi.spyOn(fake.api.codex, 'openEntry')
+    const write = vi.spyOn(fake.api.codex, 'saveEntryText')
+    await useUiLanguageStore().change('he')
+    await flushPromises()
+    expect(wrapper.get('[role=status]').text()).not.toBe(english)
+    expect(wrapper.get('[role=status]').text()).toContain('\u2068Nobody <img src=x> יעל\u2069')
+    expect(wrapper.find('img').exists()).toBe(false)
+    expect(wrapper.get('.view').element).toBe(view)
+    expect(scroller.scrollTop).toBe(125)
+    expect(read).not.toHaveBeenCalled()
+    expect(write).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
   it('shows a rendered profile and navigates its links only within the reference', async () => {
     const reference = useReferenceStore()
     reference.open('characters/Ilka.md')
@@ -70,8 +96,156 @@ describe('ReferencePanel', () => {
     await flushPromises()
     expect(editor.entry?.path).toBe('The Ferry.md')
     expect(wrapper.get('[role=alert]').text()).toContain('Resolve')
+    const open = vi.spyOn(fake.api.codex, 'openEntry')
+    const write = vi.spyOn(fake.api.manuscript, 'saveEntryText')
+    const button = wrapper.get('.edit').element
+    const scroller = wrapper.get('.reference-panel').element
+    scroller.scrollTop = 125
+    await useUiLanguageStore().change('he')
+    await flushPromises()
+    expect(wrapper.get('[role=alert]').text()).not.toContain('Resolve')
+    expect(wrapper.get('[role=alert]').text()).toContain('שינויים שלא נשמרו')
+    expect(wrapper.get('.edit').element).toBe(button)
+    expect(scroller.scrollTop).toBe(125)
+    expect(editor.text).toBe('Unsaved manuscript.')
+    expect(open).not.toHaveBeenCalled()
+    expect(write).not.toHaveBeenCalled()
     wrapper.unmount()
   })
+
+  it('retains the semantic editor failure independently of subsequent editor notices', async () => {
+    useReferenceStore().open('characters/Ilka.md')
+    const wrapper = mount(ReferencePanel, { attachTo: document.body })
+    await flushPromises()
+    const path = 'characters/יעל <img src=x>.md'
+    const open = vi.spyOn(fake.api.codex, 'openEntry').mockResolvedValue({
+      ok: false,
+      error: { code: 'not-found', message: 'legacy', diagnostic: { reason: 'file-missing', path } }
+    })
+    const button = wrapper.get<HTMLButtonElement>('.edit').element
+    button.focus()
+    await wrapper.get('.edit').trigger('click')
+    await flushPromises()
+    expect(wrapper.get('[role=alert]').text()).toContain('no longer exists')
+    useEditorStore().actionError = 'A later unrelated action.'
+    await useUiLanguageStore().change('he')
+    await flushPromises()
+    expect(wrapper.get('[role=alert]').text()).toContain(`\u2068${path}\u2069`)
+    expect(wrapper.get('[role=alert]').text()).not.toMatch(/no longer exists|legacy|unrelated/u)
+    expect(wrapper.find('img').exists()).toBe(false)
+    expect(document.activeElement).toBe(button)
+    expect(open).toHaveBeenCalledTimes(1)
+    wrapper.unmount()
+  })
+
+  it('keeps legacy failures explicit and clears the notice after a successful retry', async () => {
+    useReferenceStore().open('characters/Ilka.md')
+    const wrapper = mount(ReferencePanel)
+    await flushPromises()
+    vi.spyOn(fake.api.codex, 'openEntry').mockResolvedValueOnce({
+      ok: false,
+      error: { code: 'test', message: 'EACCES <img src=x>' }
+    })
+    await wrapper.get('.edit').trigger('click')
+    await flushPromises()
+    await useUiLanguageStore().change('he')
+    await flushPromises()
+    expect(wrapper.get('[role=alert]').text()).toBe('EACCES <img src=x>')
+    expect(wrapper.find('img').exists()).toBe(false)
+    await wrapper.get('.edit').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('[role=alert]').exists()).toBe(false)
+    expect(useEditorStore().entry?.path).toBe('characters/Ilka.md')
+    wrapper.unmount()
+  })
+
+  it('localizes the explicit fallback when the editor has no failure source', async () => {
+    useReferenceStore().open('characters/Ilka.md')
+    const wrapper = mount(ReferencePanel)
+    await flushPromises()
+    vi.spyOn(useEditorStore(), 'open').mockResolvedValueOnce(false)
+    await wrapper.get('.edit').trigger('click')
+    await flushPromises()
+    expect(wrapper.get('[role=alert]').text()).toBe(
+      'This document could not be opened in the editor.'
+    )
+    await useUiLanguageStore().change('he')
+    await flushPromises()
+    expect(wrapper.get('[role=alert]').text()).toBe('לא ניתן לפתוח את המסמך בעורך.')
+    wrapper.unmount()
+  })
+
+  it.each(['switch', 'return', 'unmount'] as const)(
+    'does not change the inspector after a late successful action and %s',
+    async (change) => {
+      const reference = useReferenceStore()
+      reference.open('characters/Ilka.md')
+      const wrapper = mount(ReferencePanel)
+      await flushPromises()
+      let finish: ((opened: boolean) => void) | undefined
+      vi.spyOn(useEditorStore(), 'open').mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finish = resolve
+          })
+      )
+      await wrapper.get('.edit').trigger('click')
+      if (change === 'unmount') wrapper.unmount()
+      else {
+        reference.open('locations/Marrow.md')
+        await flushPromises()
+        if (change === 'return') {
+          reference.open('characters/Ilka.md')
+          await flushPromises()
+        }
+      }
+      useLayoutStore().rightTab = 'reference'
+      if (finish === undefined) throw new Error('Missing pending action')
+      finish(true)
+      await flushPromises()
+      expect(useLayoutStore().rightTab).toBe('reference')
+      if (change !== 'unmount') wrapper.unmount()
+    }
+  )
+
+  it.each(['switch', 'return', 'unmount'] as const)(
+    'ignores late reference action failures after %s',
+    async (change) => {
+      const reference = useReferenceStore()
+      reference.open('characters/Ilka.md')
+      const wrapper = mount(ReferencePanel)
+      await flushPromises()
+      let finish: ((result: ApiResult<EntryTextDto>) => void) | undefined
+      vi.spyOn(fake.api.codex, 'openEntry').mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finish = resolve
+          })
+      )
+      await wrapper.get('.edit').trigger('click')
+      await flushPromises()
+      if (change === 'unmount') wrapper.unmount()
+      else {
+        reference.open('locations/Marrow.md')
+        await flushPromises()
+        if (change === 'return') {
+          reference.open('characters/Ilka.md')
+          await flushPromises()
+        }
+      }
+      useLayoutStore().rightTab = 'reference'
+      const captureError = vi.spyOn(useEditorStore(), 'getActionError')
+      if (finish === undefined) throw new Error('Missing pending open')
+      finish({ ok: false, error: { code: 'test', message: 'Obsolete refusal.' } })
+      await flushPromises()
+      if (change !== 'unmount') {
+        expect(wrapper.find('[role=alert]').exists()).toBe(false)
+        wrapper.unmount()
+      }
+      expect(captureError).not.toHaveBeenCalled()
+      expect(useLayoutStore().rightTab).toBe('reference')
+    }
+  )
 
   it('restores per-reference scroll across character switches and panel remounts', async () => {
     const reference = useReferenceStore()

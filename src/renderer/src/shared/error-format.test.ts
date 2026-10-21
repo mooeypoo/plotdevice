@@ -1,12 +1,39 @@
 import { describe, expect, it } from 'vitest'
 import type { ApiError, ErrorDiagnosticDto } from '../../../contract/dtos'
 import { createTranslator } from '../../../i18n/translator'
-import { formatApiError, formatErrorNotice } from './error-format'
+import { formatApiError, formatErrorNotice, type ErrorNotice } from './error-format'
 
 const english = createTranslator('en')
 const hebrew = createTranslator('he')
 
 describe('semantic save/recovery error presentation', () => {
+  it.each([
+    { notice: 'link-wiki-unresolved', target: 'יעל <img src=x>' },
+    { notice: 'link-markdown-unresolved', address: '../יעל <img src=x>.md' },
+    { notice: 'link-target-unsupported', path: 'notes/יעל <img src=x>.md' },
+    { notice: 'reference-open-failed' }
+  ] satisfies ErrorNotice[])('localizes the semantic link/reference notice %j', (source) => {
+    const original = JSON.stringify(source)
+    const en = formatErrorNotice(source, english.t)
+    const he = formatErrorNotice(source, hebrew.t)
+    expect(he).not.toBe(en)
+    expect(he).not.toMatch(/\$\d|link-|reference-/u)
+    expect(he).toMatch(/[\u0590-\u05ff]/u)
+    const value =
+      'target' in source
+        ? source.target
+        : 'address' in source
+          ? source.address
+          : 'path' in source
+            ? source.path
+            : undefined
+    if (value !== undefined) {
+      expect(en).toContain(`\u2068${value}\u2069`)
+      expect(he).toContain(`\u2068${value}\u2069`)
+    }
+    expect(JSON.stringify(source)).toBe(original)
+  })
+
   it.each([
     { reason: 'read-only' },
     { reason: 'workspace-folder-not-allowed' },

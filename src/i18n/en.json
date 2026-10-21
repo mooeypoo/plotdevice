@@ -1,5 +1,9 @@
 {
   "@metadata": { "authors": [] },
+  "link-wiki-unresolved": "“$1” doesn’t point to one file. Write it with its folder to open it.",
+  "link-markdown-unresolved": "“$1” isn’t a file in this project.",
+  "link-target-unsupported": "$1 isn’t a part, chapter, or codex entry, so it can’t open here.",
+  "reference-open-failed": "This document could not be opened in the editor.",
   "language-label": "Interface language",
   "language-save-failed": "The language could not be saved. Your previous language is still selected. Try again.",
   "language-load-failed": "Your language setting could not be loaded. Using the system language where supported.",

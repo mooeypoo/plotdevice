@@ -1,13 +1,14 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import OutlinePanel from './OutlinePanel.vue'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 beforeEach(async () => {
@@ -20,6 +21,29 @@ beforeEach(async () => {
 })
 
 describe('OutlinePanel', () => {
+  it('retranslates a cached link notice without replacing the reading view or retrying', async () => {
+    fake.files.set('Outline.md', '## Plan\n\n[[Nobody <img src=x> יעל]]')
+    const wrapper = mount(OutlinePanel, { attachTo: document.body })
+    await flushPromises()
+    const link = wrapper.get<HTMLAnchorElement>('.view a').element
+    const view = wrapper.get('.view').element
+    link.focus()
+    await wrapper.get('.view a').trigger('click')
+    const english = wrapper.get('[role=status]').text()
+    const read = vi.spyOn(fake.api.codex, 'openEntry')
+    const write = vi.spyOn(fake.api.codex, 'saveEntryText')
+    await useUiLanguageStore().change('he')
+    await flushPromises()
+    expect(wrapper.get('[role=status]').text()).not.toBe(english)
+    expect(wrapper.get('[role=status]').text()).toContain('\u2068Nobody <img src=x> יעל\u2069')
+    expect(wrapper.find('img').exists()).toBe(false)
+    expect(wrapper.get('.view').element).toBe(view)
+    expect(document.activeElement).toBe(link)
+    expect(read).not.toHaveBeenCalled()
+    expect(write).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
   it('renders the reference, edits raw Markdown, then remounts the updated reading view', async () => {
     const wrapper = mount(OutlinePanel)
     await flushPromises()

@@ -6,11 +6,16 @@ export type EditorNoticeKey = Extract<MessageKey, `editor-${string}`>
 export type StructureNotice =
   | { readonly notice: 'structure-renumber-failed'; readonly count: number }
   | { readonly notice: 'structure-rename-skipped'; readonly paths: readonly string[] }
+export type LinkNotice =
+  | { readonly notice: 'link-wiki-unresolved'; readonly target: string }
+  | { readonly notice: 'link-markdown-unresolved'; readonly address: string }
 export type ErrorNotice =
   | ApiError
   | StructureNotice
+  | LinkNotice
+  | { readonly notice: 'link-target-unsupported'; readonly path: string }
   | { readonly notice: 'reference-not-listed'; readonly path: string }
-  | { readonly notice: EditorNoticeKey | 'workspace-unsaved-changes' }
+  | { readonly notice: EditorNoticeKey | 'workspace-unsaved-changes' | 'reference-open-failed' }
   | { readonly notice: 'relationships-cannot-edit'; readonly error: ApiError }
   | string
   | null
@@ -129,8 +134,15 @@ export function formatApiError(error: ApiError, t: Translator['t']): string {
 /** Formats cached semantic notices only when presented, so switching locale never changes state. */
 export function formatErrorNotice(source: ErrorNotice, t: Translator['t']): string | null {
   if (source === null || typeof source === 'string') return source
-  if ('notice' in source && source.notice === 'reference-not-listed')
+  if (
+    'notice' in source &&
+    (source.notice === 'reference-not-listed' || source.notice === 'link-target-unsupported')
+  )
     return t(source.notice, isolate(source.path))
+  if ('notice' in source && source.notice === 'link-wiki-unresolved')
+    return t(source.notice, isolate(source.target))
+  if ('notice' in source && source.notice === 'link-markdown-unresolved')
+    return t(source.notice, isolate(source.address))
   if ('error' in source) return t(source.notice, formatApiError(source.error, t))
   if ('notice' in source && source.notice === 'structure-renumber-failed')
     return t(source.notice, source.count)

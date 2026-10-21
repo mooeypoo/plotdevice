@@ -128,6 +128,10 @@ rejects obsolete input/document/calendar replies; locale switches never rerun da
 Timeline/interactions failures retain the last successful view and use reactive alerts with
 request/disposal guards. Appearance failures have a current-document notice instead of a
 misleading empty chapter list; property-read generations reject stale results.
+Shared link notices cache exact semantic targets/addresses with a five-second
+action-based expiry and scope cleanup. Reference editor-opening failures capture
+the editor's source, not its formatted message; panel request generations reject
+obsolete errors and inspector changes without cancelling editor navigation.
 Unmigrated failures explicitly display their original message until their producers are migrated.
 Remaining action failures/strings, full RTL geometry and independent content-direction controls
 remain tracked in ADR 0016. No language switch changes novel files or existing writing preferences.

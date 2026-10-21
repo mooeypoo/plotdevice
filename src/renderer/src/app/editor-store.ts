@@ -11,7 +11,7 @@ import { useDocumentTabsStore } from './document-tabs-store'
 import { useLayoutStore } from './layout-store'
 import { useUiLanguageStore } from './ui-language-store'
 import { useErrorNotice } from '../shared/use-error-notice'
-import type { StructureNotice } from '../shared/error-format'
+import type { ErrorNotice, StructureNotice } from '../shared/error-format'
 
 export type { EntryKind, EntryPlace } from './entry-place'
 
@@ -345,7 +345,7 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   /** Retains the failure source so already-visible actions retranslate without being retried. */
-  function reportActionError(error: ApiError): void {
+  function reportActionError(error: ErrorNotice): void {
     actionErrorSource.value = error
   }
 
@@ -641,6 +641,8 @@ export const useEditorStore = defineStore('editor', () => {
     diskNotice,
     pendingRename,
     actionError,
+    /** Captures the current semantic failure for independent presentation without copying text. */
+    getActionError: (): ErrorNotice => actionErrorSource.value,
     recoveryBusy,
     recoveryError,
     recoveredPath,

@@ -1,9 +1,10 @@
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { useLayoutStore } from '../../app/layout-store'
 import { useReferenceStore } from '../../app/reference-store'
 import { useEditorLinks } from '../editor/use-editor-links'
+import { useErrorNotice } from '../../shared/use-error-notice'
 
 /** Presents an independent reference, using live draft text when the same file is being edited. */
 export function useReferencePanel() {
@@ -14,7 +15,8 @@ export function useReferencePanel() {
   const links = useEditorLinks((path) => {
     reference.open(path)
   })
-  const actionError = ref<string | null>(null)
+  const { message: actionError, source: actionErrorSource } = useErrorNotice()
+  let actionRequest = 0
   const scroller = useTemplateRef<HTMLElement>('referenceScroller')
   let displayedPath: string | null = null
   let restoring = true
@@ -31,9 +33,11 @@ export function useReferencePanel() {
   watch(
     () => reference.path,
     () => {
+      actionRequest += 1
       actionError.value = null
       links.linkNotice.value = null
-    }
+    },
+    { flush: 'sync' }
   )
   watch(
     [() => reference.path, text, () => reference.loading],
@@ -52,7 +56,10 @@ export function useReferencePanel() {
     if (!restoring && scroller.value !== null)
       reference.rememberScroll(scroller.value.scrollTop, displayedPath)
   }
-  onBeforeUnmount(rememberScroll)
+  onBeforeUnmount(() => {
+    actionRequest += 1
+    rememberScroll()
+  })
   watch(
     () => editor.entry?.path,
     (_next, previous) => {
@@ -61,14 +68,17 @@ export function useReferencePanel() {
   )
 
   async function edit(): Promise<void> {
+    const request = ++actionRequest
     actionError.value = null
     const path = reference.path
     if (path === null) return
-    if (!openInEditor.value && !(await editor.open(path))) {
-      actionError.value = editor.hasStuckChanges
-        ? 'Resolve the unsaved changes in the current editor before opening another document.'
-        : (editor.actionError ?? 'This document could not be opened in the editor.')
-      return
+    if (!openInEditor.value) {
+      const opened = await editor.open(path)
+      if (request !== actionRequest) return
+      if (!opened) {
+        actionErrorSource.value = editor.getActionError() ?? { notice: 'reference-open-failed' }
+        return
+      }
     }
     layout.mainView = 'write'
     layout.rightTab = 'properties'

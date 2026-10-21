@@ -1,5 +1,9 @@
 {
   "@metadata": { "authors": [] },
+  "link-wiki-unresolved": "Temporary notice for a wikilink with no unique resolved target (missing or ambiguous). $1 is the exact written target, isolated by the caller. Keep folder-disambiguation advice; do not imply file deletion.",
+  "link-markdown-unresolved": "Temporary notice for a Markdown link with no resolved project file. $1 is the exact written address, isolated by the caller; do not translate or normalize it.",
+  "link-target-unsupported": "Refusal to open a resolved link target unsupported by the editor. $1 is the exact project-relative path, isolated by the caller. No file is modified.",
+  "reference-open-failed": "Fallback for a failed explicit Open in editor action from the reference panel when no more specific editor notice exists.",
   "language-label": "Label for the app-wide interface-language selector, not manuscript language.",
   "language-save-failed": "Visible failure after saving language preferences fails. The previous locale remains active.",
   "language-load-failed": "Startup warning when preferences cannot be read. Supported system language is used, otherwise English.",
