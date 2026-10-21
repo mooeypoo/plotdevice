@@ -3,6 +3,7 @@ export type ErrorDiagnostic =
   | {
       readonly reason:
         | 'read-only'
+        | 'workspace-folder-not-allowed'
         | 'template-folder-unusable'
         | 'entry-already-typed'
         | 'frontmatter-links-unsafe'
@@ -27,6 +28,11 @@ export type ErrorDiagnostic =
   | {
       readonly reason:
         | 'file-outside-project'
+        | 'workspace-folder-missing'
+        | 'workspace-not-project'
+        | 'workspace-already-project'
+        | 'workspace-inside-project'
+        | 'workspace-contains-project'
         | 'file-missing'
         | 'file-unreadable'
         | 'file-changed'

@@ -58,11 +58,19 @@ const initializeArgs = z.tuple([
 
 const invalidRequest: ApiResult<never> = {
   ok: false,
-  error: { code: 'invalid-request', message: 'The request was not understood.' }
+  error: {
+    code: 'invalid-request',
+    message: 'The request was not understood.',
+    diagnostic: { reason: 'invalid-request' }
+  }
 }
 const notAllowed: ApiResult<never> = {
   ok: false,
-  error: { code: 'folder-not-allowed', message: 'Choose this folder with "Open folder…" first.' }
+  error: {
+    code: 'folder-not-allowed',
+    message: 'Choose this folder with "Open folder…" first.',
+    diagnostic: { reason: 'workspace-folder-not-allowed' }
+  }
 }
 
 /**
@@ -147,7 +155,14 @@ export function createWorkspaceHandlers(deps: WorkspaceHandlerDependencies): Wor
 
     async refreshProject() {
       if (openRoot === undefined) {
-        return { ok: false, error: { code: 'no-project', message: 'No project is open.' } }
+        return {
+          ok: false,
+          error: {
+            code: 'no-project',
+            message: 'No project is open.',
+            diagnostic: { reason: 'no-project' }
+          }
+        }
       }
       const result = await deps.readProject(openRoot)
       return result.ok

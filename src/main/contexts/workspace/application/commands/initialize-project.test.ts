@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { InMemoryWorkspace } from '../../domain/ports/in-memory-workspace.fake'
 import type { ProjectRoot } from '../../domain/project-root'
 import { createInitializeProject, type InitializeProject } from './initialize-project'
@@ -45,7 +45,13 @@ describe('InitializeProject', () => {
       novel: { kind: 'read', frontmatter: {} }
     })
     const result = await initializeProject(root, 'Again')
-    expect(result).toMatchObject({ ok: false, error: { code: 'already-a-project' } })
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        code: 'already-a-project',
+        diagnostic: { reason: 'workspace-already-project', path: root }
+      }
+    })
     expect(workspace.createdNovelFiles.size).toBe(0)
   })
 
@@ -57,7 +63,11 @@ describe('InitializeProject', () => {
 
     expect(result).toMatchObject({
       ok: false,
-      error: { code: 'inside-project', projectAbove: '/novels/salt-orchard' }
+      error: {
+        code: 'inside-project',
+        projectAbove: '/novels/salt-orchard',
+        diagnostic: { reason: 'workspace-inside-project', path: '/novels/salt-orchard' }
+      }
     })
     expect(workspace.createdNovelFiles.size).toBe(0)
   })
@@ -70,13 +80,57 @@ describe('InitializeProject', () => {
 
     expect(result).toMatchObject({
       ok: false,
-      error: { code: 'contains-project', projectBelow: '/novels/salt-orchard' }
+      error: {
+        code: 'contains-project',
+        projectBelow: '/novels/salt-orchard',
+        diagnostic: { reason: 'workspace-contains-project', path: '/novels/salt-orchard' }
+      }
     })
     expect(workspace.createdNovelFiles.size).toBe(0)
   })
 
   it('fails for a folder that no longer exists', async () => {
     const result = await initializeProject('/gone' as ProjectRoot, 'Gone')
-    expect(result).toMatchObject({ ok: false, error: { code: 'folder-missing' } })
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        code: 'folder-missing',
+        diagnostic: { reason: 'workspace-folder-missing', path: '/gone' }
+      }
+    })
+  })
+
+  it('retains failed creation details without opening or recording a project', async () => {
+    const root = workspace.addFolder('/novels/יעל')
+    const failure = {
+      code: 'write-failed',
+      message: "Couldn't write novel.md: ENOSPC",
+      diagnostic: {
+        reason: 'file-create-failed',
+        path: '/novels/יעל/novel.md',
+        detail: 'ENOSPC'
+      }
+    } as const
+    vi.spyOn(workspace, 'create').mockResolvedValue({ ok: false, error: failure })
+    expect(await initializeProject(root, 'New')).toEqual({ ok: false, error: failure })
+    expect(workspace.createdNovelFiles.size).toBe(0)
+    expect(workspace.recents).toEqual([])
+  })
+
+  it('maps a raced existing marker to the same semantic refusal without writing', async () => {
+    const root = workspace.addFolder('/novels/יעל')
+    vi.spyOn(workspace, 'create').mockResolvedValue({
+      ok: false,
+      error: { code: 'already-exists', message: 'Outside file exists' }
+    })
+    expect(await initializeProject(root, 'New')).toMatchObject({
+      ok: false,
+      error: {
+        code: 'already-a-project',
+        diagnostic: { reason: 'workspace-already-project', path: root }
+      }
+    })
+    expect(workspace.createdNovelFiles.size).toBe(0)
+    expect(workspace.recents).toEqual([])
   })
 })

@@ -48,14 +48,25 @@ export interface OpenProjectPorts extends ReadProjectPorts {
 export function createReadProject(ports: ReadProjectPorts): ReadProject {
   return async (root) => {
     if (!(await ports.folders.exists(root))) {
-      return err(domainError('folder-missing', 'This folder no longer exists.'))
+      return err(
+        domainError('folder-missing', 'This folder no longer exists.', {
+          reason: 'workspace-folder-missing',
+          path: root
+        })
+      )
     }
 
     const reading = await ports.novelFiles.read(root)
     if (reading.kind === 'missing') {
       const projectAbove = await ports.folders.findProjectAbove(root)
       return err({
-        ...domainError('not-a-project', 'This folder has no novel.md.'),
+        ...domainError(
+          'not-a-project',
+          'This folder has no novel.md.',
+          projectAbove === undefined
+            ? { reason: 'workspace-not-project', path: root }
+            : { reason: 'workspace-inside-project', path: projectAbove }
+        ),
         ...(projectAbove !== undefined ? { projectAbove } : {})
       })
     }

@@ -9,7 +9,7 @@ export type StructureNotice =
 export type ErrorNotice =
   | ApiError
   | StructureNotice
-  | { readonly notice: EditorNoticeKey }
+  | { readonly notice: EditorNoticeKey | 'workspace-unsaved-changes' }
   | { readonly notice: 'relationships-cannot-edit'; readonly error: ApiError }
   | string
   | null
@@ -21,6 +21,18 @@ export function formatApiError(error: ApiError, t: Translator['t']): string {
   switch (diagnostic.reason) {
     case 'read-only':
       return t('error-read-only')
+    case 'workspace-folder-not-allowed':
+      return t('error-workspace-folder-not-allowed')
+    case 'workspace-folder-missing':
+      return t('error-workspace-folder-missing', isolate(diagnostic.path))
+    case 'workspace-not-project':
+      return t('error-workspace-not-project', isolate(diagnostic.path))
+    case 'workspace-already-project':
+      return t('error-workspace-already-project', isolate(diagnostic.path))
+    case 'workspace-inside-project':
+      return t('error-workspace-inside-project', isolate(diagnostic.path))
+    case 'workspace-contains-project':
+      return t('error-workspace-contains-project', isolate(diagnostic.path))
     case 'template-folder-unusable':
       return t('error-template-folder-unusable')
     case 'entry-already-typed':

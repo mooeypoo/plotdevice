@@ -6,6 +6,11 @@ import he from './he.json'
 /** Stable catalog keys, excluding translator metadata. */
 export type MessageKey = Exclude<keyof typeof en, '@metadata'>
 type ParameterizedMessages = {
+  'error-workspace-folder-missing': [path: string]
+  'error-workspace-not-project': [path: string]
+  'error-workspace-already-project': [path: string]
+  'error-workspace-inside-project': [path: string]
+  'error-workspace-contains-project': [path: string]
   'error-link-needs-no-folder': [name: string]
   'error-key-needs-no-quotes': [key: string]
   'error-file-move-failed': [path: string]

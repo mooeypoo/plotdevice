@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import * as atomicWriter from '../../../infrastructure/fs/write-text-file-atomically'
 import { readFrontmatter } from '../../../infrastructure/markdown/read-frontmatter'
 import {
   copySampleNovel,
@@ -17,6 +18,7 @@ let folder: SampleNovelCopy
 const store = createMarkdownNovelFileStore()
 
 afterEach(async () => {
+  vi.restoreAllMocks()
   await folder.remove()
 })
 
@@ -87,8 +89,31 @@ describe('creating novel.md', () => {
     await writeFile(join(folder.root, 'novel.md'), 'mine\n')
     expect(await store.create(folder.root as ProjectRoot, novelTemplate('x'))).toMatchObject({
       ok: false,
-      error: { code: 'already-exists' }
+      error: {
+        code: 'already-exists',
+        diagnostic: {
+          reason: 'workspace-already-project',
+          path: folder.root
+        }
+      }
     })
     expect(await readFile(join(folder.root, 'novel.md'), 'utf8')).toBe('mine\n')
+  })
+
+  it('retains the exact creation path and technical failure without publishing novel.md', async () => {
+    vi.spyOn(atomicWriter, 'writeTextFileAtomically').mockRejectedValue(new Error('EACCES (יעל)'))
+    expect(await store.create(folder.root as ProjectRoot, novelTemplate('New'))).toEqual({
+      ok: false,
+      error: {
+        code: 'write-failed',
+        message: "Couldn't write novel.md: EACCES (יעל)",
+        diagnostic: {
+          reason: 'file-create-failed',
+          path: join(folder.root, 'novel.md'),
+          detail: 'EACCES (יעל)'
+        }
+      }
+    })
+    await expect(readFile(join(folder.root, 'novel.md'))).rejects.toThrow()
   })
 })

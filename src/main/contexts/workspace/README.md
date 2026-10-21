@@ -8,4 +8,6 @@
 
 **Warnings.** Semantic codes/parameters preserve invalid settings and unreadable/newer-format reasons; presentation language never changes read-only/default decisions or source files.
 
+**Failures.** Open/read/initialize refusals retain semantic reasons and exact OS paths; marker creation retains raw technical details through IPC. Presentation language is never chosen here.
+
 **Must not know about.** Parts, chapters, characters, dates, or any other context. It reads only its own keys of `novel.md` (`format`, `title`, `author`, `settings`). Classification by `type` happens in `infrastructure/project-scan/`.

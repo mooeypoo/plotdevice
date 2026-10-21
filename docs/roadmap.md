@@ -158,7 +158,9 @@ acceptance criteria, and the cross-session checklist.
             and explicitly reported rename-plan refusals.
           - [x] Creation/template/type/status/fix diagnostics, reactive action
             errors and visibly reported status-add failures.
-          - [ ] Listing/workspace/reference/inspector and other query errors/
+          - [x] Workspace open/initialize/refresh diagnostics, reactive cached
+            notices and visible current-project failures with stale-reply guards.
+          - [ ] Listing/reference/inspector and other query errors/
             cached consumers. Next approval boundary.
 - [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.

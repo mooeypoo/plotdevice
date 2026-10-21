@@ -33,24 +33,40 @@ export interface InitializeProjectPorts {
 export function createInitializeProject(ports: InitializeProjectPorts): InitializeProject {
   return async (root, title) => {
     if (!(await ports.folders.exists(root))) {
-      return err(domainError('folder-missing', 'This folder no longer exists.'))
+      return err(
+        domainError('folder-missing', 'This folder no longer exists.', {
+          reason: 'workspace-folder-missing',
+          path: root
+        })
+      )
     }
     if ((await ports.novelFiles.read(root)).kind !== 'missing') {
-      return err(domainError('already-a-project', 'This folder is already a project.'))
+      return err(
+        domainError('already-a-project', 'This folder is already a project.', {
+          reason: 'workspace-already-project',
+          path: root
+        })
+      )
     }
 
     // Projects sit side by side; they are never nested.
     const projectAbove = await ports.folders.findProjectAbove(root)
     if (projectAbove !== undefined) {
       return err({
-        ...domainError('inside-project', 'This folder is inside another project.'),
+        ...domainError('inside-project', 'This folder is inside another project.', {
+          reason: 'workspace-inside-project',
+          path: projectAbove
+        }),
         projectAbove
       })
     }
     const projectBelow = await ports.folders.findProjectBelow(root)
     if (projectBelow !== undefined) {
       return err({
-        ...domainError('contains-project', 'This folder contains another project.'),
+        ...domainError('contains-project', 'This folder contains another project.', {
+          reason: 'workspace-contains-project',
+          path: projectBelow
+        }),
         projectBelow
       })
     }
@@ -62,9 +78,14 @@ export function createInitializeProject(ports: InitializeProjectPorts): Initiali
     )
     if (!created.ok) {
       if (created.error.code === 'already-exists') {
-        return err(domainError('already-a-project', 'This folder is already a project.'))
+        return err(
+          domainError('already-a-project', 'This folder is already a project.', {
+            reason: 'workspace-already-project',
+            path: root
+          })
+        )
       }
-      return err(domainError('write-failed', created.error.message))
+      return err(domainError('write-failed', created.error.message, created.error.diagnostic))
     }
 
     return ports.openProject(root)

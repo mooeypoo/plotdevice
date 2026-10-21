@@ -289,7 +289,7 @@ export function createFakePlotDeviceApi(): {
   >()
 
   const api: PlotDeviceApi = {
-    contractVersion: 20,
+    contractVersion: 21,
     uiLanguage: {
       get: () => Promise.resolve(language),
       set: (locale) => {

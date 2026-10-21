@@ -77,7 +77,9 @@ progress, remaining limitations, and the next slice before ending a session.
             cached partial-success notices and explicit rename-plan errors.
           - [x] **Creation/mutations:** create/template/type/status/fix
             diagnostics and reactive action/inspector error caches.
-          - [ ] **Remaining queries:** listings, workspace/reference/inspector
+          - [x] **Workspace:** open/initialize/refresh refusals, technical
+            creation details, live notices and explicit current-project errors.
+          - [ ] **Remaining queries:** listings, reference/inspector
             failures and remaining string-caching stores/composables.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
   existing notices, number formatting, display collation, native dialogs and
@@ -363,12 +365,62 @@ Verified lint and dependency boundaries, typecheck, all 1,326 tests across 150
 files, and the production electron-vite build. Documentation build/link checks
 also pass. No real-browser/packaged qualification, push or release was performed.
 
+Creation/mutations were committed as `7bd6d98`. The user approved workspace
+diagnostics/caches as the next bounded slice, including validation, documentation
+and commit.
+
+### I2b.2b.2 workspace handoff (2026-10-21)
+
+Workspace open/read/initialize commands now emit semantic reasons for missing
+folders, absent project markers, existing projects and nested projects. Diagnostic
+parameters retain the exact chosen, containing or contained OS path; existing
+`projectAbove`/`projectBelow` fields and authorization behavior remain intact.
+Failed `novel.md` creation retains its exact OS path and raw technical detail
+through initialization and IPC. Workspace request/authorization/no-open-project
+refusals are semantic too. Error codes and legacy descriptions remain unchanged.
+Contract version 21, preload and renderer fake agree.
+
+The workspace store retains full API errors and a semantic unsaved-draft
+navigation notice. Shared presentation formatting uses documented English/Hebrew
+messages, with dynamic paths/details isolated only when displayed. No error text
+is inferred from a broad code. Unmigrated errors explicitly retain their original
+message, rather than the previous workspace-specific code-based substitution.
+Cached failures retranslate without another project open, recent-list read or
+write. Initialization input retains its DOM identity, unsaved title and focus.
+
+Refresh failures were previously discarded, and the draft-safety notice had no
+project-screen surface. Both now appear as escaped alerts in the project layout,
+including focus mode. Refresh has a separate semantic error cache: a successful
+refresh clears only its own failure, never an unresolved navigation notice.
+Closing/opening clears the refresh cache; request generations and project identity
+discard stale replies after closing, switching, reopening the same root or a newer
+refresh. The project remains open on failure; no new automatic retries are added.
+
+Generated project content, title fallback, read-only decisions, nesting checks,
+recents recording/removal and atomic-write behavior are unchanged. The renderer
+fake's success-only workspace methods remain unchanged; injected failures exercise
+presentation and IPC paths. Recent-project list/remove and folder-choice methods
+currently return values/void rather than structured failure results; redesigning
+those APIs is deferred, not hidden behind a fabricated successful result here.
+Initialization labels/native dialogs and close-window confirmation remain I3.
+
+Regressions first reproduced cached English notices and invisible refresh errors.
+Tests cover semantic application refusals, creation races/failures without project
+publication or recents changes, unchanged existing marker bytes, exact adapter/
+IPC technical details, cached English/Hebrew alerts with escaped dynamic text,
+unchanged initialization input/focus, no locale-triggered retry, retained conflicted
+drafts and outside bytes, refresh-only clearing and stale-response rejection.
+Verified lint/dependency boundaries, typecheck, all 1,347 tests across 151 files,
+and the production electron-vite build. Documentation build/link checks also pass.
+No real-browser/packaged qualification, push or release was performed.
+
 **Next session:** plan remaining I2 queries/caches and obtain approval before
-changing code. Trace workspace open/initialize/recent-project errors, manuscript/
-codex listing failures, reference/outline loading, inspector vocabulary/date-check
-refusals, timeline/interactions query errors and any remaining cached English
-notices, including fake APIs and presentation consumers. Preserve exact details
-and existing navigation/recovery behavior; avoid guessing text from broad codes.
+changing code. Trace manuscript/codex listing failures, reference/outline loading,
+inspector vocabulary/date-check refusals, timeline/interactions query errors and
+remaining cached English notices, including fake APIs and presentation consumers.
+Preserve exact details and existing navigation/recovery behavior; avoid guessing
+text from broad codes. Recent-project/folder-choice failure API design remains
+explicitly deferred.
 I2b/I2 remain incomplete. Full interface/native translation remains I3, and RTL
 geometry/writing/reading qualification remains I4-I6. Restart the desktop process
-for contract version 20: renderer hot reload cannot upgrade an older preload.
+for contract version 21: renderer hot reload cannot upgrade an older preload.

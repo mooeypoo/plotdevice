@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createInitializeProject } from '../contexts/workspace/application/commands/initialize-project'
 import {
   createOpenProject,
@@ -54,6 +54,68 @@ beforeEach(() => {
 const path = (value: string): ProjectPath => value as ProjectPath
 
 describe('workspace handlers', () => {
+  it.each(['open', 'initialize', 'refresh'] as const)(
+    'preserves a missing folder diagnostic through %s',
+    async (action) => {
+      const root = workspace.addFolder('/novels/יעל', {
+        novel: { kind: 'read', frontmatter: {} }
+      })
+      await handlers.chooseFolder(() => Promise.resolve(root))
+      if (action === 'refresh') await handlers.openProject([root])
+      workspace.folders.delete(root)
+      const result =
+        action === 'open'
+          ? await handlers.openProject([root])
+          : action === 'initialize'
+            ? await handlers.initializeProject([root, 'New'])
+            : await handlers.refreshProject()
+      expect(result).toEqual({
+        ok: false,
+        error: {
+          code: 'folder-missing',
+          message: 'This folder no longer exists.',
+          diagnostic: { reason: 'workspace-folder-missing', path: root }
+        }
+      })
+      expect(workspace.createdNovelFiles.size).toBe(0)
+    }
+  )
+
+  it('preserves initialization technical details through IPC without opening a project', async () => {
+    const root = workspace.addFolder('/novels/יעל')
+    await handlers.chooseFolder(() => Promise.resolve(root))
+    const error = {
+      code: 'write-failed',
+      message: 'Technical failure EACCES',
+      diagnostic: {
+        reason: 'file-create-failed',
+        path: '/novels/יעל/novel.md',
+        detail: 'EACCES <img>'
+      }
+    } as const
+    vi.spyOn(workspace, 'create').mockResolvedValue({ ok: false, error })
+    expect(await handlers.initializeProject([root, 'New'])).toEqual({ ok: false, error })
+    expect(opened).toEqual([])
+    expect(workspace.createdNovelFiles.size).toBe(0)
+    expect(workspace.recents).toEqual([])
+  })
+
+  it('preserves semantic authorization, invalid-request and no-project refusals', async () => {
+    expect(await handlers.openProject(['/unselected'])).toMatchObject({
+      ok: false,
+      error: { code: 'folder-not-allowed', diagnostic: { reason: 'workspace-folder-not-allowed' } }
+    })
+    expect(await handlers.initializeProject([null])).toMatchObject({
+      ok: false,
+      error: { code: 'invalid-request', diagnostic: { reason: 'invalid-request' } }
+    })
+    expect(await handlers.refreshProject()).toMatchObject({
+      ok: false,
+      error: { code: 'no-project', diagnostic: { reason: 'no-project' } }
+    })
+    expect(opened).toEqual([])
+  })
+
   it('preserves project warning reasons and parameters without display text', async () => {
     workspace.addFolder('/novels/warnings', {
       novel: {
@@ -228,6 +290,7 @@ describe('workspace handlers', () => {
       error: {
         code: 'contains-project',
         message: 'This folder contains another project.',
+        diagnostic: { reason: 'workspace-contains-project', path: '/novels/salt-orchard' },
         projectBelow: '/novels/salt-orchard'
       }
     })

@@ -92,6 +92,17 @@ useShortcuts([
         <p v-if="editor.actionError" class="navigation-notice error" role="alert">
           {{ editor.actionError }}
         </p>
+        <p v-if="workspace.errorMessage" class="navigation-notice error" role="alert" dir="auto">
+          {{ workspace.errorMessage }}
+        </p>
+        <p
+          v-if="workspace.refreshErrorMessage"
+          class="navigation-notice error"
+          role="alert"
+          dir="auto"
+        >
+          {{ workspace.refreshErrorMessage }}
+        </p>
         <EditorPane />
       </main>
       <RightPanel v-if="layout.inspectorOpen && !layout.focusMode" />

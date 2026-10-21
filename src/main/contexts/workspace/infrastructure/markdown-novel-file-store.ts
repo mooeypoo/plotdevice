@@ -37,14 +37,25 @@ export function createMarkdownNovelFileStore(): NovelFileStore {
     create: async (root, text) => {
       const osPath = join(root, NOVEL_FILE)
       if (await stat(osPath).catch(() => undefined)) {
-        return err(domainError('already-exists', 'This folder already has a novel.md.'))
+        return err(
+          domainError('already-exists', 'This folder already has a novel.md.', {
+            reason: 'workspace-already-project',
+            path: root
+          })
+        )
       }
       try {
         await writeTextFileAtomically(osPath, text)
         return ok(undefined)
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error)
-        return err(domainError('write-failed', `Couldn't write novel.md: ${reason}`))
+        return err(
+          domainError('write-failed', `Couldn't write novel.md: ${reason}`, {
+            reason: 'file-create-failed',
+            path: osPath,
+            detail: reason
+          })
+        )
       }
     }
   }

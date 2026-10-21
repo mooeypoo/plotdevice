@@ -52,7 +52,14 @@ describe('workspace store', () => {
     ]
     fake.api.workspace.listRecentProjects = () => Promise.resolve(recents)
     fake.api.workspace.openProject = () =>
-      Promise.resolve({ ok: false, error: { code: 'folder-missing', message: 'x' } })
+      Promise.resolve({
+        ok: false,
+        error: {
+          code: 'folder-missing',
+          message: 'x',
+          diagnostic: { reason: 'workspace-folder-missing', path: '/gone' }
+        }
+      })
     const store = useWorkspaceStore()
 
     await store.openProject('/gone')

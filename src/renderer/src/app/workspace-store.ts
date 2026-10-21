@@ -1,16 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type {
-  ApiError,
-  FolderChoiceDto,
-  ProjectSummaryDto,
-  RecentProjectDto
-} from '../../../contract/dtos'
+import type { FolderChoiceDto, ProjectSummaryDto, RecentProjectDto } from '../../../contract/dtos'
 import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useReferenceStore } from './reference-store'
+import { useErrorNotice } from '../shared/use-error-notice'
 
 /** Which top-level screen the window shows. */
 export type WorkspaceScreen = 'welcome' | 'initialize' | 'project'
@@ -21,8 +17,10 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const recents = ref<readonly RecentProjectDto[]>([])
   const chosenFolder = ref<FolderChoiceDto | null>(null)
   const project = ref<ProjectSummaryDto | null>(null)
-  const errorMessage = ref<string | null>(null)
+  const { message: errorMessage, source: errorSource } = useErrorNotice()
+  const { message: refreshErrorMessage, source: refreshErrorSource } = useErrorNotice()
   const busy = ref(false)
+  let refreshRequest = 0
 
   const api = (): ReturnType<typeof plotDeviceApi.current>['workspace'] =>
     plotDeviceApi.current().workspace
@@ -42,20 +40,25 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   }
 
   function showProject(summary: ProjectSummaryDto): void {
+    refreshRequest += 1
+    refreshErrorSource.value = null
     project.value = summary
     chosenFolder.value = null
     screen.value = 'project'
   }
 
-  const openRoot = (): string | undefined => project.value?.root
-
   /** Re-reads the open project's warnings and file problems after files changed outside. */
   async function refresh(): Promise<void> {
-    const root = project.value?.root
-    if (root === undefined) return
+    const currentProject = project.value
+    if (currentProject === null) return
+    const request = ++refreshRequest
     const result = await api().refreshProject()
-    // The project may have been closed or replaced while it was being re-read.
-    if (result.ok && openRoot() === root) project.value = result.value
+    // Ignore replaced projects and responses superseded by a newer refresh.
+    if (request !== refreshRequest || project.value !== currentProject) return
+    if (result.ok) {
+      project.value = result.value
+      refreshErrorSource.value = null
+    } else refreshErrorSource.value = result.error
   }
 
   async function openProject(root: string): Promise<void> {
@@ -63,7 +66,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     await run(async () => {
       const result = await api().openProject(root)
       if (result.ok) showProject(result.value)
-      else errorMessage.value = describeError(result.error)
+      else errorSource.value = result.error
       await loadRecents()
     })
   }
@@ -103,7 +106,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         showProject(result.value)
         await loadRecents()
       } else {
-        errorMessage.value = describeError(result.error)
+        errorSource.value = result.error
       }
     })
   }
@@ -123,7 +126,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     await editor.waitForNavigation()
     await editor.flush()
     if (editor.hasStuckChanges) {
-      errorMessage.value = 'Resolve the unsaved changes in the open chapter first.'
+      errorSource.value = { notice: 'workspace-unsaved-changes' }
       return false
     }
     await editor.close()
@@ -131,7 +134,9 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     useManuscriptStore().close()
     useCodexStore().close()
     await api().closeProject()
+    refreshRequest += 1
     project.value = null
+    refreshErrorSource.value = null
     return true
   }
 
@@ -149,6 +154,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     chosenFolder,
     project,
     errorMessage,
+    refreshErrorMessage,
     busy,
     loadRecents,
     openProject,
@@ -161,16 +167,3 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     backToWelcome
   }
 })
-
-function describeError(error: ApiError): string {
-  switch (error.code) {
-    case 'folder-missing':
-      return 'That folder no longer exists. It may have been moved or renamed.'
-    case 'not-a-project':
-      return error.projectAbove !== undefined
-        ? `That folder is inside another project (${error.projectAbove}). Open that one instead.`
-        : 'That folder has no novel.md, so it is not a Plot Device project.'
-    default:
-      return error.message
-  }
-}

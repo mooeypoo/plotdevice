@@ -9,6 +9,12 @@ const hebrew = createTranslator('he')
 describe('semantic save/recovery error presentation', () => {
   it.each([
     { reason: 'read-only' },
+    { reason: 'workspace-folder-not-allowed' },
+    { reason: 'workspace-folder-missing', path: '/novels/יעל (draft)' },
+    { reason: 'workspace-not-project', path: '/novels/יעל (draft)' },
+    { reason: 'workspace-already-project', path: '/novels/יעל (draft)' },
+    { reason: 'workspace-inside-project', path: '/novels/יעל (draft)' },
+    { reason: 'workspace-contains-project', path: '/novels/יעל (draft)' },
     { reason: 'template-folder-unusable' },
     { reason: 'entry-already-typed' },
     { reason: 'frontmatter-links-unsafe' },

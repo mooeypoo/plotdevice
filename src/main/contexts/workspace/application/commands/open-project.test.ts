@@ -80,13 +80,25 @@ describe('OpenProject', () => {
 
   it('fails for a folder that no longer exists', async () => {
     const result = await openProject('/gone' as ProjectRoot)
-    expect(result).toMatchObject({ ok: false, error: { code: 'folder-missing' } })
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        code: 'folder-missing',
+        diagnostic: { reason: 'workspace-folder-missing', path: '/gone' }
+      }
+    })
   })
 
   it('fails for a folder without novel.md', async () => {
     const root = workspace.addFolder('/novels/drafts')
     const result = await openProject(root)
-    expect(result).toMatchObject({ ok: false, error: { code: 'not-a-project' } })
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        code: 'not-a-project',
+        diagnostic: { reason: 'workspace-not-project', path: root }
+      }
+    })
     if (!result.ok) expect(result.error).not.toHaveProperty('projectAbove')
     expect(workspace.recents).toEqual([])
   })
@@ -99,7 +111,11 @@ describe('OpenProject', () => {
 
     expect(result).toMatchObject({
       ok: false,
-      error: { code: 'not-a-project', projectAbove: '/novels/salt-orchard' }
+      error: {
+        code: 'not-a-project',
+        projectAbove: '/novels/salt-orchard',
+        diagnostic: { reason: 'workspace-inside-project', path: '/novels/salt-orchard' }
+      }
     })
   })
 
