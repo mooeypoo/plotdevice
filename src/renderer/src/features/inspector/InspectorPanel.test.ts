@@ -2,7 +2,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { StoryDateCheckDto } from '../../../../contract/dtos'
+import type { StoryDateCheckDto, UnorderedReasonDto } from '../../../../contract/dtos'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
 import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
@@ -21,6 +21,133 @@ beforeEach(async () => {
 })
 
 describe('InspectorPanel', () => {
+  it('retranslates invalid order input without replacing fields, saving or retrying', async () => {
+    const editor = useEditorStore()
+    await editor.open('The Ferry.md')
+    editor.edit('טיוטה / unsaved')
+    editor.saveState = 'conflict'
+    const panel = mount(InspectorPanel, { attachTo: document.body })
+    await flushPromises()
+    const order = panel.get<HTMLInputElement>('#inspector-order')
+    await order.setValue('1.5')
+    order.element.focus()
+    expect(panel.get('.hint.bad').text()).toBe('Order must be a whole number.')
+    const read = vi.spyOn(fake.api.manuscript, 'getEntryProperties')
+    const write = vi.spyOn(fake.api.manuscript, 'updateEntryProperties')
+    const renumber = vi.spyOn(fake.api.manuscript, 'renumberPart')
+    useUiLanguageStore().locale = 'he'
+    await flushPromises()
+    expect(panel.get('.hint.bad').text()).not.toContain('Order must')
+    expect(panel.get('.hint.bad').text()).toMatch(/[\u0590-\u05ff]/u)
+    expect(panel.get('#inspector-order').element).toBe(order.element)
+    expect(order.element.value).toBe('1.5')
+    expect(document.activeElement).toBe(order.element)
+    expect(editor.text).toBe('טיוטה / unsaved')
+    expect(read).not.toHaveBeenCalled()
+    expect(write).not.toHaveBeenCalled()
+    expect(renumber).not.toHaveBeenCalled()
+    expect(fake.saves).toEqual([])
+    useUiLanguageStore().locale = 'en'
+    await flushPromises()
+    expect(panel.get('.hint.bad').text()).toBe('Order must be a whole number.')
+    await order.setValue('3')
+    expect(panel.find('.hint.bad').exists()).toBe(false)
+    panel.unmount()
+  })
+
+  it('clears a cached invalid-order hint when switching the inspected document', async () => {
+    const editor = useEditorStore()
+    await editor.open('The Ferry.md')
+    const panel = mount(InspectorPanel)
+    await flushPromises()
+    await panel.get('#inspector-order').setValue('1.5')
+    expect(panel.get('.hint.bad').text()).toBe('Order must be a whole number.')
+    useUiLanguageStore().locale = 'he'
+    await flushPromises()
+    expect(panel.get('.hint.bad').text()).toContain('מספר שלם')
+    await editor.open('First frost.md')
+    await flushPromises()
+    expect(panel.find('.hint.bad').exists()).toBe(false)
+    expect(panel.get<HTMLInputElement>('#inspector-order').element.value).not.toBe('1.5')
+    expect(fake.saves).toEqual([])
+    panel.unmount()
+  })
+
+  it.each([
+    'missing-order',
+    'no-part',
+    'part-not-a-link',
+    'part-not-found',
+    'part-ambiguous'
+  ] satisfies UnorderedReasonDto[])(
+    'retranslates the unordered inspector sentence for %s',
+    async (reason) => {
+      await useEditorStore().open('Lost.md')
+      const store = useManuscriptStore()
+      const book = store.manuscript
+      const chapter = book?.unordered[0]?.chapter
+      if (book === null || chapter === undefined) throw new Error('Missing unordered chapter')
+      store.manuscript = { ...book, unordered: [{ chapter, reason }] }
+      const panel = mount(InspectorPanel)
+      await flushPromises()
+      const english = panel.get('.position .note').text()
+      expect(english).toContain('Not in the book yet:')
+      const input = panel.get('#inspector-order').element
+      const read = vi.spyOn(fake.api.manuscript, 'getEntryProperties')
+      const write = vi.spyOn(fake.api.manuscript, 'updateEntryProperties')
+      useUiLanguageStore().locale = 'he'
+      await flushPromises()
+      expect(panel.get('.position .note').text()).not.toBe(english)
+      expect(panel.get('.position .note').text()).not.toContain('Not in the book')
+      expect(panel.get('.position .note').text()).toMatch(/[\u0590-\u05ff]/u)
+      expect(panel.get('#inspector-order').element).toBe(input)
+      expect(read).not.toHaveBeenCalled()
+      expect(write).not.toHaveBeenCalled()
+      panel.unmount()
+    }
+  )
+
+  it('localizes duplicate-order details with exact escaped titles and unchanged local input', async () => {
+    await useEditorStore().open('The Ferry.md')
+    const store = useManuscriptStore()
+    const book = store.manuscript
+    if (book === null) throw new Error('Missing manuscript')
+    store.manuscript = {
+      ...book,
+      parts: book.parts.map((part) => ({
+        ...part,
+        chapters: part.chapters.map((chapter) => ({
+          ...chapter,
+          order: 2,
+          duplicateOrder: true,
+          title: chapter.path === 'First frost.md' ? 'יעל <img src=x>' : chapter.title
+        }))
+      }))
+    }
+    const panel = mount(InspectorPanel, { attachTo: document.body })
+    await flushPromises()
+    const title = panel.get<HTMLInputElement>('#inspector-title')
+    title.element.value = 'Local unsaved title'
+    await title.trigger('input')
+    title.element.focus()
+    const read = vi.spyOn(fake.api.manuscript, 'getEntryProperties')
+    const write = vi.spyOn(fake.api.manuscript, 'updateEntryProperties')
+    const renumber = vi.spyOn(fake.api.manuscript, 'renumberPart')
+    expect(panel.get('.note.warn p').text()).toContain('Shares order')
+    useUiLanguageStore().locale = 'he'
+    await flushPromises()
+    expect(panel.get('.note.warn p').text()).not.toContain('Shares order')
+    expect(panel.get('.note.warn p').text()).toContain('\u2068יעל <img src=x>\u2069')
+    expect(panel.find('img').exists()).toBe(false)
+    expect(panel.get('#inspector-title').element).toBe(title.element)
+    expect(title.element.value).toBe('Local unsaved title')
+    expect(document.activeElement).toBe(title.element)
+    expect(read).not.toHaveBeenCalled()
+    expect(write).not.toHaveBeenCalled()
+    expect(renumber).not.toHaveBeenCalled()
+    panel.unmount()
+  })
+
   it('shows and retranslates a failed status addition without replacing unsaved input or retrying', async () => {
     await useEditorStore().open('First frost.md')
     const language = useUiLanguageStore()

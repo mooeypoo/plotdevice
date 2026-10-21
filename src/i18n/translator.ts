@@ -6,6 +6,9 @@ import he from './he.json'
 /** Stable catalog keys, excluding translator metadata. */
 export type MessageKey = Exclude<keyof typeof en, '@metadata'>
 type ParameterizedMessages = {
+  'placement-clash': [order: string, titles: string]
+  'placement-quoted-title': [title: string]
+  'placement-not-in-book': [reason: string]
   'link-wiki-unresolved': [target: string]
   'link-markdown-unresolved': [address: string]
   'link-target-unsupported': [path: string]

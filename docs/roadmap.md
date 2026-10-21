@@ -170,6 +170,8 @@ acceptance criteria, and the cross-session checklist.
             semantic snapshots, fixed expiry and obsolete-panel-action guards.
           - [x] Document-tab load/save/invalid/pruning and writing-preference
             load/save/invalid notices; reactive cached keys preserve session state.
+          - [x] Inspector integer-order validation, all unordered reasons and
+            shared binder/inspector duplicate-order diagnostics.
           - [ ] Audit remaining diagnostic/cached-consumer coverage before
             closing I2. Next approval boundary.
 - [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.

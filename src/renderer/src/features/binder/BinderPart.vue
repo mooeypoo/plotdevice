@@ -7,6 +7,9 @@ import NewEntryInput from './NewEntryInput.vue'
 import type { DropSpot } from './binder-drop'
 import { useBinderDrag } from './use-binder-drag'
 import ReferenceButton from '../../shared/ReferenceButton.vue'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+
+const language = useUiLanguageStore()
 
 const props = defineProps<{
   part: PartDto
@@ -154,7 +157,7 @@ const marker = computed(() =>
           :status="chapter.status"
           :word-count="chapter.wordCount"
           :active="selectedPath === chapter.path"
-          :warning="clashDescription(chapter, part.chapters)"
+          :warning="clashDescription(chapter, part.chapters, language.t)"
           @open="$emit('open', chapter.path)"
           @reference="$emit('reference', chapter.path)"
         />

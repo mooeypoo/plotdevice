@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest'
+import { createTranslator } from '../../../../i18n/translator'
+import type { UnorderedReasonDto } from '../../../../contract/dtos'
 import {
   clashDescription,
   describeUnorderedReason,
   romanNumeral,
   statusColor
 } from './binder-labels'
+
+const en = createTranslator('en')
+const he = createTranslator('he')
 
 describe('romanNumeral', () => {
   it.each([
@@ -36,8 +41,22 @@ describe('statusColor', () => {
 
 describe('describeUnorderedReason', () => {
   it('explains each reason briefly', () => {
-    expect(describeUnorderedReason('missing-order')).toBe('needs an order')
-    expect(describeUnorderedReason('part-not-found')).toBe('part not found')
+    expect(describeUnorderedReason('missing-order', en.t)).toBe('needs an order')
+    expect(describeUnorderedReason('part-not-found', en.t)).toBe('part not found')
+  })
+
+  it.each([
+    'missing-order',
+    'no-part',
+    'part-not-a-link',
+    'part-not-found',
+    'part-ambiguous'
+  ] satisfies UnorderedReasonDto[])('localizes %s without modifying the reason', (reason) => {
+    const english = describeUnorderedReason(reason, en.t)
+    const hebrew = describeUnorderedReason(reason, he.t)
+    expect(hebrew).not.toBe(english)
+    expect(hebrew).toMatch(/[\u0590-\u05ff]/u)
+    expect(hebrew).not.toMatch(/placement-|\$\d/u)
   })
 })
 
@@ -70,7 +89,22 @@ describe('clashDescription', () => {
       pov: [],
       threads: []
     }
-    expect(clashDescription(a, [a, b, c])).toBe('Shares order 2 with “Duplicate order”')
-    expect(clashDescription(c, [a, b, c])).toBeUndefined()
+    expect(clashDescription(a, [a, b, c], en.t)).toBe(
+      'Shares order 2 with “\u2068Duplicate order\u2069”.'
+    )
+    expect(clashDescription(c, [a, b, c], en.t)).toBeUndefined()
+    const mixed = { ...b, title: 'יעל <img src=x> (draft)' }
+    const second = { ...b, path: 'second', title: 'עוד פרק / next' }
+    const siblings = [a, mixed, second, c]
+    const before = JSON.stringify(siblings)
+    const english = clashDescription(a, siblings, en.t)
+    const hebrew = clashDescription(a, siblings, he.t)
+    expect(english).toContain('\u2068יעל <img src=x> (draft)\u2069')
+    expect(hebrew).toContain('\u2068יעל <img src=x> (draft)\u2069')
+    expect(hebrew).toContain('\u2068עוד פרק / next\u2069')
+    expect(hebrew).not.toContain('Shares order')
+    expect(hebrew).not.toMatch(/\$\d|placement-/u)
+    expect(hebrew?.indexOf(mixed.title)).toBeLessThan(hebrew?.indexOf(second.title) ?? 0)
+    expect(JSON.stringify(siblings)).toBe(before)
   })
 })

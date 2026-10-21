@@ -8,6 +8,9 @@ import NewEntryInput from './NewEntryInput.vue'
 import type { DropRequest, DropSpot } from './binder-drop'
 import { provideBinderDrag } from './use-binder-drag'
 import { useBinderCollapse } from './use-binder-collapse'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+
+const language = useUiLanguageStore()
 
 const props = defineProps<{
   projectRoot: string
@@ -113,7 +116,7 @@ function createChapter(title: string): void {
             :status="chapter.status"
             :word-count="chapter.wordCount"
             :active="selectedPath === chapter.path"
-            :warning="clashDescription(chapter, manuscript.chapters)"
+            :warning="clashDescription(chapter, manuscript.chapters, language.t)"
             @open="$emit('open', chapter.path)"
             @reference="$emit('reference', chapter.path)"
           />
@@ -195,7 +198,7 @@ function createChapter(title: string): void {
                 :status="item.chapter.status"
                 :word-count="item.chapter.wordCount"
                 :active="selectedPath === item.chapter.path"
-                :detail="describeUnorderedReason(item.reason)"
+                :detail="describeUnorderedReason(item.reason, language.t)"
                 @open="$emit('open', item.chapter.path)"
                 @reference="$emit('reference', item.chapter.path)"
               />

@@ -135,6 +135,9 @@ obsolete errors and inspector changes without cancelling editor navigation.
 Document-tab and writing-preference storage notices retain typed catalog keys;
 their computed text updates without storage access or repeated failure logging.
 Existing clearing policies, session fallback behavior and settings formats remain unchanged.
+Local order-validation state and cached manuscript placement data also reformat
+reactively. Shared binder/inspector helpers translate unordered/clash notices and
+isolate exact sibling titles without changing their order or manuscript data.
 Unmigrated failures explicitly display their original message until their producers are migrated.
 Remaining action failures/strings, full RTL geometry and independent content-direction controls
 remain tracked in ADR 0016. No language switch changes novel files or existing writing preferences.

@@ -1,19 +1,21 @@
 export { romanNumeral } from '../../shared/roman-numeral'
 import type { ChapterDto, UnorderedReasonDto } from '../../../../contract/dtos'
+import type { Translator } from '../../../../i18n/translator'
+import { isolate } from '../../shared/isolate'
 
 /** Why a chapter is unordered, in a few words. */
-export function describeUnorderedReason(reason: UnorderedReasonDto): string {
+export function describeUnorderedReason(reason: UnorderedReasonDto, t: Translator['t']): string {
   switch (reason) {
     case 'missing-order':
-      return 'needs an order'
+      return t('placement-missing-order')
     case 'no-part':
-      return 'needs a part'
+      return t('placement-no-part')
     case 'part-not-a-link':
-      return 'part isn’t a link'
+      return t('placement-part-not-a-link')
     case 'part-not-found':
-      return 'part not found'
+      return t('placement-part-not-found')
     case 'part-ambiguous':
-      return 'part is ambiguous'
+      return t('placement-part-ambiguous')
   }
 }
 
@@ -38,14 +40,16 @@ export function formatWordCount(count: number): string {
   return count === 0 ? '—' : wordFormat.format(count)
 }
 
-/** For a chapter whose order clashes: which chapters share it ("Shares order 2 with “X”"). */
+/** Describes a chapter's order clash, isolating sibling titles only for presentation. */
 export function clashDescription(
   chapter: ChapterDto,
-  siblings: readonly ChapterDto[]
+  siblings: readonly ChapterDto[],
+  t: Translator['t']
 ): string | undefined {
   if (!chapter.duplicateOrder) return undefined
   const others = siblings
     .filter((other) => other.path !== chapter.path && other.order === chapter.order)
-    .map((other) => `“${other.title}”`)
-  return `Shares order ${String(chapter.order)} with ${others.join(', ')}`
+    .map((other) => t('placement-quoted-title', isolate(other.title)))
+    .reduce((list, title, index) => (index === 0 ? title : t('warning-list', list, title)), '')
+  return t('placement-clash', String(chapter.order), others)
 }

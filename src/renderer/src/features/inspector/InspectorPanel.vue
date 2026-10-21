@@ -5,7 +5,7 @@ import { useInspectorStore } from '../../app/inspector-store'
 import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
-import { describeUnorderedReason } from '../binder/binder-labels'
+import { clashDescription, describeUnorderedReason } from '../binder/binder-labels'
 import { linkLabel, namesOfType } from './link-targets'
 import LinkPicker from './LinkPicker.vue'
 import RenameOffer from './RenameOffer.vue'
@@ -28,7 +28,10 @@ const busy = ref(false)
 const title = ref('')
 // A number field's v-model gives a number once the writer types, text before that.
 const order = ref<string | number>('')
-const orderHint = ref<string | null>(null)
+const invalidOrder = ref(false)
+const orderHint = computed(() =>
+  invalidOrder.value ? language.t('placement-order-invalid') : null
+)
 const storyDate = ref('')
 const storyTime = ref('')
 const synopsis = ref('')
@@ -38,7 +41,7 @@ watch(
   (current) => {
     title.value = current?.title ?? ''
     order.value = current?.order ?? ''
-    orderHint.value = null
+    invalidOrder.value = false
     storyDate.value = current?.storyDate ?? ''
     storyTime.value = current?.storyTime ?? ''
     synopsis.value = current?.synopsis ?? ''
@@ -78,17 +81,20 @@ const placement = computed(() => {
   const book = manuscript.manuscript
   if (path === undefined || book === null) return undefined
   const unordered = book.unordered.find((item) => item.chapter.path === path)
-  if (unordered !== undefined) return { reason: describeUnorderedReason(unordered.reason) }
+  if (unordered !== undefined)
+    return {
+      reason: language.t(
+        'placement-not-in-book',
+        describeUnorderedReason(unordered.reason, language.t)
+      )
+    }
   const part = manuscript.currentPart
   const siblings = part?.chapters ?? book.chapters
   const chapter = siblings.find((item) => item.path === path)
   if (chapter === undefined || !chapter.duplicateOrder) return { partPath: part?.path ?? null }
-  const clashes = siblings
-    .filter((item) => item.path !== path && item.order === chapter.order)
-    .map((item) => `“${item.title}”`)
   return {
     partPath: part?.path ?? null,
-    clash: `Shares order ${String(chapter.order)} with ${clashes.join(', ')}.`
+    clash: clashDescription(chapter, siblings, language.t)
   }
 })
 
@@ -115,10 +121,10 @@ function saveOrder(): void {
   }
   const value = Number(text)
   if (!Number.isInteger(value)) {
-    orderHint.value = 'Order must be a whole number.'
+    invalidOrder.value = true
     return
   }
-  orderHint.value = null
+  invalidOrder.value = false
   void save({ order: value })
 }
 
@@ -263,7 +269,7 @@ const partName = computed(() => {
           Remove from manuscript
         </button>
         <p v-if="placement && 'reason' in placement" class="note">
-          Not in the book yet: {{ placement.reason }}.
+          {{ placement.reason }}
         </p>
         <div v-if="placement && 'clash' in placement" class="note warn">
           <p>{{ placement.clash }}</p>

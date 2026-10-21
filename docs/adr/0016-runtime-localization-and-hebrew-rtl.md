@@ -89,6 +89,8 @@ progress, remaining limitations, and the next slice before ending a session.
             link notices, reactive reference edit failures and stale-action guards.
           - [x] **Storage notices:** document-tab load/save/invalid/pruning
             and writing-preference load/save/invalid notices.
+          - [x] **Order/placement notices:** cached integer-validation hint,
+            unordered reasons and shared binder/inspector clash descriptions.
           - [ ] **Remaining coverage:** audit remaining diagnostics and cached
             consumers before closing I2.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
@@ -622,8 +624,49 @@ Verified lint/dependency boundaries, typecheck, all 1,421 tests across 158 files
 the production electron-vite build and documentation build/link checks.
 Contract version remains 21; no dependencies or novel-file changes.
 
-**Next session:** audit remaining I2 diagnostics/cached consumers and propose a
-bounded plan before changing code; do not mark I2 complete from this slice alone.
+Committed as `d7cbe50 feat: localize preference and tab storage notices`.
+
+### I2b.2b.2 order/placement-diagnostic handoff (2026-10-21)
+
+The diagnostic-cache audit found the inspector's local invalid-order hint still
+stored English text. It now retains a validation flag and derives translated
+text without changing the numeric rule, input value or existing clearing paths.
+Document/property changes still reset the hint; language changes do not.
+
+All five unordered-chapter reasons and the inspector's complete enclosing
+placement sentence are now catalog-backed. A shared translated clash helper
+replaces duplicate binder/inspector logic, retaining the same sibling filtering
+and list order. Exact chapter titles receive display-only bidi isolation and
+localized quotes; the existing localized list separator is reused. Binder warning
+tooltips and accessible labels now share the complete clash sentence, including
+the period already present in the inspector. Number formatting is unchanged.
+Flat chapters and chapters in numbered/unnumbered parts all use the helper.
+
+Nine English/Hebrew/qqq entries and typed message parameters cover these notices.
+No IPC shape/version, main-process behavior, domain rules, dependencies or file
+format changed. Remaining position labels/buttons, binder totals and generic
+interface labels are I3, not part of this diagnostic slice.
+
+Regressions first reproduced frozen English and missing title isolation.
+Tests cover every unordered reason, cached invalid input across both locales,
+valid-input/document-switch clearing, exact escaped mixed-script sibling titles,
+all binder placements and matching tooltip/accessibility text. Mounted tests
+retain row/control identity, selected chapter, focus, scroll, local inspector
+input and conflicted manuscript drafts without locale-triggered storage/file
+operations, navigation or renumbering. Full RTL geometry remains unqualified.
+Verified lint/dependency boundaries, typecheck, all 1,435 tests across 158 files,
+the production electron-vite build and documentation build/link checks.
+
+The producer audit also traced low-level file-name/project-path/wikilink parser
+errors: current manuscript/codex authorization handlers substitute existing
+semantic authorization refusals; other inspected callers consume parser results
+internally. Those parser descriptions remain explicit English compatibility
+details, not inferred translations from broad codes. Do not localize domain code
+or add boundary reasons without a demonstrated consumer and approved scope.
+
+**Next session:** finish the remaining I2 coverage inventory, including
+compatibility fallbacks/fakes and deferred workspace APIs, and propose a bounded
+plan before changing code; do not mark I2 complete from this slice alone.
 Logging-only invalid programmatic writing-preference values still return the
 original Zod detail and have no displayed consumer; translating those diagnostics
 or adding a UI surface was outside this scope. Full appearance/tab labels remain I3.
