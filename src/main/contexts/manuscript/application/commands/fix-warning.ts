@@ -36,7 +36,9 @@ export function createFixWarning(ports: {
 }): FixWarning {
   return async (path, fix) => {
     if (ports.settings.readOnly) {
-      return err(domainError('read-only', 'This project is open read-only.'))
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     }
     if (fix.kind === 'path-form') {
       const files = await ports.repository.load()
@@ -49,7 +51,12 @@ export function createFixWarning(ports: {
       if (!rewritten.ok) return rewritten
       return rewritten.value.count > 0
         ? ok({ version: rewritten.value.version })
-        : err(domainError('nothing-to-fix', `No link to “${fix.name}” needs a folder any more.`))
+        : err(
+            domainError('nothing-to-fix', `No link to “${fix.name}” needs a folder any more.`, {
+              reason: 'link-needs-no-folder',
+              name: fix.name
+            })
+          )
     }
 
     const read = await ports.repository.readEntryFile(path)
@@ -57,7 +64,12 @@ export function createFixWarning(ports: {
     const keys = isMapping(read.value.frontmatter) ? read.value.frontmatter : {}
     const value = quotedLinkValue(keys[fix.key])
     if (value === undefined || value === keys[fix.key]) {
-      return err(domainError('nothing-to-fix', `“${fix.key}” has nothing to put in quotes.`))
+      return err(
+        domainError('nothing-to-fix', `“${fix.key}” has nothing to put in quotes.`, {
+          reason: 'key-needs-no-quotes',
+          key: fix.key
+        })
+      )
     }
     const written = await ports.repository.writeProperties(
       path,

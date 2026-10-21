@@ -8,6 +8,7 @@ import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useUiLanguageStore } from './ui-language-store'
 import type { ApiResult, RenamePlanDto } from '../../../contract/dtos'
+import { useInspectorStore } from './inspector-store'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 beforeEach(async () => {
@@ -29,6 +30,74 @@ afterEach(() => {
 })
 
 describe('cached editor failures and notices', () => {
+  it('retranslates a fake obsolete type action without changing any files', async () => {
+    await useEditorStore().open('First frost.md')
+    const before = new Map(fake.files)
+    expect(await useCodexStore().setEntryType('characters/Ilka.md', 'note')).toBe(false)
+    expect(useEditorStore().actionError).toContain('already has a type')
+    await useUiLanguageStore().change('he')
+    expect(useEditorStore().actionError).toContain('כבר מוגדר סוג')
+    expect(fake.codexWrites).toEqual([])
+    expect(fake.files).toEqual(before)
+  })
+
+  it.each(['chapter', 'part', 'codex', 'outline', 'template', 'type', 'fix', 'status'] as const)(
+    'retranslates a cached %s refusal without repeating the mutation',
+    async (action) => {
+      const editor = useEditorStore()
+      await editor.open('First frost.md')
+      const failure = {
+        ok: false,
+        error: {
+          code: 'read-only',
+          message: 'Legacy mutation failure',
+          diagnostic: { reason: 'read-only' }
+        }
+      } as const
+      const manuscript = useManuscriptStore()
+      const codex = useCodexStore()
+      const inspector = useInspectorStore()
+      const operation =
+        action === 'chapter'
+          ? vi.spyOn(fake.api.manuscript, 'createChapter').mockResolvedValue(failure)
+          : action === 'part'
+            ? vi.spyOn(fake.api.manuscript, 'createPart').mockResolvedValue(failure)
+            : action === 'codex'
+              ? vi.spyOn(fake.api.codex, 'createEntry').mockResolvedValue(failure)
+              : action === 'outline'
+                ? vi.spyOn(fake.api.codex, 'createOutline').mockResolvedValue(failure)
+                : action === 'template'
+                  ? vi.spyOn(fake.api.codex, 'editTemplate').mockResolvedValue(failure)
+                  : action === 'type'
+                    ? vi.spyOn(fake.api.codex, 'setEntryType').mockResolvedValue(failure)
+                    : action === 'fix'
+                      ? vi.spyOn(fake.api.manuscript, 'fixWarning').mockResolvedValue(failure)
+                      : vi.spyOn(fake.api.manuscript, 'addStatus').mockResolvedValue(failure)
+      const before = new Map(fake.files)
+      if (action === 'chapter') await manuscript.createChapter(null, 'New')
+      else if (action === 'part') await manuscript.createPart('New')
+      else if (action === 'codex') await codex.createEntry('note', 'New')
+      else if (action === 'outline') await codex.createOutline('New')
+      else if (action === 'template') await codex.editTemplate('note')
+      else if (action === 'type') await codex.setEntryType('Loose thoughts.md', 'note')
+      else if (action === 'fix')
+        await manuscript.fixWarning('First frost.md', { kind: 'quote', key: 'pov' })
+      else await inspector.addStatus('New')
+      const message = () => (action === 'status' ? inspector.error : editor.actionError)
+      expect(message()).toContain('read-only')
+      const read = vi.spyOn(fake.api.manuscript, 'openEntry')
+      await useUiLanguageStore().change('he')
+      expect(message()).toContain('לקריאה בלבד')
+      expect(message()).not.toContain('Legacy')
+      expect(operation).toHaveBeenCalledOnce()
+      expect(read).not.toHaveBeenCalled()
+      expect(fake.files).toEqual(before)
+      expect(editor.entry?.path).toBe('First frost.md')
+      expect(fake.created).toEqual([])
+      expect(fake.saves).toEqual([])
+    }
+  )
+
   it.each(['First frost.md', 'characters/Ilka.md'])(
     'retains a rename refusal for %s without moving or retrying',
     async (path) => {

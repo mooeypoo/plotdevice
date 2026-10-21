@@ -24,11 +24,17 @@ export function createSetEntryType(ports: {
 }): SetEntryType {
   return async (path, type) => {
     if (ports.settings.readOnly) {
-      return err(domainError('read-only', 'This project is open read-only.'))
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     }
     const files = await ports.repository.load()
     if (!files.untyped.some((file) => file.path === path)) {
-      return err(domainError('not-untyped', 'That file already has a type.'))
+      return err(
+        domainError('not-untyped', 'That file already has a type.', {
+          reason: 'entry-already-typed'
+        })
+      )
     }
     const written = await ports.repository.writeProperties(
       path,

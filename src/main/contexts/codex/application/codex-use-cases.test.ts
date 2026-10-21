@@ -195,6 +195,32 @@ describe('opening, saving, and properties', () => {
 })
 
 describe('CreateCodexEntry', () => {
+  it('provides semantic read-only refusals for creation, outlines, templates and typing without writes', async () => {
+    const ports = { repository, settings: { ...settings, readOnly: true } }
+    const before = JSON.stringify([...repository.files])
+    for (const result of [
+      await createCreateCodexEntry(ports)('note', 'New'),
+      await createCreateOutline(ports)('New'),
+      await createEditTemplate(ports)('note'),
+      await createSetEntryType(ports)(p('Loose thoughts.md'), 'note')
+    ])
+      expect(result).toMatchObject({
+        ok: false,
+        error: { code: 'read-only', diagnostic: { reason: 'read-only' } }
+      })
+    expect(JSON.stringify([...repository.files])).toBe(before)
+  })
+
+  it('still opens an existing template read-only without creating or rewriting it', async () => {
+    repository.rawTexts.set('templates/note.md', 'Existing template טיוטה\r\n')
+    expect(
+      await createEditTemplate({ repository, settings: { ...settings, readOnly: true } })('note')
+    ).toEqual({
+      ok: true,
+      value: { path: 'templates/note.md' }
+    })
+    expect(repository.rawTexts.get('templates/note.md')).toBe('Existing template טיוטה\r\n')
+  })
   it('creates an entry in its folder with a unique name', async () => {
     const create = createCreateCodexEntry({ repository, settings })
     expect(await create('character', 'Marta')).toEqual({
@@ -232,7 +258,7 @@ describe('SetEntryType', () => {
     expect(repository.get('Loose thoughts.md')?.frontmatter).toEqual({ type: 'note' })
     expect(await setType(ilka, 'location')).toMatchObject({
       ok: false,
-      error: { code: 'not-untyped' }
+      error: { code: 'not-untyped', diagnostic: { reason: 'entry-already-typed' } }
     })
   })
 })

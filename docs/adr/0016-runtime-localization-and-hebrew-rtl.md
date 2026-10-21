@@ -75,8 +75,10 @@ progress, remaining limitations, and the next slice before ending a session.
           workspace/reference/inspector queries and partial-success summaries.
           - [x] **Structural operations:** rename/move/renumber refusals,
             cached partial-success notices and explicit rename-plan errors.
-          - [ ] **Creation and remaining queries/actions:** create/template/
-            type/status/fix actions, listings, workspace/reference/inspector.
+          - [x] **Creation/mutations:** create/template/type/status/fix
+            diagnostics and reactive action/inspector error caches.
+          - [ ] **Remaining queries:** listings, workspace/reference/inspector
+            failures and remaining string-caching stores/composables.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
   existing notices, number formatting, display collation, native dialogs and
   controlled destructive confirmations; complete Hebrew and qqq coverage.
@@ -322,11 +324,51 @@ Verified lint and dependency boundaries, typecheck, all 1,301 tests across 150
 files, and the production electron-vite build. Documentation build/link checks
 also pass. No real-browser/packaged qualification, push or release was performed.
 
-**Next session:** plan the next bounded part of I2b.2b.2 and obtain approval before
-changing code. Remaining diagnostics include chapter/part/codex/outline creation,
-template/type/status/warning-fix actions, listing failures, workspace/reference/
-inspector queries and remaining string-caching stores/composables/fakes. Reuse
-semantic diagnostics; preserve all source details and existing safeguards.
-I2b/I2 remain incomplete. Many interface/native strings remain I3, and RTL
+Structural operations were committed as `c23ee00`. The user approved creation/
+template/type/status/fix diagnostics as the next bounded slice, including
+validation, documentation and commit.
+
+### I2b.2b.2 creation/mutations handoff (2026-10-21)
+
+Chapter/part/codex/outline creation, template opening/creation, entry typing,
+status addition and warning-fix commands now retain semantic refusal reasons.
+Read-only and missing-part failures reuse existing diagnostics. New reasons cover
+an unusable template folder, an already-typed entry, unsafe frontmatter link
+rewriting and obsolete folder/quote fixes, with exact link names and source keys.
+Existing file-create/write failures retain paths and technical details through
+the same IPC mapper. Contract version 20, preload and renderer fake agree.
+
+Manuscript/codex action consumers preserve full API errors instead of English
+strings. The inspector error cache also retains semantic source state. Status-add
+failures were previously cached but not displayed: the status section now exposes
+them as escaped alert text, with an explicit successful retry clearing the notice.
+Live switches retranslate failures without another API call or resetting unsaved
+inspector input, DOM identity or focus. Other inspector query failure producers
+remain queued below; retaining source state is not a claim they are all migrated.
+
+The fake rejects obsolete type actions semantically before changing its listing;
+its other success-only mutation actions remain unchanged, with injected failures
+used for renderer regressions. Existing template-open/read-only exceptions,
+save-first ordering, generated filenames/default titles/template text, fix rules
+and source-preserving writes remain unchanged. No new dependencies or disk-format
+changes. This does not localize generated manuscript content or remaining labels.
+
+Regressions first reproduced frozen failures for all eight mutation consumers.
+Tests cover read-only refusals without writes, existing read-only templates,
+obsolete fixes with exact dynamic values and unchanged fixture bytes, unsafe link
+rewrites, failed creation technical details without publication, IPC passthrough,
+live English/Hebrew switching without retries, escaped status details and retained
+input/focus, plus clearing the status notice after an explicit successful retry.
+Verified lint and dependency boundaries, typecheck, all 1,326 tests across 150
+files, and the production electron-vite build. Documentation build/link checks
+also pass. No real-browser/packaged qualification, push or release was performed.
+
+**Next session:** plan remaining I2 queries/caches and obtain approval before
+changing code. Trace workspace open/initialize/recent-project errors, manuscript/
+codex listing failures, reference/outline loading, inspector vocabulary/date-check
+refusals, timeline/interactions query errors and any remaining cached English
+notices, including fake APIs and presentation consumers. Preserve exact details
+and existing navigation/recovery behavior; avoid guessing text from broad codes.
+I2b/I2 remain incomplete. Full interface/native translation remains I3, and RTL
 geometry/writing/reading qualification remains I4-I6. Restart the desktop process
-for contract version 19: renderer hot reload cannot upgrade an older preload.
+for contract version 20: renderer hot reload cannot upgrade an older preload.

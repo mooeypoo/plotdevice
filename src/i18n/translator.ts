@@ -6,6 +6,8 @@ import he from './he.json'
 /** Stable catalog keys, excluding translator metadata. */
 export type MessageKey = Exclude<keyof typeof en, '@metadata'>
 type ParameterizedMessages = {
+  'error-link-needs-no-folder': [name: string]
+  'error-key-needs-no-quotes': [key: string]
   'error-file-move-failed': [path: string]
   'structure-renumber-failed': [count: number]
   'structure-rename-skipped': [count: number, paths: string]

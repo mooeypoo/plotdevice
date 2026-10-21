@@ -11,6 +11,7 @@ import { createGetEntryProperties } from './queries/get-entry-properties'
 import { createGetManuscript } from './queries/get-manuscript'
 import { createListStatuses } from './queries/list-statuses'
 import { createOpenEntry } from './queries/open-entry'
+import { createFixWarning } from './commands/fix-warning'
 
 const p = (value: string): ProjectPath => value as ProjectPath
 const partOne = p('manuscript/Part One/Part One.md')
@@ -149,6 +150,23 @@ describe('properties', () => {
 })
 
 describe('creating entries', () => {
+  it('provides semantic read-only refusals for creation, status and warning-fix commands without writes', async () => {
+    const ports = { repository, settings: { ...settings, readOnly: true } }
+    const before = JSON.stringify([...repository.files])
+    for (const result of [
+      await createCreateChapter(ports)(partOne, 'New'),
+      await createCreatePart(ports)('New'),
+      await createAddStatus(ports)('New'),
+      await createFixWarning(ports)(ferry, { kind: 'quote', key: 'pov' })
+    ])
+      expect(result).toMatchObject({
+        ok: false,
+        error: { code: 'read-only', diagnostic: { reason: 'read-only' } }
+      })
+    expect(JSON.stringify([...repository.files])).toBe(before)
+    expect(repository.novel['statuses']).toEqual(['idea', 'draft'])
+  })
+
   it('creates a chapter at the end of a part, in the part’s folder', async () => {
     const result = await createCreateChapter({ repository, settings })(partOne, 'The Mill')
     expect(result).toMatchObject({ ok: true, value: { path: 'manuscript/Part One/The Mill.md' } })
@@ -183,7 +201,7 @@ describe('creating entries', () => {
   it('refuses a part that no longer exists', async () => {
     expect(await createCreateChapter({ repository, settings })(p('gone.md'), 'X')).toMatchObject({
       ok: false,
-      error: { code: 'part-not-found' }
+      error: { code: 'part-not-found', diagnostic: { reason: 'part-missing' } }
     })
   })
 

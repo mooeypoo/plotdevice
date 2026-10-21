@@ -25,7 +25,9 @@ export function createCreateOutline(ports: {
 }): CreateOutline {
   return async (title) => {
     if (ports.settings.readOnly) {
-      return err(domainError('read-only', 'This project is open read-only.'))
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     }
     const outlineTitle = title.trim() === '' ? UNTITLED_OUTLINE : title.trim()
     const files = await ports.repository.load()

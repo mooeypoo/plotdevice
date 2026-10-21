@@ -172,7 +172,7 @@ export const useCodexStore = defineStore('codex', () => {
     if (editor.hasStuckChanges) return false
     const result = await api().createEntry(kind, title)
     if (!result.ok) {
-      editor.actionError = result.error.message
+      editor.reportActionError(result.error)
       return false
     }
     await reload()
@@ -186,7 +186,7 @@ export const useCodexStore = defineStore('codex', () => {
     if (editor.hasStuckChanges) return false
     const result = await api().createOutline(title)
     if (!result.ok) {
-      editor.actionError = result.error.message
+      editor.reportActionError(result.error)
       return false
     }
     await reload()
@@ -200,7 +200,7 @@ export const useCodexStore = defineStore('codex', () => {
     if (editor.hasStuckChanges) return false
     const result = await api().editTemplate(kind)
     if (!result.ok) {
-      editor.actionError = result.error.message
+      editor.reportActionError(result.error)
       return false
     }
     await reload()
@@ -211,7 +211,7 @@ export const useCodexStore = defineStore('codex', () => {
   async function setEntryType(path: string, type: SettableTypeDto): Promise<boolean> {
     const result = await api().setEntryType(path, type)
     if (!result.ok) {
-      useEditorStore().actionError = result.error.message
+      useEditorStore().reportActionError(result.error)
       return false
     }
     await Promise.all([reload(), useManuscriptStore().reload()])

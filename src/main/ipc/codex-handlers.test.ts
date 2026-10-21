@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createCreateOutline } from '../contexts/codex/application/commands/create-outline'
 import { createEditTemplate } from '../contexts/codex/application/commands/edit-template'
 import { createCreateCodexEntry } from '../contexts/codex/application/commands/create-codex-entry'
@@ -67,6 +67,43 @@ beforeEach(() => {
 })
 
 describe('codex handlers', () => {
+  it('retains technical failures for codex/outline/template creation and type writes across IPC', async () => {
+    const error = {
+      code: 'write-failed',
+      message: 'Original detail',
+      diagnostic: { reason: 'file-create-failed', path: 'notes/יעל.md', detail: 'EACCES (disk)' }
+    } as const
+    vi.spyOn(repository, 'createFile').mockResolvedValue({ ok: false, error })
+    await handlers.listCodex()
+    expect(await handlers.createEntry(['note', 'New'])).toEqual({ ok: false, error })
+    expect(await handlers.createOutline(['New'])).toEqual({ ok: false, error })
+    expect(await handlers.editTemplate(['note'])).toEqual({ ok: false, error })
+    const typeError = {
+      code: 'cannot-edit',
+      message: 'Original type detail',
+      diagnostic: { reason: 'frontmatter-unsupported', key: 'type' }
+    } as const
+    vi.spyOn(repository, 'writeProperties').mockResolvedValue({ ok: false, error: typeError })
+    expect(await handlers.setEntryType(['Loose thoughts.md', 'note'])).toEqual({
+      ok: false,
+      error: typeError
+    })
+    expect(repository.get('Loose thoughts.md')?.frontmatter).toEqual({})
+  })
+
+  it('preserves the semantic refusal when a listed untyped file gained a type outside the app', async () => {
+    await handlers.listCodex()
+    repository.put('Loose thoughts.md', { type: 'character', custom: 'unchanged' })
+    expect(await handlers.setEntryType(['Loose thoughts.md', 'note'])).toMatchObject({
+      ok: false,
+      error: { code: 'not-untyped', diagnostic: { reason: 'entry-already-typed' } }
+    })
+    expect(repository.get('Loose thoughts.md')?.frontmatter).toEqual({
+      type: 'character',
+      custom: 'unchanged'
+    })
+  })
+
   it('preserves a semantic unchanged-name refusal through the rename handler', async () => {
     await handlers.listCodex()
     expect(await handlers.renameEntry([ilka])).toMatchObject({

@@ -19,7 +19,9 @@ export function createAddStatus(ports: {
 }): AddStatus {
   return async (status) => {
     if (ports.settings.readOnly)
-      return err(domainError('read-only', 'This project is open read-only.'))
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     const statuses = readStatuses(await ports.repository.readNovelFrontmatter())
     const next = withStatus(statuses, status)
     if (next === undefined) return ok(statuses)

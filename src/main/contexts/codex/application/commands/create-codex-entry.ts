@@ -41,7 +41,9 @@ export function createCreateCodexEntry(ports: {
 }): CreateCodexEntry {
   return async (kind, title) => {
     if (ports.settings.readOnly) {
-      return err(domainError('read-only', 'This project is open read-only.'))
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     }
     const entryTitle = title.trim() === '' ? UNTITLED[kind] : title.trim()
     const files = await ports.repository.load()

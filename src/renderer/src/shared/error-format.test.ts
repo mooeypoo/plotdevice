@@ -9,6 +9,11 @@ const hebrew = createTranslator('he')
 describe('semantic save/recovery error presentation', () => {
   it.each([
     { reason: 'read-only' },
+    { reason: 'template-folder-unusable' },
+    { reason: 'entry-already-typed' },
+    { reason: 'frontmatter-links-unsafe' },
+    { reason: 'link-needs-no-folder', name: 'יעל <img src=x>' },
+    { reason: 'key-needs-no-quotes', key: 'pov' },
     { reason: 'name-matches' },
     { reason: 'part-required' },
     { reason: 'chapter-missing' },
@@ -71,6 +76,10 @@ describe('semantic save/recovery error presentation', () => {
       if ('detail' in diagnostic && diagnostic.detail !== undefined) {
         expect(he).toContain(`\u2068${diagnostic.detail}\u2069`)
       }
+      if ('key' in diagnostic && diagnostic.key !== undefined)
+        expect(he).toContain(`\u2068${diagnostic.key}\u2069`)
+      if ('name' in diagnostic && diagnostic.name !== undefined)
+        expect(he).toContain(`\u2068${diagnostic.name}\u2069`)
       expect(JSON.stringify(error)).toBe(source)
     }
   )

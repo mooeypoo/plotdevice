@@ -8,6 +8,7 @@ import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { useUiLanguageStore } from '../../app/ui-language-store'
+import { useInspectorStore } from '../../app/inspector-store'
 import InspectorPanel from './InspectorPanel.vue'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
@@ -20,6 +21,44 @@ beforeEach(async () => {
 })
 
 describe('InspectorPanel', () => {
+  it('shows and retranslates a failed status addition without replacing unsaved input or retrying', async () => {
+    await useEditorStore().open('First frost.md')
+    const language = useUiLanguageStore()
+    await language.initialize()
+    const inspector = useInspectorStore()
+    await inspector.loadVocabulary()
+    const add = vi.spyOn(fake.api.manuscript, 'addStatus').mockResolvedValueOnce({
+      ok: false,
+      error: {
+        code: 'write-failed',
+        message: 'Legacy',
+        diagnostic: { reason: 'file-write-failed', path: 'novel.md', detail: 'EACCES <img src=x>' }
+      }
+    })
+    const panel = mount(InspectorPanel, { attachTo: document.body })
+    await flushPromises()
+    const title = panel.get<HTMLInputElement>('#inspector-title')
+    title.element.value = 'Unsaved טיוטה'
+    await title.trigger('input')
+    title.element.focus()
+    await inspector.addStatus('New status')
+    expect(panel.get('[role="alert"]').text()).toContain("Couldn't save")
+    await language.change('he')
+    expect(panel.get('[role="alert"]').text()).toMatch(/[\u0590-\u05ff]/u)
+    expect(panel.get('[role="alert"]').text()).toContain('EACCES <img src=x>')
+    expect(panel.find('img').exists()).toBe(false)
+    expect(panel.get('#inspector-title').element).toBe(title.element)
+    expect(title.element.value).toBe('Unsaved טיוטה')
+    expect(document.activeElement).toBe(title.element)
+    expect(add).toHaveBeenCalledOnce()
+    expect(inspector.vocabulary?.statuses).not.toContain('New status')
+    expect(fake.saves).toEqual([])
+    await inspector.addStatus('New status')
+    expect(inspector.error).toBeNull()
+    expect(panel.find('[role="alert"]').exists()).toBe(false)
+    panel.unmount()
+  })
+
   it.each([
     [
       { kind: 'date', date: { calendar: 'gregorian', year: 1952, month: 10, day: 3 } },

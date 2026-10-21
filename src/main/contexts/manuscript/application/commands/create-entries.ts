@@ -54,7 +54,9 @@ interface Ports {
 export function createCreateChapter(ports: Ports): CreateChapter {
   return async (partPath, title) => {
     if (ports.settings.readOnly)
-      return err(domainError('read-only', 'This project is open read-only.'))
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     const files = await ports.repository.load()
     const manuscript = arrangeManuscript(
       files.parts,
@@ -74,7 +76,9 @@ export function createCreateChapter(ports: Ports): CreateChapter {
         (candidate) => candidate.part.path === partPath
       )
       if (section === undefined)
-        return err(domainError('part-not-found', 'That part no longer exists.'))
+        return err(
+          domainError('part-not-found', 'That part no longer exists.', { reason: 'part-missing' })
+        )
       folder = projectPathParent(partPath)
       partLink = linkTo(partPath, files.linkCandidates)
       siblings = section.chapters
@@ -95,7 +99,9 @@ export function createCreateChapter(ports: Ports): CreateChapter {
 export function createCreatePart(ports: Ports): CreatePart {
   return async (title) => {
     if (ports.settings.readOnly)
-      return err(domainError('read-only', 'This project is open read-only.'))
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     const files = await ports.repository.load()
     const partTitle = title.trim() === '' ? UNTITLED_PART : title.trim()
     const order = Math.max(0, ...files.parts.map((part) => part.order ?? 0)) + 1

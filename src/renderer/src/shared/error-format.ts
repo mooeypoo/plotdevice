@@ -21,6 +21,16 @@ export function formatApiError(error: ApiError, t: Translator['t']): string {
   switch (diagnostic.reason) {
     case 'read-only':
       return t('error-read-only')
+    case 'template-folder-unusable':
+      return t('error-template-folder-unusable')
+    case 'entry-already-typed':
+      return t('error-entry-already-typed')
+    case 'frontmatter-links-unsafe':
+      return t('error-frontmatter-links-unsafe')
+    case 'link-needs-no-folder':
+      return t('error-link-needs-no-folder', isolate(diagnostic.name))
+    case 'key-needs-no-quotes':
+      return t('error-key-needs-no-quotes', isolate(diagnostic.key))
     case 'name-matches':
       return t('error-name-matches')
     case 'part-required':

@@ -186,7 +186,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     if (editor.hasStuckChanges) return false
     const result = await api().createChapter(partPath, title)
     if (!result.ok) {
-      editor.actionError = result.error.message
+      editor.reportActionError(result.error)
       return false
     }
     await reload()
@@ -197,7 +197,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
   async function createPart(title: string): Promise<boolean> {
     const result = await api().createPart(title)
     if (!result.ok) {
-      useEditorStore().actionError = result.error.message
+      useEditorStore().reportActionError(result.error)
       return false
     }
     await reload()
@@ -214,7 +214,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     if (editor.entry?.path === path && editor.hasStuckChanges) return false
     const result = await api().fixWarning(path, fix)
     if (!result.ok) {
-      editor.actionError = result.error.message
+      editor.reportActionError(result.error)
       return false
     }
     await reload()

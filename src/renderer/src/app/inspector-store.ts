@@ -1,28 +1,30 @@
 import { defineStore } from 'pinia'
-import { ref, shallowRef } from 'vue'
+import { shallowRef } from 'vue'
 import type { InspectorVocabularyDto, StoryDateCheckDto } from '../../../contract/dtos'
 import { plotDeviceApi } from './plot-device-api'
+import { useErrorNotice } from '../shared/use-error-notice'
 
 /** The inspector's choices (statuses, threads, calendar) for the open project. */
 export const useInspectorStore = defineStore('inspector', () => {
   const vocabulary = shallowRef<InspectorVocabularyDto | null>(null)
-  const error = ref<string | null>(null)
+  const { message: error, source: errorSource } = useErrorNotice()
 
   async function loadVocabulary(): Promise<void> {
     const result = await plotDeviceApi.current().inspector.getVocabulary()
     if (result.ok) vocabulary.value = result.value
-    else error.value = result.error.message
+    else errorSource.value = result.error
   }
 
   /** Adds a status to novel.md's list. */
   async function addStatus(status: string): Promise<void> {
     const result = await plotDeviceApi.current().manuscript.addStatus(status)
     if (!result.ok) {
-      error.value = result.error.message
+      errorSource.value = result.error
       return
     }
     if (vocabulary.value !== null)
       vocabulary.value = { ...vocabulary.value, statuses: result.value }
+    error.value = null
   }
 
   /** Checks a story date as typed, under the project's calendar. */

@@ -25,10 +25,16 @@ export function createEditTemplate(ports: {
   return async (kind) => {
     const path = templatePath(ports.settings, kind)
     if (path === undefined)
-      return err(domainError('write-failed', 'The template folder is unusable.'))
+      return err(
+        domainError('write-failed', 'The template folder is unusable.', {
+          reason: 'template-folder-unusable'
+        })
+      )
     if ((await ports.repository.readFileText(path)) !== undefined) return ok({ path })
     if (ports.settings.readOnly) {
-      return err(domainError('read-only', 'This project is open read-only.'))
+      return err(
+        domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
+      )
     }
     const created = await ports.repository.createFile(path, defaultTemplateText(kind))
     return created.ok || created.error.code === 'already-exists' ? ok({ path }) : created

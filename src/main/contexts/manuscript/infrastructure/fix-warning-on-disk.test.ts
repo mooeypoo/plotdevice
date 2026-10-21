@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { ProjectPath } from '../../../shared-kernel/project-path'
@@ -28,6 +28,44 @@ afterEach(async () => {
 })
 
 describe('fixing warnings on disk', () => {
+  it('preserves exact keys and link names for obsolete fixes without touching any bytes', async () => {
+    const repository = createMarkdownManuscriptRepository(copy.root)
+    const file = p('manuscript/Part One/The Ferry.md')
+    const before = await readFile(join(copy.root, file))
+    const fix = createFixWarning({ repository, settings })
+    expect(await fix(file, { kind: 'quote', key: 'pov' })).toMatchObject({
+      ok: false,
+      error: { code: 'nothing-to-fix', diagnostic: { reason: 'key-needs-no-quotes', key: 'pov' } }
+    })
+    expect(
+      await fix(file, {
+        kind: 'path-form',
+        name: 'יעל <img src=x>',
+        choice: p('characters/יעל.md')
+      })
+    ).toMatchObject({
+      ok: false,
+      error: {
+        code: 'nothing-to-fix',
+        diagnostic: { reason: 'link-needs-no-folder', name: 'יעל <img src=x>' }
+      }
+    })
+    expect(await readFile(join(copy.root, file))).toEqual(before)
+  })
+
+  it('retains an unsafe frontmatter rewrite reason and leaves the original source unchanged', async () => {
+    const file = p('manuscript/Part One/The Ferry.md')
+    const source = '\uFEFF---\r\ntype: chapter\r\n# keep\r\nlocation: "[[Marrow]]"\r\n---\r\nטיוטה'
+    await writeFile(join(copy.root, file), source)
+    const repository = createMarkdownManuscriptRepository(copy.root)
+    // A quote in a replacement changes YAML meaning, so the surgical rewriter refuses it.
+    expect(await repository.rewriteLinks(file, () => '[[a"b]]', undefined)).toMatchObject({
+      ok: false,
+      error: { code: 'cannot-edit', diagnostic: { reason: 'frontmatter-links-unsafe' } }
+    })
+    expect(await text(file)).toBe(source)
+  })
+
   it('offers and applies a folder for an ambiguous prose link, nothing else changing', async () => {
     const repository = createMarkdownManuscriptRepository(copy.root)
     const ferry = 'manuscript/Part One/The Ferry.md'

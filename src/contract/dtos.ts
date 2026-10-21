@@ -30,6 +30,9 @@ export type ErrorDiagnosticDto =
   | {
       readonly reason:
         | 'read-only'
+        | 'template-folder-unusable'
+        | 'entry-already-typed'
+        | 'frontmatter-links-unsafe'
         | 'name-matches'
         | 'part-required'
         | 'chapter-missing'
@@ -76,6 +79,8 @@ export type ErrorDiagnosticDto =
       readonly reason: 'frontmatter-missing' | 'frontmatter-unparseable' | 'frontmatter-not-mapping'
     }
   | { readonly reason: 'frontmatter-unsupported'; readonly key: string }
+  | { readonly reason: 'link-needs-no-folder'; readonly name: string }
+  | { readonly reason: 'key-needs-no-quotes'; readonly key: string }
 
 /** A folder the writer picked in the native dialog. */
 export interface FolderChoiceDto {

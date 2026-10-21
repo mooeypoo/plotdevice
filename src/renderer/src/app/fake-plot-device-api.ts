@@ -289,7 +289,7 @@ export function createFakePlotDeviceApi(): {
   >()
 
   const api: PlotDeviceApi = {
-    contractVersion: 19,
+    contractVersion: 20,
     uiLanguage: {
       get: () => Promise.resolve(language),
       set: (locale) => {
@@ -774,6 +774,16 @@ export function createFakePlotDeviceApi(): {
         return Promise.resolve({ ok: true, value: { path } })
       },
       setEntryType: (path, type) => {
+        if (!codex.untyped.some((file) => file.path === path)) {
+          return Promise.resolve({
+            ok: false,
+            error: {
+              code: 'not-untyped',
+              message: 'That file already has a type.',
+              diagnostic: { reason: 'entry-already-typed' }
+            }
+          })
+        }
         codexWrites.push(`${path} → ${type}`)
         codex = { ...codex, untyped: codex.untyped.filter((file) => file.path !== path) }
         return Promise.resolve({ ok: true, value: null })

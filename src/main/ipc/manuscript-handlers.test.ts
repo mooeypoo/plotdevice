@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createCheckStoryDate } from '../contexts/chronology/application/queries/check-story-date'
 import { createAddStatus } from '../contexts/manuscript/application/commands/add-status'
 import {
@@ -80,6 +80,48 @@ beforeEach(() => {
 })
 
 describe('manuscript handlers', () => {
+  it('preserves technical creation and status-write diagnostics across IPC', async () => {
+    const error = {
+      code: 'write-failed',
+      message: 'Original detail',
+      diagnostic: { reason: 'file-create-failed', path: 'notes/יעל.md', detail: 'EACCES (disk)' }
+    } as const
+    vi.spyOn(repository, 'createFile').mockResolvedValue({ ok: false, error })
+    await handlers.getManuscript()
+    expect(await handlers.createChapter([null, 'New'])).toEqual({ ok: false, error })
+    expect(await handlers.createPart(['New'])).toEqual({ ok: false, error })
+    const statusError = {
+      code: 'write-failed',
+      message: 'Original status detail',
+      diagnostic: { reason: 'file-write-failed', path: 'novel.md', detail: 'ENOSPC (disk)' }
+    } as const
+    vi.spyOn(repository, 'writeNovelProperties').mockResolvedValue({
+      ok: false,
+      error: statusError
+    })
+    expect(await handlers.addStatus(['New'])).toEqual({ ok: false, error: statusError })
+    expect(repository.novel).toEqual({})
+  })
+
+  it('retains obsolete warning-fix parameters and creation refusals across IPC', async () => {
+    await handlers.getManuscript()
+    expect(await handlers.fixWarning([ferry, { kind: 'quote', key: 'pov' }])).toMatchObject({
+      ok: false,
+      error: { code: 'nothing-to-fix', diagnostic: { reason: 'key-needs-no-quotes', key: 'pov' } }
+    })
+    expect(
+      await handlers.fixWarning([ferry, { kind: 'path-form', name: 'יעל', choice: marrow }])
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'nothing-to-fix', diagnostic: { reason: 'link-needs-no-folder', name: 'יעל' } }
+    })
+    repository.files.delete(partOne)
+    expect(await handlers.createChapter([partOne, 'New'])).toMatchObject({
+      ok: false,
+      error: { code: 'part-not-found', diagnostic: { reason: 'part-missing' } }
+    })
+  })
+
   it('retains semantic save failures through the DTO mapper', async () => {
     if (session === undefined) throw new Error('Expected session')
     const error = {

@@ -306,6 +306,7 @@ const partName = computed(() => {
         >
           Add “{{ statusNotInList }}” to the project’s statuses
         </button>
+        <p v-if="inspector.error" role="alert">{{ inspector.error }}</p>
       </div>
 
       <template v-if="properties.kind === 'chapter'">

@@ -267,7 +267,11 @@ export function createEntryFiles(rootOsPath: string, remember?: RememberEntryByt
         })
         const head = rewriteFrontmatterLinks(parts.head, (link, key) => decide(link, key))
         if (head.kind !== 'rewritten') {
-          return err(domainError('cannot-edit', 'Its frontmatter can’t be changed safely.'))
+          return err(
+            domainError('cannot-edit', 'Its frontmatter can’t be changed safely.', {
+              reason: 'frontmatter-links-unsafe'
+            })
+          )
         }
         count = body.count + head.count
         return ok(composeMarkdownFile({ ...parts, head: head.head, body: body.text }))

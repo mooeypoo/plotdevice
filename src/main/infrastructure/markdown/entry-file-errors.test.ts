@@ -20,6 +20,18 @@ afterEach(async () => {
 })
 
 describe('semantic file failures', () => {
+  it('retains a failed creation path and exact technical detail without publishing a file', async () => {
+    vi.spyOn(atomicWriter, 'writeFileAtomically').mockRejectedValue(new Error('EACCES (יעל)'))
+    expect(await createEntryFiles(fixture.root).createFile(path, 'New file')).toMatchObject({
+      ok: false,
+      error: {
+        code: 'write-failed',
+        diagnostic: { reason: 'file-create-failed', path, detail: 'EACCES (יעל)' }
+      }
+    })
+    await expect(readFile(join(fixture.root, path))).rejects.toThrow()
+  })
+
   it('retains the path and exact write error while leaving existing bytes untouched', async () => {
     const source = '---\ntype: note\ncustom: true # keep\n---\nOriginal\n'
     const osPath = join(fixture.root, path)
