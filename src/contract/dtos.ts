@@ -239,11 +239,30 @@ export interface InspectorVocabularyDto {
   readonly calendar: 'gregorian' | 'day-count'
 }
 
-/** Whether a typed story date can be used. */
+/** A story date's calendar and original precision, independent of UI language. */
+export type StoryDateDto =
+  | {
+      readonly calendar: 'gregorian'
+      readonly year: number
+      readonly month?: number
+      readonly day?: number
+    }
+  | { readonly calendar: 'day-count'; readonly day: number }
+
+/** Validation reason and source value; the renderer provides localized explanations. */
+export type StoryDateIssueDto =
+  | {
+      readonly reason: 'not-day-number' | 'too-large' | 'not-date' | 'invalid-day'
+      readonly value: string
+    }
+  | { readonly reason: 'invalid-month'; readonly value: string; readonly month: number }
+
+/** Whether a typed story date can be used, without preformatted presentation text. */
 export type StoryDateCheckDto =
   | { readonly kind: 'undated' }
-  | { readonly kind: 'date' | 'range'; readonly description: string }
-  | { readonly kind: 'invalid'; readonly message: string }
+  | { readonly kind: 'date'; readonly date: StoryDateDto }
+  | { readonly kind: 'range'; readonly from: StoryDateDto; readonly to: StoryDateDto }
+  | { readonly kind: 'invalid'; readonly issue: StoryDateIssueDto }
 
 /** A newly created part or chapter. */
 export interface CreatedEntryDto {
@@ -394,11 +413,11 @@ export type SettableTypeDto = 'part' | 'chapter' | 'character' | 'location' | 'n
 /** A chapter's story date on the timeline: its span in days, or why it has none. */
 export type TimelineDateDto =
   | { readonly kind: 'undated' }
-  | { readonly kind: 'invalid'; readonly message: string }
+  | { readonly kind: 'invalid'; readonly issue: StoryDateIssueDto }
   | {
       readonly kind: 'dated'
-      /** "3 October 1952", "October 1952 – March 1953", "Day 14". */
-      readonly description: string
+      /** Endpoints retain precision; formatting must not reconstruct them from the span. */
+      readonly reading: Extract<StoryDateCheckDto, { kind: 'date' | 'range' }>
       /** Days from 1 January 1970 (Gregorian) or the day number (day-count), inclusive. */
       readonly start: number
       readonly end: number

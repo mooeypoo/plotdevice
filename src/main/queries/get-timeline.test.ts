@@ -79,7 +79,11 @@ describe('GetTimeline', () => {
       partTitle: 'The Orchard',
       storyTime: 'morning',
       characters: [{ path: 'characters/Ilka Szabó.md', pov: true }],
-      date: { kind: 'dated', description: '3 October 1952', span: { precision: 'day' } }
+      date: {
+        kind: 'dated',
+        reading: { kind: 'date', date: { calendar: 'gregorian', year: 1952, month: 10, day: 3 } },
+        span: { precision: 'day' }
+      }
     })
     expect(timeline.outside).toBe(1)
   })

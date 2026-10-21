@@ -9,6 +9,7 @@ The Writing appearance controls set prose size/width without changing markdown o
 Tabs preserve session undo, selection and scroll; only navigation metadata persists in `userData`, never drafts.
 Invalid or unavailable preferences storage is reported without blocking writing.
 Interface language uses typed IPC and bundled Banana catalogs; ADR 0016 tracks incomplete Hebrew/RTL support.
+Story-date readings/issues stay structured in stores; shared formatters localize cached dates and axis labels.
 Recovery keeps outside changes authoritative until an explicit choice; failures retain the draft and actions freeze editing.
 
 **Must not know about.** Node, Electron, filesystem access, domain classes, or concrete adapters.

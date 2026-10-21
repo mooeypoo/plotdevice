@@ -5,8 +5,11 @@ import { isolate } from '../../shared/isolate'
 import { chapterLabel } from './reading-grid'
 import { axisTicks, PX_PER_DAY, type Zoom } from './story-axis'
 import { useTimeline } from './use-timeline'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { formatStoryDateReading } from '../../shared/story-date-format'
 
 const view = useTimeline()
+const language = useUiLanguageStore()
 const { timeline, order, rows, minGap, zoom, grid, backInTime, story, range, undated } = view
 
 const host = ref<HTMLElement | null>(null)
@@ -25,19 +28,25 @@ const axisWidth = computed(() =>
 const ticks = computed(() =>
   range.value === undefined || timeline.value === null
     ? []
-    : axisTicks(timeline.value.calendar, range.value.start, range.value.end, pxPerDay.value)
+    : axisTicks(
+        timeline.value.calendar,
+        range.value.start,
+        range.value.end,
+        pxPerDay.value,
+        language.t
+      )
 )
 const x = (day: number): number => (day - (range.value?.start ?? 0)) * pxPerDay.value
 
 function describe(chapter: TimelineChapterDto): string {
   const date =
     chapter.date.kind === 'dated'
-      ? chapter.date.description
+      ? formatStoryDateReading(chapter.date.reading, language.t)
       : chapter.date.kind === 'invalid'
-        ? 'Date can’t be read'
-        : 'Undated'
-  const time = chapter.storyTime === undefined ? '' : `, ${chapter.storyTime}`
-  const synopsis = chapter.synopsis === undefined ? '' : `\n${chapter.synopsis}`
+        ? language.t('date-unreadable')
+        : language.t('date-undated')
+  const time = chapter.storyTime === undefined ? '' : `, ${isolate(chapter.storyTime)}`
+  const synopsis = chapter.synopsis === undefined ? '' : `\n${isolate(chapter.synopsis)}`
   return `${isolate(chapter.title)} · ${date}${time}${synopsis}`
 }
 
@@ -135,10 +144,10 @@ function setMinGap(event: Event): void {
         <span class="date" :class="{ missing: chapter.date.kind !== 'dated' }">
           {{
             chapter.date.kind === 'dated'
-              ? chapter.date.description
+              ? formatStoryDateReading(chapter.date.reading, language.t)
               : chapter.date.kind === 'invalid'
-                ? 'bad date'
-                : 'undated'
+                ? language.t('date-invalid-short')
+                : language.t('date-undated-short')
           }}
         </span>
         <span
@@ -234,14 +243,18 @@ function setMinGap(event: Event): void {
     </div>
 
     <section v-if="undated.length > 0" class="undated" aria-labelledby="undated-heading">
-      <h2 id="undated-heading" class="eyebrow">Without a usable date</h2>
+      <h2 id="undated-heading" class="eyebrow">{{ language.t('date-without-usable') }}</h2>
       <ul>
         <li v-for="chapter in undated" :key="chapter.path">
           <button type="button" class="link" dir="auto" @click="view.fixDate(chapter.path)">
             {{ chapterLabel(chapter) }} {{ chapter.title }}
           </button>
           <span class="muted">
-            {{ chapter.date.kind === 'invalid' ? chapter.date.message : 'No story date.' }}
+            {{
+              chapter.date.kind === 'invalid'
+                ? formatStoryDateReading(chapter.date, language.t)
+                : language.t('date-missing')
+            }}
           </span>
         </li>
       </ul>

@@ -36,7 +36,7 @@ export function createTimelineHandlers(
               chapter.date.kind === 'dated'
                 ? {
                     kind: 'dated',
-                    description: chapter.date.description,
+                    reading: chapter.date.reading,
                     ...chapter.date.span
                   }
                 : chapter.date

@@ -57,6 +57,10 @@ progress, remaining limitations, and the next slice before ending a session.
 - [ ] **I2 Diagnostics/dates:** structured errors, warnings and date readings
   through every IPC/fake/store consumer; late presentation formatting; stable
   warning identity; preserve signed/large years, precision and day counts.
+  - [x] **I2a Story dates:** structured readings/issues across chronology, IPC,
+    fake API, inspectors and timeline; localized cached dates and axis labels.
+  - [ ] **I2b General diagnostics:** semantic failures/warnings, stable identity,
+    and reactive formatting across all handlers, fakes, stores and consumers.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
   existing notices, number formatting, display collation, native dialogs and
   controlled destructive confirmations; complete Hebrew and qqq coverage.
@@ -112,8 +116,44 @@ geometry qualification and Hebrew language review. Development-only menu roles
 still use Electron's default labels. The Hebrew selector explicitly discloses
 that translation/RTL support is in progress.
 
-**Next session:** plan I2's semantic diagnostics and structured date DTOs,
-including every handler, fake and renderer consumer, then obtain approval
-before implementation. Do not begin bulk translation against English-only
-error/date contracts. Restart the desktop development process when testing
-I1: a renderer hot reload cannot upgrade an already-running version-13 preload.
+I1 was committed as `111e5be`. The user approved continuing with I2a separately
+from the broader I2b diagnostics migration, including documentation and a second
+commit. I2 overall remains incomplete until both slices pass.
+
+### I2a handoff (2026-10-21)
+
+Chronology now returns semantic `StoryDateIssue` reasons and structured date/
+range readings instead of English descriptions. Contract version 15 carries
+the endpoints and their precision through the inspector and timeline APIs;
+timeline numeric spans are unchanged. The preload and renderer fake implement
+the same shapes. No new dependencies or changes to the on-disk format.
+
+`shared/story-date-format.ts` formats English/Hebrew dates at render time, with
+documented Banana messages for month names, BCE, day counts, ranges and all date
+validation reasons. It does not use JavaScript Date, change calendars or invent
+precision. Invalid source values receive display-only bidi isolation. Both
+inspectors reformat cached checks, and the timeline reformats columns, tooltips,
+invalid-date tray and axis labels on a switch, without rereading or writing
+project files. Axis tick positions and chronological ordering are unchanged;
+RTL timeline coordinates are still I4, not implemented by translating labels.
+
+Tests cover semantic domain failures, signed/large years, year zero, IPC
+endpoint preservation, English/Hebrew formatting, source isolation, invariant
+axis positions and live cached inspector/timeline switches without API reads or
+writes. Unsaved prose and date input remain intact. This is not a real-browser
+or packaged bidi qualification; those remain I6.
+
+Verified lint (including dependency boundaries), typecheck, all 1,166 tests
+across 144 files, and the production electron-vite build. The full suite includes
+fixture round-trip and existing editor/recovery regressions. Patch whitespace
+checks passed. No packaged release or push was performed.
+
+**Next session:** plan I2b before implementation and obtain approval. Inventory
+domain/application failures and warnings, design discriminated semantic
+parameters rather than guessing translations from broad error codes, preserve
+warning identity, and migrate every handler, fake, store and display consumer.
+Include already-visible errors, ambiguous links, conflicts/recovery and failed
+writes; do not lose details or change recovery behavior. General errors and
+many labels/native dialogs remain English until I2b/I3. Restart the desktop
+development process when testing I2a: renderer hot reload cannot upgrade an
+already-running version-14 preload to version 15.

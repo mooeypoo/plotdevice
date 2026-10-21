@@ -9,11 +9,14 @@ import RelationshipsEditor from './RelationshipsEditor.vue'
 import RenameOffer from './RenameOffer.vue'
 import TextListInput from './TextListInput.vue'
 import { characterGroupNames } from '../codex/character-list'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { formatStoryDateReading } from '../../shared/story-date-format'
 
 const codex = useCodexStore()
 const editor = useEditorStore()
 const inspector = useInspectorStore()
 const workspace = useWorkspaceStore()
+const language = useUiLanguageStore()
 
 const properties = computed(() => codex.properties)
 const groupNames = computed(() =>
@@ -145,7 +148,7 @@ const KEY_NAMES = { pov: 'point of view', characters: 'characters', location: 'l
             :class="{ bad: bornCheck.kind === 'invalid' }"
             aria-live="polite"
           >
-            {{ bornCheck.kind === 'invalid' ? bornCheck.message : bornCheck.description }}
+            {{ formatStoryDateReading(bornCheck, language.t) }}
           </p>
         </div>
         <RelationshipsEditor :disabled="disabled" />

@@ -6,4 +6,6 @@
 
 **Use cases.** Queries: `GetChronologySettings`, `CheckStoryDate`, `ReadStoryDates` (many values at once, with spans, for the timeline). Port: `ChronologyRepository` (reads novel.md).
 
+**Presentation boundary.** Readings retain date/range precision; invalid values carry semantic `StoryDateIssue` reasons and parameters, never localized sentences. The renderer formats them at display time.
+
 **Must not know about.** Chapter order, prose, or codex entries. The timeline that combines chapters with dates is the read model `src/main/queries/get-timeline.ts`.

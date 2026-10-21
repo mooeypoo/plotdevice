@@ -138,6 +138,10 @@ acceptance criteria, and the cross-session checklist.
   full checks and an isolated browser preview; remaining limitations and next
   session instructions are recorded in ADR 0016.
 - [ ] I2: Structured diagnostics and story dates; reactive presentation formatting.
+  - [x] I2a: Semantic date readings/issues over IPC; English/Hebrew inspector,
+    timeline and axis formatting; cached readings retranslate without file writes.
+  - [ ] I2b: General semantic errors/warnings and reactive presentation; stable
+    warning identity and preserved recovery details. Next approval boundary.
 - [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.

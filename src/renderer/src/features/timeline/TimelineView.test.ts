@@ -1,18 +1,21 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
 import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 import TimelineView from './TimelineView.vue'
+
+let fake: ReturnType<typeof createFakePlotDeviceApi>
 
 beforeEach(async () => {
   setActivePinia(createPinia())
-  const fake = createFakePlotDeviceApi()
+  fake = createFakePlotDeviceApi()
   plotDeviceApi.current = () => fake.api
   await Promise.all([useManuscriptStore().load(), useCodexStore().load()])
 })
@@ -24,6 +27,42 @@ const mountView = async (): Promise<ReturnType<typeof mount>> => {
 }
 
 describe('TimelineView', () => {
+  it('reformats cached dates, issues, tooltips and axis labels without reloading', async () => {
+    fake.timeline.current = {
+      ...fake.timeline.current,
+      chapters: fake.timeline.current.chapters.map((chapter) => ({ ...chapter, threads: ['main'] }))
+    }
+    const get = vi.spyOn(fake.api.timeline, 'getTimeline')
+    const language = useUiLanguageStore()
+    await language.initialize()
+    const view = await mountView()
+    const reads = get.mock.calls.length
+    expect(view.findAll('.column-head')[0]?.text()).toContain('3 October 1952')
+    await language.change('he')
+    await flushPromises()
+    expect(view.findAll('.column-head')[0]?.text()).toContain('3 באוקטובר 1952')
+    expect(view.find('.undated').text()).toContain('היום הזה אינו קיים')
+    expect(view.find('.undated').text()).toContain('\u20681952-02-30\u2069')
+    const story = view.findAll('button').find((button) => button.text() === 'Story order')
+    await story?.trigger('click')
+    await view.get('[aria-label=Zoom] button').trigger('click')
+    expect(view.findAll('.bar').map((bar) => bar.attributes('title'))).toContainEqual(
+      expect.stringContaining('3 באוקטובר 1952')
+    )
+    expect(view.text()).toContain('אוק׳')
+    await language.change('en')
+    await flushPromises()
+    expect(view.findAll('.bar').map((bar) => bar.attributes('title'))).toContainEqual(
+      expect.stringContaining('3 October 1952')
+    )
+    expect(view.text()).toContain('Oct')
+    expect(view.find('.undated').text()).toContain('that day doesn’t exist')
+    expect(get).toHaveBeenCalledTimes(reads)
+    expect(fake.saves).toEqual([])
+    expect(fake.codexWrites).toEqual([])
+    view.unmount()
+  })
+
   it('shows chapters in reading order with dates, flagging a step back in time', async () => {
     const view = await mountView()
     const heads = view.findAll('.column-head').map((head) => head.text())

@@ -10,11 +10,14 @@ import { linkLabel, namesOfType } from './link-targets'
 import LinkPicker from './LinkPicker.vue'
 import RenameOffer from './RenameOffer.vue'
 import { usePositionMoves } from './use-position-moves'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { formatStoryDateReading } from '../../shared/story-date-format'
 
 const manuscript = useManuscriptStore()
 const editor = useEditorStore()
 const inspector = useInspectorStore()
 const workspace = useWorkspaceStore()
+const language = useUiLanguageStore()
 
 const properties = computed(() => manuscript.properties)
 const readOnly = computed(() => workspace.project?.readOnly ?? false)
@@ -371,7 +374,7 @@ const partName = computed(() => {
             :class="{ bad: dateCheck.kind === 'invalid' }"
             aria-live="polite"
           >
-            {{ dateCheck.kind === 'invalid' ? dateCheck.message : dateCheck.description }}
+            {{ formatStoryDateReading(dateCheck, language.t) }}
           </p>
         </div>
 

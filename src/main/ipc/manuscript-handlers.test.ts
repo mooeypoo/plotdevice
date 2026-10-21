@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createCheckStoryDate } from '../contexts/chronology/application/queries/check-story-date'
-import { describeStoryDateReading } from '../contexts/chronology/domain/story-date'
 import { createAddStatus } from '../contexts/manuscript/application/commands/add-status'
 import {
   createCreateChapter,
@@ -318,8 +317,7 @@ describe('inspector handlers', () => {
       }),
     checkStoryDate: createCheckStoryDate({
       getSettings: () => Promise.resolve({ calendar: 'gregorian', threads: [] })
-    }),
-    describeStoryDate: describeStoryDateReading
+    })
   }))
 
   it('returns the vocabulary', async () => {
@@ -333,14 +331,22 @@ describe('inspector handlers', () => {
     })
   })
 
-  it('describes a valid date and explains an invalid one', async () => {
+  it('returns semantic readings without preformatted display text', async () => {
     expect(await inspector.checkStoryDate(['1952-10-03'])).toEqual({
       ok: true,
-      value: { kind: 'date', description: '3 October 1952' }
+      value: { kind: 'date', date: { calendar: 'gregorian', year: 1952, month: 10, day: 3 } }
     })
-    expect(await inspector.checkStoryDate(['1952-02-30'])).toMatchObject({
+    expect(await inspector.checkStoryDate(['1952-02-30'])).toEqual({
       ok: true,
-      value: { kind: 'invalid' }
+      value: { kind: 'invalid', issue: { reason: 'invalid-day', value: '1952-02-30' } }
+    })
+    expect(await inspector.checkStoryDate(['1952-11, 1953-03-02'])).toEqual({
+      ok: true,
+      value: {
+        kind: 'range',
+        from: { calendar: 'gregorian', year: 1952, month: 11 },
+        to: { calendar: 'gregorian', year: 1953, month: 3, day: 2 }
+      }
     })
     expect(await inspector.checkStoryDate([42])).toMatchObject({ ok: false })
   })

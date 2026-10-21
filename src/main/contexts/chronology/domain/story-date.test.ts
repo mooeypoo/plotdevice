@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { describeStoryDateReading, readStoryDate } from './story-date'
+import { readStoryDate } from './story-date'
 
 describe('readStoryDate in the gregorian calendar', () => {
   it.each([
@@ -18,17 +18,25 @@ describe('readStoryDate in the gregorian calendar', () => {
   })
 
   it.each([
-    ['1952-02-30', 'day'],
-    ['1900-02-29', 'day'],
-    ['1952-13', 'month'],
-    ['1952-00-10', 'month'],
-    ['October 1952', 'YYYY'],
-    ['1952-1-3', 'YYYY'],
-    [1952.5, 'YYYY']
-  ])('rejects %j', (value, hint) => {
+    ['1952-02-30', 'invalid-day'],
+    ['1900-02-29', 'invalid-day'],
+    ['1952-13', 'invalid-month'],
+    ['1952-00-10', 'invalid-month'],
+    ['October 1952', 'not-date'],
+    ['1952-1-3', 'not-date'],
+    [1952.5, 'not-date'],
+    ['9007199254740992', 'too-large']
+  ])('rejects %j with a semantic reason and the original value', (value, reason) => {
     const reading = readStoryDate(value, 'gregorian')
-    expect(reading.kind).toBe('invalid')
-    if (reading.kind === 'invalid') expect(reading.message).toContain(hint)
+    expect(reading).toMatchObject({ kind: 'invalid', issue: { reason, value: String(value) } })
+    expect(reading).not.toHaveProperty('message')
+  })
+
+  it('preserves the invalid month separately from its source value', () => {
+    expect(readStoryDate('1952-13', 'gregorian')).toEqual({
+      kind: 'invalid',
+      issue: { reason: 'invalid-month', value: '1952-13', month: 13 }
+    })
   })
 })
 
@@ -79,21 +87,26 @@ describe('readStoryDate shapes', () => {
   })
 })
 
-describe('describeStoryDateReading', () => {
-  it.each([
-    ['1952-10-03', '3 October 1952'],
-    ['1952-10', 'October 1952'],
-    ['-0500', '500 BCE'],
-    ['1952-11-15, 1952-11-21', '15 November 1952 – 21 November 1952']
-  ])('describes %s as %s', (text, expected) => {
-    const items = text.split(',').map((item) => item.trim())
-    expect(
-      describeStoryDateReading(readStoryDate(items.length > 1 ? items : text, 'gregorian'))
-    ).toBe(expected)
+describe('locale-independent precision and validation', () => {
+  it('retains signed large years and year zero without using Date', () => {
+    expect(readStoryDate('+1200000-03', 'gregorian')).toEqual({
+      kind: 'date',
+      date: { calendar: 'gregorian', year: 1200000, month: 3 }
+    })
+    expect(readStoryDate('0000-02-29', 'gregorian')).toEqual({
+      kind: 'date',
+      date: { calendar: 'gregorian', year: 0, month: 2, day: 29 }
+    })
   })
 
-  it('describes day counts and undated values', () => {
-    expect(describeStoryDateReading(readStoryDate(14, 'day-count'))).toBe('Day 14')
-    expect(describeStoryDateReading(readStoryDate(undefined, 'gregorian'))).toBe('Undated')
+  it('distinguishes invalid day numbers from excessive integers', () => {
+    expect(readStoryDate('next week', 'day-count')).toEqual({
+      kind: 'invalid',
+      issue: { reason: 'not-day-number', value: 'next week' }
+    })
+    expect(readStoryDate(2 ** 60, 'day-count')).toEqual({
+      kind: 'invalid',
+      issue: { reason: 'too-large', value: String(2 ** 60) }
+    })
   })
 })

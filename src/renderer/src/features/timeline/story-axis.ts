@@ -1,5 +1,7 @@
 import type { TimelineDto } from '../../../../contract/dtos'
 import type { RowMode } from './reading-grid'
+import type { Translator } from '../../../../i18n/translator'
+import { formatStoryMonth, formatStoryYear } from '../../shared/story-date-format'
 
 /** How much story time fits on screen: pixels per day. */
 export type Zoom = 'day' | 'week' | 'month' | 'year'
@@ -107,8 +109,6 @@ export function storyRows(timeline: TimelineDto, mode: RowMode): StoryRow[] {
   })
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
 /** The proleptic Gregorian date of a day counted from 1 January 1970 (Hinnant's `civil_from_days`). */
 export function civilFromDays(days: number): { year: number; month: number; day: number } {
   const z = days + 719468
@@ -129,21 +129,20 @@ export function civilFromDays(days: number): { year: number; month: number; day:
   return { year: yearOfEra + era * 400 + (month <= 2 ? 1 : 0), month, day }
 }
 
-const yearLabel = (year: number): string => (year < 0 ? `${String(-year)} BCE` : String(year))
-
 /** The marks for the axis from `start` to `end`, spaced so labels don't crowd. */
 export function axisTicks(
   calendar: 'gregorian' | 'day-count',
   start: number,
   end: number,
-  pxPerDay: number
+  pxPerDay: number,
+  t: Translator['t']
 ): Tick[] {
   const ticks: Tick[] = []
   if (calendar === 'day-count') {
     const step =
       [1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 5000].find((s) => s * pxPerDay >= 48) ?? 10000
     for (let day = Math.ceil(start / step) * step; day <= end; day += step) {
-      ticks.push({ day, label: `Day ${String(day)}`, major: day % (step * 5) === 0 })
+      ticks.push({ day, label: t('date-day-count', String(day)), major: day % (step * 5) === 0 })
     }
     return ticks
   }
@@ -155,7 +154,11 @@ export function axisTicks(
       if (date.day === 1) {
         ticks.push({
           day,
-          label: `${MONTHS[date.month - 1] ?? ''} ${yearLabel(date.year)}`,
+          label: t(
+            'date-month-year',
+            formatStoryMonth(date.month, t, true),
+            formatStoryYear(date.year, t)
+          ),
           major: true
         })
       } else if (date.day >= 3 && (date.day - 3) % every === 0) {
@@ -163,21 +166,25 @@ export function axisTicks(
       }
     } else if (pxPerDay >= 1 && date.day === 1) {
       // The first month shown names its year too, so the axis never starts without one.
-      const month = MONTHS[date.month - 1] ?? ''
+      const month = formatStoryMonth(date.month, t, true)
       ticks.push({
         day,
         label:
           date.month === 1
-            ? yearLabel(date.year)
+            ? formatStoryYear(date.year, t)
             : ticks.length === 0
-              ? `${month} ${yearLabel(date.year)}`
+              ? t('date-month-year', month, formatStoryYear(date.year, t))
               : month,
         major: date.month === 1
       })
     } else if (pxPerDay < 1 && date.day === 1 && date.month === 1) {
       const every = Math.max(1, Math.ceil(48 / (365 * pxPerDay)))
       if (date.year % every === 0) {
-        ticks.push({ day, label: yearLabel(date.year), major: date.year % (every * 5) === 0 })
+        ticks.push({
+          day,
+          label: formatStoryYear(date.year, t),
+          major: date.year % (every * 5) === 0
+        })
       }
     }
   }

@@ -4,7 +4,6 @@ import { createUiLanguageService, type UiLanguageService } from './ui-language'
 import { registerUiLanguageIpc } from './ipc/ui-language-ipc'
 import { createCheckStoryDate } from './contexts/chronology/application/queries/check-story-date'
 import { createGetChronologySettings } from './contexts/chronology/application/queries/get-chronology-settings'
-import { describeStoryDateReading } from './contexts/chronology/domain/story-date'
 import { createMarkdownChronologyRepository } from './contexts/chronology/infrastructure/markdown-chronology-repository'
 import { createCreateOutline } from './contexts/codex/application/commands/create-outline'
 import { createEditTemplate } from './contexts/codex/application/commands/edit-template'
@@ -236,8 +235,7 @@ export function composeApplication(): LaunchFolders {
           listStatuses: createListStatuses({ repository }),
           getChronologySettings
         }),
-        checkStoryDate: createCheckStoryDate({ getSettings: getChronologySettings }),
-        describeStoryDate: describeStoryDateReading
+        checkStoryDate: createCheckStoryDate({ getSettings: getChronologySettings })
       }
     }
   })

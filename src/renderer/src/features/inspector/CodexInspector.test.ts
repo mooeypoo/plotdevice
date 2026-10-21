@@ -9,6 +9,8 @@ import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import CodexInspector from './CodexInspector.vue'
 import { useWorkspaceStore } from '../../app/workspace-store'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import type { StoryDateCheckDto } from '../../../../contract/dtos'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 
@@ -20,6 +22,42 @@ beforeEach(async () => {
 })
 
 describe('CodexInspector', () => {
+  it.each([
+    [{ kind: 'date', date: { calendar: 'gregorian', year: -500 } }, '500 BCE', '500 לפנה״ס'],
+    [
+      { kind: 'invalid', issue: { reason: 'invalid-month', value: '1952-13', month: 13 } },
+      'has no month',
+      'אין חודש שמספרו'
+    ]
+  ] satisfies [StoryDateCheckDto, string, string][])(
+    'reformats cached birth reading %j without changing the character',
+    async (reading, en, he) => {
+      const check = vi
+        .spyOn(fake.api.inspector, 'checkStoryDate')
+        .mockResolvedValue({ ok: true, value: reading })
+      const write = vi.spyOn(fake.api.codex, 'updateProperties')
+      await useEditorStore().open('characters/Ilka.md')
+      const language = useUiLanguageStore()
+      await language.initialize()
+      const panel = mount(CodexInspector)
+      await flushPromises()
+      const input = panel.get<HTMLInputElement>('#codex-born')
+      input.element.value = '-0500'
+      await input.trigger('input')
+      await flushPromises()
+      expect(panel.text()).toContain(en)
+      const reads = check.mock.calls.length
+      await language.change('he')
+      await flushPromises()
+      expect(panel.text()).toContain(he)
+      expect(check).toHaveBeenCalledTimes(reads)
+      expect(write).not.toHaveBeenCalled()
+      expect(fake.codexWrites).toEqual([])
+      expect(panel.get<HTMLInputElement>('#codex-born').element.value).toBe('-0500')
+      panel.unmount()
+    }
+  )
+
   it('disables membership editing in read-only projects', async () => {
     await useWorkspaceStore().openProject('/book')
     const workspace = useWorkspaceStore()

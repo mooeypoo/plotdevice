@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { TimelineChapterDto, TimelineDto } from '../../../../contract/dtos'
+import { createTranslator } from '../../../../i18n/translator'
 import { chapterLabel, gapsIn, goesBackInTime, readingRows } from './reading-grid'
 import {
   axisTicks,
@@ -13,6 +14,9 @@ import {
 const day = (year: number, month: number, d: number): number =>
   Math.round((Date.UTC(year, month - 1, d) - Date.UTC(1970, 0, 1)) / 86_400_000)
 
+const english = createTranslator('en')
+const hebrew = createTranslator('he')
+
 const chapter = (title: string, extra: Partial<TimelineChapterDto> = {}): TimelineChapterDto => ({
   path: `${title}.md`,
   title,
@@ -24,7 +28,10 @@ const chapter = (title: string, extra: Partial<TimelineChapterDto> = {}): Timeli
 
 const dated = (start: number, end = start, precision: 'day' | 'month' | 'year' = 'day') => ({
   kind: 'dated' as const,
-  description: '',
+  reading: {
+    kind: 'date' as const,
+    date: { calendar: 'gregorian' as const, ...civilFromDays(start) }
+  },
   start,
   end,
   precision
@@ -120,17 +127,36 @@ describe('story axis', () => {
     expect(range).toEqual({ start: day(1952, 10, 1), end: day(1952, 11, 14) })
     expect(fittingZoom(range ?? { start: 0, end: 0 }, 1200)).toBe('day')
     expect(fittingZoom({ start: 0, end: 51 }, 760)).toBe('week')
-    const days = axisTicks('gregorian', day(1952, 10, 1), day(1952, 10, 9), 36)
+    const days = axisTicks('gregorian', day(1952, 10, 1), day(1952, 10, 9), 36, english.t)
     expect(days.map((tick) => tick.label)).toEqual(['Oct 1952', '3', '5', '7', '9'])
     // About fifteen months in 800 pixels: months, with some scrolling, not years.
     expect(fittingZoom({ start: 0, end: 456 }, 800)).toBe('month')
-    const months = axisTicks('gregorian', day(1952, 10, 1), day(1953, 1, 31), 2)
+    const months = axisTicks('gregorian', day(1952, 10, 1), day(1953, 1, 31), 2, english.t)
     expect(months.map((tick) => tick.label)).toEqual(['Oct 1952', 'Nov', 'Dec', '1953'])
-    expect(axisTicks('day-count', -3, 20, 8).map((tick) => tick.label)).toEqual([
+    expect(axisTicks('day-count', -3, 20, 8, english.t).map((tick) => tick.label)).toEqual([
       'Day 0',
       'Day 10',
       'Day 20'
     ])
+  })
+
+  it('localizes tick labels without moving ticks or changing chronological order', () => {
+    const start = day(1952, 10, 1)
+    const end = day(1953, 1, 31)
+    const en = axisTicks('gregorian', start, end, 2, english.t)
+    const he = axisTicks('gregorian', start, end, 2, hebrew.t)
+    expect(he.map((tick) => tick.label)).toEqual(['אוק׳ 1952', 'נוב׳', 'דצמ׳', '1953'])
+    expect(he.map(({ day, major }) => ({ day, major }))).toEqual(
+      en.map(({ day, major }) => ({ day, major }))
+    )
+    expect(axisTicks('day-count', -3, 20, 8, hebrew.t).map((tick) => tick.label)).toEqual([
+      'יום 0',
+      'יום 10',
+      'יום 20'
+    ])
+    expect(
+      axisTicks('gregorian', -902149, -901784, 0.5, hebrew.t).map((tick) => tick.label)
+    ).toContain('500 לפנה״ס')
   })
 
   it('converts day numbers back to dates, before 1970 and BCE', () => {

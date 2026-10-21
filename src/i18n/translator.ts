@@ -5,7 +5,22 @@ import he from './he.json'
 
 /** Stable catalog keys, excluding translator metadata. */
 export type MessageKey = Exclude<keyof typeof en, '@metadata'>
-type MessageArguments<Key extends MessageKey> = Key extends 'about-detail' ? [version: string] : []
+type ParameterizedMessages = {
+  'about-detail': [version: string]
+  'date-year-bce': [year: string]
+  'date-day-count': [day: string]
+  'date-month-year': [month: string, year: string]
+  'date-full': [day: string, month: string, year: string]
+  'date-range': [from: string, to: string]
+  'date-error-not-day-number': [value: string]
+  'date-error-too-large': [value: string]
+  'date-error-not-date': [value: string]
+  'date-error-invalid-month': [value: string, month: string]
+  'date-error-invalid-day': [value: string]
+}
+type MessageArguments<Key extends MessageKey> = Key extends keyof ParameterizedMessages
+  ? ParameterizedMessages[Key]
+  : []
 
 /** Typed, escaped-text presentation messages. Callers isolate dynamic user content. */
 export interface Translator {

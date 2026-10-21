@@ -40,17 +40,28 @@ describe('chronology queries', () => {
 })
 
 describe('ReadStoryDates', () => {
-  it('reads each value with its description and span, or why it has none', async () => {
+  it('retains each reading and span, or the semantic issue that prevents it', async () => {
     const read = createReadStoryDates({
       getSettings: createGetChronologySettings({ repository: repository({}) })
     })
     const result = await read(['1952-10', undefined, '1952-02-30', ['1952-11-15', '1952-11-21']])
     expect(result.calendar).toBe('gregorian')
     expect(result.dates).toMatchObject([
-      { kind: 'dated', description: 'October 1952', span: { precision: 'month' } },
+      {
+        kind: 'dated',
+        reading: { kind: 'date', date: { calendar: 'gregorian', year: 1952, month: 10 } },
+        span: { precision: 'month' }
+      },
       { kind: 'undated' },
-      { kind: 'invalid' },
-      { kind: 'dated', description: '15 November 1952 – 21 November 1952' }
+      { kind: 'invalid', issue: { reason: 'invalid-day', value: '1952-02-30' } },
+      {
+        kind: 'dated',
+        reading: {
+          kind: 'range',
+          from: { calendar: 'gregorian', year: 1952, month: 11, day: 15 },
+          to: { calendar: 'gregorian', year: 1952, month: 11, day: 21 }
+        }
+      }
     ])
   })
 })

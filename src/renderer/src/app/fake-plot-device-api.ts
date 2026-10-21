@@ -136,7 +136,7 @@ export const sampleTimeline: TimelineDto = {
       characters: [{ path: 'characters/Ilka.md', pov: true }],
       date: {
         kind: 'dated',
-        description: '3 October 1952',
+        reading: { kind: 'date', date: { calendar: 'gregorian', year: 1952, month: 10, day: 3 } },
         start: -6299,
         end: -6299,
         precision: 'day'
@@ -151,7 +151,7 @@ export const sampleTimeline: TimelineDto = {
       characters: [],
       date: {
         kind: 'dated',
-        description: 'September 1952',
+        reading: { kind: 'date', date: { calendar: 'gregorian', year: 1952, month: 9 } },
         start: -6331,
         end: -6302,
         precision: 'month'
@@ -164,7 +164,7 @@ export const sampleTimeline: TimelineDto = {
       partNumber: 1,
       threads: ['main'],
       characters: [],
-      date: { kind: 'invalid', message: '1952-02-30: that day doesn’t exist in that month.' }
+      date: { kind: 'invalid', issue: { reason: 'invalid-day', value: '1952-02-30' } }
     }
   ],
   outside: 0
@@ -289,7 +289,7 @@ export function createFakePlotDeviceApi(): {
   >()
 
   const api: PlotDeviceApi = {
-    contractVersion: 14,
+    contractVersion: 15,
     uiLanguage: {
       get: () => Promise.resolve(language),
       set: (locale) => {
@@ -711,7 +711,12 @@ export function createFakePlotDeviceApi(): {
       checkStoryDate: (text) =>
         Promise.resolve({
           ok: true,
-          value: text === '' ? { kind: 'undated' } : { kind: 'date', description: `On ${text}` }
+          value:
+            text === ''
+              ? { kind: 'undated' }
+              : text === '1952-10-03'
+                ? { kind: 'date', date: { calendar: 'gregorian', year: 1952, month: 10, day: 3 } }
+                : { kind: 'invalid', issue: { reason: 'not-date', value: text } }
         })
     },
     app: {

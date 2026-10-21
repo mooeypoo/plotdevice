@@ -7,8 +7,6 @@ import type { GetInspectorVocabulary } from '../queries/get-inspector-vocabulary
 export interface InspectorUseCases {
   readonly getVocabulary: GetInspectorVocabulary
   readonly checkStoryDate: CheckStoryDate
-  /** Describes a reading in words ("3 October 1952"). */
-  readonly describeStoryDate: (reading: Awaited<ReturnType<CheckStoryDate>>) => string
 }
 
 /** The inspector API as plain functions of untrusted arguments. */
@@ -52,14 +50,7 @@ export function createInspectorHandlers(
           error: { code: 'invalid-request', message: 'The request was not understood.' }
         }
       }
-      const reading = await useCases.checkStoryDate(parsed.data[0])
-      if (reading.kind === 'undated') return { ok: true, value: { kind: 'undated' } }
-      if (reading.kind === 'invalid')
-        return { ok: true, value: { kind: 'invalid', message: reading.message } }
-      return {
-        ok: true,
-        value: { kind: reading.kind, description: useCases.describeStoryDate(reading) }
-      }
+      return { ok: true, value: await useCases.checkStoryDate(parsed.data[0]) }
     }
   }
 }
