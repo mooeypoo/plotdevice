@@ -6,6 +6,8 @@ import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { useEditorLinks } from './use-editor-links'
+import { useReferenceStore } from '../../app/reference-store'
+import { flushPromises } from '@vue/test-utils'
 
 beforeEach(async () => {
   vi.useFakeTimers()
@@ -26,12 +28,20 @@ describe('useEditorLinks', () => {
     expect(completions.value.find((target) => target.name === 'Ilka')?.aliases).toEqual(['Ilk'])
   })
 
-  it('opens a wikilink’s target, and a markdown link relative to the open file', async () => {
+  it('consults codex links without replacing the manuscript and resolves relative links from their source', async () => {
     const { openLink } = useEditorLinks()
     await openLink({ kind: 'wiki', target: 'Marrow' })
-    expect(useEditorStore().entry?.path).toBe('locations/Marrow.md')
-    await openLink({ kind: 'markdown', address: '../characters/Ilka.md' })
-    expect(useEditorStore().entry?.path).toBe('characters/Ilka.md')
+    await flushPromises()
+    expect(useReferenceStore().entry?.path).toBe('locations/Marrow.md')
+    await openLink({ kind: 'markdown', address: '../characters/Ilka.md' }, 'locations/Marrow.md')
+    await flushPromises()
+    expect(useReferenceStore().entry?.path).toBe('characters/Ilka.md')
+    expect(useEditorStore().entry?.path).toBe('The Ferry.md')
+  })
+
+  it('still opens manuscript links in the main editor', async () => {
+    await useEditorLinks().openLink({ kind: 'wiki', target: 'First frost' })
+    expect(useEditorStore().entry?.path).toBe('First frost.md')
   })
 
   it('explains a link that opens nothing, briefly', async () => {

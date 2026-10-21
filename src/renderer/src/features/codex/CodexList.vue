@@ -15,6 +15,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   open: [path: string]
+  edit: [path: string]
   create: [kind: CodexKindDto, title: string]
   setType: [path: string, type: SettableTypeDto]
   editTemplate: [kind: CodexKindDto]
@@ -93,12 +94,14 @@ function chooseType(path: string, event: Event): void {
         :project-root="projectRoot"
         :selected-path="selectedPath"
         @open="$emit('open', $event)"
+        @edit="$emit('edit', $event)"
       />
       <CodexEntryList
         v-else
         :entries="section.entries"
         :selected-path="selectedPath"
         @open="$emit('open', $event)"
+        @edit="$emit('edit', $event)"
       />
       <NewEntryInput
         v-if="adding === section.kind"

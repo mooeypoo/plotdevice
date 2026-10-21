@@ -6,6 +6,7 @@ import BinderRow from './BinderRow.vue'
 import NewEntryInput from './NewEntryInput.vue'
 import type { DropSpot } from './binder-drop'
 import { useBinderDrag } from './use-binder-drag'
+import ReferenceButton from '../../shared/ReferenceButton.vue'
 
 const props = defineProps<{
   part: PartDto
@@ -20,6 +21,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   open: [path: string]
+  reference: [path: string]
   createChapter: [partPath: string, title: string]
   setExpanded: [expanded: boolean]
 }>()
@@ -120,6 +122,7 @@ const marker = computed(() =>
         <span class="title" dir="auto">{{ part.title }}</span>
         <span class="words">{{ formatWordCount(part.wordCount) }}</span>
       </button>
+      <ReferenceButton :title="part.title" @open="$emit('reference', part.path)" />
       <button
         v-if="!readOnly"
         type="button"
@@ -153,6 +156,7 @@ const marker = computed(() =>
           :active="selectedPath === chapter.path"
           :warning="clashDescription(chapter, part.chapters)"
           @open="$emit('open', chapter.path)"
+          @reference="$emit('reference', chapter.path)"
         />
       </li>
       <li v-if="adding">

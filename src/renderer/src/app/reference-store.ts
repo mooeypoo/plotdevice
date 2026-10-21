@@ -1,0 +1,101 @@
+import { defineStore } from 'pinia'
+import { ref, shallowRef, watch } from 'vue'
+import { placeOf } from './entry-owners'
+import type { EntryPlace } from './entry-place'
+import { useLayoutStore } from './layout-store'
+import { plotDeviceApi } from './plot-device-api'
+
+/** A document being consulted independently of the writable editor. */
+export interface ReferenceEntry extends EntryPlace {
+  readonly path: string
+}
+
+/** Read-only reference selection, loading and session-local reading positions for one project. */
+export const useReferenceStore = defineStore('reference', () => {
+  const path = ref<string | null>(null)
+  const entry = shallowRef<ReferenceEntry | null>(null)
+  const text = ref<string | null>(null)
+  const error = ref<string | null>(null)
+  const loading = ref(false)
+  const positions = new Map<string, number>()
+  let request = 0
+
+  async function reload(): Promise<void> {
+    const identity = ++request
+    const current = path.value
+    const place = current === null ? undefined : placeOf(current)
+    text.value = null
+    error.value = null
+    loading.value = false
+    if (current === null) return
+    if (place === undefined) {
+      error.value =
+        'This file is no longer listed in the project. It may have moved or changed type.'
+      return
+    }
+    entry.value = { ...place, path: current }
+    loading.value = true
+    const api = plotDeviceApi.current()
+    const result = await (
+      place.kind === 'chapter' || place.kind === 'part' ? api.manuscript : api.codex
+    ).openEntry(current)
+    if (identity !== request) return
+    loading.value = false
+    if (result.ok) text.value = result.value.text
+    else error.value = result.error.message
+  }
+
+  watch(path, () => void reload(), { flush: 'sync' })
+
+  function open(chosen: string): void {
+    const layout = useLayoutStore()
+    layout.inspectorOpen = true
+    layout.rightTab = 'reference'
+    layout.exitFocusMode()
+    if (chosen === path.value) void reload()
+    else {
+      entry.value = null
+      path.value = chosen
+    }
+  }
+
+  function rememberScroll(top: number, forPath = path.value): void {
+    if (forPath !== null) positions.set(forPath, top)
+  }
+
+  function scrollTop(forPath = path.value): number {
+    return forPath === null ? 0 : (positions.get(forPath) ?? 0)
+  }
+
+  function followMove(from: string, to: string): void {
+    if (from === to) return
+    const top = positions.get(from)
+    if (top !== undefined) positions.set(to, top)
+    positions.delete(from)
+    if (path.value === from) path.value = to
+  }
+
+  function clear(): void {
+    request += 1
+    path.value = null
+    entry.value = null
+    text.value = null
+    error.value = null
+    loading.value = false
+    positions.clear()
+  }
+
+  return {
+    path,
+    entry,
+    text,
+    error,
+    loading,
+    open,
+    reload,
+    rememberScroll,
+    scrollTop,
+    followMove,
+    clear
+  }
+})

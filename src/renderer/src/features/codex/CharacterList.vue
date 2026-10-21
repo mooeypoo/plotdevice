@@ -10,7 +10,7 @@ const props = defineProps<{
   projectRoot: string
   selectedPath: string | null
 }>()
-defineEmits<{ open: [path: string] }>()
+defineEmits<{ open: [path: string]; edit: [path: string] }>()
 const characters = useCharacterList(
   computed(() => props.entries),
   computed(() => props.projectRoot)
@@ -93,6 +93,7 @@ const { search, names, filters, visible, sections, mode } = characters
         :entries="section.entries"
         :selected-path="selectedPath"
         @open="$emit('open', $event)"
+        @edit="$emit('edit', $event)"
       />
     </section>
   </div>

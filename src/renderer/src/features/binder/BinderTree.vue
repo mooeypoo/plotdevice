@@ -20,6 +20,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   open: [path: string]
+  reference: [path: string]
   showOverview: []
   createChapter: [partPath: string | null, title: string]
   createPart: [title: string]
@@ -87,6 +88,7 @@ function createChapter(title: string): void {
         :part-paths="partPaths"
         :part-index="index"
         @open="$emit('open', $event)"
+        @reference="$emit('reference', $event)"
         @set-expanded="collapse.setExpanded(part.path, $event)"
         @create-chapter="(part, title) => $emit('createChapter', part, title)"
       />
@@ -113,6 +115,7 @@ function createChapter(title: string): void {
             :active="selectedPath === chapter.path"
             :warning="clashDescription(chapter, manuscript.chapters)"
             @open="$emit('open', chapter.path)"
+            @reference="$emit('reference', chapter.path)"
           />
         </li>
       </ul>
@@ -159,6 +162,7 @@ function createChapter(title: string): void {
           :read-only="readOnly"
           :part-paths="partPaths"
           @open="$emit('open', $event)"
+          @reference="$emit('reference', $event)"
           @set-expanded="collapse.setExpanded(part.path, $event)"
           @create-chapter="(part, title) => $emit('createChapter', part, title)"
         />
@@ -193,6 +197,7 @@ function createChapter(title: string): void {
                 :active="selectedPath === item.chapter.path"
                 :detail="describeUnorderedReason(item.reason)"
                 @open="$emit('open', item.chapter.path)"
+                @reference="$emit('reference', item.chapter.path)"
               />
             </li>
           </ul>

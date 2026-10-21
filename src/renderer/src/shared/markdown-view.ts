@@ -1,11 +1,11 @@
 import MarkdownIt from 'markdown-it'
 import type Token from 'markdown-it/lib/token.mjs'
-import type { LinkTargetDto } from '../../../../contract/dtos'
-import type { LinkAt } from '../editor/link-at'
-import { createLinkKindLookup, findWikiLinks } from '../editor/wiki-link-scan'
+import type { LinkTargetDto } from '../../../contract/dtos'
+import type { LinkAt } from '../features/editor/link-at'
+import { createLinkKindLookup, findWikiLinks } from '../features/editor/wiki-link-scan'
 
-/** A rendered, read-only outline beside the draft. */
-export interface OutlineView {
+/** A rendered, read-only document beside the draft. */
+export interface MarkdownView {
   setText(text: string): void
   setLinkTargets(targets: readonly LinkTargetDto[]): void
   /** Highlights passages linking to the open entry and reveals the first one. */
@@ -22,8 +22,8 @@ markdown.inline.ruler.before('link', 'wikilink', (state, silent) => {
   if (link === undefined || link.from !== 0 || link.target === '') return false
   if (!silent) {
     const open = state.push('link_open', 'a', 1)
-    open.attrSet('data-outline-kind', 'wiki')
-    open.attrSet('data-outline-target', link.target)
+    open.attrSet('data-markdown-kind', 'wiki')
+    open.attrSet('data-markdown-target', link.target)
     const text = state.push('text', '', 0)
     text.content = state.src.slice(state.pos + link.labelFrom, state.pos + link.labelTo)
     state.push('link_close', 'a', -1)
@@ -55,7 +55,7 @@ function decorateLinks(
   let closingTag = 'a'
   for (const token of tokens) {
     if (token.type === 'link_open') {
-      const wiki = token.attrGet('data-outline-target')
+      const wiki = token.attrGet('data-markdown-target')
       const address = token.attrGet('href') ?? ''
       const link: LinkAt | undefined =
         wiki !== null
@@ -67,15 +67,15 @@ function decorateLinks(
       if (link === undefined) {
         token.tag = 'span'
         token.attrSet('title', address)
-        token.attrSet('class', 'outline-reference')
+        token.attrSet('class', 'markdown-reference')
       } else {
         token.attrSet('href', '#')
         token.attrSet('dir', 'auto')
-        token.attrSet('data-outline-kind', link.kind)
-        token.attrSet('data-outline-target', link.kind === 'wiki' ? link.target : link.address)
+        token.attrSet('data-markdown-kind', link.kind)
+        token.attrSet('data-markdown-target', link.kind === 'wiki' ? link.target : link.address)
         token.attrSet(
           'class',
-          `outline-link outline-link-${link.kind === 'wiki' ? kindOf(link.target) : 'chapter'}`
+          `markdown-link markdown-link-${link.kind === 'wiki' ? kindOf(link.target) : 'chapter'}`
         )
         current ||= pointsHere(link)
       }
@@ -88,7 +88,7 @@ function decorateLinks(
 }
 
 /** Renders Markdown with inert HTML/images and explicitly routed project links. */
-export function renderOutlineMarkdown(
+export function renderMarkdown(
   text: string,
   targets: readonly LinkTargetDto[],
   pointsHere: (link: LinkAt) => boolean
@@ -107,7 +107,7 @@ export function renderOutlineMarkdown(
     if (token.type === 'inline' && token.children !== null) {
       if (decorateLinks(token.children, kindOf, pointsHere)) {
         const block = parents.findLast((parent) => !parent.hidden)
-        block?.attrJoin('class', 'outline-current')
+        block?.attrJoin('class', 'markdown-current')
       }
     }
     if (token.nesting === 1) parents.push(token)
@@ -116,31 +116,31 @@ export function renderOutlineMarkdown(
 }
 
 /** Mounts rendered Markdown; project links open through the app rather than navigating. */
-export function createOutlineView(
+export function createMarkdownView(
   parent: HTMLElement,
   options: {
     readonly text: string
     readonly linkTargets: readonly LinkTargetDto[]
     readonly onOpenLink: (link: LinkAt) => void
   }
-): OutlineView {
+): MarkdownView {
   let text = options.text
   let targets = options.linkTargets
   let pointsHere: (link: LinkAt) => boolean = () => false
   const render = (): void => {
-    parent.innerHTML = renderOutlineMarkdown(text, targets, pointsHere)
+    parent.innerHTML = renderMarkdown(text, targets, pointsHere)
   }
   const reveal = (): void => {
-    parent.querySelector('.outline-current')?.scrollIntoView({ block: 'nearest' })
+    parent.querySelector('.markdown-current')?.scrollIntoView({ block: 'nearest' })
   }
   const click = (event: MouseEvent): void => {
     const anchor = event.target instanceof Element ? event.target.closest('a') : null
     if (anchor === null || !parent.contains(anchor)) return
     event.preventDefault()
-    const target = anchor.getAttribute('data-outline-target')
+    const target = anchor.getAttribute('data-markdown-target')
     if (target === null) return
     options.onOpenLink(
-      anchor.getAttribute('data-outline-kind') === 'wiki'
+      anchor.getAttribute('data-markdown-kind') === 'wiki'
         ? { kind: 'wiki', target }
         : { kind: 'markdown', address: target }
     )

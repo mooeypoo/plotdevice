@@ -7,6 +7,8 @@ import { useEditorStore } from './editor-store'
 import { useLayoutStore, type SideTab } from './layout-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useWorkspaceStore } from './workspace-store'
+import { useReferenceStore } from './reference-store'
+import { useSidePanelNavigation } from './use-side-panel-navigation'
 
 defineProps<{ attentionCount: number }>()
 defineEmits<{ move: [request: DropRequest] }>()
@@ -16,11 +18,8 @@ const manuscript = useManuscriptStore()
 const codex = useCodexStore()
 const editor = useEditorStore()
 const layout = useLayoutStore()
-
-/** Opening an entry from either list shows it in the editor, leaving the Overview. */
-async function openEntry(path: string): Promise<void> {
-  if (await editor.open(path)) layout.mainView = 'write'
-}
+const reference = useReferenceStore()
+const { openEntry, editEntry, consultEntry, selectedCodexPath } = useSidePanelNavigation()
 
 const TABS: readonly { readonly id: SideTab; readonly label: string }[] = [
   { id: 'manuscript', label: 'Manuscript' },
@@ -51,6 +50,7 @@ const TABS: readonly { readonly id: SideTab; readonly label: string }[] = [
       :attention-count="attentionCount"
       :read-only="workspace.project?.readOnly ?? false"
       @open="openEntry($event)"
+      @reference="reference.open($event)"
       @show-overview="editor.closeEntry()"
       @create-chapter="(part, title) => manuscript.createChapter(part, title)"
       @create-part="manuscript.createPart($event)"
@@ -64,9 +64,10 @@ const TABS: readonly { readonly id: SideTab; readonly label: string }[] = [
       <CodexList
         :listing="codex.listing"
         :project-root="workspace.project.root"
-        :selected-path="editor.entry?.path ?? null"
+        :selected-path="selectedCodexPath"
         :read-only="workspace.project?.readOnly ?? false"
-        @open="openEntry($event)"
+        @open="consultEntry($event)"
+        @edit="editEntry($event)"
         @create="(kind, title) => codex.createEntry(kind, title)"
         @set-type="(path, type) => codex.setEntryType(path, type)"
         @edit-template="codex.editTemplate($event)"

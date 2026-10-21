@@ -1,7 +1,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
 import { OUTLINE_WIDTH, useWritingPreferencesStore } from './writing-preferences-store'
 
-/** Pointer and keyboard resizing for the outline, leaving room for the writing surface. */
+/** Shared reference/outline resizing, leaving room for the writing surface. */
 export function useOutlineWidth(panel: Ref<HTMLElement | null>) {
   const preferences = useWritingPreferencesStore()
   const maximum = ref<number>(OUTLINE_WIDTH.max)

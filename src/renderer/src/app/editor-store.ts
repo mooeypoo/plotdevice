@@ -6,6 +6,7 @@ import { entryOwner, placeOf } from './entry-owners'
 import type { EntryKind, EntryPlace } from './entry-place'
 import { plotDeviceApi } from './plot-device-api'
 import { useEntryRecovery } from './entry-recovery'
+import { useReferenceStore } from './reference-store'
 
 export type { EntryKind, EntryPlace } from './entry-place'
 
@@ -395,6 +396,7 @@ export const useEditorStore = defineStore('editor', () => {
 
   /** The open entry's file moved (a rename or a move between parts): follow it, keeping the text. */
   function followMove(from: string, to: string): void {
+    useReferenceStore().followMove(from, to)
     const current = entry.value
     if (current !== null && current.path === from && to !== from)
       entry.value = { ...current, path: to }

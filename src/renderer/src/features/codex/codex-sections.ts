@@ -23,7 +23,7 @@ export function codexSections(listing: CodexListingDto | null): CodexSection[] {
   }))
 }
 
-/** The small text beside an entry: a character's role, or its other names. */
+/** Supporting text under a character's name (beside other entries): role, or other names. */
 export function entryDetail(entry: CodexEntryDto): string | undefined {
   if (entry.role !== undefined) return entry.role
   return entry.aliases.length > 0 ? `also ${entry.aliases.join(', ')}` : undefined

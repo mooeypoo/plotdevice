@@ -14,6 +14,7 @@ import { useEditorStore } from './editor-store'
 import { registerEntryOwner } from './entry-owners'
 import type { EntryPlace } from './entry-place'
 import { plotDeviceApi } from './plot-device-api'
+import { useReferenceStore } from './reference-store'
 
 /** Where a part or chapter sits in the manuscript, with its part's listing. */
 interface ManuscriptPlace {
@@ -46,6 +47,7 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     if (result.ok) {
       manuscript.value = result.value
       loadError.value = null
+      void useReferenceStore().reload()
     } else {
       loadError.value = result.error.message
     }

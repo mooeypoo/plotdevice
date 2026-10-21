@@ -36,6 +36,22 @@ list stays visible rather than being silently removed.
 
 ## A comfortable writing desk
 
+### Consult another page without leaving your draft
+
+Select a character, location, or note in **Codex** to read it in the right-hand
+**Reference** tab. Each part and chapter in the binder also has an **Open in
+reference** button beside it; the normal chapter button still opens the editor.
+The manuscript's cursor, selection, scroll position and undo history stay in place
+when you switch references.
+
+Use **Expand/Restore** or drag the panel separator for more reading space. With
+the separator focused, Left/Right adjusts its width; Home/End chooses its limits.
+The preferred reading width is shared with **Outline** and remembered on this
+computer. References remain readable during a manuscript conflict, but **Open in
+editor** still requires resolving any unsaved changes before leaving that draft.
+
+### Adjust the writing surface
+
 Use **Writing appearance** in the status bar to adjust prose size and line width.
 Focus mode hides the surrounding panels. Appearance preferences belong to the app's
 per-user settings, not the novel's Markdown.

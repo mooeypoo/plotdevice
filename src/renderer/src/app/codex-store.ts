@@ -15,6 +15,7 @@ import { registerEntryOwner } from './entry-owners'
 import type { EntryPlace } from './entry-place'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
+import { useReferenceStore } from './reference-store'
 
 const KIND_LABELS: Readonly<Record<CodexKindDto, string>> = {
   character: 'Character',
@@ -68,6 +69,7 @@ export const useCodexStore = defineStore('codex', () => {
       listing.value = result.value
       revision.value += 1
       loadError.value = null
+      void useReferenceStore().reload()
     } else {
       loadError.value = result.error.message
     }

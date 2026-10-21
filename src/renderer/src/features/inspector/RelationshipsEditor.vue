@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { useCodexStore } from '../../app/codex-store'
-import { useEditorStore } from '../../app/editor-store'
+import { useReferenceStore } from '../../app/reference-store'
 import { linkLabel } from './link-targets'
 import { useRelationships } from './use-relationships'
 
 defineProps<{ disabled: boolean }>()
 
 const codex = useCodexStore()
-const editor = useEditorStore()
+const reference = useReferenceStore()
 const { rows, characters, add, remove, save } = useRelationships()
 </script>
 
@@ -88,7 +88,7 @@ const { rows, characters, add, remove, save } = useRelationships()
       <h4 class="eyebrow">Listed by</h4>
       <ul class="plain">
         <li v-for="other in codex.listedBy" :key="other.path">
-          <button type="button" class="link" dir="auto" @click="editor.open(other.path)">
+          <button type="button" class="link" dir="auto" @click="reference.open(other.path)">
             {{ other.title }}
           </button>
           <span v-if="other.kind" class="muted"> · {{ other.kind }}</span>

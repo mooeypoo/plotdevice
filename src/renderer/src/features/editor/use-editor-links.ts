@@ -2,12 +2,15 @@ import { computed, ref, type ComputedRef, type Ref } from 'vue'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
+import { useReferenceStore } from '../../app/reference-store'
+import { useLayoutStore } from '../../app/layout-store'
+import { placeOf } from '../../app/entry-owners'
 import { linkChoices, markdownLinkPath, nameKey, resolveWritten } from '../../shared/link-choices'
 import type { LinkAt } from './link-at'
 import type { LinkCompletionTarget } from './link-completion'
 
-/** The editor's links: what `[[` suggests, and opening a link's target. */
-export function useEditorLinks(): {
+/** Link completion and navigation: consult codex targets beside the draft, or open manuscript text. */
+export function useEditorLinks(navigate?: (path: string) => void | Promise<void>): {
   readonly completions: ComputedRef<readonly LinkCompletionTarget[]>
   /** Opens a link's target; a markdown link is read relative to `fromPath` (the open entry). */
   readonly openLink: (link: LinkAt, fromPath?: string) => Promise<void>
@@ -55,8 +58,12 @@ export function useEditorLinks(): {
       )
       return
     }
-    if (editor.canOpen(path)) await editor.open(path)
-    else
+    if (navigate !== undefined) await navigate(path)
+    else if (['character', 'location', 'note'].includes(placeOf(path)?.kind ?? '')) {
+      useReferenceStore().open(path)
+    } else if (editor.canOpen(path)) {
+      if (await editor.open(path)) useLayoutStore().mainView = 'write'
+    } else
       editor.actionError = `${path} isn’t a part, chapter, or codex entry, so it can’t open here.`
   }
 

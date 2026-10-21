@@ -10,6 +10,7 @@ import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
+import { useReferenceStore } from './reference-store'
 
 /** Which top-level screen the window shows. */
 export type WorkspaceScreen = 'welcome' | 'initialize' | 'project'
@@ -125,6 +126,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       return false
     }
     await editor.close()
+    useReferenceStore().clear()
     useManuscriptStore().close()
     useCodexStore().close()
     await api().closeProject()

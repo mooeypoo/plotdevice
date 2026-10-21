@@ -82,6 +82,19 @@ describe('outline panel width', () => {
     )
   })
 
+  it('shares the reading width with Reference while leaving Properties unchanged', async () => {
+    const wrapper = mountPanel()
+    useLayoutStore().rightTab = 'reference'
+    await flushPromises()
+    const handle = wrapper.get('[role="separator"]')
+    expect(handle.attributes('aria-label')).toBe('Reference panel width')
+    await handle.trigger('keydown', { key: 'ArrowLeft' })
+    expect(wrapper.get('.right').attributes('style')).toContain('width: 340px')
+    useLayoutStore().rightTab = 'outline'
+    await flushPromises()
+    expect(wrapper.get('.right').attributes('style')).toContain('width: 340px')
+  })
+
   it('constrains expansion on smaller windows without overwriting the preferred width', async () => {
     useWritingPreferencesStore().setOutlineWidth(600)
     const wrapper = mountPanel()

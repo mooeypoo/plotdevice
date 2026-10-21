@@ -8,7 +8,7 @@ export type SideTab = 'manuscript' | 'codex'
 export type MainView = 'write' | 'overview' | 'timeline' | 'interactions'
 
 /** The right-hand panel's tabs. */
-export type RightTab = 'properties' | 'outline'
+export type RightTab = 'properties' | 'outline' | 'reference'
 
 const LAYOUT_KEY = 'plotdevice.layout'
 const LAST_ENTRY_KEY = 'plotdevice.lastEntry'
@@ -27,7 +27,11 @@ export const useLayoutStore = defineStore('layout', () => {
   /** Which list the side panel shows. */
   const sideTab = ref<SideTab>(saved['sideTab'] === 'codex' ? 'codex' : 'manuscript')
   /** Which view the right-hand panel shows. */
-  const rightTab = ref<RightTab>(saved['rightTab'] === 'outline' ? 'outline' : 'properties')
+  const rightTab = ref<RightTab>(
+    saved['rightTab'] === 'outline' || saved['rightTab'] === 'reference'
+      ? saved['rightTab']
+      : 'properties'
+  )
   /** What the main area shows: the editor, or the Overview of the whole book. */
   const mainView = ref<MainView>('write')
   /** The outline last shown in the panel, by path. */

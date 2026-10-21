@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { formatWordCount, statusColor } from './binder-labels'
+import ReferenceButton from '../../shared/ReferenceButton.vue'
 
 defineProps<{
   title: string
@@ -12,36 +13,47 @@ defineProps<{
   warning?: string | undefined
 }>()
 
-defineEmits<{ open: [] }>()
+defineEmits<{ open: []; reference: [] }>()
 </script>
 
 <template>
-  <button
-    type="button"
-    class="row"
-    :class="{ active }"
-    :aria-current="active ? 'true' : undefined"
-    @click="$emit('open')"
-  >
-    <span class="number">{{ number ?? '' }}</span>
-    <span
-      class="status"
-      :style="{ background: statusColor(status) }"
-      :title="status ?? 'No status'"
-      aria-hidden="true"
-    ></span>
-    <span class="title" dir="auto">{{ title }}</span>
-    <span v-if="warning" class="warning" :title="warning" role="img" :aria-label="warning">!</span>
-    <span class="meta">{{ detail ?? formatWordCount(wordCount) }}</span>
-  </button>
+  <div class="entry-row">
+    <button
+      type="button"
+      class="row"
+      :class="{ active }"
+      :aria-current="active ? 'true' : undefined"
+      @click="$emit('open')"
+    >
+      <span class="number">{{ number ?? '' }}</span>
+      <span
+        class="status"
+        :style="{ background: statusColor(status) }"
+        :title="status ?? 'No status'"
+        aria-hidden="true"
+      ></span>
+      <span class="title" dir="auto">{{ title }}</span>
+      <span v-if="warning" class="warning" :title="warning" role="img" :aria-label="warning"
+        >!</span
+      >
+      <span class="meta">{{ detail ?? formatWordCount(wordCount) }}</span>
+    </button>
+    <ReferenceButton :title="title" @open="$emit('reference')" />
+  </div>
 </template>
 
 <style scoped>
+.entry-row {
+  display: flex;
+  align-items: center;
+}
+
 .row {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   min-height: 32px;
   padding: 0 10px 0 8px;
   border: none;

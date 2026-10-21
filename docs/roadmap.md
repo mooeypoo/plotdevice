@@ -115,6 +115,18 @@ One phase per agent session. Each phase ends with lint, typecheck, and tests gre
 - [x] Inspector group chips with existing-name suggestions and inline creation/removal, through validated, version-checked codex writes.
 - [x] All/Grouped character lists, collapsible headings and Ungrouped, name/alias search, and union-of-groups filters with unique file counts. Remember list mode, collapse state and filters per project in user preferences.
 
+## Phase 15: Independent references
+- [x] Character rows show the existing role/alias subtitle beneath the name, without adding a summary field.
+- [x] Independent rendered Reference panel for characters, locations, notes, parts and chapters; explicit editor actions retain one writable editor and its Properties inspector.
+- [x] Reuse inert outline rendering and reading width; retain per-reference scroll during the project session, refresh external changes, reject stale loads and follow app moves/renames.
+- [x] Route codex lookups and reference links without replacing the manuscript; preserve outline selection and existing conflict/recovery protections.
+
+## Phase 16: Writing anchor and document tabs (approved, next phase)
+- [ ] Keep an automatic manuscript Writing target based on actual writing, with an explicit pin to lock it and a Write here action to change it.
+- [ ] Temporary, kept and pinned document tabs; deduplicate open documents and offer quick Return to writing and keyboard cycling.
+- [ ] Preserve per-document CodeMirror history, selection and scroll while retaining one active writable surface and all save/recovery navigation guards.
+- [ ] Route every document-opening surface consistently; follow renames/moves and restore valid per-project tab metadata from user settings, never novel files or an implied unsaved-draft backup.
+
 ## Proposed release and documentation program
 
 The [release plan](release-plan.md) tracks approved work: MVP version policy,
@@ -142,6 +154,7 @@ native deb permissions and publisher authentication are not changed by metadata.
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Documentation tooling: the offline manual build passes but emits Node module-type and Vite native-config compatibility warnings. Address module configuration separately from reference UI work.
 - Character-group follow-ups: persistent empty groups, custom ordering/colors/descriptions, bulk assignment, and group filters in Timeline/Interactions are not part of Phase 14.
 - Phase 9 follow-ups:
   - Sign the Windows installer, so SmartScreen doesn't warn (needs a code-signing certificate).
@@ -163,7 +176,7 @@ native deb permissions and publisher authentication are not changed by metadata.
   - Relationships can't be reordered in the app, and removing an entry's first field (`with`) is refused (ADR 0007).
   - Markdown links are read for Appears in and Ctrl/Cmd+click, not for chapter placement (`part:`) or renames.
 - Phase 5a follow-ups:
-  - The editor, inspector, and side panel share one open entry (`app/editor-store.ts`); stores register as owners of entry kinds (`app/entry-owners.ts`) to avoid import cycles.
+  - The writable editor and Properties inspector still share one open entry; Phase 15 separates read-only references. Phase 16 will add document tabs without introducing competing writers.
   - Codex entries have no word counts in their list, and notes have no aliases field (their other keys are shown read-only).
 - Phase 4 follow-ups:
   - Changes to `novel.md` settings (`file_names`, folders) take effect when the project is reopened; statuses and threads update live.

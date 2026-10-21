@@ -5,9 +5,11 @@ import InspectorPanel from '../features/inspector/InspectorPanel.vue'
 import OutlineInspector from '../features/inspector/OutlineInspector.vue'
 import TemplateInspector from '../features/inspector/TemplateInspector.vue'
 import OutlinePanel from '../features/outline/OutlinePanel.vue'
+import ReferencePanel from '../features/reference/ReferencePanel.vue'
 import { useEditorStore } from './editor-store'
 import { useLayoutStore, type RightTab } from './layout-store'
 import { useOutlineWidth } from './use-outline-width'
+import { navigateTabs } from '../shared/tab-navigation'
 
 const editor = useEditorStore()
 const layout = useLayoutStore()
@@ -17,10 +19,12 @@ const { width, minimum, maximum, expanded } = resize
 
 const TABS: readonly { readonly id: RightTab; readonly label: string }[] = [
   { id: 'properties', label: 'Properties' },
-  { id: 'outline', label: 'Outline' }
+  { id: 'outline', label: 'Outline' },
+  { id: 'reference', label: 'Reference' }
 ]
 
 const kind = computed(() => editor.entry?.kind)
+const resizable = computed(() => layout.rightTab !== 'properties')
 </script>
 
 <template>
@@ -28,14 +32,14 @@ const kind = computed(() => editor.entry?.kind)
     id="right-panel"
     ref="panel"
     class="right"
-    :style="layout.rightTab === 'outline' ? { width: `${width}px` } : undefined"
+    :style="resizable ? { width: `${width}px` } : undefined"
   >
     <div
-      v-if="layout.rightTab === 'outline'"
+      v-if="resizable"
       class="resize-handle"
       role="separator"
       tabindex="0"
-      aria-label="Outline panel width"
+      :aria-label="layout.rightTab === 'outline' ? 'Outline panel width' : 'Reference panel width'"
       aria-orientation="vertical"
       aria-controls="right-panel"
       :aria-valuemin="minimum"
@@ -49,13 +53,16 @@ const kind = computed(() => editor.entry?.kind)
       @keydown="resize.keydown"
     ></div>
     <div class="panel-header">
-      <div class="tabs" role="tablist" aria-label="Right panel">
+      <div class="tabs" role="tablist" aria-label="Right panel" @keydown="navigateTabs">
         <button
           v-for="tab in TABS"
+          :id="`right-tab-${tab.id}`"
           :key="tab.id"
           type="button"
           role="tab"
           :aria-selected="layout.rightTab === tab.id"
+          :aria-controls="`right-panel-${tab.id}`"
+          :tabindex="layout.rightTab === tab.id ? 0 : -1"
           :class="{ selected: layout.rightTab === tab.id }"
           @click="layout.rightTab = tab.id"
         >
@@ -63,7 +70,7 @@ const kind = computed(() => editor.entry?.kind)
         </button>
       </div>
       <button
-        v-if="layout.rightTab === 'outline'"
+        v-if="resizable"
         type="button"
         class="quiet expand"
         :aria-expanded="expanded"
@@ -73,7 +80,13 @@ const kind = computed(() => editor.entry?.kind)
         {{ expanded ? 'Restore' : 'Expand' }}
       </button>
     </div>
-    <template v-if="layout.rightTab === 'properties'">
+    <div
+      v-if="layout.rightTab === 'properties'"
+      id="right-panel-properties"
+      class="properties-tab"
+      role="tabpanel"
+      aria-labelledby="right-tab-properties"
+    >
       <p v-if="kind === undefined" class="nothing">
         Open a chapter or codex entry to see its properties.
       </p>
@@ -81,9 +94,24 @@ const kind = computed(() => editor.entry?.kind)
       <TemplateInspector v-else-if="kind === 'template'" />
       <OutlineInspector v-else-if="kind === 'outline'" />
       <CodexInspector v-else />
-    </template>
-    <div v-else class="outline-tab">
+    </div>
+    <div
+      v-else-if="layout.rightTab === 'outline'"
+      id="right-panel-outline"
+      class="outline-tab"
+      role="tabpanel"
+      aria-labelledby="right-tab-outline"
+    >
       <OutlinePanel />
+    </div>
+    <div
+      v-else
+      id="right-panel-reference"
+      class="reference-tab"
+      role="tabpanel"
+      aria-labelledby="right-tab-reference"
+    >
+      <ReferencePanel />
     </div>
   </div>
 </template>
@@ -101,11 +129,13 @@ const kind = computed(() => editor.entry?.kind)
 
 .panel-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
 }
 
 .expand {
-  margin: 10px 8px 0 0;
+  margin: 10px 0 0;
+  margin-inline: auto 8px;
   padding: 4px 6px;
   font-size: 11px;
 }
@@ -130,6 +160,7 @@ const kind = computed(() => editor.entry?.kind)
 .tabs {
   display: flex;
   flex: 1;
+  flex-basis: 240px;
   min-width: 0;
   gap: 4px;
   padding: 10px 10px 0;
@@ -158,6 +189,14 @@ const kind = computed(() => editor.entry?.kind)
   min-height: 0;
   overflow-y: auto;
   padding: 16px 18px 40px;
+}
+
+.properties-tab,
+.reference-tab {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .nothing {
