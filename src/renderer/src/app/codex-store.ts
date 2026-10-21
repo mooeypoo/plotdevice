@@ -32,7 +32,8 @@ export const useCodexStore = defineStore('codex', () => {
   const listing = shallowRef<CodexListingDto | null>(null)
   /** Increments on every reload, so views of a file (the outline panel) know to re-read it. */
   const revision = ref(0)
-  const loadError = ref<string | null>(null)
+  const { message: loadError, source: loadErrorSource } = useErrorNotice()
+  let loadRequest = 0
   const properties = shallowRef<CodexPropertiesDto | null>(null)
   const appearsIn = shallowRef<readonly AppearanceDto[]>([])
   const listedBy = shallowRef<readonly ListedByDto[]>([])
@@ -65,14 +66,16 @@ export const useCodexStore = defineStore('codex', () => {
   )
 
   async function load(): Promise<void> {
+    const request = ++loadRequest
     const result = await api().listCodex()
+    if (request !== loadRequest) return
     if (result.ok) {
       listing.value = result.value
       revision.value += 1
       loadError.value = null
       void useReferenceStore().reload()
     } else {
-      loadError.value = result.error.message
+      loadErrorSource.value = result.error
     }
   }
 
@@ -219,6 +222,8 @@ export const useCodexStore = defineStore('codex', () => {
   }
 
   function close(): void {
+    loadRequest += 1
+    loadError.value = null
     listing.value = null
     properties.value = null
     appearsIn.value = []

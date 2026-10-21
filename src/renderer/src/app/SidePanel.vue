@@ -42,6 +42,22 @@ const TABS: readonly { readonly id: SideTab; readonly label: string }[] = [
         {{ tab.label }}
       </button>
     </div>
+    <p
+      v-if="layout.sideTab === 'manuscript' && manuscript.loadError"
+      class="load-error"
+      role="alert"
+      dir="auto"
+    >
+      {{ manuscript.loadError }}
+    </p>
+    <p
+      v-if="layout.sideTab === 'codex' && codex.loadError"
+      class="load-error"
+      role="alert"
+      dir="auto"
+    >
+      {{ codex.loadError }}
+    </p>
     <BinderTree
       v-if="layout.sideTab === 'manuscript' && manuscript.manuscript && workspace.project"
       :project-root="workspace.project.root"
@@ -115,5 +131,12 @@ const TABS: readonly { readonly id: SideTab; readonly label: string }[] = [
   flex: 1;
   overflow-y: auto;
   padding: 10px 10px 0;
+}
+
+.load-error {
+  margin: 10px;
+  color: var(--danger);
+  font-size: 12px;
+  overflow-wrap: anywhere;
 }
 </style>

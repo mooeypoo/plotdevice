@@ -160,7 +160,9 @@ acceptance criteria, and the cross-session checklist.
             errors and visibly reported status-add failures.
           - [x] Workspace open/initialize/refresh diagnostics, reactive cached
             notices and visible current-project failures with stale-reply guards.
-          - [ ] Listing/reference/inspector and other query errors/
+          - [x] Live manuscript/codex listing errors and visible sidebar alerts;
+            reactive reference/outline read failures, with source paths retained.
+          - [ ] Inspector/cross-context queries and other notices/
             cached consumers. Next approval boundary.
 - [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.

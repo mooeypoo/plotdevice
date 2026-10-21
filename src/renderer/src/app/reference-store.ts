@@ -4,6 +4,7 @@ import { placeOf } from './entry-owners'
 import type { EntryPlace } from './entry-place'
 import { useLayoutStore } from './layout-store'
 import { plotDeviceApi } from './plot-device-api'
+import { useErrorNotice } from '../shared/use-error-notice'
 
 /** A document being consulted independently of the writable editor. */
 export interface ReferenceEntry extends EntryPlace {
@@ -15,7 +16,7 @@ export const useReferenceStore = defineStore('reference', () => {
   const path = ref<string | null>(null)
   const entry = shallowRef<ReferenceEntry | null>(null)
   const text = ref<string | null>(null)
-  const error = ref<string | null>(null)
+  const { message: error, source: errorSource } = useErrorNotice()
   const loading = ref(false)
   const positions = new Map<string, number>()
   let request = 0
@@ -29,8 +30,7 @@ export const useReferenceStore = defineStore('reference', () => {
     loading.value = false
     if (current === null) return
     if (place === undefined) {
-      error.value =
-        'This file is no longer listed in the project. It may have moved or changed type.'
+      errorSource.value = { notice: 'reference-not-listed', path: current }
       return
     }
     entry.value = { ...place, path: current }
@@ -42,7 +42,7 @@ export const useReferenceStore = defineStore('reference', () => {
     if (identity !== request) return
     loading.value = false
     if (result.ok) text.value = result.value.text
-    else error.value = result.error.message
+    else errorSource.value = result.error
   }
 
   watch(path, () => void reload(), { flush: 'sync' })

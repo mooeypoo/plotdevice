@@ -119,6 +119,9 @@ shows cached errors as reactive escaped text and clears them on an explicit succ
 Workspace open/initialize/refresh diagnostics retain exact OS paths and creation details.
 The project layout displays workspace navigation and refresh failures; refresh uses a separate
 semantic cache and rejects stale replies by request generation and project identity.
+Listing/reference/outline read errors also retain semantic state. Sidebar alerts expose
+listing failures without discarding the last successful listing; per-store request generations
+reject results from before close or a newer load. Reference selection/scroll never depends on locale.
 Unmigrated failures explicitly display their original message until their producers are migrated.
 Remaining action failures/strings, full RTL geometry and independent content-direction controls
 remain tracked in ADR 0016. No language switch changes novel files or existing writing preferences.

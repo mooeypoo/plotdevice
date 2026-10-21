@@ -115,6 +115,7 @@
   "warning-alternatives": "$1 accumulated target alternatives, $2 next isolated path. Used repeatedly; all candidates must remain visible.",
   "warning-quoted-title": "$1 is an isolated user-provided title. Add locale-appropriate quotation marks.",
   "error-read-only": "Expected save/recovery failure: project is read-only. Never imply a write succeeded.",
+  "reference-not-listed": "Read-only reference cannot be loaded because it is absent from the current project listing. $1 is its exact project-relative path, isolated by the caller. Do not translate the path or imply deletion.",
   "error-workspace-folder-not-allowed": "Workspace refusal: the folder must first be authorized through the native Open folder action. Translate the action label consistently with open-folder.",
   "error-workspace-folder-missing": "Workspace folder unavailable. $1 is the exact OS folder path, directionally isolated by the caller. Do not translate the path.",
   "error-workspace-not-project": "Chosen folder is not a project. $1 is its exact isolated OS path. novel.md is the fixed project marker filename and must not be translated.",

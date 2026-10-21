@@ -115,6 +115,7 @@
   "warning-alternatives": "$1 או $2",
   "warning-quoted-title": "״$1״",
   "error-read-only": "הפרויקט פתוח לקריאה בלבד.",
+  "reference-not-listed": "הקובץ „$1” כבר לא מופיע ברשימת הפרויקט. ייתכן שהוא הועבר או שהסוג שלו השתנה.",
   "error-workspace-folder-not-allowed": "יש לבחור תחילה את התיקייה באמצעות „פתיחת תיקייה…”.",
   "error-workspace-folder-missing": "התיקייה „$1” כבר לא קיימת. ייתכן שהיא הועברה או ששמה שונה.",
   "error-workspace-not-project": "בתיקייה „$1” אין קובץ novel.md, ולכן היא אינה פרויקט של Plot Device.",

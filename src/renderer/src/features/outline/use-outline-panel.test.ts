@@ -70,7 +70,7 @@ describe('useOutlinePanel', () => {
     await useCodexStore().reload()
     await flushPromises()
     expect(panel.text.value).toBeNull()
-    expect(panel.error.value).toBe('gone')
+    expect(panel.error.value).toBe('"\u2068Outline.md\u2069" no longer exists.')
     expect(panel.loading.value).toBe(false)
   })
 

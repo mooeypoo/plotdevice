@@ -93,7 +93,7 @@ describe('independent references', () => {
     await useCodexStore().reload()
     await flushPromises()
     expect(reference.text).toBeNull()
-    expect(reference.error).toBe('gone')
+    expect(reference.error).toBe('"\u2068characters/Ilka.md\u2069" no longer exists.')
     expect(reference.loading).toBe(false)
   })
 

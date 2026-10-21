@@ -115,6 +115,7 @@
   "warning-alternatives": "$1 or $2",
   "warning-quoted-title": "\"$1\"",
   "error-read-only": "This project is open read-only.",
+  "reference-not-listed": "The file \"$1\" is no longer listed in the project. It may have moved or changed type.",
   "error-workspace-folder-not-allowed": "Choose this folder with “Open folder…” first.",
   "error-workspace-folder-missing": "The folder “$1” no longer exists. It may have been moved or renamed.",
   "error-workspace-not-project": "The folder “$1” has no novel.md, so it is not a Plot Device project.",

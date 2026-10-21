@@ -5,6 +5,7 @@ import { useLayoutStore } from '../../app/layout-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import type { LinkAt } from '../editor/link-at'
 import { useEditorLinks } from '../editor/use-editor-links'
+import { useErrorNotice } from '../../shared/use-error-notice'
 
 /** The outline shown beside the draft: which one, its text, and what links to the open entry. */
 export function useOutlinePanel(): {
@@ -28,7 +29,7 @@ export function useOutlinePanel(): {
   const links = useEditorLinks()
   const text = ref<string | null>(null)
   const loading = ref(false)
-  const error = ref<string | null>(null)
+  const { message: error, source: errorSource } = useErrorNotice()
   let request = 0
 
   const outlines = computed(() => codex.listing?.outlines ?? [])
@@ -51,7 +52,7 @@ export function useOutlinePanel(): {
     if (identity !== request || path.value !== current) return
     loading.value = false
     if (result.ok) text.value = result.value.text
-    else error.value = result.error.message
+    else errorSource.value = result.error
   }
 
   // Re-read when the outline changes, the codex reloads (outside edits), or the main editor lets

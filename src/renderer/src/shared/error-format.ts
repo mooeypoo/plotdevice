@@ -9,6 +9,7 @@ export type StructureNotice =
 export type ErrorNotice =
   | ApiError
   | StructureNotice
+  | { readonly notice: 'reference-not-listed'; readonly path: string }
   | { readonly notice: EditorNoticeKey | 'workspace-unsaved-changes' }
   | { readonly notice: 'relationships-cannot-edit'; readonly error: ApiError }
   | string
@@ -128,6 +129,8 @@ export function formatApiError(error: ApiError, t: Translator['t']): string {
 /** Formats cached semantic notices only when presented, so switching locale never changes state. */
 export function formatErrorNotice(source: ErrorNotice, t: Translator['t']): string | null {
   if (source === null || typeof source === 'string') return source
+  if ('notice' in source && source.notice === 'reference-not-listed')
+    return t(source.notice, isolate(source.path))
   if ('error' in source) return t(source.notice, formatApiError(source.error, t))
   if ('notice' in source && source.notice === 'structure-renumber-failed')
     return t(source.notice, source.count)

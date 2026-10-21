@@ -79,7 +79,9 @@ progress, remaining limitations, and the next slice before ending a session.
             diagnostics and reactive action/inspector error caches.
           - [x] **Workspace:** open/initialize/refresh refusals, technical
             creation details, live notices and explicit current-project errors.
-          - [ ] **Remaining queries:** listings, reference/inspector
+          - [x] **Listings/readers:** live manuscript/codex listing errors,
+            visible sidebar failures and cached reference/outline read notices.
+          - [ ] **Remaining queries:** inspector and cross-context queries,
             failures and remaining string-caching stores/composables.
 - [ ] **I3 Complete translation:** all components/helpers, accessibility text,
   existing notices, number formatting, display collation, native dialogs and
@@ -414,9 +416,51 @@ Verified lint/dependency boundaries, typecheck, all 1,347 tests across 151 files
 and the production electron-vite build. Documentation build/link checks also pass.
 No real-browser/packaged qualification, push or release was performed.
 
+Workspace diagnostics were committed as `fa1107c`. The user approved listing/
+reference/outline diagnostics as the next bounded slice, including validation,
+documentation and commit.
+
+### I2b.2b.2 listing/reading handoff (2026-10-21)
+
+Manuscript/codex listing stores, the reference store and the outline composable
+now retain full API failures for shared reactive presentation. Existing semantic
+no-project/open-entry failures retranslate in place; unmigrated technical messages
+remain explicit legacy text. The local unlisted-reference notice has documented
+English/Hebrew/qqq coverage and retains the exact project-relative path, isolated
+only when displayed. This is renderer-only source state, not a new IPC shape:
+contract version remains 21, with no domain/application producer changes.
+
+Listing failures were cached but not rendered. Each active sidebar tab now shows
+its escaped failure alert, including failed initial loads without a listing.
+The last successful listing remains available after a failed refresh, and only
+that listing's successful query or project close clears its notice. Request
+generations reject replies superseded by a newer load or completed after close,
+so old results cannot restore a cleared error or overwrite a newer query outcome.
+No new retry controls or automatic retries were introduced.
+
+Reference/outline loading, request identity checks, independent reading selection,
+scroll storage, editor-draft reading policy and navigation protections are
+unchanged. Language changes do not trigger reads, listing reloads, saves or
+reference scroll restoration. Reference's existing explicit Retry action and
+outline reloads clear their read failures through the existing query path.
+Other reference action/link notices and remaining labels still await migration.
+The fake API already carries semantic open-entry failures; it is unchanged.
+IPC regression assertions cover both listing no-project reasons.
+
+Regressions first reproduced invisible listing failures and cached legacy reading
+text. Mounted tests cover English/Hebrew switching without extra reads, initial
+load errors, retained successful listings, per-query clearing, escaped legacy
+details, draft/selection/scroll preservation, successful read retries, isolated
+unlisted-reference paths and stale listing results after close/newer requests.
+Existing reference/outline navigation and race tests continue to pass.
+Verified lint/dependency boundaries, typecheck, all 1,359 tests across 152 files,
+the production electron-vite build and documentation build/link checks.
+No new dependencies, file-format changes, real-browser/packaged qualification,
+push or release.
+
 **Next session:** plan remaining I2 queries/caches and obtain approval before
-changing code. Trace manuscript/codex listing failures, reference/outline loading,
-inspector vocabulary/date-check refusals, timeline/interactions query errors and
+changing code. Trace inspector vocabulary/date-check refusals, timeline/
+interactions and appearance query errors, reference link/action notices and
 remaining cached English notices, including fake APIs and presentation consumers.
 Preserve exact details and existing navigation/recovery behavior; avoid guessing
 text from broad codes. Recent-project/folder-choice failure API design remains

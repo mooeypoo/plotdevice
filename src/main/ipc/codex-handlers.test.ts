@@ -67,6 +67,17 @@ beforeEach(() => {
 })
 
 describe('codex handlers', () => {
+  it('retains a semantic no-project failure for the codex listing', async () => {
+    session = undefined
+    expect(await handlers.listCodex()).toEqual({
+      ok: false,
+      error: {
+        code: 'no-project',
+        message: 'No project is open.',
+        diagnostic: { reason: 'no-project' }
+      }
+    })
+  })
   it('retains technical failures for codex/outline/template creation and type writes across IPC', async () => {
     const error = {
       code: 'write-failed',

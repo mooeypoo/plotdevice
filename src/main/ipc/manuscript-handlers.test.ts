@@ -408,7 +408,7 @@ describe('manuscript handlers', () => {
     session = undefined
     expect(await handlers.getManuscript()).toMatchObject({
       ok: false,
-      error: { code: 'no-project' }
+      error: { code: 'no-project', diagnostic: { reason: 'no-project' } }
     })
     expect(await handlers.createPart(['x'])).toMatchObject({
       ok: false,

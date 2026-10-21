@@ -98,6 +98,13 @@ describe('semantic save/recovery error presentation', () => {
     expect(formatErrorNotice({ notice: 'editor-changed-again' }, hebrew.t)).toContain('השתנה שוב')
   })
 
+  it('isolates the exact unlisted reference path without mutating the cached notice', () => {
+    const source = { notice: 'reference-not-listed', path: 'notes/יעל <img>.md' } as const
+    expect(formatErrorNotice(source, english.t)).toContain(`\u2068${source.path}\u2069`)
+    expect(formatErrorNotice(source, hebrew.t)).toContain(`\u2068${source.path}\u2069`)
+    expect(source.path).toBe('notes/יעל <img>.md')
+  })
+
   it.each([0, 1, 2, 3, 10, 21])(
     'formats structural counts %i without leaking plural markup',
     (count) => {

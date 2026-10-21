@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, ref, shallowRef } from 'vue'
+import { computed, shallowRef } from 'vue'
 import type {
   ApiError,
   ChapterDestinationDto,
@@ -16,6 +16,7 @@ import { registerEntryOwner } from './entry-owners'
 import type { EntryPlace } from './entry-place'
 import { plotDeviceApi } from './plot-device-api'
 import { useReferenceStore } from './reference-store'
+import { useErrorNotice } from '../shared/use-error-notice'
 
 /** Where a part or chapter sits in the manuscript, with its part's listing. */
 interface ManuscriptPlace {
@@ -29,7 +30,8 @@ interface ManuscriptPlace {
  */
 export const useManuscriptStore = defineStore('manuscript', () => {
   const manuscript = shallowRef<ManuscriptDto | null>(null)
-  const loadError = ref<string | null>(null)
+  const { message: loadError, source: loadErrorSource } = useErrorNotice()
+  let loadRequest = 0
   /** The open part's or chapter's frontmatter, as the inspector shows it. */
   const properties = shallowRef<EntryPropertiesDto | null>(null)
 
@@ -44,13 +46,15 @@ export const useManuscriptStore = defineStore('manuscript', () => {
   })
 
   async function load(): Promise<void> {
+    const request = ++loadRequest
     const result = await api().getManuscript()
+    if (request !== loadRequest) return
     if (result.ok) {
       manuscript.value = result.value
       loadError.value = null
       void useReferenceStore().reload()
     } else {
-      loadError.value = result.error.message
+      loadErrorSource.value = result.error
     }
   }
 
@@ -229,6 +233,8 @@ export const useManuscriptStore = defineStore('manuscript', () => {
   }
 
   function close(): void {
+    loadRequest += 1
+    loadError.value = null
     manuscript.value = null
     properties.value = null
   }
