@@ -200,6 +200,8 @@ acceptance criteria, and the cross-session checklist.
     UI-locale counts; preserve authored names, selection and project data.
   - [x] I3j: Codex profile fields, appearances, relationships and accessibility;
     preserve authored values, drafts and relationship behavior.
+  - [x] I3k: Outline/Template inspector explanations and accessible labels;
+    preserve manuscript/template tokens, editor state and project files.
   - [ ] Remaining I3: other inspector panels, reading text, locale-aware
     formatting/collation surfaces, native dialog/confirmation and startup text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.

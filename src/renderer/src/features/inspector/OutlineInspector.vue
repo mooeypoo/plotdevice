@@ -1,25 +1,31 @@
 <script setup lang="ts">
+import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useEditorStore } from '../../app/editor-store'
+import { isolate } from '../../shared/isolate'
 
 const editor = useEditorStore()
+const language = useUiLanguageStore()
 </script>
 
 <template>
-  <aside class="inspector" aria-label="Inspector">
+  <aside class="inspector" :aria-label="language.t('chrome-inspector')">
     <header>
-      <span class="eyebrow">Outline</span>
+      <span class="eyebrow">{{ language.t('entry-place-outline') }}</span>
     </header>
     <div class="note">
+      <p>{{ language.t('outline-inspector-description') }}</p>
       <p>
-        Your plan, in your words. Link chapters and characters with [[their names]]; lines without
-        links are fine too.
-      </p>
-      <p>
-        While you write a chapter, this outline shows in the Outline tab beside it (Ctrl+Shift+O),
-        with the lines about that chapter highlighted.
+        {{
+          language.t(
+            'outline-inspector-while-writing',
+            isolate('Ctrl+Shift+O')
+          )
+        }}
       </p>
     </div>
-    <p class="hint">Saved to {{ editor.entry?.path }}</p>
+    <p class="hint">
+      {{ language.t('inspector-saved-to', isolate(editor.entry?.path ?? '')) }}
+    </p>
   </aside>
 </template>
 

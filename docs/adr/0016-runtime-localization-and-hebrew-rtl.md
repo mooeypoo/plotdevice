@@ -122,7 +122,9 @@ progress, remaining limitations, and the next slice before ending a session.
     selected-pair copy, and UI-locale counts without changing matrix behavior.
   - [x] **I3j Codex profile:** character/location/note labels, aliases, groups,
     role/birth, appearances, additional properties, and character relationships.
-  - [ ] **Remaining I3:** other inspector panels, reading text, remaining
+  - [x] **I3k Outline/Template inspectors:** panel explanations, saved paths,
+    literal Markdown/frontmatter examples, and generated template-kind labels.
+  - [ ] **Remaining I3:** reading text, remaining
     locale-aware formatting/collation, native dialog/confirmation and startup
     text.
 - [ ] **I4 RTL interface:** binder indentation/disclosures, logical layout,
@@ -1116,13 +1118,6 @@ files**, and production electron-vite build. Documentation build/link/asset
 checks passed for all 16 public pages. No API or dependencies changed; RTL
 matrix geometry remains I4.
 
-**Next session:** propose a bounded inspector translation slice before editing,
-starting with the Outline and Template panels. Remaining I3 work includes those
-panels, reading text, other locale-aware formatting/collation surfaces, native
-dialog/confirmation wording and startup fallback. I3 remains incomplete; RTL
-geometry/directional controls and packaged qualification remain I4-I6, and the
-separate Hebrew manual is not implemented.
-
 ### I3j Codex profile and relationships inspector
 
 The Codex Properties inspector now translates its kind/name/title, alias, group,
@@ -1143,3 +1138,26 @@ lint/dependency boundaries (471 modules/2,367 dependencies), typecheck,
 **1,546 tests across 169 files**, and production electron-vite build.
 Documentation build/link/asset checks passed for all 16 public pages. No API or
 dependencies changed.
+
+### I3k Outline and Template inspector copy
+
+The Outline inspector translates its heading, guidance, keyboard-accessible
+inspector name and saved-path sentence. The Template inspector translates its
+heading, generated entry kind, instructions and saved-path sentence. The
+wikilink example, keyboard shortcut, `role:`, `type`, and `title` remain literal
+technical tokens. Displayed project-relative paths are bidi-isolated; editor
+text and project files are unchanged.
+
+Language switches preserve the open editor text and do not reopen or save the
+outline/template. Focused tests cover Hebrew guidance and accessible names,
+literal Markdown/frontmatter tokens, exact saved paths, and no
+language-triggered project access. Verified lint/dependency boundaries (473
+modules/2,391 dependencies), typecheck, **1,548 tests across 171 files**,
+production electron-vite build, and documentation build/link/asset checks across
+all 16 public pages. No API or dependencies changed.
+
+**Next session:** propose a bounded reading-text translation slice before
+editing. Remaining I3 work includes reading text, other locale-aware
+formatting/collation surfaces, native dialog/confirmation wording and startup
+fallback. I3 remains incomplete; RTL geometry/directional controls and packaged
+qualification remain I4-I6, and the separate Hebrew manual is not implemented.
