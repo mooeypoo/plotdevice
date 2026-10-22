@@ -322,15 +322,16 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 **Done when:** a new Hebrew project writes Hebrew seeds and `language: he`, an existing project without `language` is byte-identical after opening, and interface-language switches still write nothing.
 
 ### P1: Outline context and grammar
-- [ ] New `outline` bounded context. Move outline listing, creation, and text open/save out of codex, keeping the contract compatible.
-- [ ] Pure line-based parser with source ranges: preamble, columns, beats, notes, chapter links, thread tags, plain content, fenced code.
-- [ ] Pure structural planners (move beat, move column, add beat, retitle beat, edit notes, capture), not yet wired to IPC.
-- [ ] Fixture outlines in `fixtures/sample-novel/`, including hostile ones, with byte-identical round trips outside edited lines. Fixture-integrity test updated.
-- [ ] Apply the "Outlines" changes to `file-format.md`. Accept ADR 0020.
+- [x] New `outline` bounded context. Move outline listing, creation, and text open/save out of codex, keeping the contract compatible (the codex IPC handler forwards to it; `api.outline` moves to P2).
+- [x] Pure line-based parser with source ranges: preamble, columns, beats, notes, chapter links, thread tags, plain content, fenced code.
+- [x] Pure structural planners (move beat, move column, add beat, retitle beat, edit notes, capture), not yet wired to IPC. P3 adds the raw-body write they need (the editor path normalizes line endings).
+- [x] Fixture outlines in `fixtures/sample-novel/`, including hostile ones, with byte-identical round trips outside edited lines. Fixture-integrity test updated.
+- [x] Apply the "Outlines" changes to `file-format.md`. Accept ADR 0020.
 
 **Done when:** every planner is proven byte-exact on every fixture outline, and codex no longer owns outlines.
 
 ### P2: Plotting mode and read-only board
+- [ ] `api.outline` (`list`, `create`, `openEntry`, `saveText`, `readBoard`, `capture`), with the codex outline methods kept as forwarding aliases for one version; a renderer outline store takes the `outline` entry owner.
 - [ ] Writing/Plotting mode switch through the navigation queue; the Plot preset.
 - [ ] Beat board as a projection (columns follow inline direction; beats in document order) with chapter status, POV, word count, and thread color.
 - [ ] Toggle between board and the outline's text in the writable editor, never both editable.

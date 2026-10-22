@@ -20,11 +20,12 @@ function listFiles(dir: string): string[] {
 }
 
 const crlfOnly = [
+  'outlines/Revision plan.md',
   'manuscript/Part One/First frost.md',
   'manuscript/Part Three/Part Three.md',
   'characters/Aunt Bea.md'
 ]
-const mixedLineEndings = ['manuscript/Part One/Mixed endings.md']
+const mixedLineEndings = ['manuscript/Part One/Mixed endings.md', 'outlines/Loose plan.md']
 
 describe('fixtures/sample-novel', () => {
   it('contains exactly the expected files', () => {
@@ -32,6 +33,11 @@ describe('fixtures/sample-novel', () => {
       [
         '.obsidian/app.json',
         'Loose thoughts.md',
+        'Working plan.md',
+        'outlines/Loose plan.md',
+        'outlines/Not a board.md',
+        'outlines/Revision plan.md',
+        'outlines/תוכנית.md',
         'characters/Marrow.md',
         'characters/Ilka Szabó.md',
         'characters/Aunt Bea.md',
@@ -92,11 +98,15 @@ describe('fixtures/sample-novel', () => {
   it('keeps a file without a trailing newline', () => {
     const text = bytes('manuscript/Part Two/Café Ñandú.md').toString('utf8')
     expect(text.endsWith('strike.')).toBe(true)
+    expect(bytes('outlines/Loose plan.md').toString('utf8').endsWith('the gate')).toBe(true)
   })
 
-  it('keeps a UTF-8 byte-order mark', () => {
-    expect([...bytes('manuscript/Part Three/הנהר.md').subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf])
-  })
+  it.each(['manuscript/Part Three/הנהר.md', 'outlines/Revision plan.md'])(
+    'keeps a UTF-8 byte-order mark in %s',
+    (path) => {
+      expect([...bytes(path).subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf])
+    }
+  )
 
   it('keeps a file that is not valid UTF-8', () => {
     const decoder = new TextDecoder('utf-8', { fatal: true })

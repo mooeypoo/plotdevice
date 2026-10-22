@@ -50,7 +50,7 @@ describe('loading the sample novel', () => {
 
   it('offers every scanned file as a link candidate', async () => {
     const files = await createMarkdownManuscriptRepository(copy.root).load()
-    expect(files.linkCandidates).toHaveLength(30)
+    expect(files.linkCandidates).toHaveLength(35)
     expect(files.linkCandidates).toContainEqual({ path: 'locations/Marrow.md', type: 'location' })
   })
 })

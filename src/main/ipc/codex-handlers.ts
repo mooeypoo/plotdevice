@@ -11,7 +11,6 @@ import type {
   SavedEntryDto
 } from '../../contract/dtos'
 import type { CreateCodexEntry } from '../contexts/codex/application/commands/create-codex-entry'
-import type { CreateOutline } from '../contexts/codex/application/commands/create-outline'
 import type { EditTemplate } from '../contexts/codex/application/commands/edit-template'
 import type {
   PlanCodexRename,
@@ -24,11 +23,18 @@ import type { UpdateCodexProperties } from '../contexts/codex/application/comman
 import type { GetCodexProperties } from '../contexts/codex/application/queries/get-codex-properties'
 import type { ListCodex } from '../contexts/codex/application/queries/list-codex'
 import type { OpenCodexEntry } from '../contexts/codex/application/queries/open-codex-entry'
+import type { CreateOutline } from '../contexts/outline/application/commands/create-outline'
+import type { SaveOutlineText } from '../contexts/outline/application/commands/save-outline-text'
+import type { ListOutlines } from '../contexts/outline/application/queries/list-outlines'
+import type { OpenOutline } from '../contexts/outline/application/queries/open-outline'
 import type { GetAppearsIn } from '../queries/get-appears-in'
 import { parseProjectPath, projectPathName, type ProjectPath } from '../shared-kernel/project-path'
 import { toApiError } from './workspace-dtos'
 
-/** The codex use cases for the open project. */
+/**
+ * The codex use cases for the open project. Outlines belong to the outline context; the codex API
+ * still lists, creates, opens and saves them until `api.outline` arrives (ADR 0020).
+ */
 export interface CodexUseCases {
   readonly listCodex: ListCodex
   readonly openEntry: OpenCodexEntry
@@ -38,7 +44,10 @@ export interface CodexUseCases {
   readonly updateRelationships: UpdateRelationships
   readonly createEntry: CreateCodexEntry
   readonly editTemplate: EditTemplate
+  readonly listOutlines: ListOutlines
   readonly createOutline: CreateOutline
+  readonly openOutline: OpenOutline
+  readonly saveOutlineText: SaveOutlineText
   readonly setEntryType: SetEntryType
   readonly planRename: PlanCodexRename
   readonly renameEntry: RenameCodexEntry
@@ -128,6 +137,7 @@ const notAllowed: ApiResult<never> = {
  */
 export function createCodexHandlers(current: () => CodexUseCases | undefined): CodexHandlers {
   let entryPaths = new Set<string>()
+  let outlinePaths = new Set<string>()
   let untypedPaths = new Set<string>()
   let listedFor: CodexUseCases | undefined
 
@@ -167,13 +177,14 @@ export function createCodexHandlers(current: () => CodexUseCases | undefined): C
     async listCodex() {
       const useCases = current()
       if (useCases === undefined) return noProject
-      const listing = await useCases.listCodex()
+      const [listing, outlines] = await Promise.all([useCases.listCodex(), useCases.listOutlines()])
       listedFor = useCases
+      outlinePaths = new Set(outlines.map((outline) => outline.path))
       // Templates open and save like entries; they have no properties to read.
       entryPaths = new Set([
         ...listing.entries.map((entry) => entry.path),
         ...listing.templates.map((template) => template.path),
-        ...listing.outlines.map((outline) => outline.path)
+        ...outlinePaths
       ])
       untypedPaths = new Set(listing.untyped.map((file) => file.path))
       return {
@@ -182,14 +193,16 @@ export function createCodexHandlers(current: () => CodexUseCases | undefined): C
           entries: listing.entries.map((entry) => ({ ...entry, aliases: [...entry.aliases] })),
           untyped: [...listing.untyped],
           templates: [...listing.templates],
-          outlines: [...listing.outlines]
+          outlines: [...outlines]
         }
       }
     },
 
     openEntry: (args) =>
       onEntry<z.infer<typeof pathArgs>, EntryTextDto>(pathArgs, args, async (useCases, entry) => {
-        const opened = await useCases.openEntry(entry)
+        const opened = outlinePaths.has(entry)
+          ? await useCases.openOutline(entry)
+          : await useCases.openEntry(entry)
         return opened.ok
           ? { ok: true, value: { path: entry, ...opened.value } }
           : { ok: false, error: toApiError(opened.error) }
@@ -200,7 +213,9 @@ export function createCodexHandlers(current: () => CodexUseCases | undefined): C
         saveArgs,
         args,
         async (useCases, entry, [, text, version, overwrite]) => {
-          const saved = await useCases.saveEntryText(entry, text, version, overwrite)
+          const saved = outlinePaths.has(entry)
+            ? await useCases.saveOutlineText(entry, text, version, overwrite)
+            : await useCases.saveEntryText(entry, text, version, overwrite)
           return saved.ok
             ? { ok: true, value: saved.value }
             : { ok: false, error: toApiError(saved.error) }
@@ -274,7 +289,10 @@ export function createCodexHandlers(current: () => CodexUseCases | undefined): C
         async (useCases, [title]) => {
           const created = await useCases.createOutline(title)
           if (!created.ok) return { ok: false, error: toApiError(created.error) }
-          if (listedFor === useCases) entryPaths.add(created.value.path)
+          if (listedFor === useCases) {
+            entryPaths.add(created.value.path)
+            outlinePaths.add(created.value.path)
+          }
           return { ok: true, value: { path: created.value.path } }
         }
       ),

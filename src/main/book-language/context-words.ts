@@ -14,7 +14,7 @@ export function manuscriptWordsOf(book: BookWords) {
   }
 }
 
-/** Words for new codex entries and outlines. */
+/** Words for new codex entries. */
 export function codexWordsOf(book: BookWords) {
   const { seeds } = book
   return {
@@ -27,8 +27,15 @@ export function codexWordsOf(book: BookWords) {
       character: [seeds['heading-description'], seeds['heading-history'], seeds['heading-arc']],
       location: [seeds['heading-description'], seeds['heading-history']],
       note: []
-    },
-    untitledOutline: seeds['untitled-outline']
+    }
+  }
+}
+
+/** Words for outlines: a new outline's title, and the Inbox heading captured beats go under. */
+export function outlineWordsOf(book: BookWords) {
+  return {
+    untitledOutline: book.seeds['untitled-outline'],
+    inbox: book.recognized.outline_inbox
   }
 }
 
