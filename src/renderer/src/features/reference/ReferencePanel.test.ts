@@ -373,3 +373,16 @@ describe('Reference pin', () => {
     expect(useReferenceStore().path).toBe('characters/Ilka.md')
   })
 })
+
+describe('Reference open beside', () => {
+  it('shows the referenced document in a split beside the editor', async () => {
+    useReferenceStore().open('characters/Ilka.md')
+    const panel = mount(ReferencePanel)
+    await flushPromises()
+    await panel.get('.beside').trigger('click')
+    await flushPromises()
+    const workbench = useWorkbenchStore()
+    const id = workbench.layout.center.splits[0]?.id ?? ''
+    expect(workbench.splits[id]?.path).toBe('characters/Ilka.md')
+  })
+})

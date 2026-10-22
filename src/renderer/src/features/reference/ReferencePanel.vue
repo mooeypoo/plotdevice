@@ -55,6 +55,15 @@ const { text, profile, openInEditor, actionError, linkNotice } = panel
           {{ language.t('cards-pin') }}
         </button>
         <button
+          v-if="reference.path !== null && reference.entry !== null"
+          type="button"
+          class="quiet beside"
+          :aria-label="language.t('split-open-beside-label', isolate(reference.entry.title))"
+          @click="navigation.openBeside(reference.path)"
+        >
+          {{ language.t('split-open-beside') }}
+        </button>
+        <button
           v-if="reference.entry !== null"
           type="button"
           class="quiet edit"
@@ -125,7 +134,8 @@ header {
   gap: 8px;
 }
 .edit,
-.pin {
+.pin,
+.beside {
   padding: 4px 6px;
   font-size: 11px;
 }

@@ -3,8 +3,8 @@
 **Status:** accepted in part (2026-10-22). W2 implements readers, the document presenter,
 move followers, and center-view switches through the navigation queue; W4 adds layout
 switches through the queue and the outline's live draft; W5a makes every peek and pinned
-card a reader with its own text, properties and live draft. Open beside, lock, Write here
-from a split and board writes land in W5c and P3.
+card a reader with its own text, properties and live draft; W5c adds Open beside, lock and
+Write here (which swaps the editor's document into the split). Board writes land in P3.
 Amends ADR 0014 and ADR 0015; supersedes neither. See `docs/plans/workbench-ui-plan.md`.
 
 ## Context
