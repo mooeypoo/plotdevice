@@ -12,7 +12,7 @@ import {
 import type { TimelineChapterDto, TimelineDto } from '../../../../contract/dtos'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
-import { useLayoutStore } from '../../app/layout-store'
+import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { goesBackInTime, readingRows, type GridRow, type RowMode } from './reading-grid'
@@ -42,7 +42,7 @@ export function useTimeline(): {
   const manuscript = useManuscriptStore()
   const codex = useCodexStore()
   const editor = useEditorStore()
-  const layout = useLayoutStore()
+  const navigation = useWorkbenchNavigation()
   const timeline = shallowRef<TimelineDto | null>(null)
   const { message: error, source: errorSource } = useErrorNotice()
   let request = 0
@@ -81,7 +81,7 @@ export function useTimeline(): {
   watch(range, fit)
 
   async function open(path: string): Promise<void> {
-    if (await editor.open(path)) layout.mainView = 'write'
+    await editor.open(path)
   }
 
   return {
@@ -109,8 +109,7 @@ export function useTimeline(): {
     open,
     fixDate: async (path) => {
       await open(path)
-      layout.inspectorOpen = true
-      layout.rightTab = 'properties'
+      navigation.revealPanel('properties')
       await nextTick()
       document.getElementById('inspector-date')?.focus()
     }

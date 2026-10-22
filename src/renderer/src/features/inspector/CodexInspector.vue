@@ -12,7 +12,7 @@ import { formatStoryDateReading } from '../../shared/story-date-format'
 import RelationshipsEditor from './RelationshipsEditor.vue'
 import RenameOffer from './RenameOffer.vue'
 import TextListInput from './TextListInput.vue'
-import { characterGroupNames } from '../codex/character-list'
+import { characterGroupNames } from '../../shared/character-list'
 import { useStoryDateCheck } from './use-story-date-check'
 
 const codex = useCodexStore()

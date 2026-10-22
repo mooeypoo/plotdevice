@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { defineComponent } from 'vue'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
+import { useEditorStore } from './editor-store'
 import { useLayoutStore } from './layout-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useMenuCommands } from './use-menu-commands'
@@ -43,13 +44,14 @@ describe('useMenuCommands', () => {
     host.unmount()
   })
 
-  it('selects all four views and stops listening on unmount', () => {
+  it('selects all four views through the navigation queue and stops listening on unmount', async () => {
     const fake = createFakePlotDeviceApi()
     plotDeviceApi.current = () => fake.api
     const host = mount(Host)
     const layout = useLayoutStore()
     for (const view of ['overview', 'timeline', 'interactions', 'write'] as const) {
       fake.emitMenuCommand(view)
+      await useEditorStore().waitForNavigation()
       expect(layout.mainView).toBe(view)
     }
     host.unmount()

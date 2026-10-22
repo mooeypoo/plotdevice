@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { LinkTargetDto } from '../../../contract/dtos'
-import type { LinkAt } from '../features/editor/link-at'
+import type { LinkAt } from './link-at'
 import { createMarkdownView, type MarkdownView } from './markdown-view'
 
 const props = defineProps<{

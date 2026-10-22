@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue'
-import EditorPane from '../features/editor/EditorPane.vue'
+import CenterStage from './CenterStage.vue'
 import { useInspectorStore } from './inspector-store'
 import { useChromePresentation } from '../shared/use-chrome-presentation'
 import { useUiLanguageStore } from './ui-language-store'
 import { isolate } from '../shared/isolate'
-import type { DropRequest } from '../features/binder/binder-drop'
 import { lastEntryOf, useLayoutStore } from './layout-store'
 import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
@@ -14,7 +13,6 @@ import RightPanel from './RightPanel.vue'
 import SidePanel from './SidePanel.vue'
 import StatusBar from './StatusBar.vue'
 import TopBar from './TopBar.vue'
-import { useWarnings } from '../features/warnings/use-warnings'
 import { useLiveSync } from './use-live-sync'
 import { useMenuCommands } from './use-menu-commands'
 import { useShortcuts } from './use-shortcuts'
@@ -37,13 +35,6 @@ let disposed = false
 
 useLiveSync()
 useMenuCommands()
-
-function move(request: DropRequest): void {
-  if (request.kind === 'move-part') void manuscript.movePart(request.path, request.index)
-  else void manuscript.moveChapter(request.path, request.destination)
-}
-
-const { count: attentionCount } = useWarnings()
 
 onMounted(async () => {
   const root = workspace.project?.root
@@ -83,11 +74,7 @@ useShortcuts([
     <TopBar v-if="!layout.focusMode" />
 
     <div class="body">
-      <SidePanel
-        v-if="layout.binderOpen && !layout.focusMode"
-        :attention-count="attentionCount"
-        @move="move"
-      />
+      <SidePanel v-if="layout.binderOpen && !layout.focusMode" />
       <main class="main">
         <DocumentTabs v-show="!layout.focusMode" />
         <p v-if="tabs.storageNotice" class="navigation-notice" role="status">
@@ -139,7 +126,7 @@ useShortcuts([
         >
           {{ workspace.refreshErrorMessage }}
         </p>
-        <EditorPane />
+        <CenterStage />
       </main>
       <RightPanel v-if="layout.inspectorOpen && !layout.focusMode" />
     </div>

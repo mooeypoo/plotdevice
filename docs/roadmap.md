@@ -273,11 +273,11 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 **Done when:** the model and storage are tested in Node, nothing renders them yet, and existing behavior is unchanged.
 
 ### W2: Seams
-- [ ] View registry in `workbench/views/` with descriptors (id, title message key, icon, regions, bindings, lazy component).
-- [ ] Replace every direct `layout.mainView` write (editor store and six composables) with workbench navigation commands. The editor store reports document activation through a port and no longer imports the layout store.
-- [ ] Extract a reusable read-only document reader from `reference-store.ts` (request generation, live draft, moves, scroll). Reference becomes one instance.
-- [ ] Move `WarningsPanel` out of `ProjectOverview` into its own view. Move `link-at` and `wiki-link-scan` to `shared/` so shared code stops importing features.
-- [ ] Add the renderer dependency-cruiser rules from the plan, with fixtures in `tools/dependency-rules/`.
+- [x] View registry in `workbench/views/` with descriptors (id, title message key, icon, component); placement and bindings come from the W1 catalog. Components are imported statically for now; W3 can make them lazy if startup warrants.
+- [x] Replace every direct `layout.mainView` write (editor store and six composables) with workbench navigation commands (`showCenterView`, `choosePanel`, `revealPanel`). The editor store presents documents through `document-presenter.ts` and tells readers about moves through `move-followers.ts`; it imports neither the layout nor the Reference store. Center-view switches now go through the navigation queue (ADR 0018).
+- [x] Extract a reusable read-only document reader from `reference-store.ts` (request generation, moves, scroll) plus `useLiveDraft`. Reference becomes one instance.
+- [x] Move `WarningsPanel` out of `ProjectOverview` into its own view. Move `link-at` and `wiki-link-scan` to `shared/` so shared code stops importing features; move the other cross-feature helpers to `shared/` or `app/`. Binder, Codex, Properties and Warnings become self-contained views; the old shell renders every panel through the registry, with the center switch in `app/CenterStage.vue`.
+- [x] Add the renderer dependency-cruiser rules from the plan, with fixtures in `tools/dependency-rules/`. `shared-ignores-features` covers `features/` and `workbench/` only: `shared/` still uses `app/ui-language-store` and `app/entry-place`.
 
 **Done when:** the app looks and behaves exactly as before, and the new boundary rules pass and are proven by the rules test.
 

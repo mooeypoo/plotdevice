@@ -115,12 +115,7 @@ function setMinGap(event: Event): void {
           />
           {{ language.t('timeline-gap-suffix') }}
         </label>
-        <div
-          v-else
-          class="segmented"
-          role="group"
-          :aria-label="language.t('timeline-zoom-group')"
-        >
+        <div v-else class="segmented" role="group" :aria-label="language.t('timeline-zoom-group')">
           <button
             v-for="level in ZOOMS"
             :key="level"
@@ -191,11 +186,7 @@ function setMinGap(event: Event): void {
                 : language.t('date-undated-short')
           }}
         </span>
-        <span
-          v-if="backInTime[index]"
-          class="back"
-          :title="language.t('timeline-earlier-title')"
-        >
+        <span v-if="backInTime[index]" class="back" :title="language.t('timeline-earlier-title')">
           ↶ {{ language.t('timeline-earlier') }}
         </span>
       </div>
@@ -284,7 +275,9 @@ function setMinGap(event: Event): void {
               :title="describe(chapterAt(bar.path) as TimelineChapterDto)"
               @click="view.open(bar.path)"
             >
-              <span class="name"><bdi>{{ bar.title }}</bdi></span>
+              <span class="name"
+                ><bdi>{{ bar.title }}</bdi></span
+              >
             </button>
           </div>
         </div>

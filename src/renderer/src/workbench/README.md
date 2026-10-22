@@ -6,6 +6,6 @@
 `model/` is pure: validation, operations returning a layout or a semantic refusal, direction-aware splitter math, width fitting, legacy derivation.
 `storage/` keeps per-user layouts (`plotdevice.workbench`) and per-project bindings (`plotdevice.workbenchProjects`) in `userData` browser storage, never in the novel folder.
 Layouts name sides only logically, so they mirror with the interface language without being rewritten.
-W1 status: model and storage only; nothing renders them yet. The shell (W3) and view registry (W2) follow.
+`views/` registers each existing view's title key, icon token and self-contained component; shells render views only from here. The new shell (W3) follows.
 
-**Must not know about.** Vue, Pinia, the DOM, features, stores, project files, or translated text (the model returns codes; the shell chooses words).
+**Must not know about.** The model knows no Vue, Pinia, DOM, features, stores, project files or translated text (it returns codes; the shell chooses words). Only `views/` imports feature components, and features never import the shell.

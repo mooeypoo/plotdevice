@@ -4,14 +4,10 @@ import { useLayoutStore } from '../../app/layout-store'
 import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
-import OverviewView from '../overview/OverviewView.vue'
-import InteractionsView from '../interactions/InteractionsView.vue'
-import TimelineView from '../timeline/TimelineView.vue'
-import ProjectOverview from '../welcome/ProjectOverview.vue'
 import ChapterEditor from './ChapterEditor.vue'
 import ConflictBanner from './ConflictBanner.vue'
 import MissingFileBanner from './MissingFileBanner.vue'
-import { useEditorLinks } from './use-editor-links'
+import { useEditorLinks } from '../../app/use-editor-links'
 import { useDocumentTabsStore } from '../../app/document-tabs-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { formatEntryPlaceLabel, formatEntryPlaceTitle } from '../../shared/entry-place-label'
@@ -31,100 +27,74 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
 </script>
 
 <template>
-  <div
-    id="document-editor"
-    class="pane"
-    :class="{ focus: layout.focusMode }"
-    :role="layout.mainView === 'write' && editor.entry ? 'tabpanel' : undefined"
-    :aria-labelledby="
-      layout.mainView === 'write' && editor.entry
-        ? `tab-${tabs.documentId(editor.entry.path)}`
-        : undefined
-    "
-  >
-    <OverviewView v-if="layout.mainView === 'overview'" />
-    <TimelineView v-else-if="layout.mainView === 'timeline'" />
-    <InteractionsView v-else-if="layout.mainView === 'interactions'" />
-    <div v-else-if="editor.entry" class="page">
-      <header class="heading">
-        <div class="eyebrow" dir="auto">
-          {{ formatEntryPlaceLabel(editor.entry.label, language.t, chrome.formatNumber) }}
-        </div>
-        <h1 dir="auto">{{ formatEntryPlaceTitle(editor.entry, language.t) }}</h1>
-      </header>
+  <div v-if="editor.entry" class="page">
+    <header class="heading">
+      <div class="eyebrow" dir="auto">
+        {{ formatEntryPlaceLabel(editor.entry.label, language.t, chrome.formatNumber) }}
+      </div>
+      <h1 dir="auto">{{ formatEntryPlaceTitle(editor.entry, language.t) }}</h1>
+    </header>
 
-      <p v-if="readOnly" class="notice" role="status">
-        {{ language.t('editor-read-only-notice') }}
-      </p>
-      <p v-else-if="editor.saveState === 'error'" class="notice error" role="alert">
-        {{ editor.saveError }}
-      </p>
-      <p
-        v-if="
-          editor.recoveryError && editor.saveState !== 'missing' && editor.saveState !== 'conflict'
-        "
-        class="notice error"
-        role="alert"
-      >
-        {{ editor.recoveryError }}
-      </p>
-      <MissingFileBanner
-        v-if="editor.saveState === 'missing'"
-        :kind="editor.entry.kind"
-        :busy="editor.recoveryBusy"
-        :read-only="readOnly"
-        :error="editor.recoveryError"
-        :recovered-path="editor.recoveredPath"
-        :reappeared="editor.missingReappeared"
-        @save-as-new="editor.saveMissingAsNew()"
-        @discard="editor.discardMissing()"
-        @load-theirs="editor.loadVersionOnDisk()"
-      />
-      <p v-if="linkNotice" class="notice" role="status">{{ linkNotice }}</p>
-      <p v-if="editor.diskNotice" class="notice" role="status">
-        {{ editor.diskNotice }}
-      </p>
-      <ConflictBanner
-        v-if="editor.saveState === 'conflict'"
-        :busy="editor.recoveryBusy"
-        :read-only="readOnly"
-        :error="editor.recoveryError"
-        :recovered-path="editor.recoveredPath"
-        @load-theirs="editor.loadVersionOnDisk()"
-        @keep-mine="editor.keepMine()"
-        @recover-copy="editor.saveMissingAsNew()"
-      />
+    <p v-if="readOnly" class="notice" role="status">
+      {{ language.t('editor-read-only-notice') }}
+    </p>
+    <p v-else-if="editor.saveState === 'error'" class="notice error" role="alert">
+      {{ editor.saveError }}
+    </p>
+    <p
+      v-if="
+        editor.recoveryError && editor.saveState !== 'missing' && editor.saveState !== 'conflict'
+      "
+      class="notice error"
+      role="alert"
+    >
+      {{ editor.recoveryError }}
+    </p>
+    <MissingFileBanner
+      v-if="editor.saveState === 'missing'"
+      :kind="editor.entry.kind"
+      :busy="editor.recoveryBusy"
+      :read-only="readOnly"
+      :error="editor.recoveryError"
+      :recovered-path="editor.recoveredPath"
+      :reappeared="editor.missingReappeared"
+      @save-as-new="editor.saveMissingAsNew()"
+      @discard="editor.discardMissing()"
+      @load-theirs="editor.loadVersionOnDisk()"
+    />
+    <p v-if="linkNotice" class="notice" role="status">{{ linkNotice }}</p>
+    <p v-if="editor.diskNotice" class="notice" role="status">
+      {{ editor.diskNotice }}
+    </p>
+    <ConflictBanner
+      v-if="editor.saveState === 'conflict'"
+      :busy="editor.recoveryBusy"
+      :read-only="readOnly"
+      :error="editor.recoveryError"
+      :recovered-path="editor.recoveredPath"
+      @load-theirs="editor.loadVersionOnDisk()"
+      @keep-mine="editor.keepMine()"
+      @recover-copy="editor.saveMissingAsNew()"
+    />
 
-      <ChapterEditor
-        :key="`${editor.entry.path}#${editor.entry.revision}`"
-        :initial-text="editor.text"
-        :document-id="tabs.documentId(editor.entry.path)"
-        :read-only="readOnly || editor.recoveryBusy || editor.navigationBusy"
-        :focus-mode="layout.focusMode"
-        :link-targets="linkTargets"
-        :completions="completions"
-        @change="editor.edit($event)"
-        @blur="editor.flush()"
-        @open-link="openLink"
-      />
-    </div>
-    <ProjectOverview v-else />
+    <ChapterEditor
+      :key="`${editor.entry.path}#${editor.entry.revision}`"
+      :initial-text="editor.text"
+      :document-id="tabs.documentId(editor.entry.path)"
+      :read-only="readOnly || editor.recoveryBusy || editor.navigationBusy"
+      :focus-mode="layout.focusMode"
+      :link-targets="linkTargets"
+      :completions="completions"
+      @change="editor.edit($event)"
+      @blur="editor.flush()"
+      @open-link="openLink"
+    />
   </div>
+  <!-- With no document open, the shell shows what belongs there (the project's home). -->
+  <slot v-else />
 </template>
 
 <style scoped>
-.pane {
-  height: 100%;
-  overflow-y: auto;
-  padding: 56px 40px 0;
-  scroll-padding-bottom: 40vh;
-}
-
-.pane.focus {
-  padding-top: 18vh;
-  background: var(--bg-sunken);
-}
-
 /* Measured in the prose font, so the heading column lines up with the text column exactly. */
 .heading {
   max-width: var(--measure);

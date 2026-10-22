@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { FileProblemDto, WarningDto } from '../../../../contract/dtos'
 import { createTranslator } from '../../../../i18n/translator'
-import { describeFileProblem } from '../welcome/describe-file-problem'
+import { describeFileProblem } from './describe-file-problem'
 import { formatManuscriptWarning, formatProjectWarning } from './format-warning'
 
 const english = createTranslator('en')

@@ -2,6 +2,7 @@
 import Wordmark from '../shared/Wordmark.vue'
 import { computed } from 'vue'
 import { useLayoutStore } from './layout-store'
+import { useWorkbenchNavigation } from './use-workbench-navigation'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useWorkspaceStore } from './workspace-store'
@@ -16,6 +17,7 @@ const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
 const editor = useEditorStore()
 const layout = useLayoutStore()
+const navigation = useWorkbenchNavigation()
 const language = useUiLanguageStore()
 const chrome = useChromePresentation()
 const direction = computed(() => uiDirection(language.locale))
@@ -65,7 +67,7 @@ const crumbs = computed(() => {
           role="tab"
           :aria-selected="layout.mainView === 'write'"
           :class="{ on: layout.mainView === 'write' }"
-          @click="layout.mainView = 'write'"
+          @click="navigation.showCenterView('write')"
         >
           {{ language.t('view-write') }}
         </button>
@@ -74,7 +76,7 @@ const crumbs = computed(() => {
           role="tab"
           :aria-selected="layout.mainView === 'overview'"
           :class="{ on: layout.mainView === 'overview' }"
-          @click="layout.mainView = 'overview'"
+          @click="navigation.showCenterView('overview')"
         >
           {{ language.t('view-overview') }}
         </button>
@@ -83,7 +85,7 @@ const crumbs = computed(() => {
           role="tab"
           :aria-selected="layout.mainView === 'timeline'"
           :class="{ on: layout.mainView === 'timeline' }"
-          @click="layout.mainView = 'timeline'"
+          @click="navigation.showCenterView('timeline')"
         >
           {{ language.t('view-timeline') }}
         </button>
@@ -92,7 +94,7 @@ const crumbs = computed(() => {
           role="tab"
           :aria-selected="layout.mainView === 'interactions'"
           :class="{ on: layout.mainView === 'interactions' }"
-          @click="layout.mainView = 'interactions'"
+          @click="navigation.showCenterView('interactions')"
         >
           {{ language.t('view-interactions') }}
         </button>

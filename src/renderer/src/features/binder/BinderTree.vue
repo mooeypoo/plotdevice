@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { ManuscriptDto } from '../../../../contract/dtos'
-import { clashDescription, describeUnorderedReason, formatWordCount } from './binder-labels'
+import {
+  clashDescription,
+  describeUnorderedReason,
+  formatWordCount
+} from '../../shared/manuscript-labels'
 import BinderPart from './BinderPart.vue'
 import BinderRow from './BinderRow.vue'
-import NewEntryInput from './NewEntryInput.vue'
+import NewEntryInput from '../../shared/NewEntryInput.vue'
 import type { DropRequest, DropSpot } from './binder-drop'
 import { provideBinderDrag } from './use-binder-drag'
 import { useBinderCollapse } from './use-binder-collapse'
@@ -227,9 +231,7 @@ function createChapter(title: string): void {
         @click="$emit('showOverview')"
       >
         <span class="dot" aria-hidden="true"></span>
-        {{
-          language.t('binder-attention', attentionCount, chrome.formatNumber(attentionCount))
-        }}
+        {{ language.t('binder-attention', attentionCount, chrome.formatNumber(attentionCount)) }}
       </button>
       <div class="total">
         <span>{{ language.t('side-manuscript') }}</span>

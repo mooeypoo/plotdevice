@@ -10,9 +10,9 @@ import { focusDimming } from './focus-dimming'
 import { autoLineDirection, technicalSpanDirection } from './line-direction'
 import { proseAppearance } from './prose-theme'
 import { wikiLinkDecorations } from './wiki-link-decorations'
-import { linkAt, type LinkAt } from './link-at'
+import { linkAt, type LinkAt } from '../../shared/link-at'
 import { linkCompletionSource, type LinkCompletionTarget } from './link-completion'
-import { createLinkKindLookup } from './wiki-link-scan'
+import { createLinkKindLookup } from '../../shared/wiki-link-scan'
 
 /** What the editor needs when it is created. */
 export interface ProseEditorOptions {
@@ -55,9 +55,8 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
   let linkTargets = options.linkTargets
   let copy = options.copy
   const linkExtensions = () =>
-    wikiLinkDecorations(
-      createLinkKindLookup(linkTargets),
-      (target, embed) => copy.linkTooltip(target, embed)
+    wikiLinkDecorations(createLinkKindLookup(linkTargets), (target, embed) =>
+      copy.linkTooltip(target, embed)
     )
 
   const extensions = [

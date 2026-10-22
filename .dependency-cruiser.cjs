@@ -159,6 +159,43 @@ module.exports = {
       to: { pathNot: ['^src/renderer/src/workbench/model/', '(^|/)node_modules/zod/'] }
     },
     {
+      name: 'features-are-independent',
+      comment: 'A feature never imports another feature. Shared helpers belong in shared/ or app/.',
+      severity: 'error',
+      from: { path: '^src/renderer/src/features/([^/]+)/' },
+      to: { path: '^src/renderer/src/features/', pathNot: '^src/renderer/src/features/$1/' }
+    },
+    {
+      name: 'features-never-import-the-shell',
+      comment: 'Features register views; only the workbench shell renders them (ADR 0017).',
+      severity: 'error',
+      from: { path: '^src/renderer/src/features/' },
+      to: { path: '^src/renderer/src/workbench/shell/' }
+    },
+    {
+      name: 'shared-ignores-features',
+      comment: 'Generic UI code knows no feature and no workbench.',
+      severity: 'error',
+      from: { path: '^src/renderer/src/shared/' },
+      to: { path: '^src/renderer/src/(features|workbench)/' }
+    },
+    {
+      name: 'views-only-through-the-registry',
+      comment:
+        'Feature components are reached through workbench/views/, never imported by the shell (App.vue shows the welcome screens before a project exists).',
+      severity: 'error',
+      from: {
+        path: '^src/renderer/',
+        pathNot: [
+          '^src/renderer/src/features/',
+          '^src/renderer/src/workbench/views/',
+          '^src/renderer/src/app/App\\.vue$',
+          TEST_FILE
+        ]
+      },
+      to: { path: '^src/renderer/src/features/.+\\.vue$' }
+    },
+    {
       name: 'not-to-test',
       comment: 'Production code never imports tests.',
       severity: 'error',

@@ -3,6 +3,7 @@ import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
 import { useLayoutStore } from './layout-store'
 import { useReferenceStore } from './reference-store'
+import { useWorkbenchNavigation } from './use-workbench-navigation'
 
 /** Separates list lookups from intentional editor navigation. */
 export function useSidePanelNavigation() {
@@ -10,19 +11,22 @@ export function useSidePanelNavigation() {
   const editor = useEditorStore()
   const layout = useLayoutStore()
   const reference = useReferenceStore()
+  const navigation = useWorkbenchNavigation()
   const selectedCodexPath = computed(() =>
     layout.rightTab === 'reference' ? reference.path : (editor.entry?.path ?? null)
   )
 
   async function openEntry(path: string): Promise<void> {
-    if (await editor.open(path)) layout.mainView = 'write'
+    await editor.open(path)
   }
 
   async function editEntry(path: string): Promise<void> {
-    if (editor.entry?.path === path || (await editor.open(path))) {
-      layout.mainView = 'write'
-      layout.rightTab = 'properties'
-    }
+    // Opening presents the document; an entry that is already open may be behind another view.
+    const shown =
+      editor.entry?.path === path
+        ? await navigation.showCenterView('write')
+        : await editor.open(path)
+    if (shown) navigation.choosePanel('properties')
   }
 
   function consultEntry(path: string): void {

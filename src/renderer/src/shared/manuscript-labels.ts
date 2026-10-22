@@ -1,7 +1,7 @@
-export { romanNumeral } from '../../shared/roman-numeral'
-import type { ChapterDto, UnorderedReasonDto } from '../../../../contract/dtos'
-import type { Translator } from '../../../../i18n/translator'
-import { isolate } from '../../shared/isolate'
+export { romanNumeral } from './roman-numeral'
+import type { ChapterDto, UnorderedReasonDto } from '../../../contract/dtos'
+import type { Translator } from '../../../i18n/translator'
+import { isolate } from './isolate'
 
 /** Why a chapter is unordered, in a few words. */
 export function describeUnorderedReason(reason: UnorderedReasonDto, t: Translator['t']): string {

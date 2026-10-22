@@ -142,9 +142,11 @@ section 1, item 7. Main rules land in L1 and P1.
   from: { path: '^src/renderer/src/features/([^/]+)/' },
   to: { path: '^src/renderer/src/features/', pathNot: '^src/renderer/src/features/$1/' } },
 { name: 'shared-ignores-features',
-  comment: 'Generic UI code knows no feature, store or workbench.',
+  comment: 'Generic UI code knows no feature and no workbench.',
   from: { path: '^src/renderer/src/shared/' },
-  to: { path: '^src/renderer/src/(features|app|workbench)/' } },
+  // W2: narrowed from (features|app|workbench); shared/ still uses app/ui-language-store
+  // and app/entry-place in six files.
+  to: { path: '^src/renderer/src/(features|workbench)/' } },
 { name: 'views-only-through-the-registry',
   comment: 'Feature components are reached through view descriptors, never imported by app or shell.',
   from: { pathNot: ['^src/renderer/src/features/', '^src/renderer/src/workbench/views/',

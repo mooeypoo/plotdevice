@@ -3,7 +3,11 @@ import type { CodexEntryDto } from '../../../../contract/dtos'
 import { useWritingPreferencesStore } from '../../app/writing-preferences-store'
 import { nameKey } from '../../shared/link-choices'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
-import { characterGroupNames, characterSections, visibleCharacters } from './character-list'
+import {
+  characterGroupNames,
+  characterSections,
+  visibleCharacters
+} from '../../shared/character-list'
 
 /** Character navigation and per-project display choices, independent of membership edits. */
 export function useCharacterList(

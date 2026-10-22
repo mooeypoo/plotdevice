@@ -6,9 +6,9 @@ import { entryOwner, placeOf } from './entry-owners'
 import type { EntryKind, EntryPlace } from './entry-place'
 import { plotDeviceApi } from './plot-device-api'
 import { useEntryRecovery } from './entry-recovery'
-import { useReferenceStore } from './reference-store'
+import { documentMoved } from './move-followers'
 import { useDocumentTabsStore } from './document-tabs-store'
-import { useLayoutStore } from './layout-store'
+import { documentPresenter } from './document-presenter'
 import { useUiLanguageStore } from './ui-language-store'
 import { useErrorNotice } from '../shared/use-error-notice'
 import type { ErrorNotice, StructureNotice } from '../shared/error-format'
@@ -190,7 +190,7 @@ export const useEditorStore = defineStore('editor', () => {
   async function navigate(path: string, keep: boolean): Promise<boolean> {
     if (entry.value?.path === path) {
       tabs.opened(path, keep)
-      useLayoutStore().mainView = 'write'
+      documentPresenter()?.showDocument()
       return true
     }
     if (recoveryBusy.value) {
@@ -230,7 +230,7 @@ export const useEditorStore = defineStore('editor', () => {
     missingReappeared.value = false
     await captureRecovery()
     await readProperties()
-    useLayoutStore().mainView = 'write'
+    documentPresenter()?.showDocument()
     return true
   }
 
@@ -526,7 +526,7 @@ export const useEditorStore = defineStore('editor', () => {
 
   /** The open entry's file moved (a rename or a move between parts): follow it, keeping the text. */
   function followMove(from: string, to: string): void {
-    useReferenceStore().followMove(from, to)
+    documentMoved(from, to)
     tabs.followMove(from, to)
     const current = entry.value
     if (current !== null && current.path === from && to !== from)
@@ -610,6 +610,24 @@ export const useEditorStore = defineStore('editor', () => {
     await readProperties()
   }
 
+  /**
+   * Runs a screen change that hides the writable document, such as switching the center view,
+   * with the same guards as switching documents: it waits its turn, saves first, and is refused
+   * while a recovery decision is pending.
+   */
+  function runNavigation(apply: () => void): Promise<boolean> {
+    return enqueue(async () => {
+      if (recoveryBusy.value) {
+        blocked()
+        return false
+      }
+      await flush()
+      if (blocked()) return false
+      apply()
+      return true
+    })
+  }
+
   /** Saves and closes the entry, back to the project overview. */
   function closeEntry(): void {
     void enqueue(async () => {
@@ -654,6 +672,7 @@ export const useEditorStore = defineStore('editor', () => {
     cycleDocument,
     closeDocument,
     closeOtherDocuments,
+    runNavigation,
     waitForNavigation: async (): Promise<void> => {
       await navigation
     },

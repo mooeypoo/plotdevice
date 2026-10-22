@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { CodexEntryDto } from '../../../../contract/dtos'
+import type { CodexEntryDto } from '../../../contract/dtos'
 import { characterGroupNames, characterSections, visibleCharacters } from './character-list'
 
 const entries: readonly CodexEntryDto[] = [

@@ -1,19 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import CodexInspector from '../features/inspector/CodexInspector.vue'
-import InspectorPanel from '../features/inspector/InspectorPanel.vue'
-import OutlineInspector from '../features/inspector/OutlineInspector.vue'
-import TemplateInspector from '../features/inspector/TemplateInspector.vue'
-import OutlinePanel from '../features/outline/OutlinePanel.vue'
-import ReferencePanel from '../features/reference/ReferencePanel.vue'
-import { useEditorStore } from './editor-store'
+import { registeredView } from '../workbench/views/view-registry'
 import { useLayoutStore, type RightTab } from './layout-store'
 import { useOutlineWidth } from './use-outline-width'
 import { navigateTabs } from '../shared/tab-navigation'
 import { useUiLanguageStore } from './ui-language-store'
 import type { MessageKey } from '../../../i18n/translator'
 
-const editor = useEditorStore()
 const layout = useLayoutStore()
 const language = useUiLanguageStore()
 const panel = ref<HTMLElement | null>(null)
@@ -26,7 +19,9 @@ const TABS = [
   { id: 'reference', label: 'right-panel-reference' }
 ] as const satisfies readonly { readonly id: RightTab; readonly label: MessageKey }[]
 
-const kind = computed(() => editor.entry?.kind)
+const PropertiesView = registeredView('properties').component
+const OutlinePanel = registeredView('outline').component
+const ReferencePanel = registeredView('reference').component
 const resizable = computed(() => layout.rightTab !== 'properties')
 </script>
 
@@ -101,13 +96,7 @@ const resizable = computed(() => layout.rightTab !== 'properties')
       role="tabpanel"
       aria-labelledby="right-tab-properties"
     >
-      <p v-if="kind === undefined" class="nothing">
-        {{ language.t('right-panel-empty-properties') }}
-      </p>
-      <InspectorPanel v-else-if="kind === 'part' || kind === 'chapter'" />
-      <TemplateInspector v-else-if="kind === 'template'" />
-      <OutlineInspector v-else-if="kind === 'outline'" />
-      <CodexInspector v-else />
+      <PropertiesView />
     </div>
     <div
       v-else-if="layout.rightTab === 'outline'"
@@ -211,11 +200,5 @@ const resizable = computed(() => layout.rightTab !== 'properties')
   flex-direction: column;
   flex: 1;
   min-height: 0;
-}
-
-.nothing {
-  margin: 0;
-  padding: 16px 18px;
-  color: var(--text-muted);
 }
 </style>

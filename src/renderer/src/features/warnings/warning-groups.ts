@@ -4,7 +4,7 @@ import type {
   WarningDto,
   WarningFixDto
 } from '../../../../contract/dtos'
-import { describeFileProblem } from '../welcome/describe-file-problem'
+import { describeFileProblem } from './describe-file-problem'
 import type { MessageKey, Translator } from '../../../../i18n/translator'
 import { formatManuscriptWarning, formatProjectWarning } from './format-warning'
 

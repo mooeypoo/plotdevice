@@ -1,8 +1,8 @@
 import MarkdownIt from 'markdown-it'
 import type Token from 'markdown-it/lib/token.mjs'
 import type { LinkTargetDto } from '../../../contract/dtos'
-import type { LinkAt } from '../features/editor/link-at'
-import { createLinkKindLookup, findWikiLinks } from '../features/editor/wiki-link-scan'
+import type { LinkAt } from './link-at'
+import { createLinkKindLookup, findWikiLinks } from './wiki-link-scan'
 
 /** A rendered, read-only document beside the draft. */
 export interface MarkdownView {

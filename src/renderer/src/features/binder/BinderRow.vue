@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatWordCount, statusColor } from './binder-labels'
+import { formatWordCount, statusColor } from '../../shared/manuscript-labels'
 import ReferenceButton from '../../shared/ReferenceButton.vue'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
