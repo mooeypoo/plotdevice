@@ -20,7 +20,8 @@ export const publicPages = [
   'guide/codex.html',
   'guide/story.html',
   'guide/safety.html',
-  'guide/troubleshooting.html'
+  'guide/troubleshooting.html',
+  'guide/translation.html'
 ]
 
 function filesUnder(directory: string): string[] {

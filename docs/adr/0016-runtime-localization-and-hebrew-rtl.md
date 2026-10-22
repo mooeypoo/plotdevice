@@ -174,6 +174,16 @@ progress, remaining limitations, and the next slice before ending a session.
   - [ ] **Remaining I5:** qualify caret and shaping in a real browser (I6).
 - [ ] **I6 Qualification:** catalog validation, translator guide/glossary,
   expanded-text checks, real browser and packaged Linux/Windows journeys.
+  - [x] **I6a Catalog checks:** enforce English/Hebrew/qqq key parity,
+    placeholder/plural parameter consistency, and parameter documentation.
+  - [x] **I6b Translator guide:** document Banana catalogs, Hebrew RTL practice,
+    glossary, literal project values, and review steps.
+  - [x] **I6c Browser sweep:** qualify mixed-script editing/reading, completion,
+    RTL layout, timeline/matrix order, panel resizing, and 960px overflow.
+  - [x] **I6d Linux package:** build AppImage/deb and smoke-launch the unpacked
+    package against a copied fixture without changing its files.
+  - [ ] **Remaining I6:** real caret/shaping review and Windows installer
+    build-and-run qualification on Windows; retain the Hebrew progress notice.
 - [ ] **D1 Separate approval:** Hebrew VitePress manual/navigation/search/RTL
   and supported distribution descriptions, without language-specific installers.
 
@@ -1382,3 +1392,36 @@ Verified lint/dependency boundaries (477 modules/2,440 dependencies),
 typecheck, **1,584 tests across 174 files**, production electron-vite build,
 and docs build/link/asset checks across all 16 public pages. The documentation
 build continues to emit the previously noted non-fatal Node/Vite warnings.
+
+### I6 qualification handoff
+
+The catalog test now checks that English, Hebrew, and `qqq` keys match; English
+and Hebrew use the same numbered parameters and plural arguments; and `qqq`
+mentions each parameter. Missing `$1` notes were clarified. The contributor
+guide is linked from the VitePress contributor sidebar; it is not the separately
+approved public Hebrew manual (D1).
+
+An integrated Chromium preview used the renderer-only Vite server and the
+in-memory renderer fake, not a real novel folder. At 960×720, Hebrew UI direction
+was RTL with no document-level horizontal overflow. Mixed Hebrew/English
+CodeMirror lines resolved per-line; inline paths stayed LTR; completions and
+Outline/Reference content rendered; a text selection survived a UI-language
+switch; the separate writing direction remained RTL when the UI switched to
+English. The timeline's first chapter stayed at inline-start and its overflow
+container scrolled to later columns; interaction-matrix headers flowed RTL.
+Keyboard and pointer resizing changed the reference width in the expected
+direction. Language-only switches did not add fake API saves. These checks do
+not certify caret movement or native Electron geometry.
+
+`npm run build:linux` produced AppImage and deb packages. The unpacked Linux
+application started with a copied sample novel and created a renderer process;
+the copied files remained byte-identical. The launch was terminated after the
+smoke check; Chromium logged a non-fatal Wayland/Vulkan compatibility warning.
+No Windows workflow was dispatched. Windows installer launch/interaction and
+full browser caret/shaping review remain required before I6 and the Hebrew
+progress notice can be marked complete.
+
+Verified lint/dependency boundaries (477 modules/2,440 dependencies),
+typecheck, **1,585 tests across 174 files**, production electron-vite build,
+Linux AppImage/deb packaging, and docs build/link/asset checks across all
+17 public pages. Existing non-fatal Node/Vite module-type warnings remain.

@@ -237,6 +237,16 @@ acceptance criteria, and the cross-session checklist.
     Markdown and isolate inline/fenced technical code LTR.
   - [ ] Remaining I5: qualify caret and shaping in a real browser (I6).
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.
+  - [x] I6a: Check locale catalog key parity, placeholder/plural parameter
+    consistency, and parameter notes in qqq.
+  - [x] I6b: Add a Banana-style contributor translation guide and glossary,
+    including Hebrew RTL and project-content preservation rules.
+  - [x] I6c: Browser-check mixed-script editing/reading, completion, RTL layout,
+    timeline/matrix flow, resizing and narrow-window overflow.
+  - [x] I6d: Build Linux AppImage/deb and smoke-launch the unpacked app with a
+    copied fixture; verify the project files remain unchanged.
+  - [ ] Remaining I6: review caret/shaping in Chromium and build/run the Windows
+    installer on Windows; keep the Hebrew progress notice until qualification.
 - [ ] D1: Public Hebrew manual/distribution text (separate approval).
 
 ## Proposed release and documentation program

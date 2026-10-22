@@ -6,6 +6,33 @@ import qqq from './qqq.json'
 import { isUiLocale, systemUiLocale, uiDirection } from './locales'
 import { createTranslator } from './translator'
 
+type MessageKey = Exclude<keyof typeof en, '@metadata'>
+
+function messageKeys(): MessageKey[] {
+  return Object.keys(en).filter(
+    (key): key is MessageKey => key !== '@metadata' && key in he && key in qqq
+  )
+}
+
+function parameterIndexes(message: string): string[] {
+  const indexes = new Set<string>()
+  for (const match of message.matchAll(/\$(\d+)/gu)) {
+    const index = match[1]
+    if (index !== undefined) indexes.add(index)
+  }
+  return [...indexes].sort()
+}
+
+function pluralClauses(message: string): RegExpMatchArray[] {
+  return [...message.matchAll(/\{\{PLURAL:\$(\d+)\|([^{}]+)\}\}/gu)]
+}
+
+function pluralParameterIndexes(message: string): string[] {
+  return pluralClauses(message).flatMap((clause) =>
+    clause[1] === undefined ? [] : [clause[1]]
+  )
+}
+
 describe('bundled localization foundation', () => {
   it('documents and translates every foundation message', () => {
     expect(Object.keys(he).sort()).toEqual(Object.keys(en).sort())
@@ -14,6 +41,37 @@ describe('bundled localization foundation', () => {
       for (const [key, message] of Object.entries(catalog)) {
         if (key !== '@metadata')
           expect(typeof message === 'string' && message.length > 0).toBe(true)
+      }
+    }
+  })
+
+  it('keeps translator notes, placeholders, and plural parameters aligned', () => {
+    for (const key of messageKeys()) {
+      const english = en[key]
+      const hebrew = he[key]
+      const notes = qqq[key]
+      const englishParameters = parameterIndexes(english)
+
+      expect(parameterIndexes(hebrew), key).toEqual(englishParameters)
+      for (const parameter of englishParameters) {
+        expect(parameterIndexes(notes), `${key} must document $${parameter}`).toContain(
+          parameter
+        )
+      }
+
+      const englishPlurals = pluralParameterIndexes(english)
+      expect(pluralParameterIndexes(hebrew), key).toEqual(englishPlurals)
+      for (const parameter of englishPlurals) {
+        expect(englishParameters, `${key} plural must reference an argument`).toContain(
+          parameter
+        )
+      }
+      for (const message of [english, hebrew]) {
+        const clauses = pluralClauses(message)
+        expect([...message.matchAll(/\{\{PLURAL:/gu)], key).toHaveLength(clauses.length)
+        for (const clause of clauses) {
+          expect(clause[2]?.split('|').length, key).toBeGreaterThan(1)
+        }
       }
     }
   })

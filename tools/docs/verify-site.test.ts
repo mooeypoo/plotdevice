@@ -150,6 +150,7 @@ function fixture(): string {
 
 describe('documentation publication checks', () => {
   it('accepts exact public pages and valid base-relative, encoded, fragment, and external links', () => {
+    expect(publicPages).toContain('guide/translation.html')
     const directory = fixture()
     writeFileSync(
       join(directory, 'index.html'),

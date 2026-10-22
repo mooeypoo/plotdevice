@@ -69,6 +69,7 @@ export default defineConfig({
         text: 'For contributors',
         collapsed: true,
         items: [
+          { text: 'Translate the interface', link: '/guide/translation' },
           { text: 'Contribute', link: '/contributing' },
           { text: 'Development', link: '/development' },
           { text: 'Architecture', link: '/architecture' }
