@@ -29,6 +29,8 @@ export function formatProjectWarning(warning: WarningDto, t: Translator['t']): s
       return t('warning-author-invalid')
     case 'settings-invalid':
       return t('warning-settings-invalid')
+    case 'language-invalid':
+      return t('warning-language-invalid', isolate(warning.value))
     case 'setting-invalid': {
       const key = isolate(`settings.${warning.key}`)
       const value = isolate(warning.value)
@@ -41,6 +43,8 @@ export function formatProjectWarning(warning: WarningDto, t: Translator['t']): s
           return t('warning-setting-folder-mapping', key, value)
         case 'visible-folder':
           return t('warning-setting-visible-folder', key, value)
+        case 'vocabulary-mapping':
+          return t('warning-setting-vocabulary', key, value)
       }
     }
   }

@@ -18,6 +18,8 @@ import { projectRootFromOsPath } from './project-root-from-os-path'
 import { systemClock } from './system-clock'
 import { createRemoveRecentProject } from '../application/commands/remove-recent-project'
 import { createInspectFolder } from '../application/queries/inspect-folder'
+import { resolveBookWords } from '../../../book-language/book-words'
+import { templateWordsOf } from '../../../book-language/context-words'
 
 let project: SampleNovelCopy
 let settings: SampleNovelCopy
@@ -49,7 +51,12 @@ function wire(folders = createNodeProjectFolders()): {
   })
   return {
     openProject,
-    initializeProject: createInitializeProject({ folders, novelFiles, openProject }),
+    initializeProject: createInitializeProject({
+      folders,
+      novelFiles,
+      openProject,
+      templateWords: (language: string) => templateWordsOf(resolveBookWords(language))
+    }),
     listRecentProjects: createListRecentProjects({ folders, recents })
   }
 }
@@ -109,7 +116,7 @@ describe('workspace on real files', () => {
               } as const)
       }
       vi.spyOn(folders, 'findProjectBelow').mockResolvedValue({ ok: false, error })
-      expect(await wire(folders).initializeProject(root, 'New')).toEqual({ ok: false, error })
+      expect(await wire(folders).initializeProject(root, 'New', 'en')).toEqual({ ok: false, error })
       expect(
         await createInspectFolder({ folders, novelFiles: createMarkdownNovelFileStore() })(root)
       ).toEqual({ ok: false, error })
@@ -169,7 +176,11 @@ describe('workspace on real files', () => {
     await rm(join(project.root, 'novel.md'))
     const before = await hashEveryFile(project.root)
 
-    const result = await wire().initializeProject(projectRootFromOsPath(project.root), 'My Notes')
+    const result = await wire().initializeProject(
+      projectRootFromOsPath(project.root),
+      'My Notes',
+      'en'
+    )
 
     expect(result).toMatchObject({ ok: true, value: { project: { title: 'My Notes' } } })
     const after = await hashEveryFile(project.root)
@@ -182,7 +193,7 @@ describe('workspace on real files', () => {
 
   it('refuses to initialize a folder that contains a project', async () => {
     const parent = projectRootFromOsPath(join(project.root, '..'))
-    expect(await wire().initializeProject(parent, 'Everything')).toMatchObject({
+    expect(await wire().initializeProject(parent, 'Everything', 'en')).toMatchObject({
       ok: false,
       error: { code: 'contains-project' }
     })

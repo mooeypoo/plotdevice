@@ -7,9 +7,6 @@ export interface OutlineFile {
   readonly title: string
 }
 
-/** The title a new outline gets when the writer leaves it empty. */
-export const UNTITLED_OUTLINE = 'Outline'
-
 /** The text of a new outline: only `type` and `title`, and an empty page to write on. */
 export function newOutlineText(title: string): string {
   return ['---', 'type: outline', `title: ${JSON.stringify(title)}`, '---', ''].join('\n')

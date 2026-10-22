@@ -639,5 +639,13 @@
   "palette-kind-command": "פקודה",
   "palette-beside-hint": "$1 פותח לצד העורך",
   "palette-use-layout": "מעבר לפריסה $1",
-  "appearance-fade": "עמעום החלוניות בזמן הקלדה"
+  "appearance-fade": "עמעום החלוניות בזמן הקלדה",
+  "warning-language-invalid": "\"language\" צריך להיות תג שפה כמו en או he, ולא $1; הספר נקרא כאנגלית.",
+  "warning-setting-vocabulary": "$1 צריך למפות שם מוכר למילה, ולא $2; ההגדרה לא בשימוש.",
+  "book-language-label": "שפת הספר",
+  "book-language-unset": "לא נקבעה (אנגלית)",
+  "book-language-other": "$1 (מילים באנגלית)",
+  "initialize-book-language-help": "המילים ש־Plot Device כותבת לתוך הספר, כמו סטטוסים ו„פרק ללא שם”, יהיו בשפה הזו. שפת הממשק נקבעת בנפרד.",
+  "project-overview-book-language-help": "השינוי משפיע רק על מילים שייכתבו מעכשיו. מילים שכבר בקבצים נשארות כמו שהן.",
+  "project-overview-book-language-apply": "החלה"
 }

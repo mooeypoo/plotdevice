@@ -1,8 +1,3 @@
-/** The title a new chapter gets when the writer leaves the name empty. */
-export const UNTITLED_CHAPTER = 'Untitled chapter'
-/** The title a new part gets when the writer leaves the name empty. */
-export const UNTITLED_PART = 'Untitled part'
-
 /** The text of a new chapter file: only the keys it needs, and an empty body. */
 export function newChapterText(title: string, partLink: string | undefined, order: number): string {
   return [

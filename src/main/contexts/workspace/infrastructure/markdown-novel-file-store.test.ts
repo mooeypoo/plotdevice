@@ -13,6 +13,10 @@ import { readProject } from '../domain/project'
 import { DEFAULT_PROJECT_SETTINGS } from '../domain/project-settings'
 import type { ProjectRoot } from '../domain/project-root'
 import { createMarkdownNovelFileStore } from './markdown-novel-file-store'
+import { resolveBookWords } from '../../../book-language/book-words'
+import { templateWordsOf } from '../../../book-language/context-words'
+
+const ENGLISH = templateWordsOf(resolveBookWords('en'))
 
 let folder: SampleNovelCopy
 const store = createMarkdownNovelFileStore()
@@ -62,7 +66,7 @@ describe('creating novel.md', () => {
 
   it('writes the template, which reads back as the defaults with no warnings', async () => {
     const title = 'Ilka: "The Return" — בוקר'
-    expect(await store.create(folder.root as ProjectRoot, novelTemplate(title))).toEqual({
+    expect(await store.create(folder.root as ProjectRoot, novelTemplate(title, ENGLISH))).toEqual({
       ok: true,
       value: undefined
     })
@@ -87,7 +91,9 @@ describe('creating novel.md', () => {
 
   it('never replaces an existing novel.md', async () => {
     await writeFile(join(folder.root, 'novel.md'), 'mine\n')
-    expect(await store.create(folder.root as ProjectRoot, novelTemplate('x'))).toMatchObject({
+    expect(
+      await store.create(folder.root as ProjectRoot, novelTemplate('x', ENGLISH))
+    ).toMatchObject({
       ok: false,
       error: {
         code: 'already-exists',
@@ -102,7 +108,7 @@ describe('creating novel.md', () => {
 
   it('retains the exact creation path and technical failure without publishing novel.md', async () => {
     vi.spyOn(atomicWriter, 'writeTextFileAtomically').mockRejectedValue(new Error('EACCES (יעל)'))
-    expect(await store.create(folder.root as ProjectRoot, novelTemplate('New'))).toEqual({
+    expect(await store.create(folder.root as ProjectRoot, novelTemplate('New', ENGLISH))).toEqual({
       ok: false,
       error: {
         code: 'write-failed',
@@ -115,5 +121,56 @@ describe('creating novel.md', () => {
       }
     })
     await expect(readFile(join(folder.root, 'novel.md'))).rejects.toThrow()
+  })
+})
+
+describe('the Hebrew template', () => {
+  beforeEach(async () => {
+    folder = await makeTempFolder()
+  })
+
+  it('reads back with its language, Hebrew statuses and no warnings', async () => {
+    const hebrew = templateWordsOf(resolveBookWords('he'))
+    await store.create(folder.root as ProjectRoot, novelTemplate('ספר', hebrew))
+    const reading = await store.read(folder.root as ProjectRoot)
+    expect(reading).toMatchObject({
+      kind: 'read',
+      frontmatter: { language: 'he', statuses: ['רעיון', 'מתווה', 'טיוטה', 'נערך', 'סופי'] }
+    })
+    if (reading.kind !== 'read') return
+    expect(readProject(folder.root as ProjectRoot, 'x', reading.frontmatter).warnings).toEqual([])
+  })
+})
+
+describe('setting one top-level key', () => {
+  beforeEach(async () => {
+    folder = await makeTempFolder()
+  })
+
+  const novel = (eol: string, bom = ''): string =>
+    bom +
+    [
+      '---',
+      '# my own notes',
+      'title: Mine   # keep this',
+      'language: en',
+      'custom: [a, b]',
+      '---',
+      'Premise.',
+      ''
+    ].join(eol)
+
+  it.each([
+    ['LF', '\n', ''],
+    ['CRLF with a BOM', '\r\n', '﻿']
+  ])('changes only that key in a %s file', async (_, eol, bom) => {
+    await writeFile(join(folder.root, 'novel.md'), novel(eol, bom))
+    expect(await store.setKey(folder.root as ProjectRoot, 'language', 'he')).toEqual({
+      ok: true,
+      value: undefined
+    })
+    expect(await readFile(join(folder.root, 'novel.md'), 'utf8')).toBe(
+      novel(eol, bom).replace('language: en', 'language: he')
+    )
   })
 })

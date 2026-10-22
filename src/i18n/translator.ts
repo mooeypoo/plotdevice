@@ -212,6 +212,9 @@ type ParameterizedMessages = {
   'palette-count': [count: number, formatted: string]
   'palette-beside-hint': [shortcut: string]
   'palette-use-layout': [name: string]
+  'warning-language-invalid': [value: string]
+  'warning-setting-vocabulary': [key: string, value: string]
+  'book-language-other': [tag: string]
 }
 type MessageArguments<Key extends MessageKey> = Key extends keyof ParameterizedMessages
   ? ParameterizedMessages[Key]

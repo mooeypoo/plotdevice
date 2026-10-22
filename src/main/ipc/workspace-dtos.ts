@@ -1,3 +1,4 @@
+import { languageDirection } from '../shared-kernel/language-tag'
 import type {
   ApiError,
   EntryCountsDto,
@@ -50,6 +51,10 @@ export function toProjectSummaryDto(opened: OpenedProject): ProjectSummaryDto {
     title: project.title,
     ...(project.author !== undefined ? { author: project.author } : {}),
     formatVersion: project.formatVersion,
+    language: {
+      declared: project.language,
+      direction: project.language === null ? null : languageDirection(project.language)
+    },
     readOnly: project.readOnly,
     warnings: project.warnings.map((warning) => ({ ...warning })),
     counts,

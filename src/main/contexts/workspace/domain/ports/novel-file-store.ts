@@ -17,4 +17,9 @@ export interface NovelFileStore {
   read(root: ProjectRoot): Promise<NovelFileReading>
   /** Writes a new novel.md atomically. Never replaces an existing one. */
   create(root: ProjectRoot, text: string): Promise<Result<void, CreateNovelFileError>>
+  /**
+   * Sets one top-level text key of an existing novel.md, changing only that key's characters
+   * (ADR 0004) and writing atomically; never writes a file it can't edit safely.
+   */
+  setKey(root: ProjectRoot, key: string, value: string): Promise<Result<void, DomainError>>
 }

@@ -11,6 +11,11 @@ import { createGetCodexProperties } from '../application/queries/get-codex-prope
 import { createListCodex } from '../application/queries/list-codex'
 import type { CodexSettings } from '../domain/codex-settings'
 import { createMarkdownCodexRepository } from './markdown-codex-repository'
+import { resolveBookWords } from '../../../book-language/book-words'
+import { codexWordsOf } from '../../../book-language/context-words'
+
+/** English words, as the composition root resolves them for a book without a `language`. */
+const ENGLISH_WORDS = resolveBookWords(null)
 
 let copy: SampleNovelCopy
 const p = (value: string): ProjectPath => value as ProjectPath
@@ -20,7 +25,8 @@ const settings: CodexSettings = {
   readOnly: false,
   folders: { character: p('characters'), location: p('locations'), note: p('notes') },
   templateFolder: p('templates'),
-  fileNames: 'ask'
+  fileNames: 'ask',
+  words: () => codexWordsOf(ENGLISH_WORDS)
 }
 
 beforeEach(async () => {

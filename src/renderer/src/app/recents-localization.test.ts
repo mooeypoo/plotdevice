@@ -161,7 +161,7 @@ describe('recent-project notices', () => {
       ok: true,
       value: { ...sampleSummary, recentProjectsError: failure }
     })
-    await workspace.initializeChosenFolder('Book')
+    await workspace.initializeChosenFolder('Book', 'en')
     expect(workspace.screen).toBe('project')
     expect(workspace.rememberErrorMessage).not.toBeNull()
     await workspace.backToWelcome()

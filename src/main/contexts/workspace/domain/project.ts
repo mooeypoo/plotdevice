@@ -6,6 +6,8 @@ import {
   type ProjectSettings
 } from './project-settings'
 import type { ProjectWarning } from './project-warning'
+import { isLanguageTag } from '../../../shared-kernel/language-tag'
+import { describeFrontmatterValue } from '../../../shared-kernel/frontmatter-values'
 
 /**
  * An open project as the workspace context sees it: the keys of novel.md it owns. Other contexts
@@ -15,6 +17,8 @@ export interface Project {
   readonly root: ProjectRoot
   readonly title: string
   readonly author?: string
+  /** `language`: the book's language tag as written, or `null` when it declares none. */
+  readonly language: string | null
   readonly formatVersion: number
   /** True when the app must not write to this project, for example a newer format. */
   readonly readOnly: boolean
@@ -36,6 +40,8 @@ export function readProject(root: ProjectRoot, folderName: string, frontmatter: 
   const title = readText(keys['title'], 'title-invalid', warnings)
   const author = readText(keys['author'], 'author-invalid', warnings)
 
+  const language = readLanguage(keys['language'], warnings)
+
   const settings = readProjectSettings(keys['settings'])
   warnings.push(...settings.warnings)
 
@@ -43,6 +49,7 @@ export function readProject(root: ProjectRoot, folderName: string, frontmatter: 
     root,
     title: title ?? folderName,
     ...(author !== undefined ? { author } : {}),
+    language,
     formatVersion: format.version,
     readOnly: format.readOnly,
     settings: settings.settings,
@@ -59,6 +66,7 @@ export function readUnreadableProject(
   return {
     root,
     title: folderName,
+    language: null,
     formatVersion: 1,
     readOnly: true,
     settings: DEFAULT_PROJECT_SETTINGS,
@@ -88,4 +96,12 @@ function readText(
 
 function isMapping(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/** The book's language tag, or `null`; anything else is reported and read as no language. */
+function readLanguage(value: unknown, warnings: ProjectWarning[]): string | null {
+  if (value === undefined || value === null) return null
+  if (typeof value === 'string' && isLanguageTag(value.trim())) return value.trim()
+  warnings.push({ code: 'language-invalid', value: describeFrontmatterValue(value) })
+  return null
 }

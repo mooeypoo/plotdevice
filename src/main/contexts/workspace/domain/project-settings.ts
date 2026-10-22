@@ -14,6 +14,11 @@ export interface ProjectSettings {
   readonly orderPrefix: boolean
   /** Project-relative folders where the app puts new files of each kind. */
   readonly folders: Readonly<Record<FolderKind, string>>
+  /**
+   * `settings.vocabulary`: the writer's own word for a word the app recognizes, by its name. The
+   * app reads these and never writes them; which names it knows is the composition root's concern.
+   */
+  readonly vocabulary: Readonly<Record<string, string>>
 }
 
 /** The defaults from docs/file-format.md, used for every key that is missing or invalid. */
@@ -27,7 +32,8 @@ export const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
     location: 'locations',
     note: 'notes',
     template: 'templates'
-  }
+  },
+  vocabulary: {}
 }
 
 const FILE_NAME_SYNC_VALUES: readonly string[] = ['ask', 'always', 'never']
@@ -104,7 +110,20 @@ export function readProjectSettings(value: unknown): ProjectSettingsReading {
     }
   }
 
-  return { settings: { fileNames, orderPrefix, folders }, warnings }
+  const vocabulary: Record<string, string> = {}
+  const rawVocabulary = value['vocabulary']
+  if (rawVocabulary !== undefined && rawVocabulary !== null) {
+    if (!isMapping(rawVocabulary)) {
+      invalid('vocabulary', rawVocabulary, 'vocabulary-mapping')
+    } else {
+      for (const [name, word] of Object.entries(rawVocabulary)) {
+        if (typeof word === 'string' && word.trim() !== '') vocabulary[name] = word.trim()
+        else invalid(`vocabulary.${name}`, word, 'vocabulary-mapping')
+      }
+    }
+  }
+
+  return { settings: { fileNames, orderPrefix, folders, vocabulary }, warnings }
 }
 
 function isMapping(value: unknown): value is Record<string, unknown> {

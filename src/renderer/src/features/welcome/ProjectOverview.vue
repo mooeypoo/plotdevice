@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { EntryCountsDto } from '../../../../contract/dtos'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
+import BookLanguageSelect from '../../shared/BookLanguageSelect.vue'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
 
 const workspace = useWorkspaceStore()
@@ -29,6 +30,19 @@ const COUNT_LABELS = [
   ['scene', 'project-overview-count-scene'],
   ['untyped', 'project-overview-count-untyped']
 ] as const satisfies readonly (readonly [keyof EntryCountsDto, CountMessageKey])[]
+
+const declaredLanguage = computed(() => workspace.project?.language.declared ?? null)
+const chosenLanguage = ref<string | null>(declaredLanguage.value)
+watch(declaredLanguage, (declared) => {
+  chosenLanguage.value = declared
+})
+const languageChanged = computed(
+  () => chosenLanguage.value !== null && chosenLanguage.value !== declaredLanguage.value
+)
+
+async function applyBookLanguage(): Promise<void> {
+  if (chosenLanguage.value !== null) await workspace.setBookLanguage(chosenLanguage.value)
+}
 
 const counts = computed(() => {
   const project = workspace.project
@@ -66,6 +80,25 @@ const counts = computed(() => {
       </ul>
       <p v-if="counts.length === 0" class="muted">
         {{ language.t('project-overview-empty') }}
+      </p>
+    </section>
+
+    <section class="book-language">
+      <form @submit.prevent="applyBookLanguage">
+        <BookLanguageSelect
+          v-model="chosenLanguage"
+          :disabled="workspace.project.readOnly"
+          described-by="book-language-help"
+        />
+        <button v-if="languageChanged" type="submit">
+          {{ language.t('project-overview-book-language-apply') }}
+        </button>
+      </form>
+      <p id="book-language-help" class="muted">
+        {{ language.t('project-overview-book-language-help') }}
+      </p>
+      <p v-if="workspace.bookLanguageErrorMessage" class="error" role="alert" dir="auto">
+        {{ workspace.bookLanguageErrorMessage }}
       </p>
     </section>
 
@@ -156,6 +189,20 @@ h2 {
   padding: 10px 0;
   border-bottom: 1px solid var(--line);
   line-height: 1.5;
+}
+
+.book-language {
+  margin-top: 36px;
+}
+
+.book-language form {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.error {
+  color: var(--danger);
 }
 
 .muted {

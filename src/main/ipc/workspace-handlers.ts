@@ -6,6 +6,8 @@ import type {
   RecentProjectDto
 } from '../../contract/dtos'
 import type { InitializeProject } from '../contexts/workspace/application/commands/initialize-project'
+import type { SetBookLanguage } from '../contexts/workspace/application/commands/set-book-language'
+import { isLanguageTag } from '../shared-kernel/language-tag'
 import type {
   OpenProject,
   ReadProject
@@ -24,6 +26,7 @@ export interface WorkspaceHandlerDependencies {
   readonly openProject: OpenProject
   readonly readProject: ReadProject
   readonly initializeProject: InitializeProject
+  readonly setBookLanguage: SetBookLanguage
   readonly listRecentProjects: ListRecentProjects
   readonly removeRecentProject: RemoveRecentProject
   /** Normalizes an OS path from the renderer or a dialog. */
@@ -33,6 +36,8 @@ export interface WorkspaceHandlerDependencies {
   /** Called when a project opens (or is initialized), so per-project use cases can be built. */
   readonly onProjectOpened: (root: ProjectRoot, project: OpenedProject['project']) => void
   readonly onProjectClosed: () => void
+  /** Called when the open project's novel.md was read again, so its settings take effect. */
+  readonly onProjectRefreshed: (project: OpenedProject['project']) => void
 }
 
 /** The workspace API as plain functions of untrusted arguments. Electron wiring is separate. */
@@ -45,6 +50,7 @@ export interface WorkspaceHandlers {
   closeProject(): Promise<void>
   /** Re-reads the open project after files changed outside the app. */
   refreshProject(): Promise<ApiResult<ProjectSummaryDto>>
+  setBookLanguage(args: readonly unknown[]): Promise<ApiResult<ProjectSummaryDto>>
   listRecentProjects(): Promise<ApiResult<readonly RecentProjectDto[]>>
   removeRecentProject(args: readonly unknown[]): Promise<ApiResult<null>>
 }
@@ -53,10 +59,13 @@ const MAX_PATH_LENGTH = 4096
 const MAX_TITLE_LENGTH = 500
 
 const rootArgs = z.tuple([z.string().min(1).max(MAX_PATH_LENGTH)])
+const languageArg = z.string().max(35).refine(isLanguageTag)
 const initializeArgs = z.tuple([
   z.string().min(1).max(MAX_PATH_LENGTH),
-  z.string().max(MAX_TITLE_LENGTH)
+  z.string().max(MAX_TITLE_LENGTH),
+  languageArg
 ])
+const languageArgs = z.tuple([languageArg])
 
 const invalidRequest: ApiResult<never> = {
   ok: false,
@@ -159,7 +168,7 @@ export function createWorkspaceHandlers(deps: WorkspaceHandlerDependencies): Wor
       const root = deps.toProjectRoot(parsed.data[0])
       if (!isAllowed(root)) return notAllowed
 
-      const result = await deps.initializeProject(root, parsed.data[1])
+      const result = await deps.initializeProject(root, parsed.data[1], parsed.data[2])
       if (!result.ok) {
         if ('projectAbove' in result.error && result.error.projectAbove !== undefined) {
           allow(result.error.projectAbove)
@@ -188,9 +197,28 @@ export function createWorkspaceHandlers(deps: WorkspaceHandlerDependencies): Wor
         }
       }
       const result = await deps.readProject(openRoot)
-      return result.ok
-        ? { ok: true, value: toProjectSummaryDto(result.value) }
-        : { ok: false, error: toApiError(result.error) }
+      if (!result.ok) return { ok: false, error: toApiError(result.error) }
+      deps.onProjectRefreshed(result.value.project)
+      return { ok: true, value: toProjectSummaryDto(result.value) }
+    },
+
+    async setBookLanguage(args) {
+      const parsed = languageArgs.safeParse(args)
+      if (!parsed.success) return invalidRequest
+      if (openRoot === undefined) {
+        return {
+          ok: false,
+          error: {
+            code: 'no-project',
+            message: 'No project is open.',
+            diagnostic: { reason: 'no-project' }
+          }
+        }
+      }
+      const result = await deps.setBookLanguage(openRoot, parsed.data[0])
+      if (!result.ok) return { ok: false, error: toApiError(result.error) }
+      deps.onProjectRefreshed(result.value.project)
+      return { ok: true, value: toProjectSummaryDto(result.value) }
     },
 
     async listRecentProjects() {

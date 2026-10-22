@@ -123,11 +123,14 @@ export type WarningDto =
   | { readonly code: 'format-missing' | 'title-invalid' | 'author-invalid' | 'settings-invalid' }
   | { readonly code: 'format-invalid'; readonly value: string }
   | { readonly code: 'format-newer'; readonly version: number }
+  /** `language` isn't a language tag such as `en` or `he`; the book is read as English. */
+  | { readonly code: 'language-invalid'; readonly value: string }
   | {
       readonly code: 'setting-invalid'
       readonly key: string
       readonly value: string
-      readonly expected: 'file-name-sync' | 'boolean' | 'folder-mapping' | 'visible-folder'
+      readonly expected:
+        'file-name-sync' | 'boolean' | 'folder-mapping' | 'visible-folder' | 'vocabulary-mapping'
     }
 
 /** A markdown file that another program added, changed, or removed while the project was open. */
@@ -168,6 +171,11 @@ export interface ProjectSummaryDto {
   readonly title: string
   readonly author?: string
   readonly formatVersion: number
+  /** The book's language (ADR 0019): as written in novel.md, and the direction it is written in. */
+  readonly language: {
+    readonly declared: string | null
+    readonly direction: 'ltr' | 'rtl' | null
+  }
   readonly readOnly: boolean
   readonly warnings: readonly WarningDto[]
   readonly counts: EntryCountsDto

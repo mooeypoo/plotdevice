@@ -9,7 +9,7 @@ import { err, ok, type Result } from '../../../../shared-kernel/result'
 import { uniqueFileName } from '../../../../shared-kernel/unique-file-name'
 import type { CodexKind } from '../../domain/codex-entry'
 import type { CodexSettings } from '../../domain/codex-settings'
-import { newCodexText, UNTITLED } from '../../domain/codex-templates'
+import { newCodexText } from '../../domain/codex-templates'
 import type { CodexRepository, CreateCodexFileError } from '../../domain/ports/codex-repository'
 import { templatePath } from '../template-path'
 
@@ -45,7 +45,7 @@ export function createCreateCodexEntry(ports: {
         domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
       )
     }
-    const entryTitle = title.trim() === '' ? UNTITLED[kind] : title.trim()
+    const entryTitle = title.trim() === '' ? ports.settings.words().untitled[kind] : title.trim()
     const files = await ports.repository.load()
     const taken = new Set(
       [...files.linkCandidates, ...files.untyped].map((file) =>
@@ -59,7 +59,7 @@ export function createCreateCodexEntry(ports: {
     const template = await readTemplate(ports, kind)
     const created = await ports.repository.createFile(
       path,
-      newCodexText(kind, entryTitle, template)
+      newCodexText(kind, entryTitle, template, ports.settings.words().headings[kind])
     )
     return created.ok ? ok({ path }) : created
   }

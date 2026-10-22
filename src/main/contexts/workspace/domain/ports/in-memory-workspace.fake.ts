@@ -2,6 +2,7 @@ import { err, ok, type Result } from '../../../../shared-kernel/result'
 import type { ProjectRoot } from '../project-root'
 import type { RecentProject } from '../recent-projects'
 import type { Clock } from './clock'
+import type { DomainError } from '../../../../shared-kernel/domain-error'
 import type { CreateNovelFileError, NovelFileReading, NovelFileStore } from './novel-file-store'
 import type { ProjectFolders, ProjectFoldersError } from './project-folders'
 import type { ProjectScan, ProjectScanner } from './project-scanner'
@@ -76,6 +77,18 @@ export class InMemoryWorkspace
     }
     this.createdNovelFiles.set(root, text)
     folder.novel = { kind: 'read', frontmatter: { format: 1, title: titleIn(text) } }
+    return Promise.resolve(ok(undefined))
+  }
+
+  setKey(root: ProjectRoot, key: string, value: string): Promise<Result<void, DomainError>> {
+    const folder = this.folders.get(root)
+    const novel = folder?.novel
+    if (folder === undefined || novel?.kind !== 'read') {
+      return Promise.resolve(err({ code: 'write-failed', message: 'novel.md is not readable.' }))
+    }
+    const frontmatter =
+      typeof novel.frontmatter === 'object' && novel.frontmatter !== null ? novel.frontmatter : {}
+    folder.novel = { kind: 'read', frontmatter: { ...frontmatter, [key]: value } }
     return Promise.resolve(ok(undefined))
   }
 

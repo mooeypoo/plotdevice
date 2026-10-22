@@ -18,11 +18,19 @@ describe('readProject', () => {
       root,
       title: 'The Salt Orchard',
       author: 'Ines Varga',
+      language: null,
       formatVersion: 1,
       readOnly: false,
       settings: { ...DEFAULT_PROJECT_SETTINGS, fileNames: 'never' },
       warnings: []
     })
+  })
+
+  it('reads the book language, and warns about one that is not a language tag', () => {
+    expect(readProject(root, 'my-novel', { format: 1, language: ' he ' }).language).toBe('he')
+    const project = readProject(root, 'my-novel', { format: 1, language: 'Hebrew' })
+    expect(project.language).toBeNull()
+    expect(project.warnings).toEqual([{ code: 'language-invalid', value: '"Hebrew"' }])
   })
 
   it('falls back to the folder name for a missing or empty title', () => {

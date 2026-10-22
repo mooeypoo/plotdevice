@@ -4,7 +4,7 @@ import { readEntryProperties } from './entry-properties'
 import { uniqueFileName } from '../../../shared-kernel/unique-file-name'
 import { newChapterText, newPartText } from './new-entry'
 import { propertyWrites } from './property-changes'
-import { DEFAULT_STATUSES, readStatuses, withStatus } from './statuses'
+import { readStatuses, withStatus } from './statuses'
 
 const path = 'manuscript/Part One/The Ferry.md' as ProjectPath
 
@@ -135,10 +135,11 @@ describe('new entry text', () => {
 })
 
 describe('statuses', () => {
-  it('reads the project list, falling back to the defaults', () => {
-    expect(readStatuses({ statuses: ['seed', 'draft'] })).toEqual(['seed', 'draft'])
-    expect(readStatuses({})).toEqual(DEFAULT_STATUSES)
-    expect(readStatuses({ statuses: 'draft' })).toEqual(DEFAULT_STATUSES)
+  it('reads the project list, falling back to the book language’s statuses', () => {
+    const fallback = ['רעיון', 'טיוטה']
+    expect(readStatuses({ statuses: ['seed', 'draft'] }, fallback)).toEqual(['seed', 'draft'])
+    expect(readStatuses({}, fallback)).toEqual(fallback)
+    expect(readStatuses({ statuses: 'draft' }, fallback)).toEqual(fallback)
   })
 
   it('adds a status once, ignoring case', () => {

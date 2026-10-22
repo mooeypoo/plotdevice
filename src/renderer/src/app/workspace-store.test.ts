@@ -38,7 +38,7 @@ describe('workspace store', () => {
     await store.chooseFolder()
     expect(store.screen).toBe('initialize')
 
-    await store.initializeChosenFolder('A New Book')
+    await store.initializeChosenFolder('A New Book', 'en')
     expect(store.screen).toBe('project')
     expect(store.project?.title).toBe('A New Book')
   })

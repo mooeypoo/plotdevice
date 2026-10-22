@@ -36,7 +36,10 @@ export function createEditTemplate(ports: {
         domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
       )
     }
-    const created = await ports.repository.createFile(path, defaultTemplateText(kind))
+    const created = await ports.repository.createFile(
+      path,
+      defaultTemplateText(ports.settings.words().headings[kind])
+    )
     return created.ok || created.error.code === 'already-exists' ? ok({ path }) : created
   }
 }

@@ -8,6 +8,11 @@ import { createPlanRename, createRenameEntry } from '../application/commands/ren
 import type { ManuscriptSettings } from '../domain/manuscript-settings'
 import { createMarkdownEntryRelocator } from '../../../infrastructure/links/markdown-entry-relocator'
 import { createMarkdownManuscriptRepository } from './markdown-manuscript-repository'
+import { resolveBookWords } from '../../../book-language/book-words'
+import { manuscriptWordsOf } from '../../../book-language/context-words'
+
+/** English words, as the composition root resolves them for a book without a `language`. */
+const ENGLISH_WORDS = resolveBookWords(null)
 
 let copy: SampleNovelCopy
 const p = (value: string): ProjectPath => value as ProjectPath
@@ -15,7 +20,8 @@ const settings: ManuscriptSettings = {
   readOnly: false,
   partFolder: p('manuscript'),
   chapterFolder: p('manuscript'),
-  fileNames: 'ask'
+  fileNames: 'ask',
+  words: () => manuscriptWordsOf(ENGLISH_WORDS)
 }
 const text = (path: string): Promise<string> =>
   readFile(join(copy.root, ...path.split('/')), 'utf8')

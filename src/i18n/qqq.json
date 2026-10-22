@@ -639,5 +639,13 @@
   "palette-kind-command": "Label beside a palette item that runs a command, such as toggling the binder.",
   "palette-beside-hint": "Hint under the palette's list. $1 is the keyboard shortcut (Shift+Enter), shown as is.",
   "palette-use-layout": "Palette item that switches to a layout. $1 is the layout's name, translated for shipped layouts or written by the writer.",
-  "appearance-fade": "Writing appearance option: while typing, the panels and bars fade, and return when the pointer moves."
+  "appearance-fade": "Writing appearance option: while typing, the panels and bars fade, and return when the pointer moves.",
+  "warning-language-invalid": "Warning about novel.md's `language` key. $1 is the value as written. Keep `language`, en and he as they are.",
+  "warning-setting-vocabulary": "Warning about `settings.vocabulary` in novel.md. $1 is the setting's key and $2 its value, both as written.",
+  "book-language-label": "Label of the select for the book's language (novel.md `language`), which decides the words the app writes into the book. Not the interface language.",
+  "book-language-unset": "Book-language option shown when novel.md has no `language`; the book is then read as English.",
+  "book-language-other": "Book-language option for a declared language the app has no words for. $1 is the language tag as written, such as ar.",
+  "initialize-book-language-help": "Help under the book-language select when making a folder a project.",
+  "project-overview-book-language-help": "Help under the book-language select in the project overview: changing the language never rewrites existing files.",
+  "project-overview-book-language-apply": "Button that saves the chosen book language to novel.md."
 }

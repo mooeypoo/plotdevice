@@ -7,6 +7,11 @@ import { createFixWarning } from '../application/commands/fix-warning'
 import { createGetManuscript } from '../application/queries/get-manuscript'
 import type { ManuscriptSettings } from '../domain/manuscript-settings'
 import { createMarkdownManuscriptRepository } from './markdown-manuscript-repository'
+import { resolveBookWords } from '../../../book-language/book-words'
+import { manuscriptWordsOf } from '../../../book-language/context-words'
+
+/** English words, as the composition root resolves them for a book without a `language`. */
+const ENGLISH_WORDS = resolveBookWords(null)
 
 let copy: SampleNovelCopy
 const p = (value: string): ProjectPath => value as ProjectPath
@@ -16,7 +21,8 @@ const settings: ManuscriptSettings = {
   readOnly: false,
   partFolder: p('manuscript'),
   chapterFolder: p('manuscript'),
-  fileNames: 'ask'
+  fileNames: 'ask',
+  words: () => manuscriptWordsOf(ENGLISH_WORDS)
 }
 
 beforeEach(async () => {

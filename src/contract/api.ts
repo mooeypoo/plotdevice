@@ -45,7 +45,14 @@ export interface WorkspaceApi {
   /** Opens a project. Only folders from `chooseFolder` or the recents list are accepted. */
   openProject(root: string): Promise<ApiResult<ProjectSummaryDto>>
   /** Writes novel.md into a folder from `chooseFolder`, then opens it. */
-  initializeProject(root: string, title: string): Promise<ApiResult<ProjectSummaryDto>>
+  /** Makes a folder a project; `language` is the book's language tag, written into novel.md. */
+  initializeProject(
+    root: string,
+    title: string,
+    language: string
+  ): Promise<ApiResult<ProjectSummaryDto>>
+  /** Sets the open book's `language` in novel.md (only that key) and returns it read again. */
+  setBookLanguage(language: string): Promise<ApiResult<ProjectSummaryDto>>
   /** Closes the open project. */
   closeProject(): Promise<void>
   listRecentProjects(): Promise<ApiResult<readonly RecentProjectDto[]>>
@@ -204,7 +211,7 @@ export interface RecoveryApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 25
+  readonly contractVersion: 26
   readonly uiLanguage: UiLanguageApi
   readonly recovery: RecoveryApi
   readonly workspace: WorkspaceApi

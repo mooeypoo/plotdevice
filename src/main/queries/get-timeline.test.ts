@@ -7,6 +7,11 @@ import { createListChapterReferences } from '../contexts/manuscript/application/
 import { InMemoryManuscript } from '../contexts/manuscript/domain/ports/in-memory-manuscript.fake'
 import type { ProjectPath } from '../shared-kernel/project-path'
 import { createGetTimeline } from './get-timeline'
+import { resolveBookWords } from '../book-language/book-words'
+import { codexWordsOf } from '../book-language/context-words'
+
+/** English words, as the composition root resolves them for a book without a `language`. */
+const ENGLISH_WORDS = resolveBookWords(null)
 
 const p = (value: string): ProjectPath => value as ProjectPath
 
@@ -58,7 +63,8 @@ describe('GetTimeline', () => {
           readOnly: false,
           folders: { character: undefined, location: undefined, note: undefined },
           templateFolder: undefined,
-          fileNames: 'ask'
+          fileNames: 'ask',
+          words: () => codexWordsOf(ENGLISH_WORDS)
         }
       })
     })()

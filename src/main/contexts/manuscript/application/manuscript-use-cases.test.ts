@@ -12,6 +12,11 @@ import { createGetManuscript } from './queries/get-manuscript'
 import { createListStatuses } from './queries/list-statuses'
 import { createOpenEntry } from './queries/open-entry'
 import { createFixWarning } from './commands/fix-warning'
+import { resolveBookWords } from '../../../book-language/book-words'
+import { manuscriptWordsOf } from '../../../book-language/context-words'
+
+/** English words, as the composition root resolves them for a book without a `language`. */
+const ENGLISH_WORDS = resolveBookWords(null)
 
 const p = (value: string): ProjectPath => value as ProjectPath
 const partOne = p('manuscript/Part One/Part One.md')
@@ -21,7 +26,8 @@ const settings: ManuscriptSettings = {
   readOnly: false,
   partFolder: p('manuscript'),
   chapterFolder: p('manuscript'),
-  fileNames: 'ask'
+  fileNames: 'ask',
+  words: () => manuscriptWordsOf(ENGLISH_WORDS)
 }
 
 let repository: InMemoryManuscript
@@ -191,6 +197,18 @@ describe('creating entries', () => {
     })
   })
 
+  it('names it in the book’s language, as soon as the language changes', async () => {
+    let book = ENGLISH_WORDS
+    const create = createCreateChapter({
+      repository,
+      settings: { ...settings, words: () => manuscriptWordsOf(book) }
+    })
+    book = resolveBookWords('he')
+    expect(await create(partOne, '')).toMatchObject({
+      value: { path: 'manuscript/Part One/פרק ללא שם.md' }
+    })
+  })
+
   it('creates a chapter without a part in the chapter folder', async () => {
     expect(await createCreateChapter({ repository, settings })(undefined, 'Loose')).toMatchObject({
       ok: true,
@@ -231,7 +249,10 @@ describe('RenumberPart', () => {
 
 describe('statuses', () => {
   it('lists the project’s statuses and adds one', async () => {
-    expect(await createListStatuses({ repository })()).toEqual(['idea', 'draft'])
+    expect(await createListStatuses({ repository, fallback: () => [] })()).toEqual([
+      'idea',
+      'draft'
+    ])
     expect(await createAddStatus({ repository, settings })('maybe')).toEqual({
       ok: true,
       value: ['idea', 'draft', 'maybe']

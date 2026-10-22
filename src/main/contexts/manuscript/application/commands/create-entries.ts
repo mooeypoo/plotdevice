@@ -13,12 +13,7 @@ import { uniqueFileName } from '../../../../shared-kernel/unique-file-name'
 import { linkTo } from '../../../../shared-kernel/entry-link'
 import { arrangeManuscript } from '../../domain/manuscript'
 import type { ManuscriptSettings } from '../../domain/manuscript-settings'
-import {
-  newChapterText,
-  newPartText,
-  UNTITLED_CHAPTER,
-  UNTITLED_PART
-} from '../../domain/new-entry'
+import { newChapterText, newPartText } from '../../domain/new-entry'
 import type {
   CreateFileError,
   ManuscriptRepository
@@ -63,7 +58,7 @@ export function createCreateChapter(ports: Ports): CreateChapter {
       files.chapters,
       buildLinkIndex(files.linkCandidates)
     )
-    const chapterTitle = title.trim() === '' ? UNTITLED_CHAPTER : title.trim()
+    const chapterTitle = title.trim() === '' ? ports.settings.words().untitledChapter : title.trim()
 
     let folder: ProjectPath | undefined
     let partLink: string | undefined
@@ -103,7 +98,7 @@ export function createCreatePart(ports: Ports): CreatePart {
         domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
       )
     const files = await ports.repository.load()
-    const partTitle = title.trim() === '' ? UNTITLED_PART : title.trim()
+    const partTitle = title.trim() === '' ? ports.settings.words().untitledPart : title.trim()
     const order = Math.max(0, ...files.parts.map((part) => part.order ?? 0)) + 1
 
     const name = uniqueFileName(partTitle, 'part', stemsOf(files.linkCandidates))

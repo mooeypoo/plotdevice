@@ -20,7 +20,8 @@ describe('readProjectSettings', () => {
         location: 'locations',
         note: 'notes',
         template: 'templates'
-      }
+      },
+      vocabulary: {}
     })
   })
 
@@ -48,10 +49,25 @@ describe('readProjectSettings', () => {
           location: 'מקומות',
           note: 'notes/misc',
           template: 'tpl'
-        }
+        },
+        vocabulary: {}
       },
       warnings: []
     })
+  })
+
+  it('reads the writer’s vocabulary, keeping unknown names and warning about empty words', () => {
+    const result = readProjectSettings({
+      vocabulary: { outline_inbox: ' Ideas ', someday_word: 'Later', empty: '', list: ['a'] }
+    })
+    expect(result.settings.vocabulary).toEqual({ outline_inbox: 'Ideas', someday_word: 'Later' })
+    expect(result.warnings).toMatchObject([
+      { code: 'setting-invalid', key: 'vocabulary.empty', expected: 'vocabulary-mapping' },
+      { code: 'setting-invalid', key: 'vocabulary.list', expected: 'vocabulary-mapping' }
+    ])
+    expect(readProjectSettings({ vocabulary: 'Ideas' }).warnings).toMatchObject([
+      { key: 'vocabulary', expected: 'vocabulary-mapping' }
+    ])
   })
 
   it('fills in keys that are missing, without warning', () => {

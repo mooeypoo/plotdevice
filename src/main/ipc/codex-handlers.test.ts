@@ -19,6 +19,11 @@ import type { EntryRelocator } from '../shared-kernel/entry-relocator'
 import type { ProjectPath } from '../shared-kernel/project-path'
 import { ok } from '../shared-kernel/result'
 import { createCodexHandlers, type CodexHandlers, type CodexUseCases } from './codex-handlers'
+import { resolveBookWords } from '../book-language/book-words'
+import { codexWordsOf } from '../book-language/context-words'
+
+/** English words, as the composition root resolves them for a book without a `language`. */
+const ENGLISH_WORDS = resolveBookWords(null)
 
 const p = (value: string): ProjectPath => value as ProjectPath
 const ilka = 'characters/Ilka Szabó.md'
@@ -26,7 +31,8 @@ const settings: CodexSettings = {
   readOnly: false,
   folders: { character: p('characters'), location: p('locations'), note: p('notes') },
   templateFolder: p('templates'),
-  fileNames: 'ask'
+  fileNames: 'ask',
+  words: () => codexWordsOf(ENGLISH_WORDS)
 }
 const relocator: EntryRelocator = {
   preview: () => Promise.resolve({ changedFiles: [], linkCount: 0, skipped: [] }),

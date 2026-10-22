@@ -9,6 +9,7 @@ import { createProseEditor, type ProseEditor } from './prose-editor'
 import type { ProseEditorCopy } from './prose-editor-copy'
 import { useWritingPreferencesStore } from '../../app/writing-preferences-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
+import { useWorkspaceStore } from '../../app/workspace-store'
 import { useDocumentView } from './use-document-view'
 
 const props = defineProps<{
@@ -33,6 +34,7 @@ const host = ref<HTMLElement | null>(null)
 let editor: ProseEditor | undefined
 let initialFocusPending = true
 const writingPreferences = useWritingPreferencesStore()
+const workspace = useWorkspaceStore()
 const language = useUiLanguageStore()
 const copy = computed<ProseEditorCopy>(() => ({
   accessibleLabel: language.t('editor-prose-label'),
@@ -61,9 +63,10 @@ watch(
   { flush: 'post' }
 )
 
-watch(
-  () => writingPreferences.writingDirection,
-  (direction) => editor?.setWritingDirection(direction)
+const bookDirection = computed(() => workspace.project?.language.direction ?? null)
+
+watch([() => writingPreferences.writingDirection, bookDirection], ([direction, book]) =>
+  editor?.setWritingDirection(direction, book)
 )
 
 watch(copy, (nextCopy) => editor?.setCopy(nextCopy))
@@ -73,6 +76,7 @@ onMounted(() => {
   editor = createProseEditor(host.value, {
     text: props.initialText,
     writingDirection: writingPreferences.writingDirection,
+    bookDirection: bookDirection.value,
     copy: copy.value,
     state: documentView.state,
     readOnly: props.readOnly,
