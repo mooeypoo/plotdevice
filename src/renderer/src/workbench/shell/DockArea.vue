@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { uiDirection } from '../../../../i18n/locales'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkbenchStore } from '../../app/workbench-store'
 import { navigateTabs } from '../../shared/tab-navigation'
@@ -20,6 +21,7 @@ const props = defineProps<{
 
 const workbench = useWorkbenchStore()
 const language = useUiLanguageStore()
+const direction = computed(() => uiDirection(language.locale))
 const area = computed(() => workbench.layout[props.side])
 /** Sections whose views exist; planned views appear once a feature registers them. */
 const sections = computed(() =>
@@ -145,7 +147,12 @@ function toggle(section: Section): void {
           "
           @click="toggle(section)"
         >
-          <span class="disclosure" aria-hidden="true">{{ section.collapsed ? '▸' : '▾' }}</span>
+          <span
+            class="disclosure"
+            :class="{ mirrored: section.collapsed && direction === 'rtl' }"
+            aria-hidden="true"
+            >{{ section.collapsed ? '▸' : '▾' }}</span
+          >
           {{ title(section) }}
         </button>
         <div
@@ -265,7 +272,7 @@ function toggle(section: Section): void {
 }
 
 /* Collapsed sections point toward inline-end, as binder parts do. */
-:global([dir='rtl']) .section-header[aria-expanded='false'] .disclosure {
+.disclosure.mirrored {
   transform: scaleX(-1);
 }
 </style>

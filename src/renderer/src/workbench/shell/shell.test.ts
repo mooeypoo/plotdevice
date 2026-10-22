@@ -117,6 +117,21 @@ describe('DockArea', () => {
     expect(dock.findAll('.view-marker')).toHaveLength(2)
   })
 
+  it('mirrors only a collapsed section’s arrow in Hebrew, never the panel or its text', async () => {
+    const workbench = useWorkbenchStore()
+    workbench.apply((layout) => setArrangement(layout, 'end', 'stack'))
+    useUiLanguageStore().locale = 'he'
+    const dock = mount(DockArea, { props: { side: 'end', size: 320, maximum: 720 } })
+    expect(dock.findAll('.mirrored')).toHaveLength(0)
+    await dock.get('.section-header').trigger('click')
+    expect(dock.findAll('.mirrored').map((arrow) => arrow.classes())).toEqual([
+      ['disclosure', 'mirrored']
+    ])
+    useUiLanguageStore().locale = 'en'
+    await flushPromises()
+    expect(dock.findAll('.mirrored')).toHaveLength(0)
+  })
+
   it('expands for the session without changing the stored size', async () => {
     const dock = mount(DockArea, { props: { side: 'end', size: 320, maximum: 720 } })
     await dock.get('.expand').trigger('click')
