@@ -211,6 +211,8 @@ to translate (ADR 0016). Every new string is a banana-i18n message with `en`, `h
 
 Each has a recommendation. Approve as a batch, or correct by number.
 
+Decided on 2026-10-22: Q1, Q2, Q8, Q11 and Q16, all as recommended. The rest are still open.
+
 **Q1. `language` at the top level instead of `settings.language`?** (Conflict C3.)
 The brief puts it under `settings`. Changing a nested key later would need a new nested-key
 editor, because ADR 0004's editor edits only top-level keys:
@@ -223,12 +225,14 @@ settings:
 ```
 
 *Recommendation:* top-level `language`. Keep `settings.vocabulary` nested.
+**Decided (2026-10-22): approved.**
 
 **Q2. Layout storage: per user, per project, or a project override?** (Brief Q1.)
 *Recommendation:* split by what the data refers to. Shapes (where views sit, sizes, saved
 layout names) are per user, so a new project opens the way you like to work. Bindings that
 name files (pinned cards, locked splits, the current outline, the active layout per mode)
 are per project, keyed like document tabs. No per-project override of shapes for now.
+**Decided (2026-10-22): approved.**
 
 **Q3. Peek trigger.** (Brief Q2.) Ctrl/Cmd+click already opens a link's target in the editor.
 *Recommendation:* in rendered panels, plain hover after a short delay. In the editor,
@@ -262,6 +266,7 @@ Note: none. Each card adds its first section.
 
 *Recommendation:* the first. It needs no recognized word (the key comes from `novel.md`),
 Obsidian reads it as an ordinary tag, and it follows "prefer structure over words".
+**Decided (2026-10-22): approved.**
 
 **Q9. Which outline does the board open?** (Brief Q5.) *Recommendation:* one current outline
 per project, shared by the board and the outline view, stored as a project binding, not in
@@ -281,6 +286,7 @@ no other words:
 *Recommendation:* separate catalogs in the same module. Seeds are write-only. Putting them
 in the registry would make the app look for them in files, and that coupling is what the
 brief wants to keep small.
+**Decided (2026-10-22): approved.**
 
 **Q12. Should `novel.md`'s YAML comments follow the book language too?** A Hebrew book would
 get:
@@ -311,6 +317,7 @@ has no seeds for is kept, used for direction, and gets English seeds, with no wa
 **Q16. Numbered lists in an outline.** Moving `2.` above `1.` without renumbering leaves odd
 source text, and renumbering would change lines you didn't move. *Recommendation:* show
 numbered items as plain content in P2–P4, not as beats. Revisit if you use numbered outlines.
+**Decided (2026-10-22): approved.**
 
 **Q17. Where does the Classic layout switch live during W3–W5?** *Recommendation:* the View
 menu, per user, removed in W6.
