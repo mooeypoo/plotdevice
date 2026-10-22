@@ -26,8 +26,8 @@ dependency and RTL risk for little gain.
   - **Layout shapes** (regions, views, collapse, sizes, saved names) are per user, in a
     versioned zod-validated `plotdevice.workbench` record in `userData` browser storage.
     Presets ship as data and can't be deleted; user layouts can be saved, renamed, deleted.
-  - **Project bindings** (pinned cards, locked splits, the current outline, the active
-    layout per mode) are per project, keyed by project root like document tabs, because
+  - **Project bindings** (pinned cards, locked splits, the current outline, the mode the
+    project was left in, the active layout per mode) are per project, keyed by project root like document tabs, because
     they name project paths.
 - Version 1 is derived once from the existing keys (`plotdevice.layout`, `outlineWidth`)
   so the Write preset reproduces the writer's current arrangement. Old keys stay readable

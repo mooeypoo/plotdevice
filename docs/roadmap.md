@@ -331,11 +331,11 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 **Done when:** every planner is proven byte-exact on every fixture outline, and codex no longer owns outlines.
 
 ### P2: Plotting mode and read-only board
-- [ ] `api.outline` (`list`, `create`, `openEntry`, `saveText`, `readBoard`, `capture`), with the codex outline methods kept as forwarding aliases for one version; a renderer outline store takes the `outline` entry owner.
-- [ ] Writing/Plotting mode switch through the navigation queue; the Plot preset.
-- [ ] Beat board as a projection (columns follow inline direction; beats in document order) with chapter status, POV, word count, and thread color.
-- [ ] Toggle between board and the outline's text in the writable editor, never both editable.
-- [ ] Capture a beat behind an experimental setting, off by default, with the Inbox as the last column.
+- [x] `api.outline` (`list`, `create`, `openEntry`, `saveEntryText`, `readBoard`, `capture`; contract version 27), with the codex outline methods kept as deprecated aliases for one version; a renderer outline store takes the `outline` entry owner.
+- [x] Writing/Plotting mode switch through the navigation queue; the Plot preset. The mode is a project binding; opening any document but the outline returns to Writing.
+- [x] Beat board as a projection (columns follow inline direction; beats in document order) with chapter status, POV, word count, and thread color (always with the thread's name).
+- [x] Toggle between board and the outline's text in the writable editor, never both editable (the Board and Text tabs).
+- [x] Capture a beat behind an experimental setting, off by default, with the Inbox as the last column; an option ends the beat with a link to the Writing chapter (Q10).
 
 **Done when:** the board matches the outline for every fixture, mirrors in Hebrew, and capture changes only the appended lines.
 
@@ -402,6 +402,7 @@ native deb permissions and publisher authentication are not changed by metadata.
 
 ## Later
 - Chrome cleanup (writer feedback on W5) is now phase U1 above.
+- The user guide doesn't yet describe the workbench (layouts, palette, peeks and cards, splits); it has a short Plotting section. Bring it up to date with U1, when names and places settle.
 - Workbench follow-ups (out of the proposed W/L/P plan): dragging tabs and sections between panels (W4 provides menu and keyboard moves); a Search view with full-text search (the palette only jumps to entries); the thread grid (threads × chapters, reusing the timeline's reading-order grid); pop-out windows; a visual `novel.md` settings editor for language, vocabulary, statuses and folders (ADR 0004 and 0007); scene-level cards once scenes exist.
 - Renderer coupling: 44 feature files import `app/` stores directly. W2 cuts feature-to-feature imports only; narrowing features' access to app stores is separate work.
 - Documentation tooling: the offline manual build passes but emits Node module-type and Vite native-config compatibility warnings. Address module configuration separately from reference UI work.

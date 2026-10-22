@@ -612,6 +612,21 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   /**
+   * After the app itself changed the open file's text (a captured beat), loads it as it is now.
+   * Callers save first, so no draft is lost.
+   */
+  function reloadAfterWrite(path: string): Promise<boolean> {
+    return enqueue(async () => {
+      const current = entry.value
+      if (current?.path !== path) return false
+      const read = await apiFor(current.kind).openEntry(path)
+      if (!read.ok) return false
+      await adoptEntry(path, current, read.value)
+      return true
+    })
+  }
+
+  /**
    * Runs a screen change that hides the writable document, such as switching the center view,
    * with the same guards as switching documents: it waits its turn, saves first, and is refused
    * while a recovery decision is pending.
@@ -669,6 +684,7 @@ export const useEditorStore = defineStore('editor', () => {
     hasStuckChanges,
     navigationBusy,
     open,
+    reloadAfterWrite,
     returnToWriting,
     cycleDocument,
     closeDocument,

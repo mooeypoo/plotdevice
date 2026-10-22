@@ -15,7 +15,13 @@ export type ErrorNotice =
   | LinkNotice
   | { readonly notice: 'link-target-unsupported'; readonly path: string }
   | { readonly notice: 'reference-not-listed'; readonly path: string }
-  | { readonly notice: EditorNoticeKey | 'workspace-unsaved-changes' | 'reference-open-failed' }
+  | {
+      readonly notice:
+        | EditorNoticeKey
+        | 'workspace-unsaved-changes'
+        | 'reference-open-failed'
+        | 'capture-outline-unsaved'
+    }
   | { readonly notice: 'relationships-cannot-edit'; readonly error: ApiError }
   | { readonly notice: 'recents-remember-failed'; readonly error: ApiError }
   | string

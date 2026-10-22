@@ -666,5 +666,13 @@
   "board-no-columns": "This outline has no ## headings yet, so there are no columns to show. Its text is safe; nothing was changed.",
   "board-edit-text": "Edit as text",
   "board-pov": "POV: $1",
-  "board-words": "$2 {{PLURAL:$1|word|words}}"
+  "board-words": "$2 {{PLURAL:$1|word|words}}",
+  "appearance-experimental": "Experimental",
+  "appearance-capture": "Capture beats into the outline’s Inbox (Ctrl+K, then “Capture a beat”)",
+  "appearance-capture-link": "End each captured beat with a link to the chapter you were writing",
+  "capture-title": "Capture a beat",
+  "capture-into": "Goes to the end of the Inbox in $1",
+  "capture-placeholder": "One line, then Enter",
+  "capture-outline-unsaved": "The outline open in the editor has changes that can’t be saved yet; resolve them first.",
+  "palette-capture": "Capture a beat…"
 }

@@ -666,5 +666,13 @@
   "board-no-columns": "למתווה הזה אין עדיין כותרות ##, ולכן אין עמודות להציג. הטקסט שלו לא השתנה.",
   "board-edit-text": "עריכה כטקסט",
   "board-pov": "נקודת מבט: $1",
-  "board-words": "{{PLURAL:$1|מילה אחת|$2 מילים}}"
+  "board-words": "{{PLURAL:$1|מילה אחת|$2 מילים}}",
+  "appearance-experimental": "ניסיוני",
+  "appearance-capture": "תפיסת נקודות עלילה לתיבת הרעיונות של המתווה (Ctrl+K, ואז „תפיסת נקודת עלילה”)",
+  "appearance-capture-link": "לסיים כל נקודה שנתפסה בקישור לפרק שנכתב",
+  "capture-title": "תפיסת נקודת עלילה",
+  "capture-into": "תתווסף לסוף תיבת הרעיונות ב־$1",
+  "capture-placeholder": "שורה אחת, ואז Enter",
+  "capture-outline-unsaved": "במתווה הפתוח בעורך יש שינויים שעדיין לא ניתן לשמור; יש לפתור אותם קודם.",
+  "palette-capture": "תפיסת נקודת עלילה…"
 }

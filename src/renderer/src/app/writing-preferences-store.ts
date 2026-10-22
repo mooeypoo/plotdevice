@@ -36,6 +36,10 @@ const preferencesSchema = z.object({
   writingDirection: writingDirectionSchema.default('auto'),
   /** Fade panels and bars while typing; off unless the writer turns it on. */
   fadeWhileTyping: z.boolean().default(false),
+  /** Experimental: capture beats into the current outline's Inbox (brief §4.4); off by default. */
+  captureBeats: z.boolean().default(false),
+  /** With capture on, end each captured beat with a link to the Writing chapter (Q10). */
+  captureLinksChapter: z.boolean().default(false),
   characterViews: z.record(z.string(), characterViewSchema).default({}),
   collapsedParts: z.record(z.string(), z.array(z.string()))
 })
@@ -50,6 +54,8 @@ function defaults(): WritingPreferences {
     outlineWidth: OUTLINE_WIDTH.default,
     writingDirection: 'auto',
     fadeWhileTyping: false,
+    captureBeats: false,
+    captureLinksChapter: false,
     characterViews: {},
     collapsedParts: {}
   }
@@ -138,6 +144,16 @@ export const useWritingPreferencesStore = defineStore('writing-preferences', () 
     save()
   }
 
+  function setCaptureBeats(on: boolean): void {
+    preferences.value.captureBeats = on
+    save()
+  }
+
+  function setCaptureLinksChapter(on: boolean): void {
+    preferences.value.captureLinksChapter = on
+    save()
+  }
+
   function resetTypography(): void {
     preferences.value.fontSize = PROSE_FONT_SIZE.default
     preferences.value.lineWidth = PROSE_LINE_WIDTH.default
@@ -209,6 +225,10 @@ export const useWritingPreferencesStore = defineStore('writing-preferences', () 
     setWritingDirection,
     fadeWhileTyping: computed(() => preferences.value.fadeWhileTyping),
     setFadeWhileTyping,
+    captureBeats: computed(() => preferences.value.captureBeats),
+    setCaptureBeats,
+    captureLinksChapter: computed(() => preferences.value.captureLinksChapter),
+    setCaptureLinksChapter,
     resetTypography,
     outlineWidth: computed(() => preferences.value.outlineWidth),
     setOutlineWidth,

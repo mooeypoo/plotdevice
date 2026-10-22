@@ -4,6 +4,7 @@ import BinderView from '../../features/binder/BinderView.vue'
 import CardStack from '../../features/cards/CardStack.vue'
 import PeekLayer from '../../features/cards/PeekLayer.vue'
 import CommandPalette from '../../features/palette/CommandPalette.vue'
+import CaptureBox from '../../features/capture/CaptureBox.vue'
 import CastStrip from '../../features/cast/CastStrip.vue'
 import SceneCard from '../../features/cast/SceneCard.vue'
 import SplitPane from '../../features/split/SplitPane.vue'
@@ -63,7 +64,7 @@ export const VIEW_REGISTRY: Partial<Readonly<Record<ViewId, ViewDescriptor>>> = 
 publishViewDirectory(VIEW_REGISTRY)
 
 /** Layers drawn above every region once per project, such as the peek card. */
-export const OVERLAYS: readonly Component[] = [PeekLayer, CommandPalette]
+export const OVERLAYS: readonly Component[] = [PeekLayer, CommandPalette, CaptureBox]
 
 /** A read-only split beside the writable document; takes a `splitId` prop. */
 export const SPLIT_PANE: Component = SplitPane

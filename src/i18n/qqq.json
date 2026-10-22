@@ -666,5 +666,13 @@
   "board-no-columns": "Shown when the current outline has no level-2 headings. Keep ## as it is.",
   "board-edit-text": "Button on the empty board: show the outline's Markdown in the editor.",
   "board-pov": "On a beat card: the linked chapter's point-of-view characters. $1 is a list of names.",
-  "board-words": "On a beat card: the linked chapter's word count. $1 is the number, $2 the number formatted for display."
+  "board-words": "On a beat card: the linked chapter's word count. $1 is the number, $2 the number formatted for display.",
+  "appearance-experimental": "Heading of a group of settings that are still being tried out.",
+  "appearance-capture": "Setting: lets the writer append a one-line beat to the end of the Inbox section of the current outline. Keep Ctrl+K.",
+  "appearance-capture-link": "Setting under capture: appends [[chapter]] to captured beats.",
+  "capture-title": "Accessible name of the one-line capture box.",
+  "capture-into": "Label of the capture box. $1 is the outline's title.",
+  "capture-placeholder": "Placeholder in the capture box.",
+  "capture-outline-unsaved": "Shown when capture is refused because the outline's editor draft is in conflict or not saved.",
+  "palette-capture": "Command palette item, shown only when capture is turned on."
 }

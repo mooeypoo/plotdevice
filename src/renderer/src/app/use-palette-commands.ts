@@ -9,7 +9,11 @@ import { useChromePresentation } from '../shared/use-chrome-presentation'
 import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
 import { placeOf } from './entry-owners'
+import { useCaptureStore } from './capture-store'
 import { useLayoutStore, type MainView } from './layout-store'
+import { useOutlineStore } from './outline-store'
+import { usePaletteStore } from './palette-store'
+import { useWritingPreferencesStore } from './writing-preferences-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useReferenceStore } from './reference-store'
 import { useUiLanguageStore } from './ui-language-store'
@@ -71,6 +75,8 @@ export function usePaletteCommands() {
   const navigation = useWorkbenchNavigation()
   const language = useUiLanguageStore()
   const chrome = useChromePresentation()
+  const preferences = useWritingPreferencesStore()
+  const outlines = useOutlineStore()
 
   const entries = computed((): PaletteItem[] => {
     const aliases = new Map(
@@ -180,7 +186,16 @@ export function usePaletteCommands() {
                 navigation.showOutlineText()
               )
             ]
+    const capture =
+      preferences.captureBeats && outlines.currentPath !== null
+        ? [
+            command('capture-beat', 'palette-capture', () => {
+              useCaptureStore().show(usePaletteStore().origin())
+            })
+          ]
+        : []
     return [
+      ...capture,
       ...modes,
       command('return-to-writing', 'tabs-return', () => editor.returnToWriting()),
       command('toggle-binder', 'menu-toggle-binder', layout.toggleBinder),

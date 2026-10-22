@@ -27,6 +27,23 @@ links open from this reference view.
 
 An outline does not change chapter order simply because you rearrange its paragraphs.
 
+## Plot on the board
+
+Switch the top bar from **Writing** to **Plotting** to see your outline as a board.
+Each `##` heading is a column and each bullet under it a card. A card that links to a
+chapter shows that chapter's status, point of view and word count; a `#tag` that
+matches one of your threads in `novel.md` marks the card with that thread. Text the
+board doesn't recognize stays exactly where it is.
+
+Choose **Text** to edit the outline itself, and **Board** to look again. The board
+reads the file each time; it stores nothing of its own. Use the arrow keys to move
+between cards, and Enter to go and write a card's chapter.
+
+**Capture a beat** is an experimental setting in Writing appearance. When it's on, the
+command palette (Ctrl+K) offers **Capture a beat…**: type one line and press Enter,
+and it is added to the end of the outline's Inbox section, which is created if
+missing. Nothing else in the outline changes.
+
 ## Overview
 
 The overview is derived from the manuscript: parts, chapters, statuses, point of view,

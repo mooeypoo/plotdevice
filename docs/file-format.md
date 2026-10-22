@@ -195,7 +195,7 @@ The plan in one breath: Ilka comes back for the orchard and stays for the strike
 
 ### The board
 
-In Plotting mode (coming in a later version) the app shows an outline as a board. It reads a small part of the body:
+In Plotting mode the app shows an outline as a board. It reads a small part of the body:
 
 | In the file | On the board |
 |---|---|
