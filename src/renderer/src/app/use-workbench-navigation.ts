@@ -1,5 +1,6 @@
 import { findView } from '../workbench/model/layout'
 import { missingViews } from '../workbench/model/placement-actions'
+import type { ViewId } from '../workbench/model/view-catalog'
 import { activateSection, removeSection, setCenterView } from '../workbench/model/operations'
 import { useEditorStore } from './editor-store'
 import { useLayoutStore, type MainView, type RightTab } from './layout-store'
@@ -61,21 +62,26 @@ export function useWorkbenchNavigation() {
     layout.rightTab = panel
   }
 
-  /**
-   * Opens and shows `panel` wherever the layout keeps it, leaving focus mode so it can be seen. A
-   * view the writer closed comes back where it usually lives.
-   */
+  /** Opens and shows `panel` wherever the layout keeps it; see `revealView`. */
   function revealPanel(panel: RightTab): void {
-    if (findView(workbench.layout, panel) === undefined) {
-      const missing = missingViews(workbench.layout, [panel])[0]
+    revealView(panel)
+  }
+
+  /**
+   * Opens and shows a view wherever the layout keeps it, leaving focus mode so it can be seen. A
+   * view the layout doesn't show comes back where it usually lives.
+   */
+  function revealView(view: ViewId): void {
+    if (findView(workbench.layout, view) === undefined) {
+      const missing = missingViews(workbench.layout, [view])[0]
       if (missing !== undefined) workbench.apply(missing.apply)
     }
-    const section = findView(workbench.layout, panel)?.section
+    const section = findView(workbench.layout, view)?.section
     if (section !== undefined) {
       workbench.apply((current) => activateSection(current, section.id))
     }
     layout.exitFocusMode()
   }
 
-  return { showCenterView, switchLayout, rearrange, choosePanel, revealPanel }
+  return { showCenterView, switchLayout, rearrange, choosePanel, revealPanel, revealView }
 }

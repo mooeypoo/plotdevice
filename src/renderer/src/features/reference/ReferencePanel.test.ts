@@ -9,6 +9,7 @@ import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { useReferenceStore } from '../../app/reference-store'
+import { useWorkbenchStore } from '../../app/workbench-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import ReferencePanel from './ReferencePanel.vue'
 import type { ApiResult, EntryTextDto } from '../../../../contract/dtos'
@@ -359,5 +360,16 @@ describe('ReferencePanel', () => {
     expect(restored.get('.view h2').text()).toBe('A changed history')
     expect(restored.text()).not.toContain('Showing the current editor draft')
     restored.unmount()
+  })
+})
+
+describe('Reference pin', () => {
+  it('pins the shown entry as a card and leaves Reference free', async () => {
+    useReferenceStore().open('characters/Ilka.md')
+    const panel = mount(ReferencePanel)
+    await flushPromises()
+    await panel.get('.pin').trigger('click')
+    expect(useWorkbenchStore().cards).toEqual(['characters/Ilka.md'])
+    expect(useReferenceStore().path).toBe('characters/Ilka.md')
   })
 })

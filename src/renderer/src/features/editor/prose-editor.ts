@@ -11,6 +11,7 @@ import { autoLineDirection, technicalSpanDirection } from './line-direction'
 import { proseAppearance } from './prose-theme'
 import { wikiLinkDecorations } from './wiki-link-decorations'
 import { linkAt, type LinkAt } from '../../shared/link-at'
+import type { ScreenRect } from '../../shared/screen-rect'
 import { linkCompletionSource, type LinkCompletionTarget } from './link-completion'
 import { createLinkKindLookup } from '../../shared/wiki-link-scan'
 
@@ -30,6 +31,10 @@ export interface ProseEditorOptions {
   readonly completions: () => readonly LinkCompletionTarget[]
   /** Ctrl/Cmd+click on a link. */
   readonly onOpenLink: (link: LinkAt) => void
+  /** Ctrl/Cmd+hover over a link, or Ctrl/Cmd+Shift+Enter with the caret in one. */
+  readonly onPeek?: (link: LinkAt, near: ScreenRect, byKeyboard: boolean) => void
+  /** The pointer left the peeked link, or Ctrl/Cmd was released. */
+  readonly onPeekEnd?: () => void
 }
 
 /** A mounted prose editor and the settings that can change while it is open. */
@@ -59,9 +64,43 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
       copy.linkTooltip(target, embed)
     )
 
+  /** The link last peeked by pointer, so moving within it doesn't peek again. */
+  let peeked: string | undefined
+
+  function linkNear(
+    view: EditorView,
+    position: number
+  ): { link: LinkAt; near: ScreenRect } | undefined {
+    const line = view.state.doc.lineAt(position)
+    const link = linkAt(line.text, line.from, position)
+    if (link === undefined) return undefined
+    // A position that isn't laid out has no coordinates; the editor's own box still anchors the peek.
+    const { left, right, top, bottom } =
+      view.coordsAtPos(position) ?? view.contentDOM.getBoundingClientRect()
+    return { link, near: { left, right, top, bottom } }
+  }
+
+  function endPeek(): void {
+    if (peeked === undefined) return
+    peeked = undefined
+    options.onPeekEnd?.()
+  }
+
   const extensions = [
     history(),
-    keymap.of([...defaultKeymap, ...historyKeymap]),
+    keymap.of([
+      {
+        key: 'Mod-Shift-Enter',
+        run: (view) => {
+          const found = linkNear(view, view.state.selection.main.head)
+          if (found === undefined || options.onPeek === undefined) return false
+          options.onPeek(found.link, found.near, true)
+          return true
+        }
+      },
+      ...defaultKeymap,
+      ...historyKeymap
+    ]),
     markdown({ base: markdownLanguage }),
     proseAppearance(),
     EditorView.lineWrapping,
@@ -81,6 +120,28 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
     }),
     completionTheme,
     EditorView.domEventHandlers({
+      mousemove(event, view) {
+        if (options.onPeek === undefined) return false
+        const position = view.posAtCoords({ x: event.clientX, y: event.clientY })
+        const found =
+          (event.ctrlKey || event.metaKey) && position !== null
+            ? linkNear(view, position)
+            : undefined
+        if (found === undefined) {
+          endPeek()
+          return false
+        }
+        const key = JSON.stringify(found.link)
+        if (key !== peeked) {
+          peeked = key
+          options.onPeek(found.link, found.near, false)
+        }
+        return false
+      },
+      mouseleave() {
+        endPeek()
+        return false
+      },
       mousedown(event, view) {
         if (!(event.ctrlKey || event.metaKey) || event.button !== 0) return false
         const position = view.posAtCoords({ x: event.clientX, y: event.clientY })

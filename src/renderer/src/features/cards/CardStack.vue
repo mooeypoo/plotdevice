@@ -1,0 +1,149 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { placeOf } from '../../app/entry-owners'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { useWorkbenchStore } from '../../app/workbench-store'
+import { isolate } from '../../shared/isolate'
+import type { MenuItem } from '../../shared/menu-item'
+import MenuButton from '../../shared/MenuButton.vue'
+import { CARD_FIELD_LABELS, CARD_FIELDS, chosenFields, isCardKind } from './card-summary'
+import EntryCard from './EntryCard.vue'
+
+const workbench = useWorkbenchStore()
+const language = useUiLanguageStore()
+/** The card being dragged, so a drop knows what moves; drag data is not trusted for paths. */
+const dragging = ref<string | null>(null)
+
+const titleOf = (path: string): string => placeOf(path)?.title ?? path
+
+function menu(path: string, index: number): MenuItem[] {
+  const kind = placeOf(path)?.kind
+  const items: MenuItem[] = []
+  if (index > 0) {
+    items.push({
+      key: 'up',
+      label: language.t('cards-move-up'),
+      run: () => {
+        workbench.moveCard(path, index - 1)
+      }
+    })
+  }
+  if (index < workbench.cards.length - 1) {
+    items.push({
+      key: 'down',
+      label: language.t('cards-move-down'),
+      run: () => {
+        workbench.moveCard(path, index + 1)
+      }
+    })
+  }
+  if (kind !== undefined && isCardKind(kind)) {
+    const shown = chosenFields(kind, workbench.cardFieldsFor(kind))
+    for (const field of CARD_FIELDS[kind]) {
+      const on = shown.includes(field)
+      items.push({
+        key: `field-${field}`,
+        label: language.t(
+          on ? 'cards-field-hide' : 'cards-field-show',
+          language.t(CARD_FIELD_LABELS[field])
+        ),
+        run: () => {
+          workbench.setCardFields(
+            kind,
+            on ? shown.filter((other) => other !== field) : [...shown, field]
+          )
+        }
+      })
+    }
+  }
+  items.push({
+    key: 'unpin',
+    label: language.t('cards-unpin-label', isolate(titleOf(path))),
+    run: () => {
+      workbench.unpinCard(path)
+    }
+  })
+  return items
+}
+
+function drop(index: number): void {
+  const path = dragging.value
+  dragging.value = null
+  if (path !== null) workbench.moveCard(path, index)
+}
+</script>
+
+<template>
+  <section class="card-stack">
+    <p v-if="workbench.cards.length === 0" class="empty">{{ language.t('cards-empty') }}</p>
+    <ol v-else>
+      <li
+        v-for="(path, index) in workbench.cards"
+        :key="path"
+        draggable="true"
+        :class="{ dragging: dragging === path }"
+        @dragstart="dragging = path"
+        @dragend="dragging = null"
+        @dragover.prevent
+        @drop.prevent="drop(index)"
+      >
+        <EntryCard
+          :path="path"
+          :collapsed="workbench.collapsedCards.includes(path)"
+          @toggle-collapsed="
+            workbench.setCardCollapsed(path, !workbench.collapsedCards.includes(path))
+          "
+        />
+        <span class="card-menu">
+          <MenuButton
+            :label="language.t('cards-options', isolate(titleOf(path)))"
+            :items="menu(path, index)"
+          />
+        </span>
+      </li>
+    </ol>
+  </section>
+</template>
+
+<style scoped>
+.card-stack {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+ol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li {
+  position: relative;
+}
+
+li.dragging {
+  opacity: 0.5;
+}
+
+.card-menu {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 8px;
+}
+
+/* Leave room for the card's menu beside its own actions. */
+li :deep(.entry-card header) {
+  padding-inline-end: 28px;
+}
+
+.empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+</style>

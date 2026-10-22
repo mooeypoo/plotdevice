@@ -46,7 +46,7 @@ export const VIEW_CATALOG: Readonly<Record<ViewId, ViewPlacement>> = {
   timeline: panel(['center', 'bottom']),
   interactions: panel(['center', 'bottom']),
   warnings: panel(['start', 'end', 'bottom']),
-  'card-stack': panel(['start', 'end']),
+  'card-stack': panel(['end', 'start']),
   cast: panel(['start', 'end', 'bottom'], ['follow']),
   'scene-card': panel(['start', 'end'], ['follow', 'pinned']),
   'plot-board': { regions: ['center'], bindings: ['global'], plottingOnly: true }

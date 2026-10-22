@@ -19,6 +19,8 @@ export interface WorkbenchSettings {
   readonly version: 1
   /** Which shell renders the project: the workbench, or the classic fixed panels until W6. */
   readonly shell: WorkbenchShell
+  /** Which fields entry cards show, by entry kind; a missing kind uses the cards' defaults. */
+  readonly cardFields: Readonly<Record<string, readonly string[]>>
   /** A preset's id maps to its rearrangement; a saved layout's id to its arrangement. */
   readonly arrangements: Readonly<Record<string, Layout>>
   readonly saved: readonly SavedLayout[]
@@ -31,12 +33,13 @@ export type WorkbenchShell = (typeof WORKBENCH_SHELLS)[number]
 
 /** Settings with every preset as shipped and no saved layouts. */
 export function defaultWorkbenchSettings(): WorkbenchSettings {
-  return { version: 1, shell: 'workbench', arrangements: {}, saved: [] }
+  return { version: 1, shell: 'workbench', cardFields: {}, arrangements: {}, saved: [] }
 }
 
 const envelopeSchema = z.object({
   version: z.literal(1),
   shell: z.enum(WORKBENCH_SHELLS).default('workbench'),
+  cardFields: z.record(z.string(), z.array(z.string())).default({}),
   arrangements: z.record(z.string(), z.unknown()),
   saved: z.array(z.unknown())
 })
@@ -93,7 +96,8 @@ export function parseWorkbenchSettings(value: unknown): ParsedWorkbenchSettings 
       dropped += 1
     }
   }
-  return { settings: { version: 1, shell: envelope.data.shell, arrangements, saved }, dropped }
+  const { shell, cardFields } = envelope.data
+  return { settings: { version: 1, shell, cardFields, arrangements, saved }, dropped }
 }
 
 const projectSchema = z.object({
@@ -102,6 +106,8 @@ const projectSchema = z.object({
   pins: z.record(z.string(), z.string()),
   /** The card stack's pinned entries, in order. */
   cards: z.array(z.string()),
+  /** Pinned cards the writer collapsed to one line. */
+  collapsedCards: z.array(z.string()).default([]),
   /** Each split's document, and whether it keeps it when the writer navigates. */
   splits: z.record(z.string(), z.object({ path: z.string(), locked: z.boolean() })),
   /** The outline the board and the outline view show. */
@@ -130,6 +136,7 @@ export function defaultProjectBindings(): ProjectBindings {
     active: { writing: 'write', plotting: 'plot' },
     pins: {},
     cards: [],
+    collapsedCards: [],
     splits: {},
     outlinePath: null
   }

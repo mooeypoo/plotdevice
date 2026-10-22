@@ -4,6 +4,7 @@ import CenterStage from './CenterStage.vue'
 import ClassicBody from './ClassicBody.vue'
 import DocumentTabs from './DocumentTabs.vue'
 import WorkbenchBody from '../workbench/shell/WorkbenchBody.vue'
+import { OVERLAYS } from '../workbench/views/view-registry'
 import { useWorkbenchStore } from './workbench-store'
 import { useInspectorStore } from './inspector-store'
 import { useChromePresentation } from '../shared/use-chrome-presentation'
@@ -131,6 +132,8 @@ useShortcuts([
       </p>
       <CenterStage />
     </component>
+
+    <component :is="overlay" v-for="(overlay, index) in OVERLAYS" :key="index" />
 
     <StatusBar v-if="!layout.focusMode" />
 

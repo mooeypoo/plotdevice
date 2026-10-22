@@ -17,6 +17,7 @@ describe('view registry', () => {
     expect(Object.keys(VIEW_REGISTRY).sort()).toEqual(
       [
         'binder',
+        'card-stack',
         'codex',
         'document',
         'interactions',

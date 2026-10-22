@@ -8,6 +8,7 @@ import ChapterEditor from './ChapterEditor.vue'
 import ConflictBanner from './ConflictBanner.vue'
 import MissingFileBanner from './MissingFileBanner.vue'
 import { useEditorLinks } from '../../app/use-editor-links'
+import { usePeek } from '../../app/peek-store'
 import { useDocumentTabsStore } from '../../app/document-tabs-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { formatEntryPlaceLabel, formatEntryPlaceTitle } from '../../shared/entry-place-label'
@@ -23,6 +24,7 @@ const chrome = useChromePresentation()
 
 const readOnly = computed(() => workspace.project?.readOnly ?? false)
 const { completions, openLink, linkNotice } = useEditorLinks()
+const peek = usePeek()
 const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
 </script>
 
@@ -88,6 +90,8 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
       @change="editor.edit($event)"
       @blur="editor.flush()"
       @open-link="openLink"
+      @peek="(link, near, byKeyboard) => peek.peekLink(link, editor.entry?.path, near, byKeyboard)"
+      @peek-end="peek.endHover()"
     />
   </div>
   <!-- With no document open, the shell shows what belongs there (the project's home). -->

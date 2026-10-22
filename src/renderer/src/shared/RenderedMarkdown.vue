@@ -3,13 +3,67 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { LinkTargetDto } from '../../../contract/dtos'
 import type { LinkAt } from './link-at'
 import { createMarkdownView, type MarkdownView } from './markdown-view'
+import { screenRectOf, type ScreenRect } from './screen-rect'
 
 const props = defineProps<{
   text: string
   linkTargets: readonly LinkTargetDto[]
   pointsHere?: (link: LinkAt) => boolean
 }>()
-const emit = defineEmits<{ openLink: [link: LinkAt] }>()
+const emit = defineEmits<{
+  openLink: [link: LinkAt]
+  /** Asks to peek at a project link: after hovering it, or by keyboard (focus the card). */
+  peek: [link: LinkAt, near: ScreenRect, byKeyboard: boolean]
+  /** The pointer left the link; the peek may close after a short grace. */
+  peekEnd: []
+}>()
+/** How long the pointer rests on a link before its peek opens. */
+const PEEK_DELAY_MS = 500
+let peekTimer: ReturnType<typeof setTimeout> | undefined
+
+/** The project link an event happened on, as the renderer marks it. */
+function projectLink(
+  target: EventTarget | null
+): { link: LinkAt; anchor: HTMLElement } | undefined {
+  if (!(target instanceof Element)) return undefined
+  const anchor = target.closest<HTMLElement>('a.markdown-link')
+  if (anchor === null) return undefined
+  const value = anchor.dataset['markdownTarget']
+  if (value === undefined) return undefined
+  return anchor.dataset['markdownKind'] === 'wiki'
+    ? { link: { kind: 'wiki', target: value }, anchor }
+    : { link: { kind: 'markdown', address: value }, anchor }
+}
+
+function cancelPeek(): void {
+  if (peekTimer !== undefined) clearTimeout(peekTimer)
+  peekTimer = undefined
+}
+
+function hover(event: MouseEvent): void {
+  const found = projectLink(event.target)
+  if (found === undefined) return
+  cancelPeek()
+  peekTimer = setTimeout(() => {
+    peekTimer = undefined
+    emit('peek', found.link, screenRectOf(found.anchor), false)
+  }, PEEK_DELAY_MS)
+}
+
+function leave(event: MouseEvent): void {
+  const from = projectLink(event.target)
+  if (from === undefined || from.anchor.contains(event.relatedTarget as Node | null)) return
+  cancelPeek()
+  emit('peekEnd')
+}
+
+function keydown(event: KeyboardEvent): void {
+  if (event.key !== 'Enter' || !event.shiftKey || !(event.ctrlKey || event.metaKey)) return
+  const found = projectLink(event.target)
+  if (found === undefined) return
+  event.preventDefault()
+  emit('peek', found.link, screenRectOf(found.anchor), true)
+}
 const host = ref<HTMLElement | null>(null)
 let view: MarkdownView | undefined
 
@@ -38,11 +92,21 @@ watch(
     if (pointsHere !== undefined) view?.highlight(pointsHere)
   }
 )
-onBeforeUnmount(() => view?.destroy())
+onBeforeUnmount(() => {
+  cancelPeek()
+  view?.destroy()
+})
 </script>
 
 <template>
-  <div ref="host" class="view" dir="auto"></div>
+  <div
+    ref="host"
+    class="view"
+    dir="auto"
+    @mouseover="hover"
+    @mouseout="leave"
+    @keydown="keydown"
+  ></div>
 </template>
 
 <style scoped>

@@ -27,6 +27,7 @@ import {
   saveWorkbenchSettings,
   type WorkbenchStorageProblem
 } from '../workbench/storage/workbench-storage'
+import { registerMoveFollower } from './move-followers'
 import { useUiLanguageStore } from './ui-language-store'
 
 const NOTICES: Record<WorkbenchStorageProblem, MessageKey> = {
@@ -150,6 +151,75 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     if (next !== settings.value.shell) saveSettings({ ...settings.value, shell: next })
   }
 
+  /** Pinned cards for this project, in the writer's order. */
+  const cards = computed(() => bindings.value.cards)
+  const collapsedCards = computed(() => bindings.value.collapsedCards)
+
+  /** Pins an entry as a card at the end of the stack; pinning it again keeps one card. */
+  function pinCard(path: string): void {
+    if (bindings.value.cards.includes(path)) return
+    updateBindings((current) => ({ ...current, cards: [...current.cards, path] }))
+  }
+
+  function unpinCard(path: string): void {
+    updateBindings((current) => ({
+      ...current,
+      cards: current.cards.filter((card) => card !== path),
+      collapsedCards: current.collapsedCards.filter((card) => card !== path)
+    }))
+  }
+
+  /** Moves a card to `index` in the stack. */
+  function moveCard(path: string, index: number): void {
+    const others = bindings.value.cards.filter((card) => card !== path)
+    if (others.length === bindings.value.cards.length) return
+    const at = Math.max(0, Math.min(index, others.length))
+    updateBindings((current) => ({
+      ...current,
+      cards: [...others.slice(0, at), path, ...others.slice(at)]
+    }))
+  }
+
+  function setCardCollapsed(path: string, collapsed: boolean): void {
+    updateBindings((current) => ({
+      ...current,
+      collapsedCards: collapsed
+        ? [...current.collapsedCards.filter((card) => card !== path), path]
+        : current.collapsedCards.filter((card) => card !== path)
+    }))
+  }
+
+  /** Which fields cards of `kind` show, for every project; `undefined` means the defaults. */
+  function cardFieldsFor(kind: string): readonly string[] | undefined {
+    return settings.value.cardFields[kind]
+  }
+
+  function setCardFields(kind: string, fields: readonly string[]): void {
+    saveSettings({
+      ...settings.value,
+      cardFields: { ...settings.value.cardFields, [kind]: fields }
+    })
+  }
+
+  /** Keeps pinned cards and the chosen outline on the files the app moved or renamed. */
+  function followMove(from: string, to: string): void {
+    const rename = (path: string): string => (path === from ? to : path)
+    const current = bindings.value
+    if (
+      !current.cards.includes(from) &&
+      !current.collapsedCards.includes(from) &&
+      current.outlinePath !== from
+    ) {
+      return
+    }
+    updateBindings((before) => ({
+      ...before,
+      cards: before.cards.map(rename),
+      collapsedCards: before.collapsedCards.map(rename),
+      outlinePath: before.outlinePath === null ? null : rename(before.outlinePath)
+    }))
+  }
+
   /** The outline this project reads beside the draft; before any choice, the old shell's. */
   const outlinePath = computed<string | null>({
     get: () => bindings.value.outlinePath ?? loadedSettings.legacyOutlinePath,
@@ -166,6 +236,15 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     shell,
     outlinePath,
     storageNotice,
+    cards,
+    collapsedCards,
+    pinCard,
+    unpinCard,
+    moveCard,
+    setCardCollapsed,
+    cardFieldsFor,
+    setCardFields,
+    followMove,
     apply,
     setActiveLayout,
     saveAs,
@@ -175,3 +254,5 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     setShell
   }
 })
+
+registerMoveFollower(() => useWorkbenchStore())

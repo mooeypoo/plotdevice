@@ -593,5 +593,21 @@
   "workbench-layout-cancel": "ביטול",
   "workbench-layout-name-empty": "יש לתת שם לפריסה.",
   "workbench-layout-name-too-long": "השם יכול להכיל עד 80 תווים.",
-  "workbench-layout-name-taken": "כבר קיימת פריסה בשם $1."
+  "workbench-layout-name-taken": "כבר קיימת פריסה בשם $1.",
+  "cards-stack-title": "כרטיסים",
+  "cards-empty": "אפשר לנעוץ כאן דמויות, מקומות או פרקים: מרחפים מעל קישור ובוחרים נעיצה, או משתמשים בנעיצה בחלונית העיון.",
+  "cards-pin": "נעיצה",
+  "cards-pin-label": "נעיצת $1 ככרטיס",
+  "cards-unpin-label": "ביטול הנעיצה של $1",
+  "cards-collapse": "כיווץ הכרטיס $1",
+  "cards-expand": "הרחבת הכרטיס $1",
+  "cards-options": "אפשרויות לכרטיס $1",
+  "cards-move-up": "העברה למעלה",
+  "cards-move-down": "העברה למטה",
+  "cards-field-show": "הצגת $1 בכרטיסים",
+  "cards-field-hide": "הסתרת $1 מהכרטיסים",
+  "cards-peek-label": "תצוגה מקדימה של $1",
+  "cards-loading": "טוען…",
+  "cards-live-draft": "מוצגת הטיוטה הנוכחית מהעורך.",
+  "cards-list-separator": ", "
 }

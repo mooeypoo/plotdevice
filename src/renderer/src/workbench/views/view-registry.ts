@@ -1,6 +1,8 @@
 import type { Component } from 'vue'
 import type { MessageKey } from '../../../../i18n/translator'
 import BinderView from '../../features/binder/BinderView.vue'
+import CardStack from '../../features/cards/CardStack.vue'
+import PeekLayer from '../../features/cards/PeekLayer.vue'
 import CodexView from '../../features/codex/CodexView.vue'
 import EditorPane from '../../features/editor/EditorPane.vue'
 import PropertiesView from '../../features/inspector/PropertiesView.vue'
@@ -45,8 +47,12 @@ export const VIEW_REGISTRY: Partial<Readonly<Record<ViewId, ViewDescriptor>>> = 
   overview: view('overview', 'view-overview', OverviewView),
   timeline: view('timeline', 'view-timeline', TimelineView),
   interactions: view('interactions', 'view-interactions', InteractionsView),
-  warnings: view('warnings', 'warnings-heading', WarningsView)
+  warnings: view('warnings', 'warnings-heading', WarningsView),
+  'card-stack': view('card-stack', 'cards-stack-title', CardStack)
 }
+
+/** Layers drawn above every region once per project, such as the peek card. */
+export const OVERLAYS: readonly Component[] = [PeekLayer]
 
 /** What the document view shows when no document is open: the project's home, with a `warnings` slot. */
 export const PROJECT_HOME: Component = ProjectOverview

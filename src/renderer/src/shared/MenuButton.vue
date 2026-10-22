@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref, useTemplateRef } from 'vue'
-import { moveMenuFocus } from '../../shared/use-menu-keys'
+import { moveMenuFocus } from './use-menu-keys'
 import type { MenuItem } from './menu-item'
 
 defineProps<{

@@ -4,11 +4,13 @@ import { useWorkspaceStore } from '../../app/workspace-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import RenderedMarkdown from '../../shared/RenderedMarkdown.vue'
 import { useOutlinePanel } from './use-outline-panel'
+import { usePeek } from '../../app/peek-store'
 
 const manuscript = useManuscriptStore()
 const workspace = useWorkspaceStore()
 const language = useUiLanguageStore()
 const panel = useOutlinePanel()
+const peek = usePeek()
 const { outlines, path, text, openInEditor, loading, error, linkNotice } = panel
 
 function choose(event: Event): void {
@@ -69,6 +71,8 @@ function choose(event: Event): void {
         :link-targets="manuscript.manuscript?.linkTargets ?? []"
         :points-here="panel.pointsHere.value"
         @open-link="panel.openLink"
+        @peek="(link, near, byKeyboard) => peek.peekLink(link, path ?? undefined, near, byKeyboard)"
+        @peek-end="peek.endHover()"
       />
     </template>
     <p v-else-if="loading" class="empty" role="status">
@@ -81,6 +85,8 @@ function choose(event: Event): void {
       :link-targets="manuscript.manuscript?.linkTargets ?? []"
       :points-here="panel.pointsHere.value"
       @open-link="panel.openLink"
+      @peek="(link, near, byKeyboard) => peek.peekLink(link, path ?? undefined, near, byKeyboard)"
+      @peek-end="peek.endHover()"
     />
   </section>
 </template>
