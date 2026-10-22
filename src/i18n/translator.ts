@@ -218,6 +218,9 @@ type ParameterizedMessages = {
   'board-pov': [names: string]
   'board-words': [count: number, formatted: string]
   'capture-into': [outline: string]
+  'board-move-to': [column: string]
+  'board-moved-beat': [beat: string, column: string]
+  'board-moved-column': [column: string]
 }
 type MessageArguments<Key extends MessageKey> = Key extends keyof ParameterizedMessages
   ? ParameterizedMessages[Key]

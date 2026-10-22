@@ -7,6 +7,8 @@ import type {
   CodexListingDto,
   CodexPropertiesViewDto,
   OutlineDto,
+  OutlineItemRefDto,
+  OutlinePlacementDto,
   PlotBoardDto,
   RelationshipEditDto,
   SettableTypeDto,
@@ -186,6 +188,24 @@ export interface OutlineApi {
     text: string,
     version: string | null
   ): Promise<ApiResult<{ readonly version: string }>>
+  /**
+   * Moves a beat and its notes into a column. `version` is the board's; a changed outline is
+   * refused. Returns the board as the file now reads.
+   */
+  moveBeat(
+    path: string,
+    version: string,
+    beat: OutlineItemRefDto,
+    column: OutlineItemRefDto,
+    placement: OutlinePlacementDto
+  ): Promise<ApiResult<PlotBoardDto>>
+  /** Moves a column (its heading to the next `##`); returns the board as the file now reads. */
+  moveColumn(
+    path: string,
+    version: string,
+    column: OutlineItemRefDto,
+    placement: OutlinePlacementDto
+  ): Promise<ApiResult<PlotBoardDto>>
 }
 
 /** The timeline of the open project. */
@@ -241,7 +261,7 @@ export interface RecoveryApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 27
+  readonly contractVersion: 28
   readonly uiLanguage: UiLanguageApi
   readonly recovery: RecoveryApi
   readonly workspace: WorkspaceApi

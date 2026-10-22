@@ -9,6 +9,7 @@ import type {
   CodexPropertiesDto,
   ProjectChangeDto,
   OutlineDto,
+  OutlinePlacementDto,
   PlotBoardDto,
   ProjectSummaryDto,
   InteractionsDto,
@@ -261,6 +262,8 @@ export function createFakePlotDeviceApi(): {
   board: { current: PlotBoardDto }
   /** Beats captured, as `path: text (version)`. */
   captures: string[]
+  /** Board moves, as `beat <title> → <column> <placement>` or `column <title> → <placement>`. */
+  boardMoves: string[]
   /** What `refreshProject` returns next. */
   summary: { current: ProjectSummaryDto }
 } {
@@ -289,6 +292,29 @@ export function createFakePlotDeviceApi(): {
   const board = { current: sampleBoard }
   let outlines: readonly OutlineDto[] = sampleOutlines
   const captures: string[] = []
+  const boardMoves: string[] = []
+  /** A move at a version the board no longer has is refused, as the main process does. */
+  const moveBoard = (
+    path: string,
+    version: string,
+    description: string
+  ): Promise<ApiResult<PlotBoardDto>> => {
+    if (version !== board.current.version) {
+      return Promise.resolve({
+        ok: false,
+        error: {
+          code: 'changed-on-disk',
+          message: 'changed',
+          diagnostic: { reason: 'file-changed', path }
+        }
+      })
+    }
+    boardMoves.push(description)
+    board.current = { ...board.current, version: `${board.current.version}+` }
+    return Promise.resolve({ ok: true, value: { ...board.current, path } })
+  }
+  const placementText = (placement: OutlinePlacementDto): string =>
+    placement === 'end' ? 'end' : `before ${placement.before.title}`
   const codexWrites: string[] = []
   let codex: CodexListingDto = sampleCodex
   const codexProperties = new Map<string, CodexPropertiesDto>(
@@ -342,7 +368,7 @@ export function createFakePlotDeviceApi(): {
   >()
 
   const api: PlotDeviceApi = {
-    contractVersion: 27,
+    contractVersion: 28,
     uiLanguage: {
       get: () => Promise.resolve(language),
       set: (locale) => {
@@ -889,6 +915,14 @@ export function createFakePlotDeviceApi(): {
       openEntry: (path) => api.codex.openEntry(path),
       saveEntryText: (path, text, version, overwrite) =>
         api.codex.saveEntryText(path, text, version, overwrite),
+      moveBeat: (path, version, beat, column, placement) =>
+        moveBoard(
+          path,
+          version,
+          `beat ${beat.title} → ${column.title} ${placementText(placement)}`
+        ),
+      moveColumn: (path, version, column, placement) =>
+        moveBoard(path, version, `column ${column.title} → ${placementText(placement)}`),
       readBoard: (path) => Promise.resolve({ ok: true, value: { ...board.current, path } }),
       capture: (path, text, version) => {
         if (version !== null && versionOf(path) !== version) {
@@ -931,6 +965,7 @@ export function createFakePlotDeviceApi(): {
     timeline,
     board,
     captures,
+    boardMoves,
     codexWrites,
     codexProperties,
     summary,

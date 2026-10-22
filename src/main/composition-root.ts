@@ -32,6 +32,8 @@ import { registerCodexIpc } from './ipc/codex-ipc'
 import { createOutlineHandlers, type OutlineUseCases } from './ipc/outline-handlers'
 import { registerOutlineIpc } from './ipc/outline-ipc'
 import { createCaptureBeat } from './contexts/outline/application/commands/capture-beat'
+import { createMoveBeat } from './contexts/outline/application/commands/move-beat'
+import { createMoveColumn } from './contexts/outline/application/commands/move-column'
 import { createReadOutlineStructure } from './contexts/outline/application/queries/read-outline-structure'
 import { createGetPlotBoard } from './queries/get-plot-board'
 import { createReadStoryDates } from './contexts/chronology/application/queries/read-story-dates'
@@ -215,7 +217,9 @@ export function composeApplication(language: UiLanguageService): LaunchFolders {
         getManuscript: createGetManuscript({ repository }),
         getChronologySettings
       }),
-      captureBeat: createCaptureBeat({ repository: outlineRepository, settings: outlineSettings })
+      captureBeat: createCaptureBeat({ repository: outlineRepository, settings: outlineSettings }),
+      moveBeat: createMoveBeat({ repository: outlineRepository, settings: outlineSettings }),
+      moveColumn: createMoveColumn({ repository: outlineRepository, settings: outlineSettings })
     }
     return {
       recovery,

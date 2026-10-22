@@ -20,7 +20,8 @@ export type ErrorNotice =
         | EditorNoticeKey
         | 'workspace-unsaved-changes'
         | 'reference-open-failed'
-        | 'capture-outline-unsaved'
+        | 'outline-draft-unresolved'
+        | 'board-outline-changed'
     }
   | { readonly notice: 'relationships-cannot-edit'; readonly error: ApiError }
   | { readonly notice: 'recents-remember-failed'; readonly error: ApiError }

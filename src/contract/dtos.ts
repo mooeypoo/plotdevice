@@ -509,6 +509,15 @@ export interface BoardColumnDto {
   readonly beats: readonly BoardBeatDto[]
 }
 
+/** A beat or column as the board last saw it: its line and title (ADR 0020). */
+export interface OutlineItemRefDto {
+  readonly line: number
+  readonly title: string
+}
+
+/** Where a moved beat or column goes: before another one, or at the end. */
+export type OutlinePlacementDto = { readonly before: OutlineItemRefDto } | 'end'
+
 /** The beat board over one outline, read from the file each time (ADR 0020). */
 export interface PlotBoardDto {
   readonly path: string

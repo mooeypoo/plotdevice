@@ -673,6 +673,17 @@
   "capture-title": "Accessible name of the one-line capture box.",
   "capture-into": "Label of the capture box. $1 is the outline's title.",
   "capture-placeholder": "Placeholder in the capture box.",
-  "capture-outline-unsaved": "Shown when capture is refused because the outline's editor draft is in conflict or not saved.",
-  "palette-capture": "Command palette item, shown only when capture is turned on."
+  "outline-draft-unresolved": "Shown when capturing a beat or moving one on the board is refused because the outline open in the editor has changes that can’t be saved yet.",
+  "palette-capture": "Command palette item, shown only when capture is turned on.",
+  "board-outline-changed": "Shown when a move on the board is refused because the outline file changed. The board has been read again.",
+  "board-card-menu": "Accessible name of the ⋯ menu on a beat card.",
+  "board-column-menu": "Accessible name of the ⋯ menu on a column heading.",
+  "board-move-up": "Card menu item: move the beat one place up in its column.",
+  "board-move-down": "Card menu item: move the beat one place down in its column.",
+  "board-move-to": "Card menu item: move the beat to the end of another column. $1 is the column's title.",
+  "board-move-earlier": "Column menu item: one place earlier in the outline (towards the start).",
+  "board-move-later": "Column menu item: one place later in the outline.",
+  "board-moved-beat": "Announced after a beat moves. $1 is the beat's title, $2 the column's title.",
+  "board-moved-column": "Announced after a column moves. $1 is the column's title.",
+  "board-keys-hint": "Short hint under the board heading about keyboard moves."
 }

@@ -10,4 +10,6 @@ export function registerOutlineIpc(handlers: OutlineHandlers): void {
   handleTrusted(OUTLINE_CHANNELS.saveEntryText, (_, args) => handlers.saveEntryText(args))
   handleTrusted(OUTLINE_CHANNELS.readBoard, (_, args) => handlers.readBoard(args))
   handleTrusted(OUTLINE_CHANNELS.capture, (_, args) => handlers.capture(args))
+  handleTrusted(OUTLINE_CHANNELS.moveBeat, (_, args) => handlers.moveBeat(args))
+  handleTrusted(OUTLINE_CHANNELS.moveColumn, (_, args) => handlers.moveColumn(args))
 }

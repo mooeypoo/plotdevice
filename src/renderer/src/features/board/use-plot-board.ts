@@ -1,5 +1,10 @@
 import { computed, ref, shallowRef, watch } from 'vue'
-import type { BoardBeatDto, BoardColumnDto, PlotBoardDto } from '../../../../contract/dtos'
+import type {
+  ApiResult,
+  BoardBeatDto,
+  BoardColumnDto,
+  PlotBoardDto
+} from '../../../../contract/dtos'
 import { uiDirection } from '../../../../i18n/locales'
 import { useEditorStore } from '../../app/editor-store'
 import { placeOf } from '../../app/entry-owners'
@@ -11,7 +16,9 @@ import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useEditorLinks } from '../../app/use-editor-links'
 import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
 import { useWorkspaceStore } from '../../app/workspace-store'
+import { writeOutline } from '../../app/outline-writes'
 import { useErrorNotice } from '../../shared/use-error-notice'
+import type { BeatMove, ColumnMove } from './board-moves'
 
 /** A column as the board draws it: the Inbox goes last, whatever its place in the file. */
 export interface ShownColumn {
@@ -33,6 +40,10 @@ export function usePlotBoard() {
   const board = shallowRef<PlotBoardDto | null>(null)
   const loading = ref(false)
   const { message: error, source: errorSource } = useErrorNotice()
+  /** Why the last move was refused; the board has been read again. */
+  const { message: moveError, source: moveErrorSource } = useErrorNotice()
+  /** What the last move did, for the board's live region. */
+  const announcement = ref('')
   let request = 0
 
   const path = computed(() => outlines.currentPath)
@@ -75,6 +86,54 @@ export function usePlotBoard() {
     () => new Map((board.value?.threads ?? []).map((thread) => [thread.key, thread]))
   )
 
+  /**
+   * Runs a move against the board's version (ADR 0020). On success the board shows the file as
+   * the main process read it after writing; on refusal it says why and reads the file again.
+   */
+  async function move(
+    run: (outline: string, version: string) => Promise<ApiResult<PlotBoardDto>>,
+    done: string
+  ): Promise<boolean> {
+    const current = board.value
+    if (current === null || (workspace.project?.readOnly ?? true)) return false
+    request += 1
+    moveErrorSource.value = null
+    const result = await writeOutline(current.path, () => run(current.path, current.version))
+    if (result.ok) {
+      board.value = result.value
+      announcement.value = done
+      return true
+    }
+    const error = result.error
+    const changed =
+      'code' in error &&
+      (error.code === 'changed-on-disk' || error.code === 'outline-shape-changed')
+    moveErrorSource.value = changed ? { notice: 'board-outline-changed' } : error
+    announcement.value = ''
+    await load()
+    return false
+  }
+
+  function moveBeat(change: BeatMove, done: string): Promise<boolean> {
+    return move(
+      (outline, version) =>
+        plotDeviceApi
+          .current()
+          .outline.moveBeat(outline, version, change.beat, change.column, change.placement),
+      done
+    )
+  }
+
+  function moveColumn(change: ColumnMove, done: string): Promise<boolean> {
+    return move(
+      (outline, version) =>
+        plotDeviceApi
+          .current()
+          .outline.moveColumn(outline, version, change.column, change.placement),
+      done
+    )
+  }
+
   /** Chapters open for writing: back in Writing mode, through the navigation queue. */
   async function writeChapter(chapterPath: string): Promise<void> {
     if (!(await navigation.switchMode('writing'))) return
@@ -98,6 +157,11 @@ export function usePlotBoard() {
     linkNotice: links.linkNotice,
     openLink: links.openLink,
     writeChapter,
+    moveBeat,
+    moveColumn,
+    moveError,
+    announcement,
+    readOnly: computed(() => workspace.project?.readOnly ?? true),
     reload: load
   }
 }

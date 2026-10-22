@@ -3,6 +3,8 @@ import { resolveBookWords } from '../book-language/book-words'
 import { outlineWordsOf } from '../book-language/context-words'
 import { createCaptureBeat } from '../contexts/outline/application/commands/capture-beat'
 import { createCreateOutline } from '../contexts/outline/application/commands/create-outline'
+import { createMoveBeat } from '../contexts/outline/application/commands/move-beat'
+import { createMoveColumn } from '../contexts/outline/application/commands/move-column'
 import { createSaveOutlineText } from '../contexts/outline/application/commands/save-outline-text'
 import { createListOutlines } from '../contexts/outline/application/queries/list-outlines'
 import { createOpenOutline } from '../contexts/outline/application/queries/open-outline'
@@ -38,7 +40,9 @@ beforeEach(() => {
     saveOutlineText: createSaveOutlineText({ repository, readOnly: false }),
     getPlotBoard: (path) =>
       Promise.resolve(ok({ path, version: 'v', preamble: '', columns: [], threads: [] })),
-    captureBeat: createCaptureBeat(ports)
+    captureBeat: createCaptureBeat(ports),
+    moveBeat: createMoveBeat(ports),
+    moveColumn: createMoveColumn(ports)
   }
   handlers = createOutlineHandlers(() => session)
 })
@@ -72,6 +76,33 @@ describe('outline handlers', () => {
     })
     expect(repository.get('Plan.md')?.text).toBe('## One\n- Beat\n\n## Inbox\n- Idea\n')
     expect(await handlers.capture(['Plan.md', 'Another', null])).toMatchObject({ ok: true })
+  })
+
+  it('move beats and columns at the board’s version, returning the board as it now reads', async () => {
+    repository.put('Two.md', { type: 'outline' }, '## A\n- One\n- Two\n## B\n')
+    await handlers.list()
+    const version = repository.get('Two.md')?.version ?? ''
+    const one = { line: 1, title: 'One' }
+    expect(
+      await handlers.moveBeat(['Two.md', version, one, { line: 3, title: 'B' }, 'end'])
+    ).toMatchObject({
+      ok: true
+    })
+    expect(repository.get('Two.md')?.text).toBe('## A\n- Two\n## B\n- One\n')
+    expect(
+      await handlers.moveColumn(['Two.md', version, { line: 2, title: 'B' }, 'end'])
+    ).toMatchObject({ ok: false, error: { code: 'changed-on-disk' } })
+    const now = repository.get('Two.md')?.version ?? ''
+    expect(
+      await handlers.moveColumn(['Two.md', now, { line: 3, title: 'B' }, 'end'])
+    ).toMatchObject({ ok: false, error: { diagnostic: { reason: 'outline-shape-changed' } } })
+    expect(
+      await handlers.moveBeat(['Two.md', now, { line: -1, title: 'x' }, one, 'end'])
+    ).toMatchObject({ ok: false, error: { code: 'invalid-request' } })
+    expect(await handlers.moveBeat(['notes/Secret.md', now, one, one, 'end'])).toMatchObject({
+      ok: false,
+      error: { code: 'entry-not-allowed' }
+    })
   })
 
   it('refuse malformed requests and a closed project semantically', async () => {

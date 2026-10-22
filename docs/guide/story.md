@@ -39,6 +39,12 @@ Choose **Text** to edit the outline itself, and **Board** to look again. The boa
 reads the file each time; it stores nothing of its own. Use the arrow keys to move
 between cards, and Enter to go and write a card's chapter.
 
+Drag a card to another place or column, or drag a column by its heading. With a
+card or a column heading focused, **Alt+arrow keys** move it, and its **⋯** menu offers
+the same moves. Only the moved lines change in the file; if the outline changed
+since the board read it, nothing is written and the board reads it again. The Inbox
+column always stays last; drag its cards out to sort them into the story.
+
 **Capture a beat** is an experimental setting in Writing appearance. When it's on, the
 command palette (Ctrl+K) offers **Capture a beat…**: type one line and press Enter,
 and it is added to the end of the outline's Inbox section, which is created if
