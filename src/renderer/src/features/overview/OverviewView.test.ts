@@ -1,21 +1,24 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
-import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
+import { createFakePlotDeviceApi, sampleManuscript } from '../../app/fake-plot-device-api'
 import { useInspectorStore } from '../../app/inspector-store'
 import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import OverviewView from './OverviewView.vue'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 
 beforeEach(async () => {
+  localStorage.clear()
   setActivePinia(createPinia())
+  useUiLanguageStore().locale = 'en'
   fake = createFakePlotDeviceApi()
   plotDeviceApi.current = () => fake.api
   await useWorkspaceStore().openProject('/book')
@@ -44,6 +47,52 @@ describe('OverviewView', () => {
     const clear = view.findAll('button').find((button) => button.text() === 'Clear filters')
     await clear?.trigger('click')
     expect(view.text()).toContain('First frost')
+  })
+
+  it('translates controls and generated labels while preserving filters and authored values', async () => {
+    const view = mount(OverviewView)
+    const [status, pov] = view.findAll('select')
+    await status?.setValue('')
+    await pov?.setValue('Ilka')
+    expect(view.text()).toContain('1 of 2')
+
+    useUiLanguageStore().locale = 'he'
+    await view.vm.$nextTick()
+
+    expect(view.get('h1').text()).toBe('מבט־על')
+    expect(view.get('[role="group"]').attributes('aria-label')).toBe('מסננים')
+    expect(view.text()).toContain('1 מתוך 2')
+    expect(view.text()).toContain('The Ferry')
+    expect(view.text()).toContain('ללא סטטוס')
+    expect(view.get('select').element.value).toBe('')
+    expect(view.findAll('select')[1]?.element.value).toBe('Ilka')
+    expect(view.find('button.quiet').text()).toBe('ניקוי המסננים')
+
+    await view.get('button.quiet').trigger('click')
+    expect(view.text()).toContain('First frost')
+  })
+
+  it('formats chapter word counts with the interface locale', async () => {
+    const manuscript = {
+      ...sampleManuscript,
+      parts: sampleManuscript.parts.map((part) => ({
+        ...part,
+        wordCount: 1234,
+        chapters: part.chapters.map((chapter, index) => ({
+          ...chapter,
+          wordCount: index === 0 ? 1234 : chapter.wordCount
+        }))
+      }))
+    }
+    vi.spyOn(fake.api.manuscript, 'getManuscript').mockResolvedValue({
+      ok: true,
+      value: manuscript
+    })
+    await useManuscriptStore().load()
+    useUiLanguageStore().locale = 'he'
+
+    const view = mount(OverviewView)
+    expect(view.find('.words').text()).toBe(new Intl.NumberFormat('he').format(1234))
   })
 
   it('edits a synopsis in place, writing only that key', async () => {

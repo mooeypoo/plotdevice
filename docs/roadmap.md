@@ -190,7 +190,9 @@ acceptance criteria, and the cross-session checklist.
     UI-locale word-count formatting without translating authored status values.
   - [x] I3e: Codex sections, character search/filter controls, untyped-file and
     template copy, entry actions and shared reference-button accessibility.
-  - [ ] Remaining I3: inspector/overview/timeline/interactions/reading text,
+  - [x] I3f: Overview filters, generated section labels/counts, and inline synopsis
+    editing copy/accessibility; authored metadata and synopsis text stay unchanged.
+  - [ ] Remaining I3: inspector/timeline/interactions/reading text,
     locale-aware formatting surfaces, native dialog/confirmation and startup text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.

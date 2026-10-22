@@ -51,8 +51,8 @@ describe('overviewSections', () => {
         section.chapters.map((entry) => entry.title)
       ])
     ).toEqual([
-      ['Part I', ['The Ferry', 'First frost']],
-      ['Unordered', ['Lost']]
+      [{ kind: 'part', number: 1 }, ['The Ferry', 'First frost']],
+      [{ kind: 'unordered' }, ['Lost']]
     ])
   })
 

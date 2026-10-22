@@ -35,6 +35,13 @@ type ParameterizedMessages = {
   'binder-open-part': [title: string]
   'binder-new-chapter-in-part': [title: string]
   'codex-shown-count': [count: number, formatted: string]
+  'overview-filtered-count': [
+    count: number,
+    formattedCount: string,
+    total: number,
+    formattedTotal: string
+  ]
+  'overview-synopsis-label': [title: string]
   'codex-raw-type': [type: string]
   'codex-set-type-label': [path: string]
   'codex-also-aliases': [aliases: string]

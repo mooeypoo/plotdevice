@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import { formatWordCount, statusColor } from '../binder/binder-labels'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
+import { romanNumeral } from '../../shared/roman-numeral'
 import SynopsisCell from './SynopsisCell.vue'
+import type { OverviewSectionLabel } from './overview-sections'
 import { useOverview } from './use-overview'
 
 const workspace = useWorkspaceStore()
 const overview = useOverview()
+const language = useUiLanguageStore()
+const chrome = useChromePresentation()
 const { filters, sections, choices, filtering } = overview
 const readOnly = computed(() => workspace.project?.readOnly ?? false)
 const shown = computed(() =>
@@ -17,57 +23,76 @@ function setFilter(key: 'status' | 'pov' | 'thread', event: Event): void {
   const value = (event.target as HTMLSelectElement).value
   filters.value = { ...filters.value, [key]: value === '*' ? null : value }
 }
+
+function sectionLabel(label: OverviewSectionLabel): string {
+  switch (label.kind) {
+    case 'part':
+      return language.t('entry-place-part', romanNumeral(label.number))
+    case 'not-in-sequence':
+      return language.t('binder-not-in-sequence')
+    case 'chapters':
+      return language.t('overview-section-chapters')
+    case 'unordered':
+      return language.t('binder-unordered')
+  }
+}
 </script>
 
 <template>
   <section class="overview" aria-labelledby="overview-heading">
     <header>
-      <h1 id="overview-heading">Overview</h1>
-      <p class="hint">Every chapter as the files say it is. Click a synopsis to edit it.</p>
-      <div class="filters" role="group" aria-label="Filters">
+      <h1 id="overview-heading">{{ language.t('overview-heading') }}</h1>
+      <p class="hint">{{ language.t('overview-description') }}</p>
+      <div class="filters" role="group" :aria-label="language.t('overview-filters')">
         <label>
-          Status
+          {{ language.t('overview-status') }}
           <select :value="filters.status ?? '*'" @change="setFilter('status', $event)">
-            <option value="*">Any</option>
+            <option value="*">{{ language.t('overview-any') }}</option>
             <option v-for="status in choices.statuses" :key="status" :value="status">
               {{ status }}
             </option>
-            <option value="">No status</option>
+            <option value="">{{ language.t('binder-no-status') }}</option>
           </select>
         </label>
         <label>
-          Point of view
+          {{ language.t('overview-pov') }}
           <select :value="filters.pov ?? '*'" dir="auto" @change="setFilter('pov', $event)">
-            <option value="*">Anyone</option>
+            <option value="*">{{ language.t('overview-anyone') }}</option>
             <option v-for="pov in choices.povs" :key="pov" :value="pov">{{ pov }}</option>
           </select>
         </label>
         <label>
-          Thread
+          {{ language.t('overview-thread') }}
           <select :value="filters.thread ?? '*'" @change="setFilter('thread', $event)">
-            <option value="*">Any</option>
+            <option value="*">{{ language.t('overview-any') }}</option>
             <option v-for="thread in choices.threads" :key="thread" :value="thread">
               {{ overview.threadLabel(thread).name }}
             </option>
           </select>
         </label>
         <button v-if="filtering" type="button" class="quiet small" @click="overview.clear()">
-          Clear filters
+          {{ language.t('overview-clear-filters') }}
         </button>
       </div>
     </header>
 
-    <p v-if="shown.length === 0" class="empty">No chapters match these filters.</p>
+    <p v-if="shown.length === 0" class="empty">{{ language.t('overview-no-match') }}</p>
 
     <section v-for="section in shown" :key="section.key" class="section">
       <h2>
-        <span class="label">{{ section.label }}</span>
+        <span class="label">{{ sectionLabel(section.label) }}</span>
         <span v-if="section.part" class="part-title" dir="auto">{{ section.part.title }}</span>
         <span class="count">
           {{
             filtering
-              ? `${section.chapters.length} of ${section.total}`
-              : formatWordCount(section.wordCount)
+              ? language.t(
+                  'overview-filtered-count',
+                  section.chapters.length,
+                  chrome.formatNumber(section.chapters.length),
+                  section.total,
+                  chrome.formatNumber(section.total)
+                )
+              : formatWordCount(section.wordCount, chrome.formatNumber)
           }}
         </span>
       </h2>
@@ -89,7 +114,7 @@ function setFilter(key: 'status' | 'pov' | 'thread', event: Event): void {
                     :style="{ background: statusColor(chapter.status) }"
                     aria-hidden="true"
                   ></span>
-                  {{ chapter.status ?? 'no status' }}
+                  {{ chapter.status ?? language.t('binder-no-status') }}
                 </span>
                 <span v-if="chapter.pov.length > 0" dir="auto">· {{ chapter.pov.join(', ') }}</span>
                 <span
@@ -110,10 +135,10 @@ function setFilter(key: 'status' | 'pov' | 'thread', event: Event): void {
                 @save="overview.saveSynopsis(chapter.path, $event)"
               />
             </td>
-            <td class="words">{{ formatWordCount(chapter.wordCount) }}</td>
+            <td class="words">{{ formatWordCount(chapter.wordCount, chrome.formatNumber) }}</td>
           </tr>
           <tr v-if="section.chapters.length === 0">
-            <td colspan="4" class="empty">No chapters yet.</td>
+            <td colspan="4" class="empty">{{ language.t('overview-no-chapters') }}</td>
           </tr>
         </tbody>
       </table>

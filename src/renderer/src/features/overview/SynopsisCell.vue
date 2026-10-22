@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { isolate } from '../../shared/isolate'
 
 const props = defineProps<{ synopsis: string | undefined; readOnly: boolean; title: string }>()
 const emit = defineEmits<{ save: [synopsis: string] }>()
 
+const language = useUiLanguageStore()
 const editing = ref(false)
 const draft = ref('')
 const box = ref<HTMLTextAreaElement | null>(null)
@@ -35,7 +38,7 @@ function cancel(): void {
     class="edit"
     dir="auto"
     rows="3"
-    :aria-label="`Synopsis of ${title}`"
+    :aria-label="language.t('overview-synopsis-label', isolate(title))"
     @blur="finish"
     @keydown.esc.prevent="cancel"
     @keydown.enter.ctrl.prevent="finish"
@@ -48,10 +51,10 @@ function cancel(): void {
     :class="{ empty: !synopsis }"
     dir="auto"
     :disabled="readOnly"
-    :title="readOnly ? undefined : 'Click to edit the synopsis'"
+    :title="readOnly ? undefined : language.t('overview-synopsis-edit')"
     @click="start"
   >
-    {{ synopsis || (readOnly ? '' : 'Add a synopsis…') }}
+    {{ synopsis || (readOnly ? '' : language.t('overview-synopsis-add')) }}
   </button>
 </template>
 

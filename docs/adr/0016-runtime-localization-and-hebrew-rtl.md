@@ -1023,9 +1023,28 @@ typecheck, **1,534 tests across 168 files**, production electron-vite build, and
 documentation link/asset checks across all 16 public pages. No manuscript
 writes, push, release, or real-browser/RTL geometry qualification.
 
-**Next session:** propose a bounded inspector or overview translation slice
-before editing. Remaining I3 work includes overview/timeline/interactions/reading
-text, other locale-aware number/date/collation surfaces, native
+### I3f Overview and inline synopsis controls
+
+The Overview's heading, explanation, filters/options, clear action, empty states,
+generated section labels and filtered counts now use the live locale. Section
+labels are semantic values, formatted at the presentation boundary; word and
+filtered counts use UI-locale number grouping. Inline synopsis placeholders,
+tooltips and editor accessible names translate while the synopsis and chapter
+title remain exact user-authored text. The editor retains automatic text
+direction.
+
+Switching language preserves filters, selected values and an active synopsis
+draft. It does not save or reread project files. Authored statuses, POV names,
+threads, titles, synopses and synopsis edit arguments are unchanged. Focused
+regressions cover live Hebrew copy, section/count labels, retained filters,
+authored text, inline edit labels/drafts, and read-only behavior. Full
+validation passed: lint/dependency boundaries (471 modules/2,346 dependencies),
+typecheck, **1,538 tests across 169 files**, and production electron-vite build.
+Documentation build/link/asset checks passed for all 16 public pages.
+
+**Next session:** propose a bounded inspector or timeline translation slice
+before editing. Remaining I3 work includes inspector/timeline/interactions/
+reading text, other locale-aware number/date/collation surfaces, native
 dialog/confirmation wording, and startup fallback. I3 is incomplete; RTL
 geometry/directional controls and packaged qualification remain I4-I6, and the
 separate Hebrew manual is not implemented.

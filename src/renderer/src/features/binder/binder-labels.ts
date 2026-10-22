@@ -33,7 +33,7 @@ export function statusColor(status: string | undefined): string {
   return STATUS_COLORS[status.toLowerCase()] ?? 'var(--status-other)'
 }
 
-/** A word count for the binder: "—" for none, otherwise formatted for the UI locale. */
+/** A word count: "—" for none, otherwise formatted for the UI locale. */
 export function formatWordCount(
   count: number,
   formatNumber: (value: number) => string = String

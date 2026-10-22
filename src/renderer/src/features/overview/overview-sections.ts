@@ -1,5 +1,4 @@
 import type { ChapterDto, ManuscriptDto, PartDto } from '../../../../contract/dtos'
-import { romanNumeral } from '../../shared/roman-numeral'
 
 /** What the Overview shows: `null` means any. `''` as status means "no status". */
 export interface OverviewFilters {
@@ -13,8 +12,7 @@ export const NO_FILTERS: OverviewFilters = { status: null, pov: null, thread: nu
 /** A group of chapters under a heading: a part, a book without parts, or the unordered tray. */
 export interface OverviewSection {
   readonly key: string
-  /** "Part I", "Not in sequence", "Unordered"… */
-  readonly label: string
+  readonly label: OverviewSectionLabel
   readonly part?: PartDto
   readonly chapters: readonly ChapterDto[]
   /** How many chapters the section has before filtering. */
@@ -22,6 +20,12 @@ export interface OverviewSection {
   /** The part's words (its own text and chapters), or the section's chapters' words. */
   readonly wordCount: number
 }
+
+export type OverviewSectionLabel =
+  | { readonly kind: 'part'; readonly number: number }
+  | { readonly kind: 'not-in-sequence' }
+  | { readonly kind: 'chapters' }
+  | { readonly kind: 'unordered' }
 
 const nameKey = (name: string): string => name.normalize('NFC').toLowerCase()
 
@@ -43,7 +47,7 @@ export function overviewSections(
 ): OverviewSection[] {
   const section = (
     key: string,
-    label: string,
+    label: OverviewSectionLabel,
     chapters: readonly ChapterDto[],
     part?: PartDto
   ): OverviewSection => ({
@@ -56,17 +60,19 @@ export function overviewSections(
   })
   return [
     ...manuscript.parts.map((part) =>
-      section(part.path, `Part ${romanNumeral(part.number ?? 0)}`, part.chapters, part)
+      section(part.path, { kind: 'part', number: part.number ?? 0 }, part.chapters, part)
     ),
     ...manuscript.unnumberedParts.map((part) =>
-      section(part.path, 'Not in sequence', part.chapters, part)
+      section(part.path, { kind: 'not-in-sequence' }, part.chapters, part)
     ),
-    ...(manuscript.chapters.length > 0 ? [section('book', 'Chapters', manuscript.chapters)] : []),
+    ...(manuscript.chapters.length > 0
+      ? [section('book', { kind: 'chapters' }, manuscript.chapters)]
+      : []),
     ...(manuscript.unordered.length > 0
       ? [
           section(
             'unordered',
-            'Unordered',
+            { kind: 'unordered' },
             manuscript.unordered.map((item) => item.chapter)
           )
         ]
