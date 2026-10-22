@@ -5,6 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useLayoutStore } from './layout-store'
 import RightPanel from './RightPanel.vue'
 import { useWritingPreferencesStore } from './writing-preferences-store'
+import { useUiLanguageStore } from './ui-language-store'
+import { createFakePlotDeviceApi } from './fake-plot-device-api'
+import { plotDeviceApi } from './plot-device-api'
 
 let measure: (() => void) | undefined
 let bodyWidth = 1200
@@ -13,6 +16,9 @@ const wrappers: ReturnType<typeof mount>[] = []
 beforeEach(() => {
   localStorage.clear()
   setActivePinia(createPinia())
+  const fake = createFakePlotDeviceApi()
+  plotDeviceApi.current = () => fake.api
+  document.documentElement.dir = 'ltr'
   useLayoutStore().rightTab = 'outline'
   bodyWidth = 1200
   vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(() => bodyWidth)
@@ -32,6 +38,7 @@ afterEach(() => {
   for (const wrapper of wrappers.splice(0)) wrapper.unmount()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
+  document.documentElement.dir = 'ltr'
 })
 
 function mountPanel() {
@@ -123,6 +130,35 @@ describe('outline panel width', () => {
     expect(handle.attributes('aria-valuenow')).toBe('720')
     await handle.trigger('pointerup', { pointerId: 1 })
     expect(useWritingPreferencesStore().outlineWidth).toBe(720)
+  })
+
+  it('resizes from the inline-start edge and with directional keys in Hebrew', async () => {
+    const wrapper = mountPanel()
+    const language = useUiLanguageStore()
+    await language.change('he')
+    await flushPromises()
+    expect(document.documentElement.dir).toBe('rtl')
+    const handle = wrapper.get('[role="separator"]')
+    Object.defineProperty(handle.element, 'setPointerCapture', { value: vi.fn() })
+
+    await handle.trigger('keydown', { key: 'ArrowLeft' })
+    expect(handle.attributes('aria-valuenow')).toBe('300')
+    await handle.trigger('keydown', { key: 'ArrowRight' })
+    expect(handle.attributes('aria-valuenow')).toBe('320')
+    await handle.trigger('pointerdown', { button: 0, clientX: 800, pointerId: 1 })
+    await handle.trigger('pointermove', { clientX: 950, pointerId: 1 })
+    expect(handle.attributes('aria-valuenow')).toBe('470')
+    expect(useWritingPreferencesStore().outlineWidth).toBe(320)
+    await handle.trigger('pointercancel', { pointerId: 1 })
+    expect(handle.attributes('aria-valuenow')).toBe('320')
+    expect(useWritingPreferencesStore().outlineWidth).toBe(320)
+
+    await handle.trigger('pointerdown', { button: 0, clientX: 800, pointerId: 2 })
+    await handle.trigger('pointermove', { clientX: 950, pointerId: 2 })
+    await handle.trigger('pointerup', { pointerId: 2 })
+    expect(handle.attributes('aria-valuenow')).toBe('470')
+    expect(useWritingPreferencesStore().outlineWidth).toBe(470)
+    wrapper.unmount()
   })
 
   it('does not save a cancelled drag', async () => {

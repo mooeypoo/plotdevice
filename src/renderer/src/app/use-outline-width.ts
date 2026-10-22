@@ -44,11 +44,14 @@ export function useOutlineWidth(panel: Ref<HTMLElement | null>) {
     expanded.value = false
   }
 
+  function isRtl(): boolean {
+    return document.documentElement.dir === 'rtl'
+  }
+
   function start(event: PointerEvent): void {
     if (event.button !== 0 || !(event.currentTarget instanceof HTMLElement)) return
     event.preventDefault()
-    const direction =
-      panel.value !== null && getComputedStyle(panel.value).direction === 'rtl' ? -1 : 1
+    const direction = isRtl() ? -1 : 1
     drag = { x: event.clientX, width: width.value, direction }
     event.currentTarget.setPointerCapture(event.pointerId)
   }
@@ -71,7 +74,7 @@ export function useOutlineWidth(panel: Ref<HTMLElement | null>) {
   }
 
   function keydown(event: KeyboardEvent): void {
-    const rtl = panel.value !== null && getComputedStyle(panel.value).direction === 'rtl'
+    const rtl = isRtl()
     let next: number
     switch (event.key) {
       case 'ArrowLeft':

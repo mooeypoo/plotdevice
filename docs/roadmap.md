@@ -218,6 +218,8 @@ acceptance criteria, and the cross-session checklist.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
   - [x] I4a: Use logical indentation/alignment in the binder and mirror part
     disclosure direction; preserve selection, order and drag/drop behavior.
+  - [x] I4b: Place the binder and right panel by root direction; make pointer
+    and keyboard resizing follow RTL inline edges without changing stored widths.
   - [ ] Remaining I4: qualify shared layout, timeline/matrix geometry,
     directional icons, responsiveness and pointer/keyboard interactions.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.

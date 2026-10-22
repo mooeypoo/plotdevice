@@ -16,6 +16,7 @@ import { useUiLanguageStore } from './ui-language-store'
 afterEach(() => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
+  document.documentElement.dir = 'ltr'
 })
 
 const mountLayout = () =>
@@ -30,6 +31,7 @@ beforeEach(async () => {
   setActivePinia(createPinia())
   const fake = createFakePlotDeviceApi()
   plotDeviceApi.current = () => fake.api
+  document.documentElement.dir = 'ltr'
   await useWorkspaceStore().openProject('/book')
 })
 
@@ -165,6 +167,38 @@ describe('ProjectLayout writing preferences', () => {
     expect(wrapper.get('.layout').classes()).toContain('focus')
     expect(layout.style.getPropertyValue('--prose-size')).toBe('23px')
     expect(layout.style.getPropertyValue('--measure')).toBe('75ch')
+    wrapper.unmount()
+  })
+
+  it('uses the selected RTL direction for the binder, writing area and right panel', async () => {
+    const wrapper = mount(ProjectLayout, {
+      global: {
+        stubs: {
+          TopBar: true,
+          EditorPane: true,
+          SidePanel: true,
+          RightPanel: true,
+          StatusBar: true
+        }
+      }
+    })
+    await flushPromises()
+    const body = wrapper.get('.body')
+    expect([...body.element.children].map((child) => child.localName)).toEqual([
+      'side-panel-stub',
+      'main',
+      'right-panel-stub'
+    ])
+    expect(document.documentElement.dir).toBe('ltr')
+
+    await useUiLanguageStore().change('he')
+    await flushPromises()
+    expect(document.documentElement.dir).toBe('rtl')
+    expect([...body.element.children].map((child) => child.localName)).toEqual([
+      'side-panel-stub',
+      'main',
+      'right-panel-stub'
+    ])
     wrapper.unmount()
   })
 })

@@ -145,6 +145,10 @@ progress, remaining limitations, and the next slice before ending a session.
   - [x] **I4a Binder tree flow:** logical chapter indentation and row/title
     alignment; direction-aware disclosure arrows without changing expansion,
     selection, ordering, or drag/drop semantics.
+  - [x] **I4b Project shell and panel resizing:** preserve semantic panel order
+    while root direction places the binder/right inspector on the correct
+    inline sides; resize by pointer and arrow keys in the selected direction,
+    retaining preferred widths and cancel behavior.
   - [ ] **Remaining I4:** shared layout, directional icons, timeline/matrix
     geometry, responsive behavior, and pointer/keyboard qualification.
 - [ ] **I5 Writing/reading:** independent direction preference; live CodeMirror
