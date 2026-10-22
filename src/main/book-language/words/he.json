@@ -1,0 +1,26 @@
+{
+  "seeds": {
+    "statuses": ["רעיון", "מתווה", "טיוטה", "נערך", "סופי"],
+    "untitled-chapter": "פרק ללא שם",
+    "untitled-part": "חלק ללא שם",
+    "unnamed-character": "דמות ללא שם",
+    "unnamed-location": "מקום ללא שם",
+    "untitled-note": "הערה ללא שם",
+    "untitled-outline": "מתווה",
+    "heading-description": "תיאור",
+    "heading-history": "היסטוריה",
+    "heading-arc": "קשת",
+    "comment-defaults": "פרויקט של Plot Device. כל המפתחות אופציונליים; אלה ברירות המחדל.",
+    "comment-language": "שפת הספר: המילים שהאפליקציה כותבת בו",
+    "comment-calendar": "gregorian (תאריכים כמו 1952-10-03) או day-count (היום ה-14 בסיפור)",
+    "comment-threads": "קווי עלילה, לדוגמה:",
+    "comment-thread-name": "העלילה המרכזית",
+    "comment-file-names": "כשכותרת משתנה, האם לשנות את שם הקובץ: ask, always או never",
+    "comment-order-prefix": "true: שמות קבצים של פרקים חדשים יתחילו במספר הסדר שלהם",
+    "comment-folders": "לאן נכנסים קבצים חדשים, ביחס לתיקייה הזו",
+    "comment-template": "תבניות לדמויות, מקומות והערות חדשים"
+  },
+  "recognized": {
+    "outline_inbox": "רעיונות"
+  }
+}

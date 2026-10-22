@@ -8,7 +8,7 @@ import {
 import { err, ok, type Result } from '../../../../shared-kernel/result'
 import { uniqueFileName } from '../../../../shared-kernel/unique-file-name'
 import type { CodexSettings } from '../../domain/codex-settings'
-import { newOutlineText, UNTITLED_OUTLINE } from '../../domain/outline-file'
+import { newOutlineText } from '../../domain/outline-file'
 import type { CodexRepository, CreateCodexFileError } from '../../domain/ports/codex-repository'
 
 /** Creates an outline at the project root, named after its title and unique in the project. */
@@ -29,7 +29,7 @@ export function createCreateOutline(ports: {
         domainError('read-only', 'This project is open read-only.', { reason: 'read-only' })
       )
     }
-    const outlineTitle = title.trim() === '' ? UNTITLED_OUTLINE : title.trim()
+    const outlineTitle = title.trim() === '' ? ports.settings.words().untitledOutline : title.trim()
     const files = await ports.repository.load()
     const taken = new Set(
       [...files.linkCandidates, ...files.untyped].map((file) =>

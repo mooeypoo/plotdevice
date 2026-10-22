@@ -77,6 +77,7 @@ Each file's `type` key says what it is:
 format: 1
 title: The Salt Orchard
 author: Ines Varga
+language: en                   # the book's language (BCP 47 tag, such as en or he)
 calendar: gregorian            # gregorian | day-count (see StoryDate)
 statuses: [idea, outline, draft, revised, final]
 threads:                       # plotlines; chapters refer to them by key
@@ -96,15 +97,20 @@ settings:
     location: locations
     note: notes
     template: templates        # character.md, location.md, note.md: how new entries start
+  vocabulary:                  # optional: your own word for a heading the app recognizes
+    outline_inbox: Ideas
 ---
 Free text: premise, notes. The app shows it but does not parse it.
 ```
 
 - **`format`.** If `format` is missing, the app assumes `1`. If it is higher than the app supports, the project opens read-only with a warning.
 - **`calendar`.** Defaults to `gregorian`.
-- **`statuses`.** An open list, like tags. If a chapter uses a status that isn't in the list, the status still appears everywhere, marked "not in your list", and one action adds it. The app never edits `novel.md` on its own.
+- **`language`.** The language the book is written in, as a BCP 47 tag (`en`, `he`). It decides the words the app writes into the book (see "Words the app writes and recognizes") and the default direction of lines with no letters yet. It is independent of the app's interface language: switching the interface never changes it. If `language` is missing, the book is treated as English. A value that isn't a language tag gets a warning, is kept, and the book is treated as English.
+- **`statuses`.** An open list, like tags. If a chapter uses a status that isn't in the list, the status still appears everywhere, marked "not in your list", and one action adds it.
 - **`threads`.** A thread `key` uses letters, digits, `-`, and `_`. A chapter that names an unknown key gets a warning, and the value is kept.
 - **`settings`.** Every key in `settings` is optional. Missing keys use the defaults shown above.
+- **`settings.vocabulary`.** Optional. Replaces a word the app recognizes with your own (see "Words the app writes and recognizes"). The app reads it and never writes it. Unknown names are kept and ignored; a value that isn't text gets a warning and is ignored.
+- **The app never edits `novel.md` on its own.** It writes `novel.md` only when you initialize a project (including `language`), add a status with "Add to list", or change the book's language with that explicit action. Each of these changes only its own key (ADR 0004).
 
 ## Parts
 
@@ -205,8 +211,23 @@ relationships:
 - Location files follow the same pattern with `type: location`.
 - `aliases` are alternate names for search and autocomplete. They don't change which file a link points to.
 - **Character `groups`.** A name or list of names, for example `groups: [Main cast, Part 2]`. Membership is optional and overlapping; a character may appear under several collapsible group headings, but each row refers to the same file. Group names are discovered from character files, not registered in `novel.md`. Names are trimmed and compared after NFC normalization and case-folding; empty names and duplicates are ignored. With no memberships a character appears under Ungrouped. Removing the last membership removes the key; a group disappears when no characters use it. Structured or non-text group values are retained and shown read-only with an inspector warning; valid text memberships in a mixed list can still be displayed. `groups` on locations or notes, and `tags` on every entry, remain unknown keys and are not edited. Collapse state, list mode, and filters are per-user preferences, never project metadata.
-- **New entries.** A new character, location, or note goes in `settings.folders.character`, `.location`, or `.note`, named after its title (unique across the project), with only `type` and `title`. New entries start from the project's template for their kind: `character.md`, `location.md`, or `note.md` in `settings.folders.template`. A template's body and frontmatter keys are copied, except `type` and `title`, which the app sets. Without a template file, characters start with the headings above, locations with `## Description` and `## History`, and notes empty. Templates only seed new files: edit, remove, or add any heading in any entry. Files in the template folder are not listed as entries or untyped files.
+- **New entries.** A new character, location, or note goes in `settings.folders.character`, `.location`, or `.note`, named after its title (unique across the project), with only `type` and `title`. New entries start from the project's template for their kind: `character.md`, `location.md`, or `note.md` in `settings.folders.template`. A template's body and frontmatter keys are copied, except `type` and `title`, which the app sets. Without a template file, characters start with the headings above, locations with `## Description` and `## History`, and notes empty. These headings are written in the book's `language`. Templates only seed new files: edit, remove, or add any heading in any entry. Files in the template folder are not listed as entries or untyped files.
 - **Setting a type.** For an untyped file, the app writes only a `type` line, and only on request.
+
+## Words the app writes and recognizes
+
+Keys and `type` values are the same in every language (`pov`, `type: chapter`). The app shows them translated, but always writes and reads them as shown in this document.
+
+**Words the app writes** into a new file follow the book's `language`: the statuses and comments in a new `novel.md`, the default headings of new characters and locations, and default titles such as "Untitled chapter" or "Outline". The app never reads meaning back from them, so you can change them freely. Folder names stay as shown above in every language. Changing `language` affects only words written afterwards.
+
+**Words the app recognizes** in your files are kept to a minimum:
+
+| Name | Default (en) | Default (he) | Meaning |
+|---|---|---|---|
+| `outline_inbox` | `Inbox` | `רעיונות` | The `##` heading in an outline that captured beats go under |
+
+- To use your own word, set it in `settings.vocabulary` in `novel.md`.
+- The app looks for, in order: your `settings.vocabulary` word, the default for the book's `language`, the English default, then the default of any other language or an older default. It writes the first of these that applies.
 
 ## StoryDate
 

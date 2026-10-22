@@ -1,6 +1,6 @@
 import { domainError, type DomainError } from '../../../../shared-kernel/domain-error'
 import { err, type Result } from '../../../../shared-kernel/result'
-import { novelTemplate } from '../../domain/novel-template'
+import { novelTemplate, type NovelTemplateWords } from '../../domain/novel-template'
 import type { NovelFileStore } from '../../domain/ports/novel-file-store'
 import type { ProjectFolders } from '../../domain/ports/project-folders'
 import type { ProjectRoot } from '../../domain/project-root'
@@ -19,7 +19,9 @@ export type InitializeProjectError =
  */
 export type InitializeProject = (
   root: ProjectRoot,
-  title: string
+  title: string,
+  /** The book's language tag, written as `language`; it decides the words written into the book. */
+  language: string
 ) => Promise<Result<OpenedProject, InitializeProjectError>>
 
 /** The ports and use cases `InitializeProject` needs. */
@@ -27,11 +29,13 @@ export interface InitializeProjectPorts {
   readonly folders: ProjectFolders
   readonly novelFiles: NovelFileStore
   readonly openProject: OpenProject
+  /** The words a new novel.md is written with, in the book's language. */
+  readonly templateWords: (language: string) => NovelTemplateWords
 }
 
 /** Builds the `InitializeProject` use case. */
 export function createInitializeProject(ports: InitializeProjectPorts): InitializeProject {
-  return async (root, title) => {
+  return async (root, title, language) => {
     const exists = await ports.folders.exists(root)
     if (!exists.ok) return exists
     if (!exists.value) {
@@ -80,7 +84,10 @@ export function createInitializeProject(ports: InitializeProjectPorts): Initiali
     const trimmedTitle = title.trim()
     const created = await ports.novelFiles.create(
       root,
-      novelTemplate(trimmedTitle === '' ? ports.folders.nameOf(root) : trimmedTitle)
+      novelTemplate(
+        trimmedTitle === '' ? ports.folders.nameOf(root) : trimmedTitle,
+        ports.templateWords(language)
+      )
     )
     if (!created.ok) {
       if (created.error.code === 'already-exists') {

@@ -9,6 +9,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { useWritingPreferencesStore } from '../../app/writing-preferences-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
+import { useWorkspaceStore } from '../../app/workspace-store'
+import { sampleSummary } from '../../app/fake-plot-device-api'
 import ChapterEditor from './ChapterEditor.vue'
 
 beforeEach(() => {
@@ -108,6 +110,32 @@ describe('ChapterEditor appearance', () => {
     expect(undo(view)).toBe(true)
     expect(view.state.doc.toString()).toBe('Original prose.')
     measure.mockRestore()
+    wrapper.unmount()
+  })
+
+  it('starts lines without letters in the declared book language’s direction, in Auto only', async () => {
+    const workspace = useWorkspaceStore()
+    workspace.project = sampleSummary
+    const wrapper = mount(ChapterEditor, {
+      props: {
+        initialText: 'English line\n',
+        readOnly: false,
+        focusMode: false,
+        linkTargets: [],
+        completions: []
+      }
+    })
+    expect(wrapper.get('.cm-content').attributes('dir')).toBe('auto')
+    expect(wrapper.findAll('.cm-line[dir="auto"]')).toHaveLength(2)
+
+    workspace.project = { ...sampleSummary, language: { declared: 'he', direction: 'rtl' } }
+    await nextTick()
+    expect(wrapper.get('.cm-content').attributes('dir')).toBe('rtl')
+    expect(wrapper.findAll('.cm-line[dir="auto"]')).toHaveLength(1)
+
+    expect(useWritingPreferencesStore().setWritingDirection('ltr').ok).toBe(true)
+    await nextTick()
+    expect(wrapper.get('.cm-content').attributes('dir')).toBe('ltr')
     wrapper.unmount()
   })
 

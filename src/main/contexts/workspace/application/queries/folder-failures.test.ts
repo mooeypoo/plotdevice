@@ -4,6 +4,8 @@ import { createInitializeProject } from '../commands/initialize-project'
 import { createOpenProject } from '../commands/open-project'
 import { createInspectFolder } from './inspect-folder'
 import { createListRecentProjects } from './list-recent-projects'
+import { resolveBookWords } from '../../../../book-language/book-words'
+import { templateWordsOf } from '../../../../book-language/context-words'
 
 let workspace: InMemoryWorkspace
 const failure = {
@@ -33,8 +35,13 @@ describe('folder inspection failures', () => {
         recents: workspace,
         clock: workspace
       })
-      const ports = { folders: workspace, novelFiles: workspace, openProject }
-      expect(await createInitializeProject(ports)(root, 'New')).toEqual({
+      const ports = {
+        folders: workspace,
+        novelFiles: workspace,
+        openProject,
+        templateWords: (language: string) => templateWordsOf(resolveBookWords(language))
+      }
+      expect(await createInitializeProject(ports)(root, 'New', 'en')).toEqual({
         ok: false,
         error: failure
       })
@@ -98,10 +105,12 @@ describe('folder inspection failures', () => {
     vi.spyOn(workspace, 'findProjectBelow').mockResolvedValue({ ok: false, error: limit })
     const openProject = vi.fn()
     expect(
-      await createInitializeProject({ folders: workspace, novelFiles: workspace, openProject })(
-        root,
-        'New'
-      )
+      await createInitializeProject({
+        folders: workspace,
+        novelFiles: workspace,
+        openProject,
+        templateWords: (language: string) => templateWordsOf(resolveBookWords(language))
+      })(root, 'New', 'en')
     ).toEqual({ ok: false, error: limit })
     expect(openProject).not.toHaveBeenCalled()
     expect(workspace.createdNovelFiles.size).toBe(0)

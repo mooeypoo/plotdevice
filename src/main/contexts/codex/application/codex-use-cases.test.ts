@@ -15,6 +15,11 @@ import { createUpdateRelationships } from './commands/update-relationships'
 import { createGetCodexProperties } from './queries/get-codex-properties'
 import { createListCodex } from './queries/list-codex'
 import { createOpenCodexEntry } from './queries/open-codex-entry'
+import { resolveBookWords } from '../../../book-language/book-words'
+import { codexWordsOf } from '../../../book-language/context-words'
+
+/** English words, as the composition root resolves them for a book without a `language`. */
+const ENGLISH_WORDS = resolveBookWords(null)
 
 const p = (value: string): ProjectPath => value as ProjectPath
 const ilka = p('characters/Ilka Szabó.md')
@@ -23,7 +28,8 @@ const settings: CodexSettings = {
   readOnly: false,
   folders: { character: p('characters'), location: p('locations'), note: p('notes') },
   templateFolder: p('templates'),
-  fileNames: 'ask'
+  fileNames: 'ask',
+  words: () => codexWordsOf(ENGLISH_WORDS)
 }
 
 let repository: InMemoryCodex
@@ -313,6 +319,17 @@ describe('templates', () => {
     expect(repository.get('characters/Marta.md')).toMatchObject({
       frontmatter: { type: 'character', title: 'Marta' },
       text: '## Voice\n'
+    })
+  })
+
+  it('starts entries with the book language’s title and headings when there is no template', async () => {
+    const hebrew = { ...settings, words: () => codexWordsOf(resolveBookWords('he')) }
+    const created = await createCreateCodexEntry({ repository, settings: hebrew })('character', '')
+    expect(created).toMatchObject({ ok: true })
+    if (!created.ok) return
+    expect(repository.get(created.value.path)).toMatchObject({
+      frontmatter: { type: 'character', title: 'דמות ללא שם' },
+      text: '## תיאור\n\n## היסטוריה\n\n## קשת\n'
     })
   })
 

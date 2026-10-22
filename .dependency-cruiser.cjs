@@ -109,6 +109,38 @@ module.exports = {
       to: { path: ['^src/main/(ipc|queries)/', '^src/main/(composition-root|index)\\.ts$'] }
     },
     {
+      name: 'book-language-is-pure',
+      comment:
+        'Book words are data and resolution only: the module imports its catalogs and the shared kernel.',
+      severity: 'error',
+      from: { path: '^src/main/book-language/', pathNot: TEST_FILE },
+      to: { pathNot: '^src/main/(book-language|shared-kernel)/' }
+    },
+    {
+      name: 'contexts-receive-resolved-words',
+      comment:
+        'Only the composition root resolves book words; everything else receives them (ADR 0019). Domain and application are already held by their own rules.',
+      severity: 'error',
+      from: {
+        path: [
+          '^src/main/contexts/[^/]+/infrastructure/',
+          '^src/main/(infrastructure|queries|ipc)/'
+        ],
+        pathNot: TEST_FILE
+      },
+      to: { path: '^src/main/book-language/' }
+    },
+    {
+      name: 'book-content-ignores-interface-language',
+      comment:
+        'What the app writes into a book follows the book language, never the interface language (ADR 0019).',
+      severity: 'error',
+      from: {
+        path: ['^src/main/contexts/[^/]+/infrastructure/', '^src/main/(infrastructure|queries)/']
+      },
+      to: { path: '^src/i18n/' }
+    },
+    {
       name: 'main-never-imports-renderer',
       comment: 'The main process does not depend on UI code.',
       severity: 'error',

@@ -31,6 +31,7 @@ export const WORKSPACE_CHANNELS = {
   listRecentProjects: 'workspace:list-recent-projects',
   removeRecentProject: 'workspace:remove-recent-project',
   refreshProject: 'workspace:refresh-project',
+  setBookLanguage: 'workspace:set-book-language',
   takeLaunchFolder: 'workspace:take-launch-folder'
 } as const satisfies Record<
   Exclude<keyof WorkspaceApi, 'onProjectChanged' | 'onOpenFolder'>,

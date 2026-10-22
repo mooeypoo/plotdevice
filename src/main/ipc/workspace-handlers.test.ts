@@ -10,14 +10,19 @@ import { createListRecentProjects } from '../contexts/workspace/application/quer
 import { InMemoryWorkspace } from '../contexts/workspace/domain/ports/in-memory-workspace.fake'
 import type { ProjectPath } from '../shared-kernel/project-path'
 import { createWorkspaceHandlers, type WorkspaceHandlers } from './workspace-handlers'
+import { resolveBookWords } from '../book-language/book-words'
+import { templateWordsOf } from '../book-language/context-words'
+import { createSetBookLanguage } from '../contexts/workspace/application/commands/set-book-language'
 
 let workspace: InMemoryWorkspace
 let handlers: WorkspaceHandlers
 let opened: [string, boolean][]
+let refreshed: (string | null)[]
 
 beforeEach(() => {
   workspace = new InMemoryWorkspace()
   opened = []
+  refreshed = []
   const openProject = createOpenProject({
     folders: workspace,
     novelFiles: workspace,
@@ -25,25 +30,31 @@ beforeEach(() => {
     recents: workspace,
     clock: workspace
   })
+  const readProject = createReadProject({
+    folders: workspace,
+    novelFiles: workspace,
+    scanner: workspace
+  })
   handlers = createWorkspaceHandlers({
     inspectFolder: createInspectFolder({ folders: workspace, novelFiles: workspace }),
     openProject,
-    readProject: createReadProject({
-      folders: workspace,
-      novelFiles: workspace,
-      scanner: workspace
-    }),
+    readProject,
     initializeProject: createInitializeProject({
       folders: workspace,
       novelFiles: workspace,
-      openProject
+      openProject,
+      templateWords: (language) => templateWordsOf(resolveBookWords(language))
     }),
+    setBookLanguage: createSetBookLanguage({ novelFiles: workspace, readProject }),
     listRecentProjects: createListRecentProjects({ folders: workspace, recents: workspace }),
     removeRecentProject: createRemoveRecentProject({ folders: workspace, recents: workspace }),
     toProjectRoot: (osPath) => osPath as Parameters<typeof openProject>[0],
     rootKey: (root) => root,
     onProjectOpened: (root, project) => {
       opened.push([root, project.readOnly])
+    },
+    onProjectRefreshed: (project) => {
+      refreshed.push(project.language)
     },
     onProjectClosed: () => {
       opened.push(['closed', false])
@@ -80,7 +91,7 @@ describe('workspace handlers', () => {
     } as const
     vi.spyOn(workspace, 'findProjectBelow').mockResolvedValue({ ok: false, error })
     expect(await handlers.chooseFolder(() => Promise.resolve(root))).toEqual({ ok: false, error })
-    expect(await handlers.initializeProject([root, 'New'])).toMatchObject({
+    expect(await handlers.initializeProject([root, 'New', 'en'])).toMatchObject({
       ok: false,
       error: { code: 'folder-not-allowed' }
     })
@@ -125,7 +136,7 @@ describe('workspace handlers', () => {
         action === 'open'
           ? await handlers.openProject([root])
           : action === 'initialize'
-            ? await handlers.initializeProject([root, 'New'])
+            ? await handlers.initializeProject([root, 'New', 'en'])
             : await handlers.refreshProject()
       expect(result).toEqual({
         ok: false,
@@ -152,7 +163,7 @@ describe('workspace handlers', () => {
       }
     } as const
     vi.spyOn(workspace, 'create').mockResolvedValue({ ok: false, error })
-    expect(await handlers.initializeProject([root, 'New'])).toEqual({ ok: false, error })
+    expect(await handlers.initializeProject([root, 'New', 'en'])).toEqual({ ok: false, error })
     expect(opened).toEqual([])
     expect(workspace.createdNovelFiles.size).toBe(0)
     expect(workspace.recents).toEqual([])
@@ -239,6 +250,7 @@ describe('workspace handlers', () => {
         root: '/novels/salt-orchard',
         title: 'The Salt Orchard',
         formatVersion: 1,
+        language: { declared: null, direction: null },
         readOnly: false,
         warnings: [],
         counts: {
@@ -341,7 +353,7 @@ describe('workspace handlers', () => {
     workspace.addFolder('/novels/new')
     await handlers.chooseFolder(() => Promise.resolve('/novels/new'))
 
-    expect(await handlers.initializeProject(['/novels/new', 'New Book'])).toMatchObject({
+    expect(await handlers.initializeProject(['/novels/new', 'New Book', 'en'])).toMatchObject({
       ok: true,
       value: { title: 'New Book' }
     })
@@ -352,7 +364,7 @@ describe('workspace handlers', () => {
     workspace.addFolder('/novels/salt-orchard', { novel: { kind: 'read', frontmatter: {} } })
     await handlers.chooseFolder(() => Promise.resolve('/novels'))
 
-    expect(await handlers.initializeProject(['/novels', 'All'])).toEqual({
+    expect(await handlers.initializeProject(['/novels', 'All', 'en'])).toEqual({
       ok: false,
       error: {
         code: 'contains-project',
@@ -377,7 +389,7 @@ describe('workspace handlers', () => {
     workspace.addFolder('/novels/new')
     await handlers.chooseFolder(() => Promise.resolve('/novels/new'))
     for (const title of [42, 'x'.repeat(501)]) {
-      expect(await handlers.initializeProject(['/novels/new', title])).toMatchObject({
+      expect(await handlers.initializeProject(['/novels/new', title, 'en'])).toMatchObject({
         ok: false,
         error: { code: 'invalid-request' }
       })

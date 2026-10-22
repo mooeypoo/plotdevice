@@ -639,5 +639,13 @@
   "palette-kind-command": "Command",
   "palette-beside-hint": "$1 opens it beside the editor",
   "palette-use-layout": "Use the $1 layout",
-  "appearance-fade": "Fade panels while typing"
+  "appearance-fade": "Fade panels while typing",
+  "warning-language-invalid": "\"language\" should be a language tag such as en or he, not $1; reading the book as English.",
+  "warning-setting-vocabulary": "$1 should map a recognized name to a word, not $2; ignoring it.",
+  "book-language-label": "Book language",
+  "book-language-unset": "Not set (English)",
+  "book-language-other": "$1 (words in English)",
+  "initialize-book-language-help": "Words Plot Device writes into the book, such as statuses and “Untitled chapter”, use this language. The interface language is separate.",
+  "project-overview-book-language-help": "Changing it affects only words written from now on. Words already in your files stay as they are.",
+  "project-overview-book-language-apply": "Apply"
 }

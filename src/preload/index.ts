@@ -43,7 +43,7 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 25,
+  contractVersion: 26,
   uiLanguage: {
     get: () => invoke<UiLanguageDto>(UI_LANGUAGE_CHANNELS.get),
     set: (locale) => invoke<ApiResult<UiLanguageDto>>(UI_LANGUAGE_CHANNELS.set, locale),
@@ -64,8 +64,15 @@ const plotDevice: PlotDeviceApi = {
     chooseFolder: () => invoke<ApiResult<FolderChoiceDto | null>>(WORKSPACE_CHANNELS.chooseFolder),
     openProject: (root) =>
       invoke<ApiResult<ProjectSummaryDto>>(WORKSPACE_CHANNELS.openProject, root),
-    initializeProject: (root, title) =>
-      invoke<ApiResult<ProjectSummaryDto>>(WORKSPACE_CHANNELS.initializeProject, root, title),
+    initializeProject: (root, title, language) =>
+      invoke<ApiResult<ProjectSummaryDto>>(
+        WORKSPACE_CHANNELS.initializeProject,
+        root,
+        title,
+        language
+      ),
+    setBookLanguage: (language) =>
+      invoke<ApiResult<ProjectSummaryDto>>(WORKSPACE_CHANNELS.setBookLanguage, language),
     closeProject: () => invoke<undefined>(WORKSPACE_CHANNELS.closeProject),
     listRecentProjects: () =>
       invoke<ApiResult<readonly RecentProjectDto[]>>(WORKSPACE_CHANNELS.listRecentProjects),

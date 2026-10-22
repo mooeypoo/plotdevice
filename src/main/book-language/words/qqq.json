@@ -1,0 +1,32 @@
+{
+  "seeds": {
+    "statuses": [
+      "A chapter's first status: an idea only.",
+      "Planned in the outline, not yet drafted.",
+      "Being drafted.",
+      "Drafted and revised.",
+      "Finished."
+    ],
+    "untitled-chapter": "Title of a new chapter whose name the writer left empty. Written into the book as its title and file name.",
+    "untitled-part": "Title of a new part whose name the writer left empty. Written into the book.",
+    "unnamed-character": "Title of a new character whose name was left empty. Written into the book.",
+    "unnamed-location": "Title of a new location whose name was left empty. Written into the book.",
+    "untitled-note": "Title of a new note whose name was left empty. Written into the book.",
+    "untitled-outline": "Title of a new outline whose name was left empty. Written into the book.",
+    "heading-description": "Heading a new character or location starts with (as `## Description`). Written into the book; writers may change it.",
+    "heading-history": "Heading a new character or location starts with. Written into the book.",
+    "heading-arc": "Heading a new character starts with: the character's development over the story. Written into the book.",
+    "comment-defaults": "YAML comment at the top of a new novel.md. Keep 'Plot Device' as is.",
+    "comment-language": "YAML comment beside `language:` in a new novel.md.",
+    "comment-calendar": "YAML comment beside `calendar:`. Keep the values gregorian and day-count and the date example as they are.",
+    "comment-threads": "YAML comment beside `threads: []`, followed by a commented example.",
+    "comment-thread-name": "Name of the example thread in the commented example in a new novel.md.",
+    "comment-file-names": "YAML comment beside `file_names:`. Keep the values ask, always and never as they are.",
+    "comment-order-prefix": "YAML comment beside `order_prefix:`. Keep `true` as is.",
+    "comment-folders": "YAML comment beside `folders:`.",
+    "comment-template": "YAML comment beside the template folder setting."
+  },
+  "recognized": {
+    "outline_inbox": "The `##` heading in an outline that captured beats go under; the app finds it by this word. Short and plain; writers can override it in novel.md."
+  }
+}

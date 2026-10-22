@@ -19,7 +19,7 @@ import { createUpdateCodexProperties } from './contexts/codex/application/comman
 import { createGetCodexProperties } from './contexts/codex/application/queries/get-codex-properties'
 import { createListCodex } from './contexts/codex/application/queries/list-codex'
 import { createOpenCodexEntry } from './contexts/codex/application/queries/open-codex-entry'
-import type { CodexSettings } from './contexts/codex/domain/codex-settings'
+import type { CodexSettings, CodexWords } from './contexts/codex/domain/codex-settings'
 import { createMarkdownCodexRepository } from './contexts/codex/infrastructure/markdown-codex-repository'
 import { createListChapterReferences } from './contexts/manuscript/application/queries/list-chapter-references'
 import { createCodexHandlers, type CodexUseCases } from './ipc/codex-handlers'
@@ -53,7 +53,10 @@ import { createGetEntryProperties } from './contexts/manuscript/application/quer
 import { createGetManuscript } from './contexts/manuscript/application/queries/get-manuscript'
 import { createListStatuses } from './contexts/manuscript/application/queries/list-statuses'
 import { createOpenEntry } from './contexts/manuscript/application/queries/open-entry'
-import type { ManuscriptSettings } from './contexts/manuscript/domain/manuscript-settings'
+import type {
+  ManuscriptSettings,
+  ManuscriptWords
+} from './contexts/manuscript/domain/manuscript-settings'
 import { createMarkdownEntryRelocator } from './infrastructure/links/markdown-entry-relocator'
 import { createMarkdownManuscriptRepository } from './contexts/manuscript/infrastructure/markdown-manuscript-repository'
 import { createInitializeProject } from './contexts/workspace/application/commands/initialize-project'
@@ -87,6 +90,9 @@ import type { WindowStateStore } from './window-state'
 import { createFileRecovery } from './infrastructure/recovery/file-recovery'
 import type { RecoverySession } from './recovery/recovery-session'
 import { createRecoveryHandlers } from './ipc/recovery-handlers'
+import { resolveBookWords } from './book-language/book-words'
+import { codexWordsOf, manuscriptWordsOf, templateWordsOf } from './book-language/context-words'
+import { createSetBookLanguage } from './contexts/workspace/application/commands/set-book-language'
 import { registerRecoveryIpc } from './ipc/recovery-ipc'
 
 /** Builds the app-shell settings adapter outside every novel folder. */
@@ -145,6 +151,12 @@ export function composeApplication(language: UiLanguageService): LaunchFolders {
     void watcher?.close()
     watcher = undefined
   }
+
+  // The open book's words (ADR 0019), resolved from novel.md on open and whenever it is read
+  // again, so a language change applies at once. Contexts read them through these getters.
+  let bookWords = resolveBookWords(null)
+  const words = (): ManuscriptWords => manuscriptWordsOf(bookWords)
+  const codexWords = (): CodexWords => codexWordsOf(bookWords)
 
   const session = createProjectSession((root, context: ProjectContext): ProjectUseCases => {
     const settings = context.manuscript
@@ -232,7 +244,7 @@ export function composeApplication(language: UiLanguageService): LaunchFolders {
       },
       inspector: {
         getVocabulary: createGetInspectorVocabulary({
-          listStatuses: createListStatuses({ repository }),
+          listStatuses: createListStatuses({ repository, fallback: () => words().statuses }),
           getChronologySettings
         }),
         checkStoryDate: createCheckStoryDate({ getSettings: getChronologySettings })
@@ -244,19 +256,30 @@ export function composeApplication(language: UiLanguageService): LaunchFolders {
     inspectFolder: createInspectFolder({ folders, novelFiles }),
     openProject,
     readProject: createReadProject({ folders, novelFiles, scanner: { scan: scanProject } }),
-    initializeProject: createInitializeProject({ folders, novelFiles, openProject }),
+    initializeProject: createInitializeProject({
+      folders,
+      novelFiles,
+      openProject,
+      templateWords: (language) => templateWordsOf(resolveBookWords(language))
+    }),
+    setBookLanguage: createSetBookLanguage({
+      novelFiles,
+      readProject: createReadProject({ folders, novelFiles, scanner: { scan: scanProject } })
+    }),
     listRecentProjects: createListRecentProjects({ folders, recents }),
     removeRecentProject: createRemoveRecentProject({ folders, recents }),
     toProjectRoot: projectRootFromOsPath,
     rootKey: (root) => (process.platform === 'win32' ? root.toLowerCase() : root),
     onProjectOpened: (root, project) => {
+      bookWords = resolveBookWords(project.language, project.settings.vocabulary)
       const { folders, fileNames } = project.settings
       session.open(root, {
         manuscript: {
           readOnly: project.readOnly,
           partFolder: folderPath(folders.part),
           chapterFolder: folderPath(folders.chapter),
-          fileNames
+          fileNames,
+          words
         },
         codex: {
           readOnly: project.readOnly,
@@ -266,13 +289,17 @@ export function composeApplication(language: UiLanguageService): LaunchFolders {
             note: folderPath(folders.note)
           },
           templateFolder: folderPath(folders.template),
-          fileNames
+          fileNames,
+          words: codexWords
         }
       })
       stopWatching()
       watcher = watchProject(root, (changes) => {
         sendProjectChanges(changes.map(({ path, kind }) => ({ path, kind })))
       })
+    },
+    onProjectRefreshed: (project) => {
+      bookWords = resolveBookWords(project.language, project.settings.vocabulary)
     },
     onProjectClosed: () => {
       stopWatching()

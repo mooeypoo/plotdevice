@@ -14,11 +14,17 @@ import type {
   TimelineDto
 } from '../../../contract/dtos'
 
+/** A summary's `language` for a declared tag; only Hebrew is right-to-left here. */
+function fakeBookLanguage(language: string): ProjectSummaryDto['language'] {
+  return { declared: language, direction: language.startsWith('he') ? 'rtl' : 'ltr' }
+}
+
 /** A project summary for tests. */
 export const sampleSummary: ProjectSummaryDto = {
   root: '/novels/salt-orchard',
   title: 'The Salt Orchard',
   formatVersion: 1,
+  language: { declared: null, direction: null },
   readOnly: false,
   warnings: [],
   counts: {
@@ -292,7 +298,7 @@ export function createFakePlotDeviceApi(): {
   >()
 
   const api: PlotDeviceApi = {
-    contractVersion: 25,
+    contractVersion: 26,
     uiLanguage: {
       get: () => Promise.resolve(language),
       set: (locale) => {
@@ -422,8 +428,15 @@ export function createFakePlotDeviceApi(): {
         return () => folderListeners.delete(listener)
       },
       openProject: () => Promise.resolve({ ok: true, value: sampleSummary }),
-      initializeProject: (_, title) =>
-        Promise.resolve({ ok: true, value: { ...sampleSummary, title } }),
+      initializeProject: (_, title, language) =>
+        Promise.resolve({
+          ok: true,
+          value: { ...sampleSummary, title, language: fakeBookLanguage(language) }
+        }),
+      setBookLanguage: (language) => {
+        summary.current = { ...summary.current, language: fakeBookLanguage(language) }
+        return Promise.resolve({ ok: true, value: summary.current })
+      },
       closeProject: () => {
         recoverySnapshots.clear()
         state.closedProjects += 1

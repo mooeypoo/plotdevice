@@ -37,6 +37,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const { message: recentsRemoveErrorMessage, source: recentsRemoveErrorSource } = useErrorNotice()
   const { message: rememberErrorMessage, source: rememberErrorSource } = useErrorNotice()
   const { message: folderErrorMessage, source: folderErrorSource } = useErrorNotice()
+  const { message: bookLanguageErrorMessage, source: bookLanguageErrorSource } = useErrorNotice()
   const busy = ref(false)
   let refreshRequest = 0
   let recentsRequest = 0
@@ -92,6 +93,19 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     } else refreshErrorSource.value = result.error
   }
 
+  /** Changes the open book's language. Words already in the files stay as they are. */
+  async function setBookLanguage(language: string): Promise<void> {
+    const currentProject = project.value
+    if (currentProject === null) return
+    const result = await api().setBookLanguage(language)
+    if (project.value?.root !== currentProject.root) return
+    if (result.ok) {
+      refreshRequest += 1
+      project.value = result.value
+      bookLanguageErrorSource.value = null
+    } else bookLanguageErrorSource.value = result.error
+  }
+
   async function openProject(root: string): Promise<void> {
     folderRequest += 1
     if (!(await leaveCurrentProject())) return
@@ -144,12 +158,13 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     await useFolderResult(result)
   }
 
-  async function initializeChosenFolder(title: string): Promise<void> {
+  /** Initializes the chosen folder; `language` is the book's language, which decides its words. */
+  async function initializeChosenFolder(title: string, language: string): Promise<void> {
     folderRequest += 1
     const folder = chosenFolder.value
     if (folder === null) return
     await run(async () => {
-      const result = await api().initializeProject(folder.root, title)
+      const result = await api().initializeProject(folder.root, title, language)
       if (result.ok) {
         showProject(result.value)
         await loadRecents()
@@ -195,6 +210,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     project.value = null
     refreshErrorSource.value = null
     rememberErrorSource.value = null
+    bookLanguageErrorSource.value = null
     return true
   }
 
@@ -218,6 +234,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     recentsRemoveErrorMessage,
     rememberErrorMessage,
     folderErrorMessage,
+    bookLanguageErrorMessage,
     busy,
     loadRecents,
     openProject,
@@ -227,6 +244,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     useFolderResult,
     openLaunchFolder,
     initializeChosenFolder,
+    setBookLanguage,
     removeRecent,
     backToWelcome
   }

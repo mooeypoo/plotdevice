@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useWorkspaceStore } from '../../app/workspace-store'
+import BookLanguageSelect from '../../shared/BookLanguageSelect.vue'
 import LanguageSelector from '../../shared/LanguageSelector.vue'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { isolate } from '../../shared/isolate'
@@ -8,6 +9,8 @@ import { isolate } from '../../shared/isolate'
 const workspace = useWorkspaceStore()
 const language = useUiLanguageStore()
 const title = ref(workspace.chosenFolder?.name ?? '')
+// A new book is most likely written in the language the writer reads the interface in.
+const bookLanguage = ref<string | null>(language.locale)
 </script>
 
 <template>
@@ -63,11 +66,19 @@ const title = ref(workspace.chosenFolder?.name ?? '')
       <p>
         {{ language.t('initialize-description', isolate('novel.md')) }}
       </p>
-      <form @submit.prevent="workspace.initializeChosenFolder(title)">
+      <form
+        @submit.prevent="workspace.initializeChosenFolder(title, bookLanguage ?? language.locale)"
+      >
         <label>
           {{ language.t('initialize-title-label') }}
           <input v-model="title" type="text" maxlength="500" dir="auto" autofocus />
         </label>
+        <div>
+          <BookLanguageSelect v-model="bookLanguage" described-by="book-language-help" />
+          <p id="book-language-help" class="help">
+            {{ language.t('initialize-book-language-help') }}
+          </p>
+        </div>
         <div class="actions">
           <button class="primary" type="submit" :disabled="workspace.busy">
             {{ language.t('initialize-create') }}
@@ -135,6 +146,12 @@ input {
   display: flex;
   gap: 0.75rem;
   margin-top: 1rem;
+}
+
+.help {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 .error {

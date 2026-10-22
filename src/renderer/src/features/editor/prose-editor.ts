@@ -15,10 +15,15 @@ import type { ScreenRect } from '../../shared/screen-rect'
 import { linkCompletionSource, type LinkCompletionTarget } from './link-completion'
 import { createLinkKindLookup } from '../../shared/wiki-link-scan'
 
+/** A book's declared writing direction, or `null` when it declares no language. */
+export type BookDirection = 'ltr' | 'rtl' | null
+
 /** What the editor needs when it is created. */
 export interface ProseEditorOptions {
   readonly text: string
   readonly writingDirection: WritingDirection
+  /** The declared book language's direction; Auto uses it as the base. `null` keeps `auto`. */
+  readonly bookDirection: BookDirection
   readonly copy: ProseEditorCopy
   /** Session state is reused only when its text still matches the freshly read file. */
   readonly state?: EditorState | undefined
@@ -40,7 +45,7 @@ export interface ProseEditorOptions {
 /** A mounted prose editor and the settings that can change while it is open. */
 export interface ProseEditor {
   setReadOnly(on: boolean): void
-  setWritingDirection(direction: WritingDirection): void
+  setWritingDirection(direction: WritingDirection, bookDirection: BookDirection): void
   setCopy(copy: ProseEditorCopy): void
   remeasure(): void
   setFocusMode(on: boolean): void
@@ -106,7 +111,9 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
     proseAppearance(),
     EditorView.lineWrapping,
     technicalSpanDirection(),
-    directionCompartment.of(writingDirectionExtensions(options.writingDirection)),
+    directionCompartment.of(
+      writingDirectionExtensions(options.writingDirection, options.bookDirection)
+    ),
     copyCompartment.of(copyExtensions(copy)),
     editingCompartment.of([
       EditorState.readOnly.of(options.readOnly),
@@ -179,9 +186,11 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
         ])
       })
     },
-    setWritingDirection(direction) {
+    setWritingDirection(direction, bookDirection) {
       view.dispatch({
-        effects: directionCompartment.reconfigure(writingDirectionExtensions(direction))
+        effects: directionCompartment.reconfigure(
+          writingDirectionExtensions(direction, bookDirection)
+        )
       })
     },
     setCopy(nextCopy) {
@@ -222,16 +231,21 @@ function copyExtensions(copy: ProseEditorCopy): Extension {
   ]
 }
 
-function writingDirectionExtensions(direction: WritingDirection): Extension {
+function writingDirectionExtensions(
+  direction: WritingDirection,
+  bookDirection: BookDirection
+): Extension {
+  // Auto follows a declared book language for lines without letters; undeclared books stay `auto`.
+  const base = direction === 'auto' ? (bookDirection ?? 'auto') : direction
   return [
     // Per-line direction is only enabled in Auto; explicit modes apply to the entire prose surface.
     EditorView.perLineTextDirection.of(direction === 'auto'),
     EditorView.contentAttributes.of({
       spellcheck: 'true',
       autocorrect: 'on',
-      dir: direction
+      dir: base
     }),
-    ...(direction === 'auto' ? [autoLineDirection()] : [])
+    ...(direction === 'auto' ? [autoLineDirection(bookDirection !== null)] : [])
   ]
 }
 

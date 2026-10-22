@@ -73,7 +73,7 @@ describe('welcome and project initialization translation', () => {
     expect(document.activeElement).toBe(input.element)
     await page.get('form').trigger('submit')
     await flushPromises()
-    expect(initialize).toHaveBeenCalledExactlyOnceWith(root, 'My novel טיוטה <b>')
+    expect(initialize).toHaveBeenCalledExactlyOnceWith(root, 'My novel טיוטה <b>', 'en')
     page.unmount()
   })
 

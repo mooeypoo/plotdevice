@@ -3,7 +3,9 @@ import { join } from 'node:path'
 import { domainError } from '../../../shared-kernel/domain-error'
 import { err, ok } from '../../../shared-kernel/result'
 import { writeTextFileAtomically } from '../../../infrastructure/fs/write-text-file-atomically'
+import { createEntryFiles } from '../../../infrastructure/markdown/entry-files'
 import { readFrontmatter } from '../../../infrastructure/markdown/read-frontmatter'
+import { parseProjectPath } from '../../../shared-kernel/project-path'
 import type { NovelFileReading, NovelFileStore } from '../domain/ports/novel-file-store'
 
 const NOVEL_FILE = 'novel.md'
@@ -32,6 +34,18 @@ export function createMarkdownNovelFileStore(): NovelFileStore {
         case 'unparseable':
           return unreadable('unparseable-frontmatter')
       }
+    },
+
+    setKey: async (root, key, value) => {
+      const path = parseProjectPath(NOVEL_FILE)
+      if (!path.ok) return err(domainError('write-failed', 'novel.md has no usable path.'))
+      // The shared surgical editor changes only this key and refuses files it can't edit safely.
+      const written = await createEntryFiles(root).writeKeys(
+        path.value,
+        [{ key, value }],
+        undefined
+      )
+      return written.ok ? ok(undefined) : written
     },
 
     create: async (root, text) => {

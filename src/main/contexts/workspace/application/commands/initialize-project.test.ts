@@ -3,6 +3,8 @@ import { InMemoryWorkspace } from '../../domain/ports/in-memory-workspace.fake'
 import type { ProjectRoot } from '../../domain/project-root'
 import { createInitializeProject, type InitializeProject } from './initialize-project'
 import { createOpenProject } from './open-project'
+import { resolveBookWords } from '../../../../book-language/book-words'
+import { templateWordsOf } from '../../../../book-language/context-words'
 
 let workspace: InMemoryWorkspace
 let initializeProject: InitializeProject
@@ -19,7 +21,8 @@ beforeEach(() => {
   initializeProject = createInitializeProject({
     folders: workspace,
     novelFiles: workspace,
-    openProject
+    openProject,
+    templateWords: (language: string) => templateWordsOf(resolveBookWords(language))
   })
 })
 
@@ -28,7 +31,7 @@ describe('InitializeProject', () => {
     const root = workspace.addFolder('/novels/new')
     const error = { code: 'recents-save-failed', message: 'Full' } as const
     vi.spyOn(workspace, 'save').mockResolvedValue({ ok: false, error })
-    expect(await initializeProject(root, 'New')).toMatchObject({
+    expect(await initializeProject(root, 'New', 'en')).toMatchObject({
       ok: true,
       value: { project: { title: 'New' }, recentProjectsError: error }
     })
@@ -37,7 +40,7 @@ describe('InitializeProject', () => {
   it('writes novel.md, opens the project, and records it', async () => {
     const root = workspace.addFolder('/novels/new-book')
 
-    const result = await initializeProject(root, '  The New Book  ')
+    const result = await initializeProject(root, '  The New Book  ', 'en')
 
     expect(result).toMatchObject({ ok: true, value: { project: { title: 'The New Book' } } })
     expect(workspace.createdNovelFiles.get(root)).toContain('title: "The New Book"')
@@ -46,7 +49,7 @@ describe('InitializeProject', () => {
 
   it('uses the folder name when the title is blank', async () => {
     const root = workspace.addFolder('/novels/new-book')
-    await initializeProject(root, '   ')
+    await initializeProject(root, '   ', 'en')
     expect(workspace.createdNovelFiles.get(root)).toContain('title: "new-book"')
   })
 
@@ -54,7 +57,7 @@ describe('InitializeProject', () => {
     const root = workspace.addFolder('/novels/salt-orchard', {
       novel: { kind: 'read', frontmatter: {} }
     })
-    const result = await initializeProject(root, 'Again')
+    const result = await initializeProject(root, 'Again', 'en')
     expect(result).toMatchObject({
       ok: false,
       error: {
@@ -69,7 +72,7 @@ describe('InitializeProject', () => {
     workspace.addFolder('/novels/salt-orchard', { novel: { kind: 'read', frontmatter: {} } })
     const notes = workspace.addFolder('/novels/salt-orchard/notes')
 
-    const result = await initializeProject(notes, 'Nested')
+    const result = await initializeProject(notes, 'Nested', 'en')
 
     expect(result).toMatchObject({
       ok: false,
@@ -86,7 +89,7 @@ describe('InitializeProject', () => {
     const novels = workspace.addFolder('/novels')
     workspace.addFolder('/novels/salt-orchard', { novel: { kind: 'read', frontmatter: {} } })
 
-    const result = await initializeProject(novels, 'All of them')
+    const result = await initializeProject(novels, 'All of them', 'en')
 
     expect(result).toMatchObject({
       ok: false,
@@ -100,7 +103,7 @@ describe('InitializeProject', () => {
   })
 
   it('fails for a folder that no longer exists', async () => {
-    const result = await initializeProject('/gone' as ProjectRoot, 'Gone')
+    const result = await initializeProject('/gone' as ProjectRoot, 'Gone', 'en')
     expect(result).toMatchObject({
       ok: false,
       error: {
@@ -122,7 +125,7 @@ describe('InitializeProject', () => {
       }
     } as const
     vi.spyOn(workspace, 'create').mockResolvedValue({ ok: false, error: failure })
-    expect(await initializeProject(root, 'New')).toEqual({ ok: false, error: failure })
+    expect(await initializeProject(root, 'New', 'en')).toEqual({ ok: false, error: failure })
     expect(workspace.createdNovelFiles.size).toBe(0)
     expect(workspace.recents).toEqual([])
   })
@@ -133,7 +136,7 @@ describe('InitializeProject', () => {
       ok: false,
       error: { code: 'already-exists', message: 'Outside file exists' }
     })
-    expect(await initializeProject(root, 'New')).toMatchObject({
+    expect(await initializeProject(root, 'New', 'en')).toMatchObject({
       ok: false,
       error: {
         code: 'already-a-project',

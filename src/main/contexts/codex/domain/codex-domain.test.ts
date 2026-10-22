@@ -88,12 +88,16 @@ describe('codexWrites', () => {
   })
 })
 
+const CHARACTER_HEADINGS = ['Description', 'History', 'Arc']
+
 describe('newCodexText', () => {
   it('starts a character with the default headings, and a note empty', () => {
-    expect(newCodexText('character', 'Marta Kovač')).toBe(
+    expect(newCodexText('character', 'Marta Kovač', undefined, CHARACTER_HEADINGS)).toBe(
       '---\ntype: character\ntitle: "Marta Kovač"\n---\n## Description\n\n## History\n\n## Arc\n'
     )
-    expect(newCodexText('note', 'Ideas')).toBe('---\ntype: note\ntitle: "Ideas"\n---\n')
+    expect(newCodexText('note', 'Ideas', undefined, [])).toBe(
+      '---\ntype: note\ntitle: "Ideas"\n---\n'
+    )
   })
 
   it('copies a template’s keys and body, setting type and title itself', () => {
@@ -111,13 +115,13 @@ describe('newCodexText', () => {
       '## Wants',
       ''
     ].join('\r\n')
-    expect(newCodexText('character', 'Marta', template)).toBe(
+    expect(newCodexText('character', 'Marta', template, CHARACTER_HEADINGS)).toBe(
       '---\ntype: character\ntitle: "Marta"\nrole:\ntags: [cast]\naliases:\n  - nickname\n---\n## Voice\n\n## Wants\n'
     )
   })
 
   it('treats a template without frontmatter as body only', () => {
-    expect(newCodexText('location', 'Marrow', '## Smell\n')).toBe(
+    expect(newCodexText('location', 'Marrow', '## Smell\n', ['Description'])).toBe(
       '---\ntype: location\ntitle: "Marrow"\n---\n## Smell\n'
     )
   })
@@ -125,7 +129,7 @@ describe('newCodexText', () => {
 
 describe('defaultTemplateText', () => {
   it('is the default headings, with no frontmatter', () => {
-    expect(defaultTemplateText('location')).toBe('## Description\n\n## History\n')
-    expect(defaultTemplateText('note')).toBe('')
+    expect(defaultTemplateText(['Description', 'History'])).toBe('## Description\n\n## History\n')
+    expect(defaultTemplateText([])).toBe('')
   })
 })

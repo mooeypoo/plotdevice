@@ -6,6 +6,11 @@ import { InMemoryRelocator } from '../domain/ports/in-memory-relocator.fake'
 import { createMoveChapter, createMovePart } from './commands/move-entries'
 import { createPlanRename, createRenameEntry } from './commands/rename-entry'
 import { createRenumberPart } from './commands/renumber-part'
+import { resolveBookWords } from '../../../book-language/book-words'
+import { manuscriptWordsOf } from '../../../book-language/context-words'
+
+/** English words, as the composition root resolves them for a book without a `language`. */
+const ENGLISH_WORDS = resolveBookWords(null)
 
 const p = (value: string): ProjectPath => value as ProjectPath
 const partOne = p('manuscript/Part One/Part One.md')
@@ -18,7 +23,8 @@ const settings: ManuscriptSettings = {
   readOnly: false,
   partFolder: p('manuscript'),
   chapterFolder: p('manuscript'),
-  fileNames: 'ask'
+  fileNames: 'ask',
+  words: () => manuscriptWordsOf(ENGLISH_WORDS)
 }
 
 let repository: InMemoryManuscript
