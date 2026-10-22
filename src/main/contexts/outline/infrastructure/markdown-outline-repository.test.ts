@@ -8,6 +8,9 @@ import type { ProjectPath } from '../../../shared-kernel/project-path'
 import { createCaptureBeat } from '../application/commands/capture-beat'
 import { createMoveBeat } from '../application/commands/move-beat'
 import { createMoveColumn } from '../application/commands/move-column'
+import { createAddBeat } from '../application/commands/add-beat'
+import { createEditNotes } from '../application/commands/edit-notes'
+import { createRetitleBeat } from '../application/commands/retitle-beat'
 import type { OutlineSettings } from '../domain/outline-settings'
 import { createMarkdownOutlineRepository } from './markdown-outline-repository'
 
@@ -188,5 +191,71 @@ describe('moving on the board', () => {
     expect(await read(path)).toContain(
       "- Last image: the gate\n- Marrow's map\n  Drawn on the back of a receipt.\r\n"
     )
+  })
+})
+
+describe('editing on the board', () => {
+  const read = (path: string): Promise<string> => readFile(join(copy.root, path), 'utf8')
+
+  it('adds, retitles and re-notes beats in a CRLF file with a BOM, changing only those lines', async () => {
+    const repository = createMarkdownOutlineRepository(copy.root)
+    const path = p('outlines/Revision plan.md')
+    const original = await read(path)
+    const version = async (): Promise<string> => {
+      const body = await repository.readBody(path)
+      if (!body.ok) throw new Error('expected the outline')
+      return body.value.version
+    }
+    const cut = { line: 2, title: 'Cut' }
+    expect(
+      await createAddBeat({ repository, settings })(path, await version(), cut, 'A new cut', 'end')
+    ).toMatchObject({ ok: true })
+    expect(
+      await createRetitleBeat({ repository, settings })(
+        path,
+        await version(),
+        { line: 3, title: 'The second ferry crossing #main' },
+        'The only ferry crossing #main'
+      )
+    ).toMatchObject({ ok: true })
+    expect(
+      await createEditNotes({ repository, settings })(
+        path,
+        await version(),
+        { line: 4, title: "Bea's letter" },
+        'keep two lines of it'
+      )
+    ).toMatchObject({ ok: true })
+    expect(await read(path)).toBe(
+      original
+        .replace('* The second ferry crossing #main', '* The only ferry crossing #main')
+        .replace('  + keep one line of it\r\n', '  keep two lines of it\r\n* A new cut\r\n')
+    )
+  })
+
+  it('refuses a title that is not one line, and notes that would escape, writing nothing', async () => {
+    const repository = createMarkdownOutlineRepository(copy.root)
+    const path = p('outlines/Loose plan.md')
+    const original = await read(path)
+    const body = await repository.readBody(path)
+    if (!body.ok) throw new Error('expected the outline')
+    const beat = { line: 1, title: "Marrow's map" }
+    expect(
+      await createRetitleBeat({ repository, settings })(path, body.value.version, beat, 'a\nb')
+    ).toMatchObject({ ok: false, error: { code: 'invalid-title' } })
+    expect(
+      await createAddBeat({ repository, settings })(
+        path,
+        body.value.version,
+        { line: 0, title: 'Before' },
+        '---',
+        'end'
+      )
+    ).toMatchObject({ ok: false, error: { code: 'invalid-title' } })
+    expect(await read(path)).toBe(original)
+    expect(
+      await createEditNotes({ repository, settings })(path, body.value.version, beat, '')
+    ).toMatchObject({ ok: true })
+    expect(await read(path)).toBe(original.replace('  Drawn on the back of a receipt.\r\n', ''))
   })
 })

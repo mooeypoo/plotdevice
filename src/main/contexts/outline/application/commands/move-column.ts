@@ -4,7 +4,7 @@ import { moveColumn } from '../../domain/move-column'
 import type { OutlineSettings } from '../../domain/outline-settings'
 import type { OutlineRepository } from '../../domain/ports/outline-repository'
 import type { OutlineItemRef, OutlinePlacement } from '../../domain/splice-lines'
-import { rewriteOutline, type OutlineMoveError } from './move-beat'
+import { rewriteOutline, type OutlineEditCommandError } from './rewrite-outline'
 
 /** Moves a column, heading to the next `##`, before another column or to the end (ADR 0020). */
 export type MoveColumn = (
@@ -12,7 +12,7 @@ export type MoveColumn = (
   version: string,
   column: OutlineItemRef,
   placement: OutlinePlacement
-) => Promise<Result<{ readonly version: string }, OutlineMoveError>>
+) => Promise<Result<{ readonly version: string }, OutlineEditCommandError>>
 
 /** Builds the `MoveColumn` command. */
 export function createMoveColumn(ports: {

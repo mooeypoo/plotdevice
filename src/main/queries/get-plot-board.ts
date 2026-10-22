@@ -18,6 +18,7 @@ export interface BoardChapter {
   /** `pov` as written in the chapter (`Ilka Szabó`). */
   readonly pov: readonly string[]
   readonly wordCount: number
+  readonly synopsis?: string
 }
 
 /** One beat card. `line` and `title` address it in later board commands (ADR 0020). */
@@ -93,7 +94,8 @@ export function createGetPlotBoard(ports: {
         title: chapter.title,
         ...(chapter.status !== undefined ? { status: chapter.status } : {}),
         pov: chapter.pov,
-        wordCount: chapter.wordCount
+        wordCount: chapter.wordCount,
+        ...(chapter.synopsis !== undefined ? { synopsis: chapter.synopsis } : {})
       }
     }
 

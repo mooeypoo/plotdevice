@@ -4,6 +4,9 @@ import { outlineWordsOf } from '../book-language/context-words'
 import { createCaptureBeat } from '../contexts/outline/application/commands/capture-beat'
 import { createCreateOutline } from '../contexts/outline/application/commands/create-outline'
 import { createMoveBeat } from '../contexts/outline/application/commands/move-beat'
+import { createAddBeat } from '../contexts/outline/application/commands/add-beat'
+import { createEditNotes } from '../contexts/outline/application/commands/edit-notes'
+import { createRetitleBeat } from '../contexts/outline/application/commands/retitle-beat'
 import { createMoveColumn } from '../contexts/outline/application/commands/move-column'
 import { createSaveOutlineText } from '../contexts/outline/application/commands/save-outline-text'
 import { createListOutlines } from '../contexts/outline/application/queries/list-outlines'
@@ -42,7 +45,10 @@ beforeEach(() => {
       Promise.resolve(ok({ path, version: 'v', preamble: '', columns: [], threads: [] })),
     captureBeat: createCaptureBeat(ports),
     moveBeat: createMoveBeat(ports),
-    moveColumn: createMoveColumn(ports)
+    moveColumn: createMoveColumn(ports),
+    addBeat: createAddBeat(ports),
+    retitleBeat: createRetitleBeat(ports),
+    editNotes: createEditNotes(ports)
   }
   handlers = createOutlineHandlers(() => session)
 })
@@ -102,6 +108,29 @@ describe('outline handlers', () => {
     expect(await handlers.moveBeat(['notes/Secret.md', now, one, one, 'end'])).toMatchObject({
       ok: false,
       error: { code: 'entry-not-allowed' }
+    })
+  })
+
+  it('add, retitle and re-note beats, refusing a title that is not one line', async () => {
+    await handlers.list()
+    const at = (): string => repository.get('Plan.md')?.version ?? ''
+    const one = { line: 0, title: 'One' }
+    expect(await handlers.addBeat(['Plan.md', at(), one, 'Second', 'end'])).toMatchObject({
+      ok: true
+    })
+    expect(
+      await handlers.retitleBeat(['Plan.md', at(), { line: 1, title: 'Beat' }, 'First'])
+    ).toMatchObject({ ok: true })
+    expect(
+      await handlers.editNotes(['Plan.md', at(), { line: 1, title: 'First' }, 'A note'])
+    ).toMatchObject({ ok: true })
+    expect(repository.get('Plan.md')?.text).toBe('## One\n- First\n  A note\n- Second\n')
+    expect(
+      await handlers.retitleBeat(['Plan.md', at(), { line: 1, title: 'First' }, 'two\nlines'])
+    ).toMatchObject({ ok: false, error: { diagnostic: { reason: 'outline-invalid-beat' } } })
+    expect(await handlers.addBeat(['Plan.md', at(), one, 'x'.repeat(2001), 'end'])).toMatchObject({
+      ok: false,
+      error: { code: 'invalid-request' }
     })
   })
 

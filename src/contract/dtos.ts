@@ -486,6 +486,7 @@ export interface BoardChapterDto {
   /** `pov` as written in the chapter. */
   readonly pov: readonly string[]
   readonly wordCount: number
+  readonly synopsis?: string
 }
 
 /** A beat card. `line` and `title` address it in board commands (ADR 0020). */
