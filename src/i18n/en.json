@@ -628,5 +628,16 @@
   "split-empty": "Open a chapter beside to compare it with the one you're writing: use Open beside on a card, in Reference or on a tab.",
   "split-all-locked": "Both splits are locked. Unlock one to open another document beside.",
   "split-region": "Beside the editor: $1",
-  "split-resize": "Split width"
+  "split-resize": "Split width",
+  "menu-command-palette": "Command Palette…",
+  "palette-title": "Command palette",
+  "palette-placeholder": "Go to an entry, view, layout or command…",
+  "palette-count": "$2 {{PLURAL:$1|result|results}}",
+  "palette-empty": "Nothing matches.",
+  "palette-kind-view": "View",
+  "palette-kind-layout": "Layout",
+  "palette-kind-command": "Command",
+  "palette-beside-hint": "$1 opens it beside the editor",
+  "palette-use-layout": "Use the $1 layout",
+  "appearance-fade": "Fade panels while typing"
 }

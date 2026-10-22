@@ -17,6 +17,7 @@ import { useManuscriptStore } from './manuscript-store'
 import StatusBar from './StatusBar.vue'
 import TopBar from './TopBar.vue'
 import { useLiveSync } from './use-live-sync'
+import { useTypingFade } from './use-typing-fade'
 import { useMenuCommands } from './use-menu-commands'
 import { useShortcuts } from './use-shortcuts'
 import { useWorkspaceStore } from './workspace-store'
@@ -37,6 +38,7 @@ const { wordCount } = useChromePresentation()
 let disposed = false
 
 useLiveSync()
+const fading = useTypingFade()
 useMenuCommands()
 
 onMounted(async () => {
@@ -73,7 +75,11 @@ useShortcuts([
 </script>
 
 <template>
-  <div class="layout" :class="{ focus: layout.focusMode }" :style="writingPreferences.proseStyle">
+  <div
+    class="layout"
+    :class="{ focus: layout.focusMode, fading: fading && !layout.focusMode }"
+    :style="writingPreferences.proseStyle"
+  >
     <TopBar v-if="!layout.focusMode" />
 
     <component :is="workbench.shell === 'classic' ? ClassicBody : WorkbenchBody" class="body">
@@ -161,6 +167,37 @@ useShortcuts([
 }
 .navigation-notice.error {
   color: var(--danger);
+}
+
+.layout
+  :deep(
+    :is(.top-bar, .status-bar, .document-navigation, .dock, .shelf, .above, .side, #right-panel)
+  ) {
+  transition: opacity 400ms ease;
+}
+
+/* While the writer types, everything around the page steps back; hovering brings a part back. */
+.layout.fading
+  :deep(
+    :is(.top-bar, .status-bar, .document-navigation, .dock, .shelf, .above, .side, #right-panel)
+  ) {
+  opacity: 0.12;
+}
+
+.layout.fading
+  :deep(
+    :is(.top-bar, .status-bar, .document-navigation, .dock, .shelf, .above, .side, #right-panel)
+  ):is(:hover, :focus-within) {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layout
+    :deep(
+      :is(.top-bar, .status-bar, .document-navigation, .dock, .shelf, .above, .side, #right-panel)
+    ) {
+    transition: none;
+  }
 }
 
 .focus-chrome {

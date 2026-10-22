@@ -34,6 +34,8 @@ const preferencesSchema = z.object({
   lineWidth: lineWidthSchema,
   outlineWidth: outlineWidthSchema.default(OUTLINE_WIDTH.default),
   writingDirection: writingDirectionSchema.default('auto'),
+  /** Fade panels and bars while typing; off unless the writer turns it on. */
+  fadeWhileTyping: z.boolean().default(false),
   characterViews: z.record(z.string(), characterViewSchema).default({}),
   collapsedParts: z.record(z.string(), z.array(z.string()))
 })
@@ -47,6 +49,7 @@ function defaults(): WritingPreferences {
     lineWidth: PROSE_LINE_WIDTH.default,
     outlineWidth: OUTLINE_WIDTH.default,
     writingDirection: 'auto',
+    fadeWhileTyping: false,
     characterViews: {},
     collapsedParts: {}
   }
@@ -130,6 +133,11 @@ export const useWritingPreferencesStore = defineStore('writing-preferences', () 
     return { ok: true, value: undefined }
   }
 
+  function setFadeWhileTyping(on: boolean): void {
+    preferences.value.fadeWhileTyping = on
+    save()
+  }
+
   function resetTypography(): void {
     preferences.value.fontSize = PROSE_FONT_SIZE.default
     preferences.value.lineWidth = PROSE_LINE_WIDTH.default
@@ -199,6 +207,8 @@ export const useWritingPreferencesStore = defineStore('writing-preferences', () 
     setFontSize,
     setLineWidth,
     setWritingDirection,
+    fadeWhileTyping: computed(() => preferences.value.fadeWhileTyping),
+    setFadeWhileTyping,
     resetTypography,
     outlineWidth: computed(() => preferences.value.outlineWidth),
     setOutlineWidth,
