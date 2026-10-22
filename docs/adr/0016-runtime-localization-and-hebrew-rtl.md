@@ -129,6 +129,8 @@ progress, remaining limitations, and the next slice before ending a session.
     titles, aliases, paths, roles, and rendered Markdown exactly.
   - [x] **I3m Unresolved-draft close warning:** localized confirmation while
     preserving the explicit draft-loss and unchanged-files warning.
+  - [x] **I3n Native folder-picker title:** use the selected locale for the
+    app-owned title; preserve OS controls and selection/cancel behavior.
   - [ ] **Remaining I3:** remaining
     locale-aware formatting/collation, other native dialog wording, and startup
     text.
@@ -1192,6 +1194,20 @@ behavior. Verified lint/dependency boundaries (473 modules/2,398 dependencies),
 typecheck, **1,553 tests across 171 files**, and the production electron-vite
 build. Documentation build/link/asset checks passed across all 16 public pages.
 No API or dependencies changed.
+
+### I3n Native folder-picker title
+
+The native folder chooser's app-owned title now uses the current interface
+language. The operating system continues to own and localize its controls.
+Folder selection, cancellation, and the `openDirectory`/`createDirectory`
+options are unchanged. The main-process workspace IPC receives the existing
+language service and reads its current locale when opening the dialog.
+
+Focused tests cover the exact English and Hebrew titles, selected-folder
+delivery, and cancellation. Verified lint/dependency boundaries (474 modules/
+2,403 dependencies), typecheck, **1,556 tests across 172 files**, and the
+production electron-vite build. Documentation build/link/asset checks passed
+across all 16 public pages. No API or dependencies changed.
 
 **Next session:** propose a bounded remaining-I3 slice before editing.
 Remaining work includes locale-aware formatting/collation surfaces, other

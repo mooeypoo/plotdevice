@@ -1,14 +1,22 @@
 import { BrowserWindow, dialog } from 'electron'
 import { WORKSPACE_CHANNELS } from '../../contract/channels'
+import { createTranslator } from '../../i18n/translator'
+import type { UiLanguageService } from '../ui-language'
 import { handleTrusted } from './handle-trusted'
 import type { LaunchFolders } from './launch-folders'
 import type { WorkspaceHandlers } from './workspace-handlers'
 
 /** Registers the workspace handlers on their fixed channels. */
-export function registerWorkspaceIpc(handlers: WorkspaceHandlers, launch: LaunchFolders): void {
+export function registerWorkspaceIpc(
+  handlers: WorkspaceHandlers,
+  launch: LaunchFolders,
+  language: UiLanguageService
+): void {
   handleTrusted(WORKSPACE_CHANNELS.takeLaunchFolder, () => launch.take())
   handleTrusted(WORKSPACE_CHANNELS.chooseFolder, (event) =>
-    handlers.chooseFolder(() => showFolderDialog(BrowserWindow.fromWebContents(event.sender)))
+    handlers.chooseFolder(() =>
+      showFolderDialog(BrowserWindow.fromWebContents(event.sender), language)
+    )
   )
   handleTrusted(WORKSPACE_CHANNELS.openProject, (_, args) => handlers.openProject(args))
   handleTrusted(WORKSPACE_CHANNELS.initializeProject, (_, args) => handlers.initializeProject(args))
@@ -20,9 +28,13 @@ export function registerWorkspaceIpc(handlers: WorkspaceHandlers, launch: Launch
   )
 }
 
-async function showFolderDialog(window: BrowserWindow | null): Promise<string | undefined> {
+/** Shows the native folder picker with the current interface language. */
+export async function showFolderDialog(
+  window: BrowserWindow | null,
+  language: UiLanguageService
+): Promise<string | undefined> {
   const options: Electron.OpenDialogOptions = {
-    title: 'Open or create a project folder',
+    title: createTranslator(language.current().locale).t('workspace-folder-dialog-title'),
     properties: ['openDirectory', 'createDirectory']
   }
   const result =

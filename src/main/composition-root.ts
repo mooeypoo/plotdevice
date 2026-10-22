@@ -127,7 +127,7 @@ interface ProjectContext {
  * Wires concrete adapters into use cases and registers IPC handlers. It is the only module allowed
  * to import infrastructure adapters.
  */
-export function composeApplication(): LaunchFolders {
+export function composeApplication(language: UiLanguageService): LaunchFolders {
   const folders = createNodeProjectFolders()
   const novelFiles = createMarkdownNovelFileStore()
   const recents = createJsonRecentProjectsStore(app.getPath('userData'))
@@ -282,7 +282,7 @@ export function composeApplication(): LaunchFolders {
   const launch = createLaunchFolders((path) =>
     workspaceHandlers.chooseFolder(() => Promise.resolve(path))
   )
-  registerWorkspaceIpc(workspaceHandlers, launch)
+  registerWorkspaceIpc(workspaceHandlers, launch, language)
   registerManuscriptIpc(createManuscriptHandlers(() => session.current()?.manuscript))
   registerCodexIpc(createCodexHandlers(() => session.current()?.codex))
   registerTimelineIpc(createTimelineHandlers(() => session.current()?.timeline))

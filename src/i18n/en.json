@@ -445,6 +445,7 @@
   "error-workspace-inside-project": "This folder is inside another project ($1). Open that one instead.",
   "error-workspace-contains-project": "This folder contains another project ($1). Projects cannot be nested; choose a different folder.",
   "workspace-unsaved-changes": "Resolve the unsaved changes in the open chapter first.",
+  "workspace-folder-dialog-title": "Open or create a project folder",
   "error-template-folder-unusable": "The template folder is unusable.",
   "error-entry-already-typed": "That file already has a type.",
   "error-frontmatter-links-unsafe": "Its frontmatter can’t be changed safely.",

@@ -110,8 +110,8 @@ if (!app.requestSingleInstanceLock()) {
 
   void app.whenReady().then(async () => {
     if (process.platform === 'win32') app.setAppUserModelId('tech.moriel.plotdevice')
-    launch = composeApplication()
     const language = await composeUiLanguage()
+    launch = composeApplication(language)
     launch.remember(launchFolder(userArguments(process.argv, app.isPackaged), process.cwd()))
     mainWindow = await createMainWindow(composeWindowStateStore(), language)
   })

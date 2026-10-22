@@ -206,8 +206,10 @@ acceptance criteria, and the cross-session checklist.
     actions and accessibility; keep authored titles and Markdown unchanged.
   - [x] I3m: Localized unresolved-draft close confirmation; preserve the
     explicit draft-loss and unchanged-files warning and close behavior.
+  - [x] I3n: Localized native folder-picker title; preserve OS-owned controls,
+    folder-selection behavior and cancellation.
   - [ ] Remaining I3: other interface text, locale-aware formatting/collation
-    surfaces, native dialog/confirmation and startup text.
+    surfaces, other native dialog/confirmation wording and startup text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.

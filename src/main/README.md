@@ -8,6 +8,7 @@
 Normal bounds and maximized state live only in `userData/window-state.json`, never in a novel folder.
 [ui-language.ts](ui-language.ts) restores `userData/ui-preferences.json` before window creation
 and persists language changes before broadcasting and rebuilding native menus (ADR 0016).
+[ipc/workspace-ipc.ts](ipc/workspace-ipc.ts) uses the current locale for the app-owned folder-picker title; OS controls remain system-owned.
 [composition-root.ts](composition-root.ts) wires settings adapters and the contexts' use cases.
 
 **Must not know about.** Novel-specific rules or frontmatter editing; these belong to the contexts and infrastructure.

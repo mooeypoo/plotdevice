@@ -445,6 +445,7 @@
   "error-workspace-inside-project": "התיקייה נמצאת בתוך פרויקט אחר ($1). יש לפתוח אותו במקום זאת.",
   "error-workspace-contains-project": "התיקייה מכילה פרויקט אחר ($1). לא ניתן לקנן פרויקטים; יש לבחור תיקייה אחרת.",
   "workspace-unsaved-changes": "יש לטפל תחילה בשינויים שלא נשמרו בפרק הפתוח.",
+  "workspace-folder-dialog-title": "פתיחה או יצירה של תיקיית פרויקט",
   "error-template-folder-unusable": "לא ניתן להשתמש בתיקיית התבניות.",
   "error-entry-already-typed": "לקובץ הזה כבר מוגדר סוג.",
   "error-frontmatter-links-unsafe": "לא ניתן לשנות את מקטע המטא־נתונים שלו בבטחה.",
