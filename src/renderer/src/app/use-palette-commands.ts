@@ -31,9 +31,10 @@ export interface PaletteItem {
   readonly detail: string
   /** For entries: the file, so the palette can put open documents first. */
   readonly path?: string
-  readonly run: () => void
+  /** Runs the command; a promise when it waits for navigation, so focus is settled after it. */
+  readonly run: () => unknown
   /** Shift+Enter: show an entry beside the editor instead. */
-  readonly runBeside?: () => void
+  readonly runBeside?: () => unknown
 }
 
 const CENTER_VIEWS: readonly MainView[] = ['write', 'overview', 'timeline', 'interactions']
@@ -49,6 +50,11 @@ const PRESET_NAMES: Readonly<Record<PresetId, MessageKey>> = {
   plot: 'workbench-layout-plot'
 }
 const CODEX_KINDS = new Set(['character', 'location', 'note'])
+/** Other names the interface uses for a view, so typing either finds it. */
+const VIEW_ALIASES: Partial<Readonly<Record<ViewId, readonly MessageKey[]>>> = {
+  binder: ['chrome-binder'],
+  properties: ['chrome-inspector']
+}
 
 /**
  * Everything the palette offers: the project's entries, views, layouts and the menu's commands.
@@ -83,10 +89,11 @@ export function usePaletteCommands() {
           path: target.path,
           // Codex entries are looked up in Reference, as the side panel does.
           run: () => {
-            if (consult) reference.open(target.path)
-            else void editor.open(target.path)
+            if (!consult) return editor.open(target.path)
+            reference.open(target.path)
+            return undefined
           },
-          runBeside: () => void navigation.openBeside(target.path)
+          runBeside: () => navigation.openBeside(target.path)
         }
       ]
     })
@@ -99,7 +106,7 @@ export function usePaletteCommands() {
       kind: 'view',
       title: language.t(CENTER_TITLES[view]),
       detail: kind,
-      run: () => void navigation.showCenterView(view)
+      run: () => navigation.showCenterView(view)
     }))
     const panels = (Object.keys(viewDirectory()) as ViewId[])
       .filter((view) => !VIEW_CATALOG[view].regions.includes('center'))
@@ -112,6 +119,7 @@ export function usePaletteCommands() {
             'workbench-show-view',
             descriptor ? language.t(descriptor.title) : view
           ),
+          aliases: (VIEW_ALIASES[view] ?? []).map((key) => language.t(key)),
           detail: kind,
           run: () => {
             navigation.revealView(view)
@@ -139,14 +147,14 @@ export function usePaletteCommands() {
           title: language.t('palette-use-layout', name),
           aliases: [name],
           detail: language.t('palette-kind-layout'),
-          run: () => void navigation.switchLayout(choice.id)
+          run: () => navigation.switchLayout(choice.id)
         }
       })
   )
 
   const commands = computed((): PaletteItem[] => {
     const kind = language.t('palette-kind-command')
-    const command = (id: string, title: MessageKey, run: () => void): PaletteItem => ({
+    const command = (id: string, title: MessageKey, run: () => unknown): PaletteItem => ({
       id: `command:${id}`,
       kind: 'command',
       title: language.t(title),
@@ -154,7 +162,7 @@ export function usePaletteCommands() {
       run
     })
     return [
-      command('return-to-writing', 'tabs-return', () => void editor.returnToWriting()),
+      command('return-to-writing', 'tabs-return', () => editor.returnToWriting()),
       command('toggle-binder', 'menu-toggle-binder', layout.toggleBinder),
       command('toggle-inspector', 'menu-toggle-inspector', layout.toggleInspector),
       command('toggle-outline', 'menu-toggle-outline', layout.toggleOutline),

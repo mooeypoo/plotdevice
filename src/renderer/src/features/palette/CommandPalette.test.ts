@@ -134,4 +134,43 @@ describe('CommandPalette', () => {
     expect(palette.text()).toContain('אין התאמות.')
     palette.unmount()
   })
+
+  it('returns focus to the writing after looking a character up in Reference', async () => {
+    // Regression: the palette closed without returning focus, so the writer had to click back.
+    const prose = document.createElement('div')
+    prose.tabIndex = 0
+    document.body.append(prose)
+    prose.focus()
+    const palette = await openPalette()
+    await palette.get('input').setValue('ilka')
+    await palette.get('input').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    expect(useReferenceStore().path).toBe('characters/Ilka.md')
+    expect(document.activeElement).toBe(prose)
+    palette.unmount()
+    prose.remove()
+  })
+
+  it('leaves focus where a command put it', async () => {
+    const prose = document.createElement('div')
+    prose.tabIndex = 0
+    const elsewhere = document.createElement('button')
+    document.body.append(prose, elsewhere)
+    prose.focus()
+    const palette = await openPalette()
+    await usePaletteStore().runAndClose(() => {
+      elsewhere.focus()
+    })
+    expect(document.activeElement).toBe(elsewhere)
+    palette.unmount()
+    prose.remove()
+    elsewhere.remove()
+  })
+
+  it('finds the binder by either of its names', async () => {
+    const palette = await openPalette()
+    await palette.get('input').setValue('binder')
+    expect(titles(palette)).toContain('Show Manuscript')
+    palette.unmount()
+  })
 })

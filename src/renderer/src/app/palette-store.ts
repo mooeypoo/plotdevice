@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 
 /** Whether the command palette is open, and where focus goes back when it closes. */
 export const usePaletteStore = defineStore('palette', () => {
@@ -12,12 +12,27 @@ export const usePaletteStore = defineStore('palette', () => {
     open.value = true
   }
 
-  /** Closes the palette; focus returns where it was unless a command moved it on purpose. */
-  function close(options: { readonly restoreFocus?: boolean } = { restoreFocus: true }): void {
+  /** Closes the palette and returns focus where it was, as Escape does. */
+  function close(): void {
     open.value = false
-    if (options.restoreFocus === true) returnTo?.focus()
+    returnTo?.focus()
     returnTo = null
   }
 
-  return { open, show, close }
+  /**
+   * Closes the palette, runs a command, and then returns focus where it was only if the command
+   * didn't put it somewhere: opening another chapter focuses its editor, but looking a character
+   * up in Reference leaves the writer typing where they were.
+   */
+  async function runAndClose(command: () => unknown): Promise<void> {
+    const previous = returnTo
+    open.value = false
+    returnTo = null
+    await command()
+    await nextTick()
+    const focused = document.activeElement
+    if (focused === null || focused === document.body) previous?.focus()
+  }
+
+  return { open, show, close, runAndClose }
 })

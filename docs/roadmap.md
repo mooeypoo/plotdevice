@@ -376,6 +376,7 @@ native deb permissions and publisher authentication are not changed by metadata.
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Chrome cleanup (writer feedback on W5): too many buttons, tabs and menus compete (top bar toggles, view tabs, layout switcher and its ⋯ menu, panel ⋯ menus, document-tab actions, native menus, the palette). Consolidate them, and give each panel one name everywhere: the binder is "Binder" on its toolbar button and menu item but "Manuscript" on its tab, and Properties is "Inspector" on its button.
 - Workbench follow-ups (out of the proposed W/L/P plan): dragging tabs and sections between panels (W4 provides menu and keyboard moves); a Search view with full-text search (the palette only jumps to entries); the thread grid (threads × chapters, reusing the timeline's reading-order grid); pop-out windows; a visual `novel.md` settings editor for language, vocabulary, statuses and folders (ADR 0004 and 0007); scene-level cards once scenes exist.
 - Renderer coupling: 44 feature files import `app/` stores directly. W2 cuts feature-to-feature imports only; narrowing features' access to app stores is separate work.
 - Documentation tooling: the offline manual build passes but emits Node module-type and Vite native-config compatibility warnings. Address module configuration separately from reference UI work.

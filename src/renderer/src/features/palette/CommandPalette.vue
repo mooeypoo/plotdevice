@@ -57,10 +57,8 @@ const optionId = (item: PaletteItem): string => `palette-option-${item.id.replac
 
 function run(item: PaletteItem | undefined, beside: boolean): void {
   if (item === undefined) return
-  // The command decides where focus goes next (an opened document, a panel).
-  palette.close({ restoreFocus: false })
-  if (beside && item.runBeside !== undefined) item.runBeside()
-  else item.run()
+  const command = beside && item.runBeside !== undefined ? item.runBeside : item.run
+  void palette.runAndClose(command)
 }
 
 function keydown(event: KeyboardEvent): void {
