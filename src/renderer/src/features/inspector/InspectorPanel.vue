@@ -11,7 +11,9 @@ import LinkPicker from './LinkPicker.vue'
 import RenameOffer from './RenameOffer.vue'
 import { usePositionMoves } from './use-position-moves'
 import { useUiLanguageStore } from '../../app/ui-language-store'
+import { isolate } from '../../shared/isolate'
 import { formatStoryDateReading } from '../../shared/story-date-format'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import { useStoryDateCheck } from './use-story-date-check'
 
 const manuscript = useManuscriptStore()
@@ -19,6 +21,7 @@ const editor = useEditorStore()
 const inspector = useInspectorStore()
 const workspace = useWorkspaceStore()
 const language = useUiLanguageStore()
+const chrome = useChromePresentation()
 
 const properties = computed(() => manuscript.properties)
 const readOnly = computed(() => workspace.project?.readOnly ?? false)
@@ -179,6 +182,17 @@ function changePart(event: Event): void {
   if (value !== '') void run(() => moves.moveToPart(value))
 }
 
+function kindLabel(kind: 'part' | 'chapter'): string {
+  return language.t(kind === 'part' ? 'inspector-part' : 'inspector-chapter')
+}
+
+function moveTitle(direction: 'up' | 'down', kind: 'part' | 'chapter'): string {
+  const label = kindLabel(kind)
+  return direction === 'up'
+    ? language.t('inspector-move-up', label)
+    : language.t('inspector-move-down', label)
+}
+
 /** The part's own title when the link resolves; otherwise the link as written. */
 const partName = computed(() => {
   const part = properties.value?.part
@@ -188,21 +202,23 @@ const partName = computed(() => {
 </script>
 
 <template>
-  <aside class="inspector" aria-label="Inspector">
+  <aside class="inspector" :aria-label="language.t('inspector-label')">
     <p v-if="inspector.vocabularyError" class="hint bad" role="alert">
       {{ inspector.vocabularyError }}
     </p>
     <template v-if="properties">
       <header>
-        <span class="eyebrow">{{ properties.kind === 'part' ? 'Part' : 'Chapter' }}</span>
+        <span class="eyebrow">{{ kindLabel(properties.kind) }}</span>
       </header>
 
-      <section class="position" aria-label="Position">
+      <section class="position" :aria-label="language.t('inspector-position')">
         <dl>
           <div v-if="properties.kind === 'chapter'">
             <dt>
-              <label v-if="partOptions.length > 0 && !readOnly" for="inspector-part">Part</label>
-              <template v-else>Part</template>
+              <label v-if="partOptions.length > 0 && !readOnly" for="inspector-part">
+                {{ language.t('inspector-part') }}
+              </label>
+              <template v-else>{{ language.t('inspector-part') }}</template>
             </dt>
             <dd v-if="partOptions.length > 0 && !readOnly">
               <select
@@ -222,7 +238,7 @@ const partName = computed(() => {
             <dd v-else dir="auto">{{ partName }}</dd>
           </div>
           <div>
-            <dt><label for="inspector-order">Order</label></dt>
+            <dt><label for="inspector-order">{{ language.t('inspector-order') }}</label></dt>
             <dd>
               <input
                 id="inspector-order"
@@ -230,7 +246,7 @@ const partName = computed(() => {
                 class="order"
                 type="number"
                 step="1"
-                :placeholder="properties.order === undefined ? 'none' : ''"
+                :placeholder="properties.order === undefined ? language.t('inspector-no-order') : ''"
                 :disabled="disabled"
                 @change="saveOrder"
               />
@@ -243,19 +259,19 @@ const partName = computed(() => {
             type="button"
             class="quiet small"
             :disabled="disabled || !canMoveUp"
-            :title="`Move this ${properties.kind} up one place`"
+            :title="moveTitle('up', properties.kind)"
             @click="run(moves.moveUp)"
           >
-            ↑ Move up
+            ↑ {{ language.t('inspector-move-up-label') }}
           </button>
           <button
             type="button"
             class="quiet small"
             :disabled="disabled || !canMoveDown"
-            :title="`Move this ${properties.kind} down one place`"
+            :title="moveTitle('down', properties.kind)"
             @click="run(moves.moveDown)"
           >
-            ↓ Move down
+            ↓ {{ language.t('inspector-move-down-label') }}
           </button>
         </div>
         <button
@@ -263,28 +279,32 @@ const partName = computed(() => {
           type="button"
           class="quiet small"
           :disabled="disabled"
-          title="Removes this chapter's order; it moves to the Unordered tray. The file stays."
+          :title="language.t('inspector-remove-order-tooltip')"
           @click="save({ order: null })"
         >
-          Remove from manuscript
+          {{ language.t('inspector-remove-order') }}
         </button>
         <p v-if="placement && 'reason' in placement" class="note">
           {{ placement.reason }}
         </p>
         <div v-if="placement && 'clash' in placement" class="note warn">
           <p>{{ placement.clash }}</p>
-          <button type="button" :disabled="disabled" @click="renumber">Renumber this part</button>
+          <button type="button" :disabled="disabled" @click="renumber">
+            {{ language.t('inspector-renumber-part') }}
+          </button>
         </div>
       </section>
 
       <div class="field">
-        <label class="eyebrow" for="inspector-title">Title</label>
+        <label class="eyebrow" for="inspector-title">{{ language.t('inspector-title') }}</label>
         <input
           id="inspector-title"
           v-model="title"
           type="text"
           dir="auto"
-          :placeholder="`${editor.entry?.title ?? ''} (from the file name)`"
+          :placeholder="
+            language.t('inspector-title-placeholder', isolate(editor.entry?.title ?? ''))
+          "
           :disabled="disabled"
           @change="saveText('title', title)"
         />
@@ -292,17 +312,18 @@ const partName = computed(() => {
       </div>
 
       <div v-if="properties.kind === 'chapter'" class="field">
-        <label class="eyebrow" for="inspector-status">Status</label>
+        <label class="eyebrow" for="inspector-status">{{ language.t('inspector-status') }}</label>
         <select
           id="inspector-status"
+          dir="auto"
           :value="properties.status ?? ''"
           :disabled="disabled"
           @change="saveStatus"
         >
-          <option value="">No status</option>
+          <option value="">{{ language.t('binder-no-status') }}</option>
           <option v-for="status in statuses" :key="status" :value="status">{{ status }}</option>
           <option v-if="statusNotInList" :value="statusNotInList">
-            {{ statusNotInList }} (not in your list)
+            {{ language.t('inspector-status-not-in-list', isolate(statusNotInList)) }}
           </option>
         </select>
         <button
@@ -312,14 +333,14 @@ const partName = computed(() => {
           :disabled="disabled"
           @click="inspector.addStatus(statusNotInList)"
         >
-          Add “{{ statusNotInList }}” to the project’s statuses
+          {{ language.t('inspector-add-status', isolate(statusNotInList)) }}
         </button>
         <p v-if="inspector.error" role="alert">{{ inspector.error }}</p>
       </div>
 
       <template v-if="properties.kind === 'chapter'">
         <LinkPicker
-          label="Point of view"
+          :label="language.t('inspector-pov')"
           :links="properties.pov"
           :suggestions="characterNames"
           single
@@ -327,14 +348,14 @@ const partName = computed(() => {
           @change="save({ pov: $event })"
         />
         <LinkPicker
-          label="Characters"
+          :label="language.t('inspector-characters')"
           :links="properties.characters"
           :suggestions="characterNames"
           :disabled="disabled"
           @change="save({ characters: $event })"
         />
         <LinkPicker
-          label="Location"
+          :label="language.t('inspector-location')"
           :links="properties.location"
           :suggestions="locationNames"
           :disabled="disabled"
@@ -342,17 +363,22 @@ const partName = computed(() => {
         />
 
         <div v-if="threads.length > 0" class="field">
-          <span class="eyebrow">Threads</span>
-          <div class="threads" role="group" aria-label="Threads">
+          <span class="eyebrow">{{ language.t('inspector-threads') }}</span>
+          <div class="threads" role="group" :aria-label="language.t('inspector-threads')">
             <button
               v-for="thread in threads"
               :key="thread.key"
               type="button"
               class="thread"
+              dir="auto"
               :class="{ on: properties.threads.includes(thread.key) }"
               :aria-pressed="properties.threads.includes(thread.key)"
               :disabled="disabled"
-              :title="thread.unknown ? 'Not defined in novel.md' : thread.key"
+              :title="
+                thread.unknown
+                  ? language.t('inspector-thread-unknown')
+                  : isolate(thread.key)
+              "
               @click="toggleThread(thread.key)"
             >
               <span
@@ -365,13 +391,17 @@ const partName = computed(() => {
         </div>
 
         <div class="field">
-          <label class="eyebrow" for="inspector-date">Story date</label>
+          <label class="eyebrow" for="inspector-date">
+            {{ language.t('inspector-story-date') }}
+          </label>
           <input
             id="inspector-date"
             v-model="storyDate"
             type="text"
             :placeholder="
-              inspector.vocabulary?.calendar === 'day-count' ? 'Day, for example 14' : 'YYYY-MM-DD'
+              inspector.vocabulary?.calendar === 'day-count'
+                ? language.t('inspector-day-count-placeholder', chrome.formatNumber(14))
+                : 'YYYY-MM-DD'
             "
             :disabled="disabled"
             @change="saveDate"
@@ -388,13 +418,15 @@ const partName = computed(() => {
         </div>
 
         <div class="field">
-          <label class="eyebrow" for="inspector-time">Story time</label>
+          <label class="eyebrow" for="inspector-time">
+            {{ language.t('inspector-story-time') }}
+          </label>
           <input
             id="inspector-time"
             v-model="storyTime"
             type="text"
             dir="auto"
-            placeholder="Evening, the next morning…"
+            :placeholder="language.t('inspector-story-time-placeholder')"
             :disabled="disabled"
             @change="saveText('storyTime', storyTime)"
           />
@@ -402,7 +434,9 @@ const partName = computed(() => {
       </template>
 
       <div class="field">
-        <label class="eyebrow" for="inspector-synopsis">Synopsis</label>
+        <label class="eyebrow" for="inspector-synopsis">
+          {{ language.t('inspector-synopsis') }}
+        </label>
         <textarea
           id="inspector-synopsis"
           v-model="synopsis"
@@ -416,9 +450,9 @@ const partName = computed(() => {
       <p v-if="editor.actionError" class="note warn" role="alert">
         {{ editor.actionError }}
       </p>
-      <p v-if="readOnly" class="note">This project is open read-only.</p>
+      <p v-if="readOnly" class="note">{{ language.t('inspector-read-only') }}</p>
     </template>
-    <p v-else class="empty">Open a chapter to see its details.</p>
+    <p v-else class="empty">{{ language.t('inspector-empty') }}</p>
   </aside>
 </template>
 

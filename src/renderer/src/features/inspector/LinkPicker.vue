@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useId } from 'vue'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { isolate } from '../../shared/isolate'
 import { linkLabel, linkTarget } from './link-targets'
 
 const props = defineProps<{
@@ -14,6 +16,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ change: [targets: string[]] }>()
 
+const language = useUiLanguageStore()
 const draft = ref('')
 const inputId = useId()
 const listId = useId()
@@ -51,7 +54,7 @@ function remove(index: number): void {
           type="button"
           class="remove"
           :disabled="disabled"
-          :aria-label="`Remove ${linkLabel(link)}`"
+          :aria-label="language.t('link-picker-remove', isolate(linkLabel(link)))"
           @click="remove(index)"
         >
           ×
@@ -63,7 +66,11 @@ function remove(index: number): void {
       v-model="draft"
       type="text"
       :list="listId"
-      :placeholder="single && links.length > 0 ? 'Replace…' : 'Add…'"
+      :placeholder="
+        single && links.length > 0
+          ? language.t('link-picker-replace')
+          : language.t('link-picker-add')
+      "
       :disabled="disabled"
       dir="auto"
       @change="add"

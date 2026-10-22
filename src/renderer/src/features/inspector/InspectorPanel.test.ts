@@ -10,6 +10,7 @@ import { plotDeviceApi } from '../../app/plot-device-api'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useInspectorStore } from '../../app/inspector-store'
 import InspectorPanel from './InspectorPanel.vue'
+import LinkPicker from './LinkPicker.vue'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 
@@ -52,6 +53,100 @@ describe('InspectorPanel', () => {
     expect(panel.get('.hint.bad').text()).toBe('Order must be a whole number.')
     await order.setValue('3')
     expect(panel.find('.hint.bad').exists()).toBe(false)
+    panel.unmount()
+  })
+
+  it('translates property controls and link chips without changing focused drafts or project data', async () => {
+    const editor = useEditorStore()
+    await editor.open('The Ferry.md')
+    await useInspectorStore().loadVocabulary()
+    const manuscriptText = editor.text
+    const panel = mount(InspectorPanel, { attachTo: document.body })
+    await flushPromises()
+
+    const title = panel.get<HTMLInputElement>('#inspector-title')
+    title.element.value = 'Unsaved title'
+    await title.trigger('input')
+    title.element.focus()
+    const titleElement = title.element
+    const reads = vi.spyOn(fake.api.manuscript, 'getEntryProperties')
+    const writes = vi.spyOn(fake.api.manuscript, 'updateEntryProperties')
+
+    useUiLanguageStore().locale = 'he'
+    await flushPromises()
+
+    expect(panel.get('aside').attributes('aria-label')).toBe('מאפיינים')
+    expect(panel.get('.position').attributes('aria-label')).toBe('מיקום')
+    expect(panel.get('header .eyebrow').text()).toBe('פרק')
+    expect(panel.get('label[for="inspector-order"]').text()).toBe('סדר')
+    expect(panel.get('label[for="inspector-title"]').text()).toBe('כותרת')
+    expect(panel.get('#inspector-status').attributes('dir')).toBe('auto')
+    expect(panel.get('#inspector-status').text()).toContain('draft')
+    expect(panel.get('label[for="inspector-date"]').text()).toBe('תאריך בסיפור')
+    expect(panel.get('label[for="inspector-synopsis"]').text()).toBe('תקציר')
+    expect(panel.get('.threads').attributes('aria-label')).toBe('קווי עלילה')
+    expect(panel.findAll('.thread').map((thread) => thread.text())).toContain('Main plot')
+    expect(panel.findAll('.thread')[0]?.attributes('dir')).toBe('auto')
+    expect(title.element).toBe(titleElement)
+    expect(title.element.value).toBe('Unsaved title')
+    expect(title.attributes('placeholder')).toContain('The Ferry')
+    expect(document.activeElement).toBe(titleElement)
+    expect(editor.text).toBe(manuscriptText)
+    expect(reads).not.toHaveBeenCalled()
+    expect(writes).not.toHaveBeenCalled()
+    expect(fake.saves).toEqual([])
+
+    const picker = mount(LinkPicker, {
+      props: {
+        label: 'נקודת מבט',
+        links: ['[[יעל|Yael]]'],
+        suggestions: [],
+        single: true,
+        disabled: false
+      }
+    })
+    expect(picker.get('input').attributes('placeholder')).toBe('החלפה…')
+    expect(picker.get('button.remove').attributes('aria-label')).toContain('Yael')
+    expect(picker.get('button.remove').attributes('aria-label')).toContain('הסרת')
+    expect(picker.emitted('change')).toBeUndefined()
+    await picker.get('button.remove').trigger('click')
+    expect(picker.emitted('change')).toEqual([[[]]])
+    panel.unmount()
+  })
+
+  it('retranslates a pending rename confirmation without replanning or changing the name', async () => {
+    const editor = useEditorStore()
+    await editor.open('The Ferry.md')
+    const planRename = vi.spyOn(fake.api.manuscript, 'planRename')
+    editor.pendingRename = {
+      path: 'The Ferry.md',
+      plan: {
+        newPath: 'יעל.md',
+        newName: 'יעל.md',
+        policy: 'ask',
+        linkCount: 2,
+        fileCount: 1
+      }
+    }
+    const pending = editor.pendingRename
+    const panel = mount(InspectorPanel)
+    await flushPromises()
+
+    expect(panel.get('[role="status"] p').text()).toContain('2 links in 1 file')
+    expect(panel.text()).toContain('Rename file')
+    expect(panel.text()).toContain('Keep the name')
+
+    useUiLanguageStore().locale = 'he'
+    await flushPromises()
+
+    expect(panel.get('[role="status"] p').text()).toContain('שני קישורים')
+    expect(panel.get('[role="status"] p').text()).toContain('קובץ אחד')
+    expect(panel.get('[role="status"] p').text()).toContain('יעל.md')
+    expect(panel.text()).toContain('שינוי שם הקובץ')
+    expect(panel.text()).toContain('השארת השם')
+    expect(editor.pendingRename).toBe(pending)
+    expect(planRename).not.toHaveBeenCalled()
+    expect(fake.saves).toEqual([])
     panel.unmount()
   })
 

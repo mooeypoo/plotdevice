@@ -63,6 +63,21 @@ type ParameterizedMessages = {
   'placement-clash': [order: string, titles: string]
   'placement-quoted-title': [title: string]
   'placement-not-in-book': [reason: string]
+  'inspector-move-up': [kind: string]
+  'inspector-move-down': [kind: string]
+  'inspector-title-placeholder': [title: string]
+  'inspector-status-not-in-list': [status: string]
+  'inspector-add-status': [status: string]
+  'inspector-day-count-placeholder': [day: string]
+  'link-picker-remove': [label: string]
+  'rename-offer-no-links': [name: string]
+  'rename-offer-with-links': [
+    name: string,
+    linkCount: number,
+    formattedLinks: string,
+    fileCount: number,
+    formattedFiles: string
+  ]
   'link-wiki-unresolved': [target: string]
   'link-markdown-unresolved': [address: string]
   'link-target-unsupported': [path: string]

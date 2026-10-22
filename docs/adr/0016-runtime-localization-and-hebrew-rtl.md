@@ -1042,9 +1042,28 @@ validation passed: lint/dependency boundaries (471 modules/2,346 dependencies),
 typecheck, **1,538 tests across 169 files**, and production electron-vite build.
 Documentation build/link/asset checks passed for all 16 public pages.
 
-**Next session:** propose a bounded inspector or timeline translation slice
-before editing. Remaining I3 work includes inspector/timeline/interactions/
-reading text, other locale-aware number/date/collation surfaces, native
-dialog/confirmation wording, and startup fallback. I3 is incomplete; RTL
-geometry/directional controls and packaged qualification remain I4-I6, and the
-separate Hebrew manual is not implemented.
+### I3g chapter/part Properties inspector
+
+The chapter/part Properties panel translates its heading, position and metadata
+labels, placeholders, ordering actions, status fallback, thread accessibility
+text, read-only and empty states. Link-picker add/replace/remove copy and pending
+rename confirmations/actions are localized, including plural-aware,
+UI-locale-formatted affected-link/file counts. Project-authored names, status
+tokens, thread values, synopsis and save arguments remain unchanged; unknown
+mixed-script values are isolated and direction-sensitive controls use automatic
+direction.
+
+Language switching preserves the focused title draft and does not re-read or
+write project data. Tests cover Hebrew labels/accessible names, exact title and
+thread/status values, link removal arguments, pluralized rename text and no
+locale-triggered API calls. Verified lint/dependency boundaries (471 modules/
+2,353 dependencies), typecheck, **1,540 tests across 169 files**, and the
+production electron-vite build. Documentation build/link/asset checks passed
+for all 16 public pages.
+
+**Next session:** propose a bounded timeline translation slice before editing.
+Remaining I3 work includes other inspector panels (Codex, Outline and Template),
+timeline/interactions/reading text, other locale-aware number/date/collation
+surfaces, native dialog/confirmation wording, and startup fallback. I3 is
+incomplete; RTL geometry/directional controls and packaged qualification remain
+I4-I6, and the separate Hebrew manual is not implemented.
