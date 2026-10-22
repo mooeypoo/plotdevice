@@ -248,6 +248,106 @@ acceptance criteria, and the cross-session checklist.
   - [ ] Remaining I6: review caret/shaping in Chromium and build/run the Windows
     installer on Windows; keep the Hebrew progress notice until qualification.
 - [ ] D1: Public Hebrew manual/distribution text (separate approval).
+- [ ] I7: Workbench and plotting RTL qualification, folded into ADR 0016's
+  checklist and delivered with the W, L and P phases below.
+
+## Workbench, plotting mode and book language (proposed, not approved)
+
+Planned in [the workbench plan](plans/workbench-ui-plan.md) from the
+[brief](plans/workbench-ui.md). Draft decisions: ADR 0017 (layout model),
+ADR 0018 (readers and navigation), ADR 0019 (book language and vocabulary),
+ADR 0020 (outline grammar). Every phase follows ADR 0016: banana-i18n messages
+with `en`/`he`/`qqq`, logical start/end in the model and CSS, direction-aware
+interaction, and the matching I7 items. Each phase ends with
+`npm run lint && npm run typecheck && npm run test && npx electron-vite build`.
+
+Order: W1 → W2 → W3 → W4, then W5 and the P track in either order. W6 after W5.
+L1 any time before P2. P1 needs only W2's dependency rules.
+
+### W1: Layout model
+- [ ] Pure model in `workbench/model/`: center stage, `start`/`end` docks, `bottom` shelf, card-stack sections, stacked or tabbed sections, follow/pin bindings, Writing/Plotting modes.
+- [ ] Operations (dock, move, collapse, resize, split, pin, lock), validation, presets as data (Write, Revise, Plot), and the minimum page width rule.
+- [ ] Versioned zod storage: per-user layout shapes in `plotdevice.workbench`, per-project bindings keyed by project root. One-time derivation from `plotdevice.layout` and `outlineWidth`, leaving old keys readable.
+- [ ] Unit tests for every operation, validation, migration, and LTR/RTL mirroring.
+
+**Done when:** the model and storage are tested in Node, nothing renders them yet, and existing behavior is unchanged.
+
+### W2: Seams
+- [ ] View registry in `workbench/views/` with descriptors (id, title message key, icon, regions, bindings, lazy component).
+- [ ] Replace every direct `layout.mainView` write (editor store and six composables) with workbench navigation commands. The editor store reports document activation through a port and no longer imports the layout store.
+- [ ] Extract a reusable read-only document reader from `reference-store.ts` (request generation, live draft, moves, scroll). Reference becomes one instance.
+- [ ] Move `WarningsPanel` out of `ProjectOverview` into its own view. Move `link-at` and `wiki-link-scan` to `shared/` so shared code stops importing features.
+- [ ] Add the renderer dependency-cruiser rules from the plan, with fixtures in `tools/dependency-rules/`.
+
+**Done when:** the app looks and behaves exactly as before, and the new boundary rules pass and are proven by the rules test.
+
+### W3: Shell on existing features
+- [ ] `workbench/shell/` renders the model: regions, splitters, collapse, tab sets, and a layout switcher, using CSS grid and logical properties.
+- [ ] Generalize `use-outline-width.ts` into direction-aware splitters (pointer and keyboard), keeping stored sizes direction-free.
+- [ ] The Write preset reproduces today's app: document tabs, Writing target, Properties, Outline, Reference, outline width, focus mode.
+- [ ] Keep the old shell behind a per-user "Classic layout" switch in the View menu.
+
+**Done when:** a writer upgrading sees the same arrangement in the new shell, can switch back, and every existing test passes in both shells.
+
+### W4: Views and layouts
+- [ ] Binder, Codex list, Properties, Reference, Outline, Overview, Timeline, Interactions, and Warnings register as views. The shell imports no feature component directly.
+- [ ] `MainView` becomes center-stage views. Menu commands and accelerators keep working.
+- [ ] Bottom shelf with compact Outline and Warnings.
+- [ ] Save, rename and delete user layouts. Menu and keyboard equivalents for every move, collapse and pin.
+- [ ] The Outline view shows the live draft (ADR 0018) and highlights the active manuscript document, falling back to Writing.
+
+**Done when:** every existing feature can be placed in its accepted regions, layouts survive restart and mirror in Hebrew, and mode and layout switches go through the navigation queue (tested).
+
+### W5: Reference comes to the page
+- [ ] W5a: Peek on project links (rendered panels and editor), entry cards, the card stack, pin and unpin, per-user card fields by entry kind.
+- [ ] W5b: Cast strip above the page (from `pov`, `characters`, `location`, and the live draft's body links) and the scene card (synopsis, status, POV, threads, linked outline lines).
+- [ ] W5c: Open beside as a read-only split, lock, and Write here through the navigation queue.
+- [ ] W5d: Command palette (entries, views, layouts, modes, menu commands) and chrome fading while typing.
+
+**Done when:** each sub-phase works by keyboard alone, peeks and cards show live drafts without saving, and Write here never drops a draft or bypasses recovery (tested).
+
+### W6: Retire the old shell
+- [ ] Remove `SidePanel`, `RightPanel`, the Classic switch, and `layout-store.ts`.
+- [ ] Remove `plotdevice.layout` and `plotdevice.lastEntry` after a confirmed migration. Update `docs/architecture.md` and the renderer README.
+
+**Done when:** no code reads the old keys, and an upgrade from a pre-W1 profile keeps the writer's arrangement (tested).
+
+### L1: Book language and file vocabulary
+- [ ] L1a: Optional top-level `language` in `novel.md`, read by workspace. Initialization asks for it (defaulting to the interface language). An explicit "Book language" action edits only that key.
+- [ ] L1a: Seed catalog in `src/main/book-language/` (`en`, `he`, `qqq`, with parity checks): `novel.md` statuses and comments, default template headings, default titles. The composition root injects resolved seeds into workspace, manuscript, codex, and outline.
+- [ ] L1a: Book-language direction is the base direction for Auto writing direction.
+- [ ] L1b: Vocabulary registry (`outline_inbox`), `settings.vocabulary` overrides, resolution order, retired aliases, and the stray-literal test.
+- [ ] Apply the `file-format.md` changes for `language` and vocabulary. Accept ADR 0019.
+
+**Done when:** a new Hebrew project writes Hebrew seeds and `language: he`, an existing project without `language` is byte-identical after opening, and interface-language switches still write nothing.
+
+### P1: Outline context and grammar
+- [ ] New `outline` bounded context. Move outline listing, creation, and text open/save out of codex, keeping the contract compatible.
+- [ ] Pure line-based parser with source ranges: preamble, columns, beats, notes, chapter links, thread tags, plain content, fenced code.
+- [ ] Pure structural planners (move beat, move column, add beat, retitle beat, edit notes, capture), not yet wired to IPC.
+- [ ] Fixture outlines in `fixtures/sample-novel/`, including hostile ones, with byte-identical round trips outside edited lines. Fixture-integrity test updated.
+- [ ] Apply the "Outlines" changes to `file-format.md`. Accept ADR 0020.
+
+**Done when:** every planner is proven byte-exact on every fixture outline, and codex no longer owns outlines.
+
+### P2: Plotting mode and read-only board
+- [ ] Writing/Plotting mode switch through the navigation queue; the Plot preset.
+- [ ] Beat board as a projection (columns follow inline direction; beats in document order) with chapter status, POV, word count, and thread color.
+- [ ] Toggle between board and the outline's text in the writable editor, never both editable.
+- [ ] Capture a beat behind an experimental setting, off by default, with the Inbox as the last column.
+
+**Done when:** the board matches the outline for every fixture, mirrors in Hebrew, and capture changes only the appended lines.
+
+### P3: Move on the board
+- [ ] Drag and keyboard moves of beats and columns, through version-checked IPC commands. The editor adopts the result (ADR 0018).
+
+**Done when:** only moved lines change, a stale board refuses to write, and an unresolved outline draft blocks moves.
+
+### P4: Edit on the board
+- [ ] Add and retitle beats, edit notes.
+- [ ] Edit chapter synopsis and status from a beat card through the existing property commands.
+
+**Done when:** each edit changes only its lines or keys, and every edit has a keyboard path.
 
 ## Proposed release and documentation program
 
@@ -276,6 +376,8 @@ native deb permissions and publisher authentication are not changed by metadata.
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Workbench follow-ups (out of the proposed W/L/P plan): a Search view with full-text search (the palette only jumps to entries); the thread grid (threads × chapters, reusing the timeline's reading-order grid); pop-out windows; a visual `novel.md` settings editor for language, vocabulary, statuses and folders (ADR 0004 and 0007); scene-level cards once scenes exist.
+- Renderer coupling: 44 feature files import `app/` stores directly. W2 cuts feature-to-feature imports only; narrowing features' access to app stores is separate work.
 - Documentation tooling: the offline manual build passes but emits Node module-type and Vite native-config compatibility warnings. Address module configuration separately from reference UI work.
 - Character-group follow-ups: persistent empty groups, custom ordering/colors/descriptions, bulk assignment, and group filters in Timeline/Interactions are not part of Phase 14.
 - Phase 9 follow-ups:

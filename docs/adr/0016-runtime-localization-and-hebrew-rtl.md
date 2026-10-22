@@ -184,6 +184,30 @@ progress, remaining limitations, and the next slice before ending a session.
     package against a copied fixture without changing its files.
   - [ ] **Remaining I6:** real caret/shaping review and Windows installer
     build-and-run qualification on Windows; retain the Hebrew progress notice.
+- [ ] **I7 Workbench and plotting (proposed; ADRs 0017–0020, roadmap W/L/P):**
+  new geometry and words added by those phases. Each phase also reruns the I6c
+  browser sweep for the surfaces it touches, so remaining I4/I5/I6 items do not regress.
+  - [ ] **I7a Layout model (W1):** storage and model use only `start`/`end`;
+    every operation has an LTR and RTL test; switching language mirrors a
+    saved layout without rewriting it.
+  - [ ] **I7b Docks and splitters (W3–W4):** docks and the shelf place by root
+    direction; pointer and arrow-key resizing follow inline edges, generalizing
+    I4b; collapse keeps focus; menu/keyboard equivalents exist for every drag.
+  - [ ] **I7c Tab sets, card stack and palette (W4–W5):** arrow keys follow
+    visual direction; reordering by drag and keyboard mirrors; isolated names,
+    layout names and titles in every message; palette matching and generated
+    lists use UI-locale collation (I3o).
+  - [ ] **I7d Peeks and splits (W5):** peek placement and read-only splits open
+    toward inline-end and stay on-screen in both directions; live drafts keep
+    per-block automatic direction (I5c).
+  - [ ] **I7e Board (P2–P4):** the first column is at inline-start; beats keep
+    document order; drop zones and keyboard moves follow inline direction;
+    thread colors are never the only signal.
+  - [ ] **I7f Book language (L1):** Hebrew seeds and the Inbox word are written
+    without isolation characters; Auto writing direction falls back to the book
+    language's direction; interface switches still write nothing.
+  - [ ] **I7g Real-browser qualification:** docks, splits, card stack, board,
+    drag and drop and narrow windows at 960 px, in Hebrew and English (with I6).
 - [ ] **D1 Separate approval:** Hebrew VitePress manual/navigation/search/RTL
   and supported distribution descriptions, without language-specific installers.
 
@@ -196,6 +220,8 @@ electron-vite build; documentation work also runs its applicable site checks.
 
 Initial scope: I1 only, approved 2026-10-21, including banana-i18n as a dependency.
 Generated template language and alternate part numbering remain unchanged.
+(Proposed amendment, not yet approved: ADR 0019 makes generated words follow
+the book's own `language`, never the interface language.)
 Next sessions should consult this ADR and the roadmap, not assume RTL is done
 because the root direction or a partial Hebrew catalog exists.
 

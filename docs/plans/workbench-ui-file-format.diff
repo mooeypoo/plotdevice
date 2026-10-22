@@ -1,0 +1,123 @@
+--- a/docs/file-format.md
++++ b/docs/file-format.md
+@@ -64,7 +64,7 @@
+ | `character` | A codex entry for a character |
+ | `location` | A codex entry for a location |
+ | `note` | A free-form note; the app lists notes and assigns them no meaning |
+-| `outline` | The writer's outline: a free-form plan, shown beside the draft. The app reads its links but nothing else |
++| `outline` | The writer's outline: a free-form plan, shown beside the draft and as a board in Plotting mode (see "Outlines") |
+ | `scene` | Reserved for a later version (see "Scenes") |
+ 
+ - `novel.md` is identified by its name and needs no `type`.
+@@ -77,6 +77,7 @@
+ format: 1
+ title: The Salt Orchard
+ author: Ines Varga
++language: en                   # the book's language (BCP 47 tag, such as en or he)
+ calendar: gregorian            # gregorian | day-count (see StoryDate)
+ statuses: [idea, outline, draft, revised, final]
+ threads:                       # plotlines; chapters refer to them by key
+@@ -96,15 +97,20 @@
+     location: locations
+     note: notes
+     template: templates        # character.md, location.md, note.md: how new entries start
++  vocabulary:                  # optional: your own word for a heading the app recognizes
++    outline_inbox: Ideas
+ ---
+ Free text: premise, notes. The app shows it but does not parse it.
+ ```
+ 
+ - **`format`.** If `format` is missing, the app assumes `1`. If it is higher than the app supports, the project opens read-only with a warning.
+ - **`calendar`.** Defaults to `gregorian`.
+-- **`statuses`.** An open list, like tags. If a chapter uses a status that isn't in the list, the status still appears everywhere, marked "not in your list", and one action adds it. The app never edits `novel.md` on its own.
++- **`language`.** The language the book is written in, as a BCP 47 tag (`en`, `he`). It decides the words the app writes into the book (see "Words the app writes and recognizes") and the default direction of lines with no letters yet. It is independent of the app's interface language: switching the interface never changes it. If `language` is missing, the book is treated as English.
++- **`statuses`.** An open list, like tags. If a chapter uses a status that isn't in the list, the status still appears everywhere, marked "not in your list", and one action adds it.
+ - **`threads`.** A thread `key` uses letters, digits, `-`, and `_`. A chapter that names an unknown key gets a warning, and the value is kept.
+ - **`settings`.** Every key in `settings` is optional. Missing keys use the defaults shown above.
++- **`settings.vocabulary`.** Optional. Replaces a word the app recognizes with your own (see "Words the app writes and recognizes"). The app reads it and never writes it.
++- **The app never edits `novel.md` on its own.** It writes `novel.md` only when you initialize a project (including `language`), add a status with "Add to list", or change the book's language with that explicit action. Each of these changes only its own key (ADR 0004).
+ 
+ ## Parts
+ 
+@@ -167,16 +173,51 @@
+ type: outline
+ title: Working plan
+ ---
++The plan in one breath: Ilka comes back for the orchard and stays for the strike.
++
+ ## Part One
+-- [[The Ferry]]: Ilka arrives; Bea is already at the gate.
+-- Ilka finds the ledger. Bea lies about it.
++- [[The Ferry]]: Ilka arrives; Bea is already at the gate. #main
++  - Open on the water, not the town.
++- Ilka finds the ledger. Bea lies about it. #strike
++
++## Part Two
++- [[The Cannery]]
++- Who told the foreman?
++
++## Inbox
++- The orchard gate should creak in every chapter it appears.
+ ```
+ 
+-- The body is free markdown: headings, lists, questions, anything. The app never parses its structure or changes it.
++- The body is free markdown: headings, lists, questions, anything. Every line is yours, and a file that ignores the shape below is read and edited as plain text.
+ - Links (`[[…]]` or markdown links) tie lines to chapters. Lines linking to the chapter being written are highlighted beside it.
+ - A project can have several outlines. The app creates new ones at the project root, named after their title.
+ - The reference panel renders Markdown; editing opens the unchanged Markdown source in the main editor. HTML and images are not executed or loaded. External links are displayed as text; project links remain navigable.
+ 
++### The board
++
++In Plotting mode the app shows an outline as a board. It reads a small part of the body:
++
++| In the file | On the board |
++|---|---|
++| A `##` heading | Starts a column. Text before the first `##` stays above the board. |
++| A top-level bullet (`-`, `*`, or `+`) under a `##` heading | A beat card. Its first line is the card's title. |
++| Lines indented under that bullet (nested bullets, paragraphs) | The beat's notes |
++| A link to a chapter in a beat's first line | Shows that chapter's status, POV, and word count on the card |
++| A tag that matches a thread key in `novel.md` (`#strike`) | Colors the card with that thread |
++| Anything else: other headings, numbered lists, paragraphs, tables, code, HTML | Plain content. It stays where it is and is never moved |
++
++Lines inside fenced code blocks are always plain content.
++
++### What the app changes in an outline
++
++Only when you act on the board, or capture a beat:
++
++- **Move a beat or a column.** The beat's lines (or the column's, from its heading to the next `##`) move as they are. No other line changes.
++- **Add a beat, retitle a beat, edit its notes.** Only that beat's lines change.
++- **Capture a beat** (an experimental setting, off by default). Adds one bullet at the end of the Inbox column, the `##` heading named by the word for `outline_inbox` (see below). If there is no Inbox heading, the app adds it at the end of the file. It never moves or changes existing beats.
++
++Every change follows the "Rules for writers" below: frontmatter, line endings (new lines use the file's own), BOM, and every other line stay byte for byte as they were. If the file changed since the board read it, nothing is written. The board stores nothing outside the file.
++
+ ## Scenes
+ 
+ Reserved for a later version. A scene will be a file with `type: scene`, `chapter: "[[…]]"`, and `order`, plus the same story keys as a chapter. Until then, files with `type: scene` are listed but not placed in the manuscript.
+@@ -205,9 +246,25 @@
+ - Location files follow the same pattern with `type: location`.
+ - `aliases` are alternate names for search and autocomplete. They don't change which file a link points to.
+ - **Character `groups`.** A name or list of names, for example `groups: [Main cast, Part 2]`. Membership is optional and overlapping; a character may appear under several collapsible group headings, but each row refers to the same file. Group names are discovered from character files, not registered in `novel.md`. Names are trimmed and compared after NFC normalization and case-folding; empty names and duplicates are ignored. With no memberships a character appears under Ungrouped. Removing the last membership removes the key; a group disappears when no characters use it. Structured or non-text group values are retained and shown read-only with an inspector warning; valid text memberships in a mixed list can still be displayed. `groups` on locations or notes, and `tags` on every entry, remain unknown keys and are not edited. Collapse state, list mode, and filters are per-user preferences, never project metadata.
+-- **New entries.** A new character, location, or note goes in `settings.folders.character`, `.location`, or `.note`, named after its title (unique across the project), with only `type` and `title`. New entries start from the project's template for their kind: `character.md`, `location.md`, or `note.md` in `settings.folders.template`. A template's body and frontmatter keys are copied, except `type` and `title`, which the app sets. Without a template file, characters start with the headings above, locations with `## Description` and `## History`, and notes empty. Templates only seed new files: edit, remove, or add any heading in any entry. Files in the template folder are not listed as entries or untyped files.
++- **New entries.** A new character, location, or note goes in `settings.folders.character`, `.location`, or `.note`, named after its title (unique across the project), with only `type` and `title`. New entries start from the project's template for their kind: `character.md`, `location.md`, or `note.md` in `settings.folders.template`. A template's body and frontmatter keys are copied, except `type` and `title`, which the app sets. Without a template file, characters start with the headings above, locations with `## Description` and `## History`, and notes empty. These headings are written in the book's `language`. Templates only seed new files: edit, remove, or add any heading in any entry. Files in the template folder are not listed as entries or untyped files.
+ - **Setting a type.** For an untyped file, the app writes only a `type` line, and only on request.
+ 
++## Words the app writes and recognizes
++
++Keys and `type` values are the same in every language (`pov`, `type: chapter`). The app shows them translated, but always writes and reads them as shown in this document.
++
++**Words the app writes** into a new file follow the book's `language`: the statuses and comments in a new `novel.md`, the default headings of new characters and locations, and default titles such as "Untitled chapter" or "Outline". The app never reads meaning back from them, so you can change them freely.
++
++**Words the app recognizes** in your files are kept to a minimum:
++
++| Name | Default (en) | Default (he) | Meaning |
++|---|---|---|---|
++| `outline_inbox` | `Inbox` | `רעיונות` (proposed; translator to confirm) | The `##` heading in an outline that captured beats go under |
++
++- To use your own word, set it in `settings.vocabulary` in `novel.md`.
++- The app looks for, in order: your `settings.vocabulary` word, the default for the book's `language`, the English default, then the default of any other language or an older default. It writes the first of these that applies.
++- If you rename a recognized heading, the app treats it as ordinary text and offers to create a new one. It never adds a second one silently.
++
+ ## StoryDate
+ 
+ - **`calendar: gregorian`** accepts `YYYY`, `YYYY-MM`, or `YYYY-MM-DD`. The year can have any number of digits and a sign, for example `1952`, `-0500`, `+12000-03`. A year-only value written without quotes is read as a number, and that's accepted too.
