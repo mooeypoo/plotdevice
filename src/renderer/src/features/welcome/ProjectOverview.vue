@@ -4,32 +4,45 @@ import type { EntryCountsDto } from '../../../../contract/dtos'
 import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import WarningsPanel from '../warnings/WarningsPanel.vue'
 import { useWarnings } from '../warnings/use-warnings'
 
 const workspace = useWorkspaceStore()
 const editor = useEditorStore()
 const manuscript = useManuscriptStore()
+const language = useUiLanguageStore()
+const chrome = useChromePresentation()
 
-const COUNT_LABELS: ReadonlyArray<[keyof EntryCountsDto, string, string]> = [
-  ['part', 'part', 'parts'],
-  ['chapter', 'chapter', 'chapters'],
-  ['character', 'character', 'characters'],
-  ['location', 'location', 'locations'],
-  ['note', 'note', 'notes'],
-  ['outline', 'outline', 'outlines'],
-  ['scene', 'scene', 'scenes'],
-  ['untyped', 'untyped file', 'untyped files']
-]
+type CountMessageKey =
+  | 'project-overview-count-part'
+  | 'project-overview-count-chapter'
+  | 'project-overview-count-character'
+  | 'project-overview-count-location'
+  | 'project-overview-count-note'
+  | 'project-overview-count-outline'
+  | 'project-overview-count-scene'
+  | 'project-overview-count-untyped'
+
+const COUNT_LABELS = [
+  ['part', 'project-overview-count-part'],
+  ['chapter', 'project-overview-count-chapter'],
+  ['character', 'project-overview-count-character'],
+  ['location', 'project-overview-count-location'],
+  ['note', 'project-overview-count-note'],
+  ['outline', 'project-overview-count-outline'],
+  ['scene', 'project-overview-count-scene'],
+  ['untyped', 'project-overview-count-untyped']
+] as const satisfies readonly (readonly [keyof EntryCountsDto, CountMessageKey])[]
 
 const counts = computed(() => {
   const project = workspace.project
   if (project === null) return []
-  return COUNT_LABELS.filter(([key]) => project.counts[key] > 0).map(([key, one, many]) => ({
-    key,
-    value: project.counts[key],
-    label: project.counts[key] === 1 ? one : many
-  }))
+  return COUNT_LABELS.filter(([key]) => project.counts[key] > 0).map(([key, message]) => {
+    const count = project.counts[key]
+    return { key, value: chrome.formatNumber(count), label: language.t(message, count) }
+  })
 })
 
 const { groups: warningGroups } = useWarnings()
@@ -38,7 +51,7 @@ const { groups: warningGroups } = useWarnings()
 <template>
   <section v-if="workspace.project" class="overview" aria-labelledby="overview-title">
     <header>
-      <div class="eyebrow">Project</div>
+      <div class="eyebrow">{{ language.t('project-overview-label') }}</div>
       <h1 id="overview-title" dir="auto">{{ workspace.project.title }}</h1>
       <p v-if="workspace.project.author" class="author" dir="auto">
         {{ workspace.project.author }}
@@ -46,20 +59,22 @@ const { groups: warningGroups } = useWarnings()
       <p class="root" dir="auto">{{ workspace.project.root }}</p>
     </header>
 
-    <p class="hint">Choose a chapter in the binder to start writing.</p>
+    <p class="hint">{{ language.t('project-overview-hint') }}</p>
 
     <p v-if="workspace.project.readOnly" class="banner" role="status">
-      This project is open read-only. Plot Device won’t change any of its files.
+      {{ language.t('editor-read-only-notice') }}
     </p>
 
     <section aria-labelledby="contents-heading">
-      <h2 id="contents-heading" class="eyebrow">Contents</h2>
+      <h2 id="contents-heading" class="eyebrow">{{ language.t('project-overview-contents') }}</h2>
       <ul class="counts">
         <li v-for="count in counts" :key="count.key">
           <span class="value">{{ count.value }}</span> {{ count.label }}
         </li>
       </ul>
-      <p v-if="counts.length === 0" class="muted">No markdown files yet.</p>
+      <p v-if="counts.length === 0" class="muted">
+        {{ language.t('project-overview-empty') }}
+      </p>
     </section>
 
     <WarningsPanel

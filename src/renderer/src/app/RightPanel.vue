@@ -10,18 +10,21 @@ import { useEditorStore } from './editor-store'
 import { useLayoutStore, type RightTab } from './layout-store'
 import { useOutlineWidth } from './use-outline-width'
 import { navigateTabs } from '../shared/tab-navigation'
+import { useUiLanguageStore } from './ui-language-store'
+import type { MessageKey } from '../../../i18n/translator'
 
 const editor = useEditorStore()
 const layout = useLayoutStore()
+const language = useUiLanguageStore()
 const panel = ref<HTMLElement | null>(null)
 const resize = useOutlineWidth(panel)
 const { width, minimum, maximum, expanded } = resize
 
-const TABS: readonly { readonly id: RightTab; readonly label: string }[] = [
-  { id: 'properties', label: 'Properties' },
-  { id: 'outline', label: 'Outline' },
-  { id: 'reference', label: 'Reference' }
-]
+const TABS = [
+  { id: 'properties', label: 'right-panel-properties' },
+  { id: 'outline', label: 'right-panel-outline' },
+  { id: 'reference', label: 'right-panel-reference' }
+] as const satisfies readonly { readonly id: RightTab; readonly label: MessageKey }[]
 
 const kind = computed(() => editor.entry?.kind)
 const resizable = computed(() => layout.rightTab !== 'properties')
@@ -39,7 +42,13 @@ const resizable = computed(() => layout.rightTab !== 'properties')
       class="resize-handle"
       role="separator"
       tabindex="0"
-      :aria-label="layout.rightTab === 'outline' ? 'Outline panel width' : 'Reference panel width'"
+      :aria-label="
+        language.t(
+          layout.rightTab === 'outline'
+            ? 'right-panel-outline-width'
+            : 'right-panel-reference-width'
+        )
+      "
       aria-orientation="vertical"
       aria-controls="right-panel"
       :aria-valuemin="minimum"
@@ -53,7 +62,12 @@ const resizable = computed(() => layout.rightTab !== 'properties')
       @keydown="resize.keydown"
     ></div>
     <div class="panel-header">
-      <div class="tabs" role="tablist" aria-label="Right panel" @keydown="navigateTabs">
+      <div
+        class="tabs"
+        role="tablist"
+        :aria-label="language.t('right-panel-tabs')"
+        @keydown="navigateTabs"
+      >
         <button
           v-for="tab in TABS"
           :id="`right-tab-${tab.id}`"
@@ -66,7 +80,7 @@ const resizable = computed(() => layout.rightTab !== 'properties')
           :class="{ selected: layout.rightTab === tab.id }"
           @click="layout.rightTab = tab.id"
         >
-          {{ tab.label }}
+          {{ language.t(tab.label) }}
         </button>
       </div>
       <button
@@ -77,7 +91,7 @@ const resizable = computed(() => layout.rightTab !== 'properties')
         aria-controls="right-panel"
         @click="expanded = !expanded"
       >
-        {{ expanded ? 'Restore' : 'Expand' }}
+        {{ language.t(expanded ? 'right-panel-restore' : 'right-panel-expand') }}
       </button>
     </div>
     <div
@@ -88,7 +102,7 @@ const resizable = computed(() => layout.rightTab !== 'properties')
       aria-labelledby="right-tab-properties"
     >
       <p v-if="kind === undefined" class="nothing">
-        Open a chapter or codex entry to see its properties.
+        {{ language.t('right-panel-empty-properties') }}
       </p>
       <InspectorPanel v-else-if="kind === 'part' || kind === 'chapter'" />
       <TemplateInspector v-else-if="kind === 'template'" />

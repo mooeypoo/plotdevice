@@ -133,9 +133,11 @@ progress, remaining limitations, and the next slice before ending a session.
     app-owned title; preserve OS controls and selection/cancel behavior.
   - [x] **I3o Generated-list collation:** collate Codex groups, Overview filter
     choices, link suggestions, and relationship options in the UI locale.
-  - [ ] **Remaining I3:** remaining
-    locale-aware formatting/collation, other native dialog wording, and startup
-    text.
+  - [x] **I3p Residual project chrome:** translate Project Overview guidance,
+    read-only/empty states, all generated count nouns/numbers, and right-panel
+    tabs, resizing, expand/restore actions and empty state; preserve project data.
+  - [ ] **Remaining I3:** audit startup/native-dialog fallbacks and any missed
+    app-owned interface copy.
 - [ ] **I4 RTL interface:** binder indentation/disclosures, logical layout,
   icons, responsive chrome, timeline coordinates/scroll, sticky matrix headers,
   keyboard/pointer interaction, selection retained by identity.
@@ -1227,8 +1229,29 @@ typecheck, **1,564 tests across 172 files**, and the production electron-vite
 build. Documentation build/link/asset checks passed across all 16 public pages.
 No API or dependencies changed.
 
+### I3p Residual project chrome
+
+The Project Overview now translates its heading, writing guidance, contents and
+empty state, reuses the localized read-only notice, and formats all eight
+generated file-kind counts with UI-locale numbers and Banana plural messages.
+The right panel now translates its three tabs, tab-list and resize accessible
+names, expand/restore actions, and empty Properties state. English, Hebrew and
+`qqq` entries stay in parity.
+
+Live-switch tests cover Hebrew count nouns/numbers, read-only and empty states,
+user-authored project title/author/path preservation, and the right-panel
+accessibility/actions. A final renderer-copy scan found only product branding,
+the `Aa` sample, schema-token examples, punctuation and user-authored dynamic
+titles/paths outside translated UI copy. Native About labels/detail and the
+folder-picker title are already localized; OS-owned controls and technical or
+identity text remain unchanged.
+
+Verified lint/dependency boundaries (475 modules/2,422 dependencies), typecheck,
+**1,567 tests across 173 files**, and the production electron-vite build. No API
+or dependencies changed. The docs build is also run for this handoff.
+
 **Next session:** propose a bounded remaining-I3 slice before editing.
-Remaining work includes other interface text, native dialog wording and
-startup fallback. I3 remains incomplete; RTL
-geometry/directional controls and packaged qualification remain I4-I6, and the
-separate Hebrew manual is not implemented.
+Remaining I3 work is a focused audit of startup/native-dialog fallbacks and
+any missed app-owned copy. I3 remains incomplete; RTL geometry/directional
+controls and packaged qualification remain I4-I6, and the separate Hebrew
+manual is not implemented.

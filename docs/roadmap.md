@@ -210,8 +210,10 @@ acceptance criteria, and the cross-session checklist.
     folder-selection behavior and cancellation.
   - [x] I3o: Collate generated Codex groups, Overview filter choices, link
     suggestions and relationship options by UI locale; preserve values/order.
-  - [ ] Remaining I3: other interface text, native dialog/confirmation wording
-    and startup text.
+  - [x] I3p: Translate Project Overview guidance, counts, read-only/empty
+    states and right-panel controls/accessibility; preserve project data.
+  - [ ] Remaining I3: audit startup/native-dialog fallbacks and any missed
+    app-owned interface copy.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.

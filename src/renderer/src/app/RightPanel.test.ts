@@ -8,6 +8,7 @@ import { createFakePlotDeviceApi } from './fake-plot-device-api'
 import { useLayoutStore } from './layout-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
+import { useUiLanguageStore } from './ui-language-store'
 import RightPanel from './RightPanel.vue'
 
 beforeEach(async () => {
@@ -49,6 +50,44 @@ describe('RightPanel', () => {
   it('says what the properties tab is for when nothing is open', () => {
     useLayoutStore().rightTab = 'properties'
     expect(mountPanel().text()).toContain('Open a chapter or codex entry')
+  })
+
+  it('translates tab, resize, expand and empty-state accessibility live', async () => {
+    const layout = useLayoutStore()
+    layout.rightTab = 'outline'
+    const panel = mountPanel()
+    const language = useUiLanguageStore()
+    expect(panel.get('[role=tablist]').attributes('aria-label')).toBe('Right panel')
+    expect(panel.findAll('[role=tab]').map((tab) => tab.text())).toEqual([
+      'Properties',
+      'Outline',
+      'Reference'
+    ])
+    expect(panel.get('[role=separator]').attributes('aria-label')).toBe('Outline panel width')
+    expect(panel.get('.expand').text()).toBe('Expand')
+
+    await language.change('he')
+    await flushPromises()
+    expect(panel.get('[role=tablist]').attributes('aria-label')).toBe('החלונית הימנית')
+    expect(panel.findAll('[role=tab]').map((tab) => tab.text())).toEqual([
+      'מאפיינים',
+      'מתווה',
+      'עיון'
+    ])
+    expect(panel.get('[role=separator]').attributes('aria-label')).toBe('רוחב חלונית המתווה')
+    expect(panel.get('.expand').text()).toBe('הרחבה')
+    await panel.get('.expand').trigger('click')
+    expect(panel.get('.expand').text()).toBe('שחזור')
+
+    layout.rightTab = 'properties'
+    await flushPromises()
+    expect(panel.find('[role=separator]').exists()).toBe(false)
+    expect(panel.text()).toContain('יש לפתוח פרק או רשומה בקודקס כדי לראות את המאפיינים שלה.')
+    await language.change('en')
+    await flushPromises()
+    expect(panel.get('[role=tablist]').attributes('aria-label')).toBe('Right panel')
+    expect(panel.text()).toContain('Open a chapter or codex entry to see its properties.')
+    panel.unmount()
   })
 
   it('navigates all three tabs by keyboard and labels the independent panel', async () => {
