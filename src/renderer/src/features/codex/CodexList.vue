@@ -228,7 +228,8 @@ ul {
   gap: 8px;
   width: 100%;
   min-height: 32px;
-  padding: 6px 10px 6px 14px;
+  padding-block: 6px;
+  padding-inline: 14px 10px;
   border: none;
   border-radius: 7px;
   background: transparent;
@@ -250,7 +251,7 @@ ul {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  text-align: left;
+  text-align: start;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -292,7 +293,8 @@ ul {
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 8px;
-  padding: 6px 10px 6px 14px;
+  padding-block: 6px;
+  padding-inline: 14px 10px;
 }
 
 .path {

@@ -31,6 +31,27 @@ afterEach(() => {
 })
 
 describe('project chrome translation', () => {
+  it('mirrors directional toolbar and breadcrumb icons when the interface is RTL', async () => {
+    const page = mount(TopBar)
+    const topBar = page.get('.top-bar')
+    const binderIcon = page.get('[aria-label=Binder] .directional-icon')
+    const inspectorIcon = page.get('[aria-label=Inspector] .directional-icon')
+    expect(topBar.attributes('dir')).toBe('ltr')
+    expect(page.findAll('.separator').length).toBeGreaterThan(0)
+    expect(binderIcon.classes()).not.toContain('mirrored')
+    expect(inspectorIcon.classes()).not.toContain('mirrored')
+    useUiLanguageStore().locale = 'he'
+    await flushPromises()
+
+    expect(topBar.attributes('dir')).toBe('rtl')
+    expect(binderIcon.classes()).toContain('mirrored')
+    expect(inspectorIcon.classes()).toContain('mirrored')
+    expect(page.findAll('.separator').every((separator) => separator.classes().includes('mirrored'))).toBe(
+      true
+    )
+    page.unmount()
+  })
+
   it('translates top-bar accessible labels without replacing controls or changing panel actions', async () => {
     const page = mount(TopBar, { attachTo: document.body })
     const button = page.get<HTMLButtonElement>('[aria-label=Binder]').element

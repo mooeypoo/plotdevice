@@ -59,7 +59,8 @@ ul {
   flex: 1;
   min-width: 0;
   min-height: 32px;
-  padding: 6px 10px 6px 14px;
+  padding-block: 6px;
+  padding-inline: 14px 10px;
   border: none;
   border-radius: 7px;
   background: transparent;

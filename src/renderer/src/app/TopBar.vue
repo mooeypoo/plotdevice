@@ -10,6 +10,7 @@ import LanguageSelector from '../shared/LanguageSelector.vue'
 import { isolate } from '../shared/isolate'
 import { formatEntryPlaceCrumb, formatEntryPlaceTitle } from '../shared/entry-place-label'
 import { useChromePresentation } from '../shared/use-chrome-presentation'
+import { uiDirection } from '../../../i18n/locales'
 
 const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
@@ -17,6 +18,7 @@ const editor = useEditorStore()
 const layout = useLayoutStore()
 const language = useUiLanguageStore()
 const chrome = useChromePresentation()
+const direction = computed(() => uiDirection(language.locale))
 
 const crumbs = computed(() => {
   if (layout.mainView === 'overview') return [language.t('view-overview')]
@@ -37,7 +39,7 @@ const crumbs = computed(() => {
 </script>
 
 <template>
-  <header class="top-bar">
+  <header class="top-bar" :dir="direction">
     <div class="identity">
       <span class="mark"><Wordmark /></span>
       <span class="project" dir="auto">{{ workspace.project?.title }}</span>
@@ -45,7 +47,13 @@ const crumbs = computed(() => {
 
     <nav class="crumbs" :aria-label="language.t('chrome-location')">
       <template v-for="(crumb, index) in crumbs" :key="index">
-        <span v-if="index > 0" class="separator" aria-hidden="true">›</span>
+        <span
+          v-if="index > 0"
+          class="separator"
+          :class="{ mirrored: direction === 'rtl' }"
+          aria-hidden="true"
+          >›</span
+        >
         <span :class="{ current: index === crumbs.length - 1 }" dir="auto">{{ crumb }}</span>
       </template>
     </nav>
@@ -100,6 +108,8 @@ const crumbs = computed(() => {
         @click="layout.toggleBinder()"
       >
         <svg
+          class="directional-icon"
+          :class="{ mirrored: direction === 'rtl' }"
           width="18"
           height="18"
           viewBox="0 0 24 24"
@@ -124,6 +134,8 @@ const crumbs = computed(() => {
         @click="layout.toggleInspector()"
       >
         <svg
+          class="directional-icon"
+          :class="{ mirrored: direction === 'rtl' }"
           width="18"
           height="18"
           viewBox="0 0 24 24"
@@ -273,5 +285,14 @@ const crumbs = computed(() => {
   margin-inline-start: 6px;
   padding: 7px 12px;
   font-size: 12px;
+}
+
+.mirrored {
+  transform: scaleX(-1);
+}
+
+.directional-icon.mirrored {
+  transform-box: view-box;
+  transform-origin: center;
 }
 </style>

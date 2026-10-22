@@ -215,7 +215,7 @@ acceptance criteria, and the cross-session checklist.
   - [x] Completion audit: verify no untranslated app-owned renderer copy,
     native dialog labels or startup messages remain; preserve OS-owned and
     technical text.
-- [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
+- [ ] I4: RTL interface implementation and browser qualification.
   - [x] I4a: Use logical indentation/alignment in the binder and mirror part
     disclosure direction; preserve selection, order and drag/drop behavior.
   - [x] I4b: Place the binder and right panel by root direction; make pointer
@@ -224,8 +224,10 @@ acceptance criteria, and the cross-session checklist.
     position story-axis ticks/bars logically so dates progress RTL unchanged.
   - [x] I4d: Flow interaction-matrix columns RTL and stick row/corner headings
     to inline-start; preserve names, counts and selected-cell identity.
-  - [ ] Remaining I4: directional icons, responsiveness, and real-browser
-    geometry, pointer and scroll qualification.
+  - [x] I4e: Mirror directional top-bar icons/crumbs, align Codex rows
+    logically, and audit existing responsive wrapping.
+  - [ ] Remaining I4: real-browser geometry, responsive overflow, pointer and
+    scroll qualification (I6).
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.
 - [ ] D1: Public Hebrew manual/distribution text (separate approval).

@@ -14,6 +14,7 @@ const mountList = (readOnly = false): ReturnType<typeof mount> =>
 beforeEach(() => {
   localStorage.clear()
   setActivePinia(createPinia())
+  document.documentElement.dir = 'ltr'
 })
 
 describe('CodexList', () => {
@@ -71,6 +72,20 @@ describe('CodexList', () => {
     await list.get('form input').setValue('המרינה')
     await list.get('form').trigger('submit')
     expect(list.emitted('create')).toEqual([['location', 'המרינה']])
+    list.unmount()
+  })
+
+  it('keeps codex entry text auto-directed and unchanged in Hebrew RTL', async () => {
+    const list = mountList()
+    document.documentElement.dir = 'rtl'
+    useUiLanguageStore().locale = 'he'
+    await list.vm.$nextTick()
+
+    expect(document.documentElement.dir).toBe('rtl')
+    expect(list.get('.row .title').attributes('dir')).toBe('auto')
+    expect(list.get('.entry-row .row .title').attributes('dir')).toBe('auto')
+    expect(list.get('.row .title').text()).toBe('Outline')
+    expect(list.get('.entry-row .row .title').text()).toBe('Ilka')
     list.unmount()
   })
 

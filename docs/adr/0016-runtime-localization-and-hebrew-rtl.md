@@ -155,8 +155,11 @@ progress, remaining limitations, and the next slice before ending a session.
   - [x] **I4d Interaction matrix:** matrix columns follow interface direction;
     row headings and the corner heading stick to inline-start, retaining row,
     column, count, and selected-cell identities.
-  - [ ] **Remaining I4:** directional icons, responsive behavior, and
-    real-browser geometry, pointer, and scroll qualification.
+  - [x] **I4e Directional chrome and codex alignment:** mirror panel and
+    breadcrumb direction markers in RTL; use logical alignment/insets in
+    Codex rows; verify top-bar wrapping remains enabled.
+  - [ ] **Remaining I4:** real-browser geometry, responsive overflow,
+    pointer, and scroll qualification (see I6).
 - [ ] **I5 Writing/reading:** independent direction preference; live CodeMirror
   phrases/placeholders; mixed-script caret/selection, completions and technical
   spans; consistent outline/reference policy without losing history or scroll.
@@ -1284,10 +1287,29 @@ boundaries (475 modules/2,422 dependencies), typecheck, **1,568 tests across
 173 files**, and the production electron-vite build. The docs build/link/asset
 check passed across all 16 public pages. No API or dependencies changed.
 
-Happy DOM verifies state and direction-dependent styles, not rendered RTL
-geometry. I4 remains incomplete; shared panel placement, directional icons,
-timeline/matrix geometry, and real-browser pointer/keyboard qualification
-remain. Independent writing/reading direction is I5; packaged qualification
-and the separate Hebrew manual remain I6/D1.
+At the I4a checkpoint, shared panel placement, directional icons, timeline/
+matrix geometry, and real-browser pointer/keyboard qualification remained.
+I4b-I4e have since completed the app-side directionality work; browser
+qualification remains tracked in I6. Independent writing/reading direction is
+I5, and the separate Hebrew manual remains D1.
 
-**Next session:** propose the next bounded I4 slice before editing.
+### I4e Directional chrome and Codex rows
+
+The top bar now exposes the selected UI direction and mirrors its binder and
+inspector panel diagrams plus breadcrumb chevrons in Hebrew. Existing flex
+wrapping in the top bar and its tools was audited and retained; this phase does
+not claim viewport-level overflow qualification. Codex titles use logical
+text alignment, and Codex entry/untyped rows use logical inline insets so
+Hebrew titles and row spacing follow their respective text/UI directions.
+
+Focused regression tests verify live icon mirroring, RTL top-bar direction,
+and retention of auto-directed Codex titles/project values. Verified lint and
+dependency boundaries (475 modules/2,428 dependencies), typecheck, **1,574
+tests across 173 files**, production electron-vite build, and docs build/link/
+asset checks across all 16 public pages. No API or dependency changed.
+
+I4a-I4e implementation is complete. Real-browser geometry, responsive
+overflow, pointer/scroll behavior, and packaged Linux/Windows checks remain
+part of I6 qualification. The next implementation phase is I5: independent
+writing/reading direction and mixed-script editor behavior. D1 remains a
+separate approval.
