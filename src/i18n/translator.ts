@@ -191,6 +191,12 @@ type ParameterizedMessages = {
   'workbench-resize-panel': [viewTitle: string]
   'workbench-section-collapse': [viewTitle: string]
   'workbench-section-expand': [viewTitle: string]
+  'workbench-panel-options': [viewTitle: string]
+  'workbench-section-close': [viewTitle: string]
+  'workbench-add-view': [viewTitle: string]
+  'workbench-show-view': [viewTitle: string]
+  'workbench-layout-delete-confirm': [name: string]
+  'workbench-layout-name-taken': [name: string]
 }
 type MessageArguments<Key extends MessageKey> = Key extends keyof ParameterizedMessages
   ? ParameterizedMessages[Key]

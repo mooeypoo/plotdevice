@@ -20,8 +20,9 @@ beforeEach(async () => {
 
 describe('useOutlinePanel', () => {
   it('keeps each outline title, path, and body paired when switching in both directions', async () => {
-    await useCodexStore().createOutline('Clue ledger')
+    await fake.api.codex.createOutline('Clue ledger')
     fake.files.set('Clue ledger.md', '## Clues\nThe key is missing.')
+    await useCodexStore().reload()
     const panel = useOutlinePanel()
     await flushPromises()
     for (const path of ['Clue ledger.md', 'Outline.md', 'Clue ledger.md']) {
@@ -82,6 +83,19 @@ describe('useOutlinePanel', () => {
     expect(panel.text.value).toContain('[[First frost]]')
     expect(panel.pointsHere.value({ kind: 'wiki', target: 'First frost' })).toBe(true)
     expect(panel.pointsHere.value({ kind: 'wiki', target: 'The Ferry' })).toBe(false)
+  })
+
+  it('keeps highlighting the Writing chapter while a codex entry is open', async () => {
+    const editor = useEditorStore()
+    await editor.open('First frost.md')
+    await editor.open('characters/Ilka.md', { keep: true })
+    const panel = useOutlinePanel()
+    await flushPromises()
+    expect(editor.entry?.path).toBe('characters/Ilka.md')
+    expect(panel.pointsHere.value({ kind: 'wiki', target: 'First frost' })).toBe(true)
+    await editor.open('The Ferry.md')
+    expect(panel.pointsHere.value({ kind: 'wiki', target: 'The Ferry' })).toBe(true)
+    expect(panel.pointsHere.value({ kind: 'wiki', target: 'First frost' })).toBe(false)
   })
 
   it('opens a link in the main editor', async () => {

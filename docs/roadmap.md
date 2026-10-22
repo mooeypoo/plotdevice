@@ -290,16 +290,16 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 **Done when:** a writer upgrading sees the same arrangement in the new shell, can switch back, and every existing test passes in both shells.
 
 ### W4: Views and layouts
-- [ ] Binder, Codex list, Properties, Reference, Outline, Overview, Timeline, Interactions, and Warnings register as views. The shell imports no feature component directly.
-- [ ] `MainView` becomes center-stage views. Menu commands and accelerators keep working.
-- [ ] Bottom shelf with compact Outline and Warnings.
-- [ ] Save, rename and delete user layouts. Menu and keyboard equivalents for every move, collapse and pin.
-- [ ] The Outline view shows the live draft (ADR 0018) and highlights the active manuscript document, falling back to Writing.
+- [x] Binder, Codex list, Properties, Reference, Outline, Overview, Timeline, Interactions, and Warnings register as views. The shell imports no feature component directly (done in W2, enforced by `views-only-through-the-registry`).
+- [x] `MainView` becomes center-stage views and persists with the layout. Menu commands and accelerators keep working; a view already placed in a panel is brought forward there instead of duplicated.
+- [x] Bottom shelf with Outline and Warnings (and Overview, Timeline or Interactions if the writer moves them there).
+- [x] Save, rename, delete and reset layouts from the layout menu, which also shows closed views again. A ⋯ menu per view and per panel moves views between sides (named by physical side), reorders, collapses, closes, adds views and switches tabs/stacked, all by keyboard. Pinning moved to W5a; dragging tabs between panels is in Later.
+- [x] The Outline view shows the live draft (ADR 0018) and highlights the active manuscript document, falling back to Writing.
 
 **Done when:** every existing feature can be placed in its accepted regions, layouts survive restart and mirror in Hebrew, and mode and layout switches go through the navigation queue (tested).
 
 ### W5: Reference comes to the page
-- [ ] W5a: Peek on project links (rendered panels and editor), entry cards, the card stack, pin and unpin, per-user card fields by entry kind.
+- [ ] W5a: Peek on project links (rendered panels and editor), entry cards, the card stack, pin and unpin (including a pinned Reference, moved here from W4), per-user card fields by entry kind.
 - [ ] W5b: Cast strip above the page (from `pov`, `characters`, `location`, and the live draft's body links) and the scene card (synopsis, status, POV, threads, linked outline lines).
 - [ ] W5c: Open beside as a read-only split, lock, and Write here through the navigation queue.
 - [ ] W5d: Command palette (entries, views, layouts, modes, menu commands) and chrome fading while typing.
@@ -376,7 +376,7 @@ native deb permissions and publisher authentication are not changed by metadata.
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
-- Workbench follow-ups (out of the proposed W/L/P plan): a Search view with full-text search (the palette only jumps to entries); the thread grid (threads × chapters, reusing the timeline's reading-order grid); pop-out windows; a visual `novel.md` settings editor for language, vocabulary, statuses and folders (ADR 0004 and 0007); scene-level cards once scenes exist.
+- Workbench follow-ups (out of the proposed W/L/P plan): dragging tabs and sections between panels (W4 provides menu and keyboard moves); a Search view with full-text search (the palette only jumps to entries); the thread grid (threads × chapters, reusing the timeline's reading-order grid); pop-out windows; a visual `novel.md` settings editor for language, vocabulary, statuses and folders (ADR 0004 and 0007); scene-level cards once scenes exist.
 - Renderer coupling: 44 feature files import `app/` stores directly. W2 cuts feature-to-feature imports only; narrowing features' access to app stores is separate work.
 - Documentation tooling: the offline manual build passes but emits Node module-type and Vite native-config compatibility warnings. Address module configuration separately from reference UI work.
 - Character-group follow-ups: persistent empty groups, custom ordering/colors/descriptions, bulk assignment, and group filters in Timeline/Interactions are not part of Phase 14.

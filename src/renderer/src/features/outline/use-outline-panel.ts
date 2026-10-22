@@ -1,7 +1,9 @@
 import { computed, ref, watch, type ComputedRef, type Ref } from 'vue'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
+import { useDocumentTabsStore } from '../../app/document-tabs-store'
 import { useLayoutStore } from '../../app/layout-store'
+import { useLiveDraft } from '../../app/use-live-draft'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import type { LinkAt } from '../../shared/link-at'
 import { useEditorLinks } from '../../app/use-editor-links'
@@ -11,7 +13,8 @@ import { useErrorNotice } from '../../shared/use-error-notice'
 export function useOutlinePanel(): {
   readonly outlines: ComputedRef<readonly { readonly path: string; readonly title: string }[]>
   readonly path: ComputedRef<string | null>
-  readonly text: Ref<string | null>
+  /** The outline's text: the editor's live draft while it is open there (ADR 0018). */
+  readonly text: ComputedRef<string | null>
   readonly loading: Ref<boolean>
   readonly error: Ref<string | null>
   readonly linkNotice: Ref<string | null>
@@ -27,7 +30,7 @@ export function useOutlinePanel(): {
   const editor = useEditorStore()
   const layout = useLayoutStore()
   const links = useEditorLinks()
-  const text = ref<string | null>(null)
+  const readText = ref<string | null>(null)
   const loading = ref(false)
   const { message: error, source: errorSource } = useErrorNotice()
   let request = 0
@@ -39,19 +42,20 @@ export function useOutlinePanel(): {
       ? remembered
       : (outlines.value[0]?.path ?? null)
   })
-  const openInEditor = computed(() => path.value !== null && editor.entry?.path === path.value)
+  const { openInEditor, text } = useLiveDraft(path, readText)
+  const tabs = useDocumentTabsStore()
 
   async function load(): Promise<void> {
     const identity = ++request
     const current = path.value
-    text.value = null
+    readText.value = null
     error.value = null
     loading.value = current !== null
     if (current === null) return
     const result = await plotDeviceApi.current().codex.openEntry(current)
     if (identity !== request || path.value !== current) return
     loading.value = false
-    if (result.ok) text.value = result.value.text
+    if (result.ok) readText.value = result.value.text
     else errorSource.value = result.error
   }
 
@@ -59,8 +63,15 @@ export function useOutlinePanel(): {
   // go of it (its last saves are on disk).
   watch([path, () => codex.revision, openInEditor], () => void load(), { immediate: true })
 
+  /** The chapter the outline highlights: the open part or chapter, otherwise the Writing target. */
+  const highlighted = computed(() => {
+    const entry = editor.entry
+    if (entry !== null && (entry.kind === 'chapter' || entry.kind === 'part')) return entry.path
+    return tabs.writingPath ?? undefined
+  })
+
   const pointsHere = computed(() => {
-    const open = editor.entry?.path
+    const open = highlighted.value
     const from = path.value
     return (link: LinkAt): boolean =>
       open !== undefined && from !== null && links.linkMeans(link, open, from)

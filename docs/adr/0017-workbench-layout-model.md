@@ -65,6 +65,17 @@ dependency and RTL risk for little gain.
   and the switcher offers only layouts whose views all exist.
 - While no project is open, bindings live only in the session.
 
+## Details settled in W4
+
+- The center view is part of the layout and persists with it. Asking for a view that a panel
+  already shows brings that panel forward; the classic shell, which has no shelf, moves it
+  to the main area instead.
+- Menus offer only what the model accepts, computed by trying each operation
+  (`placement-actions.ts`). Move labels name the physical side from the logical region.
+- A closed view comes back where the shipped layouts keep it.
+- Saving a layout makes it active; deleting the layout in use switches the project to Write
+  first. Switching, resetting and deleting run through the navigation queue (ADR 0018).
+
 ## Consequences
 
 - Switching interface language mirrors a saved layout without migration.

@@ -6,10 +6,13 @@ import type { Section } from '../model/layout'
 import { resizeArea, selectSection, setAreaCollapsed } from '../model/operations'
 import { SHELF_SIZE } from '../model/sizes'
 import { registeredView, VIEW_REGISTRY } from '../views/view-registry'
+import MenuButton from './MenuButton.vue'
 import Splitter from './Splitter.vue'
+import { usePlacementMenus } from './use-placement-menus'
 
 const workbench = useWorkbenchStore()
 const language = useUiLanguageStore()
+const menus = usePlacementMenus()
 const area = computed(() => workbench.layout.bottom)
 const sections = computed(() =>
   area.value.sections.filter((section) => VIEW_REGISTRY[section.view] !== undefined)
@@ -72,10 +75,9 @@ function select(section: Section): void {
       >
         <span aria-hidden="true">{{ area.collapsed ? '▴' : '▾' }}</span>
       </button>
-      <template v-if="area.arrangement === 'tabs'">
+      <span v-for="section in sections" :key="section.id" class="section-title">
         <button
-          v-for="section in sections"
-          :key="section.id"
+          v-if="area.arrangement === 'tabs'"
           type="button"
           class="quiet title"
           :class="{ selected: shown.includes(section) }"
@@ -84,8 +86,19 @@ function select(section: Section): void {
         >
           {{ title(section) }}
         </button>
-      </template>
-      <span v-else class="title">{{ titles }}</span>
+        <span v-else class="title">{{ title(section) }}</span>
+        <MenuButton
+          :label="language.t('workbench-panel-options', title(section))"
+          :items="menus.sectionMenu(section.id, section.view)"
+        />
+      </span>
+      <span class="area-tools">
+        <MenuButton
+          v-if="menus.areaMenu('bottom').length > 0"
+          :label="language.t('workbench-area-options')"
+          :items="menus.areaMenu('bottom')"
+        />
+      </span>
     </header>
     <div v-if="!area.collapsed" id="workbench-bottom-content" class="shelf-content">
       <div
@@ -132,6 +145,16 @@ function select(section: Section): void {
 
 .toggle {
   padding: 2px 6px;
+}
+
+.section-title {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.area-tools {
+  margin-inline-start: auto;
 }
 
 .shelf-content {

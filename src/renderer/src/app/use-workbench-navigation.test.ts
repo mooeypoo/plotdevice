@@ -10,6 +10,8 @@ import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useWorkbenchNavigation } from './use-workbench-navigation'
 import { useWorkspaceStore } from './workspace-store'
+import { useWorkbenchStore } from './workbench-store'
+import { addView, removeSection, setAreaCollapsed } from '../workbench/model/operations'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 beforeEach(async () => {
@@ -72,5 +74,57 @@ describe('panels', () => {
     layout.focusMode = true
     useWorkbenchNavigation().revealPanel('reference')
     expect(layout).toMatchObject({ inspectorOpen: true, rightTab: 'reference', focusMode: false })
+  })
+})
+
+describe('the workbench center stage', () => {
+  it('keeps the main view in the layout, so it survives a restart', async () => {
+    expect(await useWorkbenchNavigation().showCenterView('timeline')).toBe(true)
+    expect(useWorkbenchStore().layout.center.view).toBe('timeline')
+    expect(JSON.parse(localStorage.getItem('plotdevice.workbench') ?? '{}')).toMatchObject({
+      arrangements: { write: { center: { view: 'timeline' } } }
+    })
+  })
+
+  it('brings forward a view the layout shows in a panel instead of duplicating it', async () => {
+    const workbench = useWorkbenchStore()
+    workbench.apply((layout) => addView(layout, 'timeline', 'bottom', 'timeline'))
+    workbench.apply((layout) => setAreaCollapsed(layout, 'bottom', true))
+    expect(await useWorkbenchNavigation().showCenterView('timeline')).toBe(true)
+    expect(workbench.layout.center.view).toBe('document')
+    expect(workbench.layout.bottom.collapsed).toBe(false)
+  })
+
+  it('moves such a view to the main area in the classic shell, which has no shelf', async () => {
+    const workbench = useWorkbenchStore()
+    workbench.setShell('classic')
+    workbench.apply((layout) => addView(layout, 'timeline', 'bottom', 'timeline'))
+    expect(await useWorkbenchNavigation().showCenterView('timeline')).toBe(true)
+    expect(workbench.layout.center.view).toBe('timeline')
+    expect(workbench.layout.bottom.sections).toEqual([])
+  })
+})
+
+describe('switchLayout', () => {
+  it('saves the draft first and is refused while recovery is pending', async () => {
+    const editor = useEditorStore()
+    await editor.open('First frost.md')
+    editor.edit('Typed.')
+    expect(await useWorkbenchNavigation().switchLayout('revise')).toBe(true)
+    expect(fake.files.get('First frost.md')).toBe('Typed.')
+    editor.edit('Mine.')
+    fake.files.set('First frost.md', 'Outside.')
+    await editor.flush()
+    expect(await useWorkbenchNavigation().switchLayout('write')).toBe(false)
+    expect(useWorkbenchStore().activeLayoutId).toBe('revise')
+  })
+})
+
+describe('revealPanel', () => {
+  it('brings back a closed Reference where it usually lives', () => {
+    const workbench = useWorkbenchStore()
+    workbench.apply((layout) => removeSection(layout, 'reference'))
+    useWorkbenchNavigation().revealPanel('reference')
+    expect(workbench.layout.end).toMatchObject({ activeSection: 'reference', collapsed: false })
   })
 })

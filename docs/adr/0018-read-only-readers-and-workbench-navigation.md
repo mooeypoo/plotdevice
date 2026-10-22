@@ -1,8 +1,9 @@
 # ADR 0018: Many read-only readers, one writer, one navigation queue
 
 **Status:** accepted in part (2026-10-22). W2 implements readers, the document presenter,
-move followers, and center-view switches through the navigation queue; open beside, lock,
-Write here from a split, the outline's live draft and board writes land in W4, W5 and P3.
+move followers, and center-view switches through the navigation queue; W4 adds layout
+switches through the queue and the outline's live draft. Open beside, lock, Write here
+from a split and board writes land in W5 and P3.
 Amends ADR 0014 and ADR 0015; supersedes neither. See `docs/plans/workbench-ui-plan.md`.
 
 ## Context

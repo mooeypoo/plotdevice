@@ -1479,3 +1479,12 @@ and qqq messages. Collapsing a dock from the top bar keeps focus on the toggle.
 Real-browser geometry, pointer feel and narrow windows remain unqualified (I7g), so I7b
 stays open until the writer's by-eye check and the I6 browser sweep cover the new shell.
 
+### I7c app-side tab sets and menus (W4)
+
+Panel ⋯ menus name docks by the physical side they occupy, computed from the logical region
+and the interface direction, so Hebrew offers "העברה לצד ימין" for the start dock. Menus
+open on the inline-end edge of their button, move focus with Up/Down/Home/End, close on
+Escape or Tab and return focus to the button. Layout names typed by the writer are
+isolated in messages and fields use automatic direction. Card stack and palette items
+remain for W5; real-browser qualification remains I7g.
+

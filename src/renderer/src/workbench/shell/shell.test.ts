@@ -6,9 +6,10 @@ import { h } from 'vue'
 import { useLayoutStore } from '../../app/layout-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkbenchStore } from '../../app/workbench-store'
-import { setArrangement } from '../model/operations'
+import { removeSection, selectSection, setArrangement } from '../model/operations'
 import type { ViewId } from '../model/view-catalog'
 import DockArea from './DockArea.vue'
+import LayoutMenu from './LayoutMenu.vue'
 import LayoutSwitcher from './LayoutSwitcher.vue'
 import ShelfArea from './ShelfArea.vue'
 import WorkbenchBody from './WorkbenchBody.vue'
@@ -191,9 +192,138 @@ describe('LayoutSwitcher', () => {
     const switcher = mount(LayoutSwitcher)
     expect(switcher.findAll('option').map((option) => option.text())).toEqual(['Write', 'Revise'])
     await switcher.get('select').setValue('revise')
+    await flushPromises()
     expect(useWorkbenchStore().activeLayoutId).toBe('revise')
     useUiLanguageStore().locale = 'he'
     await flushPromises()
     expect(switcher.findAll('option').map((option) => option.text())).toEqual(['כתיבה', 'עריכה'])
+  })
+})
+
+describe('placement menus', () => {
+  const openMenu = async (wrapper: ReturnType<typeof mount>, label: string) => {
+    const button = wrapper
+      .findAll('button[aria-haspopup=menu]')
+      .find((candidate) => candidate.attributes('aria-label') === label)
+    if (button === undefined) throw new Error(`No menu ${label}`)
+    await button.trigger('click')
+    await flushPromises()
+    return wrapper.findAll('[role=menuitem]')
+  }
+
+  it('names sides physically, so Hebrew says right for the start side', async () => {
+    useUiLanguageStore().locale = 'he'
+    const dock = mount(DockArea, {
+      props: { side: 'end', size: 320, maximum: 720 },
+      attachTo: document.body
+    })
+    const items = await openMenu(dock, 'אפשרויות עבור מאפיינים')
+    expect(items.map((item) => item.text())).toContain('העברה לצד ימין')
+    dock.unmount()
+  })
+
+  it('moves the shown view to the bottom from its menu', async () => {
+    const workbench = useWorkbenchStore()
+    workbench.apply((layout) => selectSection(layout, 'outline'))
+    const dock = mount(DockArea, {
+      props: { side: 'end', size: 320, maximum: 720 },
+      attachTo: document.body
+    })
+    const items = await openMenu(dock, 'Options for Outline')
+    await items.find((item) => item.text() === 'Move to the bottom')?.trigger('click')
+    expect(workbench.layout.bottom.sections.map((section) => section.view)).toEqual(['outline'])
+    expect(workbench.layout.end.sections.map((section) => section.view)).toEqual([
+      'properties',
+      'reference'
+    ])
+    dock.unmount()
+  })
+
+  it('adds a view to a panel and switches its arrangement', async () => {
+    const workbench = useWorkbenchStore()
+    const dock = mount(DockArea, {
+      props: { side: 'start', size: 280, maximum: 720 },
+      attachTo: document.body
+    })
+    let items = await openMenu(dock, 'Panel options')
+    await items.find((item) => item.text() === 'Add Needs attention')?.trigger('click')
+    expect(workbench.layout.start.sections.map((section) => section.view)).toContain('warnings')
+    items = await openMenu(dock, 'Panel options')
+    await items.find((item) => item.text() === 'Show stacked')?.trigger('click')
+    expect(workbench.layout.start.arrangement).toBe('stack')
+    dock.unmount()
+  })
+
+  it('moves focus with the arrow keys and returns it on Escape', async () => {
+    const dock = mount(DockArea, {
+      props: { side: 'end', size: 320, maximum: 720 },
+      attachTo: document.body
+    })
+    const items = await openMenu(dock, 'Options for Properties')
+    expect(document.activeElement).toBe(items[0]?.element)
+    await dock.get('[role=menu]').trigger('keydown', { key: 'ArrowDown' })
+    expect(document.activeElement).toBe(items[1]?.element)
+    await dock.get('[role=menu]').trigger('keydown', { key: 'Escape' })
+    expect(dock.find('[role=menu]').exists()).toBe(false)
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('Options for Properties')
+    dock.unmount()
+  })
+})
+
+describe('LayoutMenu', () => {
+  const choose = async (wrapper: ReturnType<typeof mount>, text: string) => {
+    await wrapper.get('button[aria-haspopup=menu]').trigger('click')
+    await flushPromises()
+    const item = wrapper.findAll('[role=menuitem]').find((candidate) => candidate.text() === text)
+    if (item === undefined) throw new Error(`No item ${text}`)
+    await item.trigger('click')
+    await flushPromises()
+  }
+
+  it('saves, renames and deletes the writer’s own layout', async () => {
+    const workbench = useWorkbenchStore()
+    const menu = mount(LayoutMenu, { attachTo: document.body })
+    await choose(menu, 'Save as new layout…')
+    await menu.get('form').trigger('submit')
+    expect(menu.get('[role=alert]').text()).toBe('Give the layout a name.')
+    await menu.get('input').setValue('Wide reference')
+    await menu.get('form').trigger('submit')
+    expect(workbench.settings.saved.map((entry) => entry.name)).toEqual(['Wide reference'])
+    expect(workbench.activeLayoutId).toMatch(/^user-/u)
+
+    await choose(menu, 'Rename…')
+    expect((menu.get('input').element as HTMLInputElement).value).toBe('Wide reference')
+    await menu.get('input').setValue('Wide')
+    await menu.get('form').trigger('submit')
+    expect(workbench.settings.saved[0]?.name).toBe('Wide')
+
+    await choose(menu, 'Delete layout')
+    await menu.get('button.danger').trigger('click')
+    await flushPromises()
+    expect(workbench.settings.saved).toEqual([])
+    expect(workbench.activeLayoutId).toBe('write')
+    menu.unmount()
+  })
+
+  it('isolates a taken name in its message', async () => {
+    const workbench = useWorkbenchStore()
+    workbench.saveAs('מבט רחב')
+    const menu = mount(LayoutMenu, { attachTo: document.body })
+    await choose(menu, 'Save as new layout…')
+    await menu.get('input').setValue('מבט רחב')
+    await menu.get('form').trigger('submit')
+    expect(menu.get('[role=alert]').text()).toBe('A layout named ⁨מבט רחב⁩ already exists.')
+    menu.unmount()
+  })
+
+  it('resets a rearranged preset and shows closed views again', async () => {
+    const workbench = useWorkbenchStore()
+    workbench.apply((layout) => removeSection(layout, 'reference'))
+    const menu = mount(LayoutMenu, { attachTo: document.body })
+    await choose(menu, 'Show Reference')
+    expect(workbench.layout.end.sections.map((section) => section.view)).toContain('reference')
+    await choose(menu, 'Reset to default')
+    expect(workbench.settings.arrangements).toEqual({})
+    menu.unmount()
   })
 })

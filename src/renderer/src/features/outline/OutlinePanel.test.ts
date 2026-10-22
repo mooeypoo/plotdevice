@@ -93,7 +93,7 @@ describe('OutlinePanel', () => {
     wrapper.unmount()
   })
 
-  it('renders the reference, edits raw Markdown, then remounts the updated reading view', async () => {
+  it('renders the reference, then shows the live draft while the outline is edited', async () => {
     const wrapper = mount(OutlinePanel)
     await flushPromises()
     expect(wrapper.get('h1').text()).toBe('Working outline')
@@ -102,8 +102,11 @@ describe('OutlinePanel', () => {
     await wrapper.get('header button').trigger('click')
     await flushPromises()
     expect(useEditorStore().text).toContain('# Working outline')
-    expect(wrapper.find('.view').exists()).toBe(false)
+    expect(wrapper.find('[role=status]').text()).toContain('current draft')
     useEditorStore().edit('## Revised plan\n\n*New direction*')
+    await flushPromises()
+    // The panel follows the draft as it is typed (ADR 0018), and keeps it after the editor leaves.
+    expect(wrapper.get('h2').text()).toBe('Revised plan')
     await useEditorStore().open('The Ferry.md')
     await flushPromises()
     expect(wrapper.get('h2').text()).toBe('Revised plan')
