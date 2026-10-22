@@ -349,6 +349,30 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 
 **Done when:** each edit changes only its lines or keys, and every edit has a keyboard path.
 
+### U1: Simplicity — UX research, audit and redesign
+Guiding principle (writer, 2026-10-22): the interface should be beautifully simple, with advanced
+features easy to reach but never cluttering the page. Prioritize features *with* simplicity. This is
+the final tightening step for the W/L/P work, planned and approved on its own before any change.
+
+- [ ] U1a Research and audit: inventory every control, menu, tab, button and shortcut across the
+  top bar, panels, ⋯ menus, document tabs, native menus and the palette; map each to the tasks it
+  serves; find duplicates, dead ends and unclear names. Walk real writing, revising and plotting
+  sessions in English and Hebrew.
+- [ ] U1b Vocabulary: one name per concept everywhere, in a glossary (en/he) the catalogs follow.
+  Known clashes: "Binder" (button, menu) vs "Manuscript" (tab) for the same panel; "Inspector"
+  (button) vs "Properties" (tab); "view", "panel" and "layout" are not explained anywhere.
+- [ ] U1c Information architecture: what is always visible, what is one step away (palette, a
+  single menu), what is advanced. Decide the fate of each duplicate control; prefer progressive
+  disclosure over more buttons.
+- [ ] U1d Visual system: type scale, spacing, color tokens (dark and the planned light theme),
+  shapes (pills, chips, cards), icon set with visible labels where needed, and focus/hover states;
+  checked for contrast and RTL.
+- [ ] U1e A written redesign plan with before/after mock-ups, an ADR for the visual system and
+  naming, and phased implementation steps that keep every keyboard path and RTL guarantee.
+
+**Done when:** the redesign plan and glossary are approved; implementation follows as its own
+phases.
+
 ## Proposed release and documentation program
 
 The [release plan](release-plan.md) tracks approved work: MVP version policy,
@@ -376,7 +400,7 @@ native deb permissions and publisher authentication are not changed by metadata.
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
-- Chrome cleanup (writer feedback on W5): too many buttons, tabs and menus compete (top bar toggles, view tabs, layout switcher and its ⋯ menu, panel ⋯ menus, document-tab actions, native menus, the palette). Consolidate them, and give each panel one name everywhere: the binder is "Binder" on its toolbar button and menu item but "Manuscript" on its tab, and Properties is "Inspector" on its button.
+- Chrome cleanup (writer feedback on W5) is now phase U1 above.
 - Workbench follow-ups (out of the proposed W/L/P plan): dragging tabs and sections between panels (W4 provides menu and keyboard moves); a Search view with full-text search (the palette only jumps to entries); the thread grid (threads × chapters, reusing the timeline's reading-order grid); pop-out windows; a visual `novel.md` settings editor for language, vocabulary, statuses and folders (ADR 0004 and 0007); scene-level cards once scenes exist.
 - Renderer coupling: 44 feature files import `app/` stores directly. W2 cuts feature-to-feature imports only; narrowing features' access to app stores is separate work.
 - Documentation tooling: the offline manual build passes but emits Node module-type and Vite native-config compatibility warnings. Address module configuration separately from reference UI work.
