@@ -191,7 +191,7 @@ export const useEditorStore = defineStore('editor', () => {
   async function navigate(path: string, keep: boolean): Promise<boolean> {
     if (entry.value?.path === path) {
       tabs.opened(path, keep)
-      documentPresenter()?.showDocument()
+      documentPresenter()?.showDocument(path)
       return true
     }
     if (recoveryBusy.value) {
@@ -231,7 +231,7 @@ export const useEditorStore = defineStore('editor', () => {
     missingReappeared.value = false
     await captureRecovery()
     await readProperties()
-    documentPresenter()?.showDocument()
+    documentPresenter()?.showDocument(path)
     return true
   }
 

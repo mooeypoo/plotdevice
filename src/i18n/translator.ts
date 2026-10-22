@@ -215,6 +215,8 @@ type ParameterizedMessages = {
   'warning-language-invalid': [value: string]
   'warning-setting-vocabulary': [key: string, value: string]
   'book-language-other': [tag: string]
+  'board-pov': [names: string]
+  'board-words': [count: number, formatted: string]
 }
 type MessageArguments<Key extends MessageKey> = Key extends keyof ParameterizedMessages
   ? ParameterizedMessages[Key]

@@ -13,6 +13,7 @@ import PropertiesView from '../../features/inspector/PropertiesView.vue'
 import InteractionsView from '../../features/interactions/InteractionsView.vue'
 import OutlinePanel from '../../features/outline/OutlinePanel.vue'
 import OverviewView from '../../features/overview/OverviewView.vue'
+import PlotBoard from '../../features/board/PlotBoard.vue'
 import ReferencePanel from '../../features/reference/ReferencePanel.vue'
 import TimelineView from '../../features/timeline/TimelineView.vue'
 import WarningsView from '../../features/warnings/WarningsView.vue'
@@ -55,7 +56,8 @@ export const VIEW_REGISTRY: Partial<Readonly<Record<ViewId, ViewDescriptor>>> = 
   warnings: view('warnings', 'warnings-heading', WarningsView),
   'card-stack': view('card-stack', 'cards-stack-title', CardStack),
   cast: view('cast', 'cast-label', CastStrip),
-  'scene-card': view('scene-card', 'scene-card-title', SceneCard)
+  'scene-card': view('scene-card', 'scene-card-title', SceneCard),
+  'plot-board': view('plot-board', 'view-board', PlotBoard)
 }
 
 publishViewDirectory(VIEW_REGISTRY)

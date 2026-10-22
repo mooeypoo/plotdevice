@@ -5,13 +5,14 @@ import { selectSection, setAreaCollapsed, setCenterView } from '../workbench/mod
 import type { ViewId } from '../workbench/model/view-catalog'
 import type { AreaRegion } from '../workbench/model/vocabulary'
 import { registerDocumentPresenter } from './document-presenter'
+import { useOutlineStore } from './outline-store'
 import { useWorkbenchStore } from './workbench-store'
 
 /** The side panel's tabs. */
 export type SideTab = 'manuscript' | 'codex'
 
-/** The main area's views. */
-export type MainView = 'write' | 'overview' | 'timeline' | 'interactions'
+/** The main area's views; the board only in Plotting mode. */
+export type MainView = 'write' | 'overview' | 'timeline' | 'interactions' | 'plot-board'
 
 /** The right-hand panel's tabs. */
 export type RightTab = 'properties' | 'outline' | 'reference'
@@ -37,7 +38,12 @@ export const useLayoutStore = defineStore('layout', () => {
   const mainView = computed<MainView>({
     get: () => {
       const view = workbench.layout.center.view
-      return view === 'overview' || view === 'timeline' || view === 'interactions' ? view : 'write'
+      return view === 'overview' ||
+        view === 'timeline' ||
+        view === 'interactions' ||
+        view === 'plot-board'
+        ? view
+        : 'write'
     },
     set: (view) => {
       workbench.apply((layout) => setCenterView(layout, view === 'write' ? 'document' : view))
@@ -124,8 +130,14 @@ export const useLayoutStore = defineStore('layout', () => {
     focusMode.value = false
   }
 
-  /** Brings the writable document back to the main area. */
-  function showDocument(): void {
+  /**
+   * Brings the writable document back to the main area. In Plotting mode only the outline's text
+   * takes the board's place; any other document is written in Writing mode.
+   */
+  function showDocument(path?: string): void {
+    if (workbench.mode === 'plotting' && path !== useOutlineStore().currentPath) {
+      workbench.setMode('writing')
+    }
     mainView.value = 'write'
   }
 

@@ -3,7 +3,7 @@ import type { Layout } from './layout'
 import { isPresetId, PRESETS } from './presets'
 import { validLayoutName, layoutNameKey } from './layout-name'
 import { validateLayout } from './validate-layout'
-import type { Mode } from './vocabulary'
+import { MODES, type Mode } from './vocabulary'
 
 /** A layout the writer saved under a name of their own. */
 export interface SavedLayout {
@@ -101,6 +101,8 @@ export function parseWorkbenchSettings(value: unknown): ParsedWorkbenchSettings 
 }
 
 const projectSchema = z.object({
+  /** Writing or Plotting, as the writer left this project; bindings saved before P2 have none. */
+  mode: z.enum(MODES).default('writing'),
   active: z.object({ writing: z.string(), plotting: z.string() }),
   /** A pinned section's entry, by section id. */
   pins: z.record(z.string(), z.string()),
@@ -133,6 +135,7 @@ export function defaultWorkbenchProjects(): WorkbenchProjects {
 /** A project's bindings before the writer pins or locks anything. */
 export function defaultProjectBindings(): ProjectBindings {
   return {
+    mode: 'writing',
     active: { writing: 'write', plotting: 'plot' },
     pins: {},
     cards: [],

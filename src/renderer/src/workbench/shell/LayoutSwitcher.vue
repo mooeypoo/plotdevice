@@ -20,9 +20,9 @@ const workbench = useWorkbenchStore()
 const language = useUiLanguageStore()
 const navigation = useWorkbenchNavigation()
 
-/** Writing layouts whose views all exist, so choosing one never shows an empty panel. */
+/** The current mode's layouts whose views all exist, so choosing one never shows an empty panel. */
 const choices = computed(() =>
-  layoutChoices(workbench.settings, 'writing').filter((choice) => {
+  layoutChoices(workbench.settings, workbench.mode).filter((choice) => {
     const layout = layoutFor(workbench.settings, choice.id)
     return (
       layout !== undefined && viewsIn(layout).every((view) => VIEW_REGISTRY[view] !== undefined)

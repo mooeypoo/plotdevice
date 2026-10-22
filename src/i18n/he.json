@@ -651,5 +651,20 @@
   "error-outline-shape-changed": "המתווה השתנה מאז שהלוח קרא אותו. כדאי להסתכל שוב ולנסות מחדש.",
   "error-outline-invalid-beat": "נקודת עלילה היא שורת טקסט אחת, ואינה יכולה להתחיל כמו כותרת או קו מפריד.",
   "error-outline-invalid-notes": "ההערות האלה היו משנות את המתווה סביבן.",
-  "error-outline-not-allowed": "הקובץ הזה אינו אחד המתווים של הפרויקט."
+  "error-outline-not-allowed": "הקובץ הזה אינו אחד המתווים של הפרויקט.",
+  "mode-label": "מצב",
+  "mode-writing": "כתיבה",
+  "mode-plotting": "עלילה",
+  "view-board": "לוח",
+  "view-outline-text": "טקסט",
+  "palette-mode-plotting": "מעבר למצב עלילה",
+  "palette-mode-writing": "מעבר למצב כתיבה",
+  "palette-outline-text": "עריכת המתווה כטקסט",
+  "board-label": "לוח העלילה",
+  "board-loading": "קורא את המתווה…",
+  "board-no-outline": "אין עדיין מתווה. במתווה, כל כותרת ## הופכת לעמודה וכל תבליט מתחתיה לכרטיס.",
+  "board-no-columns": "למתווה הזה אין עדיין כותרות ##, ולכן אין עמודות להציג. הטקסט שלו לא השתנה.",
+  "board-edit-text": "עריכה כטקסט",
+  "board-pov": "נקודת מבט: $1",
+  "board-words": "{{PLURAL:$1|מילה אחת|$2 מילים}}"
 }

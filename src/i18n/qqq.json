@@ -651,5 +651,20 @@
   "error-outline-shape-changed": "Error when a board action refers to a beat or column the outline file no longer has at that place (the file changed).",
   "error-outline-invalid-beat": "Error when a beat title is empty, has several lines, or would be read as something other than a list item (such as ---).",
   "error-outline-invalid-notes": "Error when the notes typed for a beat would make lines outside the beat change meaning.",
-  "error-outline-not-allowed": "Error when the app is asked to read or change a file that the outline list doesn't include."
+  "error-outline-not-allowed": "Error when the app is asked to read or change a file that the outline list doesn't include.",
+  "mode-label": "Accessible name of the two-button switch between Writing and Plotting mode in the top bar.",
+  "mode-writing": "Mode in which the center shows the editor. Deliberately different from the Write layout's name.",
+  "mode-plotting": "Mode in which the center shows the board over the outline.",
+  "view-board": "Plotting-mode tab and command: the beat board over the current outline.",
+  "view-outline-text": "Plotting-mode tab that shows the current outline's Markdown in the editor instead of the board.",
+  "palette-mode-plotting": "Command palette item.",
+  "palette-mode-writing": "Command palette item.",
+  "palette-outline-text": "Command palette item in Plotting mode: show the outline's Markdown in the editor.",
+  "board-label": "Accessible name of the board region.",
+  "board-loading": "Shown while the board reads the outline file.",
+  "board-no-outline": "Empty board when the project has no outline. Keep ## as it is.",
+  "board-no-columns": "Shown when the current outline has no level-2 headings. Keep ## as it is.",
+  "board-edit-text": "Button on the empty board: show the outline's Markdown in the editor.",
+  "board-pov": "On a beat card: the linked chapter's point-of-view characters. $1 is a list of names.",
+  "board-words": "On a beat card: the linked chapter's word count. $1 is the number, $2 the number formatted for display."
 }

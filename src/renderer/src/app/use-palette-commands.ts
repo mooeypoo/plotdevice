@@ -42,7 +42,8 @@ const CENTER_TITLES: Readonly<Record<MainView, MessageKey>> = {
   write: 'view-write',
   overview: 'view-overview',
   timeline: 'view-timeline',
-  interactions: 'view-interactions'
+  interactions: 'view-interactions',
+  'plot-board': 'view-board'
 }
 const PRESET_NAMES: Readonly<Record<PresetId, MessageKey>> = {
   write: 'workbench-layout-write',
@@ -130,7 +131,7 @@ export function usePaletteCommands() {
   })
 
   const layouts = computed((): PaletteItem[] =>
-    layoutChoices(workbench.settings, 'writing')
+    layoutChoices(workbench.settings, workbench.mode)
       .filter((choice) => {
         const arrangement = layoutFor(workbench.settings, choice.id)
         return (
@@ -161,7 +162,26 @@ export function usePaletteCommands() {
       detail: kind,
       run
     })
+    const modes =
+      workbench.shell !== 'workbench'
+        ? []
+        : workbench.mode === 'writing'
+          ? [
+              command('mode-plotting', 'palette-mode-plotting', () =>
+                navigation.switchMode('plotting')
+              )
+            ]
+          : [
+              command('mode-writing', 'palette-mode-writing', () =>
+                navigation.switchMode('writing')
+              ),
+              command('show-board', 'view-board', () => navigation.showCenterView('plot-board')),
+              command('show-outline-text', 'palette-outline-text', () =>
+                navigation.showOutlineText()
+              )
+            ]
     return [
+      ...modes,
       command('return-to-writing', 'tabs-return', () => editor.returnToWriting()),
       command('toggle-binder', 'menu-toggle-binder', layout.toggleBinder),
       command('toggle-inspector', 'menu-toggle-inspector', layout.toggleInspector),
