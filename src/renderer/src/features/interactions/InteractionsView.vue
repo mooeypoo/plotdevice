@@ -30,13 +30,7 @@ function cellLabel(row: number, column: number): string {
   const count = m?.cells[row]?.[column]?.chapters.length ?? 0
   return row === column
     ? language.t('interactions-cell-self', isolate(a), count, formatNumber(count))
-    : language.t(
-        'interactions-cell-pair',
-        isolate(a),
-        isolate(b),
-        count,
-        formatNumber(count)
-      )
+    : language.t('interactions-cell-pair', isolate(a), isolate(b), count, formatNumber(count))
 }
 
 function chapterTitle(index: number): string {

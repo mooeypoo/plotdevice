@@ -8,7 +8,7 @@ import { plotDeviceApi } from '../../app/plot-device-api'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
-import { useWarnings } from './use-warnings'
+import { useWarnings } from '../../app/use-warnings'
 import type { WarningGroup } from './warning-groups'
 import WarningsPanel from './WarningsPanel.vue'
 

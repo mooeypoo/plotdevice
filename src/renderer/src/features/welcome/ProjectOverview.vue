@@ -1,17 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { EntryCountsDto } from '../../../../contract/dtos'
-import { useEditorStore } from '../../app/editor-store'
-import { useManuscriptStore } from '../../app/manuscript-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
-import WarningsPanel from '../warnings/WarningsPanel.vue'
-import { useWarnings } from '../warnings/use-warnings'
 
 const workspace = useWorkspaceStore()
-const editor = useEditorStore()
-const manuscript = useManuscriptStore()
 const language = useUiLanguageStore()
 const chrome = useChromePresentation()
 
@@ -44,8 +38,6 @@ const counts = computed(() => {
     return { key, value: chrome.formatNumber(count), label: language.t(message, count) }
   })
 })
-
-const { groups: warningGroups } = useWarnings()
 </script>
 
 <template>
@@ -77,14 +69,8 @@ const { groups: warningGroups } = useWarnings()
       </p>
     </section>
 
-    <WarningsPanel
-      v-if="warningGroups.length > 0"
-      :groups="warningGroups"
-      :can-open="editor.canOpen"
-      :read-only="workspace.project.readOnly"
-      @fix="(path, fix) => manuscript.fixWarning(path, fix)"
-      @open="editor.open($event)"
-    />
+    <!-- The shell places the project's warnings here. -->
+    <slot name="warnings" />
   </section>
 </template>
 

@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { LinkTargetDto } from '../../../../contract/dtos'
 import { isolate } from '../../shared/isolate'
-import type { LinkAt } from './link-at'
+import type { LinkAt } from '../../shared/link-at'
 import type { LinkCompletionTarget } from './link-completion'
 import { createProseEditor, type ProseEditor } from './prose-editor'
 import type { ProseEditorCopy } from './prose-editor-copy'

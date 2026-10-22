@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
-import { formatWordCount, statusColor } from '../binder/binder-labels'
+import { formatWordCount, statusColor } from '../../shared/manuscript-labels'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import { romanNumeral } from '../../shared/roman-numeral'
 import SynopsisCell from './SynopsisCell.vue'

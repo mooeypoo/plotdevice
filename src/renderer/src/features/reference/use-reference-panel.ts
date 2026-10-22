@@ -1,9 +1,11 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
-import { useLayoutStore } from '../../app/layout-store'
+import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
+import { storeToRefs } from 'pinia'
+import { useLiveDraft } from '../../app/use-live-draft'
 import { useReferenceStore } from '../../app/reference-store'
-import { useEditorLinks } from '../editor/use-editor-links'
+import { useEditorLinks } from '../../app/use-editor-links'
 import { useErrorNotice } from '../../shared/use-error-notice'
 
 /** Presents an independent reference, using live draft text when the same file is being edited. */
@@ -11,7 +13,7 @@ export function useReferencePanel() {
   const reference = useReferenceStore()
   const editor = useEditorStore()
   const codex = useCodexStore()
-  const layout = useLayoutStore()
+  const navigation = useWorkbenchNavigation()
   const links = useEditorLinks((path) => {
     reference.open(path)
   })
@@ -21,10 +23,8 @@ export function useReferencePanel() {
   let displayedPath: string | null = null
   let restoring = true
   let restoration = 0
-  const openInEditor = computed(
-    () => reference.path !== null && editor.entry?.path === reference.path
-  )
-  const text = computed(() => (openInEditor.value ? editor.text : reference.text))
+  const { path, text: readText } = storeToRefs(reference)
+  const { openInEditor, text } = useLiveDraft(path, readText)
   const profile = computed(() =>
     codex.listing?.entries.find((entry) => entry.path === reference.path)
   )
@@ -72,7 +72,10 @@ export function useReferencePanel() {
     actionError.value = null
     const path = reference.path
     if (path === null) return
-    if (!openInEditor.value) {
+    if (openInEditor.value) {
+      // Already open: the document may be behind another main view.
+      if (!(await navigation.showCenterView('write'))) return
+    } else {
       const opened = await editor.open(path)
       if (request !== actionRequest) return
       if (!opened) {
@@ -80,8 +83,7 @@ export function useReferencePanel() {
         return
       }
     }
-    layout.mainView = 'write'
-    layout.rightTab = 'properties'
+    navigation.choosePanel('properties')
   }
 
   return {

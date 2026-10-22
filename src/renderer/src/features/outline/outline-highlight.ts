@@ -1,5 +1,5 @@
-import { findWikiLinks } from '../editor/wiki-link-scan'
-import { linkAt, type LinkAt } from '../editor/link-at'
+import { findWikiLinks } from '../../shared/wiki-link-scan'
+import { linkAt, type LinkAt } from '../../shared/link-at'
 
 /**
  * The lines (1-based) of an outline that link to the open entry, by wikilink or markdown link.

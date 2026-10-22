@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
+import { registerDocumentPresenter } from './document-presenter'
 
 /** The side panel's tabs. */
 export type SideTab = 'manuscript' | 'codex'
@@ -75,6 +76,11 @@ export const useLayoutStore = defineStore('layout', () => {
     focusMode.value = false
   }
 
+  /** Brings the writable document back to the main area. */
+  function showDocument(): void {
+    mainView.value = 'write'
+  }
+
   return {
     binderOpen,
     inspectorOpen,
@@ -87,9 +93,12 @@ export const useLayoutStore = defineStore('layout', () => {
     toggleBinder,
     toggleInspector,
     toggleFocusMode,
-    exitFocusMode
+    exitFocusMode,
+    showDocument
   }
 })
+
+registerDocumentPresenter(() => useLayoutStore())
 
 /** Remembers the entry open in each project, so reopening a project returns to it. */
 export function rememberLastEntry(projectRoot: string, path: string | null): void {

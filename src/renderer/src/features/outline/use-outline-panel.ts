@@ -3,8 +3,8 @@ import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { useLayoutStore } from '../../app/layout-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
-import type { LinkAt } from '../editor/link-at'
-import { useEditorLinks } from '../editor/use-editor-links'
+import type { LinkAt } from '../../shared/link-at'
+import { useEditorLinks } from '../../app/use-editor-links'
 import { useErrorNotice } from '../../shared/use-error-notice'
 
 /** The outline shown beside the draft: which one, its text, and what links to the open entry. */

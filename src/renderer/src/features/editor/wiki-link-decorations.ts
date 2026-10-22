@@ -7,7 +7,7 @@ import {
   type EditorView,
   type ViewUpdate
 } from '@codemirror/view'
-import { findWikiLinks, type LinkKind } from './wiki-link-scan'
+import { findWikiLinks, type LinkKind } from '../../shared/wiki-link-scan'
 
 const hidden = Decoration.replace({})
 

@@ -1,4 +1,4 @@
-import type { LinkTargetDto } from '../../../../contract/dtos'
+import type { LinkTargetDto } from '../../../contract/dtos'
 
 /** A wikilink found in text, with the offsets the editor needs to style it. */
 export interface FoundWikiLink {

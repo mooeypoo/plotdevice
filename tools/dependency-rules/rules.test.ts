@@ -50,6 +50,19 @@ const expectedViolations = [
   ['renderer-no-node', 'src/renderer/src/violates-renderer-no-node.ts'],
   ['renderer-no-electron', 'src/renderer/src/violates-renderer-no-electron.ts'],
   [
+    'features-are-independent',
+    'src/renderer/src/features/alpha/violates-features-are-independent.ts'
+  ],
+  [
+    'features-never-import-the-shell',
+    'src/renderer/src/features/alpha/violates-features-never-import-the-shell.ts'
+  ],
+  ['shared-ignores-features', 'src/renderer/src/shared/violates-shared-ignores-features.ts'],
+  [
+    'views-only-through-the-registry',
+    'src/renderer/src/app/violates-views-only-through-the-registry.ts'
+  ],
+  [
     'workbench-model-is-pure',
     'src/renderer/src/workbench/model/violates-workbench-model-is-pure.ts'
   ],

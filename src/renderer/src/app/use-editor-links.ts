@@ -1,15 +1,14 @@
 import { computed, getCurrentScope, onScopeDispose, type ComputedRef, type Ref } from 'vue'
-import { useCodexStore } from '../../app/codex-store'
-import { useEditorStore } from '../../app/editor-store'
-import { useManuscriptStore } from '../../app/manuscript-store'
-import { useReferenceStore } from '../../app/reference-store'
-import { useLayoutStore } from '../../app/layout-store'
-import { placeOf } from '../../app/entry-owners'
-import { linkChoices, markdownLinkPath, nameKey, resolveWritten } from '../../shared/link-choices'
-import type { LinkAt } from './link-at'
-import type { LinkCompletionTarget } from './link-completion'
-import { useErrorNotice } from '../../shared/use-error-notice'
-import type { LinkNotice } from '../../shared/error-format'
+import { useCodexStore } from './codex-store'
+import { useEditorStore } from './editor-store'
+import { useManuscriptStore } from './manuscript-store'
+import { useReferenceStore } from './reference-store'
+import { placeOf } from './entry-owners'
+import { linkChoices, markdownLinkPath, nameKey, resolveWritten } from '../shared/link-choices'
+import type { LinkAt } from '../shared/link-at'
+import type { LinkCompletionTarget } from '../features/editor/link-completion'
+import { useErrorNotice } from '../shared/use-error-notice'
+import type { LinkNotice } from '../shared/error-format'
 
 /** Link completion and navigation: consult codex targets beside the draft, or open manuscript text. */
 export function useEditorLinks(navigate?: (path: string) => void | Promise<void>): {
@@ -70,7 +69,7 @@ export function useEditorLinks(navigate?: (path: string) => void | Promise<void>
     else if (['character', 'location', 'note'].includes(placeOf(path)?.kind ?? '')) {
       useReferenceStore().open(path)
     } else if (editor.canOpen(path)) {
-      if (await editor.open(path)) useLayoutStore().mainView = 'write'
+      await editor.open(path)
     } else editor.reportActionError({ notice: 'link-target-unsupported', path })
   }
 

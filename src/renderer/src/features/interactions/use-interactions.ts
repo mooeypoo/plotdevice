@@ -11,7 +11,6 @@ import {
 import type { InteractionsDto } from '../../../../contract/dtos'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
-import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { useErrorNotice } from '../../shared/use-error-notice'
@@ -39,7 +38,6 @@ export function useInteractions(): {
   const manuscript = useManuscriptStore()
   const codex = useCodexStore()
   const editor = useEditorStore()
-  const layout = useLayoutStore()
   const interactions = shallowRef<InteractionsDto | null>(null)
   const { message: error, source: errorSource } = useErrorNotice()
   let request = 0
@@ -74,7 +72,7 @@ export function useInteractions(): {
     ),
     picked,
     open: async (path) => {
-      if (await editor.open(path)) layout.mainView = 'write'
+      await editor.open(path)
     }
   }
 }

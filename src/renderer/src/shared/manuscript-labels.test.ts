@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { createTranslator } from '../../../../i18n/translator'
-import type { UnorderedReasonDto } from '../../../../contract/dtos'
+import { createTranslator } from '../../../i18n/translator'
+import type { UnorderedReasonDto } from '../../../contract/dtos'
 import {
   clashDescription,
   describeUnorderedReason,
   formatWordCount,
   romanNumeral,
   statusColor
-} from './binder-labels'
+} from './manuscript-labels'
 
 const en = createTranslator('en')
 const he = createTranslator('he')

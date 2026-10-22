@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { PartDto } from '../../../../contract/dtos'
-import { clashDescription, formatWordCount, romanNumeral } from './binder-labels'
+import { clashDescription, formatWordCount, romanNumeral } from '../../shared/manuscript-labels'
 import BinderRow from './BinderRow.vue'
-import NewEntryInput from './NewEntryInput.vue'
+import NewEntryInput from '../../shared/NewEntryInput.vue'
 import type { DropSpot } from './binder-drop'
 import { useBinderDrag } from './use-binder-drag'
 import ReferenceButton from '../../shared/ReferenceButton.vue'

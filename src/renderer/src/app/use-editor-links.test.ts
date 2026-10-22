@@ -1,15 +1,15 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { useCodexStore } from '../../app/codex-store'
-import { useEditorStore } from '../../app/editor-store'
-import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
-import { useManuscriptStore } from '../../app/manuscript-store'
-import { plotDeviceApi } from '../../app/plot-device-api'
+import { useCodexStore } from './codex-store'
+import { useEditorStore } from './editor-store'
+import { createFakePlotDeviceApi } from './fake-plot-device-api'
+import { useManuscriptStore } from './manuscript-store'
+import { plotDeviceApi } from './plot-device-api'
 import { useEditorLinks } from './use-editor-links'
-import { useReferenceStore } from '../../app/reference-store'
+import { useReferenceStore } from './reference-store'
 import { flushPromises } from '@vue/test-utils'
 import { effectScope } from 'vue'
-import { useUiLanguageStore } from '../../app/ui-language-store'
+import { useUiLanguageStore } from './ui-language-store'
 
 beforeEach(async () => {
   vi.useFakeTimers()

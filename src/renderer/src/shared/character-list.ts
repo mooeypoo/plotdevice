@@ -1,6 +1,6 @@
-import type { CodexEntryDto } from '../../../../contract/dtos'
-import { nameKey } from '../../shared/link-choices'
-import type { TextComparator } from '../../shared/use-chrome-presentation'
+import type { CodexEntryDto } from '../../../contract/dtos'
+import { nameKey } from './link-choices'
+import type { TextComparator } from './use-chrome-presentation'
 
 /** Unique group names, retaining the first spelling and sorting for display. */
 export function characterGroupNames(

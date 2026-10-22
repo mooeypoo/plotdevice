@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { CodexKindDto, CodexListingDto, SettableTypeDto } from '../../../../contract/dtos'
-import NewEntryInput from '../binder/NewEntryInput.vue'
+import NewEntryInput from '../../shared/NewEntryInput.vue'
 import { codexSections } from './codex-sections'
 import CharacterList from './CharacterList.vue'
 import CodexEntryList from './CodexEntryList.vue'

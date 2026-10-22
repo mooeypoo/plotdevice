@@ -1,7 +1,6 @@
 import { computed, ref, type ComputedRef, type Ref } from 'vue'
 import { useEditorStore } from '../../app/editor-store'
 import { useInspectorStore } from '../../app/inspector-store'
-import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import {
@@ -33,7 +32,6 @@ export function useOverview(): {
   const manuscript = useManuscriptStore()
   const editor = useEditorStore()
   const inspector = useInspectorStore()
-  const layout = useLayoutStore()
   const { compareText } = useChromePresentation()
   const filters = ref<OverviewFilters>(NO_FILTERS)
 
@@ -64,7 +62,7 @@ export function useOverview(): {
       filters.value = NO_FILTERS
     },
     open: async (path) => {
-      if (await editor.open(path)) layout.mainView = 'write'
+      await editor.open(path)
     },
     saveSynopsis: (path, synopsis) => manuscript.updateSynopsis(path, synopsis)
   }
