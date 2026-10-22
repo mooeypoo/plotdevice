@@ -1,6 +1,6 @@
 # Workbench UI, Plotting Mode and Book Language: Plan
 
-Status: proposed, awaiting approval. No implementation code has been written.
+Status: approved 2026-10-22, with every question in section 7 decided as recommended. Each ADR draft is accepted when its phase lands.
 Date: 2026-10-22. Brief: [workbench-ui.md](workbench-ui.md).
 
 What this planning session produced:
@@ -211,7 +211,7 @@ to translate (ADR 0016). Every new string is a banana-i18n message with `en`, `h
 
 Each has a recommendation. Approve as a batch, or correct by number.
 
-Decided on 2026-10-22: Q1, Q2, Q8, Q11 and Q16, all as recommended. The rest are still open.
+Decided on 2026-10-22: all questions, as recommended (Q1, Q2, Q8, Q11 and Q16 explicitly; the rest by accepting the recommendations).
 
 **Q1. `language` at the top level instead of `settings.language`?** (Conflict C3.)
 The brief puts it under `settings`. Changing a nested key later would need a new nested-key
@@ -240,21 +240,26 @@ Ctrl/Cmd+hover, because a resting mouse over prose shouldn't pop cards while you
 Everywhere, put the caret or focus on a link and press a shortcut. My candidate is
 Ctrl/Cmd+Shift+Enter; I'll confirm in W5a that it conflicts with nothing in CodeMirror or
 in IBus/Hebrew input switching. Space combinations are avoided for that reason.
+**Decided (2026-10-22): approved.**
 
 **Q4. Is Focus a layout preset or a mode?** *Recommendation:* a mode flag over any layout (as
 today), with chrome fading while typing. Presets are Write, Revise and Plot.
+**Decided (2026-10-22): approved.**
 
 **Q5. Which chapter does the outline view highlight?** *Recommendation:* the active document
 if it's a manuscript entry, otherwise the Writing target. While you write, that is the
 Writing chapter. While you read another chapter in a tab, it follows what you're reading.
+**Decided (2026-10-22): approved.**
 
 **Q6. Drop the Search view from this plan?** *Recommendation:* yes. The palette jumps to any
 entry by title or alias. Full-text search is in "Later".
+**Decided (2026-10-22): approved.**
 
 **Q7. Card field defaults, and where field choice lives.** (Brief Q3.)
 *Recommendation:* per-user, by entry kind, never in project templates. Defaults: character:
 role, aliases, groups. Location: aliases. Chapter: status, POV, synopsis. Part: synopsis.
 Note: none. Each card adds its first section.
+**Decided (2026-10-22): approved.**
 
 **Q8. Thread marker on beats.** (Brief Q4.) Options, as they'd look in the file:
 
@@ -271,6 +276,7 @@ Obsidian reads it as an ordinary tag, and it follows "prefer structure over word
 **Q9. Which outline does the board open?** (Brief Q5.) *Recommendation:* one current outline
 per project, shared by the board and the outline view, stored as a project binding, not in
 the layout shape. It defaults to the first outline by title.
+**Decided (2026-10-22): approved.**
 
 **Q10. Capture: record the source chapter, and where does the Inbox live?** (Brief Q6.)
 *Recommendation:* the Inbox is always in the current outline (Q9). Recording the chapter is
@@ -281,6 +287,7 @@ no other words:
 ## Inbox
 - The orchard gate should creak every time. [[First frost]]
 ```
+**Decided (2026-10-22): approved.**
 
 **Q11. Seeded words: in the registry or a separate seed catalog?** (Brief Q7.)
 *Recommendation:* separate catalogs in the same module. Seeds are write-only. Putting them
@@ -298,21 +305,25 @@ calendar: gregorian            # גרגוריאני (תאריכים כמו 1952-
 *Recommendation:* yes. The comments are there for the writer reading `novel.md` in another
 editor. Keys and values stay canonical. Mixed-direction comment lines need checking in
 Obsidian as part of I7f.
+**Decided (2026-10-22): approved.**
 
 **Q13. Should the default statuses (when `novel.md` has no `statuses`) follow the book
 language?** Today a hand-made `novel.md` without `statuses` gets English suggestions.
 *Recommendation:* yes, but only when `language` is set. Without it nothing changes, so
 existing books are unaffected. The suggestions are display defaults only; nothing is written
 until you add one.
+**Decided (2026-10-22): approved.**
 
 **Q14. Which book languages can you choose?** *Recommendation:* the languages that have seeds
 (English and Hebrew) when initializing or changing the language. A hand-written tag the app
 has no seeds for is kept, used for direction, and gets English seeds, with no warning.
+**Decided (2026-10-22): approved.**
 
 **Q15. Can you change the book language in L1, before the settings editor exists?**
 *Recommendation:* yes, with one explicit action in Project Overview that edits only the
 `language` key. Without it, existing books could get Hebrew seeds only by hand-editing
 `novel.md`. Changing it never rewrites words already in your files.
+**Decided (2026-10-22): approved.**
 
 **Q16. Numbered lists in an outline.** Moving `2.` above `1.` without renumbering leaves odd
 source text, and renumbering would change lines you didn't move. *Recommendation:* show
@@ -321,17 +332,20 @@ numbered items as plain content in P2–P4, not as beats. Revisit if you use num
 
 **Q17. Where does the Classic layout switch live during W3–W5?** *Recommendation:* the View
 menu, per user, removed in W6.
+**Decided (2026-10-22): approved.**
 
 **Q18. Scene card and board are chapter-level until scenes exist.** (Brief Q8.)
 *Recommendation:* confirmed.
+**Decided (2026-10-22): approved.**
 
 **Q19. Localized frontmatter keys.** (Brief Q9.) *Recommendation:* never in files. Keys are
 schema. They're always shown translated and written canonical. Revisit only if writers ask.
+**Decided (2026-10-22): approved.**
 
 **Q20. Phase granularity.** The brief's W4 ("Reference to the page") holds six features. I
 split it into W5a–W5d so that each fits one session, and added W2 ("Seams") for the cleanup
 in section 1. That gives 6 W phases (W5 in four parts), 1 L phase (two parts) and 4 P phases.
 *Recommendation:* accept this split.
+**Decided (2026-10-22): approved.**
 
-Next step: once you approve (with corrections), start W1 in its own session, beginning with a
-plan-mode file list as `AGENTS.md` requires.
+Next step: W1 in its own session, beginning with a plan-mode file list as `AGENTS.md` requires.

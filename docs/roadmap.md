@@ -251,7 +251,7 @@ acceptance criteria, and the cross-session checklist.
 - [ ] I7: Workbench and plotting RTL qualification, folded into ADR 0016's
   checklist and delivered with the W, L and P phases below.
 
-## Workbench, plotting mode and book language (proposed, not approved)
+## Workbench, plotting mode and book language (approved 2026-10-22)
 
 Planned in [the workbench plan](plans/workbench-ui-plan.md) from the
 [brief](plans/workbench-ui.md). Draft decisions: ADR 0017 (layout model),
