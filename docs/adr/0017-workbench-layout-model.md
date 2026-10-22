@@ -1,6 +1,6 @@
 # ADR 0017: A constrained workbench layout model in per-user storage
 
-**Status:** proposed (2026-10-22), not yet approved. See `docs/plans/workbench-ui-plan.md`.
+**Status:** accepted (2026-10-22, model and storage in W1). See `docs/plans/workbench-ui-plan.md`.
 
 ## Context
 
@@ -39,6 +39,20 @@ dependency and RTL risk for little gain.
   width; docks collapse before it shrinks. Every drag has a menu and keyboard equivalent.
 - No layout library. Constrained regions make one unnecessary (see the plan's dependency
   section).
+
+## Details settled in W1
+
+- A dock has one inline size shared by its tabs, so Properties shares the end dock's
+  width and becomes resizable (default still 320 px). The start dock defaults to 280 px.
+- Bindings are `global`, `follow` or `pinned`; the view catalog lists which each view
+  allows. Each view appears at most once per layout.
+- Center splits stay in the layout while another view fills the center, and reappear
+  with the document. At most two.
+- When the page would fall below 280 px, the end dock shrinks to its minimum, then the
+  start dock; then the end dock hides, then the start dock. Stored sizes never change.
+- Each stored layout is validated on its own: an invalid one is dropped and reported,
+  the others are kept. Storage is only rewritten when the shell saves.
+- Model failures are semantic codes; the shell (W3) adds translated notices.
 
 ## Consequences
 

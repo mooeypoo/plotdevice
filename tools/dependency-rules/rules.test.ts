@@ -49,6 +49,10 @@ const expectedViolations = [
   ['renderer-sees-only-contract', 'src/renderer/src/violates-renderer-sees-only-contract.ts'],
   ['renderer-no-node', 'src/renderer/src/violates-renderer-no-node.ts'],
   ['renderer-no-electron', 'src/renderer/src/violates-renderer-no-electron.ts'],
+  [
+    'workbench-model-is-pure',
+    'src/renderer/src/workbench/model/violates-workbench-model-is-pure.ts'
+  ],
   ['not-to-test', 'src/main/violates-not-to-test.ts']
 ].map(([rule, from]) => `${rule ?? ''}  ${from ?? ''}`)
 

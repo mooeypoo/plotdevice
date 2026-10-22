@@ -265,10 +265,10 @@ Order: W1 → W2 → W3 → W4, then W5 and the P track in either order. W6 afte
 L1 any time before P2. P1 needs only W2's dependency rules.
 
 ### W1: Layout model
-- [ ] Pure model in `workbench/model/`: center stage, `start`/`end` docks, `bottom` shelf, card-stack sections, stacked or tabbed sections, follow/pin bindings, Writing/Plotting modes.
-- [ ] Operations (dock, move, collapse, resize, split, pin, lock), validation, presets as data (Write, Revise, Plot), and the minimum page width rule.
-- [ ] Versioned zod storage: per-user layout shapes in `plotdevice.workbench`, per-project bindings keyed by project root. One-time derivation from `plotdevice.layout` and `outlineWidth`, leaving old keys readable.
-- [ ] Unit tests for every operation, validation, migration, and LTR/RTL mirroring.
+- [x] Pure model in `workbench/model/`: center stage, `start`/`end` docks, `bottom` shelf, card-stack sections, stacked or tabbed sections, follow/pin bindings, Writing/Plotting modes.
+- [x] Operations (dock, move, collapse, resize, split, pin), validation, presets as data (Write, Revise, Plot), and the minimum page width rule. A split's lock is a project binding, defined in the storage shape; W5c sets it.
+- [x] Versioned zod storage: per-user layout shapes in `plotdevice.workbench`, per-project bindings keyed by project root. One-time derivation from `plotdevice.layout` and `outlineWidth`, leaving old keys readable.
+- [x] Unit tests for every operation, validation, migration, and LTR/RTL mirroring. The `workbench-model-is-pure` dependency rule and an ESLint browser-globals guard land here rather than in W2.
 
 **Done when:** the model and storage are tested in Node, nothing renders them yet, and existing behavior is unchanged.
 
