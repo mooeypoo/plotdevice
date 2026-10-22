@@ -153,6 +153,28 @@ describe('PeekLayer', () => {
     expect(peek.path).toBeNull()
   })
 
+  it('stays open while the pointer is on the card, even over links inside it', async () => {
+    // Regression: leaving a link inside the card started the close timer, and hovering one
+    // replaced the card, so the writer couldn't reach Pin.
+    fake.files.set(ILKA, 'Ilka trusts [[Aunt Bea]] with the ledger.\n')
+    vi.useFakeTimers()
+    const peek = usePeekStore()
+    const layer = mount(PeekLayer)
+    peek.show(ILKA, near, false)
+    await vi.runOnlyPendingTimersAsync()
+    await flushPromises()
+    const dialog = layer.get('[role=dialog]')
+    await dialog.trigger('pointerenter')
+    const inner = dialog.get('a.markdown-link')
+    await inner.trigger('mouseover')
+    await inner.trigger('mouseout', { relatedTarget: document.body })
+    vi.advanceTimersByTime(PEEK_GRACE_MS * 3)
+    expect(peek.path).toBe(ILKA)
+    await dialog.trigger('pointerleave')
+    vi.advanceTimersByTime(PEEK_GRACE_MS + 50)
+    expect(peek.path).toBeNull()
+  })
+
   it('opens toward the right-hand edge in Hebrew', async () => {
     useUiLanguageStore().locale = 'he'
     const layer = mount(PeekLayer)

@@ -60,12 +60,13 @@ function focusout(event: FocusEvent): void {
     tabindex="-1"
     :aria-label="language.t('cards-peek-label', isolate(title))"
     :style="position"
-    @pointerenter="peek.holdOpen()"
-    @pointerleave="peek.endHover()"
+    @pointerenter="peek.enterCard()"
+    @pointerleave="peek.leaveCard()"
     @keydown="keydown"
     @focusout="focusout"
   >
-    <EntryCard :key="peek.path" :path="peek.path" />
+    <!-- Links inside a peek don't peek again, so the card under the pointer never changes. -->
+    <EntryCard :key="peek.path" :path="peek.path" :peekable="false" />
   </div>
 </template>
 

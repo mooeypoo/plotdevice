@@ -18,6 +18,8 @@ const props = defineProps<{
   path: string
   /** A pinned card can collapse to one line; a peek always shows everything. */
   collapsed?: boolean
+  /** Whether links in the card open peeks of their own; not inside a peek. */
+  peekable?: boolean
 }>()
 defineEmits<{ toggleCollapsed: [] }>()
 
@@ -112,8 +114,16 @@ function togglePin(): void {
         class="summary"
         :text="summary"
         :link-targets="manuscript.manuscript?.linkTargets ?? []"
-        @peek="(link, near, byKeyboard) => peek.peekLink(link, path, near, byKeyboard)"
-        @peek-end="peek.endHover()"
+        @peek="
+          (link, near, byKeyboard) => {
+            if (peekable !== false) peek.peekLink(link, path, near, byKeyboard)
+          }
+        "
+        @peek-end="
+          () => {
+            if (peekable !== false) peek.endHover()
+          }
+        "
       />
     </template>
   </article>

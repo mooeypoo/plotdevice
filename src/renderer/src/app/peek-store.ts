@@ -6,7 +6,7 @@ import { placeOf } from './entry-owners'
 import { useEditorLinks } from './use-editor-links'
 
 /** How long a peek stays after the pointer leaves its link, so the pointer can reach the card. */
-export const PEEK_GRACE_MS = 300
+export const PEEK_GRACE_MS = 600
 
 /**
  * The one peek card: which entry it shows and the link it belongs to. Peeks are read-only
@@ -20,14 +20,27 @@ export const usePeekStore = defineStore('peek', () => {
   const takesFocus = ref(false)
   let returnTo: HTMLElement | null = null
   let closeTimer: ReturnType<typeof setTimeout> | undefined
+  /** While the pointer is on the card, nothing closes it: the writer is reading or reaching Pin. */
+  let pointerOnCard = false
 
   function holdOpen(): void {
     if (closeTimer !== undefined) clearTimeout(closeTimer)
     closeTimer = undefined
   }
 
+  function enterCard(): void {
+    pointerOnCard = true
+    holdOpen()
+  }
+
+  function leaveCard(): void {
+    pointerOnCard = false
+    endHover()
+  }
+
   function show(target: string, near: ScreenRect, byKeyboard: boolean): void {
     holdOpen()
+    pointerOnCard = false
     returnTo = document.activeElement instanceof HTMLElement ? document.activeElement : null
     path.value = target
     anchor.value = near
@@ -36,6 +49,7 @@ export const usePeekStore = defineStore('peek', () => {
 
   function close(options: { readonly restoreFocus?: boolean } = {}): void {
     holdOpen()
+    pointerOnCard = false
     path.value = null
     anchor.value = null
     takesFocus.value = false
@@ -45,7 +59,7 @@ export const usePeekStore = defineStore('peek', () => {
 
   /** The pointer left the link or the card: close after a short grace unless it comes back. */
   function endHover(): void {
-    if (path.value === null || takesFocus.value) return
+    if (path.value === null || takesFocus.value || pointerOnCard) return
     holdOpen()
     closeTimer = setTimeout(() => {
       closeTimer = undefined
@@ -53,7 +67,7 @@ export const usePeekStore = defineStore('peek', () => {
     }, PEEK_GRACE_MS)
   }
 
-  return { path, anchor, takesFocus, show, close, endHover, holdOpen }
+  return { path, anchor, takesFocus, show, close, endHover, holdOpen, enterCard, leaveCard }
 })
 
 /** Peeks at links' targets, if they are entries the project lists. */
