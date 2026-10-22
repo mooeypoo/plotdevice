@@ -61,6 +61,7 @@ src/
     ipc/                      # one file per context; maps API calls to use cases, validates payloads with zod
     queries/                  # cross-context read models (outline, timeline grid, interactions, appears-in)
     recovery/                 # project-scoped recovery port; version-bound raw snapshots stay in main
+    book-language/            # pure word catalogs per book language (en/he/qqq) and their resolution (ADR 0019)
     shared-kernel/
     contexts/
       workspace/  manuscript/  codex/  chronology/
@@ -212,6 +213,8 @@ Session-only immutable CodeMirror states preserve undo, selection and scroll by 
 Both reference loads clear old content, expose loading/errors, and use request identities to reject stale results, including A → B → A switching. Titles come from frontmatter and the selected path is shown separately. Reference scroll positions are retained per file during the project session. `app/use-outline-width.ts` handles shared pointer/keyboard resizing and Expand/Restore for Outline and Reference, constraining width to leave 280 px for the main area after the sidebar. Preferred width (240–720 px, default 320) is validated and stored with writing preferences in `userData`; smaller windows constrain the display without overwriting that preference. Existing version-1 preferences acquire the default width without losing other settings. Properties retains its 320 px width.
 
 **Shared file access.** `infrastructure/markdown/entry-files.ts` reads and writes one project's files (body-only saves, key edits, new files, version checks). The manuscript and codex repositories both delegate to it.
+
+**Book words.** The words the app writes into a book (statuses, default titles and headings, `novel.md` comments) and the few it recognizes (`outline_inbox`) come from `book-language/`, resolved from the book's `language` and `settings.vocabulary` (ADR 0019). The composition root keeps the resolved words in one cell, updated on open, refresh and a language change, and hands each context a `words()` getter in its settings, shaped by `book-language/context-words.ts`. Contexts never import `book-language/` or `src/i18n/`, so the interface language never reaches a file (dependency rules `contexts-receive-resolved-words` and `book-content-ignores-interface-language`).
 
 **The open project.** `ipc/project-session.ts` holds the one open project and the per-project use cases the composition root builds for it (repositories bound to that folder, and the project's folder settings). The inspector's choices come from `queries/get-inspector-vocabulary.ts`, which combines the manuscript's statuses with chronology's threads and calendar. Opening another project replaces it; closing clears it.
 

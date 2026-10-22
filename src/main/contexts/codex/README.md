@@ -2,7 +2,7 @@
 
 **Purpose.** Story-world entries and free-form writing: characters, locations, notes, the writer's outlines (`type: outline`), and the untyped files the writer can give a type. Edits change only the body or only the edited keys.
 
-**Main concepts.** `CodexEntry` (`character`, `location`, `note`), character-only overlapping `groups` discovered from files (ADR 0013), `CodexProperties` (editable keys, relationships with "listed by", and unknown or malformed group metadata shown read-only), `CodexChanges` → `CodexWrite`, `newCodexText` (templates that only seed new files), `UntypedFile`. Group edits use existing surgical/version-checked writes; non-character group metadata and tags remain untouched.
+**Main concepts.** `CodexEntry` (`character`, `location`, `note`), character-only overlapping `groups` discovered from files (ADR 0013), `CodexProperties` (editable keys, relationships with "listed by", and unknown or malformed group metadata shown read-only), `CodexChanges` → `CodexWrite`, `newCodexText` (templates that only seed new files; default titles and headings come from the book language through `settings.words()`), `UntypedFile`. Group edits use existing surgical/version-checked writes; non-character group metadata and tags remain untouched.
 
 **Use cases.** Queries: `ListCodex`, `OpenCodexEntry`, `GetCodexProperties`, `PlanCodexRename`. Commands: `SaveCodexText`, `UpdateCodexProperties`, `UpdateRelationships` (ADR 0007), `CreateCodexEntry` (from `templates/<kind>.md` or the default), `EditTemplate`, `CreateOutline`, `SetEntryType`, `RenameCodexEntry`. Every command refuses read-only projects.
 

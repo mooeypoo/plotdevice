@@ -1,7 +1,7 @@
 # ADR 0019: Book language, seeded words, and a minimal file vocabulary
 
-**Status:** proposed (2026-10-22), not yet approved. Amends ADR 0016's statement that
-generated template language remains unchanged. See `docs/plans/workbench-ui-plan.md`.
+**Status:** accepted (2026-10-22). Amends ADR 0016's statement that generated template
+language remains unchanged. See `docs/plans/workbench-ui-plan.md`.
 
 ## Context
 

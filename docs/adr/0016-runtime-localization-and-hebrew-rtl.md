@@ -203,9 +203,10 @@ progress, remaining limitations, and the next slice before ending a session.
   - [ ] **I7e Board (P2–P4):** the first column is at inline-start; beats keep
     document order; drop zones and keyboard moves follow inline direction;
     thread colors are never the only signal.
-  - [ ] **I7f Book language (L1):** Hebrew seeds and the Inbox word are written
+  - [x] **I7f Book language (L1):** Hebrew seeds and the Inbox word are written
     without isolation characters; Auto writing direction falls back to the book
-    language's direction; interface switches still write nothing.
+    language's direction; interface switches still write nothing. (L1 writes the
+    seeds and resolves the Inbox word; P2 is the first to write that word.)
   - [ ] **I7g Real-browser qualification:** docks, splits, card stack, board,
     drag and drop and narrow windows at 960 px, in Hebrew and English (with I6).
 - [ ] **D1 Separate approval:** Hebrew VitePress manual/navigation/search/RTL
@@ -220,8 +221,8 @@ electron-vite build; documentation work also runs its applicable site checks.
 
 Initial scope: I1 only, approved 2026-10-21, including banana-i18n as a dependency.
 Generated template language and alternate part numbering remain unchanged.
-(Proposed amendment, not yet approved: ADR 0019 makes generated words follow
-the book's own `language`, never the interface language.)
+(Amended by ADR 0019, accepted 2026-10-22: generated words follow the book's
+own `language`, never the interface language.)
 Next sessions should consult this ADR and the roadmap, not assume RTL is done
 because the root direction or a partial Hebrew catalog exists.
 

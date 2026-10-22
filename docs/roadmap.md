@@ -313,11 +313,11 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 **Done when:** no code reads the old keys, and an upgrade from a pre-W1 profile keeps the writer's arrangement (tested).
 
 ### L1: Book language and file vocabulary
-- [ ] L1a: Optional top-level `language` in `novel.md`, read by workspace. Initialization asks for it (defaulting to the interface language). An explicit "Book language" action edits only that key.
-- [ ] L1a: Seed catalog in `src/main/book-language/` (`en`, `he`, `qqq`, with parity checks): `novel.md` statuses and comments, default template headings, default titles. The composition root injects resolved seeds into workspace, manuscript, codex, and outline.
-- [ ] L1a: Book-language direction is the base direction for Auto writing direction.
-- [ ] L1b: Vocabulary registry (`outline_inbox`), `settings.vocabulary` overrides, resolution order, retired aliases, and the stray-literal test.
-- [ ] Apply the `file-format.md` changes for `language` and vocabulary. Accept ADR 0019.
+- [x] L1a: Optional top-level `language` in `novel.md`, read by workspace. Initialization asks for it (defaulting to the interface language). An explicit "Book language" action in the project overview edits only that key (contract version 26).
+- [x] L1a: Seed catalog in `src/main/book-language/` (`en`, `he`, `qqq`, with parity checks): `novel.md` statuses and comments, default template headings, default titles. The composition root resolves the words once per open project and hands them to workspace, manuscript and codex through `words()` getters, so a language change applies without reopening.
+- [x] L1a: Book-language direction is the base direction for Auto writing direction (lines without letters follow it; books without `language` keep `auto`).
+- [x] L1b: Vocabulary registry (`outline_inbox`), `settings.vocabulary` overrides, resolution order, retired aliases, the stray-literal test, and three dependency rules (`book-language-is-pure`, `contexts-receive-resolved-words`, `book-content-ignores-interface-language`).
+- [x] Apply the `file-format.md` changes for `language` and vocabulary. Accept ADR 0019.
 
 **Done when:** a new Hebrew project writes Hebrew seeds and `language: he`, an existing project without `language` is byte-identical after opening, and interface-language switches still write nothing.
 

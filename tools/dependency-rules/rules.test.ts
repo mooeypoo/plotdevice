@@ -43,6 +43,15 @@ const expectedViolations = [
     'inner-layers-ignore-outer',
     'src/main/contexts/manuscript/infrastructure/violates-inner-layers-ignore-outer.ts'
   ],
+  ['book-language-is-pure', 'src/main/book-language/violates-book-language-is-pure.ts'],
+  [
+    'contexts-receive-resolved-words',
+    'src/main/queries/violates-contexts-receive-resolved-words.ts'
+  ],
+  [
+    'book-content-ignores-interface-language',
+    'src/main/contexts/manuscript/infrastructure/violates-book-content-ignores-interface-language.ts'
+  ],
   ['main-never-imports-renderer', 'src/main/violates-main-never-imports-renderer.ts'],
   ['preload-is-thin', 'src/preload/violates-preload-is-thin.ts'],
   ['contract-is-standalone', 'src/contract/violates-contract-is-standalone.ts'],
