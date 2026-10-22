@@ -179,7 +179,7 @@ acceptance criteria, and the cross-session checklist.
           - [x] Final production producer/fallback/cache inventory; internal and
             logging-only exceptions recorded in ADR 0016. I2 complete for existing
             displayed diagnostics; untranslated interface text continues under I3.
-- [ ] I3: Complete interface/native translation and Hebrew/qqq coverage.
+- [x] I3: Complete interface/native translation and Hebrew/qqq coverage.
   - [x] I3a: Welcome/initialization controls and nesting explanations, recent-list
     accessibility/labels and dates following the selected interface language.
   - [x] I3b: Project top-bar accessibility/tooltips, complete save/status/focus
@@ -212,8 +212,9 @@ acceptance criteria, and the cross-session checklist.
     suggestions and relationship options by UI locale; preserve values/order.
   - [x] I3p: Translate Project Overview guidance, counts, read-only/empty
     states and right-panel controls/accessibility; preserve project data.
-  - [ ] Remaining I3: audit startup/native-dialog fallbacks and any missed
-    app-owned interface copy.
+  - [x] Completion audit: verify no untranslated app-owned renderer copy,
+    native dialog labels or startup messages remain; preserve OS-owned and
+    technical text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.

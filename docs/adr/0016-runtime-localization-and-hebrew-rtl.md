@@ -99,7 +99,7 @@ progress, remaining limitations, and the next slice before ending a session.
             delivery and independent live notices without discarding drafts.
           - [x] **Remaining coverage:** production producer/fallback/cache audit;
             internal/logging-only exceptions documented in the final I2 handoff.
-- [ ] **I3 Complete translation:** all components/helpers, accessibility text,
+- [x] **I3 Complete translation:** all components/helpers, accessibility text,
   existing notices, number formatting, display collation, native dialogs and
   controlled destructive confirmations; complete Hebrew and qqq coverage.
   - [x] **I3a Welcome/initialization:** creation and nesting explanations,
@@ -136,8 +136,9 @@ progress, remaining limitations, and the next slice before ending a session.
   - [x] **I3p Residual project chrome:** translate Project Overview guidance,
     read-only/empty states, all generated count nouns/numbers, and right-panel
     tabs, resizing, expand/restore actions and empty state; preserve project data.
-  - [ ] **Remaining I3:** audit startup/native-dialog fallbacks and any missed
-    app-owned interface copy.
+  - [x] **I3 completion audit:** no untranslated app-owned renderer copy,
+    native dialog labels or startup messages remain; product identity, OS-owned
+    controls, schema examples and authored content are intentionally unchanged.
 - [ ] **I4 RTL interface:** binder indentation/disclosures, logical layout,
   icons, responsive chrome, timeline coordinates/scroll, sticky matrix headers,
   keyboard/pointer interaction, selection retained by identity.
@@ -1250,8 +1251,8 @@ Verified lint/dependency boundaries (475 modules/2,422 dependencies), typecheck,
 **1,567 tests across 173 files**, and the production electron-vite build. No API
 or dependencies changed. The docs build is also run for this handoff.
 
-**Next session:** propose a bounded remaining-I3 slice before editing.
-Remaining I3 work is a focused audit of startup/native-dialog fallbacks and
-any missed app-owned copy. I3 remains incomplete; RTL geometry/directional
-controls and packaged qualification remain I4-I6, and the separate Hebrew
+**Next session:** begin a bounded I4 RTL-geometry slice only after approval.
+I3 translation is complete for the current interface; full RTL geometry and
+directional controls remain I4, independent writing/reading direction remains
+I5, and real-browser/packaged qualification remains I6. The separate Hebrew
 manual is not implemented.
