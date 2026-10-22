@@ -5,7 +5,12 @@ import { registerUiLanguageIpc } from './ipc/ui-language-ipc'
 import { createCheckStoryDate } from './contexts/chronology/application/queries/check-story-date'
 import { createGetChronologySettings } from './contexts/chronology/application/queries/get-chronology-settings'
 import { createMarkdownChronologyRepository } from './contexts/chronology/infrastructure/markdown-chronology-repository'
-import { createCreateOutline } from './contexts/codex/application/commands/create-outline'
+import { createCreateOutline } from './contexts/outline/application/commands/create-outline'
+import { createSaveOutlineText } from './contexts/outline/application/commands/save-outline-text'
+import { createListOutlines } from './contexts/outline/application/queries/list-outlines'
+import { createOpenOutline } from './contexts/outline/application/queries/open-outline'
+import type { OutlineSettings, OutlineWords } from './contexts/outline/domain/outline-settings'
+import { createMarkdownOutlineRepository } from './contexts/outline/infrastructure/markdown-outline-repository'
 import { createEditTemplate } from './contexts/codex/application/commands/edit-template'
 import { createCreateCodexEntry } from './contexts/codex/application/commands/create-codex-entry'
 import {
@@ -91,7 +96,12 @@ import { createFileRecovery } from './infrastructure/recovery/file-recovery'
 import type { RecoverySession } from './recovery/recovery-session'
 import { createRecoveryHandlers } from './ipc/recovery-handlers'
 import { resolveBookWords } from './book-language/book-words'
-import { codexWordsOf, manuscriptWordsOf, templateWordsOf } from './book-language/context-words'
+import {
+  codexWordsOf,
+  manuscriptWordsOf,
+  outlineWordsOf,
+  templateWordsOf
+} from './book-language/context-words'
 import { createSetBookLanguage } from './contexts/workspace/application/commands/set-book-language'
 import { registerRecoveryIpc } from './ipc/recovery-ipc'
 
@@ -157,6 +167,7 @@ export function composeApplication(language: UiLanguageService): LaunchFolders {
   let bookWords = resolveBookWords(null)
   const words = (): ManuscriptWords => manuscriptWordsOf(bookWords)
   const codexWords = (): CodexWords => codexWordsOf(bookWords)
+  const outlineWords = (): OutlineWords => outlineWordsOf(bookWords)
 
   const session = createProjectSession((root, context: ProjectContext): ProjectUseCases => {
     const settings = context.manuscript
@@ -167,6 +178,12 @@ export function composeApplication(language: UiLanguageService): LaunchFolders {
     const repository = createMarkdownManuscriptRepository(root, recovery.remember)
     const codexRepository = createMarkdownCodexRepository(root, recovery.remember)
     const codexSettings = context.codex
+    const outlineRepository = createMarkdownOutlineRepository(root, recovery.remember)
+    const outlineSettings: OutlineSettings = {
+      readOnly: codexSettings.readOnly,
+      ignoredFolder: codexSettings.templateFolder,
+      words: outlineWords
+    }
     const relocator = createMarkdownEntryRelocator(root)
     const chronology = createMarkdownChronologyRepository(root)
     const getChronologySettings = createGetChronologySettings({ repository: chronology })
@@ -191,9 +208,19 @@ export function composeApplication(language: UiLanguageService): LaunchFolders {
       codex: {
         listCodex: createListCodex({ repository: codexRepository, settings: codexSettings }),
         editTemplate: createEditTemplate({ repository: codexRepository, settings: codexSettings }),
+        // Outlines are their own context; the codex API forwards to it until P2 (ADR 0020).
+        listOutlines: createListOutlines({
+          repository: outlineRepository,
+          settings: outlineSettings
+        }),
         createOutline: createCreateOutline({
-          repository: codexRepository,
-          settings: codexSettings
+          repository: outlineRepository,
+          settings: outlineSettings
+        }),
+        openOutline: createOpenOutline({ repository: outlineRepository }),
+        saveOutlineText: createSaveOutlineText({
+          repository: outlineRepository,
+          readOnly: outlineSettings.readOnly
         }),
         openEntry: createOpenCodexEntry({ repository: codexRepository }),
         saveEntryText: createSaveCodexText({

@@ -14,12 +14,10 @@ export interface CodexSettings {
   readonly words: () => CodexWords
 }
 
-/** The words new codex entries and outlines are written with, in the book's language. */
+/** The words new codex entries are written with, in the book's language. */
 export interface CodexWords {
   /** The title a new entry gets when the writer leaves the name empty. */
   readonly untitled: Readonly<Record<CodexKind, string>>
   /** The headings a new entry starts with when the project has no template for its kind. */
   readonly headings: Readonly<Record<CodexKind, readonly string[]>>
-  /** The title a new outline gets when the writer leaves the name empty. */
-  readonly untitledOutline: string
 }

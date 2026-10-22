@@ -5,7 +5,6 @@ import type { Result } from '../../../../shared-kernel/result'
 import type { CodexWrite } from '../codex-changes'
 import type { CodexEntry, CodexKind } from '../codex-entry'
 import type { CodexSource, RelationshipFields } from '../relationships'
-import type { OutlineFile } from '../outline-file'
 import type { UntypedFile } from '../untyped-file'
 
 /** Everything the codex lists, read from one project. */
@@ -15,8 +14,6 @@ export interface CodexFiles {
   readonly untyped: readonly UntypedFile[]
   /** Every typed file in the project, for unique names and links. */
   readonly linkCandidates: readonly LinkCandidate[]
-  /** The writer's outlines (`type: outline`). */
-  readonly outlines: readonly OutlineFile[]
   /** Each codex entry's frontmatter, for relationships between them. */
   readonly sources: readonly CodexSource[]
 }

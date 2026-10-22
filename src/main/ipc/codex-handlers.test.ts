@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createCreateOutline } from '../contexts/codex/application/commands/create-outline'
 import { createEditTemplate } from '../contexts/codex/application/commands/edit-template'
 import { createCreateCodexEntry } from '../contexts/codex/application/commands/create-codex-entry'
 import {
@@ -15,12 +14,18 @@ import { createListCodex } from '../contexts/codex/application/queries/list-code
 import { createOpenCodexEntry } from '../contexts/codex/application/queries/open-codex-entry'
 import type { CodexSettings } from '../contexts/codex/domain/codex-settings'
 import { InMemoryCodex } from '../contexts/codex/domain/ports/in-memory-codex.fake'
+import { createCreateOutline } from '../contexts/outline/application/commands/create-outline'
+import { createSaveOutlineText } from '../contexts/outline/application/commands/save-outline-text'
+import { createListOutlines } from '../contexts/outline/application/queries/list-outlines'
+import { createOpenOutline } from '../contexts/outline/application/queries/open-outline'
+import type { OutlineSettings } from '../contexts/outline/domain/outline-settings'
+import { InMemoryOutlines } from '../contexts/outline/domain/ports/in-memory-outline.fake'
 import type { EntryRelocator } from '../shared-kernel/entry-relocator'
 import type { ProjectPath } from '../shared-kernel/project-path'
 import { ok } from '../shared-kernel/result'
 import { createCodexHandlers, type CodexHandlers, type CodexUseCases } from './codex-handlers'
 import { resolveBookWords } from '../book-language/book-words'
-import { codexWordsOf } from '../book-language/context-words'
+import { codexWordsOf, outlineWordsOf } from '../book-language/context-words'
 
 /** English words, as the composition root resolves them for a book without a `language`. */
 const ENGLISH_WORDS = resolveBookWords(null)
@@ -34,17 +39,24 @@ const settings: CodexSettings = {
   fileNames: 'ask',
   words: () => codexWordsOf(ENGLISH_WORDS)
 }
+const outlineSettings: OutlineSettings = {
+  readOnly: false,
+  ignoredFolder: p('templates'),
+  words: () => outlineWordsOf(ENGLISH_WORDS)
+}
 const relocator: EntryRelocator = {
   preview: () => Promise.resolve({ changedFiles: [], linkCount: 0, skipped: [] }),
   relocate: () => Promise.resolve(ok({ changedFiles: [], linkCount: 0, skipped: [] }))
 }
 
 let repository: InMemoryCodex
+let outlines: InMemoryOutlines
 let session: CodexUseCases | undefined
 let handlers: CodexHandlers
 
-function useCasesFor(repo: InMemoryCodex): CodexUseCases {
+function useCasesFor(repo: InMemoryCodex, outlineRepo = outlines): CodexUseCases {
   const ports = { repository: repo, settings }
+  const outlinePorts = { repository: outlineRepo, settings: outlineSettings }
   return {
     listCodex: createListCodex(ports),
     openEntry: createOpenCodexEntry(ports),
@@ -54,7 +66,10 @@ function useCasesFor(repo: InMemoryCodex): CodexUseCases {
     updateRelationships: createUpdateRelationships(ports),
     createEntry: createCreateCodexEntry(ports),
     editTemplate: createEditTemplate(ports),
-    createOutline: createCreateOutline(ports),
+    listOutlines: createListOutlines(outlinePorts),
+    createOutline: createCreateOutline(outlinePorts),
+    openOutline: createOpenOutline(outlinePorts),
+    saveOutlineText: createSaveOutlineText({ repository: outlineRepo, readOnly: false }),
     setEntryType: createSetEntryType(ports),
     planRename: createPlanCodexRename({ ...ports, relocator }),
     renameEntry: createRenameCodexEntry({ ...ports, relocator }),
@@ -68,6 +83,8 @@ beforeEach(() => {
   repository.put(ilka, { type: 'character', title: 'Ilka Szabó' }, 'Bio.\n')
   repository.put('manuscript/One.md', { type: 'chapter' })
   repository.put('Loose thoughts.md', {})
+  outlines = new InMemoryOutlines()
+  outlines.put('Working plan.md', { type: 'outline', title: 'Working plan' }, '## One\n')
   session = useCasesFor(repository)
   handlers = createCodexHandlers(() => session)
 })
@@ -102,6 +119,7 @@ describe('codex handlers', () => {
       diagnostic: { reason: 'file-create-failed', path: 'notes/יעל.md', detail: 'EACCES (disk)' }
     } as const
     vi.spyOn(repository, 'createFile').mockResolvedValue({ ok: false, error })
+    vi.spyOn(outlines, 'createFile').mockResolvedValue({ ok: false, error })
     await handlers.listCodex()
     expect(await handlers.createEntry(['note', 'New'])).toEqual({ ok: false, error })
     expect(await handlers.createOutline(['New'])).toEqual({ ok: false, error })
@@ -205,6 +223,28 @@ describe('codex handlers', () => {
     expect(await handlers.getAppearsIn([ilka])).toEqual({
       ok: true,
       value: [{ path: 'One.md', title: 'One', keys: ['pov'] }]
+    })
+  })
+
+  it('lists, opens, saves and creates outlines through the outline context', async () => {
+    expect(await handlers.listCodex()).toMatchObject({
+      ok: true,
+      value: { outlines: [{ path: 'Working plan.md', title: 'Working plan' }] }
+    })
+    const opened = await handlers.openEntry(['Working plan.md'])
+    expect(opened).toMatchObject({ ok: true, value: { path: 'Working plan.md', text: '## One\n' } })
+    if (!opened.ok) return
+    expect(
+      await handlers.saveEntryText(['Working plan.md', '## Two\n', opened.value.version, false])
+    ).toMatchObject({ ok: true })
+    expect(outlines.get('Working plan.md')?.text).toBe('## Two\n')
+    expect(await handlers.createOutline(['Revision'])).toEqual({
+      ok: true,
+      value: { path: 'Revision.md' }
+    })
+    expect(await handlers.openEntry(['Revision.md'])).toMatchObject({
+      ok: true,
+      value: { text: '' }
     })
   })
 

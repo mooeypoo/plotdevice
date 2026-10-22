@@ -5,7 +5,6 @@ import { ok } from '../../../shared-kernel/result'
 import type { CodexSettings } from '../domain/codex-settings'
 import { InMemoryCodex } from '../domain/ports/in-memory-codex.fake'
 import { createCreateCodexEntry } from './commands/create-codex-entry'
-import { createCreateOutline } from './commands/create-outline'
 import { createEditTemplate } from './commands/edit-template'
 import { createPlanCodexRename, createRenameCodexEntry } from './commands/rename-codex-entry'
 import { createSaveCodexText } from './commands/save-codex-text'
@@ -201,12 +200,11 @@ describe('opening, saving, and properties', () => {
 })
 
 describe('CreateCodexEntry', () => {
-  it('provides semantic read-only refusals for creation, outlines, templates and typing without writes', async () => {
+  it('provides semantic read-only refusals for creation, templates and typing without writes', async () => {
     const ports = { repository, settings: { ...settings, readOnly: true } }
     const before = JSON.stringify([...repository.files])
     for (const result of [
       await createCreateCodexEntry(ports)('note', 'New'),
-      await createCreateOutline(ports)('New'),
       await createEditTemplate(ports)('note'),
       await createSetEntryType(ports)(p('Loose thoughts.md'), 'note')
     ])
@@ -343,21 +341,5 @@ describe('templates', () => {
     repository.rawTexts.set('templates/location.md', 'Mine.\n')
     await editTemplate('location')
     expect(await repository.readFileText(p('templates/location.md'))).toBe('Mine.\n')
-  })
-})
-
-describe('outlines', () => {
-  it('creates outlines at the root and lists them by title', async () => {
-    const create = createCreateOutline({ repository, settings })
-    expect(await create('')).toEqual({ ok: true, value: { path: 'Outline.md' } })
-    expect(await create('Revision plan')).toEqual({ ok: true, value: { path: 'Revision plan.md' } })
-    expect(repository.get('Outline.md')?.frontmatter).toEqual({ type: 'outline', title: 'Outline' })
-    repository.put('templates/old outline.md', { type: 'outline', title: 'Old' })
-    const listing = await createListCodex({ repository, settings })()
-    expect(listing.outlines).toEqual([
-      { path: 'Outline.md', title: 'Outline' },
-      { path: 'Revision plan.md', title: 'Revision plan' }
-    ])
-    expect(listing.entries.some((entry) => entry.path === 'Outline.md')).toBe(false)
   })
 })
