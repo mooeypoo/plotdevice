@@ -151,6 +151,14 @@ module.exports = {
       to: { path: ELECTRON }
     },
     {
+      name: 'workbench-model-is-pure',
+      comment:
+        'The layout model is plain TypeScript: no Vue, Pinia, stores, features or storage (ADR 0017).',
+      severity: 'error',
+      from: { path: '^src/renderer/src/workbench/model/', pathNot: TEST_FILE },
+      to: { pathNot: ['^src/renderer/src/workbench/model/', '(^|/)node_modules/zod/'] }
+    },
+    {
       name: 'not-to-test',
       comment: 'Production code never imports tests.',
       severity: 'error',

@@ -81,6 +81,7 @@ src/
   renderer/
     src/
       app/                    # shell, router, layout
+      workbench/              # pure layout model and its userData storage (ADR 0017); no shell yet
       features/
         welcome/  binder/  editor/  inspector/  outline/  reference/  timeline/  codex/  interactions/
       shared/                 # generic UI components and composables
@@ -203,6 +204,8 @@ Session-only immutable CodeMirror states preserve undo, selection and scroll by 
 **Interactions.** `queries/get-interactions.ts` lists, for each character in the book, the chapters (in reading order) whose `pov` or `characters` name them, with the POV ones. The renderer builds the symmetric co-appearance matrix from that (`features/interactions/interaction-matrix.ts`); a picked cell lists the shared chapters.
 
 **Mixed-direction text.** Names and titles can be Hebrew next to Latin text. In templates they go in their own `<bdi>` (or an element with `dir="auto"`); in strings that can't hold markup (tooltips, `aria-label`s) they're wrapped by `shared/isolate.ts` (FSI…PDI), so a right-to-left name never reorders the words or numbers around it.
+
+**Workbench layout.** `renderer/src/workbench/model/` describes the coming workbench (ADR 0017) as pure data: a center stage with up to two read-only splits, `start`/`end` docks and a `bottom` shelf holding sections of catalogued views, in Writing or Plotting mode. Operations return a new layout or a semantic refusal; splitter math reads the interface direction, and width fitting shrinks then hides docks to keep a 280 px page. `storage/` keeps per-user layouts and per-project bindings in versioned, validated `userData` browser storage, derived once from the old `plotdevice.layout` and `outlineWidth` without changing them. Nothing renders it yet; the panels below are still the live shell.
 
 **Side panels.** The left panel has Manuscript and Codex tabs; the right panel has Properties (always the main editor's inspector), Outline, and Reference (ADR 0014). `shared/RenderedMarkdown.vue` and `shared/markdown-view.ts` render both reading panels using `markdown-it`, with HTML disabled, images reduced to descriptions, and only project links made interactive (ADR 0012). Outline linked passages are highlighted; "Edit" opens raw Markdown in the main editor, and the outline panel steps aside while it's there. Reference instead shows a labelled live preview of the same editor draft, never a second writer. Codex entries open in Reference by default, with separate editor actions. Binder parts/chapters have explicit reference buttons; editor and outline links route codex targets to Reference, retaining main-editor navigation for manuscript targets. Reference links stay within Reference.
 

@@ -187,7 +187,7 @@ progress, remaining limitations, and the next slice before ending a session.
 - [ ] **I7 Workbench and plotting (proposed; ADRs 0017–0020, roadmap W/L/P):**
   new geometry and words added by those phases. Each phase also reruns the I6c
   browser sweep for the surfaces it touches, so remaining I4/I5/I6 items do not regress.
-  - [ ] **I7a Layout model (W1):** storage and model use only `start`/`end`;
+  - [x] **I7a Layout model (W1):** storage and model use only `start`/`end`;
     every operation has an LTR and RTL test; switching language mirrors a
     saved layout without rewriting it.
   - [ ] **I7b Docks and splitters (W3–W4):** docks and the shelf place by root
@@ -1451,3 +1451,18 @@ Verified lint/dependency boundaries (477 modules/2,440 dependencies),
 typecheck, **1,585 tests across 174 files**, production electron-vite build,
 Linux AppImage/deb packaging, and docs build/link/asset checks across all
 17 public pages. Existing non-fatal Node/Vite module-type warnings remain.
+
+### I7a Workbench layout model (W1)
+
+The workbench model (`src/renderer/src/workbench/model/`) names regions only
+`start`, `end`, `bottom` and `center`; a test checks that no preset contains a
+physical side, so a language switch mirrors saved layouts without rewriting
+them. Splitter math (`direction.ts`) converts pointer deltas and arrow keys for
+both docks in LTR and RTL and matches the existing I4b panel resizing exactly.
+Layout names compare after NFC and case-folding and count Hebrew letters with
+niqqud as one character. Nothing renders the model yet, so no geometry changed;
+I7b qualifies docks and splitters when the shell lands (W3).
+
+Verified lint/dependency boundaries (501 modules/2,517 dependencies),
+typecheck, **1,676 tests across 183 files**, and the production electron-vite
+build. No API, message or dependency changed.

@@ -60,6 +60,19 @@ export default defineConfig(
     rules: { 'no-restricted-syntax': 'off' }
   },
   {
+    // The layout model is pure (ADR 0017); dependency rules can't see browser globals.
+    files: ['src/renderer/src/workbench/model/**/*.ts'],
+    rules: {
+      'no-restricted-globals': [
+        'error',
+        ...['window', 'document', 'localStorage', 'sessionStorage', 'navigator'].map((name) => ({
+          name,
+          message: 'The workbench model is pure; read the browser in the shell or storage.'
+        }))
+      ]
+    }
+  },
+  {
     files: ['**/*.{js,mjs,cjs}'],
     extends: [tseslint.configs.disableTypeChecked]
   },
