@@ -120,6 +120,8 @@ progress, remaining limitations, and the next slice before ending a session.
     and locale-aware numbers without changing story data or layout.
   - [x] **I3i Interactions:** matrix controls, notices, cell/detail accessibility,
     selected-pair copy, and UI-locale counts without changing matrix behavior.
+  - [x] **I3j Codex profile:** character/location/note labels, aliases, groups,
+    role/birth, appearances, additional properties, and character relationships.
   - [ ] **Remaining I3:** other inspector panels, reading text, remaining
     locale-aware formatting/collation, native dialog/confirmation and startup
     text.
@@ -1115,8 +1117,29 @@ checks passed for all 16 public pages. No API or dependencies changed; RTL
 matrix geometry remains I4.
 
 **Next session:** propose a bounded inspector translation slice before editing,
-starting with Codex properties. Remaining I3 work includes Outline/Template
-inspectors, reading text, other locale-aware formatting/collation surfaces,
-native dialog/confirmation wording and startup fallback. I3 remains incomplete;
-RTL geometry/directional controls and packaged qualification remain I4-I6, and
-the separate Hebrew manual is not implemented.
+starting with the Outline and Template panels. Remaining I3 work includes those
+panels, reading text, other locale-aware formatting/collation surfaces, native
+dialog/confirmation wording and startup fallback. I3 remains incomplete; RTL
+geometry/directional controls and packaged qualification remain I4-I6, and the
+separate Hebrew manual is not implemented.
+
+### I3j Codex profile and relationships inspector
+
+The Codex Properties inspector now translates its kind/name/title, alias, group,
+role, birth, appearances, additional-property and read-only guidance. Character
+relationships translate their controls, placeholders, accessible names,
+read-only explanation, incoming-relationship heading and one-way note. The
+missing-target marker is localized at display time without changing its link.
+Unknown keys/values, authored names, aliases, groups, roles, relationship
+kinds/notes, and save payloads remain exact; dynamic names are isolated.
+
+Language switches preserve focused profile/relationship drafts and do not
+re-query project properties, appearances or birth-date checks, or write project
+data. Existing English date/error semantics and relationship safety behavior
+remain unchanged. Tests cover Hebrew labels and accessibility, both editable and
+read-only relationship states, missing-target preservation, unchanged authored
+values, drafts and no locale-triggered queries/writes. Verified
+lint/dependency boundaries (471 modules/2,367 dependencies), typecheck,
+**1,546 tests across 169 files**, and production electron-vite build.
+Documentation build/link/asset checks passed for all 16 public pages. No API or
+dependencies changed.

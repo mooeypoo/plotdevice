@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { isolate } from '../../shared/isolate'
 
 const props = defineProps<{
   label: string
@@ -10,6 +12,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{ change: [items: string[]] }>()
+const language = useUiLanguageStore()
 
 const draft = ref('')
 const id = `text-list-${Math.random().toString(36).slice(2)}`
@@ -37,7 +40,7 @@ function remove(item: string): void {
         <button
           type="button"
           class="remove"
-          :aria-label="`Remove ${item}`"
+          :aria-label="language.t('codex-inspector-remove-item', isolate(item))"
           :disabled="disabled"
           @click="remove(item)"
         >

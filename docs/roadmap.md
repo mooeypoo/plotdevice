@@ -198,6 +198,8 @@ acceptance criteria, and the cross-session checklist.
     locale-aware chapter/day-count numbers; no story data or layout changes.
   - [x] I3i: Interactions controls, notices, cell/detail accessibility and
     UI-locale counts; preserve authored names, selection and project data.
+  - [x] I3j: Codex profile fields, appearances, relationships and accessibility;
+    preserve authored values, drafts and relationship behavior.
   - [ ] Remaining I3: other inspector panels, reading text, locale-aware
     formatting/collation surfaces, native dialog/confirmation and startup text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.

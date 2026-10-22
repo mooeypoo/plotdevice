@@ -1,11 +1,16 @@
 <script setup lang="ts">
+import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useCodexStore } from '../../app/codex-store'
 import { useReferenceStore } from '../../app/reference-store'
+import { isolate } from '../../shared/isolate'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import { linkLabel } from './link-targets'
 import { useRelationships } from './use-relationships'
 
 defineProps<{ disabled: boolean }>()
 
+const language = useUiLanguageStore()
+const { formatNumber } = useChromePresentation()
 const codex = useCodexStore()
 const reference = useReferenceStore()
 const { rows, characters, add, remove, save } = useRelationships()
@@ -13,27 +18,35 @@ const { rows, characters, add, remove, save } = useRelationships()
 
 <template>
   <section class="field" aria-labelledby="relationships-heading">
-    <h3 id="relationships-heading" class="eyebrow">Relationships</h3>
+    <h3 id="relationships-heading" class="eyebrow">
+      {{ language.t('codex-inspector-relationships') }}
+    </h3>
 
     <template v-if="codex.properties?.relationshipsEditable">
       <div v-for="(row, index) in rows" :key="index" class="relationship">
         <div class="line">
           <select
             v-model="row.target"
-            :aria-label="`Relationship ${index + 1}: with`"
+            :aria-label="language.t('codex-inspector-relationship-with', formatNumber(index + 1))"
             dir="auto"
             :disabled="disabled"
             @change="save"
           >
-            <option value="" disabled>Who…</option>
+            <option value="" disabled>{{ language.t('codex-inspector-relationship-who') }}</option>
             <option v-for="option in characters" :key="option.target" :value="option.target">
-              {{ option.label }}
+              {{
+                option.missing
+                  ? language.t('codex-inspector-relationship-missing', isolate(option.target))
+                  : option.label
+              }}
             </option>
           </select>
           <button
             type="button"
             class="remove"
-            :aria-label="`Remove relationship ${index + 1}`"
+            :aria-label="
+              language.t('codex-inspector-relationship-remove', formatNumber(index + 1))
+            "
             :disabled="disabled"
             @click="remove(index)"
           >
@@ -44,8 +57,8 @@ const { rows, characters, add, remove, save } = useRelationships()
           v-model="row.kind"
           type="text"
           dir="auto"
-          placeholder="Kind: mentor, sister, rival…"
-          :aria-label="`Relationship ${index + 1}: kind`"
+          :placeholder="language.t('codex-inspector-relationship-kind-placeholder')"
+          :aria-label="language.t('codex-inspector-relationship-kind', formatNumber(index + 1))"
           :disabled="disabled"
           @change="save"
         />
@@ -53,14 +66,14 @@ const { rows, characters, add, remove, save } = useRelationships()
           v-model="row.note"
           type="text"
           dir="auto"
-          placeholder="Note"
-          :aria-label="`Relationship ${index + 1}: note`"
+          :placeholder="language.t('codex-inspector-relationship-note-placeholder')"
+          :aria-label="language.t('codex-inspector-relationship-note', formatNumber(index + 1))"
           :disabled="disabled"
           @change="save"
         />
       </div>
       <button type="button" class="quiet small" :disabled="disabled" @click="add">
-        + Add relationship
+        {{ language.t('codex-inspector-relationship-add') }}
       </button>
     </template>
 
@@ -68,16 +81,15 @@ const { rows, characters, add, remove, save } = useRelationships()
       <ul class="plain">
         <li v-for="(relationship, index) in codex.properties?.relationships ?? []" :key="index">
           <span dir="auto">{{ linkLabel(relationship.with) }}</span>
-          <span v-if="relationship.kind" class="muted"> · {{ relationship.kind }}</span>
+          <span v-if="relationship.kind" class="muted" dir="auto">
+            · {{ relationship.kind }}
+          </span>
           <p v-if="relationship.note" class="muted small-text" dir="auto">
             {{ relationship.note }}
           </p>
         </li>
       </ul>
-      <p class="note">
-        This file writes its relationships in a way Plot Device can’t edit safely, so they’re shown
-        read-only. Edit them in the file itself.
-      </p>
+      <p class="note">{{ language.t('codex-inspector-relationships-read-only') }}</p>
     </template>
 
     <p v-if="codex.relationshipsError" class="note warn" role="alert">
@@ -85,18 +97,18 @@ const { rows, characters, add, remove, save } = useRelationships()
     </p>
 
     <div v-if="codex.listedBy.length > 0" class="listed-by">
-      <h4 class="eyebrow">Listed by</h4>
+      <h4 class="eyebrow">{{ language.t('codex-inspector-listed-by') }}</h4>
       <ul class="plain">
         <li v-for="other in codex.listedBy" :key="other.path">
           <button type="button" class="link" dir="auto" @click="reference.open(other.path)">
             {{ other.title }}
           </button>
-          <span v-if="other.kind" class="muted"> · {{ other.kind }}</span>
+          <span v-if="other.kind" class="muted" dir="auto"> · {{ other.kind }}</span>
           <p v-if="other.note" class="muted small-text" dir="auto">{{ other.note }}</p>
         </li>
       </ul>
       <p class="muted small-text">
-        Relationships are one-way: these are written in the other characters’ files.
+        {{ language.t('codex-inspector-relationships-one-way') }}
       </p>
     </div>
   </section>

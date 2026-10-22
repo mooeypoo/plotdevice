@@ -15,6 +15,7 @@ export interface RelationshipRow {
 export interface CharacterOption {
   readonly target: string
   readonly label: string
+  readonly missing: boolean
 }
 
 /** Editing the open character's relationships: rows, choices, and saving. */
@@ -56,13 +57,14 @@ export function useRelationships(): {
       .filter((choice) => choice.type === 'character' && choice.path !== self)
       .map((choice) => ({
         target: choice.target,
-        label: titles.value.get(choice.path) ?? choice.name
+        label: titles.value.get(choice.path) ?? choice.name,
+        missing: false
       }))
     // A relationship to someone without a file is kept as written.
     const known = new Set(options.map((option) => nameKey(option.target)))
     const unknown = rows.value
       .filter((row) => row.target !== '' && !known.has(nameKey(row.target)))
-      .map((row) => ({ target: row.target, label: `${row.target} (no file)` }))
+      .map((row) => ({ target: row.target, label: `${row.target} (no file)`, missing: true }))
     return [...options, ...unknown].sort((a, b) => a.label.localeCompare(b.label))
   })
 

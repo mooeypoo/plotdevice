@@ -15,7 +15,9 @@ import type { StoryDateCheckDto } from '../../../../contract/dtos'
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 
 beforeEach(async () => {
+  localStorage.clear()
   setActivePinia(createPinia())
+  useUiLanguageStore().locale = 'en'
   fake = createFakePlotDeviceApi()
   plotDeviceApi.current = () => fake.api
   await Promise.all([useManuscriptStore().load(), useCodexStore().load()])
@@ -111,7 +113,10 @@ describe('CodexInspector', () => {
       'Main cast',
       'Part 2'
     ])
-    await panel.get('button[aria-label="Remove Main cast"]').trigger('click')
+    const removeGroup = panel
+      .findAll('button.remove')
+      .find((button) => button.attributes('aria-label')?.includes('Main cast'))
+    await removeGroup?.trigger('click')
     await flushPromises()
     expect(useCodexStore().properties?.groups).toEqual(['Part 2'])
     panel.unmount()
@@ -133,6 +138,11 @@ describe('CodexInspector', () => {
       panel.get('input[placeholder="Choose or add a group…"]').attributes('disabled')
     ).toBeDefined()
     expect(panel.get('[role="alert"]').text()).toContain('read-only')
+    expect(panel.text()).toContain('{"main":true}')
+    await useUiLanguageStore().change('he')
+    await flushPromises()
+    expect(panel.get('[role="alert"]').text()).toContain('השדה לקריאה בלבד')
+    expect(panel.text()).toContain('{"main":true}')
     await useEditorStore().open('notes/Research.md')
     await flushPromises()
     expect(panel.find('input[placeholder="Choose or add a group…"]').exists()).toBe(false)
@@ -171,5 +181,45 @@ describe('CodexInspector', () => {
     expect(panel.text()).toContain('Title')
     expect(panel.find('#codex-role').exists()).toBe(false)
     expect(panel.text()).not.toContain('Appears in')
+  })
+
+  it('translates profile labels live while retaining drafts and avoiding project access', async () => {
+    await useEditorStore().open('characters/Ilka.md')
+    const propertiesRead = vi.spyOn(fake.api.codex, 'getProperties')
+    const appearancesRead = vi.spyOn(fake.api.codex, 'getAppearsIn')
+    const dateCheck = vi.spyOn(fake.api.inspector, 'checkStoryDate')
+    const propertyWrite = vi.spyOn(fake.api.codex, 'updateProperties')
+    const relationshipWrite = vi.spyOn(fake.api.codex, 'updateRelationships')
+    const panel = mount(CodexInspector)
+    await flushPromises()
+    const role = panel.get<HTMLInputElement>('#codex-role')
+    role.element.value = 'Unsaved role'
+    await role.trigger('input')
+
+    const propertyReads = propertiesRead.mock.calls.length
+    const appearanceReads = appearancesRead.mock.calls.length
+    const dateChecks = dateCheck.mock.calls.length
+    const language = useUiLanguageStore()
+    await language.change('he')
+    await flushPromises()
+
+    expect(panel.get('.inspector').attributes('aria-label')).toBe('מאפיינים')
+    expect(panel.text()).toContain('כינויים')
+    expect(panel.text()).toContain('קבוצות')
+    expect(panel.text()).toContain('תפקיד')
+    expect(panel.text()).toContain('לידה')
+    expect(panel.text()).toContain('הופעות ב־')
+    expect(panel.text()).toContain('נקודת מבט')
+    expect(panel.text()).toContain('קשרים')
+    expect(
+      panel.findAll('button.remove').some((button) => button.attributes('aria-label') === 'הסרת ⁨Ilk⁩')
+    ).toBe(true)
+    expect(panel.get<HTMLInputElement>('#codex-role').element.value).toBe('Unsaved role')
+    expect(propertiesRead).toHaveBeenCalledTimes(propertyReads)
+    expect(appearancesRead).toHaveBeenCalledTimes(appearanceReads)
+    expect(dateCheck).toHaveBeenCalledTimes(dateChecks)
+    expect(propertyWrite).not.toHaveBeenCalled()
+    expect(relationshipWrite).not.toHaveBeenCalled()
+    panel.unmount()
   })
 })

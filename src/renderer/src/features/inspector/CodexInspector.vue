@@ -4,13 +4,15 @@ import type { CodexChangesDto } from '../../../../contract/dtos'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { useInspectorStore } from '../../app/inspector-store'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
+import { isolate } from '../../shared/isolate'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
+import { formatStoryDateReading } from '../../shared/story-date-format'
 import RelationshipsEditor from './RelationshipsEditor.vue'
 import RenameOffer from './RenameOffer.vue'
 import TextListInput from './TextListInput.vue'
 import { characterGroupNames } from '../codex/character-list'
-import { useUiLanguageStore } from '../../app/ui-language-store'
-import { formatStoryDateReading } from '../../shared/story-date-format'
 import { useStoryDateCheck } from './use-story-date-check'
 
 const codex = useCodexStore()
@@ -18,6 +20,7 @@ const editor = useEditorStore()
 const inspector = useInspectorStore()
 const workspace = useWorkspaceStore()
 const language = useUiLanguageStore()
+const { formatNumber } = useChromePresentation()
 
 const properties = computed(() => codex.properties)
 const groupNames = computed(() =>
@@ -52,7 +55,11 @@ const { reading: bornCheck, error: bornCheckError } = useStoryDateCheck(
   () => (properties.value?.kind === 'character' ? properties.value.path : undefined)
 )
 
-const KIND_NAMES = { character: 'Character', location: 'Location', note: 'Note' } as const
+const KIND_KEYS = {
+  character: 'entry-place-character',
+  location: 'entry-place-location',
+  note: 'entry-place-note'
+} as const
 
 async function save(changes: CodexChangesDto): Promise<void> {
   busy.value = true
@@ -67,29 +74,37 @@ function saveText(field: 'title' | 'role' | 'born', value: string): void {
   if (value.trim() !== (properties.value?.[field] ?? '').trim()) void save({ [field]: value })
 }
 
-const KEY_NAMES = { pov: 'point of view', characters: 'characters', location: 'location' } as const
+const KEY_KEYS = {
+  pov: 'codex-inspector-appears-pov',
+  characters: 'codex-inspector-appears-characters',
+  location: 'codex-inspector-appears-location'
+} as const
 </script>
 
 <template>
-  <aside class="inspector" aria-label="Inspector">
+  <aside class="inspector" :aria-label="language.t('chrome-inspector')">
     <p v-if="inspector.vocabularyError" class="hint bad" role="alert">
       {{ inspector.vocabularyError }}
     </p>
     <template v-if="properties">
       <header>
-        <span class="eyebrow">{{ KIND_NAMES[properties.kind] }}</span>
+        <span class="eyebrow">{{ language.t(KIND_KEYS[properties.kind]) }}</span>
       </header>
 
       <div class="field">
         <label class="eyebrow" for="codex-title">{{
-          properties.kind === 'note' ? 'Title' : 'Name'
+          properties.kind === 'note'
+            ? language.t('codex-inspector-title')
+            : language.t('codex-inspector-name')
         }}</label>
         <input
           id="codex-title"
           v-model="title"
           type="text"
           dir="auto"
-          :placeholder="`${editor.entry?.title ?? ''} (from the file name)`"
+          :placeholder="
+            language.t('codex-inspector-title-placeholder', isolate(editor.entry?.title ?? ''))
+          "
           :disabled="disabled"
           @change="saveText('title', title)"
         />
@@ -98,9 +113,9 @@ const KEY_NAMES = { pov: 'point of view', characters: 'characters', location: 'l
 
       <TextListInput
         v-if="properties.kind !== 'note'"
-        label="Also known as"
+        :label="language.t('codex-inspector-aliases')"
         :items="properties.aliases"
-        placeholder="Add another name…"
+        :placeholder="language.t('codex-inspector-alias-placeholder')"
         :disabled="disabled"
         @change="save({ aliases: $event })"
       />
@@ -108,37 +123,39 @@ const KEY_NAMES = { pov: 'point of view', characters: 'characters', location: 'l
       <template v-if="properties.kind === 'character'">
         <TextListInput
           :key="properties.path"
-          label="Groups"
+          :label="language.t('codex-inspector-groups')"
           :items="properties.groups ?? []"
-          placeholder="Choose or add a group…"
+          :placeholder="language.t('codex-inspector-group-placeholder')"
           :suggestions="groupNames"
           :disabled="disabled || properties.groupsEditable === false"
           @change="save({ groups: characterGroupNames($event) })"
         />
         <p v-if="properties.groupsEditable === false" class="hint bad" role="alert">
-          Groups must be text or a list of names. This field is read-only; the original value is
-          shown below. Edit it in the file to enable group changes.
+          {{ language.t('codex-inspector-groups-read-only') }}
         </p>
         <div class="field">
-          <label class="eyebrow" for="codex-role">Role</label>
+          <label class="eyebrow" for="codex-role">{{ language.t('codex-inspector-role') }}</label>
           <input
             id="codex-role"
             v-model="role"
             type="text"
             dir="auto"
-            placeholder="Protagonist, mentor…"
+            :placeholder="language.t('codex-inspector-role-placeholder')"
             :disabled="disabled"
             @change="saveText('role', role)"
           />
         </div>
         <div class="field">
-          <label class="eyebrow" for="codex-born">Born</label>
+          <label class="eyebrow" for="codex-born">{{ language.t('codex-inspector-born') }}</label>
           <input
             id="codex-born"
             v-model="born"
             type="text"
+            dir="auto"
             :placeholder="
-              inspector.vocabulary?.calendar === 'day-count' ? 'Day, for example -4000' : 'YYYY'
+              inspector.vocabulary?.calendar === 'day-count'
+                ? language.t('inspector-day-count-placeholder', formatNumber(-4000))
+                : language.t('codex-inspector-born-year-placeholder')
             "
             :disabled="disabled"
             @change="saveText('born', born)"
@@ -157,7 +174,7 @@ const KEY_NAMES = { pov: 'point of view', characters: 'characters', location: 'l
       </template>
 
       <section v-if="properties.kind !== 'note'" class="field">
-        <h3 class="eyebrow">Appears in</h3>
+        <h3 class="eyebrow">{{ language.t('codex-inspector-appears-in') }}</h3>
         <p
           v-if="codex.appearsInError"
           class="hint bad"
@@ -171,21 +188,30 @@ const KEY_NAMES = { pov: 'point of view', characters: 'characters', location: 'l
             <button type="button" class="link" dir="auto" @click="editor.open(chapter.path)">
               {{ chapter.title }}
             </button>
-            <span class="muted"> · {{ chapter.keys.map((key) => KEY_NAMES[key]).join(', ') }}</span>
+            <span class="muted">
+              · {{ chapter.keys.map((key) => language.t(KEY_KEYS[key])).join(', ') }}
+            </span>
           </li>
         </ul>
-        <p v-else class="empty">No chapter lists this {{ properties.kind }} yet.</p>
+        <p v-else class="empty">
+          {{
+            language.t(
+              'codex-inspector-appears-empty',
+              isolate(editor.entry?.title ?? '')
+            )
+          }}
+        </p>
       </section>
 
       <section v-if="properties.otherKeys.length > 0" class="field">
-        <h3 class="eyebrow">Other properties</h3>
+        <h3 class="eyebrow">{{ language.t('codex-inspector-other-properties') }}</h3>
         <dl class="others">
           <template v-for="other in properties.otherKeys" :key="other.key">
-            <dt>{{ other.key }}</dt>
+            <dt dir="auto">{{ other.key }}</dt>
             <dd dir="auto">{{ other.value }}</dd>
           </template>
         </dl>
-        <p class="muted small-text">Shown as written. Edit them in the file.</p>
+        <p class="muted small-text">{{ language.t('codex-inspector-other-note') }}</p>
       </section>
 
       <p v-if="editor.actionError" class="note warn" role="alert">{{ editor.actionError }}</p>
