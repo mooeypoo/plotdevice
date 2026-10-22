@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { findView } from '../workbench/model/layout'
 import { selectSection, setAreaCollapsed, setCenterView } from '../workbench/model/operations'
@@ -189,3 +189,6 @@ function writeRecord(key: string, value: Record<string, unknown>): void {
     // Storage can be full or unavailable; the last entry just won't be remembered.
   }
 }
+
+// Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useLayoutStore, import.meta.hot))

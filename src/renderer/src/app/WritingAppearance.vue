@@ -20,7 +20,8 @@ const directionLabels = {
 
 function changeWritingDirection(event: Event): void {
   const target = event.currentTarget
-  if (!(target instanceof HTMLSelectElement)) throw new Error('Expected the writing direction select')
+  if (!(target instanceof HTMLSelectElement))
+    throw new Error('Expected the writing direction select')
   preferences.setWritingDirection(target.value)
 }
 </script>
@@ -96,6 +97,15 @@ function changeWritingDirection(event: Event): void {
         </option>
       </select>
     </div>
+    <div class="control toggle">
+      <input
+        id="fade-while-typing"
+        type="checkbox"
+        :checked="preferences.fadeWhileTyping"
+        @change="preferences.setFadeWhileTyping(($event.target as HTMLInputElement).checked)"
+      />
+      <label for="fade-while-typing">{{ language.t('appearance-fade') }}</label>
+    </div>
     <footer>
       <span>{{ language.t('appearance-all-projects') }}</span>
       <button type="button" class="quiet reset" @click="preferences.resetTypography()">
@@ -109,6 +119,13 @@ function changeWritingDirection(event: Event): void {
 </template>
 
 <style scoped>
+.control.toggle {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+}
+
 .appearance-trigger {
   display: flex;
   align-items: center;

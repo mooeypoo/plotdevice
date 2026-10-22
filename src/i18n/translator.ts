@@ -209,6 +209,9 @@ type ParameterizedMessages = {
   'cast-chip-mentioned': [title: string]
   'split-open-beside-label': [title: string]
   'split-region': [title: string]
+  'palette-count': [count: number, formatted: string]
+  'palette-beside-hint': [shortcut: string]
+  'palette-use-layout': [name: string]
 }
 type MessageArguments<Key extends MessageKey> = Key extends keyof ParameterizedMessages
   ? ParameterizedMessages[Key]

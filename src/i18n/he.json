@@ -628,5 +628,16 @@
   "split-empty": "אפשר לפתוח כאן פרק לצד העורך כדי להשוות אותו לפרק שכותבים: בוחרים \"פתיחה לצד\" בכרטיס, בחלונית העיון או בלשונית.",
   "split-all-locked": "שתי החלוניות נעולות. כדי לפתוח מסמך נוסף לצד העורך, יש לבטל נעילה של אחת מהן.",
   "split-region": "לצד העורך: $1",
-  "split-resize": "רוחב החלונית"
+  "split-resize": "רוחב החלונית",
+  "menu-command-palette": "לוח פקודות…",
+  "palette-title": "לוח פקודות",
+  "palette-placeholder": "מעבר לרשומה, תצוגה, פריסה או פקודה…",
+  "palette-count": "$2 {{PLURAL:$1|תוצאה|תוצאות|תוצאות}}",
+  "palette-empty": "אין התאמות.",
+  "palette-kind-view": "תצוגה",
+  "palette-kind-layout": "פריסה",
+  "palette-kind-command": "פקודה",
+  "palette-beside-hint": "$1 פותח לצד העורך",
+  "palette-use-layout": "מעבר לפריסה $1",
+  "appearance-fade": "עמעום החלוניות בזמן הקלדה"
 }

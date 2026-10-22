@@ -36,6 +36,7 @@ export function installAppMenu(
     command(t('menu-toggle-outline'), 'toggle-outline', 'CommandOrControl+Shift+O'),
     command(t('menu-focus'), 'toggle-focus-mode', 'CommandOrControl+Shift+F'),
     command(t('menu-classic-layout'), 'toggle-classic-layout'),
+    command(t('menu-command-palette'), 'command-palette', 'CommandOrControl+K'),
     { type: 'separator' },
     command(t('view-write'), 'write'),
     command(t('view-overview'), 'overview'),

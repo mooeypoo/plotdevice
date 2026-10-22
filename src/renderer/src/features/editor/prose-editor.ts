@@ -1,7 +1,7 @@
-import { autocompletion } from '@codemirror/autocomplete'
+import { acceptCompletion, autocompletion } from '@codemirror/autocomplete'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
-import { Compartment, EditorState, StateEffect, type Extension } from '@codemirror/state'
+import { Compartment, EditorState, Prec, StateEffect, type Extension } from '@codemirror/state'
 import { EditorView, keymap, placeholder } from '@codemirror/view'
 import type { LinkTargetDto } from '../../../../contract/dtos'
 import type { WritingDirection } from '../../app/writing-preferences-store'
@@ -119,6 +119,9 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
       icons: false,
       activateOnTyping: true
     }),
+    // Tab accepts the highlighted suggestion, as Enter does; with no suggestion open it does
+    // nothing here, so Tab still moves focus out of the editor.
+    Prec.highest(keymap.of([{ key: 'Tab', run: acceptCompletion }])),
     completionTheme,
     EditorView.domEventHandlers({
       mousemove(event, view) {

@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import type {
   ApiResult,
@@ -231,3 +231,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     backToWelcome
   }
 })
+
+// Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useWorkspaceStore, import.meta.hot))

@@ -1,6 +1,7 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 import type { AppMenuCommand } from '../../../contract/api'
 import { useLayoutStore } from './layout-store'
+import { usePaletteStore } from './palette-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useWorkbenchNavigation } from './use-workbench-navigation'
 import { useWorkbenchStore } from './workbench-store'
@@ -10,12 +11,16 @@ export function useMenuCommands(): void {
   const layout = useLayoutStore()
   const navigation = useWorkbenchNavigation()
   const workbench = useWorkbenchStore()
+  const palette = usePaletteStore()
   let stopListening: (() => void) | undefined
   const actions: Record<AppMenuCommand, () => void> = {
     'toggle-binder': layout.toggleBinder,
     'toggle-inspector': layout.toggleInspector,
     'toggle-outline': layout.toggleOutline,
     'toggle-focus-mode': layout.toggleFocusMode,
+    'command-palette': () => {
+      palette.show()
+    },
     'toggle-classic-layout': () => {
       workbench.setShell(workbench.shell === 'classic' ? 'workbench' : 'classic')
     },

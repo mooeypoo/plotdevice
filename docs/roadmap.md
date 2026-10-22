@@ -302,7 +302,7 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 - [x] W5a: Peek on project links (hover in rendered panels, Ctrl/Cmd+hover in the editor, Alt+Enter on a focused link or the caret's link; Ctrl/Cmd+Shift+Enter stays Return to writing), entry cards with live drafts, the card stack (collapse, reorder by drag or menu, per-user fields by entry kind), and pin/unpin from peeks, cards and Reference. Pinning Reference makes a card, as the brief describes, rather than freezing the panel.
 - [x] W5b: Cast strip above the page (from `pov`, `characters`, `location`, and the live draft's body links; chips peek, pin, or drag to Cards) and the chapter card (synopsis, status, POV, threads, linked outline lines from the current outline's live draft). Both follow Writing; Write and Revise show the strip, Revise adds the chapter card.
 - [x] W5c: Open beside (from cards, peeks, Reference and the tab bar) as a read-only split at inline-end of the page, up to two; lock keeps a split's document; Write here swaps the split's document into the editor through the navigation queue and pins it as Writing. Splits resize by pointer and keyboard, shrink to keep the page readable, and follow app moves.
-- [ ] W5d: Command palette (entries, views, layouts, modes, menu commands) and chrome fading while typing.
+- [x] W5d: Command palette (View → Command Palette…, Ctrl/Cmd+K; contract version 25): entries by title or alias (Enter opens as the side panels do, Shift+Enter beside), views, layouts and menu commands, matched ignoring case, accents and niqqud. Modes join the palette with plotting (P2). Optional "Fade panels while typing" in Writing appearance, off by default.
 
 **Done when:** each sub-phase works by keyboard alone, peeks and cards show live drafts without saving, and Write here never drops a draft or bypasses recovery (tested).
 
@@ -349,6 +349,30 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 
 **Done when:** each edit changes only its lines or keys, and every edit has a keyboard path.
 
+### U1: Simplicity — UX research, audit and redesign
+Guiding principle (writer, 2026-10-22): the interface should be beautifully simple, with advanced
+features easy to reach but never cluttering the page. Prioritize features *with* simplicity. This is
+the final tightening step for the W/L/P work, planned and approved on its own before any change.
+
+- [ ] U1a Research and audit: inventory every control, menu, tab, button and shortcut across the
+  top bar, panels, ⋯ menus, document tabs, native menus and the palette; map each to the tasks it
+  serves; find duplicates, dead ends and unclear names. Walk real writing, revising and plotting
+  sessions in English and Hebrew.
+- [ ] U1b Vocabulary: one name per concept everywhere, in a glossary (en/he) the catalogs follow.
+  Known clashes: "Binder" (button, menu) vs "Manuscript" (tab) for the same panel; "Inspector"
+  (button) vs "Properties" (tab); "view", "panel" and "layout" are not explained anywhere.
+- [ ] U1c Information architecture: what is always visible, what is one step away (palette, a
+  single menu), what is advanced. Decide the fate of each duplicate control; prefer progressive
+  disclosure over more buttons.
+- [ ] U1d Visual system: type scale, spacing, color tokens (dark and the planned light theme),
+  shapes (pills, chips, cards), icon set with visible labels where needed, and focus/hover states;
+  checked for contrast and RTL.
+- [ ] U1e A written redesign plan with before/after mock-ups, an ADR for the visual system and
+  naming, and phased implementation steps that keep every keyboard path and RTL guarantee.
+
+**Done when:** the redesign plan and glossary are approved; implementation follows as its own
+phases.
+
 ## Proposed release and documentation program
 
 The [release plan](release-plan.md) tracks approved work: MVP version policy,
@@ -376,6 +400,7 @@ native deb permissions and publisher authentication are not changed by metadata.
 - Relationship direction, and what happens when both characters declare the same relationship.
 
 ## Later
+- Chrome cleanup (writer feedback on W5) is now phase U1 above.
 - Workbench follow-ups (out of the proposed W/L/P plan): dragging tabs and sections between panels (W4 provides menu and keyboard moves); a Search view with full-text search (the palette only jumps to entries); the thread grid (threads × chapters, reusing the timeline's reading-order grid); pop-out windows; a visual `novel.md` settings editor for language, vocabulary, statuses and folders (ADR 0004 and 0007); scene-level cards once scenes exist.
 - Renderer coupling: 44 feature files import `app/` stores directly. W2 cuts feature-to-feature imports only; narrowing features' access to app stores is separate work.
 - Documentation tooling: the offline manual build passes but emits Node module-type and Vite native-config compatibility warnings. Address module configuration separately from reference UI work.

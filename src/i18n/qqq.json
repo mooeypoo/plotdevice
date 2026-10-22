@@ -628,5 +628,16 @@
   "split-empty": "Shown in an empty split beside the editor.",
   "split-all-locked": "Shown when Open beside can't find a split: there are already two and both are locked.",
   "split-region": "Accessible name of a read-only split. $1 is the title of the document it shows.",
-  "split-resize": "Accessible name of the separator that resizes a split beside the editor."
+  "split-resize": "Accessible name of the separator that resizes a split beside the editor.",
+  "menu-command-palette": "View menu command that opens the command palette (Ctrl+K), for going to any entry, view, layout or command by typing.",
+  "palette-title": "Accessible name of the command palette dialog.",
+  "palette-placeholder": "Placeholder in the command palette's search field.",
+  "palette-count": "Announced count of matching palette items. $1 is the raw PLURAL selector; $2 is the UI-locale formatted number.",
+  "palette-empty": "Shown when no palette item matches what was typed.",
+  "palette-kind-view": "Label beside a palette item that shows a view, such as Timeline.",
+  "palette-kind-layout": "Label beside a palette item that switches to a layout.",
+  "palette-kind-command": "Label beside a palette item that runs a command, such as toggling the binder.",
+  "palette-beside-hint": "Hint under the palette's list. $1 is the keyboard shortcut (Shift+Enter), shown as is.",
+  "palette-use-layout": "Palette item that switches to a layout. $1 is the layout's name, translated for shipped layouts or written by the writer.",
+  "appearance-fade": "Writing appearance option: while typing, the panels and bars fade, and return when the pointer moves."
 }

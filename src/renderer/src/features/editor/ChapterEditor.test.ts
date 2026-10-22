@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { completionStatus, startCompletion } from '@codemirror/autocomplete'
 import { undo, undoDepth } from '@codemirror/commands'
 import { EditorView } from '@codemirror/view'
 import { EditorState } from '@codemirror/state'
@@ -271,6 +272,61 @@ describe('ChapterEditor peeks', () => {
     position.mockReturnValue(1)
     move(true)
     expect(wrapper.emitted('peek')).toHaveLength(1)
+    wrapper.unmount()
+  })
+})
+
+describe('ChapterEditor link completion', () => {
+  it('accepts the highlighted suggestion with Tab, as with Enter', async () => {
+    const wrapper = mount(ChapterEditor, {
+      attachTo: document.body,
+      props: {
+        initialText: '',
+        readOnly: false,
+        focusMode: false,
+        linkTargets: [],
+        completions: [
+          {
+            target: 'Ilka Szabó',
+            name: 'Ilka Szabó',
+            path: 'characters/Ilka Szabó.md',
+            type: 'character',
+            aliases: []
+          }
+        ]
+      }
+    })
+    const view = EditorView.findFromDOM(wrapper.get('.cm-editor').element as HTMLElement)
+    if (view === null) throw new Error('Expected CodeMirror')
+    view.dispatch({ changes: { from: 0, insert: 'Ask [[Il' }, selection: { anchor: 8 } })
+    startCompletion(view)
+    await vi.waitFor(() => {
+      expect(completionStatus(view.state)).toBe('active')
+    })
+    // CodeMirror ignores accept keys briefly after the list opens (its interactionDelay).
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))
+    expect(view.state.doc.toString()).toBe('Ask [[Ilka Szabó]]')
+    wrapper.unmount()
+  })
+
+  it('leaves Tab alone when no suggestion is open', () => {
+    const wrapper = mount(ChapterEditor, {
+      attachTo: document.body,
+      props: {
+        initialText: 'Plain.',
+        readOnly: false,
+        focusMode: false,
+        linkTargets: [],
+        completions: []
+      }
+    })
+    const view = EditorView.findFromDOM(wrapper.get('.cm-editor').element as HTMLElement)
+    if (view === null) throw new Error('Expected CodeMirror')
+    const tab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true })
+    view.contentDOM.dispatchEvent(tab)
+    expect(tab.defaultPrevented).toBe(false)
+    expect(view.state.doc.toString()).toBe('Plain.')
     wrapper.unmount()
   })
 })

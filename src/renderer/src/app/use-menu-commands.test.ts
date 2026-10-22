@@ -6,6 +6,7 @@ import { defineComponent } from 'vue'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
 import { useEditorStore } from './editor-store'
 import { useLayoutStore } from './layout-store'
+import { usePaletteStore } from './palette-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useMenuCommands } from './use-menu-commands'
 
@@ -59,5 +60,14 @@ describe('useMenuCommands', () => {
     fake.emitMenuCommand('toggle-binder')
     expect(layout.mainView).toBe('write')
     expect(layout.binderOpen).toBe(true)
+  })
+
+  it('opens the command palette', () => {
+    const fake = createFakePlotDeviceApi()
+    plotDeviceApi.current = () => fake.api
+    const host = mount(Host)
+    fake.emitMenuCommand('command-palette')
+    expect(usePaletteStore().open).toBe(true)
+    host.unmount()
   })
 })

@@ -3,6 +3,7 @@ import type { MessageKey } from '../../../../i18n/translator'
 import BinderView from '../../features/binder/BinderView.vue'
 import CardStack from '../../features/cards/CardStack.vue'
 import PeekLayer from '../../features/cards/PeekLayer.vue'
+import CommandPalette from '../../features/palette/CommandPalette.vue'
 import CastStrip from '../../features/cast/CastStrip.vue'
 import SceneCard from '../../features/cast/SceneCard.vue'
 import SplitPane from '../../features/split/SplitPane.vue'
@@ -17,6 +18,7 @@ import TimelineView from '../../features/timeline/TimelineView.vue'
 import WarningsView from '../../features/warnings/WarningsView.vue'
 import ProjectOverview from '../../features/welcome/ProjectOverview.vue'
 import type { ViewId } from '../model/view-catalog'
+import { publishViewDirectory } from '../../app/view-directory'
 
 /** How the shell shows a catalogued view: its title, icon and component. */
 export interface ViewDescriptor {
@@ -56,8 +58,10 @@ export const VIEW_REGISTRY: Partial<Readonly<Record<ViewId, ViewDescriptor>>> = 
   'scene-card': view('scene-card', 'scene-card-title', SceneCard)
 }
 
+publishViewDirectory(VIEW_REGISTRY)
+
 /** Layers drawn above every region once per project, such as the peek card. */
-export const OVERLAYS: readonly Component[] = [PeekLayer]
+export const OVERLAYS: readonly Component[] = [PeekLayer, CommandPalette]
 
 /** A read-only split beside the writable document; takes a `splitId` prop. */
 export const SPLIT_PANE: Component = SplitPane

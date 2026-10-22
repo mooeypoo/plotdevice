@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { shallowRef } from 'vue'
 import type { InspectorVocabularyDto } from '../../../contract/dtos'
 import { plotDeviceApi } from './plot-device-api'
@@ -46,3 +46,6 @@ export const useInspectorStore = defineStore('inspector', () => {
 
   return { vocabulary, error, vocabularyError, loadVocabulary, addStatus, clear }
 })
+
+// Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useInspectorStore, import.meta.hot))

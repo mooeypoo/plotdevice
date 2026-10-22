@@ -1515,3 +1515,12 @@ accessible names are isolated. Keyboard peeks moved from Ctrl/Cmd+Shift+Enter (R
 writing) to Alt+Enter, which also avoids Ctrl+Alt acting as AltGr on Windows Hebrew
 layouts. Real-browser split geometry remains I7g.
 
+### W5d palette and typing fade
+
+The command palette matches with the UI locale's collation at base strength, letter by
+letter, so Hebrew niqqud, case and accents don't affect results; titles use automatic
+direction, the count uses the plural catalog and UI-locale numbers, and the shortcut in
+the hint is isolated. The palette is a modal combobox with `aria-activedescendant`;
+Escape returns focus. Fading while typing is off by default and honors reduced motion.
+Real-browser palette geometry and IME interaction with the field remain I7g.
+

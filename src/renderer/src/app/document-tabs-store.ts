@@ -1,5 +1,5 @@
 import type { EditorState } from '@codemirror/state'
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { z } from 'zod'
 import { placeOf } from './entry-owners'
@@ -276,3 +276,6 @@ export const useDocumentTabsStore = defineStore('document-tabs', () => {
     viewOf: (id: string) => views.get(id)
   }
 })
+
+// Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useDocumentTabsStore, import.meta.hot))

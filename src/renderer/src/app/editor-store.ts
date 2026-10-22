@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, ref, shallowRef, watch } from 'vue'
 import type { ApiError, ProjectChangeDto, RenamePlanDto } from '../../../contract/dtos'
 import { createAutosaver } from './autosaver'
@@ -698,3 +698,6 @@ export const useEditorStore = defineStore('editor', () => {
     canOpen: (path: string) => placeOf(path) !== undefined
   }
 })
+
+// Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useEditorStore, import.meta.hot))
