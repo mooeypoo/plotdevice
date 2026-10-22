@@ -54,6 +54,17 @@ dependency and RTL risk for little gain.
   the others are kept. Storage is only rewritten when the shell saves.
 - Model failures are semantic codes; the shell (W3) adds translated notices.
 
+## Details settled in W3
+
+- One arrangement serves both shells. The workbench store owns it; the classic panels read
+  it through the layout store's facade (open sides, shown tabs, outline width), so switching
+  shells keeps the arrangement. The old `plotdevice.layout` key is read only for derivation.
+- Rows follow the root direction instead of computing sides; only splitter math reads the
+  direction, through the model's `direction.ts`.
+- Expand/Restore stays session-only. Planned views that no feature registers are skipped,
+  and the switcher offers only layouts whose views all exist.
+- While no project is open, bindings live only in the session.
+
 ## Consequences
 
 - Switching interface language mirrors a saved layout without migration.

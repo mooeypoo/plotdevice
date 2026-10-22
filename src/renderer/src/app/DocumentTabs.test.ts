@@ -23,7 +23,16 @@ beforeEach(async () => {
   vi.spyOn(EditorView.prototype, 'focus').mockImplementation(() => undefined)
   wrapper = mount(ProjectLayout, {
     attachTo: document.body,
-    global: { stubs: { TopBar: true, SidePanel: true, RightPanel: true, StatusBar: true } }
+    global: {
+      stubs: {
+        TopBar: true,
+        SidePanel: true,
+        RightPanel: true,
+        DockArea: true,
+        ShelfArea: true,
+        StatusBar: true
+      }
+    }
   })
   await flushPromises()
 })

@@ -97,7 +97,7 @@ describe('native folder diagnostics', () => {
     await editor.open('The Ferry.md')
     editor.edit('טיוטה unsaved')
     editor.saveState = 'conflict'
-    const page = mount(ProjectLayout, { shallow: true })
+    const page = mount(ProjectLayout, { shallow: true, global: { renderStubDefaultSlot: true } })
     await flushPromises()
     const project = workspace.project
     const save = vi.spyOn(fake.api.manuscript, 'saveEntryText')

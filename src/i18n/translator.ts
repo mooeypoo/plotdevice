@@ -187,6 +187,10 @@ type ParameterizedMessages = {
   'warning-list': [list: string, next: string]
   'warning-alternatives': [list: string, next: string]
   'warning-quoted-title': [title: string]
+  'workbench-panel-label': [viewTitle: string]
+  'workbench-resize-panel': [viewTitle: string]
+  'workbench-section-collapse': [viewTitle: string]
+  'workbench-section-expand': [viewTitle: string]
 }
 type MessageArguments<Key extends MessageKey> = Key extends keyof ParameterizedMessages
   ? ParameterizedMessages[Key]

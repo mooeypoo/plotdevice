@@ -282,10 +282,10 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 **Done when:** the app looks and behaves exactly as before, and the new boundary rules pass and are proven by the rules test.
 
 ### W3: Shell on existing features
-- [ ] `workbench/shell/` renders the model: regions, splitters, collapse, tab sets, and a layout switcher, using CSS grid and logical properties.
-- [ ] Generalize `use-outline-width.ts` into direction-aware splitters (pointer and keyboard), keeping stored sizes direction-free.
-- [ ] The Write preset reproduces today's app: document tabs, Writing target, Properties, Outline, Reference, outline width, focus mode.
-- [ ] Keep the old shell behind a per-user "Classic layout" switch in the View menu.
+- [x] `workbench/shell/` renders the model: regions, splitters, collapse, tab sets and stacks, the bottom shelf, and a layout switcher (Write, Revise), using flex rows that follow the root direction and logical properties. Revise's read-only split waits for W5c.
+- [x] Generalize `use-outline-width.ts` into direction-aware splitters (pointer and keyboard), keeping stored sizes direction-free. Narrow windows shrink, then hide, the end dock and then the start dock.
+- [x] The Write preset reproduces today's app: document tabs, Writing target, Properties, Outline, Reference, outline width, focus mode. Properties now shares the end dock's resizable width. Both shells read one arrangement: `layout-store.ts` is a facade over `workbench-store.ts` and no longer writes `plotdevice.layout`.
+- [x] Keep the old shell behind a per-user View → Classic Layout command (contract version 24). ProjectLayout's tests run in both shells.
 
 **Done when:** a writer upgrading sees the same arrangement in the new shell, can switch back, and every existing test passes in both shells.
 

@@ -173,6 +173,7 @@ export type AppMenuCommand =
   | 'toggle-inspector'
   | 'toggle-outline'
   | 'toggle-focus-mode'
+  | 'toggle-classic-layout'
   | 'write'
   | 'overview'
   | 'timeline'
@@ -202,7 +203,7 @@ export interface RecoveryApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 23
+  readonly contractVersion: 24
   readonly uiLanguage: UiLanguageApi
   readonly recovery: RecoveryApi
   readonly workspace: WorkspaceApi
