@@ -64,7 +64,7 @@ Each file's `type` key says what it is:
 | `character` | A codex entry for a character |
 | `location` | A codex entry for a location |
 | `note` | A free-form note; the app lists notes and assigns them no meaning |
-| `outline` | The writer's outline: a free-form plan, shown beside the draft. The app reads its links but nothing else |
+| `outline` | The writer's outline: a free-form plan, shown beside the draft and as a board in Plotting mode (see "Outlines") |
 | `scene` | Reserved for a later version (see "Scenes") |
 
 - `novel.md` is identified by its name and needs no `type`.
@@ -173,15 +173,50 @@ Prose goes here, in plain markdown.
 type: outline
 title: Working plan
 ---
+The plan in one breath: Ilka comes back for the orchard and stays for the strike.
+
 ## Part One
-- [[The Ferry]]: Ilka arrives; Bea is already at the gate.
-- Ilka finds the ledger. Bea lies about it.
+- [[The Ferry]]: Ilka arrives; Bea is already at the gate. #main
+  - Open on the water, not the town.
+- Ilka finds the ledger. Bea lies about it. #strike
+
+## Part Two
+- [[The Cannery]]
+- Who told the foreman?
+
+## Inbox
+- The orchard gate should creak in every chapter it appears.
 ```
 
-- The body is free markdown: headings, lists, questions, anything. The app never parses its structure or changes it.
+- The body is free markdown: headings, lists, questions, anything. Every line is yours, and a file that ignores the shape below is read and edited as plain text.
 - Links (`[[…]]` or markdown links) tie lines to chapters. Lines linking to the chapter being written are highlighted beside it.
 - A project can have several outlines. The app creates new ones at the project root, named after their title.
 - The reference panel renders Markdown; editing opens the unchanged Markdown source in the main editor. HTML and images are not executed or loaded. External links are displayed as text; project links remain navigable.
+
+### The board
+
+In Plotting mode (coming in a later version) the app shows an outline as a board. It reads a small part of the body:
+
+| In the file | On the board |
+|---|---|
+| A `##` heading | Starts a column. Text before the first `##` stays above the board. |
+| A top-level bullet (`-`, `*`, or `+`) under a `##` heading | A beat card. Its first line is the card's title. |
+| Lines indented under that bullet (nested bullets, paragraphs), and lines that directly continue its first line | The beat's notes |
+| A link to a chapter in a beat's first line | Shows that chapter's status, POV, and word count on the card |
+| A tag that matches a thread key in `novel.md` (`#strike`) | Colors the card with that thread |
+| Anything else: other headings, numbered lists, paragraphs, tables, code, HTML | Plain content. It stays where it is and is never moved |
+
+Lines inside fenced code blocks are always plain content. When in doubt, a line is plain content.
+
+### What the app changes in an outline
+
+Only when you act on the board, or capture a beat:
+
+- **Move a beat or a column.** The beat's lines (or the column's, from its heading to the next `##`) move as they are, with the blank line that separated them. No other line changes.
+- **Add a beat, retitle a beat, edit its notes.** Only that beat's lines change.
+- **Capture a beat** (an experimental setting, off by default). Adds one bullet at the end of the Inbox column, the `##` heading named by the word for `outline_inbox` (see "Words the app writes and recognizes"). If there is no Inbox heading, the app adds it at the end of the file. It never moves or changes existing beats.
+
+Every change follows the "Rules for writers" below: frontmatter, BOM, and every other line stay byte for byte as they were, each with its own line ending. New lines use the line ending most of the file uses; a last line without one gains one only when something is placed after it. If the file changed since the board read it, nothing is written. The board stores nothing outside the file.
 
 ## Scenes
 

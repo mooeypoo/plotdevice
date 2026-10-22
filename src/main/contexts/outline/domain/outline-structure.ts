@@ -79,6 +79,8 @@ export function readOutlineStructure(body: string): OutlineStructure {
   }
 
   for (const [index, { text }] of lines.entries()) {
+    // A fence in a beat's notes ends with the beat: an unindented line closes both, as in Markdown.
+    if (fence?.inNotes === true && !BLANK.test(text) && !INDENTED.test(text)) fence = undefined
     if (fence !== undefined) {
       const closing = FENCE.exec(text)?.[2]
       if (fence.inNotes && beat !== undefined) beat.end = index + 1

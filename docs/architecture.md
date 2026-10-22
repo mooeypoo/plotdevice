@@ -22,6 +22,7 @@ The Electron **main process** owns the domain, the use cases, and all file acces
 | **workspace** | Opening a folder, recognizing or initializing a project, project settings, recent projects, file watching | `Project`, `ProjectRoot`, `ProjectSettings`, `FormatVersion` |
 | **manuscript** | Structure and prose | `Manuscript`, `Part`, `Chapter`, `Status`, `Synopsis`, `WordCount`, `ChapterOrder` |
 | **codex** | Story-world entries and notes | `Character`, `Location`, `Note`, `Relationship`, `Alias` |
+| **outline** | The writer's outlines, the board's grammar, and line-exact board edits (ADR 0020) | `OutlineFile`, `OutlineStructure`, `OutlineColumn`, `OutlineBeat` |
 | **chronology** | Story time and plotlines | `StoryDate`, `Calendar`, `Thread`, `TimelineEntry` |
 
 `Scene` is reserved for a later version (see `docs/file-format.md`).
@@ -64,7 +65,7 @@ src/
     book-language/            # pure word catalogs per book language (en/he/qqq) and their resolution (ADR 0019)
     shared-kernel/
     contexts/
-      workspace/  manuscript/  codex/  chronology/
+      workspace/  manuscript/  codex/  outline/  chronology/
     infrastructure/           # cross-context technical adapters
       markdown/               # frontmatter document (yaml Document API), wikilink parser, body/frontmatter split
       fs/                     # atomic writer, path guard, line-ending and BOM preservation

@@ -82,14 +82,17 @@ describe('readOutlineStructure', () => {
       '```',
       '- Beat',
       '  ~~~',
-      '- still notes',
+      '  - fenced note',
       '',
-      '## also notes',
-      '  ~~~~',
+      '  ~~~',
+      '- Unclosed',
+      '  ```',
+      '  - fenced',
       '- After'
     )
-    expect(board(structure)).toEqual([['One', ['Beat', 'After']]])
-    expect(structure.columns[0]?.beats[0]?.notes).toEqual({ start: 6, end: 11 })
+    expect(board(structure)).toEqual([['One', ['Beat', 'Unclosed', 'After']]])
+    expect(structure.columns[0]?.beats[0]?.notes).toEqual({ start: 6, end: 10 })
+    expect(structure.columns[0]?.beats[1]?.notes).toEqual({ start: 11, end: 13 })
   })
 
   it('treats HTML blocks, other headings, ordered lists, breaks and empty bullets as plain', () => {

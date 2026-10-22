@@ -1,8 +1,8 @@
 # ADR 0020: A small outline grammar with line-exact structural edits
 
-**Status:** proposed (2026-10-22), not yet approved. Amends the "Outlines" section of
-`docs/file-format.md`, which currently says the app never parses or changes an outline's
-structure. See `docs/plans/workbench-ui-plan.md`.
+**Status:** accepted (2026-10-22). Amends the "Outlines" section of `docs/file-format.md`,
+which said the app never parses or changes an outline's structure. See
+`docs/plans/workbench-ui-plan.md`.
 
 ## Context
 
@@ -35,6 +35,12 @@ would reformat it, and a general Markdown AST library can't run in pure domain c
   or moves existing beats.
 - Writes follow ADR 0018: flush the editor, refuse an unresolved draft of the outline,
   then the editor adopts the written text.
+
+- Lines keep their own endings. New lines use the file's most common ending, and a last line
+  without one gains one only when something is placed after it. A moved block carries the
+  blank lines that separated it, so a move and its reverse restore the original bytes.
+- Until the board needs it (P2), outlines keep travelling through the codex API: its IPC handler
+  forwards listing, creation, open and save to the outline context, so P1 changes no contract.
 
 ## Consequences
 
