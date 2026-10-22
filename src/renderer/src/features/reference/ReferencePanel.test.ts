@@ -9,14 +9,15 @@ import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { useReferenceStore } from '../../app/reference-store'
-import ReferencePanel from './ReferencePanel.vue'
 import { useUiLanguageStore } from '../../app/ui-language-store'
+import ReferencePanel from './ReferencePanel.vue'
 import type { ApiResult, EntryTextDto } from '../../../../contract/dtos'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 beforeEach(async () => {
   localStorage.clear()
   setActivePinia(createPinia())
+  useUiLanguageStore().locale = 'en'
   fake = createFakePlotDeviceApi()
   plotDeviceApi.current = () => fake.api
   fake.files.set('characters/Ilka.md', '## History\n\n**Ilka** came from [[Marrow]].')
@@ -25,6 +26,48 @@ beforeEach(async () => {
 })
 
 describe('ReferencePanel', () => {
+  it('translates the empty reading panel without loading or changing project files', async () => {
+    const wrapper = mount(ReferencePanel)
+    const read = vi.spyOn(fake.api.codex, 'openEntry')
+    const write = vi.spyOn(fake.api.codex, 'saveEntryText')
+
+    await useUiLanguageStore().change('he')
+    await flushPromises()
+
+    expect(wrapper.get('.reference-panel').attributes('aria-label')).toBe('לעיון')
+    expect(wrapper.get('.empty h2').text()).toBe('הסיפור נשאר קרוב')
+    expect(wrapper.get('.empty').text()).toContain('בחומר נוסף')
+    expect(read).not.toHaveBeenCalled()
+    expect(write).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('translates reading chrome while preserving authored profile and Markdown content', async () => {
+    useReferenceStore().open('characters/Ilka.md')
+    const wrapper = mount(ReferencePanel)
+    await flushPromises()
+    const view = wrapper.get('.view').element
+    const authored = wrapper.get('.view').text()
+    const read = vi.spyOn(fake.api.codex, 'openEntry')
+    const write = vi.spyOn(fake.api.codex, 'saveEntryText')
+
+    await useUiLanguageStore().change('he')
+    await flushPromises()
+
+    expect(wrapper.get('.reference-panel').attributes('aria-label')).toBe('לעיון')
+    expect(wrapper.get('.eyebrow').text()).toBe('דמות')
+    expect(wrapper.get('.edit').text()).toBe('פתיחה בעורך')
+    expect(wrapper.get('.aliases').text()).toContain('כינויים')
+    expect(wrapper.get('h2').text()).toBe('Ilka')
+    expect(wrapper.get('.role').text()).toBe('lead')
+    expect(wrapper.get('.file-path').text()).toBe('characters/Ilka.md')
+    expect(wrapper.get('.view').element).toBe(view)
+    expect(wrapper.get('.view').text()).toBe(authored)
+    expect(read).not.toHaveBeenCalled()
+    expect(write).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
   it('retranslates a link notice beside the same reference without rereading or writing', async () => {
     fake.files.set('characters/Ilka.md', '## History\n\n[[Nobody <img src=x> יעל]]')
     useReferenceStore().open('characters/Ilka.md')
@@ -80,6 +123,17 @@ describe('ReferencePanel', () => {
     await flushPromises()
     expect(wrapper.get('.view h2').text()).toBe('Revised history')
     expect(wrapper.text()).toContain('Showing the current editor draft')
+    const view = wrapper.get('.view').element
+    const read = vi.spyOn(fake.api.codex, 'openEntry')
+    const write = vi.spyOn(fake.api.codex, 'saveEntryText')
+    await useUiLanguageStore().change('he')
+    await flushPromises()
+    expect(wrapper.get('.edit').text()).toBe('הצגת העורך')
+    expect(wrapper.get('.notice').text()).toContain('הטיוטה הנוכחית')
+    expect(wrapper.get('.view').element).toBe(view)
+    expect(wrapper.get('.view h2').text()).toBe('Revised history')
+    expect(read).not.toHaveBeenCalled()
+    expect(write).not.toHaveBeenCalled()
     await useEditorStore().flush()
     wrapper.unmount()
   })

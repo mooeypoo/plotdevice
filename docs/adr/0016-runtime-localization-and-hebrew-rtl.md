@@ -124,7 +124,10 @@ progress, remaining limitations, and the next slice before ending a session.
     role/birth, appearances, additional properties, and character relationships.
   - [x] **I3k Outline/Template inspectors:** panel explanations, saved paths,
     literal Markdown/frontmatter examples, and generated template-kind labels.
-  - [ ] **Remaining I3:** reading text, remaining
+  - [x] **I3l Outline/Reference reading panels:** panel chrome, loading/empty
+    guidance, editor and retry actions, and accessibility; preserve authored
+    titles, aliases, paths, roles, and rendered Markdown exactly.
+  - [ ] **Remaining I3:** remaining
     locale-aware formatting/collation, native dialog/confirmation and startup
     text.
 - [ ] **I4 RTL interface:** binder indentation/disclosures, logical layout,
@@ -1156,8 +1159,26 @@ modules/2,391 dependencies), typecheck, **1,548 tests across 171 files**,
 production electron-vite build, and documentation build/link/asset checks across
 all 16 public pages. No API or dependencies changed.
 
-**Next session:** propose a bounded reading-text translation slice before
-editing. Remaining I3 work includes reading text, other locale-aware
-formatting/collation surfaces, native dialog/confirmation wording and startup
-fallback. I3 remains incomplete; RTL geometry/directional controls and packaged
-qualification remain I4-I6, and the separate Hebrew manual is not implemented.
+### I3l Outline and Reference reading-panel chrome
+
+The Outline and Reference reading panels translate their accessible names,
+selector/action labels, empty guidance, loading states, editor-draft notice,
+retry action, and alias prefix. Generated reference entry kinds use the
+semantic `EntryPlaceLabel` formatter. The literal outline wikilink example,
+authored titles, aliases, roles, paths, editor drafts, and rendered Markdown
+remain unchanged.
+
+Live language changes preserve the rendered view, scroll, and editor/reference
+state without rereading or writing project files. Focused tests cover Hebrew
+panel accessibility and actions, empty guidance, retained wikilink syntax,
+exact authored profile and Markdown content, and no locale-triggered project
+calls. Verified lint/dependency boundaries (473 modules/2,396 dependencies),
+typecheck, **1,552 tests across 171 files**, production electron-vite build, and
+documentation build/link/asset checks across all 16 public pages. No API or
+dependencies changed.
+
+**Next session:** propose a bounded remaining-I3 slice before editing.
+Remaining work includes locale-aware formatting/collation surfaces, native
+dialog/confirmation wording and startup fallback. I3 remains incomplete; RTL
+geometry/directional controls and packaged qualification remain I4-I6, and the
+separate Hebrew manual is not implemented.

@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useReferenceStore } from '../../app/reference-store'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
+import { formatEntryPlaceLabel } from '../../shared/entry-place-label'
 import RenderedMarkdown from '../../shared/RenderedMarkdown.vue'
 import { useReferencePanel } from './use-reference-panel'
 
 const reference = useReferenceStore()
 const manuscript = useManuscriptStore()
+const language = useUiLanguageStore()
+const chrome = useChromePresentation()
 const panel = useReferencePanel()
 const { text, profile, openInEditor, actionError, linkNotice } = panel
 </script>
@@ -14,25 +19,39 @@ const { text, profile, openInEditor, actionError, linkNotice } = panel
   <section
     ref="referenceScroller"
     class="reference-panel"
-    aria-label="Reference"
+    :aria-label="language.t('reference-panel-label')"
     @scroll="panel.rememberScroll"
   >
     <template v-if="reference.path !== null">
       <header>
-        <span class="eyebrow">{{ reference.entry?.label ?? 'Reference' }}</span>
+        <span class="eyebrow">
+          {{
+            reference.entry === null
+              ? language.t('reference-panel-label')
+              : formatEntryPlaceLabel(
+                  reference.entry.label,
+                  language.t,
+                  chrome.formatNumber
+                )
+          }}
+        </span>
         <button
           v-if="reference.entry !== null"
           type="button"
           class="quiet edit"
           @click="panel.edit()"
         >
-          {{ openInEditor ? 'Show editor' : 'Open in editor' }}
+          {{
+            language.t(
+              openInEditor ? 'reference-panel-show-editor' : 'reference-panel-open-editor'
+            )
+          }}
         </button>
       </header>
       <h2 dir="auto">{{ reference.entry?.title ?? reference.path }}</h2>
       <p v-if="profile?.role" class="role" dir="auto">{{ profile.role }}</p>
       <p v-if="profile && profile.aliases.length > 0" class="aliases">
-        Also known as
+        {{ language.t('reference-panel-aliases') }}
         <template v-for="(alias, index) in profile.aliases" :key="alias">
           <span v-if="index > 0">, </span><bdi>{{ alias }}</bdi>
         </template>
@@ -41,14 +60,16 @@ const { text, profile, openInEditor, actionError, linkNotice } = panel
       <p v-if="actionError" class="notice error" role="alert">{{ actionError }}</p>
       <p v-if="linkNotice" class="notice" role="status">{{ linkNotice }}</p>
       <p v-if="openInEditor" class="notice" role="status">
-        Showing the current editor draft. Edit it in the main editor.
+        {{ language.t('reference-panel-editor-draft') }}
       </p>
       <p v-if="reference.error" class="notice error" role="alert">
         {{ reference.error }}
-        <button type="button" class="quiet retry" @click="reference.reload()">Retry</button>
+        <button type="button" class="quiet retry" @click="reference.reload()">
+          {{ language.t('reference-panel-retry') }}
+        </button>
       </p>
       <p v-if="reference.loading && !openInEditor" class="notice" role="status">
-        Loading reference…
+        {{ language.t('reference-panel-loading') }}
       </p>
       <RenderedMarkdown
         v-else-if="text !== null"
@@ -59,12 +80,11 @@ const { text, profile, openInEditor, actionError, linkNotice } = panel
       />
     </template>
     <div v-else class="empty">
-      <h2>Keep the story close</h2>
+      <h2>{{ language.t('reference-panel-empty-heading') }}</h2>
       <p>
-        Choose a character, location, or note in the Codex to read it beside your draft. Use a
-        chapter’s reference button to compare manuscript passages here too.
+        {{ language.t('reference-panel-empty-description') }}
       </p>
-      <p>Looking up a reference never replaces the document you are writing.</p>
+      <p>{{ language.t('reference-panel-empty-safety') }}</p>
     </div>
   </section>
 </template>

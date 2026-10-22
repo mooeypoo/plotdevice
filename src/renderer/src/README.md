@@ -4,7 +4,7 @@
 
 **Main concepts.** `app/` owns project navigation, document tabs, the protected Writing target, and preferences.
 `features/` contains the binder, editor, inspector, outline, reference, timeline, codex, and interactions views.
-References read beside the draft without replacing it or changing Properties; reading panels share inert Markdown.
+Outline/Reference panels localize reading chrome while preserving authored content and inert Markdown.
 The Writing appearance controls set prose size/width without changing markdown or editor history.
 Tabs preserve session undo, selection and scroll; only navigation metadata persists in `userData`, never drafts.
 Settings/recents/folder failures use live localized notices preserving drafts; failed list reads retain the last list.

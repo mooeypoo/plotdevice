@@ -202,8 +202,10 @@ acceptance criteria, and the cross-session checklist.
     preserve authored values, drafts and relationship behavior.
   - [x] I3k: Outline/Template inspector explanations and accessible labels;
     preserve manuscript/template tokens, editor state and project files.
-  - [ ] Remaining I3: other inspector panels, reading text, locale-aware
-    formatting/collation surfaces, native dialog/confirmation and startup text.
+  - [x] I3l: Outline/Reference reading-panel chrome, empty/loading/editor
+    actions and accessibility; keep authored titles and Markdown unchanged.
+  - [ ] Remaining I3: other interface text, locale-aware formatting/collation
+    surfaces, native dialog/confirmation and startup text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.

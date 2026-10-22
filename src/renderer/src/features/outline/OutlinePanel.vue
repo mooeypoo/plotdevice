@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 import RenderedMarkdown from '../../shared/RenderedMarkdown.vue'
 import { useOutlinePanel } from './use-outline-panel'
 
 const manuscript = useManuscriptStore()
 const workspace = useWorkspaceStore()
+const language = useUiLanguageStore()
 const panel = useOutlinePanel()
 const { outlines, path, text, openInEditor, loading, error, linkNotice } = panel
 
@@ -15,14 +17,14 @@ function choose(event: Event): void {
 </script>
 
 <template>
-  <section class="outline" aria-label="Outline">
+  <section class="outline" :aria-label="language.t('entry-place-outline')">
     <header>
       <select
         v-if="outlines.length > 1"
         class="choose"
         dir="auto"
         :value="path ?? ''"
-        aria-label="Outline to show"
+        :aria-label="language.t('outline-panel-select-label')"
         @change="choose"
       >
         <option
@@ -43,30 +45,29 @@ function choose(event: Event): void {
         class="quiet small"
         @click="panel.edit()"
       >
-        Edit
+        {{ language.t('codex-edit') }}
       </button>
     </header>
     <span v-if="path" class="file-path" dir="auto" :title="path">{{ path }}</span>
     <p v-if="linkNotice" class="empty" role="status">{{ linkNotice }}</p>
 
     <div v-if="outlines.length === 0" class="empty">
-      <p>
-        An outline is your plan: how you see the story going, chapters you haven’t written yet,
-        questions to settle. Write it freely; link chapters with [[their names]].
-      </p>
+      <p>{{ language.t('outline-panel-empty-description') }}</p>
       <button
         v-if="!(workspace.project?.readOnly ?? false)"
         type="button"
         class="primary"
         @click="panel.create()"
       >
-        Start an outline
+        {{ language.t('outline-panel-start') }}
       </button>
     </div>
     <p v-else-if="openInEditor" class="empty">
-      This outline is open in the editor. It shows here again when you open a chapter.
+      {{ language.t('outline-panel-open-in-editor') }}
     </p>
-    <p v-else-if="loading" class="empty" role="status">Loading outline…</p>
+    <p v-else-if="loading" class="empty" role="status">
+      {{ language.t('outline-panel-loading') }}
+    </p>
     <p v-else-if="error" class="empty error" role="alert">{{ error }}</p>
     <RenderedMarkdown
       v-else-if="text !== null"
