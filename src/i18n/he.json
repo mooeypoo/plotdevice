@@ -556,5 +556,18 @@
   "recovery-kind-location": "מקום",
   "recovery-kind-note": "הערה",
   "recovery-kind-template": "תבנית",
-  "recovery-kind-outline": "מתווה"
+  "recovery-kind-outline": "מתווה",
+  "workbench-notice-unavailable": "לא ניתן לשמור פריסות במחשב הזה. השינויים חלים רק בהפעלה הנוכחית.",
+  "workbench-notice-invalid": "חלק מהפריסות השמורות לא נקראו ואינן מוצגות. הקבצים שלך לא השתנו.",
+  "workbench-notice-save-failed": "לא ניתן לשמור את הפריסה. השינויים חלים רק בהפעלה הנוכחית.",
+  "workbench-layout-label": "פריסה",
+  "workbench-layout-write": "כתיבה",
+  "workbench-layout-revise": "עריכה",
+  "workbench-layout-plot": "עלילה",
+  "workbench-panel-label": "חלונית $1",
+  "workbench-resize-panel": "רוחב חלונית $1",
+  "workbench-resize-shelf": "גובה החלונית התחתונה",
+  "workbench-section-collapse": "כיווץ $1",
+  "workbench-section-expand": "הרחבת $1",
+  "menu-classic-layout": "פריסה קלאסית"
 }

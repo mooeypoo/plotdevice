@@ -556,5 +556,18 @@
   "recovery-kind-location": "Entry kind inside missing-file explanation; location profile.",
   "recovery-kind-note": "Entry kind inside missing-file explanation; note.",
   "recovery-kind-template": "Entry kind inside missing-file explanation; template.",
-  "recovery-kind-outline": "Entry kind inside missing-file explanation; outline."
+  "recovery-kind-outline": "Entry kind inside missing-file explanation; outline.",
+  "workbench-notice-unavailable": "Workbench layout storage is unavailable. Layouts still work for this session. This never concerns the novel's files.",
+  "workbench-notice-invalid": "Some stored workbench layouts were invalid and were left out. The novel's files are never involved.",
+  "workbench-notice-save-failed": "Saving the workbench layout failed. This does not describe saving manuscript text.",
+  "workbench-layout-label": "Accessible name of the layout chooser in the top bar. A layout is an arrangement of panels.",
+  "workbench-layout-write": "Name of the shipped layout for writing: the binder and codex beside the page, properties, outline and reference on the other side.",
+  "workbench-layout-revise": "Name of the shipped layout for revising: like Write, with the warnings panel below the page.",
+  "workbench-layout-plot": "Name of the shipped layout for plotting mode, with the plot board in the middle.",
+  "workbench-panel-label": "Accessible name of a side or bottom panel. $1 is the title of the view it currently shows, such as Properties.",
+  "workbench-resize-panel": "Accessible name of a vertical resize separator beside a side panel. $1 is the title of the view the panel shows.",
+  "workbench-resize-shelf": "Accessible name of the horizontal resize separator above the bottom panel.",
+  "workbench-section-collapse": "Button that collapses one view in a panel. $1 is the view's title.",
+  "workbench-section-expand": "Button that expands one collapsed view in a panel. $1 is the view's title.",
+  "menu-classic-layout": "View menu command that switches between the workbench and the previous fixed panel layout."
 }

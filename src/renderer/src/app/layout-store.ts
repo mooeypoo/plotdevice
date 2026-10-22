@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { computed, ref } from 'vue'
+import { findView } from '../workbench/model/layout'
+import { selectSection, setAreaCollapsed } from '../workbench/model/operations'
+import type { ViewId } from '../workbench/model/view-catalog'
+import type { AreaRegion } from '../workbench/model/vocabulary'
 import { registerDocumentPresenter } from './document-presenter'
+import { useWorkbenchStore } from './workbench-store'
 
 /** The side panel's tabs. */
 export type SideTab = 'manuscript' | 'codex'
@@ -11,43 +16,78 @@ export type MainView = 'write' | 'overview' | 'timeline' | 'interactions'
 /** The right-hand panel's tabs. */
 export type RightTab = 'properties' | 'outline' | 'reference'
 
-const LAYOUT_KEY = 'plotdevice.layout'
 const LAST_ENTRY_KEY = 'plotdevice.lastEntry'
 
+const SIDE_VIEWS: Readonly<Record<SideTab, ViewId>> = { manuscript: 'binder', codex: 'codex' }
+const RIGHT_VIEWS: Readonly<Record<RightTab, ViewId>> = {
+  properties: 'properties',
+  outline: 'outline',
+  reference: 'reference'
+}
+
 /**
- * Per-user window layout. Browser storage lives in Electron's userData folder, never in the
- * project folder (AGENTS.md, non-negotiable 1). Losing it only resets the layout.
+ * The fixed panels' view of the workbench: whether the binder and inspector sides are open and
+ * which tab each shows. They are read from and written to the workbench layout (ADR 0017), so the
+ * classic shell and the workbench share one arrangement. Main view and focus mode are session state.
  */
 export const useLayoutStore = defineStore('layout', () => {
-  const saved = readRecord(LAYOUT_KEY)
-  const binderOpen = ref(typeof saved['binderOpen'] === 'boolean' ? saved['binderOpen'] : true)
-  const inspectorOpen = ref(
-    typeof saved['inspectorOpen'] === 'boolean' ? saved['inspectorOpen'] : true
-  )
+  const workbench = useWorkbenchStore()
   const focusMode = ref(false)
-  /** Which list the side panel shows. */
-  const sideTab = ref<SideTab>(saved['sideTab'] === 'codex' ? 'codex' : 'manuscript')
-  /** Which view the right-hand panel shows. */
-  const rightTab = ref<RightTab>(
-    saved['rightTab'] === 'outline' || saved['rightTab'] === 'reference'
-      ? saved['rightTab']
-      : 'properties'
-  )
-  /** What the main area shows: the editor, or the Overview of the whole book. */
+  /** What the main area shows: the editor, or a view of the whole book. */
   const mainView = ref<MainView>('write')
-  /** The outline last shown in the panel, by path. */
-  const outlinePath = ref<string | null>(
-    typeof saved['outlinePath'] === 'string' ? saved['outlinePath'] : null
-  )
 
-  watch([binderOpen, inspectorOpen, sideTab, rightTab, outlinePath], () => {
-    writeRecord(LAYOUT_KEY, {
-      binderOpen: binderOpen.value,
-      inspectorOpen: inspectorOpen.value,
-      sideTab: sideTab.value,
-      rightTab: rightTab.value,
-      outlinePath: outlinePath.value
+  /** The area holding `view`, which the fixed panels call a side. */
+  const sideOf = (view: ViewId): AreaRegion | undefined => findView(workbench.layout, view)?.region
+
+  /** Whether the side holding `view` is open; setting it opens or collapses that side. */
+  function sideOpen(view: ViewId) {
+    return computed({
+      get: () => {
+        const region = sideOf(view)
+        return region !== undefined && !workbench.layout[region].collapsed
+      },
+      set: (open: boolean) => {
+        const region = sideOf(view)
+        if (region !== undefined) {
+          workbench.apply((layout) => setAreaCollapsed(layout, region, !open))
+        }
+      }
     })
+  }
+
+  /** Which of `tabs` the side holding `holder` shows; setting it switches tabs without opening the side. */
+  function shownTab<T extends string>(
+    holder: ViewId,
+    tabs: Readonly<Record<T, ViewId>>,
+    fallback: T
+  ) {
+    const entries = Object.entries(tabs) as [T, ViewId][]
+    return computed({
+      get: (): T => {
+        const region = sideOf(holder)
+        const area = region === undefined ? undefined : workbench.layout[region]
+        const shown = area?.sections.find((section) => section.id === area.activeSection)?.view
+        return entries.find(([, view]) => view === shown)?.[0] ?? fallback
+      },
+      set: (tab: T) => {
+        const section = findView(workbench.layout, tabs[tab])?.section
+        if (section !== undefined) workbench.apply((layout) => selectSection(layout, section.id))
+      }
+    })
+  }
+
+  const binderOpen = sideOpen('binder')
+  const inspectorOpen = sideOpen('properties')
+  /** Which list the side panel shows. */
+  const sideTab = shownTab<SideTab>('binder', SIDE_VIEWS, 'manuscript')
+  /** Which view the right-hand panel shows. */
+  const rightTab = shownTab<RightTab>('properties', RIGHT_VIEWS, 'properties')
+  /** The outline last shown in the panel, by path. */
+  const outlinePath = computed<string | null>({
+    get: () => workbench.outlinePath,
+    set: (path) => {
+      workbench.outlinePath = path
+    }
   })
 
   /** Shows the outline beside the draft, or hides the panel if the outline is already showing. */
@@ -138,6 +178,6 @@ function writeRecord(key: string, value: Record<string, unknown>): void {
   try {
     storage()?.setItem(key, JSON.stringify(value))
   } catch {
-    // Storage can be full or unavailable; the layout just won't be remembered.
+    // Storage can be full or unavailable; the last entry just won't be remembered.
   }
 }

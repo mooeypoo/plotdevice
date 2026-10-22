@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import type {
   ApiResult,
   FolderChoiceDto,
@@ -11,6 +11,7 @@ import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useReferenceStore } from './reference-store'
+import { useWorkbenchStore } from './workbench-store'
 import { useErrorNotice } from '../shared/use-error-notice'
 
 /** Which top-level screen the window shows. */
@@ -22,6 +23,14 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const recents = ref<readonly RecentProjectDto[]>([])
   const chosenFolder = ref<FolderChoiceDto | null>(null)
   const project = ref<ProjectSummaryDto | null>(null)
+  // The workbench keeps its per-project bindings for whichever project is open.
+  watch(
+    () => project.value?.root ?? null,
+    (root) => {
+      useWorkbenchStore().projectRoot = root
+    },
+    { flush: 'sync', immediate: true }
+  )
   const { message: errorMessage, source: errorSource } = useErrorNotice()
   const { message: refreshErrorMessage, source: refreshErrorSource } = useErrorNotice()
   const { message: recentsLoadErrorMessage, source: recentsLoadErrorSource } = useErrorNotice()

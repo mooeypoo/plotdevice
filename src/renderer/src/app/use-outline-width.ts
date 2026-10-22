@@ -1,9 +1,23 @@
 import { computed, onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
-import { OUTLINE_WIDTH, useWritingPreferencesStore } from './writing-preferences-store'
+import { findView } from '../workbench/model/layout'
+import { resizeArea } from '../workbench/model/operations'
+import { DOCK_SIZE } from '../workbench/model/sizes'
+import type { AreaRegion } from '../workbench/model/vocabulary'
+import { useWorkbenchStore } from './workbench-store'
 
-/** Shared reference/outline resizing, leaving room for the writing surface. */
+const OUTLINE_WIDTH = DOCK_SIZE
+
+/**
+ * Shared reference/outline resizing in the classic shell, leaving room for the writing surface.
+ * The width is the size of the workbench dock holding the outline, so both shells share it.
+ */
 export function useOutlineWidth(panel: Ref<HTMLElement | null>) {
-  const preferences = useWritingPreferencesStore()
+  const workbench = useWorkbenchStore()
+  const outlineRegion = (): AreaRegion | undefined => findView(workbench.layout, 'outline')?.region
+  const preferred = computed(() => {
+    const region = outlineRegion()
+    return region === undefined ? DOCK_SIZE.end : workbench.layout[region].size
+  })
   const maximum = ref<number>(OUTLINE_WIDTH.max)
   const expanded = ref(false)
   const draft = ref<number | null>(null)
@@ -11,10 +25,7 @@ export function useOutlineWidth(panel: Ref<HTMLElement | null>) {
   const clamp = (value: number): number =>
     Math.round(Math.min(maximum.value, Math.max(minimum.value, value)))
   const width = computed(() =>
-    clamp(
-      draft.value ??
-        (expanded.value ? Math.max(560, preferences.outlineWidth) : preferences.outlineWidth)
-    )
+    clamp(draft.value ?? (expanded.value ? Math.max(560, preferred.value) : preferred.value))
   )
   let observer: ResizeObserver | undefined
   let drag: { readonly x: number; readonly width: number; readonly direction: number } | undefined
@@ -40,7 +51,9 @@ export function useOutlineWidth(panel: Ref<HTMLElement | null>) {
   onBeforeUnmount(() => observer?.disconnect())
 
   function save(value: number): void {
-    preferences.setOutlineWidth(Math.max(OUTLINE_WIDTH.min, clamp(value)))
+    const region = outlineRegion()
+    const width = Math.max(OUTLINE_WIDTH.min, clamp(value))
+    if (region !== undefined) workbench.apply((layout) => resizeArea(layout, region, width))
     expanded.value = false
   }
 

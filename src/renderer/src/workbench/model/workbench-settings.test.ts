@@ -16,7 +16,16 @@ describe('parseWorkbenchSettings', () => {
       arrangements: { write: wide, 'user-1': wide },
       saved: [{ id: 'user-1', name: 'Wide' }]
     }
-    expect(parseWorkbenchSettings(value)).toEqual({ settings: value, dropped: 0 })
+    expect(parseWorkbenchSettings(value)).toEqual({
+      settings: { ...value, shell: 'workbench' },
+      dropped: 0
+    })
+  })
+
+  it('remembers the classic shell, and treats older settings as the workbench', () => {
+    const classic = { version: 1, shell: 'classic', arrangements: {}, saved: [] }
+    expect(parseWorkbenchSettings(classic)?.settings.shell).toBe('classic')
+    expect(parseWorkbenchSettings({ ...classic, shell: 'tiles' })).toBeUndefined()
   })
 
   it('rejects an unusable envelope or another version', () => {
@@ -46,6 +55,7 @@ describe('parseWorkbenchSettings', () => {
     })
     expect(parsed?.settings).toEqual({
       version: 1,
+      shell: 'workbench',
       arrangements: { 'user-1': wide },
       saved: [{ id: 'user-1', name: 'Wide' }]
     })

@@ -62,6 +62,16 @@ export function findSection(layout: Layout, sectionId: string): SectionPlace | u
   return undefined
 }
 
+/** Finds the section showing `view`, if a dock or the shelf holds it. */
+export function findView(layout: Layout, view: ViewId): SectionPlace | undefined {
+  for (const region of ['start', 'end', 'bottom'] as const) {
+    const index = layout[region].sections.findIndex((section) => section.view === view)
+    const section = layout[region].sections[index]
+    if (section !== undefined) return { region, index, section }
+  }
+  return undefined
+}
+
 /** Every view the layout shows: the center view and each section's view. */
 export function viewsIn(layout: Layout): readonly ViewId[] {
   return [

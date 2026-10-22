@@ -4,12 +4,15 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useLayoutStore } from './layout-store'
 import RightPanel from './RightPanel.vue'
-import { useWritingPreferencesStore } from './writing-preferences-store'
+import { resizeArea } from '../workbench/model/operations'
+import { useWorkbenchStore } from './workbench-store'
 import { useUiLanguageStore } from './ui-language-store'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
 import { plotDeviceApi } from './plot-device-api'
 
 let measure: (() => void) | undefined
+/** The outline's preferred width: the size of the workbench dock holding it. */
+const preferredWidth = (): number => useWorkbenchStore().layout.end.size
 let bodyWidth = 1200
 const wrappers: ReturnType<typeof mount>[] = []
 
@@ -82,11 +85,9 @@ describe('outline panel width', () => {
     expect(handle.attributes('aria-valuenow')).toBe('720')
     await handle.trigger('keydown', { key: 'Home' })
     expect(handle.attributes('aria-valuenow')).toBe('240')
-    expect(JSON.parse(localStorage.getItem('plotdevice.writingPreferences') ?? '{}')).toMatchObject(
-      {
-        outlineWidth: 240
-      }
-    )
+    expect(JSON.parse(localStorage.getItem('plotdevice.workbench') ?? '{}')).toMatchObject({
+      arrangements: { write: { end: { size: 240 } } }
+    })
   })
 
   it('shares the reading width with Reference while leaving Properties unchanged', async () => {
@@ -103,7 +104,7 @@ describe('outline panel width', () => {
   })
 
   it('constrains expansion on smaller windows without overwriting the preferred width', async () => {
-    useWritingPreferencesStore().setOutlineWidth(600)
+    useWorkbenchStore().apply((layout) => resizeArea(layout, 'end', 600))
     const wrapper = mountPanel()
     bodyWidth = 700
     measure?.()
@@ -111,7 +112,7 @@ describe('outline panel width', () => {
     expect(wrapper.get('[role="separator"]').attributes('aria-valuenow')).toBe('420')
     await wrapper.get('.expand').trigger('click')
     expect(wrapper.get('.right').attributes('style')).toContain('width: 420px')
-    expect(useWritingPreferencesStore().outlineWidth).toBe(600)
+    expect(preferredWidth()).toBe(600)
     bodyWidth = 1200
     measure?.()
     await flushPromises()
@@ -125,11 +126,11 @@ describe('outline panel width', () => {
     await handle.trigger('pointerdown', { button: 0, clientX: 800, pointerId: 1 })
     await handle.trigger('pointermove', { clientX: 650, pointerId: 1 })
     expect(handle.attributes('aria-valuenow')).toBe('470')
-    expect(useWritingPreferencesStore().outlineWidth).toBe(320)
+    expect(preferredWidth()).toBe(320)
     await handle.trigger('pointermove', { clientX: 0, pointerId: 1 })
     expect(handle.attributes('aria-valuenow')).toBe('720')
     await handle.trigger('pointerup', { pointerId: 1 })
-    expect(useWritingPreferencesStore().outlineWidth).toBe(720)
+    expect(preferredWidth()).toBe(720)
   })
 
   it('resizes from the inline-start edge and with directional keys in Hebrew', async () => {
@@ -148,16 +149,16 @@ describe('outline panel width', () => {
     await handle.trigger('pointerdown', { button: 0, clientX: 800, pointerId: 1 })
     await handle.trigger('pointermove', { clientX: 950, pointerId: 1 })
     expect(handle.attributes('aria-valuenow')).toBe('470')
-    expect(useWritingPreferencesStore().outlineWidth).toBe(320)
+    expect(preferredWidth()).toBe(320)
     await handle.trigger('pointercancel', { pointerId: 1 })
     expect(handle.attributes('aria-valuenow')).toBe('320')
-    expect(useWritingPreferencesStore().outlineWidth).toBe(320)
+    expect(preferredWidth()).toBe(320)
 
     await handle.trigger('pointerdown', { button: 0, clientX: 800, pointerId: 2 })
     await handle.trigger('pointermove', { clientX: 950, pointerId: 2 })
     await handle.trigger('pointerup', { pointerId: 2 })
     expect(handle.attributes('aria-valuenow')).toBe('470')
-    expect(useWritingPreferencesStore().outlineWidth).toBe(470)
+    expect(preferredWidth()).toBe(470)
     wrapper.unmount()
   })
 
@@ -169,6 +170,6 @@ describe('outline panel width', () => {
     await handle.trigger('pointermove', { clientX: 650, pointerId: 1 })
     await handle.trigger('pointercancel', { pointerId: 1 })
     expect(handle.attributes('aria-valuenow')).toBe('320')
-    expect(useWritingPreferencesStore().outlineWidth).toBe(320)
+    expect(preferredWidth()).toBe(320)
   })
 })

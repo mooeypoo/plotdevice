@@ -146,6 +146,13 @@ export function activateSection(layout: Layout, sectionId: string): LayoutChange
   )
 }
 
+/** Makes a tab set show `sectionId` without expanding its area, as clicking a visible tab does. */
+export function selectSection(layout: Layout, sectionId: string): LayoutChange {
+  const place = findSection(layout, sectionId)
+  if (place === undefined) return refuse({ code: 'section-missing', section: sectionId })
+  return checked(withArea(layout, place.region, (area) => ({ ...area, activeSection: sectionId })))
+}
+
 /** Changes what a section shows: project-wide, following the writer, or a pinned entry. */
 export function setBinding(layout: Layout, sectionId: string, binding: Binding): LayoutChange {
   return updateSection(layout, sectionId, (section) => ({ ...section, binding }))

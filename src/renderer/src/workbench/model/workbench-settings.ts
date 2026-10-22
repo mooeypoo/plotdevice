@@ -17,18 +17,26 @@ export interface SavedLayout {
  */
 export interface WorkbenchSettings {
   readonly version: 1
+  /** Which shell renders the project: the workbench, or the classic fixed panels until W6. */
+  readonly shell: WorkbenchShell
   /** A preset's id maps to its rearrangement; a saved layout's id to its arrangement. */
   readonly arrangements: Readonly<Record<string, Layout>>
   readonly saved: readonly SavedLayout[]
 }
 
+/** The two shells while the classic one remains available. */
+export const WORKBENCH_SHELLS = ['workbench', 'classic'] as const
+/** A shell choice. */
+export type WorkbenchShell = (typeof WORKBENCH_SHELLS)[number]
+
 /** Settings with every preset as shipped and no saved layouts. */
 export function defaultWorkbenchSettings(): WorkbenchSettings {
-  return { version: 1, arrangements: {}, saved: [] }
+  return { version: 1, shell: 'workbench', arrangements: {}, saved: [] }
 }
 
 const envelopeSchema = z.object({
   version: z.literal(1),
+  shell: z.enum(WORKBENCH_SHELLS).default('workbench'),
   arrangements: z.record(z.string(), z.unknown()),
   saved: z.array(z.unknown())
 })
@@ -85,7 +93,7 @@ export function parseWorkbenchSettings(value: unknown): ParsedWorkbenchSettings 
       dropped += 1
     }
   }
-  return { settings: { version: 1, arrangements, saved }, dropped }
+  return { settings: { version: 1, shell: envelope.data.shell, arrangements, saved }, dropped }
 }
 
 const projectSchema = z.object({
