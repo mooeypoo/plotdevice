@@ -5,8 +5,9 @@ import { Compartment, EditorState, StateEffect, type Extension } from '@codemirr
 import { EditorView, keymap, placeholder } from '@codemirror/view'
 import type { LinkTargetDto } from '../../../../contract/dtos'
 import type { WritingDirection } from '../../app/writing-preferences-store'
+import type { ProseEditorCopy } from './prose-editor-copy'
 import { focusDimming } from './focus-dimming'
-import { autoLineDirection } from './line-direction'
+import { autoLineDirection, technicalSpanDirection } from './line-direction'
 import { proseAppearance } from './prose-theme'
 import { wikiLinkDecorations } from './wiki-link-decorations'
 import { linkAt, type LinkAt } from './link-at'
@@ -17,6 +18,7 @@ import { createLinkKindLookup } from './wiki-link-scan'
 export interface ProseEditorOptions {
   readonly text: string
   readonly writingDirection: WritingDirection
+  readonly copy: ProseEditorCopy
   /** Session state is reused only when its text still matches the freshly read file. */
   readonly state?: EditorState | undefined
   readonly readOnly: boolean
@@ -34,6 +36,7 @@ export interface ProseEditorOptions {
 export interface ProseEditor {
   setReadOnly(on: boolean): void
   setWritingDirection(direction: WritingDirection): void
+  setCopy(copy: ProseEditorCopy): void
   remeasure(): void
   setFocusMode(on: boolean): void
   setLinkTargets(targets: readonly LinkTargetDto[]): void
@@ -48,6 +51,14 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
   const linksCompartment = new Compartment()
   const editingCompartment = new Compartment()
   const directionCompartment = new Compartment()
+  const copyCompartment = new Compartment()
+  let linkTargets = options.linkTargets
+  let copy = options.copy
+  const linkExtensions = () =>
+    wikiLinkDecorations(
+      createLinkKindLookup(linkTargets),
+      (target, embed) => copy.linkTooltip(target, embed)
+    )
 
   const extensions = [
     history(),
@@ -55,14 +66,15 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
     markdown({ base: markdownLanguage }),
     proseAppearance(),
     EditorView.lineWrapping,
+    technicalSpanDirection(),
     directionCompartment.of(writingDirectionExtensions(options.writingDirection)),
-    placeholder('Begin writing…'),
+    copyCompartment.of(copyExtensions(copy)),
     editingCompartment.of([
       EditorState.readOnly.of(options.readOnly),
       EditorView.editable.of(!options.readOnly)
     ]),
     focusCompartment.of(options.focusMode ? focusDimming() : []),
-    linksCompartment.of(wikiLinkDecorations(createLinkKindLookup(options.linkTargets))),
+    linksCompartment.of(linkExtensions()),
     autocompletion({
       override: [linkCompletionSource(options.completions)],
       icons: false,
@@ -108,6 +120,15 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
         effects: directionCompartment.reconfigure(writingDirectionExtensions(direction))
       })
     },
+    setCopy(nextCopy) {
+      copy = nextCopy
+      view.dispatch({
+        effects: [
+          copyCompartment.reconfigure(copyExtensions(copy)),
+          linksCompartment.reconfigure(linkExtensions())
+        ]
+      })
+    },
     remeasure() {
       view.requestMeasure()
     },
@@ -115,9 +136,8 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
       view.dispatch({ effects: focusCompartment.reconfigure(on ? focusDimming() : []) })
     },
     setLinkTargets(targets) {
-      view.dispatch({
-        effects: linksCompartment.reconfigure(wikiLinkDecorations(createLinkKindLookup(targets)))
-      })
+      linkTargets = targets
+      view.dispatch({ effects: linksCompartment.reconfigure(linkExtensions()) })
     },
     focus() {
       view.focus()
@@ -131,6 +151,13 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
   }
 }
 
+function copyExtensions(copy: ProseEditorCopy): Extension {
+  return [
+    placeholder(copy.placeholder),
+    EditorView.contentAttributes.of({ 'aria-label': copy.accessibleLabel })
+  ]
+}
+
 function writingDirectionExtensions(direction: WritingDirection): Extension {
   return [
     // Per-line direction is only enabled in Auto; explicit modes apply to the entire prose surface.
@@ -138,7 +165,6 @@ function writingDirectionExtensions(direction: WritingDirection): Extension {
     EditorView.contentAttributes.of({
       spellcheck: 'true',
       autocorrect: 'on',
-      'aria-label': 'Prose',
       dir: direction
     }),
     ...(direction === 'auto' ? [autoLineDirection()] : [])
@@ -170,5 +196,9 @@ const completionTheme = EditorView.theme({
     marginInlineStart: '10px',
     fontStyle: 'normal',
     color: 'var(--text-muted)'
+  },
+  '.cm-completionLabel, .cm-completionDetail': {
+    textAlign: 'start',
+    unicodeBidi: 'plaintext'
   }
 })

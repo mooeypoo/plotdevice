@@ -1,3 +1,4 @@
+import { syntaxTree } from '@codemirror/language'
 import { RangeSetBuilder, type Extension } from '@codemirror/state'
 import {
   Decoration,
@@ -8,6 +9,7 @@ import {
 } from '@codemirror/view'
 
 const autoDirection = Decoration.line({ attributes: { dir: 'auto' } })
+const technicalDirection = Decoration.mark({ attributes: { dir: 'ltr' } })
 
 /**
  * Gives every line `dir="auto"`, so a Hebrew line runs and aligns right-to-left while an English
@@ -31,6 +33,26 @@ export function autoLineDirection(): Extension {
   )
 }
 
+/** Isolates inline Markdown code in LTR so technical paths do not reorder inside prose. */
+export function technicalSpanDirection(): Extension {
+  return ViewPlugin.fromClass(
+    class {
+      decorations: DecorationSet
+
+      constructor(view: EditorView) {
+        this.decorations = buildTechnicalSpans(view)
+      }
+
+      update(update: ViewUpdate): void {
+        if (update.docChanged || update.viewportChanged) {
+          this.decorations = buildTechnicalSpans(update.view)
+        }
+      }
+    },
+    { decorations: (plugin) => plugin.decorations }
+  )
+}
+
 function build(view: EditorView): DecorationSet {
   const builder = new RangeSetBuilder<Decoration>()
   let lastLine = 0
@@ -43,6 +65,21 @@ function build(view: EditorView): DecorationSet {
       }
       position = line.to + 1
     }
+  }
+  return builder.finish()
+}
+
+function buildTechnicalSpans(view: EditorView): DecorationSet {
+  const builder = new RangeSetBuilder<Decoration>()
+  const tree = syntaxTree(view.state)
+  for (const { from, to } of view.visibleRanges) {
+    tree.iterate({
+      from,
+      to,
+      enter(node) {
+        if (node.name === 'InlineCode') builder.add(node.from, node.to, technicalDirection)
+      }
+    })
   }
   return builder.finish()
 }

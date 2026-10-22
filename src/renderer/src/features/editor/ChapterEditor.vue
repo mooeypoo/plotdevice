@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { LinkTargetDto } from '../../../../contract/dtos'
+import { isolate } from '../../shared/isolate'
 import type { LinkAt } from './link-at'
 import type { LinkCompletionTarget } from './link-completion'
 import { createProseEditor, type ProseEditor } from './prose-editor'
+import type { ProseEditorCopy } from './prose-editor-copy'
 import { useWritingPreferencesStore } from '../../app/writing-preferences-store'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useDocumentView } from './use-document-view'
 
 const props = defineProps<{
@@ -27,6 +30,13 @@ const host = ref<HTMLElement | null>(null)
 let editor: ProseEditor | undefined
 let initialFocusPending = true
 const writingPreferences = useWritingPreferencesStore()
+const language = useUiLanguageStore()
+const copy = computed<ProseEditorCopy>(() => ({
+  accessibleLabel: language.t('editor-prose-label'),
+  placeholder: language.t('editor-placeholder'),
+  linkTooltip: (target, embed) =>
+    language.t(embed ? 'editor-embed-tooltip' : 'editor-link-tooltip', isolate(target))
+}))
 const documentView = useDocumentView(
   props.documentId,
   () => host.value,
@@ -53,11 +63,14 @@ watch(
   (direction) => editor?.setWritingDirection(direction)
 )
 
+watch(copy, (nextCopy) => editor?.setCopy(nextCopy))
+
 onMounted(() => {
   if (host.value === null) return
   editor = createProseEditor(host.value, {
     text: props.initialText,
     writingDirection: writingPreferences.writingDirection,
+    copy: copy.value,
     state: documentView.state,
     readOnly: props.readOnly,
     focusMode: props.focusMode,

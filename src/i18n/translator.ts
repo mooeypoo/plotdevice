@@ -30,6 +30,8 @@ type ParameterizedMessages = {
   'project-overview-count-untyped': [count: number]
   'appearance-pixels': [formatted: string]
   'appearance-characters': [formatted: string]
+  'editor-link-tooltip': [target: string]
+  'editor-embed-tooltip': [target: string]
   'tabs-close-label': [title: string]
   'tabs-return-title': [shortcut: string]
   'entry-place-part': [number: string]

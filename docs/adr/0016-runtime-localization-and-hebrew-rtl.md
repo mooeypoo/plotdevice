@@ -166,9 +166,11 @@ progress, remaining limitations, and the next slice before ending a session.
   - [x] **I5a Writing direction preference:** persist Auto/LTR/RTL independently
     of UI language; apply it live to CodeMirror without remounting or losing
     draft, selection, or undo history.
-  - [ ] **Remaining I5:** localize CodeMirror copy; qualify mixed-script
-    caret/selection, completions and technical spans; apply a consistent
-    direction policy to outline/reference reading surfaces.
+  - [x] **I5b Editor copy and mixed-script spans:** localize CodeMirror label,
+    placeholder and link tooltips live; isolate mixed-direction link and
+    completion text and set inline code direction without changing the draft.
+  - [ ] **Remaining I5:** set a consistent direction policy for outline and
+    reference reading surfaces; qualify caret/shaping in a real browser (I6).
 - [ ] **I6 Qualification:** catalog validation, translator guide/glossary,
   expanded-text checks, real browser and packaged Linux/Windows journeys.
 - [ ] **D1 Separate approval:** Hebrew VitePress manual/navigation/search/RTL
@@ -1314,11 +1316,11 @@ dependency boundaries (475 modules/2,428 dependencies), typecheck, **1,574
 tests across 173 files**, production electron-vite build, and docs build/link/
 asset checks across all 16 public pages. No API or dependency changed.
 
-I4a-I4e implementation is complete. Real-browser geometry, responsive
+I4a-I4e app-side implementation is complete. Real-browser geometry, responsive
 overflow, pointer/scroll behavior, and packaged Linux/Windows checks remain
-part of I6 qualification. The next implementation phase is I5: independent
-writing/reading direction and mixed-script editor behavior. D1 remains a
-separate approval.
+part of I6 qualification. I5a-I5b are now complete; the next implementation
+phase is I5c, setting a consistent direction policy for Outline/Reference
+reading surfaces. D1 remains a separate approval.
 
 ### I5a Independent writing direction
 
@@ -1332,12 +1334,32 @@ surface. UI language and prose direction remain independent.
 Regression tests cover migration/defaults, validation, persistence, live
 Hebrew labels, and switching direction without replacing the editor or
 changing its text, selection, or undo history. Language switching alone does
-not change the preference or emit manuscript edits. Read-only outline/reference
-direction policy, localized CodeMirror placeholder/ARIA copy, and mixed-script
-completion/technical-span qualification remain in I5. I6 still covers
-catalog/translator workflow and real-browser plus packaged qualification.
+not change the preference or emit manuscript edits. At this checkpoint,
+editor copy/mixed-script behavior and read-only outline/reference direction
+remained; I5b has since completed the editor portion. I5c and I6 remain.
 
 Verified lint/dependency boundaries (475 modules/2,430 dependencies),
 typecheck, **1,578 tests across 173 files**, production electron-vite build,
 and docs build/link/asset checks across all 16 public pages. The docs build
 reports existing non-fatal Node/Vite module-type warnings.
+
+### I5b CodeMirror localization and mixed-script spans
+
+The CodeMirror surface name, empty placeholder, and wiki-link/embed tooltips
+now use the live English/Hebrew catalogs. Language changes reconfigure copy and
+link decorations without replacing the editor or changing manuscript text.
+Wiki-link marks carry automatic direction; tooltip targets are bidi-isolated.
+Inline Markdown code is isolated LTR, and completion labels/details use
+plaintext bidi handling so mixed Hebrew/Latin names and technical paths remain
+readable.
+
+Tests verify live labels/placeholders/tooltips, target isolation, mixed-script
+completion values, inline-code direction attributes, and unchanged editor
+content. I5c remains: choose/test a consistent direction policy for Outline
+and Reference reading surfaces. I6 remains responsible for real Chromium
+shaping/caret/popup geometry and packaged qualification.
+
+Verified lint/dependency boundaries (477 modules/2,440 dependencies),
+typecheck, **1,581 tests across 174 files**, production electron-vite build,
+and docs build/link/asset checks across all 16 public pages. Existing
+non-fatal Node/Vite module-type warnings remain unchanged.

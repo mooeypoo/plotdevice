@@ -14,14 +14,18 @@ const hidden = Decoration.replace({})
 /**
  * Styles `[[links]]` by the type of file they point to. On lines without the cursor the brackets
  * (and a target with shown text) are hidden, so prose reads cleanly; the file keeps every character.
+ * Callers provide localized tooltips, while each target receives its own automatic text direction.
  */
-export function wikiLinkDecorations(kindOf: (target: string) => LinkKind): Extension {
+export function wikiLinkDecorations(
+  kindOf: (target: string) => LinkKind,
+  tooltip: (target: string, embed: boolean) => string
+): Extension {
   return ViewPlugin.fromClass(
     class {
       decorations: DecorationSet
 
       constructor(view: EditorView) {
-        this.decorations = build(view, kindOf)
+        this.decorations = build(view, kindOf, tooltip)
       }
 
       update(update: ViewUpdate): void {
@@ -31,7 +35,7 @@ export function wikiLinkDecorations(kindOf: (target: string) => LinkKind): Exten
           update.selectionSet ||
           update.focusChanged
         ) {
-          this.decorations = build(update.view, kindOf)
+          this.decorations = build(update.view, kindOf, tooltip)
         }
       }
     },
@@ -39,7 +43,11 @@ export function wikiLinkDecorations(kindOf: (target: string) => LinkKind): Exten
   )
 }
 
-function build(view: EditorView, kindOf: (target: string) => LinkKind): DecorationSet {
+function build(
+  view: EditorView,
+  kindOf: (target: string) => LinkKind,
+  tooltip: (target: string, embed: boolean) => string
+): DecorationSet {
   const builder = new RangeSetBuilder<Decoration>()
   const { state } = view
   const cursorLines = new Set(
@@ -60,7 +68,7 @@ function build(view: EditorView, kindOf: (target: string) => LinkKind): Decorati
       const kind = kindOf(link.target)
       const mark = Decoration.mark({
         class: `cm-wikilink cm-wikilink-${kind}${link.embed ? ' cm-wikilink-embed' : ''}`,
-        attributes: { title: `${link.embed ? 'Embeds' : 'Links to'} ${link.target}` }
+        attributes: { dir: 'auto', title: tooltip(link.target, link.embed) }
       })
 
       if (editing) {

@@ -58,7 +58,13 @@ const proseHighlight = HighlightStyle.define([
   { tag: tags.quote, color: 'var(--text-dim)', fontStyle: 'italic' },
   { tag: [tags.processingInstruction, tags.contentSeparator], color: 'var(--text-faint)' },
   { tag: [tags.link, tags.url], color: 'var(--link-other)' },
-  { tag: tags.monospace, fontFamily: 'var(--font-mono)', fontSize: '0.85em' },
+  {
+    tag: tags.monospace,
+    fontFamily: 'var(--font-mono)',
+    fontSize: '0.85em',
+    direction: 'ltr',
+    unicodeBidi: 'isolate'
+  },
   { tag: tags.comment, color: 'var(--text-faint)', fontStyle: 'italic' }
 ])
 

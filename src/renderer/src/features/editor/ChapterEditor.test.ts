@@ -165,4 +165,54 @@ describe('ChapterEditor appearance', () => {
     expect(view.state.doc.toString()).toBe('English line\nשורה בעברית')
     wrapper.unmount()
   })
+
+  it('retranslates CodeMirror copy and mixed-script link labels without replacing the editor', async () => {
+    const wrapper = mount(ChapterEditor, {
+      props: {
+        initialText: '',
+        readOnly: false,
+        focusMode: false,
+        linkTargets: [{ name: 'יעל', path: 'characters/יעל.md', type: 'character' }],
+        completions: []
+      },
+      attachTo: document.body
+    })
+    const editorElement = wrapper.get('.cm-editor').element
+    const contentElement = wrapper.get('.cm-content').element
+    if (!(editorElement instanceof HTMLElement) || !(contentElement instanceof HTMLElement))
+      throw new Error('Expected the CodeMirror editor and content elements')
+    const view = EditorView.findFromDOM(editorElement)
+    if (view === null) throw new Error('Expected a mounted CodeMirror view')
+    expect(wrapper.get('.cm-content').attributes('aria-label')).toBe('Prose editor')
+    expect(wrapper.get('.cm-placeholder').text()).toBe('Begin writing…')
+
+    useUiLanguageStore().locale = 'he'
+    await nextTick()
+    expect(wrapper.get('.cm-editor').element).toBe(editorElement)
+    expect(wrapper.get('.cm-content').element).toBe(contentElement)
+    expect(wrapper.get('.cm-content').attributes('aria-label')).toBe('עורך הטקסט')
+    expect(wrapper.get('.cm-placeholder').text()).toBe('אפשר להתחיל לכתוב…')
+
+    view.dispatch({ changes: { from: 0, insert: '[[יעל]]' } })
+    await nextTick()
+    const link = wrapper.get('.cm-wikilink')
+    expect(link.text()).toBe('יעל')
+    expect(link.attributes('dir')).toBe('auto')
+    expect(link.attributes('title')).toBe('קישור אל \u2068יעל\u2069')
+    expect(view.state.doc.toString()).toBe('[[יעל]]')
+
+    useUiLanguageStore().locale = 'en'
+    await nextTick()
+    expect(wrapper.get('.cm-wikilink').attributes('title')).toBe('Links to \u2068יעל\u2069')
+    expect(view.state.doc.toString()).toBe('[[יעל]]')
+
+    view.dispatch({
+      changes: { from: 0, to: view.state.doc.length, insert: '![[יעל]]' }
+    })
+    await nextTick()
+    expect(wrapper.get('.cm-wikilink-embed').attributes('title')).toBe('Embeds \u2068יעל\u2069')
+    expect(view.state.doc.toString()).toBe('![[יעל]]')
+    expect(wrapper.emitted('change')).toEqual([['[[יעל]]'], ['![[יעל]]']])
+    wrapper.unmount()
+  })
 })

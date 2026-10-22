@@ -45,6 +45,32 @@ describe('linkCompletions', () => {
       }
     ])
   })
+
+  it('keeps mixed Hebrew and Latin names and technical paths exact', () => {
+    const mixed: LinkCompletionTarget = {
+      target: 'characters/יעל',
+      name: 'יעל / Yael',
+      path: 'characters/יעל.md',
+      type: 'character',
+      aliases: ['Yael']
+    }
+
+    expect(linkCompletions([mixed])).toEqual([
+      {
+        label: 'יעל / Yael',
+        detail: 'character · characters/יעל',
+        apply: 'characters/יעל',
+        type: 'character',
+        boost: 1
+      },
+      {
+        label: 'Yael',
+        detail: 'יעל / Yael · character',
+        apply: 'characters/יעל|Yael',
+        type: 'character'
+      }
+    ])
+  })
 })
 
 describe('linkCompletionSource', () => {
