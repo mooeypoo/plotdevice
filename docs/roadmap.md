@@ -194,7 +194,9 @@ acceptance criteria, and the cross-session checklist.
     editing copy/accessibility; authored metadata and synopsis text stay unchanged.
   - [x] I3g: Chapter/part Properties inspector labels, link-picker and rename
     prompts; dynamic project values remain authored and unmodified.
-  - [ ] Remaining I3: other inspector panels, timeline/interactions/reading text,
+  - [x] I3h: Timeline controls, empty states, counts, cell accessibility and
+    locale-aware chapter/day-count numbers; no story data or layout changes.
+  - [ ] Remaining I3: other inspector panels, interactions/reading text,
     locale-aware formatting surfaces, native dialog/confirmation and startup text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.

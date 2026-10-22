@@ -78,6 +78,10 @@ type ParameterizedMessages = {
     fileCount: number,
     formattedFiles: string
   ]
+  'timeline-outside-order': [count: number, formatted: string]
+  'timeline-gap-count': [count: number, formatted: string]
+  'timeline-gap-input-label': [formatted: string]
+  'timeline-cell-label': [row: string, chapter: string, state: string]
   'link-wiki-unresolved': [target: string]
   'link-markdown-unresolved': [address: string]
   'link-target-unsupported': [path: string]

@@ -7,9 +7,12 @@ import { axisTicks, PX_PER_DAY, type Zoom } from './story-axis'
 import { useTimeline } from './use-timeline'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { formatStoryDateReading } from '../../shared/story-date-format'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
+import type { Cell, GridRow } from './reading-grid'
 
 const view = useTimeline()
 const language = useUiLanguageStore()
+const chrome = useChromePresentation()
 const { timeline, error, order, rows, minGap, zoom, grid, backInTime, story, range, undated } = view
 
 const host = ref<HTMLElement | null>(null)
@@ -33,7 +36,8 @@ const ticks = computed(() =>
         range.value.start,
         range.value.end,
         pxPerDay.value,
-        language.t
+        language.t,
+        chrome.formatNumber
       )
 )
 const x = (day: number): number => (day - (range.value?.start ?? 0)) * pxPerDay.value
@@ -53,6 +57,20 @@ function describe(chapter: TimelineChapterDto): string {
 const chapterAt = (path: string): TimelineChapterDto | undefined =>
   timeline.value?.chapters.find((chapter) => chapter.path === path)
 
+function cellLabel(row: GridRow, chapter: TimelineChapterDto, cell: Cell): string {
+  const state =
+    cell === 'out'
+      ? language.t('timeline-cell-no')
+      : cell === 'pov'
+        ? language.t('timeline-cell-pov')
+        : language.t('timeline-cell-yes')
+  return language.t('timeline-cell-label', isolate(row.name), isolate(chapter.title), state)
+}
+
+function gapCount(row: GridRow): number {
+  return Math.max(...row.gaps.map((gap) => gap.to - gap.from + 1))
+}
+
 function setMinGap(event: Event): void {
   const value = Number((event.target as HTMLInputElement).value)
   if (Number.isInteger(value) && value >= 1) minGap.value = value
@@ -62,30 +80,41 @@ function setMinGap(event: Event): void {
 <template>
   <section ref="host" class="timeline" aria-labelledby="timeline-heading">
     <header>
-      <h1 id="timeline-heading">Timeline</h1>
+      <h1 id="timeline-heading">{{ language.t('timeline-heading') }}</h1>
       <div class="controls">
-        <div class="segmented" role="group" aria-label="Order">
+        <div class="segmented" role="group" :aria-label="language.t('timeline-order-group')">
           <button type="button" :class="{ on: order === 'reading' }" @click="order = 'reading'">
-            Reading order
+            {{ language.t('timeline-reading-order') }}
           </button>
           <button type="button" :class="{ on: order === 'story' }" @click="order = 'story'">
-            Story order
+            {{ language.t('timeline-story-order') }}
           </button>
         </div>
-        <div class="segmented" role="group" aria-label="Rows">
+        <div class="segmented" role="group" :aria-label="language.t('timeline-rows-group')">
           <button type="button" :class="{ on: rows === 'threads' }" @click="rows = 'threads'">
-            Threads
+            {{ language.t('timeline-threads') }}
           </button>
           <button type="button" :class="{ on: rows === 'characters' }" @click="rows = 'characters'">
-            Characters
+            {{ language.t('timeline-characters') }}
           </button>
         </div>
         <label v-if="order === 'reading'" class="gap-setting">
-          Highlight gaps of
-          <input type="number" min="1" :value="minGap" @change="setMinGap" />
-          chapters or more
+          {{ language.t('timeline-gap-prefix') }}
+          <input
+            type="number"
+            min="1"
+            :value="minGap"
+            :aria-label="language.t('timeline-gap-input-label', chrome.formatNumber(minGap))"
+            @change="setMinGap"
+          />
+          {{ language.t('timeline-gap-suffix') }}
         </label>
-        <div v-else class="segmented" role="group" aria-label="Zoom">
+        <div
+          v-else
+          class="segmented"
+          role="group"
+          :aria-label="language.t('timeline-zoom-group')"
+        >
           <button
             v-for="level in ZOOMS"
             :key="level"
@@ -93,25 +122,30 @@ function setMinGap(event: Event): void {
             :class="{ on: zoom === level }"
             @click="zoom = level"
           >
-            {{ level[0]?.toUpperCase() }}{{ level.slice(1) }}
+            {{ language.t(`timeline-zoom-${level}`) }}
           </button>
         </div>
       </div>
       <p v-if="timeline && timeline.outside > 0" class="hint">
-        {{ timeline.outside }} {{ timeline.outside === 1 ? 'chapter is' : 'chapters are' }} outside
-        the book’s order and not shown.
+        {{
+          language.t(
+            'timeline-outside-order',
+            timeline.outside,
+            chrome.formatNumber(timeline.outside)
+          )
+        }}
       </p>
     </header>
 
     <p v-if="error" class="hint query-error" role="alert" dir="auto">{{ error }}</p>
     <p v-if="timeline && timeline.chapters.length === 0" class="empty">
-      No chapters in the book yet.
+      {{ language.t('timeline-no-chapters') }}
     </p>
     <p v-else-if="timeline && grid.length === 0" class="empty">
       {{
         rows === 'threads'
-          ? 'No threads yet. Add them to novel.md, and to chapters in the inspector.'
-          : 'No characters appear in chapters yet.'
+          ? language.t('timeline-no-threads')
+          : language.t('timeline-no-characters')
       }}
     </p>
 
@@ -123,7 +157,7 @@ function setMinGap(event: Event): void {
         gridTemplateColumns: `180px repeat(${timeline.chapters.length}, minmax(92px, 1fr))`
       }"
       role="table"
-      aria-label="Timeline in reading order"
+      :aria-label="language.t('timeline-reading-grid')"
     >
       <div class="corner" role="columnheader"></div>
       <div
@@ -139,7 +173,7 @@ function setMinGap(event: Event): void {
           :title="describe(chapter)"
           @click="view.open(chapter.path)"
         >
-          <span class="label">{{ chapterLabel(chapter) }}</span>
+          <span class="label" dir="ltr">{{ chapterLabel(chapter, chrome.formatNumber) }}</span>
           {{ chapter.title }}
         </button>
         <span class="date" :class="{ missing: chapter.date.kind !== 'dated' }">
@@ -154,9 +188,9 @@ function setMinGap(event: Event): void {
         <span
           v-if="backInTime[index]"
           class="back"
-          title="Earlier in the story than the chapter before"
+          :title="language.t('timeline-earlier-title')"
         >
-          ↶ earlier
+          ↶ {{ language.t('timeline-earlier') }}
         </span>
       </div>
 
@@ -165,7 +199,13 @@ function setMinGap(event: Event): void {
           <span class="swatch" :style="{ background: row.color ?? 'var(--accent)' }"></span>
           <span dir="auto">{{ row.name }}</span>
           <span v-if="row.gaps.length > 0" class="gap-note">
-            missing for {{ Math.max(...row.gaps.map((gap) => gap.to - gap.from + 1)) }}
+            {{
+              language.t(
+                'timeline-gap-count',
+                Math.max(...row.gaps.map((gap) => gap.to - gap.from + 1)),
+                chrome.formatNumber(gapCount(row))
+              )
+            }}
           </span>
         </div>
         <button
@@ -176,7 +216,7 @@ function setMinGap(event: Event): void {
           :class="[cell, { gap: row.gaps.some((gap) => index >= gap.from && index <= gap.to) }]"
           :style="cell === 'out' ? undefined : { '--row-color': row.color ?? 'var(--accent)' }"
           :title="describe(timeline.chapters[index] as TimelineChapterDto)"
-          :aria-label="`${isolate(row.name)} in ${isolate(timeline.chapters[index]?.title ?? '')}: ${cell === 'out' ? 'no' : cell === 'pov' ? 'point of view' : 'yes'}`"
+          :aria-label="cellLabel(row, timeline.chapters[index] as TimelineChapterDto, cell)"
           @click="view.open(timeline.chapters[index]?.path ?? '')"
         ></button>
       </template>
@@ -184,7 +224,9 @@ function setMinGap(event: Event): void {
 
     <!-- Story order: when things happen, on a real time scale. -->
     <div v-else-if="timeline && order === 'story'" class="story">
-      <p v-if="range === undefined" class="empty">No chapter has a story date yet.</p>
+      <p v-if="range === undefined" class="empty">
+        {{ language.t('timeline-no-story-dates') }}
+      </p>
       <div v-else class="story-body">
         <div class="names">
           <div class="axis-spacer"></div>
@@ -248,7 +290,8 @@ function setMinGap(event: Event): void {
       <ul>
         <li v-for="chapter in undated" :key="chapter.path">
           <button type="button" class="link" dir="auto" @click="view.fixDate(chapter.path)">
-            {{ chapterLabel(chapter) }} {{ chapter.title }}
+            <span dir="ltr">{{ chapterLabel(chapter, chrome.formatNumber) }}</span>
+            {{ chapter.title }}
           </button>
           <span class="muted">
             {{

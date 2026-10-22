@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { TimelineChapterDto, TimelineDto } from '../../../../contract/dtos'
 import { createTranslator } from '../../../../i18n/translator'
+import { isolate } from '../../shared/isolate'
 import { chapterLabel, gapsIn, goesBackInTime, readingRows } from './reading-grid'
 import {
   axisTicks,
@@ -103,6 +104,11 @@ describe('goesBackInTime and chapterLabel', () => {
     ).toEqual([false, false, true, false])
     expect(chapterLabel(timeline.chapters[2] as TimelineChapterDto)).toBe('II·1')
     expect(chapterLabel(chapter('Loose', { number: 3 }))).toBe('3')
+    expect(
+      chapterLabel(chapter('Large', { number: 1234 }), (value) =>
+        new Intl.NumberFormat('he').format(value)
+      )
+    ).toBe(new Intl.NumberFormat('he').format(1234))
   })
 })
 
@@ -134,9 +140,9 @@ describe('story axis', () => {
     const months = axisTicks('gregorian', day(1952, 10, 1), day(1953, 1, 31), 2, english.t)
     expect(months.map((tick) => tick.label)).toEqual(['Oct 1952', 'Nov', 'Dec', '1953'])
     expect(axisTicks('day-count', -3, 20, 8, english.t).map((tick) => tick.label)).toEqual([
-      'Day 0',
-      'Day 10',
-      'Day 20'
+      `Day ${isolate('0')}`,
+      `Day ${isolate('10')}`,
+      `Day ${isolate('20')}`
     ])
   })
 
@@ -150,10 +156,14 @@ describe('story axis', () => {
       en.map(({ day, major }) => ({ day, major }))
     )
     expect(axisTicks('day-count', -3, 20, 8, hebrew.t).map((tick) => tick.label)).toEqual([
-      'יום 0',
-      'יום 10',
-      'יום 20'
+      `יום ${isolate('0')}`,
+      `יום ${isolate('10')}`,
+      `יום ${isolate('20')}`
     ])
+    const formatNumber = (value: number): string => new Intl.NumberFormat('he').format(value)
+    expect(
+      axisTicks('day-count', 1000, 1020, 8, hebrew.t, formatNumber).map((tick) => tick.label)
+    ).toEqual([1000, 1010, 1020].map((value) => `יום ${isolate(formatNumber(value))}`))
     expect(
       axisTicks('gregorian', -902149, -901784, 0.5, hebrew.t).map((tick) => tick.label)
     ).toContain('500 לפנה״ס')

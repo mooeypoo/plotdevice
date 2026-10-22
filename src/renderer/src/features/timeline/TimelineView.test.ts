@@ -27,6 +27,45 @@ const mountView = async (): Promise<ReturnType<typeof mount>> => {
 }
 
 describe('TimelineView', () => {
+  it('translates timeline controls and labels while preserving view state without reloading', async () => {
+    fake.timeline.current = { ...fake.timeline.current, outside: 1 }
+    const get = vi.spyOn(fake.api.timeline, 'getTimeline')
+    const language = useUiLanguageStore()
+    await language.initialize()
+    const view = await mountView()
+    const reads = get.mock.calls.length
+
+    const gap = view.get<HTMLInputElement>('.gap-setting input')
+    gap.element.value = '5'
+    await gap.trigger('change')
+    const characters = view.findAll('button').find((button) => button.text() === 'Characters')
+    await characters?.trigger('click')
+    const story = view.findAll('button').find((button) => button.text() === 'Story order')
+    await story?.trigger('click')
+    await view.get('[aria-label="Zoom"] button:last-child').trigger('click')
+
+    await language.change('he')
+    await flushPromises()
+
+    expect(view.get('h1').text()).toBe('ציר הזמן')
+    expect(view.get('[aria-label="סדר"]').text()).toContain('סדר הקריאה')
+    expect(view.get('[aria-label="שורות"]').text()).toContain('דמויות')
+    expect(view.get('[aria-label="קנה מידה"] .on').text()).toBe('שנה')
+    expect(view.text()).toContain('פרק מחוץ לסדר הספר')
+    expect(view.findAll('.row-name').map((row) => row.text())).toContain('Ilka')
+
+    await view.get('[aria-label="סדר"] button').trigger('click')
+    const translatedGap = view.get<HTMLInputElement>('.gap-setting input')
+    expect(translatedGap.element.value).toBe('5')
+    expect(translatedGap.attributes('aria-label')).toBe('פער מינימלי בפרקים: 5')
+    expect(view.find('.cell').attributes('aria-label')).toContain('Ilka')
+    expect(view.find('.cell').attributes('aria-label')).toContain('פרק')
+    expect(get).toHaveBeenCalledTimes(reads)
+    expect(fake.saves).toEqual([])
+    expect(fake.codexWrites).toEqual([])
+    view.unmount()
+  })
+
   it('reformats cached dates, issues, tooltips and axis labels without reloading', async () => {
     fake.timeline.current = {
       ...fake.timeline.current,
@@ -43,9 +82,9 @@ describe('TimelineView', () => {
     expect(view.findAll('.column-head')[0]?.text()).toContain('3 באוקטובר 1952')
     expect(view.find('.undated').text()).toContain('היום הזה אינו קיים')
     expect(view.find('.undated').text()).toContain('\u20681952-02-30\u2069')
-    const story = view.findAll('button').find((button) => button.text() === 'Story order')
+    const story = view.findAll('button').find((button) => button.text() === 'סדר העלילה')
     await story?.trigger('click')
-    await view.get('[aria-label=Zoom] button').trigger('click')
+    await view.get('[aria-label="קנה מידה"] button').trigger('click')
     expect(view.findAll('.bar').map((bar) => bar.attributes('title'))).toContainEqual(
       expect.stringContaining('3 באוקטובר 1952')
     )

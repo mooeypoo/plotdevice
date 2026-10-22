@@ -2,6 +2,7 @@ import type { TimelineDto } from '../../../../contract/dtos'
 import type { RowMode } from './reading-grid'
 import type { Translator } from '../../../../i18n/translator'
 import { formatStoryMonth, formatStoryYear } from '../../shared/story-date-format'
+import { isolate } from '../../shared/isolate'
 
 /** How much story time fits on screen: pixels per day. */
 export type Zoom = 'day' | 'week' | 'month' | 'year'
@@ -135,14 +136,19 @@ export function axisTicks(
   start: number,
   end: number,
   pxPerDay: number,
-  t: Translator['t']
+  t: Translator['t'],
+  formatNumber: (value: number) => string = String
 ): Tick[] {
   const ticks: Tick[] = []
   if (calendar === 'day-count') {
     const step =
       [1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 5000].find((s) => s * pxPerDay >= 48) ?? 10000
     for (let day = Math.ceil(start / step) * step; day <= end; day += step) {
-      ticks.push({ day, label: t('date-day-count', String(day)), major: day % (step * 5) === 0 })
+      ticks.push({
+        day,
+        label: t('date-day-count', isolate(formatNumber(day))),
+        major: day % (step * 5) === 0
+      })
     }
     return ticks
   }
@@ -162,7 +168,7 @@ export function axisTicks(
           major: true
         })
       } else if (date.day >= 3 && (date.day - 3) % every === 0) {
-        ticks.push({ day, label: String(date.day), major: false })
+        ticks.push({ day, label: formatNumber(date.day), major: false })
       }
     } else if (pxPerDay >= 1 && date.day === 1) {
       // The first month shown names its year too, so the axis never starts without one.

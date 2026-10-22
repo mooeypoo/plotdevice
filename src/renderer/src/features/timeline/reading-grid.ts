@@ -64,8 +64,11 @@ export function goesBackInTime(chapters: readonly TimelineChapterDto[]): boolean
   })
 }
 
-/** A short label for a chapter's place: "I·2" in a part, "2" in a book without parts. */
-export function chapterLabel(chapter: TimelineChapterDto): string {
-  const number = chapter.number === undefined ? '' : String(chapter.number)
+/** A short chapter position: "I·2" in a part, or a formatted "2" without parts. */
+export function chapterLabel(
+  chapter: TimelineChapterDto,
+  formatNumber: (value: number) => string = String
+): string {
+  const number = chapter.number === undefined ? '' : formatNumber(chapter.number)
   return chapter.partNumber === undefined ? number : `${romanNumeral(chapter.partNumber)}·${number}`
 }

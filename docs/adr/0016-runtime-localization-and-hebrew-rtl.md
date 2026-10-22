@@ -1061,9 +1061,27 @@ locale-triggered API calls. Verified lint/dependency boundaries (471 modules/
 production electron-vite build. Documentation build/link/asset checks passed
 for all 16 public pages.
 
-**Next session:** propose a bounded timeline translation slice before editing.
-Remaining I3 work includes other inspector panels (Codex, Outline and Template),
-timeline/interactions/reading text, other locale-aware number/date/collation
+### I3h Timeline presentation
+
+Timeline headings, order/row/zoom controls, gap and outside-order guidance,
+empty states, back-in-time cues, the reading-grid accessible name, and
+cell-accessibility states now translate. Chapter positions, gap/outside counts,
+and timeline day-count/day-of-month tick numbers use UI-locale formatting; signed
+day-count values are bidi-isolated. Existing story-date precision and
+chronological values remain unchanged.
+
+Live locale changes preserve order, row mode, zoom and minimum-gap settings and
+do not reload the timeline or write project data. Authored row names and chapter
+titles remain unchanged and isolated in accessible labels. Focused tests cover
+translated controls/states/cell labels, retained view state, no timeline reload,
+localized chapter positions and grouped axis numbers. Verified lint/dependency
+boundaries (471 modules/2,357 dependencies), typecheck, **1,541 tests across 169
+files**, and the production electron-vite build. Documentation build/link/asset
+checks passed for all 16 public pages.
+
+**Next session:** propose a bounded Interactions-view translation slice before
+editing. Remaining I3 work includes other inspector panels (Codex, Outline and
+Template), interactions/reading text, other locale-aware number/date/collation
 surfaces, native dialog/confirmation wording, and startup fallback. I3 is
 incomplete; RTL geometry/directional controls and packaged qualification remain
 I4-I6, and the separate Hebrew manual is not implemented.
