@@ -10,6 +10,6 @@ Tabs preserve session undo, selection and scroll; only navigation metadata persi
 Settings/recents/folder failures use live localized notices preserving drafts; failed list reads retain the last list.
 Bundled Banana catalogs translate onboarding, chrome/tabs/sidebar/binder, Codex lists/profile/relationships, Properties/Outline/Template inspectors, Overview, Timeline and Interactions, synopsis/rename controls, generated positions and recent dates; ADR 0016 tracks Hebrew/RTL.
 Dates/warnings, placement and migrated action/query/link notices stay semantic; locale switches never reread/rewrite files.
-Recovery keeps outside changes authoritative until an explicit choice; localized failures retain drafts and freeze editing.
+Recovery keeps outside changes authoritative; failures retain/freeze drafts, and close warnings follow UI language without file writes.
 **Must not know about.** Node, Electron, filesystem access, domain classes, or concrete adapters.
 All project reads and writes go through the typed `window.plotDevice` API in `src/contract/`.

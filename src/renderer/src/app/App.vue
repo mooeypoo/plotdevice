@@ -5,10 +5,12 @@ import WelcomeScreen from '../features/welcome/WelcomeScreen.vue'
 import { useEditorStore } from './editor-store'
 import { plotDeviceApi } from './plot-device-api'
 import ProjectLayout from './ProjectLayout.vue'
+import { useUiLanguageStore } from './ui-language-store'
 import { useWorkspaceStore } from './workspace-store'
 
 const workspace = useWorkspaceStore()
 const editor = useEditorStore()
+const language = useUiLanguageStore()
 let stopListening: (() => void) | undefined
 let stopOpenFolder: (() => void) | undefined
 
@@ -33,9 +35,7 @@ onMounted(() => {
       }
       const discard =
         !editor.hasStuckChanges ||
-        window.confirm(
-          'Your open draft has unresolved changes. Close anyway and lose the draft? Files on disk will not be changed.'
-        )
+        window.confirm(language.t('app-close-confirm-unresolved-draft'))
       if (discard) app.readyToClose()
       else app.cancelClose()
     })

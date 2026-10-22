@@ -7,12 +7,14 @@ import { useEditorStore } from './editor-store'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
+import { useUiLanguageStore } from './ui-language-store'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 let beforeClose: () => void
 beforeEach(async () => {
   window.confirm = vi.fn(() => true)
   setActivePinia(createPinia())
+  useUiLanguageStore().locale = 'en'
   fake = createFakePlotDeviceApi()
   plotDeviceApi.current = () => fake.api
   fake.api.app.onBeforeClose = (listener) => {
@@ -53,14 +55,39 @@ describe('window close with unresolved recovery', () => {
     const ready = vi.spyOn(fake.api.app, 'readyToClose')
     const cancel = vi.spyOn(fake.api.app, 'cancelClose')
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    const save = vi.spyOn(fake.api.manuscript, 'saveEntryText')
     const app = mountApp()
     beforeClose()
     await flushPromises()
-    expect(confirm).toHaveBeenCalledOnce()
+    expect(confirm).toHaveBeenCalledExactlyOnceWith(
+      'Your open draft has unresolved changes. Close anyway and lose the draft? Files on disk will not be changed.'
+    )
     expect(cancel).toHaveBeenCalledOnce()
     expect(ready).not.toHaveBeenCalled()
     expect(useEditorStore().text).toBe('Unsaved draft\n')
     expect(fake.files.has('First frost.md')).toBe(false)
+    expect(save).not.toHaveBeenCalled()
+    app.unmount()
+  })
+
+  it('uses the selected Hebrew wording without changing close or file behavior', async () => {
+    const ready = vi.spyOn(fake.api.app, 'readyToClose')
+    const cancel = vi.spyOn(fake.api.app, 'cancelClose')
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    const save = vi.spyOn(fake.api.manuscript, 'saveEntryText')
+    const app = mountApp()
+    await useUiLanguageStore().change('he')
+    beforeClose()
+    await flushPromises()
+
+    expect(confirm).toHaveBeenCalledExactlyOnceWith(
+      'בטיוטה הפתוחה שלך יש שינויים שלא נפתרו. לסגור בכל זאת ולאבד את הטיוטה? הקבצים שבדיסק לא ישתנו.'
+    )
+    expect(cancel).toHaveBeenCalledOnce()
+    expect(ready).not.toHaveBeenCalled()
+    expect(useEditorStore().text).toBe('Unsaved draft\n')
+    expect(fake.files.has('First frost.md')).toBe(false)
+    expect(save).not.toHaveBeenCalled()
     app.unmount()
   })
 

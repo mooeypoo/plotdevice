@@ -127,8 +127,10 @@ progress, remaining limitations, and the next slice before ending a session.
   - [x] **I3l Outline/Reference reading panels:** panel chrome, loading/empty
     guidance, editor and retry actions, and accessibility; preserve authored
     titles, aliases, paths, roles, and rendered Markdown exactly.
+  - [x] **I3m Unresolved-draft close warning:** localized confirmation while
+    preserving the explicit draft-loss and unchanged-files warning.
   - [ ] **Remaining I3:** remaining
-    locale-aware formatting/collation, native dialog/confirmation and startup
+    locale-aware formatting/collation, other native dialog wording, and startup
     text.
 - [ ] **I4 RTL interface:** binder indentation/disclosures, logical layout,
   icons, responsive chrome, timeline coordinates/scroll, sticky matrix headers,
@@ -1177,8 +1179,22 @@ typecheck, **1,552 tests across 171 files**, production electron-vite build, and
 documentation build/link/asset checks across all 16 public pages. No API or
 dependencies changed.
 
+### I3m Unresolved-draft close confirmation
+
+The native close confirmation now uses the selected UI-language catalog. Both
+English and Hebrew retain the full warning that closing loses the unresolved
+draft while files on disk remain unchanged. The existing close/cancel decision
+and recovery behavior are unchanged.
+
+Tests verify the exact English/Hebrew warning, cancellation with the draft
+retained, no project-file recreation or write, and continued explicit discard
+behavior. Verified lint/dependency boundaries (473 modules/2,398 dependencies),
+typecheck, **1,553 tests across 171 files**, and the production electron-vite
+build. Documentation build/link/asset checks passed across all 16 public pages.
+No API or dependencies changed.
+
 **Next session:** propose a bounded remaining-I3 slice before editing.
-Remaining work includes locale-aware formatting/collation surfaces, native
-dialog/confirmation wording and startup fallback. I3 remains incomplete; RTL
+Remaining work includes locale-aware formatting/collation surfaces, other
+native dialog wording and startup fallback. I3 remains incomplete; RTL
 geometry/directional controls and packaged qualification remain I4-I6, and the
 separate Hebrew manual is not implemented.

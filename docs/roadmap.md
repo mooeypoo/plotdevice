@@ -204,6 +204,8 @@ acceptance criteria, and the cross-session checklist.
     preserve manuscript/template tokens, editor state and project files.
   - [x] I3l: Outline/Reference reading-panel chrome, empty/loading/editor
     actions and accessibility; keep authored titles and Markdown unchanged.
+  - [x] I3m: Localized unresolved-draft close confirmation; preserve the
+    explicit draft-loss and unchanged-files warning and close behavior.
   - [ ] Remaining I3: other interface text, locale-aware formatting/collation
     surfaces, native dialog/confirmation and startup text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.

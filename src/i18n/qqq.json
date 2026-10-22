@@ -507,6 +507,7 @@
   "editor-disk-loaded": "Explicit Use disk version succeeded by reading, never writing.",
   "editor-changed-again": "Replacement failed fresh version check; no content replaced.",
   "editor-confirm-replace": "Destructive confirmation immediately before conditional body replacement. Explain external body overwrite, current frontmatter preservation, and non-destructive recovered-copy alternative. Never weaken this warning.",
+  "app-close-confirm-unresolved-draft": "Warning before closing when the open draft has unresolved changes. Clearly state the draft will be lost if closed and project files on disk will remain unchanged.",
   "editor-read-only-notice": "Editor banner: project is read-only, no file changes permitted.",
   "recovery-conflict-heading": "Alert heading for simultaneous draft and outside edits.",
   "recovery-conflict-description": "Safety explanation: autosave paused, replacement requires explicit confirmation, recovered copy retains captured metadata and leaves original/links untouched. Preserve all guarantees.",
