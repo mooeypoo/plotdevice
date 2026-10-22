@@ -106,8 +106,23 @@ progress, remaining limitations, and the next slice before ending a session.
     controls, recent-project labels/accessibility and UI-locale timestamp dates.
   - [x] **I3b Project chrome:** top-bar accessibility/tooltips, status/focus
     counts and save labels, complete writing-appearance controls.
-  - [ ] **Next approval:** document tabs and sidebar chrome, then remaining
-    component/native/startup text in bounded slices.
+  - [x] **I3c Document tabs/sidebar:** tab actions and states, navigation names,
+    and generated entry-position/template-title presentation.
+  - [x] **I3d Binder:** tree actions/accessibility, creation guidance, and
+    UI-locale word counts without translating authored statuses.
+  - [x] **I3e Codex lists:** sections, search/filter controls, template copy,
+    entry actions, and reference-button accessibility.
+  - [x] **I3f Overview:** filters, generated section labels/counts, and inline
+    synopsis controls without changing authored metadata or prose.
+  - [x] **I3g Properties:** chapter/part labels, link-picker, and rename
+    confirmations while leaving project-authored values unchanged.
+  - [x] **I3h Timeline:** controls, empty states, counts, cell accessibility,
+    and locale-aware numbers without changing story data or layout.
+  - [x] **I3i Interactions:** matrix controls, notices, cell/detail accessibility,
+    selected-pair copy, and UI-locale counts without changing matrix behavior.
+  - [ ] **Remaining I3:** other inspector panels, reading text, remaining
+    locale-aware formatting/collation, native dialog/confirmation and startup
+    text.
 - [ ] **I4 RTL interface:** binder indentation/disclosures, logical layout,
   icons, responsive chrome, timeline coordinates/scroll, sticky matrix headers,
   keyboard/pointer interaction, selection retained by identity.
@@ -1079,9 +1094,29 @@ boundaries (471 modules/2,357 dependencies), typecheck, **1,541 tests across 169
 files**, and the production electron-vite build. Documentation build/link/asset
 checks passed for all 16 public pages.
 
-**Next session:** propose a bounded Interactions-view translation slice before
-editing. Remaining I3 work includes other inspector panels (Codex, Outline and
-Template), interactions/reading text, other locale-aware number/date/collation
-surfaces, native dialog/confirmation wording, and startup fallback. I3 is
-incomplete; RTL geometry/directional controls and packaged qualification remain
-I4-I6, and the separate Hebrew manual is not implemented.
+### I3i Interactions matrix presentation
+
+The Interactions heading and explanation, order selector, outside-order and
+empty-state messages, matrix cell accessible/title labels, selected-pair
+headings, no-shared-chapter message, and point-of-view notes now use the live
+English/Hebrew catalogs. Authored character names remain unchanged and are
+bidi-isolated inside translated text. Visible matrix counts, accessibility
+labels and notices use UI-locale number formatting with raw values retained for
+plural selection.
+
+Switching the interface language preserves the selected pair and character
+order; it does not reload the interaction matrix or read/write project files.
+Focused tests cover translated visible/accessibility copy, Hebrew plural text,
+large grouped counts, retained selection/order, unchanged authored names and no
+language-triggered interaction query or editor save. Verified lint/dependency
+boundaries (471 modules/2,360 dependencies), typecheck, **1,543 tests across 169
+files**, and production electron-vite build. Documentation build/link/asset
+checks passed for all 16 public pages. No API or dependencies changed; RTL
+matrix geometry remains I4.
+
+**Next session:** propose a bounded inspector translation slice before editing,
+starting with Codex properties. Remaining I3 work includes Outline/Template
+inspectors, reading text, other locale-aware formatting/collation surfaces,
+native dialog/confirmation wording and startup fallback. I3 remains incomplete;
+RTL geometry/directional controls and packaged qualification remain I4-I6, and
+the separate Hebrew manual is not implemented.

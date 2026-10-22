@@ -82,6 +82,23 @@ type ParameterizedMessages = {
   'timeline-gap-count': [count: number, formatted: string]
   'timeline-gap-input-label': [formatted: string]
   'timeline-cell-label': [row: string, chapter: string, state: string]
+  'interactions-outside-order': [count: number, formatted: string]
+  'interactions-cell-self': [name: string, count: number, formatted: string]
+  'interactions-cell-pair': [
+    row: string,
+    column: string,
+    count: number,
+    formatted: string
+  ]
+  'interactions-selected-self': [name: string, count: number, formatted: string]
+  'interactions-selected-pair': [
+    row: string,
+    column: string,
+    count: number,
+    formatted: string
+  ]
+  'interactions-never-together': [row: string, column: string]
+  'interactions-pov': [name: string]
   'link-wiki-unresolved': [target: string]
   'link-markdown-unresolved': [address: string]
   'link-target-unsupported': [path: string]

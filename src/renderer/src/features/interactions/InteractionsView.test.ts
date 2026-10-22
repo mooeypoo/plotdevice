@@ -1,18 +1,23 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
-import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
+import { createFakePlotDeviceApi, sampleInteractions } from '../../app/fake-plot-device-api'
 import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 import InteractionsView from './InteractionsView.vue'
 
+let fake: ReturnType<typeof createFakePlotDeviceApi>
+
 beforeEach(async () => {
+  localStorage.clear()
   setActivePinia(createPinia())
-  const fake = createFakePlotDeviceApi()
+  useUiLanguageStore().locale = 'en'
+  fake = createFakePlotDeviceApi()
   plotDeviceApi.current = () => fake.api
   await Promise.all([useManuscriptStore().load(), useCodexStore().load()])
 })
@@ -52,10 +57,10 @@ describe('InteractionsView', () => {
     const view = await mountView()
     await view.findAll('tbody tr')[1]?.findAll('.cell')[2]?.trigger('click')
     const details = view.get('.details')
-    expect(details.findAll('h2 bdi').map((name) => name.text())).toEqual(['Ilka', 'יעל'])
+    expect(details.get('h2').text()).toBe('⁨Ilka⁩ and ⁨יעל⁩ share 2 chapters')
     expect(details.findAll('li').map((item) => item.text().replace(/\s+/gu, ' '))).toEqual([
-      'The Ferry · Ilka’s point of view',
-      'Lost · יעל’s point of view'
+      'The Ferry · ⁨Ilka⁩’s point of view',
+      'Lost · ⁨יעל⁩’s point of view'
     ])
     await details.find('button.link').trigger('click')
     await flushPromises()
@@ -80,5 +85,78 @@ describe('InteractionsView', () => {
       'יעל',
       'Aunt Bea'
     ])
+  })
+
+  it('translates the matrix live while preserving selection and avoiding project access', async () => {
+    const getInteractions = vi.spyOn(fake.api.interactions, 'getInteractions')
+    const view = await mountView()
+    const orderButton = view
+      .findAll('button')
+      .find((candidate) => candidate.text() === 'Most appearances first')
+    await orderButton?.trigger('click')
+    await view.findAll('tbody tr')[0]?.findAll('.cell')[1]?.trigger('click')
+
+    const initialReads = getInteractions.mock.calls.length
+    const initialSaves = [...fake.saves]
+    expect(view.get('.details').text()).toContain('share 2 chapters')
+    expect(view.findAll('thead th bdi').map((name) => name.text())).toEqual([
+      'Ilka',
+      'יעל',
+      'Aunt Bea'
+    ])
+
+    useUiLanguageStore().locale = 'he'
+    await flushPromises()
+
+    expect(view.get('h1').text()).toBe('מפגשים')
+    expect(view.get('[role="group"]').attributes('aria-label')).toBe('סדר')
+    expect(view.text()).toContain('לפי מספר ההופעות')
+    expect(view.text()).toContain('1 פרק מחוץ לסדר הספר ולא נספר.')
+    expect(view.findAll('thead th bdi').map((name) => name.text())).toEqual([
+      'Ilka',
+      'יעל',
+      'Aunt Bea'
+    ])
+    expect(view.get('.details').text()).toContain(
+      'מספר הפרקים המשותפים ל־⁨Ilka⁩ ול־⁨יעל⁩: 2 פרקים'
+    )
+    expect(view.get('.details').text()).toContain('נקודת המבט של ⁨Ilka⁩')
+    expect(getInteractions).toHaveBeenCalledTimes(initialReads)
+    expect(fake.saves).toEqual(initialSaves)
+
+    useUiLanguageStore().locale = 'en'
+    await flushPromises()
+    expect(view.get('.details').text()).toContain('share 2 chapters')
+    expect(getInteractions).toHaveBeenCalledTimes(initialReads)
+    expect(fake.saves).toEqual(initialSaves)
+  })
+
+  it('formats visible and accessible interaction counts with the interface locale', async () => {
+    const chapters = Array.from({ length: 1234 }, (_, index) => ({
+      path: `Chapter ${String(index + 1)}.md`,
+      title: `Chapter ${String(index + 1)}`
+    }))
+    const interactions = {
+      ...sampleInteractions,
+      chapters,
+      outside: 1234,
+      characters: sampleInteractions.characters.map((character) => ({
+        ...character,
+        chapters: chapters.map((_, index) => index),
+        povChapters: []
+      }))
+    }
+    vi.spyOn(fake.api.interactions, 'getInteractions').mockResolvedValue({
+      ok: true,
+      value: interactions
+    })
+    useUiLanguageStore().locale = 'he'
+
+    const view = await mountView()
+    const formatted = new Intl.NumberFormat('he').format(1234)
+
+    expect(view.findAll('.cell')[1]?.text()).toBe(formatted)
+    expect(view.findAll('.cell')[1]?.attributes('aria-label')).toContain(formatted)
+    expect(view.get('header .hint:last-child').text()).toContain(formatted)
   })
 })

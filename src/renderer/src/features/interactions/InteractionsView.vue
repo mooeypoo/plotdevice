@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { isolate } from '../../shared/isolate'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 import { shade } from './interaction-matrix'
 import { useInteractions } from './use-interactions'
 
 const view = useInteractions()
 const { interactions, error, order, matrix, picked } = view
+const language = useUiLanguageStore()
+const { formatNumber } = useChromePresentation()
 
 const pair = computed(() => {
   const current = picked.value
@@ -23,10 +27,15 @@ function cellLabel(row: number, column: number): string {
   const a = m?.characters[row]?.name ?? ''
   const b = m?.characters[column]?.name ?? ''
   const count = m?.cells[row]?.[column]?.chapters.length ?? 0
-  const chapters = `${String(count)} ${count === 1 ? 'chapter' : 'chapters'}`
   return row === column
-    ? `${isolate(a)}: in ${chapters}`
-    : `${isolate(a)} and ${isolate(b)}: ${chapters} together`
+    ? language.t('interactions-cell-self', isolate(a), count, formatNumber(count))
+    : language.t(
+        'interactions-cell-pair',
+        isolate(a),
+        isolate(b),
+        count,
+        formatNumber(count)
+      )
 }
 
 function chapterTitle(index: number): string {
@@ -41,33 +50,34 @@ function chapterPath(index: number): string {
 <template>
   <section class="interactions" aria-labelledby="interactions-heading">
     <header>
-      <h1 id="interactions-heading">Interactions</h1>
-      <p class="hint">
-        How many chapters each pair of characters shares, from each chapter’s point of view and
-        characters. Click a cell to see which.
-      </p>
-      <div class="segmented" role="group" aria-label="Order">
+      <h1 id="interactions-heading">{{ language.t('interactions-heading') }}</h1>
+      <p class="hint">{{ language.t('interactions-description') }}</p>
+      <div class="segmented" role="group" :aria-label="language.t('interactions-order-group')">
         <button type="button" :class="{ on: order === 'name' }" @click="order = 'name'">
-          By name
+          {{ language.t('interactions-order-name') }}
         </button>
         <button
           type="button"
           :class="{ on: order === 'appearances' }"
           @click="order = 'appearances'"
         >
-          Most appearances first
+          {{ language.t('interactions-order-appearances') }}
         </button>
       </div>
       <p v-if="interactions && interactions.outside > 0" class="hint">
-        {{ interactions.outside }} {{ interactions.outside === 1 ? 'chapter is' : 'chapters are' }}
-        outside the book’s order and not counted.
+        {{
+          language.t(
+            'interactions-outside-order',
+            interactions.outside,
+            formatNumber(interactions.outside)
+          )
+        }}
       </p>
     </header>
 
     <p v-if="error" class="hint query-error" role="alert" dir="auto">{{ error }}</p>
     <p v-if="matrix && matrix.characters.length === 0" class="empty">
-      No characters appear in chapters yet. Add them to a chapter’s point of view or characters in
-      the inspector.
+      {{ language.t('interactions-empty') }}
     </p>
 
     <div v-else-if="matrix" class="scroll">
@@ -104,7 +114,9 @@ function chapterPath(index: number): string {
                 @click="picked = { row: rowIndex, column: columnIndex }"
               >
                 {{
-                  cell.chapters.length === 0 && rowIndex !== columnIndex ? '' : cell.chapters.length
+                  cell.chapters.length === 0 && rowIndex !== columnIndex
+                    ? ''
+                    : formatNumber(cell.chapters.length)
                 }}
               </button>
             </td>
@@ -115,16 +127,34 @@ function chapterPath(index: number): string {
 
     <section v-if="pair" class="details" aria-live="polite">
       <h2 v-if="pair.same">
-        <bdi>{{ pair.row.name }}</bdi> is in {{ pair.cell.chapters.length }}
-        {{ pair.cell.chapters.length === 1 ? 'chapter' : 'chapters' }}
+        {{
+          language.t(
+            'interactions-selected-self',
+            isolate(pair.row.name),
+            pair.cell.chapters.length,
+            formatNumber(pair.cell.chapters.length)
+          )
+        }}
       </h2>
       <h2 v-else>
-        <bdi>{{ pair.row.name }}</bdi> and <bdi>{{ pair.column.name }}</bdi> share
-        {{ pair.cell.chapters.length }}
-        {{ pair.cell.chapters.length === 1 ? 'chapter' : 'chapters' }}
+        {{
+          language.t(
+            'interactions-selected-pair',
+            isolate(pair.row.name),
+            isolate(pair.column.name),
+            pair.cell.chapters.length,
+            formatNumber(pair.cell.chapters.length)
+          )
+        }}
       </h2>
       <p v-if="pair.cell.chapters.length === 0" class="empty">
-        They never appear in the same chapter.
+        {{
+          language.t(
+            'interactions-never-together',
+            isolate(pair.row.name),
+            isolate(pair.column.name)
+          )
+        }}
       </p>
       <ul v-else>
         <li v-for="index in pair.cell.chapters" :key="index">
@@ -132,12 +162,10 @@ function chapterPath(index: number): string {
             <bdi>{{ chapterTitle(index) }}</bdi>
           </button>
           <span v-if="pair.row.povChapters.includes(index)" class="muted">
-            · <bdi>{{ pair.row.name }}</bdi
-            >’s point of view
+            · {{ language.t('interactions-pov', isolate(pair.row.name)) }}
           </span>
           <span v-else-if="!pair.same && pair.column.povChapters.includes(index)" class="muted">
-            · <bdi>{{ pair.column.name }}</bdi
-            >’s point of view
+            · {{ language.t('interactions-pov', isolate(pair.column.name)) }}
           </span>
         </li>
       </ul>

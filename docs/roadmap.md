@@ -196,8 +196,10 @@ acceptance criteria, and the cross-session checklist.
     prompts; dynamic project values remain authored and unmodified.
   - [x] I3h: Timeline controls, empty states, counts, cell accessibility and
     locale-aware chapter/day-count numbers; no story data or layout changes.
-  - [ ] Remaining I3: other inspector panels, interactions/reading text,
-    locale-aware formatting surfaces, native dialog/confirmation and startup text.
+  - [x] I3i: Interactions controls, notices, cell/detail accessibility and
+    UI-locale counts; preserve authored names, selection and project data.
+  - [ ] Remaining I3: other inspector panels, reading text, locale-aware
+    formatting/collation surfaces, native dialog/confirmation and startup text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.
