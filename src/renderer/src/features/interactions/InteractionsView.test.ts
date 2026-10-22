@@ -131,6 +131,35 @@ describe('InteractionsView', () => {
     expect(fake.saves).toEqual(initialSaves)
   })
 
+  it('flows matrix headings RTL without changing row/column identities or the picked cell', async () => {
+    const getInteractions = vi.spyOn(fake.api.interactions, 'getInteractions')
+    const view = await mountView()
+    const headings = view.findAll('thead th bdi').map((heading) => heading.text())
+    const rowNames = view.findAll('tbody th bdi').map((heading) => heading.text())
+    const matrixCounts = counts(view)
+    const selected = view.findAll('tbody tr')[1]?.findAll('.cell')[2]
+    if (selected === undefined) throw new Error('Expected an interaction matrix cell')
+    await selected.trigger('click')
+    const selectedElement = view.get('.cell.picked').element
+    const initialReads = getInteractions.mock.calls.length
+
+    expect(view.get('.interactions').attributes('dir')).toBe('ltr')
+    expect(selected.text()).toBe('2')
+    await useUiLanguageStore().change('he')
+    await flushPromises()
+
+    expect(view.get('.interactions').attributes('dir')).toBe('rtl')
+    expect(view.findAll('thead th bdi').map((heading) => heading.text())).toEqual(headings)
+    expect(view.findAll('tbody th bdi').map((heading) => heading.text())).toEqual(rowNames)
+    expect(counts(view)).toEqual(matrixCounts)
+    expect(view.get('.cell.picked').element).toBe(selectedElement)
+    expect(view.get('.cell.picked').text()).toBe('2')
+    expect(view.get('.details').text()).toContain('מספר הפרקים המשותפים')
+    expect(getInteractions).toHaveBeenCalledTimes(initialReads)
+    expect(fake.saves).toEqual([])
+    view.unmount()
+  })
+
   it('formats visible and accessible interaction counts with the interface locale', async () => {
     const chapters = Array.from({ length: 1234 }, (_, index) => ({
       path: `Chapter ${String(index + 1)}.md`,

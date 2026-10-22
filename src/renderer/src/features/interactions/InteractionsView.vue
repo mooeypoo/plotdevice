@@ -5,6 +5,7 @@ import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { shade } from './interaction-matrix'
 import { useInteractions } from './use-interactions'
+import { uiDirection } from '../../../../i18n/locales'
 
 const view = useInteractions()
 const { interactions, error, order, matrix, picked } = view
@@ -48,7 +49,11 @@ function chapterPath(index: number): string {
 </script>
 
 <template>
-  <section class="interactions" aria-labelledby="interactions-heading">
+  <section
+    class="interactions"
+    :dir="uiDirection(language.locale)"
+    aria-labelledby="interactions-heading"
+  >
     <header>
       <h1 id="interactions-heading">{{ language.t('interactions-heading') }}</h1>
       <p class="hint">{{ language.t('interactions-description') }}</p>
@@ -84,7 +89,7 @@ function chapterPath(index: number): string {
       <table>
         <thead>
           <tr>
-            <th></th>
+            <th class="corner" aria-hidden="true"></th>
             <th v-for="character in matrix.characters" :key="character.path" scope="col">
               <bdi>{{ character.name }}</bdi>
             </th>
@@ -247,9 +252,17 @@ thead th {
   text-align: center;
 }
 
+thead th.corner {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 2;
+  background: var(--bg);
+}
+
 tbody th {
   position: sticky;
-  left: 0;
+  inset-inline-start: 0;
+  z-index: 1;
   background: var(--bg);
   text-align: start;
 }

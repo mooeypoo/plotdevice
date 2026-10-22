@@ -222,8 +222,10 @@ acceptance criteria, and the cross-session checklist.
     and keyboard resizing follow RTL inline edges without changing stored widths.
   - [x] I4c: Flow reading-grid columns and sticky headings from inline-start;
     position story-axis ticks/bars logically so dates progress RTL unchanged.
-  - [ ] Remaining I4: interaction-matrix geometry/sticky headers, directional
-    icons, responsiveness, and real-browser pointer/scroll qualification.
+  - [x] I4d: Flow interaction-matrix columns RTL and stick row/corner headings
+    to inline-start; preserve names, counts and selected-cell identity.
+  - [ ] Remaining I4: directional icons, responsiveness, and real-browser
+    geometry, pointer and scroll qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.
 - [ ] D1: Public Hebrew manual/distribution text (separate approval).
