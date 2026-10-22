@@ -37,10 +37,13 @@ const emptyShelf: Area = {
   sections: []
 }
 
-/** Today's app: binder and codex at the start, properties, outline and reference at the end. */
+/**
+ * Today's app (binder and codex at the start, properties, outline and reference at the end), with
+ * the chapter's cast above the page.
+ */
 const write: Layout = {
   mode: 'writing',
-  center: { view: 'document', splits: [] },
+  center: { view: 'document', splits: [], above: 'cast' },
   start: tabs(DOCK_SIZE.start, [section('binder'), section('codex')]),
   end: tabs(DOCK_SIZE.end, [
     section('properties', 'follow'),
@@ -50,10 +53,18 @@ const write: Layout = {
   bottom: emptyShelf
 }
 
-/** Write, plus a read-only split for another chapter and the warnings below. */
+/** Write, plus a read-only split for another chapter, the scene card and the warnings below. */
 const revise: Layout = {
   ...write,
-  center: { view: 'document', splits: [{ id: 'split-1', share: SPLITS.defaultShare }] },
+  center: {
+    view: 'document',
+    splits: [{ id: 'split-1', share: SPLITS.defaultShare }],
+    above: 'cast'
+  },
+  end: {
+    ...write.end,
+    sections: [...write.end.sections, section('scene-card', 'follow')]
+  },
   bottom: { ...emptyShelf, collapsed: false, sections: [section('warnings')] }
 }
 

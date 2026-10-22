@@ -609,5 +609,15 @@
   "cards-peek-label": "Accessible name of the preview card shown for a link. $1 is the linked entry's title.",
   "cards-loading": "Shown in a card while the entry is read.",
   "cards-live-draft": "Note on a card whose entry is open in the main editor: the card shows that live draft, read-only.",
-  "cards-list-separator": "Separator between values of one card field, such as two aliases. Keep the trailing space if your language uses one."
+  "cards-list-separator": "Separator between values of one card field, such as two aliases. Keep the trailing space if your language uses one.",
+  "cast-label": "Title of the strip above the page listing the characters and places the chapter being written names, and of that view in panel menus.",
+  "cast-hide": "Removes the cast strip from above the page. It can be shown again from the layout menu; nothing in the novel changes.",
+  "cast-chip-pov": "Accessible name of a cast chip for the chapter's point-of-view character. $1 is the character's title.",
+  "cast-chip-mentioned": "Accessible name of a cast chip for a character or place the chapter's text links to but its properties don't list. $1 is the entry's title.",
+  "cast-empty": "Shown in the cast strip when the chapter names nobody, in its properties or its text.",
+  "scene-card-title": "Title of the panel describing the chapter being written: its synopsis, status, point of view, threads, and the outline lines about it.",
+  "scene-card-in-outline": "Heading above the outline lines that link to the chapter being written.",
+  "scene-card-no-chapter": "Shown in the chapter panel when no chapter is being written or open.",
+  "scene-card-no-outline-lines": "Shown when no line of the current outline links to the chapter being written.",
+  "scene-card-edit": "Opens the chapter in the editor and shows its Properties panel, where its synopsis and status can be changed."
 }

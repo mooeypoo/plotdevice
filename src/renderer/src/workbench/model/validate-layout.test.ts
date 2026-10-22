@@ -148,6 +148,12 @@ describe('validateLayout', () => {
     ).toBe(true)
   })
 
+  it('reads layouts saved before the strip above the page existed', () => {
+    const older = { ...write, center: { view: 'document', splits: [] } }
+    const result = validateLayout(older)
+    expect(result.ok && result.value.center.above).toBeUndefined()
+  })
+
   it('drops keys it does not know', () => {
     const result = validateLayout({ ...write, left: true })
     expect(result.ok && 'left' in result.value).toBe(false)

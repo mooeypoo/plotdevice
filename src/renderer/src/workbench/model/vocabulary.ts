@@ -3,8 +3,11 @@ export const MODES = ['writing', 'plotting'] as const
 /** A workbench mode. */
 export type Mode = (typeof MODES)[number]
 
-/** The workbench's regions, named by logical side so a layout mirrors with the interface. */
-export const REGIONS = ['center', 'start', 'end', 'bottom'] as const
+/**
+ * The workbench's regions, named by logical side so a layout mirrors with the interface. `above`
+ * is a strip over the page, such as the chapter's cast; it holds at most one view.
+ */
+export const REGIONS = ['center', 'above', 'start', 'end', 'bottom'] as const
 /** A workbench region. */
 export type Region = (typeof REGIONS)[number]
 

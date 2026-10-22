@@ -3,6 +3,8 @@ import type { MessageKey } from '../../../../i18n/translator'
 import BinderView from '../../features/binder/BinderView.vue'
 import CardStack from '../../features/cards/CardStack.vue'
 import PeekLayer from '../../features/cards/PeekLayer.vue'
+import CastStrip from '../../features/cast/CastStrip.vue'
+import SceneCard from '../../features/cast/SceneCard.vue'
 import CodexView from '../../features/codex/CodexView.vue'
 import EditorPane from '../../features/editor/EditorPane.vue'
 import PropertiesView from '../../features/inspector/PropertiesView.vue'
@@ -48,7 +50,9 @@ export const VIEW_REGISTRY: Partial<Readonly<Record<ViewId, ViewDescriptor>>> = 
   timeline: view('timeline', 'view-timeline', TimelineView),
   interactions: view('interactions', 'view-interactions', InteractionsView),
   warnings: view('warnings', 'warnings-heading', WarningsView),
-  'card-stack': view('card-stack', 'cards-stack-title', CardStack)
+  'card-stack': view('card-stack', 'cards-stack-title', CardStack),
+  cast: view('cast', 'cast-label', CastStrip),
+  'scene-card': view('scene-card', 'scene-card-title', SceneCard)
 }
 
 /** Layers drawn above every region once per project, such as the peek card. */

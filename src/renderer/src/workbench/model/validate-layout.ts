@@ -46,7 +46,8 @@ export const layoutSchema = z.object({
   mode: z.enum(MODES),
   center: z.object({
     view: z.enum(VIEW_IDS),
-    splits: z.array(z.object({ id, share: z.number().min(SPLITS.minShare).max(SPLITS.maxShare) }))
+    splits: z.array(z.object({ id, share: z.number().min(SPLITS.minShare).max(SPLITS.maxShare) })),
+    above: z.enum(VIEW_IDS).nullable().optional()
   }),
   start: dockSchema,
   end: dockSchema,
@@ -83,6 +84,11 @@ export function layoutProblem(layout: Layout): LayoutProblem | undefined {
 
   const centerProblem = place(layout.center.view, 'center')
   if (centerProblem !== undefined) return centerProblem
+  const above = layout.center.above
+  if (above !== undefined && above !== null) {
+    const aboveProblem = place(above, 'above')
+    if (aboveProblem !== undefined) return aboveProblem
+  }
   if (layout.center.splits.length > SPLITS.max) return { code: 'too-many-splits' }
   for (const split of layout.center.splits) {
     const repeated = claim(split.id)

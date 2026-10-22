@@ -5,9 +5,9 @@ import {
   chosenFields,
   firstSection,
   isCardKind,
-  linkText,
   type CardProperties
 } from './card-summary'
+import { linkText } from '../../shared/link-text'
 
 const join = (items: readonly string[]): string => items.join(', ')
 

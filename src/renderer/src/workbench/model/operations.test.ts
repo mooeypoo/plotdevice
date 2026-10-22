@@ -15,6 +15,7 @@ import {
   setBinding,
   setCenterView,
   selectSection,
+  setAboveView,
   setSectionCollapsed
 } from './operations'
 import { PRESETS } from './presets'
@@ -89,7 +90,7 @@ describe('center stage', () => {
   it('switches views and keeps splits for when the document returns', () => {
     const revise = PRESETS.revise
     const timeline = applied(setCenterView(revise, 'timeline'))
-    expect(timeline.center).toEqual({ view: 'timeline', splits: revise.center.splits })
+    expect(timeline.center).toEqual({ ...revise.center, view: 'timeline' })
     expect(applied(setCenterView(timeline, 'document')).center).toEqual(revise.center)
   })
 
@@ -120,6 +121,23 @@ describe('center stage', () => {
     expect(openSplit(write, 'binder')).toEqual({
       ok: false,
       error: { code: 'id-repeated', id: 'binder' }
+    })
+  })
+})
+
+describe('the strip above the page', () => {
+  it('holds one view that accepts it, counted once in the layout', () => {
+    const empty = applied(setAboveView(write, null))
+    expect(empty.center.above).toBeNull()
+    expect(applied(setAboveView(empty, 'cast')).center.above).toBe('cast')
+    expect(setAboveView(write, 'binder')).toEqual({
+      ok: false,
+      error: { code: 'view-misplaced', view: 'binder', region: 'above' }
+    })
+    const castInDock = applied(addView(empty, 'cast', 'end', 'cast'))
+    expect(setAboveView(castInDock, 'cast')).toEqual({
+      ok: false,
+      error: { code: 'view-repeated', view: 'cast' }
     })
   })
 })

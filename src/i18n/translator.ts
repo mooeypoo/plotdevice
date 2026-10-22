@@ -205,6 +205,8 @@ type ParameterizedMessages = {
   'cards-field-show': [field: string]
   'cards-field-hide': [field: string]
   'cards-peek-label': [title: string]
+  'cast-chip-pov': [title: string]
+  'cast-chip-mentioned': [title: string]
 }
 type MessageArguments<Key extends MessageKey> = Key extends keyof ParameterizedMessages
   ? ParameterizedMessages[Key]

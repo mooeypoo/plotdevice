@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { placeOf } from '../../app/entry-owners'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkbenchStore } from '../../app/workbench-store'
+import { ENTRY_PATH_DRAG_TYPE } from '../../shared/drag-types'
 import { isolate } from '../../shared/isolate'
 import type { MenuItem } from '../../shared/menu-item'
 import MenuButton from '../../shared/MenuButton.vue'
@@ -66,15 +67,28 @@ function menu(path: string, index: number): MenuItem[] {
   return items
 }
 
-function drop(index: number): void {
-  const path = dragging.value
+/** Drops a card being reordered, or pins an entry dragged in from elsewhere (a cast chip). */
+function drop(event: DragEvent, index: number): void {
+  const moving = dragging.value
   dragging.value = null
-  if (path !== null) workbench.moveCard(path, index)
+  if (moving !== null) {
+    workbench.moveCard(moving, index)
+    return
+  }
+  // Only entries the project lists can be pinned, whatever the drag data claims.
+  const path = event.dataTransfer?.getData(ENTRY_PATH_DRAG_TYPE) ?? ''
+  if (path === '' || placeOf(path) === undefined) return
+  workbench.pinCard(path)
+  workbench.moveCard(path, index)
 }
 </script>
 
 <template>
-  <section class="card-stack">
+  <section
+    class="card-stack"
+    @dragover.prevent
+    @drop.prevent="drop($event, workbench.cards.length)"
+  >
     <p v-if="workbench.cards.length === 0" class="empty">{{ language.t('cards-empty') }}</p>
     <ol v-else>
       <li
@@ -85,7 +99,7 @@ function drop(index: number): void {
         @dragstart="dragging = path"
         @dragend="dragging = null"
         @dragover.prevent
-        @drop.prevent="drop(index)"
+        @drop.prevent.stop="drop($event, index)"
       >
         <EntryCard
           :path="path"

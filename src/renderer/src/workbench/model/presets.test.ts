@@ -5,7 +5,7 @@ describe('presets', () => {
   it('reproduce today’s shell in Write', () => {
     const write = PRESETS.write
     expect(write.mode).toBe('writing')
-    expect(write.center).toEqual({ view: 'document', splits: [] })
+    expect(write.center).toEqual({ view: 'document', splits: [], above: 'cast' })
     expect(write.start.sections.map((section) => section.view)).toEqual(['binder', 'codex'])
     expect(write.start).toMatchObject({ arrangement: 'tabs', activeSection: 'binder', size: 280 })
     expect(write.end.sections.map((section) => section.view)).toEqual([
@@ -17,8 +17,9 @@ describe('presets', () => {
     expect(write.bottom).toMatchObject({ collapsed: true, sections: [] })
   })
 
-  it('add a split and warnings in Revise', () => {
+  it('add a split, the scene card and warnings in Revise', () => {
     expect(PRESETS.revise.center.splits).toHaveLength(1)
+    expect(PRESETS.revise.end.sections.map((section) => section.view)).toContain('scene-card')
     expect(PRESETS.revise.bottom.sections.map((section) => section.view)).toEqual(['warnings'])
   })
 
