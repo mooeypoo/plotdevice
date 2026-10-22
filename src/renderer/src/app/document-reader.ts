@@ -2,7 +2,7 @@ import { ref, shallowRef, watch } from 'vue'
 import { useErrorNotice } from '../shared/use-error-notice'
 import { placeOf } from './entry-owners'
 import type { EntryPlace } from './entry-place'
-import { plotDeviceApi } from './plot-device-api'
+import { entryApi } from './entry-api'
 
 /** A document being read independently of the writable editor. */
 export interface ReadEntry extends EntryPlace {
@@ -37,10 +37,7 @@ export function createDocumentReader() {
     }
     entry.value = { ...place, path: current }
     loading.value = true
-    const api = plotDeviceApi.current()
-    const result = await (
-      place.kind === 'chapter' || place.kind === 'part' ? api.manuscript : api.codex
-    ).openEntry(current)
+    const result = await entryApi(place.kind).openEntry(current)
     if (identity !== request) return
     loading.value = false
     if (result.ok) text.value = result.value.text

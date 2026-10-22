@@ -4,6 +4,7 @@ import type { ApiError, ProjectChangeDto, RenamePlanDto } from '../../../contrac
 import { createAutosaver } from './autosaver'
 import { entryOwner, placeOf } from './entry-owners'
 import type { EntryKind, EntryPlace } from './entry-place'
+import { entryApi } from './entry-api'
 import { plotDeviceApi } from './plot-device-api'
 import { useEntryRecovery } from './entry-recovery'
 import { documentMoved } from './move-followers'
@@ -95,12 +96,12 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
 
-  /** The API for the open entry's kind: manuscript entries and codex entries have their own. */
-  const apiFor = (
+  /** The API for the open entry's kind: manuscript, outline and codex entries have their own. */
+  const apiFor = entryApi
+  /** Renames go through the API that lists the entry; outlines rename like codex files. */
+  const renameApi = (
     kind: EntryKind
-  ):
-    | ReturnType<typeof plotDeviceApi.current>['codex']
-    | ReturnType<typeof plotDeviceApi.current>['manuscript'] =>
+  ): Pick<ReturnType<typeof plotDeviceApi.current>['codex'], 'planRename' | 'renameEntry'> =>
     isManuscriptKind(kind) ? plotDeviceApi.current().manuscript : plotDeviceApi.current().codex
 
   async function save(replacementVersion?: string): Promise<void> {
@@ -190,7 +191,7 @@ export const useEditorStore = defineStore('editor', () => {
   async function navigate(path: string, keep: boolean): Promise<boolean> {
     if (entry.value?.path === path) {
       tabs.opened(path, keep)
-      documentPresenter()?.showDocument()
+      documentPresenter()?.showDocument(path)
       return true
     }
     if (recoveryBusy.value) {
@@ -230,7 +231,7 @@ export const useEditorStore = defineStore('editor', () => {
     missingReappeared.value = false
     await captureRecovery()
     await readProperties()
-    documentPresenter()?.showDocument()
+    documentPresenter()?.showDocument(path)
     return true
   }
 
@@ -486,7 +487,7 @@ export const useEditorStore = defineStore('editor', () => {
     pendingRename.value = null
     const current = entry.value
     if (current?.path !== path) return
-    const result = await apiFor(current.kind).planRename(path)
+    const result = await renameApi(current.kind).planRename(path)
     if (entry.value?.path !== path) return
     if (!result.ok) {
       reportActionError(result.error)
@@ -504,7 +505,7 @@ export const useEditorStore = defineStore('editor', () => {
     if (current?.path !== path) return false
     await flush()
     if (hasStuckChanges.value) return false
-    const result = await apiFor(current.kind).renameEntry(path)
+    const result = await renameApi(current.kind).renameEntry(path)
     if (!result.ok) {
       actionErrorSource.value = result.error
       return false
@@ -611,6 +612,21 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   /**
+   * After the app itself changed the open file's text (a captured beat), loads it as it is now.
+   * Callers save first, so no draft is lost.
+   */
+  function reloadAfterWrite(path: string): Promise<boolean> {
+    return enqueue(async () => {
+      const current = entry.value
+      if (current?.path !== path) return false
+      const read = await apiFor(current.kind).openEntry(path)
+      if (!read.ok) return false
+      await adoptEntry(path, current, read.value)
+      return true
+    })
+  }
+
+  /**
    * Runs a screen change that hides the writable document, such as switching the center view,
    * with the same guards as switching documents: it waits its turn, saves first, and is refused
    * while a recovery decision is pending.
@@ -668,6 +684,7 @@ export const useEditorStore = defineStore('editor', () => {
     hasStuckChanges,
     navigationBusy,
     open,
+    reloadAfterWrite,
     returnToWriting,
     cycleDocument,
     closeDocument,

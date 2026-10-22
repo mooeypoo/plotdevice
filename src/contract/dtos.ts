@@ -60,6 +60,7 @@ export type ErrorDiagnosticDto =
         | 'invalid-request'
         | 'manuscript-entry-not-allowed'
         | 'codex-entry-not-allowed'
+        | 'outline-not-allowed'
         | 'invalid-recovery-request'
         | 'snapshot-unavailable'
         | 'snapshot-invalid'
@@ -103,6 +104,7 @@ export type ErrorDiagnosticDto =
   | { readonly reason: 'frontmatter-unsupported'; readonly key: string }
   | { readonly reason: 'link-needs-no-folder'; readonly name: string }
   | { readonly reason: 'key-needs-no-quotes'; readonly key: string }
+  | { readonly reason: 'outline-shape-changed' | 'outline-invalid-beat' | 'outline-invalid-notes' }
 
 /** A folder the writer picked in the native dialog. */
 export interface FolderChoiceDto {
@@ -463,8 +465,62 @@ export interface CodexListingDto {
   readonly entries: readonly CodexEntryDto[]
   readonly untyped: readonly UntypedFileDto[]
   readonly templates: readonly CodexTemplateDto[]
-  /** The writer's outlines (`type: outline`), by title. */
-  readonly outlines: readonly { readonly path: string; readonly title: string }[]
+  /**
+   * The writer's outlines (`type: outline`), by title.
+   * @deprecated Use `api.outline.list`; kept for one contract version (ADR 0020).
+   */
+  readonly outlines: readonly OutlineDto[]
+}
+
+/** An outline (`type: outline`), by title. */
+export interface OutlineDto {
+  readonly path: string
+  readonly title: string
+}
+
+/** What a beat's card shows of the chapter its first line links to. */
+export interface BoardChapterDto {
+  readonly path: string
+  readonly title: string
+  readonly status?: string
+  /** `pov` as written in the chapter. */
+  readonly pov: readonly string[]
+  readonly wordCount: number
+}
+
+/** A beat card. `line` and `title` address it in board commands (ADR 0020). */
+export interface BoardBeatDto {
+  readonly line: number
+  readonly title: string
+  /** The beat's notes, without their shared indentation. */
+  readonly notes: string
+  readonly tags: readonly string[]
+  /** Tags that are thread keys in novel.md. */
+  readonly threads: readonly string[]
+  readonly chapter?: BoardChapterDto
+}
+
+/** A board column: a `##` heading and its beats. */
+export interface BoardColumnDto {
+  readonly line: number
+  readonly title: string
+  /** The column captured beats go under. */
+  readonly inbox: boolean
+  readonly beats: readonly BoardBeatDto[]
+}
+
+/** The beat board over one outline, read from the file each time (ADR 0020). */
+export interface PlotBoardDto {
+  readonly path: string
+  readonly version: string
+  /** Text before the first column. */
+  readonly preamble: string
+  readonly columns: readonly BoardColumnDto[]
+  readonly threads: readonly {
+    readonly key: string
+    readonly name: string
+    readonly color?: string
+  }[]
 }
 
 /** One of a character's relationships, as written. */

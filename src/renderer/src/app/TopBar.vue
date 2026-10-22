@@ -5,6 +5,9 @@ import { useLayoutStore } from './layout-store'
 import { useWorkbenchNavigation } from './use-workbench-navigation'
 import { useWorkbenchStore } from './workbench-store'
 import LayoutSwitcher from '../workbench/shell/LayoutSwitcher.vue'
+import ModeSwitch from '../workbench/shell/ModeSwitch.vue'
+import type { MessageKey } from '../../../i18n/translator'
+import type { MainView } from './layout-store'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useWorkspaceStore } from './workspace-store'
@@ -25,10 +28,40 @@ const language = useUiLanguageStore()
 const chrome = useChromePresentation()
 const direction = computed(() => uiDirection(language.locale))
 
+/**
+ * The main area's views. In Plotting mode the board comes first and the editor tab shows the
+ * outline's text, so the board and the text are never both on screen (brief §4.4).
+ */
+const viewTabs = computed(
+  (): readonly { view: MainView; label: MessageKey; show: () => Promise<boolean> }[] => {
+    const books = (['overview', 'timeline', 'interactions'] as const).map((view) => ({
+      view,
+      label: `view-${view}` as const,
+      show: () => navigation.showCenterView(view)
+    }))
+    if (workbench.mode === 'plotting') {
+      return [
+        {
+          view: 'plot-board',
+          label: 'view-board',
+          show: () => navigation.showCenterView('plot-board')
+        },
+        { view: 'write', label: 'view-outline-text', show: () => navigation.showOutlineText() },
+        ...books
+      ]
+    }
+    return [
+      { view: 'write', label: 'view-write', show: () => navigation.showCenterView('write') },
+      ...books
+    ]
+  }
+)
+
 const crumbs = computed(() => {
   if (layout.mainView === 'overview') return [language.t('view-overview')]
   if (layout.mainView === 'timeline') return [language.t('view-timeline')]
   if (layout.mainView === 'interactions') return [language.t('view-interactions')]
+  if (layout.mainView === 'plot-board') return [language.t('view-board')]
   const entry = editor.entry
   if (entry === null) return []
   const part = manuscript.currentPart
@@ -64,42 +97,18 @@ const crumbs = computed(() => {
     </nav>
 
     <div class="tools">
+      <ModeSwitch v-if="workbench.shell === 'workbench'" />
       <div class="views" role="tablist" :aria-label="language.t('chrome-view')">
         <button
+          v-for="tab in viewTabs"
+          :key="tab.view"
           type="button"
           role="tab"
-          :aria-selected="layout.mainView === 'write'"
-          :class="{ on: layout.mainView === 'write' }"
-          @click="navigation.showCenterView('write')"
+          :aria-selected="layout.mainView === tab.view"
+          :class="{ on: layout.mainView === tab.view }"
+          @click="tab.show()"
         >
-          {{ language.t('view-write') }}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          :aria-selected="layout.mainView === 'overview'"
-          :class="{ on: layout.mainView === 'overview' }"
-          @click="navigation.showCenterView('overview')"
-        >
-          {{ language.t('view-overview') }}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          :aria-selected="layout.mainView === 'timeline'"
-          :class="{ on: layout.mainView === 'timeline' }"
-          @click="navigation.showCenterView('timeline')"
-        >
-          {{ language.t('view-timeline') }}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          :aria-selected="layout.mainView === 'interactions'"
-          :class="{ on: layout.mainView === 'interactions' }"
-          @click="navigation.showCenterView('interactions')"
-        >
-          {{ language.t('view-interactions') }}
+          {{ language.t(tab.label) }}
         </button>
       </div>
       <LayoutSwitcher v-if="workbench.shell === 'workbench'" />

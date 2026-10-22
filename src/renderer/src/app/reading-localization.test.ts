@@ -7,6 +7,7 @@ import ReferencePanel from '../features/reference/ReferencePanel.vue'
 import OutlinePanel from '../features/outline/OutlinePanel.vue'
 import SidePanel from './SidePanel.vue'
 import { useCodexStore } from './codex-store'
+import { useOutlineStore } from './outline-store'
 import { useEditorStore } from './editor-store'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
 import { useLayoutStore } from './layout-store'
@@ -116,13 +117,18 @@ describe('listing and reading diagnostics', () => {
   it.each(['reference', 'outline'] as const)(
     'retranslates a %s read failure without retrying or changing the draft/selection/scroll',
     async (kind) => {
-      await Promise.all([useManuscriptStore().load(), useCodexStore().load()])
+      await Promise.all([
+        useManuscriptStore().load(),
+        useCodexStore().load(),
+        useOutlineStore().load()
+      ])
       const editor = useEditorStore()
       await editor.open('The Ferry.md')
       editor.edit('My unsaved טיוטה')
       editor.saveState = 'conflict'
       const path = kind === 'reference' ? 'characters/Ilka.md' : 'Outline.md'
-      const read = vi.spyOn(fake.api.codex, 'openEntry').mockResolvedValue({
+      const api = kind === 'reference' ? fake.api.codex : fake.api.outline
+      const read = vi.spyOn(api, 'openEntry').mockResolvedValue({
         ok: false,
         error: {
           code: 'not-found',
@@ -151,7 +157,7 @@ describe('listing and reading diagnostics', () => {
       else expect(page.get('.file-path').text()).toBe(path)
       read.mockRestore()
       if (kind === 'reference') await page.get('.retry').trigger('click')
-      else await useCodexStore().reload()
+      else await useOutlineStore().reload()
       await flushPromises()
       expect(page.find('[role="alert"]').exists()).toBe(false)
       expect(page.get('.view').text().length).toBeGreaterThan(0)

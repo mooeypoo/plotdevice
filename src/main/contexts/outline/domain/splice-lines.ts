@@ -20,10 +20,12 @@ export interface OutlineItemRef {
 export type OutlinePlacement = { readonly before: OutlineItemRef } | 'end'
 
 export const shapeChanged = (): OutlineEditError =>
-  domainError('outline-shape-changed', 'The outline changed since the board read it.')
+  domainError('outline-shape-changed', 'The outline changed since the board read it.', {
+    reason: 'outline-shape-changed'
+  })
 
 export const invalidTitle = (): OutlineEditError =>
-  domainError('invalid-title', 'A title is one line of text.')
+  domainError('invalid-title', 'A beat is one line of text.', { reason: 'outline-invalid-beat' })
 
 export function findColumn(
   structure: OutlineStructure,

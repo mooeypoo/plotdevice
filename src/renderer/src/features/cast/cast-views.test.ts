@@ -3,6 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from '../../app/codex-store'
+import { useOutlineStore } from '../../app/outline-store'
 import { useDocumentTabsStore } from '../../app/document-tabs-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
@@ -34,7 +35,7 @@ beforeEach(async () => {
     synopsis: 'The orchard freezes.'
   })
   fake.files.set(CHAPTER, 'Frost over [[Marrow]] and `[[Research]]`.\n')
-  await Promise.all([useManuscriptStore().load(), useCodexStore().load()])
+  await Promise.all([useManuscriptStore().load(), useCodexStore().load(), useOutlineStore().load()])
   useDocumentTabsStore().restore('/book')
   await useEditorStore().open(CHAPTER)
 })

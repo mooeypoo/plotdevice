@@ -7,6 +7,7 @@ import type {
   RecentProjectDto
 } from '../../../contract/dtos'
 import { useCodexStore } from './codex-store'
+import { useOutlineStore } from './outline-store'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
@@ -205,6 +206,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     useReferenceStore().clear()
     useManuscriptStore().close()
     useCodexStore().close()
+    useOutlineStore().close()
     await api().closeProject()
     refreshRequest += 1
     project.value = null

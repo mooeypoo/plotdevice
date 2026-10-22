@@ -1,8 +1,7 @@
 import { computed, ref, watch, type ComputedRef, type Ref } from 'vue'
-import { useCodexStore } from '../../app/codex-store'
+import { useOutlineStore } from '../../app/outline-store'
 import { useEditorStore } from '../../app/editor-store'
 import { useDocumentTabsStore } from '../../app/document-tabs-store'
-import { useLayoutStore } from '../../app/layout-store'
 import { useLiveDraft } from '../../app/use-live-draft'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import type { LinkAt } from '../../shared/link-at'
@@ -26,22 +25,16 @@ export function useOutlinePanel(): {
   readonly openLink: (link: LinkAt) => Promise<void>
   readonly pointsHere: ComputedRef<(link: LinkAt) => boolean>
 } {
-  const codex = useCodexStore()
+  const outlineStore = useOutlineStore()
   const editor = useEditorStore()
-  const layout = useLayoutStore()
   const links = useEditorLinks()
   const readText = ref<string | null>(null)
   const loading = ref(false)
   const { message: error, source: errorSource } = useErrorNotice()
   let request = 0
 
-  const outlines = computed(() => codex.listing?.outlines ?? [])
-  const path = computed(() => {
-    const remembered = layout.outlinePath
-    return outlines.value.some((outline) => outline.path === remembered)
-      ? remembered
-      : (outlines.value[0]?.path ?? null)
-  })
+  const outlines = computed(() => outlineStore.outlines)
+  const path = computed(() => outlineStore.currentPath)
   const { openInEditor, text } = useLiveDraft(path, readText)
   const tabs = useDocumentTabsStore()
 
@@ -52,16 +45,16 @@ export function useOutlinePanel(): {
     error.value = null
     loading.value = current !== null
     if (current === null) return
-    const result = await plotDeviceApi.current().codex.openEntry(current)
+    const result = await plotDeviceApi.current().outline.openEntry(current)
     if (identity !== request || path.value !== current) return
     loading.value = false
     if (result.ok) readText.value = result.value.text
     else errorSource.value = result.error
   }
 
-  // Re-read when the outline changes, the codex reloads (outside edits), or the main editor lets
+  // Re-read when the outline changes, the outlines reload (outside edits), or the main editor lets
   // go of it (its last saves are on disk).
-  watch([path, () => codex.revision, openInEditor], () => void load(), { immediate: true })
+  watch([path, () => outlineStore.revision, openInEditor], () => void load(), { immediate: true })
 
   /** The chapter the outline highlights: the open part or chapter, otherwise the Writing target. */
   const highlighted = computed(() => {
@@ -86,13 +79,13 @@ export function useOutlinePanel(): {
     linkNotice: links.linkNotice,
     openInEditor,
     choose: (chosen) => {
-      layout.outlinePath = chosen
+      outlineStore.choose(chosen)
     },
     edit: async () => {
       if (path.value !== null) await editor.open(path.value)
     },
     create: async () => {
-      await codex.createOutline('')
+      await outlineStore.create('')
     },
     openLink: (link) => links.openLink(link, path.value ?? undefined),
     pointsHere

@@ -5,7 +5,9 @@ import { activateSection, removeSection, setCenterView } from '../workbench/mode
 import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
 import { useLayoutStore, type MainView, type RightTab } from './layout-store'
+import { useOutlineStore } from './outline-store'
 import { useWorkbenchStore } from './workbench-store'
+import type { Mode } from '../workbench/model/vocabulary'
 
 /**
  * How features change what the screen shows, without knowing how it is arranged. The old shell
@@ -49,6 +51,35 @@ export function useWorkbenchNavigation() {
         switched = workbench.setActiveLayout(id)
       })
       .then((ran) => ran && switched)
+  }
+
+  /**
+   * Switches between Writing and Plotting, after saving the draft; refused while recovery is
+   * pending. Back in Writing, an editor left on the outline's text returns to the Writing chapter.
+   */
+  async function switchMode(next: Mode): Promise<boolean> {
+    if (workbench.mode === next) return true
+    const outline = useOutlineStore().currentPath
+    const onOutline = editor.entry !== null && editor.entry.path === outline
+    let switched = false
+    const done = await editor
+      .runNavigation(() => {
+        switched = workbench.setMode(next)
+      })
+      .then((ran) => ran && switched)
+    if (!done) return false
+    if (next === 'writing' && onOutline && tabs.writingPath !== null) await editor.returnToWriting()
+    return true
+  }
+
+  /**
+   * In Plotting mode, the current outline's Markdown in the writable editor instead of the board:
+   * only one of them is on screen, so only one can be edited (brief §4.4).
+   */
+  async function showOutlineText(): Promise<boolean> {
+    const outline = useOutlineStore().currentPath
+    if (!(await showCenterView('write'))) return false
+    return outline === null || editor.entry?.path === outline ? true : editor.open(outline)
   }
 
   /**
@@ -113,6 +144,8 @@ export function useWorkbenchNavigation() {
   return {
     showCenterView,
     switchLayout,
+    switchMode,
+    showOutlineText,
     rearrange,
     openBeside,
     writeHere,

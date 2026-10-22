@@ -29,6 +29,11 @@ import { createMarkdownCodexRepository } from './contexts/codex/infrastructure/m
 import { createListChapterReferences } from './contexts/manuscript/application/queries/list-chapter-references'
 import { createCodexHandlers, type CodexUseCases } from './ipc/codex-handlers'
 import { registerCodexIpc } from './ipc/codex-ipc'
+import { createOutlineHandlers, type OutlineUseCases } from './ipc/outline-handlers'
+import { registerOutlineIpc } from './ipc/outline-ipc'
+import { createCaptureBeat } from './contexts/outline/application/commands/capture-beat'
+import { createReadOutlineStructure } from './contexts/outline/application/queries/read-outline-structure'
+import { createGetPlotBoard } from './queries/get-plot-board'
 import { createReadStoryDates } from './contexts/chronology/application/queries/read-story-dates'
 import { createTimelineHandlers, type TimelineUseCases } from './ipc/timeline-handlers'
 import { registerTimelineIpc } from './ipc/timeline-ipc'
@@ -128,6 +133,7 @@ interface ProjectUseCases {
   readonly recovery: RecoverySession
   readonly manuscript: ManuscriptUseCases
   readonly codex: CodexUseCases
+  readonly outline: OutlineUseCases
   readonly timeline: TimelineUseCases
   readonly interactions: InteractionsUseCases
   readonly inspector: InspectorUseCases
@@ -187,6 +193,30 @@ export function composeApplication(language: UiLanguageService): LaunchFolders {
     const relocator = createMarkdownEntryRelocator(root)
     const chronology = createMarkdownChronologyRepository(root)
     const getChronologySettings = createGetChronologySettings({ repository: chronology })
+    const outline: OutlineUseCases = {
+      listOutlines: createListOutlines({
+        repository: outlineRepository,
+        settings: outlineSettings
+      }),
+      createOutline: createCreateOutline({
+        repository: outlineRepository,
+        settings: outlineSettings
+      }),
+      openOutline: createOpenOutline({ repository: outlineRepository }),
+      saveOutlineText: createSaveOutlineText({
+        repository: outlineRepository,
+        readOnly: outlineSettings.readOnly
+      }),
+      getPlotBoard: createGetPlotBoard({
+        readOutlineStructure: createReadOutlineStructure({
+          repository: outlineRepository,
+          settings: outlineSettings
+        }),
+        getManuscript: createGetManuscript({ repository }),
+        getChronologySettings
+      }),
+      captureBeat: createCaptureBeat({ repository: outlineRepository, settings: outlineSettings })
+    }
     return {
       recovery,
       manuscript: {
@@ -208,20 +238,11 @@ export function composeApplication(language: UiLanguageService): LaunchFolders {
       codex: {
         listCodex: createListCodex({ repository: codexRepository, settings: codexSettings }),
         editTemplate: createEditTemplate({ repository: codexRepository, settings: codexSettings }),
-        // Outlines are their own context; the codex API forwards to it until P2 (ADR 0020).
-        listOutlines: createListOutlines({
-          repository: outlineRepository,
-          settings: outlineSettings
-        }),
-        createOutline: createCreateOutline({
-          repository: outlineRepository,
-          settings: outlineSettings
-        }),
-        openOutline: createOpenOutline({ repository: outlineRepository }),
-        saveOutlineText: createSaveOutlineText({
-          repository: outlineRepository,
-          readOnly: outlineSettings.readOnly
-        }),
+        // The deprecated codex outline methods forward to the outline context (ADR 0020).
+        listOutlines: outline.listOutlines,
+        createOutline: outline.createOutline,
+        openOutline: outline.openOutline,
+        saveOutlineText: outline.saveOutlineText,
         openEntry: createOpenCodexEntry({ repository: codexRepository }),
         saveEntryText: createSaveCodexText({
           repository: codexRepository,
@@ -255,6 +276,7 @@ export function composeApplication(language: UiLanguageService): LaunchFolders {
           listChapterReferences: createListChapterReferences({ repository })
         })
       },
+      outline,
       timeline: {
         getTimeline: createGetTimeline({
           listChapterReferences: createListChapterReferences({ repository }),
@@ -339,6 +361,7 @@ export function composeApplication(language: UiLanguageService): LaunchFolders {
   registerWorkspaceIpc(workspaceHandlers, launch, language)
   registerManuscriptIpc(createManuscriptHandlers(() => session.current()?.manuscript))
   registerCodexIpc(createCodexHandlers(() => session.current()?.codex))
+  registerOutlineIpc(createOutlineHandlers(() => session.current()?.outline))
   registerTimelineIpc(createTimelineHandlers(() => session.current()?.timeline))
   registerInteractionsIpc(createInteractionsHandlers(() => session.current()?.interactions))
   registerInspectorIpc(createInspectorHandlers(() => session.current()?.inspector))

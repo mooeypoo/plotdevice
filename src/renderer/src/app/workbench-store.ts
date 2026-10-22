@@ -3,7 +3,8 @@ import { computed, ref, shallowRef } from 'vue'
 import type { MessageKey } from '../../../i18n/translator'
 import type { Layout } from '../workbench/model/layout'
 import { closeSplit, openSplit, type LayoutChange } from '../workbench/model/operations'
-import { PRESETS } from '../workbench/model/presets'
+import { PRESETS, type PresetId } from '../workbench/model/presets'
+import type { Mode } from '../workbench/model/vocabulary'
 import {
   deleteLayout,
   renameLayout,
@@ -29,6 +30,9 @@ import {
 } from '../workbench/storage/workbench-storage'
 import { registerMoveFollower } from './move-followers'
 import { useUiLanguageStore } from './ui-language-store'
+
+/** The layout each mode falls back to. */
+const MODE_PRESETS: Readonly<Record<Mode, PresetId>> = { writing: 'write', plotting: 'plot' }
 
 const NOTICES: Record<WorkbenchStorageProblem, MessageKey> = {
   unavailable: 'workbench-notice-unavailable',
@@ -63,15 +67,19 @@ export const useWorkbenchStore = defineStore('workbench', () => {
       ? unboundBindings.value
       : (projects.value.projects[root.value] ?? defaultProjectBindings())
   )
-  /** The Writing layout chosen for this project, or Write if that choice no longer exists. */
+  const shell = computed<WorkbenchShell>(() => settings.value.shell)
+  /** Writing or Plotting; the classic shell only writes. */
+  const mode = computed<Mode>(() => (shell.value === 'workbench' ? bindings.value.mode : 'writing'))
+  /** The layout chosen for this project in the current mode, or that mode's preset if it's gone. */
   const activeLayoutId = computed(() => {
-    const chosen = bindings.value.active.writing
-    return layoutFor(settings.value, chosen)?.mode === 'writing' ? chosen : 'write'
+    const chosen = bindings.value.active[mode.value]
+    return layoutFor(settings.value, chosen)?.mode === mode.value
+      ? chosen
+      : MODE_PRESETS[mode.value]
   })
   const layout = computed<Layout>(
-    () => layoutFor(settings.value, activeLayoutId.value) ?? PRESETS.write
+    () => layoutFor(settings.value, activeLayoutId.value) ?? PRESETS[MODE_PRESETS[mode.value]]
   )
-  const shell = computed<WorkbenchShell>(() => settings.value.shell)
 
   function record(outcome: WorkbenchStorageProblem | null): void {
     problem.value = outcome
@@ -112,10 +120,18 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     return true
   }
 
-  /** Uses another Writing layout for this project. */
+  /** Uses another layout of the current mode for this project. */
   function setActiveLayout(id: string): boolean {
-    if (layoutFor(settings.value, id)?.mode !== 'writing') return false
-    updateBindings((current) => ({ ...current, active: { ...current.active, writing: id } }))
+    const current = mode.value
+    if (layoutFor(settings.value, id)?.mode !== current) return false
+    updateBindings((bound) => ({ ...bound, active: { ...bound.active, [current]: id } }))
+    return true
+  }
+
+  /** Switches between Writing and Plotting; each mode keeps its own layout (ADR 0017). */
+  function setMode(next: Mode): boolean {
+    if (shell.value !== 'workbench') return false
+    if (bindings.value.mode !== next) updateBindings((current) => ({ ...current, mode: next }))
     return true
   }
 
@@ -304,6 +320,8 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     settings,
     projectRoot,
     layout,
+    mode,
+    setMode,
     activeLayoutId,
     shell,
     outlinePath,

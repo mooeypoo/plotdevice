@@ -5,10 +5,13 @@ import { nextTick, ref } from 'vue'
 export const usePaletteStore = defineStore('palette', () => {
   const open = ref(false)
   let returnTo: HTMLElement | null = null
+  /** Where focus was when the palette last opened, for commands that open a box of their own. */
+  let origin: HTMLElement | null = null
 
   function show(): void {
     if (open.value) return
     returnTo = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    origin = returnTo
     open.value = true
   }
 
@@ -37,7 +40,7 @@ export const usePaletteStore = defineStore('palette', () => {
     }
   }
 
-  return { open, show, close, runAndClose }
+  return { open, show, close, runAndClose, origin: (): HTMLElement | null => origin }
 })
 
 // Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.

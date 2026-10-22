@@ -8,6 +8,7 @@ import {
   EVENT_CHANNELS,
   INSPECTOR_CHANNELS,
   MANUSCRIPT_CHANNELS,
+  OUTLINE_CHANNELS,
   TIMELINE_CHANNELS,
   INTERACTIONS_CHANNELS,
   WORKSPACE_CHANNELS
@@ -23,6 +24,8 @@ import type {
   EntryTextDto,
   InspectorVocabularyDto,
   MovedDto,
+  OutlineDto,
+  PlotBoardDto,
   RenamedDto,
   RenamePlanDto,
   RenumberedDto,
@@ -43,7 +46,7 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 26,
+  contractVersion: 27,
   uiLanguage: {
     get: () => invoke<UiLanguageDto>(UI_LANGUAGE_CHANNELS.get),
     set: (locale) => invoke<ApiResult<UiLanguageDto>>(UI_LANGUAGE_CHANNELS.set, locale),
@@ -170,6 +173,22 @@ const plotDevice: PlotDeviceApi = {
     renameEntry: (path) => invoke<ApiResult<RenamedDto>>(CODEX_CHANNELS.renameEntry, path),
     getAppearsIn: (path) =>
       invoke<ApiResult<readonly AppearanceDto[]>>(CODEX_CHANNELS.getAppearsIn, path)
+  },
+  outline: {
+    list: () => invoke<ApiResult<readonly OutlineDto[]>>(OUTLINE_CHANNELS.list),
+    create: (title) => invoke<ApiResult<CreatedEntryDto>>(OUTLINE_CHANNELS.create, title),
+    openEntry: (path) => invoke<ApiResult<EntryTextDto>>(OUTLINE_CHANNELS.openEntry, path),
+    saveEntryText: (path, text, version, overwrite) =>
+      invoke<ApiResult<SavedEntryDto>>(
+        OUTLINE_CHANNELS.saveEntryText,
+        path,
+        text,
+        version,
+        overwrite
+      ),
+    readBoard: (path) => invoke<ApiResult<PlotBoardDto>>(OUTLINE_CHANNELS.readBoard, path),
+    capture: (path, text, version) =>
+      invoke<ApiResult<{ readonly version: string }>>(OUTLINE_CHANNELS.capture, path, text, version)
   },
   timeline: {
     getTimeline: () => invoke<ApiResult<TimelineDto>>(TIMELINE_CHANNELS.getTimeline)

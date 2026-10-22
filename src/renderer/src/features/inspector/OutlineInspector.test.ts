@@ -3,6 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from '../../app/codex-store'
+import { useOutlineStore } from '../../app/outline-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
 import { useManuscriptStore } from '../../app/manuscript-store'
@@ -18,7 +19,7 @@ beforeEach(async () => {
   useUiLanguageStore().locale = 'en'
   fake = createFakePlotDeviceApi()
   plotDeviceApi.current = () => fake.api
-  await Promise.all([useCodexStore().load(), useManuscriptStore().load()])
+  await Promise.all([useCodexStore().load(), useOutlineStore().load(), useManuscriptStore().load()])
 })
 
 describe('OutlineInspector', () => {

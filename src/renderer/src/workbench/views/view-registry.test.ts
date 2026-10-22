@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest'
 import en from '../../../../i18n/en.json'
-import { VIEW_CATALOG, VIEW_IDS } from '../model/view-catalog'
+import { VIEW_CATALOG, VIEW_IDS, type ViewId } from '../model/view-catalog'
 import { registeredView, VIEW_REGISTRY } from './view-registry'
 
 describe('view registry', () => {
@@ -13,24 +13,8 @@ describe('view registry', () => {
     }
   })
 
-  it('registers every view that exists today and none of the planned ones yet', () => {
-    expect(Object.keys(VIEW_REGISTRY).sort()).toEqual(
-      [
-        'binder',
-        'card-stack',
-        'cast',
-        'codex',
-        'document',
-        'interactions',
-        'outline',
-        'overview',
-        'properties',
-        'reference',
-        'scene-card',
-        'timeline',
-        'warnings'
-      ].sort()
-    )
+  it('registers every catalogued view, now that the board exists (P2)', () => {
+    expect(Object.keys(VIEW_REGISTRY).sort()).toEqual([...VIEW_IDS].sort())
   })
 
   it('titles every view with an existing message', () => {
@@ -40,6 +24,6 @@ describe('view registry', () => {
   })
 
   it('treats asking for an unregistered view as a bug', () => {
-    expect(() => registeredView('plot-board')).toThrow('View not registered: plot-board')
+    expect(() => registeredView('missing' as ViewId)).toThrow('View not registered: missing')
   })
 })

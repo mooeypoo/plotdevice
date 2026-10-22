@@ -9,7 +9,11 @@ import { useChromePresentation } from '../shared/use-chrome-presentation'
 import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
 import { placeOf } from './entry-owners'
+import { useCaptureStore } from './capture-store'
 import { useLayoutStore, type MainView } from './layout-store'
+import { useOutlineStore } from './outline-store'
+import { usePaletteStore } from './palette-store'
+import { useWritingPreferencesStore } from './writing-preferences-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useReferenceStore } from './reference-store'
 import { useUiLanguageStore } from './ui-language-store'
@@ -42,7 +46,8 @@ const CENTER_TITLES: Readonly<Record<MainView, MessageKey>> = {
   write: 'view-write',
   overview: 'view-overview',
   timeline: 'view-timeline',
-  interactions: 'view-interactions'
+  interactions: 'view-interactions',
+  'plot-board': 'view-board'
 }
 const PRESET_NAMES: Readonly<Record<PresetId, MessageKey>> = {
   write: 'workbench-layout-write',
@@ -70,6 +75,8 @@ export function usePaletteCommands() {
   const navigation = useWorkbenchNavigation()
   const language = useUiLanguageStore()
   const chrome = useChromePresentation()
+  const preferences = useWritingPreferencesStore()
+  const outlines = useOutlineStore()
 
   const entries = computed((): PaletteItem[] => {
     const aliases = new Map(
@@ -130,7 +137,7 @@ export function usePaletteCommands() {
   })
 
   const layouts = computed((): PaletteItem[] =>
-    layoutChoices(workbench.settings, 'writing')
+    layoutChoices(workbench.settings, workbench.mode)
       .filter((choice) => {
         const arrangement = layoutFor(workbench.settings, choice.id)
         return (
@@ -161,7 +168,35 @@ export function usePaletteCommands() {
       detail: kind,
       run
     })
+    const modes =
+      workbench.shell !== 'workbench'
+        ? []
+        : workbench.mode === 'writing'
+          ? [
+              command('mode-plotting', 'palette-mode-plotting', () =>
+                navigation.switchMode('plotting')
+              )
+            ]
+          : [
+              command('mode-writing', 'palette-mode-writing', () =>
+                navigation.switchMode('writing')
+              ),
+              command('show-board', 'view-board', () => navigation.showCenterView('plot-board')),
+              command('show-outline-text', 'palette-outline-text', () =>
+                navigation.showOutlineText()
+              )
+            ]
+    const capture =
+      preferences.captureBeats && outlines.currentPath !== null
+        ? [
+            command('capture-beat', 'palette-capture', () => {
+              useCaptureStore().show(usePaletteStore().origin())
+            })
+          ]
+        : []
     return [
+      ...capture,
+      ...modes,
       command('return-to-writing', 'tabs-return', () => editor.returnToWriting()),
       command('toggle-binder', 'menu-toggle-binder', layout.toggleBinder),
       command('toggle-inspector', 'menu-toggle-inspector', layout.toggleInspector),

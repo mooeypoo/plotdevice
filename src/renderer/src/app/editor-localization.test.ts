@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useEditorStore } from './editor-store'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
 import { useCodexStore } from './codex-store'
+import { useOutlineStore } from './outline-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useUiLanguageStore } from './ui-language-store'
@@ -20,7 +21,7 @@ beforeEach(async () => {
   setActivePinia(createPinia())
   fake = createFakePlotDeviceApi()
   plotDeviceApi.current = () => fake.api
-  await Promise.all([useManuscriptStore().load(), useCodexStore().load()])
+  await Promise.all([useManuscriptStore().load(), useCodexStore().load(), useOutlineStore().load()])
   await useUiLanguageStore().initialize()
 })
 afterEach(() => {
@@ -65,7 +66,7 @@ describe('cached editor failures and notices', () => {
             : action === 'codex'
               ? vi.spyOn(fake.api.codex, 'createEntry').mockResolvedValue(failure)
               : action === 'outline'
-                ? vi.spyOn(fake.api.codex, 'createOutline').mockResolvedValue(failure)
+                ? vi.spyOn(fake.api.outline, 'create').mockResolvedValue(failure)
                 : action === 'template'
                   ? vi.spyOn(fake.api.codex, 'editTemplate').mockResolvedValue(failure)
                   : action === 'type'
@@ -77,7 +78,7 @@ describe('cached editor failures and notices', () => {
       if (action === 'chapter') await manuscript.createChapter(null, 'New')
       else if (action === 'part') await manuscript.createPart('New')
       else if (action === 'codex') await codex.createEntry('note', 'New')
-      else if (action === 'outline') await codex.createOutline('New')
+      else if (action === 'outline') await useOutlineStore().create('New')
       else if (action === 'template') await codex.editTemplate('note')
       else if (action === 'type') await codex.setEntryType('Loose thoughts.md', 'note')
       else if (action === 'fix')

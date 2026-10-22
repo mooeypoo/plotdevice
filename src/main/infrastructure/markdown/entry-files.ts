@@ -59,6 +59,17 @@ export interface EntryFiles {
     text: string,
     expectedVersion: string | undefined
   ): Promise<Result<{ readonly version: string }, WriteTextError>>
+  /**
+   * The body exactly as written, line endings included, for edits that must keep every other
+   * byte (ADR 0020). `readText` gives the editor's view instead.
+   */
+  readBody(path: ProjectPath): Promise<Result<FileText, ReadFileError>>
+  /** Replaces the body with `body` exactly as given: no line-ending conversion. */
+  writeBody(
+    path: ProjectPath,
+    body: string,
+    expectedVersion: string | undefined
+  ): Promise<Result<{ readonly version: string }, WriteTextError>>
   readFrontmatter(path: ProjectPath): Promise<Result<FileFrontmatter, ReadFileError>>
   /** A file's whole text, or `undefined` if it is missing or not UTF-8. */
   readWholeText(path: ProjectPath): Promise<string | undefined>
@@ -214,6 +225,27 @@ export function createEntryFiles(rootOsPath: string, remember?: RememberEntryByt
       rewrite(path, expectedVersion, (parts) =>
         ok(composeMarkdownFile({ ...parts, body: fromEditorText(text, parts) }))
       ),
+
+    async readBody(path) {
+      const read = await readBytes(path)
+      if (!read.ok) return read
+      const split = splitMarkdownFile(read.value.bytes)
+      if (split.kind !== 'parts') {
+        return err(
+          domainError('unreadable', `"${path}" can't be read safely (${split.kind}).`, {
+            reason: 'file-unsafe',
+            path,
+            operation: 'read',
+            problem: split.kind
+          })
+        )
+      }
+      remember?.(path, versionOf(read.value.bytes), read.value.bytes)
+      return ok({ text: split.parts.body, version: versionOf(read.value.bytes) })
+    },
+
+    writeBody: (path, body, expectedVersion) =>
+      rewrite(path, expectedVersion, (parts) => ok(composeMarkdownFile({ ...parts, body }))),
 
     async readFrontmatter(path) {
       const read = await readBytes(path)

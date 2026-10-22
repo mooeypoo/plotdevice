@@ -106,6 +106,28 @@ function changeWritingDirection(event: Event): void {
       />
       <label for="fade-while-typing">{{ language.t('appearance-fade') }}</label>
     </div>
+    <fieldset class="experimental">
+      <legend>{{ language.t('appearance-experimental') }}</legend>
+      <div class="control toggle">
+        <input
+          id="capture-beats"
+          type="checkbox"
+          :checked="preferences.captureBeats"
+          @change="preferences.setCaptureBeats(($event.target as HTMLInputElement).checked)"
+        />
+        <label for="capture-beats">{{ language.t('appearance-capture') }}</label>
+      </div>
+      <div class="control toggle nested">
+        <input
+          id="capture-links-chapter"
+          type="checkbox"
+          :checked="preferences.captureLinksChapter"
+          :disabled="!preferences.captureBeats"
+          @change="preferences.setCaptureLinksChapter(($event.target as HTMLInputElement).checked)"
+        />
+        <label for="capture-links-chapter">{{ language.t('appearance-capture-link') }}</label>
+      </div>
+    </fieldset>
     <footer>
       <span>{{ language.t('appearance-all-projects') }}</span>
       <button type="button" class="quiet reset" @click="preferences.resetTypography()">
@@ -119,6 +141,27 @@ function changeWritingDirection(event: Event): void {
 </template>
 
 <style scoped>
+.experimental {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding-block: 8px;
+  padding-inline: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.experimental legend {
+  padding-inline: 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.control.toggle.nested {
+  padding-inline-start: 22px;
+}
+
 .control.toggle {
   display: flex;
   flex-direction: row;

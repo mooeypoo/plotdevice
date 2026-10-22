@@ -6,6 +6,8 @@ import type {
   CodexKindDto,
   CodexListingDto,
   CodexPropertiesViewDto,
+  OutlineDto,
+  PlotBoardDto,
   RelationshipEditDto,
   SettableTypeDto,
   TimelineDto,
@@ -148,7 +150,10 @@ export interface CodexApi {
    * has none yet. It opens like an entry; only its text is edited.
    */
   editTemplate(kind: CodexKindDto): Promise<ApiResult<CreatedEntryDto>>
-  /** A new outline at the project root, named after its title. */
+  /**
+   * A new outline at the project root, named after its title.
+   * @deprecated Use `api.outline.create`; kept for one contract version.
+   */
   createOutline(title: string): Promise<ApiResult<CreatedEntryDto>>
   /** Writes `type` into an untyped file, and nothing else. */
   setEntryType(path: string, type: SettableTypeDto): Promise<ApiResult<null>>
@@ -156,6 +161,31 @@ export interface CodexApi {
   renameEntry(path: string): Promise<ApiResult<RenamedDto>>
   /** The chapters a character or location appears in, in book order. */
   getAppearsIn(path: string): Promise<ApiResult<readonly AppearanceDto[]>>
+}
+
+/** The writer's outlines and the beat board over them (ADR 0020). */
+export interface OutlineApi {
+  list(): Promise<ApiResult<readonly OutlineDto[]>>
+  /** A new outline at the project root, named after its title. */
+  create(title: string): Promise<ApiResult<CreatedEntryDto>>
+  /** Only paths from the last `list` (or just created) are accepted. */
+  openEntry(path: string): Promise<ApiResult<EntryTextDto>>
+  saveEntryText(
+    path: string,
+    text: string,
+    version: string,
+    overwrite: boolean
+  ): Promise<ApiResult<SavedEntryDto>>
+  readBoard(path: string): Promise<ApiResult<PlotBoardDto>>
+  /**
+   * Appends a beat to the outline's Inbox, adding the heading if missing. `version` is the one the
+   * editor holds when the outline is open there; `null` captures into the file as it is.
+   */
+  capture(
+    path: string,
+    text: string,
+    version: string | null
+  ): Promise<ApiResult<{ readonly version: string }>>
 }
 
 /** The timeline of the open project. */
@@ -211,12 +241,13 @@ export interface RecoveryApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 26
+  readonly contractVersion: 27
   readonly uiLanguage: UiLanguageApi
   readonly recovery: RecoveryApi
   readonly workspace: WorkspaceApi
   readonly manuscript: ManuscriptApi
   readonly codex: CodexApi
+  readonly outline: OutlineApi
   readonly timeline: TimelineApi
   readonly interactions: InteractionsApi
   readonly inspector: InspectorApi

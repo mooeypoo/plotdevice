@@ -1,5 +1,6 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 import type { ProjectChangeDto } from '../../../contract/dtos'
+import { useOutlineStore } from './outline-store'
 import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
 import { useInspectorStore } from './inspector-store'
@@ -24,7 +25,7 @@ export function useLiveSync(): void {
 
   async function apply(changes: readonly ProjectChangeDto[]): Promise<void> {
     await workspace.refresh()
-    await Promise.all([manuscript.reload(), codex.reload()])
+    await Promise.all([manuscript.reload(), codex.reload(), useOutlineStore().reload()])
     await editor.syncFromDisk(changes)
     useDocumentTabsStore().refresh(editor.entry?.path ?? null)
     if (changes.some((change) => change.path === 'novel.md')) await inspector.loadVocabulary()

@@ -8,6 +8,8 @@ import type {
   FolderChoiceDto,
   CodexPropertiesDto,
   ProjectChangeDto,
+  OutlineDto,
+  PlotBoardDto,
   ProjectSummaryDto,
   InteractionsDto,
   RenamePlanDto,
@@ -124,8 +126,11 @@ export const sampleCodex: CodexListingDto = {
     { kind: 'location', path: 'templates/location.md', exists: false },
     { kind: 'note', path: 'templates/note.md', exists: false }
   ],
-  outlines: [{ path: 'Outline.md', title: 'Outline' }]
+  outlines: []
 }
+
+/** The fake project's outlines. */
+export const sampleOutlines: readonly OutlineDto[] = [{ path: 'Outline.md', title: 'Outline' }]
 
 /** Two dated chapters in Part One, the second earlier in the story; one undated. */
 export const sampleTimeline: TimelineDto = {
@@ -192,6 +197,38 @@ export const sampleInteractions: InteractionsDto = {
   outside: 1
 }
 
+/** A board for tests: the fake's `Outline.md`, with an Inbox. */
+export const sampleBoard: PlotBoardDto = {
+  path: 'Outline.md',
+  version: 'board-1',
+  preamble: '',
+  columns: [
+    {
+      line: 0,
+      title: 'Part One',
+      inbox: false,
+      beats: [
+        {
+          line: 1,
+          title: '[[The Ferry]]: Ilka arrives. #main',
+          notes: '',
+          tags: ['main'],
+          threads: ['main'],
+          chapter: {
+            path: 'The Ferry.md',
+            title: 'The Ferry',
+            status: 'draft',
+            pov: ['Ilka'],
+            wordCount: 3
+          }
+        },
+        { line: 2, title: 'Ilka finds the ledger.', notes: 'Bea lies.', tags: [], threads: [] }
+      ]
+    }
+  ],
+  threads: [{ key: 'main', name: 'Main plot', color: '#4f7cac' }]
+}
+
 export function createFakePlotDeviceApi(): {
   api: PlotDeviceApi
   files: Map<string, string>
@@ -220,6 +257,10 @@ export function createFakePlotDeviceApi(): {
   codexWrites: string[]
   /** What `getTimeline` returns. */
   timeline: { current: TimelineDto }
+  /** What `readBoard` returns, for any outline. */
+  board: { current: PlotBoardDto }
+  /** Beats captured, as `path: text (version)`. */
+  captures: string[]
   /** What `refreshProject` returns next. */
   summary: { current: ProjectSummaryDto }
 } {
@@ -245,6 +286,9 @@ export function createFakePlotDeviceApi(): {
   }
   const renamePlan: { current: RenamePlanDto | null } = { current: null }
   const timeline = { current: sampleTimeline }
+  const board = { current: sampleBoard }
+  let outlines: readonly OutlineDto[] = sampleOutlines
+  const captures: string[] = []
   const codexWrites: string[] = []
   let codex: CodexListingDto = sampleCodex
   const codexProperties = new Map<string, CodexPropertiesDto>(
@@ -298,7 +342,7 @@ export function createFakePlotDeviceApi(): {
   >()
 
   const api: PlotDeviceApi = {
-    contractVersion: 26,
+    contractVersion: 27,
     uiLanguage: {
       get: () => Promise.resolve(language),
       set: (locale) => {
@@ -380,8 +424,8 @@ export function createFakePlotDeviceApi(): {
               { chapter: { ...sourceChapter, path }, reason: 'missing-order' }
             ]
           }
-        } else if (codex.outlines.some((outline) => outline.path === source)) {
-          codex = { ...codex, outlines: [...codex.outlines, { path, title: 'Recovered outline' }] }
+        } else if (outlines.some((outline) => outline.path === source)) {
+          outlines = [...outlines, { path, title: 'Recovered outline' }]
         } else {
           const kind = template ? 'note' : (snapshot.codex?.kind ?? 'note')
           codex = {
@@ -611,7 +655,7 @@ export function createFakePlotDeviceApi(): {
       }
     },
     codex: {
-      listCodex: () => Promise.resolve({ ok: true, value: codex }),
+      listCodex: () => Promise.resolve({ ok: true, value: { ...codex, outlines } }),
       openEntry: (path) => api.manuscript.openEntry(path),
       saveEntryText: (path, text, version, overwrite) =>
         api.manuscript.saveEntryText(path, text, version, overwrite),
@@ -767,16 +811,7 @@ export function createFakePlotDeviceApi(): {
         codexWrites.push(`created ${path}`)
         return Promise.resolve({ ok: true, value: { path } })
       },
-      createOutline: (title) => {
-        const path = `${title === '' ? 'Outline' : title}.md`
-        files.set(path, '')
-        codex = {
-          ...codex,
-          outlines: [...codex.outlines, { path, title: title === '' ? 'Outline' : title }]
-        }
-        codexWrites.push(`outline ${path}`)
-        return Promise.resolve({ ok: true, value: { path } })
-      },
+      createOutline: (title) => api.outline.create(title),
       editTemplate: (kind) => {
         const path = `templates/${kind}.md`
         if (!files.has(path)) files.set(path, '## Description\n')
@@ -842,6 +877,36 @@ export function createFakePlotDeviceApi(): {
                 : { kind: 'invalid', issue: { reason: 'not-date', value: text } }
         })
     },
+    outline: {
+      list: () => Promise.resolve({ ok: true, value: outlines }),
+      create: (title) => {
+        const path = `${title === '' ? 'Outline' : title}.md`
+        files.set(path, '')
+        outlines = [...outlines, { path, title: title === '' ? 'Outline' : title }]
+        codexWrites.push(`outline ${path}`)
+        return Promise.resolve({ ok: true, value: { path } })
+      },
+      openEntry: (path) => api.codex.openEntry(path),
+      saveEntryText: (path, text, version, overwrite) =>
+        api.codex.saveEntryText(path, text, version, overwrite),
+      readBoard: (path) => Promise.resolve({ ok: true, value: { ...board.current, path } }),
+      capture: (path, text, version) => {
+        if (version !== null && versionOf(path) !== version) {
+          return Promise.resolve({
+            ok: false,
+            error: {
+              code: 'changed-on-disk',
+              message: 'changed',
+              diagnostic: { reason: 'file-changed', path }
+            }
+          })
+        }
+        files.set(path, `${files.get(path) ?? ''}- ${text}\n`)
+        revisions.set(path, (revisions.get(path) ?? 0) + 1)
+        captures.push(`${path}: ${text}${version === null ? '' : ' (versioned)'}`)
+        return Promise.resolve({ ok: true, value: { version: versionOf(path) } })
+      }
+    },
     app: {
       onMenuCommand: (listener) => {
         menuListeners.add(listener)
@@ -864,6 +929,8 @@ export function createFakePlotDeviceApi(): {
     properties,
     moves: state.moves,
     timeline,
+    board,
+    captures,
     codexWrites,
     codexProperties,
     summary,

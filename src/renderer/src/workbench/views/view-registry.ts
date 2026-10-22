@@ -4,6 +4,7 @@ import BinderView from '../../features/binder/BinderView.vue'
 import CardStack from '../../features/cards/CardStack.vue'
 import PeekLayer from '../../features/cards/PeekLayer.vue'
 import CommandPalette from '../../features/palette/CommandPalette.vue'
+import CaptureBox from '../../features/capture/CaptureBox.vue'
 import CastStrip from '../../features/cast/CastStrip.vue'
 import SceneCard from '../../features/cast/SceneCard.vue'
 import SplitPane from '../../features/split/SplitPane.vue'
@@ -13,6 +14,7 @@ import PropertiesView from '../../features/inspector/PropertiesView.vue'
 import InteractionsView from '../../features/interactions/InteractionsView.vue'
 import OutlinePanel from '../../features/outline/OutlinePanel.vue'
 import OverviewView from '../../features/overview/OverviewView.vue'
+import PlotBoard from '../../features/board/PlotBoard.vue'
 import ReferencePanel from '../../features/reference/ReferencePanel.vue'
 import TimelineView from '../../features/timeline/TimelineView.vue'
 import WarningsView from '../../features/warnings/WarningsView.vue'
@@ -55,13 +57,14 @@ export const VIEW_REGISTRY: Partial<Readonly<Record<ViewId, ViewDescriptor>>> = 
   warnings: view('warnings', 'warnings-heading', WarningsView),
   'card-stack': view('card-stack', 'cards-stack-title', CardStack),
   cast: view('cast', 'cast-label', CastStrip),
-  'scene-card': view('scene-card', 'scene-card-title', SceneCard)
+  'scene-card': view('scene-card', 'scene-card-title', SceneCard),
+  'plot-board': view('plot-board', 'view-board', PlotBoard)
 }
 
 publishViewDirectory(VIEW_REGISTRY)
 
 /** Layers drawn above every region once per project, such as the peek card. */
-export const OVERLAYS: readonly Component[] = [PeekLayer, CommandPalette]
+export const OVERLAYS: readonly Component[] = [PeekLayer, CommandPalette, CaptureBox]
 
 /** A read-only split beside the writable document; takes a `splitId` prop. */
 export const SPLIT_PANE: Component = SplitPane

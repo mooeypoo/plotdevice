@@ -1,6 +1,7 @@
 /** Whatever arranges the screen: it brings the writable document forward after navigation. */
 export interface DocumentPresenter {
-  showDocument(): void
+  /** `path` is the document the editor now shows. */
+  showDocument(path: string): void
 }
 
 let presenter: (() => DocumentPresenter) | undefined
