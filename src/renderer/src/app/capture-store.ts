@@ -2,6 +2,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { nextTick, ref } from 'vue'
 import { useEditorStore } from './editor-store'
 import { useOutlineStore } from './outline-store'
+import { writeOutline } from './outline-writes'
 import { plotDeviceApi } from './plot-device-api'
 import { useDocumentTabsStore } from './document-tabs-store'
 import { useWritingPreferencesStore } from './writing-preferences-store'
@@ -50,15 +51,6 @@ export const useCaptureStore = defineStore('capture', () => {
     if (outline === null || text.trim() === '' || busy.value) return false
     busy.value = true
     try {
-      let version: string | null = null
-      if (editor.entry?.path === outline) {
-        const held = await editor.versionForPropertyChange()
-        if (held === undefined) {
-          errorSource.value = { notice: 'capture-outline-unsaved' }
-          return false
-        }
-        version = held
-      }
       // The Writing target, or else the open part or chapter, as the cast strip uses it.
       const entry = editor.entry
       const chapter =
@@ -68,13 +60,13 @@ export const useCaptureStore = defineStore('capture', () => {
         useWritingPreferencesStore().captureLinksChapter && chapter !== null
           ? `${text.trim()} ${linkTo(chapter)}`
           : text.trim()
-      const result = await plotDeviceApi.current().outline.capture(outline, withLink, version)
+      const result = await writeOutline(outline, (version) =>
+        plotDeviceApi.current().outline.capture(outline, withLink, version)
+      )
       if (!result.ok) {
         errorSource.value = result.error
         return false
       }
-      if (editor.entry?.path === outline) await editor.reloadAfterWrite(outline)
-      useOutlineStore().touched()
       close()
       return true
     } finally {

@@ -340,7 +340,7 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 **Done when:** the board matches the outline for every fixture, mirrors in Hebrew, and capture changes only the appended lines.
 
 ### P3: Move on the board
-- [ ] Drag and keyboard moves of beats and columns, through version-checked IPC commands. The editor adopts the result (ADR 0018).
+- [x] Drag and keyboard moves of beats and columns, through version-checked IPC commands (contract version 28). The editor adopts the result (ADR 0018). Every drag has a keyboard path (Alt+arrows) and a menu path (the card's and column's ⋯ menu); the Inbox stays last. Capture and moves share `app/outline-writes.ts`.
 
 **Done when:** only moved lines change, a stale board refuses to write, and an unresolved outline draft blocks moves.
 

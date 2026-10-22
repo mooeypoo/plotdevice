@@ -673,6 +673,17 @@
   "capture-title": "תפיסת נקודת עלילה",
   "capture-into": "תתווסף לסוף תיבת הרעיונות ב־$1",
   "capture-placeholder": "שורה אחת, ואז Enter",
-  "capture-outline-unsaved": "במתווה הפתוח בעורך יש שינויים שעדיין לא ניתן לשמור; יש לפתור אותם קודם.",
-  "palette-capture": "תפיסת נקודת עלילה…"
+  "outline-draft-unresolved": "במתווה הפתוח בעורך יש שינויים שעדיין לא ניתן לשמור; יש לפתור אותם קודם.",
+  "palette-capture": "תפיסת נקודת עלילה…",
+  "board-outline-changed": "המתווה השתנה מאז שהלוח קרא אותו; הנה הוא שוב.",
+  "board-card-menu": "פעולות לכרטיס",
+  "board-column-menu": "פעולות לעמודה",
+  "board-move-up": "העברה למעלה",
+  "board-move-down": "העברה למטה",
+  "board-move-to": "העברה אל $1",
+  "board-move-earlier": "העברה אחורה",
+  "board-move-later": "העברה קדימה",
+  "board-moved-beat": "$1 הועבר אל $2",
+  "board-moved-column": "$1 הועבר",
+  "board-keys-hint": "Alt+חצים מזיזים את הכרטיס או העמודה שבמיקוד."
 }

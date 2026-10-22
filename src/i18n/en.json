@@ -673,6 +673,17 @@
   "capture-title": "Capture a beat",
   "capture-into": "Goes to the end of the Inbox in $1",
   "capture-placeholder": "One line, then Enter",
-  "capture-outline-unsaved": "The outline open in the editor has changes that can’t be saved yet; resolve them first.",
-  "palette-capture": "Capture a beat…"
+  "outline-draft-unresolved": "The outline open in the editor has changes that can’t be saved yet; resolve them first.",
+  "palette-capture": "Capture a beat…",
+  "board-outline-changed": "The outline changed since the board read it; here it is again.",
+  "board-card-menu": "Card actions",
+  "board-column-menu": "Column actions",
+  "board-move-up": "Move up",
+  "board-move-down": "Move down",
+  "board-move-to": "Move to $1",
+  "board-move-earlier": "Move earlier",
+  "board-move-later": "Move later",
+  "board-moved-beat": "Moved $1 to $2",
+  "board-moved-column": "Moved $1",
+  "board-keys-hint": "Alt+arrows move the focused card or column."
 }

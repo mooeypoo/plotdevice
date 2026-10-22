@@ -200,11 +200,11 @@ progress, remaining limitations, and the next slice before ending a session.
   - [ ] **I7d Peeks and splits (W5):** peek placement and read-only splits open
     toward inline-end and stay on-screen in both directions; live drafts keep
     per-block automatic direction (I5c).
-  - [ ] **I7e Board (P2–P4):** (P2 done: columns follow the book's direction, else the
-    interface's; beats keep document order; arrow keys follow visual direction; each
-    thread stripe carries the thread's name. Drop zones remain for P3.) The first column is at inline-start; beats keep
+  - [x] **I7e Board (P2–P4):** the first column is at inline-start; beats keep
     document order; drop zones and keyboard moves follow inline direction;
-    thread colors are never the only signal.
+    thread colors are never the only signal. (P2: columns follow the book's direction,
+    else the interface's. P3: drop lines use logical insets; Alt+Left/Right move by what
+    the eye sees.)
   - [x] **I7f Book language (L1):** Hebrew seeds and the Inbox word are written
     without isolation characters; Auto writing direction falls back to the book
     language's direction; interface switches still write nothing. (L1 writes the
