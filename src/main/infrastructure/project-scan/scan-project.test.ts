@@ -23,6 +23,11 @@ describe('scanProject on the sample novel', () => {
 
     expect(Object.fromEntries(files.map(({ path, ...rest }) => [path, rest]))).toEqual({
       'Loose thoughts.md': untyped(),
+      'Working plan.md': typed('outline'),
+      'outlines/Loose plan.md': typed('outline'),
+      'outlines/Not a board.md': typed('outline'),
+      'outlines/Revision plan.md': typed('outline'),
+      'outlines/תוכנית.md': typed('outline'),
       'characters/Marrow.md': typed('character'),
       'characters/Ilka Szabó.md': typed('character'),
       'characters/Aunt Bea.md': typed('character'),

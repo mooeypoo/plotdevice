@@ -28,8 +28,8 @@ describe('renaming a chapter', () => {
   it('previews the links it would change, without writing anything', async () => {
     const before = await read('notes/Scene idea.md')
     expect(await previewRelocation(copy.root, from, to)).toEqual({
-      changedFiles: ['notes/Scene idea.md'],
-      linkCount: 1,
+      changedFiles: ['Working plan.md', 'notes/Scene idea.md'],
+      linkCount: 2,
       skipped: []
     })
     expect(await read('notes/Scene idea.md')).toBe(before)
@@ -48,8 +48,8 @@ describe('renaming a chapter', () => {
 
     expect(result.move).toBe('moved')
     expect(result.report).toEqual({
-      changedFiles: ['notes/Research.md', 'notes/Scene idea.md'],
-      linkCount: 2,
+      changedFiles: ['Working plan.md', 'notes/Research.md', 'notes/Scene idea.md'],
+      linkCount: 3,
       skipped: []
     })
     expect(await read('notes/Scene idea.md')).toBe(
@@ -58,6 +58,7 @@ describe('renaming a chapter', () => {
     expect(await read('notes/Research.md')).toBe(
       researchBefore.replace('[[The Ferry|the opening]]', '[[The Crossing|the opening]]')
     )
+    expect(await read('Working plan.md')).toContain('- [[The Crossing]]: Ilka arrives;')
     expect(await read('manuscript/Part One/The Crossing.md')).toContain('title: The Ferry')
     await expect(read('manuscript/Part One/The Ferry.md')).rejects.toThrow()
   })
