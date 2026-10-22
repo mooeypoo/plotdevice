@@ -13,7 +13,14 @@ export default defineConfig({
   description: 'Write the novel. Keep the files. A field guide to writing in plain Markdown.',
   lang: 'en',
   base: '/plotdevice/',
-  srcExclude: ['adr/**', 'release-plan.md', 'roadmap.md', 'releasing.md', 'testing-windows.md'],
+  srcExclude: [
+    'adr/**',
+    'plans/**',
+    'release-plan.md',
+    'roadmap.md',
+    'releasing.md',
+    'testing-windows.md'
+  ],
   buildEnd(site) {
     const state = releaseStateSchema.parse(
       JSON.parse(readFileSync(releaseStatePath, 'utf8')) as unknown
