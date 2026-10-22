@@ -11,6 +11,7 @@ import { useChromePresentation } from '../shared/use-chrome-presentation'
 import { useUiLanguageStore } from './ui-language-store'
 import { isolate } from '../shared/isolate'
 import { lastEntryOf, useLayoutStore } from './layout-store'
+import { useOutlineStore } from './outline-store'
 import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
@@ -44,7 +45,7 @@ useMenuCommands()
 onMounted(async () => {
   const root = workspace.project?.root
   void inspector.loadVocabulary()
-  await Promise.all([manuscript.load(), codex.load()])
+  await Promise.all([manuscript.load(), codex.load(), useOutlineStore().load()])
   if (disposed || root === undefined || workspace.project?.root !== root) return
   tabs.restore(root)
   const last = tabs.activePath ?? lastEntryOf(root)

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { CodexKindDto, CodexListingDto, SettableTypeDto } from '../../../../contract/dtos'
+import type {
+  CodexKindDto,
+  CodexListingDto,
+  SettableTypeDto,
+  OutlineDto
+} from '../../../../contract/dtos'
 import NewEntryInput from '../../shared/NewEntryInput.vue'
 import { codexSections } from './codex-sections'
 import CharacterList from './CharacterList.vue'
@@ -11,6 +16,7 @@ import { isolate } from '../../shared/isolate'
 
 const props = defineProps<{
   listing: CodexListingDto
+  outlines: readonly OutlineDto[]
   selectedPath: string | null
   readOnly: boolean
   projectRoot: string
@@ -76,10 +82,10 @@ function chooseType(path: string, event: Event): void {
       <div class="divider">
         <h2 class="eyebrow">{{ language.t('codex-outlines') }}</h2>
         <span class="rule" aria-hidden="true"></span>
-        <span class="count">{{ chrome.formatNumber(listing.outlines.length) }}</span>
+        <span class="count">{{ chrome.formatNumber(outlines.length) }}</span>
       </div>
       <ul>
-        <li v-for="outline in listing.outlines" :key="outline.path">
+        <li v-for="outline in outlines" :key="outline.path">
           <button
             type="button"
             class="row"

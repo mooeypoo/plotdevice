@@ -647,5 +647,9 @@
   "book-language-other": "Book-language option for a declared language the app has no words for. $1 is the language tag as written, such as ar.",
   "initialize-book-language-help": "Help under the book-language select when making a folder a project.",
   "project-overview-book-language-help": "Help under the book-language select in the project overview: changing the language never rewrites existing files.",
-  "project-overview-book-language-apply": "Button that saves the chosen book language to novel.md."
+  "project-overview-book-language-apply": "Button that saves the chosen book language to novel.md.",
+  "error-outline-shape-changed": "Error when a board action refers to a beat or column the outline file no longer has at that place (the file changed).",
+  "error-outline-invalid-beat": "Error when a beat title is empty, has several lines, or would be read as something other than a list item (such as ---).",
+  "error-outline-invalid-notes": "Error when the notes typed for a beat would make lines outside the beat change meaning.",
+  "error-outline-not-allowed": "Error when the app is asked to read or change a file that the outline list doesn't include."
 }

@@ -67,6 +67,21 @@ export class InMemoryOutlines implements OutlineRepository {
     return Promise.resolve(ok({ version }))
   }
 
+  /** The fake keeps bodies as written, so the raw body is the text. */
+  readBody(
+    path: ProjectPath
+  ): Promise<Result<{ text: string; version: string }, ReadOutlineError>> {
+    return this.readText(path)
+  }
+
+  writeBody(
+    path: ProjectPath,
+    body: string,
+    expectedVersion: string | undefined
+  ): Promise<Result<{ version: string }, WriteOutlineTextError>> {
+    return this.writeText(path, body, expectedVersion)
+  }
+
   /** Reads back only `type` and a JSON-quoted `title`, which is all `newOutlineText` writes. */
   createFile(
     path: ProjectPath,

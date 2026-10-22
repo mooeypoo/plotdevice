@@ -33,6 +33,16 @@ export interface OutlineRepository {
     text: string,
     expectedVersion: string | undefined
   ): Promise<Result<{ readonly version: string }, WriteOutlineTextError>>
+  /** The body exactly as written, line endings included (ADR 0020). */
+  readBody(
+    path: ProjectPath
+  ): Promise<Result<{ readonly text: string; readonly version: string }, ReadOutlineError>>
+  /** Replaces the body with exactly `body`; refuses a file changed since `expectedVersion`. */
+  writeBody(
+    path: ProjectPath,
+    body: string,
+    expectedVersion: string | undefined
+  ): Promise<Result<{ readonly version: string }, WriteOutlineTextError>>
   createFile(
     path: ProjectPath,
     text: string

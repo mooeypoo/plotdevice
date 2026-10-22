@@ -2,6 +2,7 @@ import { flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from '../../app/codex-store'
+import { useOutlineStore } from '../../app/outline-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
 import { useLayoutStore } from '../../app/layout-store'
@@ -15,14 +16,14 @@ beforeEach(async () => {
   setActivePinia(createPinia())
   fake = createFakePlotDeviceApi()
   plotDeviceApi.current = () => fake.api
-  await Promise.all([useManuscriptStore().load(), useCodexStore().load()])
+  await Promise.all([useManuscriptStore().load(), useCodexStore().load(), useOutlineStore().load()])
 })
 
 describe('useOutlinePanel', () => {
   it('keeps each outline title, path, and body paired when switching in both directions', async () => {
-    await fake.api.codex.createOutline('Clue ledger')
+    await fake.api.outline.create('Clue ledger')
     fake.files.set('Clue ledger.md', '## Clues\nThe key is missing.')
-    await useCodexStore().reload()
+    await useOutlineStore().reload()
     const panel = useOutlinePanel()
     await flushPromises()
     for (const path of ['Clue ledger.md', 'Outline.md', 'Clue ledger.md']) {
@@ -37,9 +38,9 @@ describe('useOutlinePanel', () => {
   })
 
   it('clears the old body while loading and rejects stale A → B → A responses', async () => {
-    await useCodexStore().createOutline('Clue ledger')
+    await useOutlineStore().create('Clue ledger')
     const pending: ((result: Awaited<ReturnType<typeof fake.api.codex.openEntry>>) => void)[] = []
-    vi.spyOn(fake.api.codex, 'openEntry').mockImplementation(
+    vi.spyOn(fake.api.outline, 'openEntry').mockImplementation(
       () => new Promise((resolve) => pending.push(resolve))
     )
     const panel = useOutlinePanel()
@@ -68,7 +69,7 @@ describe('useOutlinePanel', () => {
     const panel = useOutlinePanel()
     await flushPromises()
     fake.files.delete('Outline.md')
-    await useCodexStore().reload()
+    await useOutlineStore().reload()
     await flushPromises()
     expect(panel.text.value).toBeNull()
     expect(panel.error.value).toBe('"\u2068Outline.md\u2069" no longer exists.')
@@ -121,7 +122,7 @@ describe('useOutlinePanel', () => {
   })
 
   it('remembers which outline was chosen', async () => {
-    await useCodexStore().createOutline('Revision plan')
+    await useOutlineStore().create('Revision plan')
     const panel = useOutlinePanel()
     panel.choose('Revision plan.md')
     await flushPromises()

@@ -647,5 +647,9 @@
   "book-language-other": "$1 (words in English)",
   "initialize-book-language-help": "Words Plot Device writes into the book, such as statuses and “Untitled chapter”, use this language. The interface language is separate.",
   "project-overview-book-language-help": "Changing it affects only words written from now on. Words already in your files stay as they are.",
-  "project-overview-book-language-apply": "Apply"
+  "project-overview-book-language-apply": "Apply",
+  "error-outline-shape-changed": "The outline changed since the board read it. Look again and retry.",
+  "error-outline-invalid-beat": "A beat is one line of text, and can’t start like a heading or a rule.",
+  "error-outline-invalid-notes": "These notes would change the outline around them.",
+  "error-outline-not-allowed": "That file is not one of this project’s outlines."
 }

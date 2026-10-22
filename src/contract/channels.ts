@@ -4,6 +4,7 @@ import type {
   InspectorApi,
   InteractionsApi,
   ManuscriptApi,
+  OutlineApi,
   RecoveryApi,
   TimelineApi,
   WorkspaceApi
@@ -76,6 +77,15 @@ export const CODEX_CHANNELS = {
   renameEntry: 'codex:rename-entry',
   getAppearsIn: 'codex:get-appears-in'
 } as const satisfies Record<keyof CodexApi, string>
+
+export const OUTLINE_CHANNELS = {
+  list: 'outline:list',
+  create: 'outline:create',
+  openEntry: 'outline:open-entry',
+  saveEntryText: 'outline:save-entry-text',
+  readBoard: 'outline:read-board',
+  capture: 'outline:capture'
+} as const satisfies Record<keyof OutlineApi, string>
 
 export const TIMELINE_CHANNELS = {
   getTimeline: 'timeline:get'

@@ -64,6 +64,10 @@ export function formatApiError(error: ApiError, t: Translator['t']): string {
       return t('error-link-needs-no-folder', isolate(diagnostic.name))
     case 'key-needs-no-quotes':
       return t('error-key-needs-no-quotes', isolate(diagnostic.key))
+    case 'outline-shape-changed':
+    case 'outline-invalid-beat':
+    case 'outline-invalid-notes':
+      return t(`error-${diagnostic.reason}`)
     case 'name-matches':
       return t('error-name-matches')
     case 'part-required':
@@ -90,6 +94,8 @@ export function formatApiError(error: ApiError, t: Translator['t']): string {
       return t('error-manuscript-entry-not-allowed')
     case 'codex-entry-not-allowed':
       return t('error-codex-entry-not-allowed')
+    case 'outline-not-allowed':
+      return t('error-outline-not-allowed')
     case 'invalid-recovery-request':
       return t('error-invalid-recovery-request')
     case 'snapshot-unavailable':

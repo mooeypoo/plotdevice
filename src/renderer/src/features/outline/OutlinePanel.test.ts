@@ -2,7 +2,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { useCodexStore } from '../../app/codex-store'
+import { useOutlineStore } from '../../app/outline-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
 import { useLayoutStore } from '../../app/layout-store'
@@ -19,24 +19,20 @@ beforeEach(async () => {
   fake = createFakePlotDeviceApi()
   plotDeviceApi.current = () => fake.api
   fake.files.set('Outline.md', '# Working outline\n\n- **Arrival**: [[The Ferry]]')
-  await Promise.all([useCodexStore().load(), useManuscriptStore().load()])
+  await Promise.all([useOutlineStore().load(), useManuscriptStore().load()])
 })
 
 describe('OutlinePanel', () => {
   it('translates panel controls without reloading or changing the outline text', async () => {
-    const listing = useCodexStore().listing
-    if (listing === null) throw new Error('Expected a codex listing')
-    useCodexStore().listing = {
-      ...listing,
-      outlines: [...listing.outlines, { path: 'Second outline.md', title: 'Second outline' }]
-    }
+    const store = useOutlineStore()
+    store.outlines = [...store.outlines, { path: 'Second outline.md', title: 'Second outline' }]
     useLayoutStore().outlinePath = 'Outline.md'
     const wrapper = mount(OutlinePanel)
     await flushPromises()
     const view = wrapper.get('.view').element
     const authored = wrapper.get('.view').text()
-    const open = vi.spyOn(fake.api.codex, 'openEntry')
-    const write = vi.spyOn(fake.api.codex, 'saveEntryText')
+    const open = vi.spyOn(fake.api.outline, 'openEntry')
+    const write = vi.spyOn(fake.api.outline, 'saveEntryText')
 
     await useUiLanguageStore().change('he')
     await flushPromises()
@@ -53,10 +49,8 @@ describe('OutlinePanel', () => {
   })
 
   it('translates the empty-outline guidance and retains literal wikilink syntax', async () => {
-    const listing = useCodexStore().listing
-    if (listing === null) throw new Error('Expected a codex listing')
-    useCodexStore().listing = { ...listing, outlines: [] }
-    const open = vi.spyOn(fake.api.codex, 'openEntry')
+    useOutlineStore().outlines = []
+    const open = vi.spyOn(fake.api.outline, 'openEntry')
     const wrapper = mount(OutlinePanel)
     await flushPromises()
 
@@ -79,8 +73,8 @@ describe('OutlinePanel', () => {
     link.focus()
     await wrapper.get('.view a').trigger('click')
     const english = wrapper.get('[role=status]').text()
-    const read = vi.spyOn(fake.api.codex, 'openEntry')
-    const write = vi.spyOn(fake.api.codex, 'saveEntryText')
+    const read = vi.spyOn(fake.api.outline, 'openEntry')
+    const write = vi.spyOn(fake.api.outline, 'saveEntryText')
     await useUiLanguageStore().change('he')
     await flushPromises()
     expect(wrapper.get('[role=status]').text()).not.toBe(english)
@@ -130,9 +124,9 @@ describe('OutlinePanel', () => {
   })
 
   it('pairs dropdown labels with their paths and bodies in both directions', async () => {
-    await fake.api.codex.createOutline('Clue ledger')
+    await fake.api.outline.create('Clue ledger')
     fake.files.set('Clue ledger.md', '## Clues\n\nThe missing key.')
-    await useCodexStore().reload()
+    await useOutlineStore().reload()
     const wrapper = mount(OutlinePanel)
     await flushPromises()
     const choose = wrapper.get('select')

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useCodexStore } from '../../app/codex-store'
+import { useOutlineStore } from '../../app/outline-store'
 import { useSidePanelNavigation } from '../../app/use-side-panel-navigation'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
@@ -7,6 +8,7 @@ import CodexList from './CodexList.vue'
 
 const workspace = useWorkspaceStore()
 const codex = useCodexStore()
+const outlines = useOutlineStore()
 const language = useUiLanguageStore()
 const { editEntry, consultEntry, selectedCodexPath } = useSidePanelNavigation()
 </script>
@@ -22,6 +24,7 @@ const { editEntry, consultEntry, selectedCodexPath } = useSidePanelNavigation()
   >
     <CodexList
       :listing="codex.listing"
+      :outlines="outlines.outlines"
       :project-root="workspace.project.root"
       :selected-path="selectedCodexPath"
       :read-only="workspace.project.readOnly"
@@ -30,7 +33,7 @@ const { editEntry, consultEntry, selectedCodexPath } = useSidePanelNavigation()
       @create="(kind, title) => codex.createEntry(kind, title)"
       @set-type="(path, type) => codex.setEntryType(path, type)"
       @edit-template="codex.editTemplate($event)"
-      @create-outline="codex.createOutline($event)"
+      @create-outline="outlines.create($event)"
     />
   </nav>
 </template>

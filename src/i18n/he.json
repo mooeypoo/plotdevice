@@ -647,5 +647,9 @@
   "book-language-other": "$1 (מילים באנגלית)",
   "initialize-book-language-help": "המילים ש־Plot Device כותבת לתוך הספר, כמו סטטוסים ו„פרק ללא שם”, יהיו בשפה הזו. שפת הממשק נקבעת בנפרד.",
   "project-overview-book-language-help": "השינוי משפיע רק על מילים שייכתבו מעכשיו. מילים שכבר בקבצים נשארות כמו שהן.",
-  "project-overview-book-language-apply": "החלה"
+  "project-overview-book-language-apply": "החלה",
+  "error-outline-shape-changed": "המתווה השתנה מאז שהלוח קרא אותו. כדאי להסתכל שוב ולנסות מחדש.",
+  "error-outline-invalid-beat": "נקודת עלילה היא שורת טקסט אחת, ואינה יכולה להתחיל כמו כותרת או קו מפריד.",
+  "error-outline-invalid-notes": "ההערות האלה היו משנות את המתווה סביבן.",
+  "error-outline-not-allowed": "הקובץ הזה אינו אחד המתווים של הפרויקט."
 }

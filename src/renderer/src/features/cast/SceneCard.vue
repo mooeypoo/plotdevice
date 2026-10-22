@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
-import { useCodexStore } from '../../app/codex-store'
+import { useOutlineStore } from '../../app/outline-store'
 import { createDocumentReader } from '../../app/document-reader'
 import { useEditorStore } from '../../app/editor-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
@@ -8,14 +8,12 @@ import { useEditorLinks } from '../../app/use-editor-links'
 import { useLiveDraft } from '../../app/use-live-draft'
 import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
 import { useWritingChapter } from '../../app/use-writing-chapter'
-import { useWorkbenchStore } from '../../app/workbench-store'
 import { linkText } from '../../shared/link-text'
 import { outlineLinesFor } from './outline-mentions'
 
 const chapter = useWritingChapter()
-const codex = useCodexStore()
+const outlines = useOutlineStore()
 const editor = useEditorStore()
-const workbench = useWorkbenchStore()
 const navigation = useWorkbenchNavigation()
 const links = useEditorLinks()
 const language = useUiLanguageStore()
@@ -28,11 +26,7 @@ const list = (items: readonly string[]): string =>
   items.map(linkText).join(language.t('cards-list-separator'))
 
 /** The project's current outline: the one chosen beside the draft, or the first. */
-const outlinePath = computed(() => {
-  const outlines = codex.listing?.outlines ?? []
-  const chosen = workbench.outlinePath
-  return outlines.some((outline) => outline.path === chosen) ? chosen : (outlines[0]?.path ?? null)
-})
+const outlinePath = computed(() => outlines.currentPath)
 const outline = createDocumentReader()
 watch(
   outlinePath,
@@ -43,7 +37,7 @@ watch(
   { immediate: true }
 )
 watch(
-  () => codex.revision,
+  () => outlines.revision,
   () => void outline.reload()
 )
 const { text: outlineText } = useLiveDraft(outline.path, outline.text)

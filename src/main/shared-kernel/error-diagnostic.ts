@@ -33,6 +33,7 @@ export type ErrorDiagnostic =
         | 'invalid-request'
         | 'manuscript-entry-not-allowed'
         | 'codex-entry-not-allowed'
+        | 'outline-not-allowed'
         | 'invalid-recovery-request'
         | 'snapshot-unavailable'
         | 'snapshot-invalid'
@@ -76,3 +77,4 @@ export type ErrorDiagnostic =
   | { readonly reason: 'frontmatter-unsupported'; readonly key: string }
   | { readonly reason: 'link-needs-no-folder'; readonly name: string }
   | { readonly reason: 'key-needs-no-quotes'; readonly key: string }
+  | { readonly reason: 'outline-shape-changed' | 'outline-invalid-beat' | 'outline-invalid-notes' }

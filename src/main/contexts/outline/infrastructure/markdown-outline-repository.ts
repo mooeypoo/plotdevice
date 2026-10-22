@@ -33,6 +33,10 @@ export function createMarkdownOutlineRepository(
 
     writeText: (path, text, expectedVersion) => files.writeText(path, text, expectedVersion),
 
+    readBody: (path) => files.readBody(path),
+
+    writeBody: (path, body, expectedVersion) => files.writeBody(path, body, expectedVersion),
+
     createFile: (path, text) => files.createFile(path, text)
   }
 }

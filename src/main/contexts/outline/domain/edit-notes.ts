@@ -38,7 +38,11 @@ export function editNotes(
 
   const reread = findBeat(readOutlineStructure(result), beatRef)?.beat
   if (reread?.notes.end !== beat.notes.start + inserted.length) {
-    return err(domainError('invalid-notes', 'These notes would change the outline around them.'))
+    return err(
+      domainError('invalid-notes', 'These notes would change the outline around them.', {
+        reason: 'outline-invalid-notes'
+      })
+    )
   }
   return ok(result)
 }

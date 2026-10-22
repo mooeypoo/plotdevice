@@ -14,6 +14,7 @@ import { useEditorStore } from './editor-store'
 import { registerEntryOwner } from './entry-owners'
 import type { EntryPlace } from './entry-place'
 import { useManuscriptStore } from './manuscript-store'
+import { useOutlineStore } from './outline-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useReferenceStore } from './reference-store'
 import { useErrorNotice } from '../shared/use-error-notice'
@@ -59,10 +60,6 @@ export const useCodexStore = defineStore('codex', () => {
             label: { type: 'codex-kind', kind: entry.kind }
           }
         ]),
-        ...(listing.value?.outlines ?? []).map((outline): [string, EntryPlace] => [
-          outline.path,
-          { kind: 'outline', title: outline.title, label: { type: 'outline' } }
-        ]),
         ...(listing.value?.templates ?? []).map((template): [string, EntryPlace] => [
           template.path,
           {
@@ -101,8 +98,8 @@ export const useCodexStore = defineStore('codex', () => {
     appearanceErrorSource.value = null
     appearancePath.value = path
     const kind = places.value.get(path)?.kind
-    if (kind === 'template' || kind === 'outline') {
-      // Templates and outlines have no properties to edit; only their text.
+    if (kind === 'template') {
+      // Templates have no properties to edit; only their text.
       properties.value = null
       appearsIn.value = []
       listedBy.value = []
@@ -196,20 +193,6 @@ export const useCodexStore = defineStore('codex', () => {
     return editor.open(result.value.path, { keep: true })
   }
 
-  /** Creates an outline at the project root and opens it in the editor. */
-  async function createOutline(title: string): Promise<boolean> {
-    const editor = useEditorStore()
-    await editor.flush()
-    if (editor.hasStuckChanges) return false
-    const result = await api().createOutline(title)
-    if (!result.ok) {
-      editor.reportActionError(result.error)
-      return false
-    }
-    await reload()
-    return editor.open(result.value.path, { keep: true })
-  }
-
   /** Opens the template new entries of `kind` start from, creating it from the default if needed. */
   async function editTemplate(kind: CodexKindDto): Promise<boolean> {
     const editor = useEditorStore()
@@ -231,7 +214,7 @@ export const useCodexStore = defineStore('codex', () => {
       useEditorStore().reportActionError(result.error)
       return false
     }
-    await Promise.all([reload(), useManuscriptStore().reload()])
+    await Promise.all([reload(), useManuscriptStore().reload(), useOutlineStore().reload()])
     return true
   }
 
@@ -261,7 +244,6 @@ export const useCodexStore = defineStore('codex', () => {
     updateProperties,
     updateRelationships,
     createEntry,
-    createOutline,
     editTemplate,
     setEntryType,
     close,
@@ -271,7 +253,7 @@ export const useCodexStore = defineStore('codex', () => {
   }
 })
 
-registerEntryOwner(['character', 'location', 'note', 'template', 'outline'], () => useCodexStore())
+registerEntryOwner(['character', 'location', 'note', 'template'], () => useCodexStore())
 
 // Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
 if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useCodexStore, import.meta.hot))

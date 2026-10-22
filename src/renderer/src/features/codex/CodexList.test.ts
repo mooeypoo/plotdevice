@@ -2,13 +2,19 @@
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { sampleCodex } from '../../app/fake-plot-device-api'
+import { sampleCodex, sampleOutlines } from '../../app/fake-plot-device-api'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import CodexList from './CodexList.vue'
 
 const mountList = (readOnly = false): ReturnType<typeof mount> =>
   mount(CodexList, {
-    props: { listing: sampleCodex, selectedPath: null, readOnly, projectRoot: '/book' }
+    props: {
+      listing: sampleCodex,
+      outlines: sampleOutlines,
+      selectedPath: null,
+      readOnly,
+      projectRoot: '/book'
+    }
   })
 
 beforeEach(() => {
@@ -35,7 +41,13 @@ describe('CodexList', () => {
   it('translates list copy live while preserving a focused search and exact title input', async () => {
     const list = mount(CodexList, {
       attachTo: document.body,
-      props: { listing: sampleCodex, selectedPath: null, readOnly: false, projectRoot: '/book' }
+      props: {
+        listing: sampleCodex,
+        outlines: sampleOutlines,
+        selectedPath: null,
+        readOnly: false,
+        projectRoot: '/book'
+      }
     })
     const search = list.get<HTMLInputElement>('input[type="search"]')
     await search.setValue('Ilk')
@@ -54,7 +66,9 @@ describe('CodexList', () => {
       'קבצים ללא סוג'
     ])
     expect(list.get('input[type="search"]').attributes('aria-label')).toBe('חיפוש דמויות')
-    expect(list.get('input[type="search"]').attributes('placeholder')).toBe('חיפוש לפי שם או כינוי…')
+    expect(list.get('input[type="search"]').attributes('placeholder')).toBe(
+      'חיפוש לפי שם או כינוי…'
+    )
     expect(list.get('input[type="search"]').element).toBe(searchElement)
     expect(document.activeElement).toBe(searchElement)
     expect(list.get<HTMLInputElement>('input[type="search"]').element.value).toBe('Ilk')
