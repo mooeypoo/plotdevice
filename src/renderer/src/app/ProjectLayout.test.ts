@@ -3,7 +3,6 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
-import { useLayoutStore } from './layout-store'
 import { plotDeviceApi } from './plot-device-api'
 import ProjectLayout from './ProjectLayout.vue'
 import { useWorkspaceStore } from './workspace-store'
@@ -26,8 +25,6 @@ const mountLayout = () =>
       stubs: {
         TopBar: true,
         EditorPane: true,
-        SidePanel: true,
-        RightPanel: true,
         DockArea: true,
         ShelfArea: true,
         StatusBar: true
@@ -44,16 +41,10 @@ beforeEach(async () => {
   await useWorkspaceStore().openProject('/book')
 })
 
-const SHELL_CHILDREN = {
-  workbench: ['dock-area-stub', 'div', 'dock-area-stub'],
-  classic: ['side-panel-stub', 'main', 'right-panel-stub']
-} as const
+/** The workbench body: the start dock, the center, the end dock. */
+const BODY_CHILDREN = ['dock-area-stub', 'div', 'dock-area-stub']
 
-describe.each(['workbench', 'classic'] as const)('ProjectLayout in the %s shell', (shell) => {
-  beforeEach(() => {
-    useWorkbenchStore().setShell(shell)
-  })
-
+describe('ProjectLayout', () => {
   it('retranslates a tab-storage notice while retaining the conflicted draft and tab focus', async () => {
     localStorage.setItem('plotdevice.documentTabs', '{')
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
@@ -63,8 +54,6 @@ describe.each(['workbench', 'classic'] as const)('ProjectLayout in the %s shell'
         stubs: {
           TopBar: true,
           EditorPane: true,
-          SidePanel: true,
-          RightPanel: true,
           DockArea: true,
           ShelfArea: true,
           StatusBar: true
@@ -108,7 +97,7 @@ describe.each(['workbench', 'classic'] as const)('ProjectLayout in the %s shell'
     expect(get).not.toHaveBeenCalled()
     expect(set).not.toHaveBeenCalled()
     expect(warn).not.toHaveBeenCalled()
-    useLayoutStore().focusMode = true
+    useWorkbenchStore().focusMode = true
     await wrapper.vm.$nextTick()
     expect(wrapper.get('.navigation-notice[role=status]').text()).toContain('אינן תקינות')
     wrapper.unmount()
@@ -167,8 +156,6 @@ describe.each(['workbench', 'classic'] as const)('ProjectLayout in the %s shell'
         stubs: {
           TopBar: true,
           EditorPane: true,
-          SidePanel: true,
-          RightPanel: true,
           DockArea: true,
           ShelfArea: true,
           StatusBar: true
@@ -186,7 +173,7 @@ describe.each(['workbench', 'classic'] as const)('ProjectLayout in the %s shell'
     await wrapper.vm.$nextTick()
     expect(layout.style.getPropertyValue('--prose-size')).toBe('23px')
     expect(layout.style.getPropertyValue('--measure')).toBe('75ch')
-    useLayoutStore().toggleFocusMode()
+    useWorkbenchStore().toggleFocusMode()
     await wrapper.vm.$nextTick()
     expect(wrapper.get('.layout').classes()).toContain('focus')
     expect(layout.style.getPropertyValue('--prose-size')).toBe('23px')
@@ -200,8 +187,6 @@ describe.each(['workbench', 'classic'] as const)('ProjectLayout in the %s shell'
         stubs: {
           TopBar: true,
           EditorPane: true,
-          SidePanel: true,
-          RightPanel: true,
           DockArea: true,
           ShelfArea: true,
           StatusBar: true
@@ -210,17 +195,13 @@ describe.each(['workbench', 'classic'] as const)('ProjectLayout in the %s shell'
     })
     await flushPromises()
     const body = wrapper.get('.body')
-    expect([...body.element.children].map((child) => child.localName)).toEqual(
-      SHELL_CHILDREN[shell]
-    )
+    expect([...body.element.children].map((child) => child.localName)).toEqual(BODY_CHILDREN)
     expect(document.documentElement.dir).toBe('ltr')
 
     await useUiLanguageStore().change('he')
     await flushPromises()
     expect(document.documentElement.dir).toBe('rtl')
-    expect([...body.element.children].map((child) => child.localName)).toEqual(
-      SHELL_CHILDREN[shell]
-    )
+    expect([...body.element.children].map((child) => child.localName)).toEqual(BODY_CHILDREN)
     wrapper.unmount()
   })
 })

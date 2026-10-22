@@ -11,12 +11,10 @@ import {
 } from '../workbench/views/view-registry'
 import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
-import { useLayoutStore } from './layout-store'
 import { useUiLanguageStore } from './ui-language-store'
 import { useWorkbenchStore } from './workbench-store'
 
 const editor = useEditorStore()
-const layout = useLayoutStore()
 const tabs = useDocumentTabsStore()
 const workbench = useWorkbenchStore()
 const language = useUiLanguageStore()
@@ -24,14 +22,13 @@ const language = useUiLanguageStore()
 const DocumentView = registeredView('document').component
 const WarningsView = registeredView('warnings').component
 const projectView = computed(() =>
-  layout.mainView === 'write' ? undefined : registeredView(layout.mainView).component
+  workbench.centerView === 'write' ? undefined : registeredView(workbench.centerView).component
 )
-const writing = computed(() => layout.mainView === 'write' && editor.entry !== null)
+const writing = computed(() => workbench.centerView === 'write' && editor.entry !== null)
 /** The strip above the page (the chapter's cast), shown with the document in the workbench. */
 const aboveView = computed(() => {
   const view = workbench.layout.center.above
-  if (view === undefined || view === null || !writing.value || layout.focusMode) return undefined
-  if (workbench.shell !== 'workbench') return undefined
+  if (view === undefined || view === null || !writing.value || workbench.focusMode) return undefined
   return VIEW_REGISTRY[view]?.component
 })
 
@@ -65,7 +62,7 @@ function setPreview(id: string, width: number | null): void {
  * the writable page narrower than it may be.
  */
 const shownSplits = computed(() => {
-  if (projectView.value !== undefined || layout.focusMode || workbench.shell !== 'workbench') {
+  if (projectView.value !== undefined || workbench.focusMode) {
     return []
   }
   const width = stageWidth.value
@@ -92,7 +89,7 @@ function commitShare(id: string, width: number): void {
     <div
       id="document-editor"
       class="pane"
-      :class="{ focus: layout.focusMode }"
+      :class="{ focus: workbench.focusMode }"
       :role="writing ? 'tabpanel' : undefined"
       :aria-labelledby="
         writing && editor.entry ? `tab-${tabs.documentId(editor.entry.path)}` : undefined

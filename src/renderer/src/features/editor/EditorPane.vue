@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useLayoutStore } from '../../app/layout-store'
+import { useWorkbenchStore } from '../../app/workbench-store'
 import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
@@ -17,7 +17,7 @@ import { useChromePresentation } from '../../shared/use-chrome-presentation'
 const manuscript = useManuscriptStore()
 const editor = useEditorStore()
 const workspace = useWorkspaceStore()
-const layout = useLayoutStore()
+const workbench = useWorkbenchStore()
 const tabs = useDocumentTabsStore()
 const language = useUiLanguageStore()
 const chrome = useChromePresentation()
@@ -84,7 +84,7 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
       :initial-text="editor.text"
       :document-id="tabs.documentId(editor.entry.path)"
       :read-only="readOnly || editor.recoveryBusy || editor.navigationBusy"
-      :focus-mode="layout.focusMode"
+      :focus-mode="workbench.focusMode"
       :link-targets="linkTargets"
       :completions="completions"
       @change="editor.edit($event)"

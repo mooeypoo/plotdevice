@@ -13,7 +13,7 @@ import WelcomeScreen from '../features/welcome/WelcomeScreen.vue'
 import InitializePrompt from '../features/welcome/InitializePrompt.vue'
 import ProjectLayout from './ProjectLayout.vue'
 import App from './App.vue'
-import { useLayoutStore } from './layout-store'
+import { useWorkbenchStore } from './workbench-store'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 const failure: ApiError = {
@@ -112,7 +112,7 @@ describe('native folder diagnostics', () => {
     expect(fake.closedProjects).toBe(0)
     expect(save).not.toHaveBeenCalled()
     expect(open).not.toHaveBeenCalled()
-    useLayoutStore().focusMode = true
+    useWorkbenchStore().focusMode = true
     await flushPromises()
     expect(page.get('[data-testid=folder-error]').text()).toMatch(/[\u0590-\u05ff]/u)
     page.unmount()

@@ -18,8 +18,9 @@ path appears below it, so you can distinguish files with similar titles.
 Choose **Expand** for a wider reference view and **Restore** to return to your
 preferred width. You can also drag the panel's inner edge. With that edge focused,
 Left/Right resize it and Home/End choose the smallest/largest available width.
-The preferred width is remembered on this computer; narrower windows constrain
-it to leave room for the editor. Properties keeps its usual width.
+The width is remembered with your layout on this computer, and it is shared by
+the panels in the same dock; narrower windows constrain it to leave room for the
+editor.
 
 Raw HTML is displayed as text, images show their descriptions rather than loading
 content, and external web links are text with their URL in a tooltip. Only project

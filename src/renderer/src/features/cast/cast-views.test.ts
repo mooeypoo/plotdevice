@@ -7,7 +7,6 @@ import { useOutlineStore } from '../../app/outline-store'
 import { useDocumentTabsStore } from '../../app/document-tabs-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
-import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { usePeekStore } from '../../app/peek-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
@@ -17,6 +16,7 @@ import { useWorkspaceStore } from '../../app/workspace-store'
 import { ENTRY_PATH_DRAG_TYPE } from '../../shared/drag-types'
 import CastStrip from './CastStrip.vue'
 import SceneCard from './SceneCard.vue'
+import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
 
 const CHAPTER = 'First frost.md'
 let fake: ReturnType<typeof createFakePlotDeviceApi>
@@ -124,7 +124,7 @@ describe('SceneCard', () => {
     await card.get('.edit').trigger('click')
     await flushPromises()
     expect(editor.entry?.path).toBe(CHAPTER)
-    expect(useLayoutStore().rightTab).toBe('properties')
+    expect(useWorkbenchNavigation().isViewChosen('properties')).toBe(true)
   })
 
   it('explains when there is no chapter to describe', () => {

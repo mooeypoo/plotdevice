@@ -10,7 +10,7 @@ import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
 import { placeOf } from './entry-owners'
 import { useCaptureStore } from './capture-store'
-import { useLayoutStore, type MainView } from './layout-store'
+import type { MainView } from './workbench-store'
 import { useOutlineStore } from './outline-store'
 import { usePaletteStore } from './palette-store'
 import { useWritingPreferencesStore } from './writing-preferences-store'
@@ -70,7 +70,6 @@ export function usePaletteCommands() {
   const codex = useCodexStore()
   const editor = useEditorStore()
   const reference = useReferenceStore()
-  const layout = useLayoutStore()
   const workbench = useWorkbenchStore()
   const navigation = useWorkbenchNavigation()
   const language = useUiLanguageStore()
@@ -169,23 +168,17 @@ export function usePaletteCommands() {
       run
     })
     const modes =
-      workbench.shell !== 'workbench'
-        ? []
-        : workbench.mode === 'writing'
-          ? [
-              command('mode-plotting', 'palette-mode-plotting', () =>
-                navigation.switchMode('plotting')
-              )
-            ]
-          : [
-              command('mode-writing', 'palette-mode-writing', () =>
-                navigation.switchMode('writing')
-              ),
-              command('show-board', 'view-board', () => navigation.showCenterView('plot-board')),
-              command('show-outline-text', 'palette-outline-text', () =>
-                navigation.showOutlineText()
-              )
-            ]
+      workbench.mode === 'writing'
+        ? [
+            command('mode-plotting', 'palette-mode-plotting', () =>
+              navigation.switchMode('plotting')
+            )
+          ]
+        : [
+            command('mode-writing', 'palette-mode-writing', () => navigation.switchMode('writing')),
+            command('show-board', 'view-board', () => navigation.showCenterView('plot-board')),
+            command('show-outline-text', 'palette-outline-text', () => navigation.showOutlineText())
+          ]
     const capture =
       preferences.captureBeats && outlines.currentPath !== null
         ? [
@@ -198,13 +191,16 @@ export function usePaletteCommands() {
       ...capture,
       ...modes,
       command('return-to-writing', 'tabs-return', () => editor.returnToWriting()),
-      command('toggle-binder', 'menu-toggle-binder', layout.toggleBinder),
-      command('toggle-inspector', 'menu-toggle-inspector', layout.toggleInspector),
-      command('toggle-outline', 'menu-toggle-outline', layout.toggleOutline),
-      command('toggle-focus-mode', 'menu-focus', layout.toggleFocusMode),
-      command('toggle-classic-layout', 'menu-classic-layout', () => {
-        workbench.setShell(workbench.shell === 'classic' ? 'workbench' : 'classic')
-      })
+      command('toggle-binder', 'menu-toggle-binder', () => {
+        navigation.toggleArea('binder')
+      }),
+      command('toggle-inspector', 'menu-toggle-inspector', () => {
+        navigation.toggleArea('properties')
+      }),
+      command('toggle-outline', 'menu-toggle-outline', () => {
+        navigation.toggleView('outline')
+      }),
+      command('toggle-focus-mode', 'menu-focus', workbench.toggleFocusMode)
     ]
   })
 

@@ -307,8 +307,8 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 **Done when:** each sub-phase works by keyboard alone, peeks and cards show live drafts without saving, and Write here never drops a draft or bypasses recovery (tested).
 
 ### W6: Retire the old shell
-- [ ] Remove `SidePanel`, `RightPanel`, the Classic switch, and `layout-store.ts`.
-- [ ] Remove `plotdevice.layout` and `plotdevice.lastEntry` after a confirmed migration. Update `docs/architecture.md` and the renderer README.
+- [x] Remove `SidePanel`, `RightPanel`, the Classic switch (native menu and palette; contract version 30), and `layout-store.ts`, whose parts moved to the workbench store (focus mode, center view, document presenter) and to navigation in view ids.
+- [x] Remove `plotdevice.layout` and `plotdevice.lastEntry` after a confirmed migration: derived settings are saved, then the old record is removed (or kept if the save fails); the old global outline carries to the first project opened; a project's last entry seeds its tabs once. A source scan keeps the keys inside the migration modules. Update `docs/architecture.md` and the renderer README.
 
 **Done when:** no code reads the old keys, and an upgrade from a pre-W1 profile keeps the writer's arrangement (tested).
 
@@ -373,6 +373,24 @@ the final tightening step for the W/L/P work, planned and approved on its own be
 
 **Done when:** the redesign plan and glossary are approved; implementation follows as its own
 phases.
+
+### U2: Beautification
+Requested by the writer (2026-10-22): after U1's redesign plan is approved, make the whole app
+impressively beautiful *and* simple, built on U1's visual system. Every element is styled; nothing
+is left as a bare native control.
+
+- [ ] Every control follows the system: **all selects** (one styled select, trigger and menu, that
+  works by keyboard, in RTL and with screen readers), text fields and areas, buttons (primary,
+  quiet, icon), checkboxes and toggles, menus, tabs and pills, cards, scrollbars, focus rings, and
+  hover and active states.
+- [ ] Empty states, notices and loading states designed rather than plain text.
+- [ ] Typography and rhythm across the editor, panels, board, timeline and welcome screens; subtle
+  motion that respects reduced-motion.
+- [ ] Dark theme first, then the light theme with the same care; contrast checked in both.
+- [ ] A screenshot review of every screen in English and Hebrew.
+
+**Done when:** every screen passes the review in both languages and themes, and a test finds no
+native `<select>` or checkbox outside the shared styled components.
 
 ## Proposed release and documentation program
 

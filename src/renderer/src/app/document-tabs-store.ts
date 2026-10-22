@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { placeOf } from './entry-owners'
 import { useUiLanguageStore } from './ui-language-store'
 import type { MessageKey } from '../../../i18n/translator'
+import { takeLegacyLastEntry } from './legacy-last-entry'
 
 const KEY = 'plotdevice.documentTabs'
 const documentSchema = z.object({
@@ -22,6 +23,18 @@ const settingsSchema = z.object({
   projects: z.record(z.string(), projectSchema)
 })
 type SavedProject = z.infer<typeof projectSchema>
+
+/** A project with no tabs yet gets one for the entry it had open before tabs existed (W6). */
+function fromLegacyLastEntry(projectRoot: string): SavedProject | undefined {
+  const path = takeLegacyLastEntry(projectRoot)
+  return path === undefined
+    ? undefined
+    : {
+        documents: [{ path, pinned: false, temporary: false }],
+        activePath: path,
+        writingPath: path
+      }
+}
 type Settings = z.infer<typeof settingsSchema>
 type TabNotice = Extract<MessageKey, `tabs-notice-${string}`>
 
@@ -126,7 +139,7 @@ export const useDocumentTabsStore = defineStore('document-tabs', () => {
   function restore(projectRoot: string): void {
     clear()
     root = projectRoot
-    const saved = readSettings().projects[projectRoot]
+    const saved = readSettings().projects[projectRoot] ?? fromLegacyLastEntry(projectRoot)
     if (saved === undefined) return
     const seen = new Set<string>()
     let temporary = false

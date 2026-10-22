@@ -6,10 +6,10 @@ import { useCodexStore } from './codex-store'
 import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
-import { useLayoutStore } from './layout-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useWorkspaceStore } from './workspace-store'
+import { useWorkbenchStore } from './workbench-store'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 beforeEach(async () => {
@@ -34,10 +34,10 @@ describe('guarded document navigation', () => {
     await editor.open('characters/Ilka.md', { keep: true })
     expect(tabs.writingPath).toBe('The Ferry.md')
     expect(fake.files.get('First frost.md')).toBe('Reference annotation.')
-    useLayoutStore().mainView = 'timeline'
+    useWorkbenchStore().centerView = 'timeline'
     await editor.returnToWriting()
     expect(editor.entry?.path).toBe('The Ferry.md')
-    expect(useLayoutStore().mainView).toBe('write')
+    expect(useWorkbenchStore().centerView).toBe('write')
   })
 
   it('does not reopen the current document or discard its draft and selection state', async () => {

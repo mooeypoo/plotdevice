@@ -5,7 +5,6 @@ import { useCodexStore } from './codex-store'
 import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
-import { useLayoutStore } from './layout-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useWorkbenchNavigation } from './use-workbench-navigation'
@@ -32,7 +31,7 @@ describe('showCenterView', () => {
     editor.edit('Typed just now.')
     expect(await useWorkbenchNavigation().showCenterView('timeline')).toBe(true)
     expect(fake.files.get('First frost.md')).toBe('Typed just now.')
-    expect(useLayoutStore().mainView).toBe('timeline')
+    expect(useWorkbenchStore().centerView).toBe('timeline')
   })
 
   it('is refused while a recovery decision is pending, keeping the draft and the view', async () => {
@@ -43,7 +42,7 @@ describe('showCenterView', () => {
     await editor.flush()
     expect(editor.saveState).toBe('conflict')
     expect(await useWorkbenchNavigation().showCenterView('overview')).toBe(false)
-    expect(useLayoutStore().mainView).toBe('write')
+    expect(useWorkbenchStore().centerView).toBe('write')
     expect(editor.text).toBe('Mine.')
     expect(editor.actionError).toContain('Resolve')
   })
@@ -54,27 +53,30 @@ describe('showCenterView', () => {
   })
 
   it('returns to the document when navigation opens one', async () => {
-    const layout = useLayoutStore()
     expect(await useWorkbenchNavigation().showCenterView('interactions')).toBe(true)
     await useEditorStore().open('The Ferry.md')
-    expect(layout.mainView).toBe('write')
+    expect(useWorkbenchStore().centerView).toBe('write')
   })
 })
 
 describe('panels', () => {
   it('choosePanel switches the side’s tab without opening a closed side', () => {
-    const layout = useLayoutStore()
-    layout.inspectorOpen = false
+    useWorkbenchNavigation().setAreaOpen('properties', false)
     useWorkbenchNavigation().choosePanel('properties')
-    expect(layout).toMatchObject({ inspectorOpen: false, rightTab: 'properties' })
+    const navigation = useWorkbenchNavigation()
+    expect([navigation.isAreaOpen('properties'), navigation.isViewChosen('properties')]).toEqual([
+      false,
+      true
+    ])
   })
 
-  it('revealPanel opens the side and leaves focus mode', () => {
-    const layout = useLayoutStore()
-    layout.inspectorOpen = false
-    layout.focusMode = true
-    useWorkbenchNavigation().revealPanel('reference')
-    expect(layout).toMatchObject({ inspectorOpen: true, rightTab: 'reference', focusMode: false })
+  it('revealView opens the side and leaves focus mode', () => {
+    const navigation = useWorkbenchNavigation()
+    navigation.setAreaOpen('properties', false)
+    useWorkbenchStore().focusMode = true
+    navigation.revealView('reference')
+    expect(navigation.isViewShown('reference')).toBe(true)
+    expect(useWorkbenchStore().focusMode).toBe(false)
   })
 })
 
@@ -95,15 +97,6 @@ describe('the workbench center stage', () => {
     expect(workbench.layout.center.view).toBe('document')
     expect(workbench.layout.bottom.collapsed).toBe(false)
   })
-
-  it('moves such a view to the main area in the classic shell, which has no shelf', async () => {
-    const workbench = useWorkbenchStore()
-    workbench.setShell('classic')
-    workbench.apply((layout) => addView(layout, 'timeline', 'bottom', 'timeline'))
-    expect(await useWorkbenchNavigation().showCenterView('timeline')).toBe(true)
-    expect(workbench.layout.center.view).toBe('timeline')
-    expect(workbench.layout.bottom.sections).toEqual([])
-  })
 })
 
 describe('switchLayout', () => {
@@ -121,11 +114,11 @@ describe('switchLayout', () => {
   })
 })
 
-describe('revealPanel', () => {
+describe('revealView', () => {
   it('brings back a closed Reference where it usually lives', () => {
     const workbench = useWorkbenchStore()
     workbench.apply((layout) => removeSection(layout, 'reference'))
-    useWorkbenchNavigation().revealPanel('reference')
+    useWorkbenchNavigation().revealView('reference')
     expect(workbench.layout.end).toMatchObject({ activeSection: 'reference', collapsed: false })
   })
 })
@@ -165,7 +158,7 @@ describe('splits beside the editor', () => {
     const navigation = useWorkbenchNavigation()
     await navigation.showCenterView('timeline')
     expect(await navigation.openBeside('The Ferry.md')).toBe(true)
-    expect(useLayoutStore().mainView).toBe('write')
+    expect(useWorkbenchStore().centerView).toBe('write')
   })
 
   it('Write here swaps the documents and makes the split’s chapter the Writing target', async () => {

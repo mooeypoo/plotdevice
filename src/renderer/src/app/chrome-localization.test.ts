@@ -8,12 +8,13 @@ import { useWorkspaceStore } from './workspace-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useEditorStore, type SaveState } from './editor-store'
 import { useUiLanguageStore } from './ui-language-store'
-import { useLayoutStore } from './layout-store'
 import { useWritingPreferencesStore } from './writing-preferences-store'
 import TopBar from './TopBar.vue'
 import StatusBar from './StatusBar.vue'
 import WritingAppearance from './WritingAppearance.vue'
 import ProjectLayout from './ProjectLayout.vue'
+import { useWorkbenchStore } from './workbench-store'
+import { useWorkbenchNavigation } from './use-workbench-navigation'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 beforeEach(async () => {
@@ -76,14 +77,14 @@ describe('project chrome translation', () => {
     expect(useWorkspaceStore().project).toBe(project)
     expect(useEditorStore().entry).toBe(entry)
     expect(open).not.toHaveBeenCalled()
-    const before = useLayoutStore().binderOpen
+    const before = useWorkbenchNavigation().isAreaOpen('binder')
     await page.get('[aria-label="קלסר כתב היד"]').trigger('click')
-    expect(useLayoutStore().binderOpen).toBe(!before)
-    const inspector = useLayoutStore().inspectorOpen
+    expect(useWorkbenchNavigation().isAreaOpen('binder')).toBe(!before)
+    const inspector = useWorkbenchNavigation().isAreaOpen('properties')
     await page.get('[aria-label="מאפיינים"]').trigger('click')
-    expect(useLayoutStore().inspectorOpen).toBe(!inspector)
+    expect(useWorkbenchNavigation().isAreaOpen('properties')).toBe(!inspector)
     await page.get('[aria-label="מצב מיקוד"]').trigger('click')
-    expect(useLayoutStore().focusMode).toBe(true)
+    expect(useWorkbenchStore().focusMode).toBe(true)
     page.unmount()
   })
 
@@ -209,7 +210,7 @@ describe('project chrome translation', () => {
     await flushPromises()
     const editor = useEditorStore()
     editor.saveState = 'conflict'
-    useLayoutStore().focusMode = true
+    useWorkbenchStore().focusMode = true
     await flushPromises()
     const button = page.get('.focus-chrome button').element
     const save = vi.spyOn(fake.api.manuscript, 'saveEntryText')
@@ -221,7 +222,7 @@ describe('project chrome translation', () => {
     expect(editor.saveState).toBe('conflict')
     expect(save).not.toHaveBeenCalled()
     await page.get('.focus-chrome button').trigger('click')
-    expect(useLayoutStore().focusMode).toBe(false)
+    expect(useWorkbenchStore().focusMode).toBe(false)
     page.unmount()
   })
 })

@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import Wordmark from '../shared/Wordmark.vue'
 import { computed } from 'vue'
-import { useLayoutStore } from './layout-store'
 import { useWorkbenchNavigation } from './use-workbench-navigation'
 import { useWorkbenchStore } from './workbench-store'
 import LayoutSwitcher from '../workbench/shell/LayoutSwitcher.vue'
 import ModeSwitch from '../workbench/shell/ModeSwitch.vue'
 import type { MessageKey } from '../../../i18n/translator'
-import type { MainView } from './layout-store'
+import type { MainView } from './workbench-store'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useWorkspaceStore } from './workspace-store'
@@ -21,7 +20,6 @@ import { uiDirection } from '../../../i18n/locales'
 const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
 const editor = useEditorStore()
-const layout = useLayoutStore()
 const navigation = useWorkbenchNavigation()
 const workbench = useWorkbenchStore()
 const language = useUiLanguageStore()
@@ -58,10 +56,10 @@ const viewTabs = computed(
 )
 
 const crumbs = computed(() => {
-  if (layout.mainView === 'overview') return [language.t('view-overview')]
-  if (layout.mainView === 'timeline') return [language.t('view-timeline')]
-  if (layout.mainView === 'interactions') return [language.t('view-interactions')]
-  if (layout.mainView === 'plot-board') return [language.t('view-board')]
+  if (workbench.centerView === 'overview') return [language.t('view-overview')]
+  if (workbench.centerView === 'timeline') return [language.t('view-timeline')]
+  if (workbench.centerView === 'interactions') return [language.t('view-interactions')]
+  if (workbench.centerView === 'plot-board') return [language.t('view-board')]
   const entry = editor.entry
   if (entry === null) return []
   const part = manuscript.currentPart
@@ -97,30 +95,30 @@ const crumbs = computed(() => {
     </nav>
 
     <div class="tools">
-      <ModeSwitch v-if="workbench.shell === 'workbench'" />
+      <ModeSwitch />
       <div class="views" role="tablist" :aria-label="language.t('chrome-view')">
         <button
           v-for="tab in viewTabs"
           :key="tab.view"
           type="button"
           role="tab"
-          :aria-selected="layout.mainView === tab.view"
-          :class="{ on: layout.mainView === tab.view }"
+          :aria-selected="workbench.centerView === tab.view"
+          :class="{ on: workbench.centerView === tab.view }"
           @click="tab.show()"
         >
           {{ language.t(tab.label) }}
         </button>
       </div>
-      <LayoutSwitcher v-if="workbench.shell === 'workbench'" />
+      <LayoutSwitcher />
       <span class="divider" aria-hidden="true"></span>
       <button
         type="button"
         class="icon"
-        :class="{ on: layout.binderOpen }"
-        :aria-pressed="layout.binderOpen"
+        :class="{ on: navigation.isAreaOpen('binder') }"
+        :aria-pressed="navigation.isAreaOpen('binder')"
         :aria-label="language.t('chrome-binder')"
         :title="language.t('chrome-binder-tooltip', isolate('Ctrl+\\'))"
-        @click="layout.toggleBinder()"
+        @click="navigation.toggleArea('binder')"
       >
         <svg
           class="directional-icon"
@@ -142,11 +140,11 @@ const crumbs = computed(() => {
       <button
         type="button"
         class="icon"
-        :class="{ on: layout.inspectorOpen }"
-        :aria-pressed="layout.inspectorOpen"
+        :class="{ on: navigation.isAreaOpen('properties') }"
+        :aria-pressed="navigation.isAreaOpen('properties')"
         :aria-label="language.t('chrome-inspector')"
         :title="language.t('chrome-inspector-tooltip', isolate('Ctrl+Shift+I'))"
-        @click="layout.toggleInspector()"
+        @click="navigation.toggleArea('properties')"
       >
         <svg
           class="directional-icon"
@@ -171,7 +169,7 @@ const crumbs = computed(() => {
         class="icon"
         :aria-label="language.t('chrome-focus')"
         :title="language.t('chrome-focus-tooltip', isolate('Ctrl+Shift+F'))"
-        @click="layout.toggleFocusMode()"
+        @click="workbench.toggleFocusMode()"
       >
         <svg
           width="18"

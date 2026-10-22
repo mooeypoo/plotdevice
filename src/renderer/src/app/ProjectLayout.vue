@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue'
 import CenterStage from './CenterStage.vue'
-import ClassicBody from './ClassicBody.vue'
 import DocumentTabs from './DocumentTabs.vue'
 import WorkbenchBody from '../workbench/shell/WorkbenchBody.vue'
 import { OVERLAYS } from '../workbench/views/view-registry'
@@ -10,7 +9,6 @@ import { useInspectorStore } from './inspector-store'
 import { useChromePresentation } from '../shared/use-chrome-presentation'
 import { useUiLanguageStore } from './ui-language-store'
 import { isolate } from '../shared/isolate'
-import { lastEntryOf, useLayoutStore } from './layout-store'
 import { useOutlineStore } from './outline-store'
 import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
@@ -29,7 +27,6 @@ const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
 const codex = useCodexStore()
 const editor = useEditorStore()
-const layout = useLayoutStore()
 const inspector = useInspectorStore()
 const writingPreferences = useWritingPreferencesStore()
 const tabs = useDocumentTabsStore()
@@ -48,8 +45,8 @@ onMounted(async () => {
   await Promise.all([manuscript.load(), codex.load(), useOutlineStore().load()])
   if (disposed || root === undefined || workspace.project?.root !== root) return
   tabs.restore(root)
-  const last = tabs.activePath ?? lastEntryOf(root)
-  if (last !== undefined && editor.canOpen(last)) await editor.open(last)
+  const last = tabs.activePath
+  if (last !== null && editor.canOpen(last)) await editor.open(last)
 })
 
 onBeforeUnmount(() => {
@@ -62,7 +59,7 @@ useShortcuts([
     key: 'Escape',
     preventDefault: false,
     run: () => {
-      layout.exitFocusMode()
+      workbench.exitFocusMode()
     }
   },
   {
@@ -78,13 +75,13 @@ useShortcuts([
 <template>
   <div
     class="layout"
-    :class="{ focus: layout.focusMode, fading: fading && !layout.focusMode }"
+    :class="{ focus: workbench.focusMode, fading: fading && !workbench.focusMode }"
     :style="writingPreferences.proseStyle"
   >
-    <TopBar v-if="!layout.focusMode" />
+    <TopBar v-if="!workbench.focusMode" />
 
-    <component :is="workbench.shell === 'classic' ? ClassicBody : WorkbenchBody" class="body">
-      <DocumentTabs v-show="!layout.focusMode" />
+    <WorkbenchBody class="body">
+      <DocumentTabs v-show="!workbench.focusMode" />
       <p v-if="workbench.storageNotice" class="navigation-notice" role="status">
         {{ workbench.storageNotice }}
       </p>
@@ -138,15 +135,15 @@ useShortcuts([
         {{ workspace.refreshErrorMessage }}
       </p>
       <CenterStage />
-    </component>
+    </WorkbenchBody>
 
     <component :is="overlay" v-for="(overlay, index) in OVERLAYS" :key="index" />
 
-    <StatusBar v-if="!layout.focusMode" />
+    <StatusBar v-if="!workbench.focusMode" />
 
     <div v-else class="focus-chrome">
       <span v-if="editor.entry">{{ wordCount(editor.wordCount) }}</span>
-      <button type="button" class="quiet" @click="layout.exitFocusMode()">
+      <button type="button" class="quiet" @click="workbench.exitFocusMode()">
         {{ language.t('chrome-leave-focus', isolate('Esc')) }}
       </button>
     </div>

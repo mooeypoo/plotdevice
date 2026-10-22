@@ -6,7 +6,6 @@ import { useCodexStore } from '../../app/codex-store'
 import { useDocumentTabsStore } from '../../app/document-tabs-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
-import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { usePaletteStore } from '../../app/palette-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
@@ -16,6 +15,7 @@ import { useWorkbenchStore } from '../../app/workbench-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import '../../workbench/views/view-registry'
 import CommandPalette from './CommandPalette.vue'
+import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 
@@ -102,14 +102,13 @@ describe('CommandPalette', () => {
     expect(useWorkbenchStore().activeLayoutId).toBe('revise')
     usePaletteStore().show()
     await flushPromises()
-    const layout = useLayoutStore()
-    const before = layout.binderOpen
+    const before = useWorkbenchNavigation().isAreaOpen('binder')
     await palette.get('input').setValue('binder')
     await palette
       .findAll('[role=option]')
       .find((option) => option.attributes('id')?.includes('command'))
       ?.trigger('click')
-    expect(layout.binderOpen).toBe(!before)
+    expect(useWorkbenchNavigation().isAreaOpen('binder')).toBe(!before)
     palette.unmount()
   })
 

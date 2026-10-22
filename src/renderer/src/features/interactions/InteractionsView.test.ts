@@ -5,11 +5,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi, sampleInteractions } from '../../app/fake-plot-device-api'
-import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import InteractionsView from './InteractionsView.vue'
+import { useWorkbenchStore } from '../../app/workbench-store'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 
@@ -65,7 +65,7 @@ describe('InteractionsView', () => {
     await details.find('button.link').trigger('click')
     await flushPromises()
     expect(useEditorStore().entry?.path).toBe('The Ferry.md')
-    expect(useLayoutStore().mainView).toBe('write')
+    expect(useWorkbenchStore().centerView).toBe('write')
   })
 
   it('says when two characters never share a chapter', async () => {

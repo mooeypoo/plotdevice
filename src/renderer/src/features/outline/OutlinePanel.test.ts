@@ -5,11 +5,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useOutlineStore } from '../../app/outline-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
-import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import OutlinePanel from './OutlinePanel.vue'
 import { useUiLanguageStore } from '../../app/ui-language-store'
+import { useWorkbenchStore } from '../../app/workbench-store'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 beforeEach(async () => {
@@ -26,7 +26,7 @@ describe('OutlinePanel', () => {
   it('translates panel controls without reloading or changing the outline text', async () => {
     const store = useOutlineStore()
     store.outlines = [...store.outlines, { path: 'Second outline.md', title: 'Second outline' }]
-    useLayoutStore().outlinePath = 'Outline.md'
+    useWorkbenchStore().outlinePath = 'Outline.md'
     const wrapper = mount(OutlinePanel)
     await flushPromises()
     const view = wrapper.get('.view').element

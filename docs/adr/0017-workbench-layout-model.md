@@ -59,11 +59,22 @@ dependency and RTL risk for little gain.
 - One arrangement serves both shells. The workbench store owns it; the classic panels read
   it through the layout store's facade (open sides, shown tabs, outline width), so switching
   shells keeps the arrangement. The old `plotdevice.layout` key is read only for derivation.
+  (W6 retired the classic shell and the facade; see "Details settled in W6".)
 - Rows follow the root direction instead of computing sides; only splitter math reads the
   direction, through the model's `direction.ts`.
 - Expand/Restore stays session-only. Planned views that no feature registers are skipped,
   and the switcher offers only layouts whose views all exist.
 - While no project is open, bindings live only in the session.
+
+## Details settled in W6
+
+- The classic shell is gone. A stored shell choice is ignored, so every writer lands in the
+  workbench with their arrangement. Focus mode, the center view and the document presenter
+  live in the workbench store; features navigate by view id.
+- The old keys are migrated once and removed: derived settings are saved first and
+  `plotdevice.layout` is removed only after that save succeeds (an existing, valid workbench
+  record also retires it). Its global outline carries to the first project opened. A project's
+  `plotdevice.lastEntry` seeds its tabs once, then its record is removed.
 
 ## Details settled in W4
 

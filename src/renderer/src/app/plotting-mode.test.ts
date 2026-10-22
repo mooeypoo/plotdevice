@@ -7,7 +7,6 @@ import { useCodexStore } from './codex-store'
 import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
-import { useLayoutStore } from './layout-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useOutlineStore } from './outline-store'
 import { plotDeviceApi } from './plot-device-api'
@@ -52,7 +51,7 @@ describe('the mode in project bindings', () => {
     expect(await navigation.switchLayout('revise')).toBe(true)
     expect(await navigation.switchMode('plotting')).toBe(true)
     expect(workbench.activeLayoutId).toBe('plot')
-    expect(useLayoutStore().mainView).toBe('plot-board')
+    expect(useWorkbenchStore().centerView).toBe('plot-board')
     expect(await navigation.switchMode('writing')).toBe(true)
     expect(workbench.activeLayoutId).toBe('revise')
   })
@@ -84,7 +83,7 @@ describe('switching modes', () => {
     await navigation.switchMode('plotting')
     expect(await navigation.showOutlineText()).toBe(true)
     expect(editor.entry?.path).toBe('Outline.md')
-    expect(useLayoutStore().mainView).toBe('write')
+    expect(useWorkbenchStore().centerView).toBe('write')
     expect(useWorkbenchStore().mode).toBe('plotting')
     expect(await navigation.showCenterView('plot-board')).toBe(true)
     expect(await navigation.switchMode('writing')).toBe(true)
@@ -96,7 +95,7 @@ describe('switching modes', () => {
     await navigation.switchMode('plotting')
     await useEditorStore().open('The Ferry.md')
     expect(useWorkbenchStore().mode).toBe('writing')
-    expect(useLayoutStore().mainView).toBe('write')
+    expect(useWorkbenchStore().centerView).toBe('write')
   })
 })
 
