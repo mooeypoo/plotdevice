@@ -4,6 +4,8 @@ import type { CodexEntryDto } from '../../../../contract/dtos'
 import { useCharacterList } from './use-character-list'
 import CodexEntryList from './CodexEntryList.vue'
 import { nameKey } from '../../shared/link-choices'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
 
 const props = defineProps<{
   entries: readonly CodexEntryDto[]
@@ -16,6 +18,8 @@ const characters = useCharacterList(
   computed(() => props.projectRoot)
 )
 const { search, names, filters, visible, sections, mode } = characters
+const language = useUiLanguageStore()
+const chrome = useChromePresentation()
 </script>
 
 <template>
@@ -24,24 +28,29 @@ const { search, names, filters, visible, sections, mode } = characters
       <input
         v-model="search"
         type="search"
-        aria-label="Search characters"
-        placeholder="Find a name or alias…"
+        :aria-label="language.t('codex-search-characters')"
+        :placeholder="language.t('codex-search-placeholder')"
         dir="auto"
       />
       <div class="tools">
-        <div class="modes" role="group" aria-label="Character list mode">
-          <button type="button" :aria-pressed="mode === 'all'" @click="mode = 'all'">All</button>
+        <div class="modes" role="group" :aria-label="language.t('codex-list-mode')">
+          <button type="button" :aria-pressed="mode === 'all'" @click="mode = 'all'">
+            {{ language.t('codex-all') }}
+          </button>
           <button type="button" :aria-pressed="mode === 'grouped'" @click="mode = 'grouped'">
-            Grouped
+            {{ language.t('codex-grouped') }}
           </button>
         </div>
-        <span class="count" role="status">{{ visible.length }} shown</span>
+        <span class="count" role="status">{{
+          language.t('codex-shown-count', visible.length, chrome.formatNumber(visible.length))
+        }}</span>
       </div>
       <details v-if="names.length > 0" class="filters">
         <summary>
-          Filter groups<span v-if="filters.length"> · {{ filters.length }}</span>
+          {{ language.t('codex-filter-groups')
+          }}<span v-if="filters.length"> · {{ chrome.formatNumber(filters.length) }}</span>
         </summary>
-        <p class="hint">Show characters in any selected group.</p>
+        <p class="hint">{{ language.t('codex-filter-groups-hint') }}</p>
         <label v-for="name in names" :key="nameKey(name)">
           <input
             type="checkbox"
@@ -57,18 +66,18 @@ const { search, names, filters, visible, sections, mode } = characters
         class="clear"
         @click="characters.clearFilters()"
       >
-        Clear group filters
+        {{ language.t('codex-clear-group-filters') }}
       </button>
     </div>
     <p v-if="visible.length === 0" class="hint empty">
       {{
         entries.length === 0
-          ? 'No characters yet.'
-          : 'No characters match. Clear the search or group filters to see more.'
+          ? language.t('codex-no-characters')
+          : language.t('codex-no-match')
       }}
     </p>
     <p v-else-if="search.trim() && mode === 'grouped'" class="hint empty">
-      Matching groups are expanded while searching.
+      {{ language.t('codex-searching-grouped') }}
     </p>
     <section
       v-for="section in mode === 'grouped' ? sections : [{ name: null, entries: visible }]"
@@ -84,8 +93,8 @@ const { search, names, filters, visible, sections, mode } = characters
           @click="characters.toggleCollapsed(section.name)"
         >
           <span aria-hidden="true">{{ characters.collapsed(section.name) ? '▸' : '▾' }}</span>
-          <bdi>{{ section.name ?? 'Ungrouped' }}</bdi>
-          <span class="count">{{ section.entries.length }}</span>
+          <bdi>{{ section.name ?? language.t('codex-ungrouped') }}</bdi>
+          <span class="count">{{ chrome.formatNumber(section.entries.length) }}</span>
         </button>
       </h3>
       <CodexEntryList

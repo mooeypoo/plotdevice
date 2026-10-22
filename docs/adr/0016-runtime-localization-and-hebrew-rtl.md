@@ -1001,9 +1001,31 @@ switch. Verified lint/dependency boundaries, typecheck, **1,529 tests across
 167 files**, production electron-vite build, and documentation link/asset checks
 across all 16 public pages.
 
-**Next session:** propose a bounded Codex-list translation slice before editing.
-Remaining I3 work includes inspector/overview/timeline/interactions/reading text,
-other locale-aware number/date/collation surfaces, native dialog/confirmation
-wording, and startup fallback. I3 is incomplete; RTL geometry/directional
-controls and packaged qualification remain I4-I6, and the separate Hebrew
-manual is not implemented.
+### I3e Codex lists and reference controls
+
+The Codex sidebar translates section headings, creation actions/inputs, outline
+and template copy, untyped-file guidance, and selector/accessibility labels.
+Character search/modes/filters, result and group counts, empty/search states,
+and the generated ungrouped label also translate. List counts use UI-locale
+number grouping. Persisted type values/options, paths, names, group names,
+roles and statuses are not translated; aliases keep their exact text inside an
+isolated translated prefix. Generated template labels do not rename files.
+The shared reference button and Codex editor action translate visible and
+accessible copy without changing their emitted actions.
+
+The language switch preserves search focus/value, filter state, group behavior,
+selection, and exact new-entry arguments without a project call or storage write.
+No API or dependencies changed. Focused regressions cover Codex sections and
+actions, alias isolation, reference-button copy, live Hebrew search/filter
+states, preserved focused search/filters, empty/no-match messaging, untouched
+type tokens, and exact creation arguments. Verified lint/dependency boundaries,
+typecheck, **1,534 tests across 168 files**, production electron-vite build, and
+documentation link/asset checks across all 16 public pages. No manuscript
+writes, push, release, or real-browser/RTL geometry qualification.
+
+**Next session:** propose a bounded inspector or overview translation slice
+before editing. Remaining I3 work includes overview/timeline/interactions/reading
+text, other locale-aware number/date/collation surfaces, native
+dialog/confirmation wording, and startup fallback. I3 is incomplete; RTL
+geometry/directional controls and packaged qualification remain I4-I6, and the
+separate Hebrew manual is not implemented.

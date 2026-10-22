@@ -2,9 +2,11 @@
 import type { CodexEntryDto } from '../../../../contract/dtos'
 import { entryDetail } from './codex-sections'
 import { isolate } from '../../shared/isolate'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 
 defineProps<{ entries: readonly CodexEntryDto[]; selectedPath: string | null }>()
 defineEmits<{ open: [path: string]; edit: [path: string] }>()
+const language = useUiLanguageStore()
 </script>
 
 <template>
@@ -20,21 +22,21 @@ defineEmits<{ open: [path: string]; edit: [path: string] }>()
       >
         <span class="title" dir="auto">{{ entry.title }}</span>
         <span
-          v-if="entryDetail(entry)"
+          v-if="entry.role || entry.aliases.length > 0"
           class="meta"
           :class="{ subtitle: entry.kind === 'character' }"
           dir="auto"
-          >{{ entryDetail(entry) }}</span
+          >{{ entryDetail(entry, language.t) }}</span
         >
       </button>
       <button
         type="button"
         class="edit"
-        :aria-label="`Open ${isolate(entry.title)} in editor`"
-        title="Open in editor"
+        :aria-label="language.t('codex-open-editor-label', isolate(entry.title))"
+        :title="language.t('codex-open-editor-tooltip')"
         @click="$emit('edit', entry.path)"
       >
-        Edit
+        {{ language.t('codex-edit') }}
       </button>
     </li>
   </ul>

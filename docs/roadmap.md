@@ -188,6 +188,8 @@ acceptance criteria, and the cross-session checklist.
     generated semantic entry-position and template-title presentation.
   - [x] I3d: Binder-tree actions, accessible labels, creation guidance and
     UI-locale word-count formatting without translating authored status values.
+  - [x] I3e: Codex sections, character search/filter controls, untyped-file and
+    template copy, entry actions and shared reference-button accessibility.
   - [ ] Remaining I3: inspector/overview/timeline/interactions/reading text,
     locale-aware formatting surfaces, native dialog/confirmation and startup text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.

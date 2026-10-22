@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { isolate } from './isolate'
+import { useUiLanguageStore } from '../app/ui-language-store'
 
 defineProps<{ title: string }>()
 defineEmits<{ open: [] }>()
+const language = useUiLanguageStore()
 </script>
 
 <template>
   <button
     type="button"
     class="reference-button"
-    :aria-label="`Open ${isolate(title)} in reference`"
-    title="Open in reference"
+    :aria-label="language.t('reference-open-label', isolate(title))"
+    :title="language.t('reference-open-tooltip')"
     @click="$emit('open')"
   >
     <svg

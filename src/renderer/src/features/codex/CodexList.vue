@@ -5,6 +5,9 @@ import NewEntryInput from '../binder/NewEntryInput.vue'
 import { codexSections } from './codex-sections'
 import CharacterList from './CharacterList.vue'
 import CodexEntryList from './CodexEntryList.vue'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
+import { isolate } from '../../shared/isolate'
 
 const props = defineProps<{
   listing: CodexListingDto
@@ -23,6 +26,8 @@ const emit = defineEmits<{
 }>()
 
 const sections = computed(() => codexSections(props.listing))
+const language = useUiLanguageStore()
+const chrome = useChromePresentation()
 const adding = ref<CodexKindDto | null>(null)
 const addingOutline = ref(false)
 
@@ -30,11 +35,26 @@ function createOutline(title: string): void {
   addingOutline.value = false
   emit('createOutline', title)
 }
-const TEMPLATE_NAMES: Readonly<Record<CodexKindDto, string>> = {
-  character: 'New character',
-  location: 'New location',
-  note: 'New note'
-}
+const SECTION_LABELS = {
+  character: 'codex-section-characters',
+  location: 'codex-section-locations',
+  note: 'codex-section-notes'
+} as const
+const NEW_ENTRY_LABELS = {
+  character: 'codex-new-character',
+  location: 'codex-new-location',
+  note: 'codex-new-note'
+} as const
+const NEW_ENTRY_NAMES = {
+  character: 'codex-new-character-name',
+  location: 'codex-new-location-name',
+  note: 'codex-new-note-name'
+} as const
+const TEMPLATE_NAMES = {
+  character: 'codex-template-character',
+  location: 'codex-template-location',
+  note: 'codex-template-note'
+} as const
 const TYPES: readonly SettableTypeDto[] = ['character', 'location', 'note', 'chapter', 'part']
 
 function create(kind: CodexKindDto, title: string): void {
@@ -54,9 +74,9 @@ function chooseType(path: string, event: Event): void {
   <div class="codex">
     <section class="section">
       <div class="divider">
-        <h2 class="eyebrow">Outlines</h2>
+        <h2 class="eyebrow">{{ language.t('codex-outlines') }}</h2>
         <span class="rule" aria-hidden="true"></span>
-        <span class="count">{{ listing.outlines.length }}</span>
+        <span class="count">{{ chrome.formatNumber(listing.outlines.length) }}</span>
       </div>
       <ul>
         <li v-for="outline in listing.outlines" :key="outline.path">
@@ -73,20 +93,20 @@ function chooseType(path: string, event: Event): void {
       </ul>
       <NewEntryInput
         v-if="addingOutline"
-        placeholder="Outline’s name"
+        :placeholder="language.t('codex-outline-name')"
         @create="createOutline"
         @cancel="addingOutline = false"
       />
       <button v-else-if="!readOnly" type="button" class="new" @click="addingOutline = true">
-        + New outline
+        + {{ language.t('codex-new-outline') }}
       </button>
     </section>
 
     <section v-for="section in sections" :key="section.kind" class="section">
       <div class="divider">
-        <h2 class="eyebrow">{{ section.heading }}</h2>
+        <h2 class="eyebrow">{{ language.t(SECTION_LABELS[section.kind]) }}</h2>
         <span class="rule" aria-hidden="true"></span>
-        <span class="count">{{ section.entries.length }}</span>
+        <span class="count">{{ chrome.formatNumber(section.entries.length) }}</span>
       </div>
       <CharacterList
         v-if="section.kind === 'character'"
@@ -105,21 +125,21 @@ function chooseType(path: string, event: Event): void {
       />
       <NewEntryInput
         v-if="adding === section.kind"
-        :placeholder="`New ${section.newLabel}’s name`"
+        :placeholder="language.t(NEW_ENTRY_NAMES[section.kind])"
         @create="create(section.kind, $event)"
         @cancel="adding = null"
       />
       <button v-else-if="!readOnly" type="button" class="new" @click="adding = section.kind">
-        + New {{ section.newLabel }}
+        + {{ language.t(NEW_ENTRY_LABELS[section.kind]) }}
       </button>
     </section>
 
     <section v-if="listing.templates.length > 0 && !readOnly" class="section">
       <div class="divider">
-        <h2 class="eyebrow">Templates</h2>
+        <h2 class="eyebrow">{{ language.t('codex-templates') }}</h2>
         <span class="rule" aria-hidden="true"></span>
       </div>
-      <p class="hint">How new entries start. Edit them like any file.</p>
+      <p class="hint">{{ language.t('codex-template-hint') }}</p>
       <ul>
         <li v-for="template in listing.templates" :key="template.kind">
           <button
@@ -128,8 +148,10 @@ function chooseType(path: string, event: Event): void {
             :class="{ active: selectedPath === template.path }"
             @click="$emit('editTemplate', template.kind)"
           >
-            <span class="title">{{ TEMPLATE_NAMES[template.kind] }}</span>
-            <span class="meta">{{ template.exists ? template.path : 'default' }}</span>
+            <span class="title">{{ language.t(TEMPLATE_NAMES[template.kind]) }}</span>
+            <span class="meta">{{
+              template.exists ? template.path : language.t('codex-template-default')
+            }}</span>
           </button>
         </li>
       </ul>
@@ -137,24 +159,24 @@ function chooseType(path: string, event: Event): void {
 
     <section v-if="listing.untyped.length > 0" class="section">
       <div class="divider">
-        <h2 class="eyebrow">Untyped files</h2>
+        <h2 class="eyebrow">{{ language.t('codex-untyped-files') }}</h2>
         <span class="rule" aria-hidden="true"></span>
-        <span class="count">{{ listing.untyped.length }}</span>
+        <span class="count">{{ chrome.formatNumber(listing.untyped.length) }}</span>
       </div>
-      <p class="hint">
-        Files with no type, or one Plot Device doesn’t know. Give them a type to use them.
-      </p>
+      <p class="hint">{{ language.t('codex-untyped-hint') }}</p>
       <ul>
         <li v-for="file in listing.untyped" :key="file.path" class="untyped">
           <span class="path" dir="auto" :title="file.path">{{ file.path }}</span>
-          <span v-if="file.rawType" class="meta">type: {{ file.rawType }}</span>
+          <span v-if="file.rawType" class="meta">{{
+            language.t('codex-raw-type', isolate(file.rawType))
+          }}</span>
           <select
             v-if="!readOnly"
-            :aria-label="`Set the type of ${file.path}`"
+            :aria-label="language.t('codex-set-type-label', isolate(file.path))"
             value=""
             @change="chooseType(file.path, $event)"
           >
-            <option value="" disabled>Set type…</option>
+            <option value="" disabled>{{ language.t('codex-set-type') }}</option>
             <option v-for="type in TYPES" :key="type" :value="type">{{ type }}</option>
           </select>
         </li>

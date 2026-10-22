@@ -168,6 +168,10 @@ Binder-tree actions, accessibility names, creation guidance and empty-status tex
 also use the live interface catalog. Binder word counts use UI-locale number
 grouping while retaining the established dash for zero; saved status tokens,
 ordering, drag/drop and collapse preferences are not localized or rewritten.
+Codex section/list copy, character-search states and shared reference controls
+also translate reactively. User-authored group names, roles, aliases, paths and
+type tokens remain unchanged; generated alias prefixes isolate the exact names,
+and list counts use UI-locale number formatting.
 Unmigrated failures explicitly display their original message until their producers are migrated.
 Remaining action failures/strings, full RTL geometry and independent content-direction controls
 remain tracked in ADR 0016. No language switch changes novel files or existing writing preferences.

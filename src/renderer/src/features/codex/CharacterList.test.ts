@@ -1,8 +1,9 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CodexEntryDto } from '../../../../contract/dtos'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWritingPreferencesStore } from '../../app/writing-preferences-store'
 import CharacterList from './CharacterList.vue'
 
@@ -27,6 +28,63 @@ beforeEach(() => {
 })
 
 describe('character navigation', () => {
+  it('translates search and result copy without changing focus, filters or authored names', async () => {
+    const wrapper = mount(CharacterList, {
+      attachTo: document.body,
+      props: { entries, selectedPath: 'Ilka.md', projectRoot: '/book' }
+    })
+    await wrapper.get('input[type="checkbox"]').setValue(true)
+    const search = wrapper.get<HTMLInputElement>('input[type="search"]')
+    await search.setValue('Ilk')
+    search.element.focus()
+    const searchElement = search.element
+    const row = wrapper.get<HTMLButtonElement>('.row').element
+    const writes = vi.spyOn(Storage.prototype, 'setItem')
+    writes.mockClear()
+
+    useUiLanguageStore().locale = 'he'
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.get('input[type="search"]').attributes('aria-label')).toBe('חיפוש דמויות')
+    expect(wrapper.get('input[type="search"]').attributes('placeholder')).toBe('חיפוש לפי שם או כינוי…')
+    expect(wrapper.get('input[type="search"]').element).toBe(searchElement)
+    expect(document.activeElement).toBe(searchElement)
+    expect(wrapper.get<HTMLInputElement>('input[type="search"]').element.value).toBe('Ilk')
+    expect(wrapper.get('[role="status"]').text()).toBe('1 דמות מוצגת')
+    expect(wrapper.get('[role="group"]').attributes('aria-label')).toBe('מצב רשימת הדמויות')
+    expect(wrapper.get('[role="group"]').text()).toContain('הכול')
+    expect(wrapper.get('[role="group"]').text()).toContain('מקובץ')
+    expect(wrapper.get('.filters summary').text()).toContain('סינון לפי קבוצות')
+    expect(wrapper.get('.filters .hint').text()).toContain('הצגת דמויות')
+    expect(wrapper.get('.clear').text()).toBe('ניקוי מסנני הקבוצות')
+    expect(wrapper.get('.row').element).toBe(row)
+    expect(wrapper.get('.row .title').text()).toBe('Ilka')
+    expect(
+      wrapper.get<HTMLInputElement>('.filters input[type="checkbox"]').element.checked
+    ).toBe(true)
+    expect(writes).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('localizes empty and searching states without changing their filtering behavior', async () => {
+    const wrapper = mountList()
+    await wrapper.get('input[type="search"]').setValue('missing')
+    expect(wrapper.text()).toContain('No characters match.')
+    await wrapper.get('input[type="search"]').setValue('Ilk')
+    await wrapper.get('button[aria-pressed="false"]').trigger('click')
+    expect(wrapper.text()).toContain('Matching groups are expanded while searching.')
+
+    useUiLanguageStore().locale = 'he'
+    await wrapper.vm.$nextTick()
+    expect(wrapper.text()).toContain('בזמן חיפוש, הקבוצות המתאימות נפתחות.')
+    await wrapper.get('input[type="search"]').setValue('missing')
+    expect(wrapper.text()).toContain('לא נמצאו דמויות מתאימות.')
+
+    await wrapper.setProps({ entries: [] })
+    expect(wrapper.text()).toContain('עדיין אין דמויות.')
+    wrapper.unmount()
+  })
+
   it('reveals matching characters in collapsed groups while searching, then restores collapse', async () => {
     const wrapper = mountList()
     await wrapper.get('button[aria-pressed="false"]').trigger('click')
