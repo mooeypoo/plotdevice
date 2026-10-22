@@ -3,6 +3,7 @@ import {
   addView,
   moveSection,
   removeSection,
+  setAboveView,
   setArrangement,
   setSectionCollapsed,
   type LayoutChange
@@ -26,7 +27,7 @@ export type AreaAction =
 /** A view the layout doesn't show, with where it would go. */
 export interface MissingView {
   readonly view: ViewId
-  readonly region: AreaRegion
+  readonly region: AreaRegion | 'above'
   readonly apply: Apply
 }
 
@@ -118,27 +119,31 @@ export function areaActions(
 }
 
 /** Where a view usually lives: its place in the shipped layouts, else its first accepted area. */
-function homeOf(view: ViewId): AreaRegion | undefined {
+function homeOf(view: ViewId): AreaRegion | 'above' | undefined {
+  if (Object.values(PRESETS).some((preset) => preset.center.above === view)) return 'above'
   const shipped = Object.values(PRESETS)
     .map((preset) => findView(preset, view)?.region)
     .find((region) => region !== undefined)
   // Otherwise the catalog lists a view's regions in order of preference.
   return (
     shipped ??
-    VIEW_CATALOG[view].regions.find((region): region is AreaRegion => region !== 'center')
+    VIEW_CATALOG[view].regions.find((region): region is AreaRegion | 'above' => region !== 'center')
   )
 }
 
 /** Views among `available` the layout doesn't show, each placed where it usually lives. */
 export function missingViews(layout: Layout, available: readonly ViewId[]): readonly MissingView[] {
   return available.flatMap((view): MissingView[] => {
-    if (findView(layout, view) !== undefined || layout.center.view === view) return []
+    if (viewsIn(layout).includes(view)) return []
     const region = homeOf(view)
     if (region === undefined) return []
     const action: MissingView = {
       view,
       region,
-      apply: (current) => addView(current, view, region, freshSectionId(current, view))
+      apply: (current) =>
+        region === 'above'
+          ? setAboveView(current, view)
+          : addView(current, view, region, freshSectionId(current, view))
     }
     return action.apply(layout).ok ? [action] : []
   })

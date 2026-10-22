@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Layout } from './layout'
-import { setArrangement } from './operations'
+import { setAboveView, setArrangement } from './operations'
 import { areaActions, freshSectionId, missingViews, sectionActions } from './placement-actions'
 import { PRESETS } from './presets'
 
@@ -79,6 +79,17 @@ describe('missingViews', () => {
       ['reference', 'end'],
       ['warnings', 'bottom']
     ])
+  })
+})
+
+describe('missingViews above the page', () => {
+  it('returns the cast strip above the page', () => {
+    const hidden = applied(write, (layout) => setAboveView(layout, null))
+    const [missing] = missingViews(hidden, ['cast'])
+    expect(missing?.region).toBe('above')
+    if (missing === undefined) throw new Error('cast not missing')
+    expect(applied(hidden, missing.apply).center.above).toBe('cast')
+    expect(missingViews(write, ['cast'])).toEqual([])
   })
 })
 

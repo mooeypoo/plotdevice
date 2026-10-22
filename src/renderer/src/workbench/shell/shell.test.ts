@@ -27,7 +27,9 @@ vi.mock('../views/view-registry', async () => {
     overview: 'view-overview',
     timeline: 'view-timeline',
     interactions: 'view-interactions',
-    warnings: 'warnings-heading'
+    warnings: 'warnings-heading',
+    cast: 'cast-label',
+    'scene-card': 'scene-card-title'
   }
   const registry = Object.fromEntries(
     Object.entries(titles).map(([id, title]) => [

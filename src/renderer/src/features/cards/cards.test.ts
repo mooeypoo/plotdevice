@@ -11,6 +11,7 @@ import { plotDeviceApi } from '../../app/plot-device-api'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkbenchStore } from '../../app/workbench-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
+import { ENTRY_PATH_DRAG_TYPE } from '../../shared/drag-types'
 import CardStack from './CardStack.vue'
 import EntryCard from './EntryCard.vue'
 import PeekLayer from './PeekLayer.vue'
@@ -181,5 +182,19 @@ describe('PeekLayer', () => {
     usePeekStore().show(ILKA, { left: 700, right: 760, top: 100, bottom: 120 }, false)
     await flushPromises()
     expect(layer.get('[role=dialog]').attributes('style')).toContain('left: 400px')
+  })
+})
+
+describe('CardStack drops', () => {
+  it('pins an entry dragged in from elsewhere, at the drop position', async () => {
+    const workbench = useWorkbenchStore()
+    workbench.pinCard(BEA)
+    const stack = mount(CardStack)
+    await flushPromises()
+    const dataTransfer = { getData: (type: string) => (type === ENTRY_PATH_DRAG_TYPE ? ILKA : '') }
+    await stack.get('li').trigger('drop', { dataTransfer })
+    expect(workbench.cards).toEqual([ILKA, BEA])
+    await stack.get('li').trigger('drop', { dataTransfer: { getData: () => 'not/listed.md' } })
+    expect(workbench.cards).toEqual([ILKA, BEA])
   })
 })

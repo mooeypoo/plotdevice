@@ -18,6 +18,7 @@ describe('view registry', () => {
       [
         'binder',
         'card-stack',
+        'cast',
         'codex',
         'document',
         'interactions',
@@ -25,6 +26,7 @@ describe('view registry', () => {
         'overview',
         'properties',
         'reference',
+        'scene-card',
         'timeline',
         'warnings'
       ].sort()

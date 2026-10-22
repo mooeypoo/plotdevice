@@ -1,5 +1,6 @@
 import type { EntryCardProperties } from '../../app/use-entry-card'
 import type { MessageKey } from '../../../../i18n/translator'
+import { linkText } from '../../shared/link-text'
 
 /** Entry kinds that get cards. */
 export type CardKind = 'character' | 'location' | 'note' | 'chapter' | 'part'
@@ -72,13 +73,6 @@ export interface CardFieldValue {
   readonly id: CardFieldId
   readonly label: MessageKey
   readonly value: string
-}
-
-/** A wikilink's shown text (`[[Ilka Szabó|Ilka]]` → `Ilka`); anything else unchanged. */
-export function linkText(value: string): string {
-  const wiki = /^\[\[([^\]|#]*)(?:#[^\]|]*)?(?:\|([^\]]*))?\]\]$/u.exec(value.trim())
-  if (wiki === null) return value
-  return (wiki[2] ?? wiki[1] ?? value).trim()
 }
 
 function values(properties: CardProperties, field: CardFieldId): readonly string[] {

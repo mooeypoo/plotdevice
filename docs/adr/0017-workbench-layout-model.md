@@ -76,6 +76,12 @@ dependency and RTL risk for little gain.
 - Saving a layout makes it active; deleting the layout in use switches the project to Write
   first. Switching, resetting and deleting run through the navigation queue (ADR 0018).
 
+## Details settled in W5b
+
+- The center stage has an optional `above` slot for one view whose catalog accepts it (the
+  cast strip). Older layouts without it still parse; it counts toward a view appearing once,
+  and "Show" puts the cast back above the page.
+
 ## Consequences
 
 - Switching interface language mirrors a saved layout without migration.

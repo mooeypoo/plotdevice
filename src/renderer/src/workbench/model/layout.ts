@@ -34,6 +34,8 @@ export interface Split {
 export interface CenterStage {
   readonly view: ViewId
   readonly splits: readonly Split[]
+  /** A view in a strip above the page, shown with the document; absent in older layouts. */
+  readonly above?: ViewId | null
 }
 
 /** A workbench arrangement. It names sides only logically and holds no project paths. */
@@ -76,6 +78,9 @@ export function findView(layout: Layout, view: ViewId): SectionPlace | undefined
 export function viewsIn(layout: Layout): readonly ViewId[] {
   return [
     layout.center.view,
+    ...(layout.center.above === undefined || layout.center.above === null
+      ? []
+      : [layout.center.above]),
     ...[layout.start, layout.end, layout.bottom].flatMap((area) =>
       area.sections.map((section) => section.view)
     )

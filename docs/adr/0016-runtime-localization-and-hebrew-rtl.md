@@ -1498,3 +1498,11 @@ summaries keep the reading panels' per-block direction. Collapsed card arrows mi
 through a direction-bound class. A keyboard peek takes focus and returns it on Escape.
 Real-browser placement and pointer behavior remain I7g.
 
+### W5b cast strip and chapter card
+
+Cast chips flow from inline-start, use logical padding, isolate names in their accessible
+labels ("⁨name⁩, point of view"), and keep authored titles in `<bdi>`. The chapter
+card shows authored status, POV, threads, synopsis and outline lines with automatic
+direction. The strip above the page sits on the prose column. Real-browser wrapping and
+chip drag feedback remain I7g.
+

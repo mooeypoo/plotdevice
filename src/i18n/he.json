@@ -609,5 +609,15 @@
   "cards-peek-label": "תצוגה מקדימה של $1",
   "cards-loading": "טוען…",
   "cards-live-draft": "מוצגת הטיוטה הנוכחית מהעורך.",
-  "cards-list-separator": ", "
+  "cards-list-separator": ", ",
+  "cast-label": "בפרק הזה",
+  "cast-hide": "הסתרת הרצועה שמעל הדף",
+  "cast-chip-pov": "$1, נקודת מבט",
+  "cast-chip-mentioned": "$1 (בטקסט בלבד)",
+  "cast-empty": "הפרק הזה עדיין לא מזכיר דמויות או מקומות.",
+  "scene-card-title": "פרק",
+  "scene-card-in-outline": "במתווה",
+  "scene-card-no-chapter": "פתחו פרק כדי לראות אותו כאן.",
+  "scene-card-no-outline-lines": "המתווה עדיין לא מזכיר את הפרק הזה.",
+  "scene-card-edit": "עריכה במאפיינים"
 }

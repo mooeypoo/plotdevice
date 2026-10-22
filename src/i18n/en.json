@@ -609,5 +609,15 @@
   "cards-peek-label": "Preview of $1",
   "cards-loading": "Loading…",
   "cards-live-draft": "Showing the editor's current draft.",
-  "cards-list-separator": ", "
+  "cards-list-separator": ", ",
+  "cast-label": "In this chapter",
+  "cast-hide": "Hide the strip above the page",
+  "cast-chip-pov": "$1, point of view",
+  "cast-chip-mentioned": "$1, named only in the text",
+  "cast-empty": "This chapter names no characters or places yet.",
+  "scene-card-title": "Chapter",
+  "scene-card-in-outline": "In the outline",
+  "scene-card-no-chapter": "Open a chapter to see it here.",
+  "scene-card-no-outline-lines": "The outline doesn't mention this chapter yet.",
+  "scene-card-edit": "Edit in Properties"
 }

@@ -89,6 +89,11 @@ export function setCenterView(layout: Layout, view: ViewId): LayoutChange {
   return checked({ ...layout, center: { ...layout.center, view } })
 }
 
+/** Shows `view` in the strip above the page, or empties the strip with `null`. */
+export function setAboveView(layout: Layout, view: ViewId | null): LayoutChange {
+  return checked({ ...layout, center: { ...layout.center, above: view } })
+}
+
 /** Collapses or restores a dock or the shelf. */
 export function setAreaCollapsed(
   layout: Layout,
