@@ -1466,3 +1466,16 @@ I7b qualifies docks and splitters when the shell lands (W3).
 Verified lint/dependency boundaries (501 modules/2,517 dependencies),
 typecheck, **1,676 tests across 183 files**, and the production electron-vite
 build. No API, message or dependency changed.
+
+### I7b app-side docks and splitters (W3)
+
+The workbench shell places the start dock at inline-start by using a flex row that follows
+the root direction, so Hebrew puts it on the right without stored left/right sides.
+Splitters reuse the model's direction math: in Hebrew, pointer drags and arrow keys move
+each edge the way it points on screen, verified by component tests for both docks and
+both directions. Tab sets reuse the RTL-aware tab navigation; stacked section disclosure
+arrows mirror. Panel names, splitter names and section controls are new English, Hebrew
+and qqq messages. Collapsing a dock from the top bar keeps focus on the toggle.
+Real-browser geometry, pointer feel and narrow windows remain unqualified (I7g), so I7b
+stays open until the writer's by-eye check and the I6 browser sweep cover the new shell.
+

@@ -97,6 +97,7 @@ describe('installAppMenu', () => {
       'toggle-inspector',
       'toggle-outline',
       'toggle-focus-mode',
+      'toggle-classic-layout',
       'write',
       'overview',
       'timeline',
@@ -110,12 +111,13 @@ describe('installAppMenu', () => {
         commands[index]
       )
     })
-    expect(electronMock.send).toHaveBeenCalledTimes(8)
+    expect(electronMock.send).toHaveBeenCalledTimes(9)
     expect(actions.map((item) => item.accelerator)).toEqual([
       'CommandOrControl+\\',
       'CommandOrControl+Shift+I',
       'CommandOrControl+Shift+O',
       'CommandOrControl+Shift+F',
+      undefined,
       undefined,
       undefined,
       undefined,

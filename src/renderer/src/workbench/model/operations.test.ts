@@ -14,6 +14,7 @@ import {
   setAreaCollapsed,
   setBinding,
   setCenterView,
+  selectSection,
   setSectionCollapsed
 } from './operations'
 import { PRESETS } from './presets'
@@ -150,6 +151,15 @@ describe('collapse, size and arrangement', () => {
     expect(layout.end.collapsed).toBe(false)
     expect(layout.end.activeSection).toBe('reference')
     expect(layout.end.sections[2]?.collapsed).toBe(false)
+  })
+})
+
+describe('selectSection', () => {
+  it('shows another tab without expanding a collapsed area', () => {
+    let layout = applied(setAreaCollapsed(write, 'end', true))
+    layout = applied(selectSection(layout, 'outline'))
+    expect(layout.end).toMatchObject({ collapsed: true, activeSection: 'outline' })
+    expect(selectSection(write, 'nope').ok).toBe(false)
   })
 })
 

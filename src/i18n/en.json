@@ -556,5 +556,18 @@
   "recovery-kind-location": "location",
   "recovery-kind-note": "note",
   "recovery-kind-template": "template",
-  "recovery-kind-outline": "outline"
+  "recovery-kind-outline": "outline",
+  "workbench-notice-unavailable": "Layouts can't be stored on this computer. Changes apply only to this session.",
+  "workbench-notice-invalid": "Some saved layouts couldn't be read and aren't shown. Your files are unchanged.",
+  "workbench-notice-save-failed": "The layout couldn't be saved. Changes apply only to this session.",
+  "workbench-layout-label": "Layout",
+  "workbench-layout-write": "Write",
+  "workbench-layout-revise": "Revise",
+  "workbench-layout-plot": "Plot",
+  "workbench-panel-label": "$1 panel",
+  "workbench-resize-panel": "$1 panel width",
+  "workbench-resize-shelf": "Bottom panel height",
+  "workbench-section-collapse": "Collapse $1",
+  "workbench-section-expand": "Expand $1",
+  "menu-classic-layout": "Classic Layout"
 }

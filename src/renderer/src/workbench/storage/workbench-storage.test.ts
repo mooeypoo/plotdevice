@@ -59,7 +59,12 @@ describe('loadWorkbenchSettings', () => {
 
   it('reads saved settings instead of deriving again', () => {
     localStorage.setItem(LEGACY_LAYOUT_KEY, legacyLayout)
-    const settings = { version: 1 as const, arrangements: {}, saved: [] }
+    const settings = {
+      version: 1 as const,
+      shell: 'classic' as const,
+      arrangements: {},
+      saved: []
+    }
     expect(saveWorkbenchSettings(settings)).toBeNull()
     expect(loadWorkbenchSettings()).toEqual({
       settings,

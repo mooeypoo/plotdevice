@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue'
 import CenterStage from './CenterStage.vue'
+import ClassicBody from './ClassicBody.vue'
+import DocumentTabs from './DocumentTabs.vue'
+import WorkbenchBody from '../workbench/shell/WorkbenchBody.vue'
+import { useWorkbenchStore } from './workbench-store'
 import { useInspectorStore } from './inspector-store'
 import { useChromePresentation } from '../shared/use-chrome-presentation'
 import { useUiLanguageStore } from './ui-language-store'
@@ -9,8 +13,6 @@ import { lastEntryOf, useLayoutStore } from './layout-store'
 import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
-import RightPanel from './RightPanel.vue'
-import SidePanel from './SidePanel.vue'
 import StatusBar from './StatusBar.vue'
 import TopBar from './TopBar.vue'
 import { useLiveSync } from './use-live-sync'
@@ -19,7 +21,6 @@ import { useShortcuts } from './use-shortcuts'
 import { useWorkspaceStore } from './workspace-store'
 import { useWritingPreferencesStore } from './writing-preferences-store'
 import { useDocumentTabsStore } from './document-tabs-store'
-import DocumentTabs from './DocumentTabs.vue'
 
 const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
@@ -29,6 +30,7 @@ const layout = useLayoutStore()
 const inspector = useInspectorStore()
 const writingPreferences = useWritingPreferencesStore()
 const tabs = useDocumentTabsStore()
+const workbench = useWorkbenchStore()
 const language = useUiLanguageStore()
 const { wordCount } = useChromePresentation()
 let disposed = false
@@ -73,63 +75,62 @@ useShortcuts([
   <div class="layout" :class="{ focus: layout.focusMode }" :style="writingPreferences.proseStyle">
     <TopBar v-if="!layout.focusMode" />
 
-    <div class="body">
-      <SidePanel v-if="layout.binderOpen && !layout.focusMode" />
-      <main class="main">
-        <DocumentTabs v-show="!layout.focusMode" />
-        <p v-if="tabs.storageNotice" class="navigation-notice" role="status">
-          {{ tabs.storageNotice }}
-        </p>
-        <p
-          v-if="workspace.rememberErrorMessage"
-          class="navigation-notice"
-          role="alert"
-          data-testid="recents-remember-error"
-        >
-          {{ workspace.rememberErrorMessage }}
-        </p>
-        <p
-          v-if="workspace.recentsLoadErrorMessage"
-          class="navigation-notice error"
-          role="alert"
-          data-testid="recents-load-error"
-        >
-          {{ workspace.recentsLoadErrorMessage }}
-        </p>
-        <p
-          v-if="workspace.recentsRemoveErrorMessage"
-          class="navigation-notice error"
-          role="alert"
-          data-testid="recents-remove-error"
-        >
-          {{ workspace.recentsRemoveErrorMessage }}
-        </p>
-        <p v-if="editor.actionError" class="navigation-notice error" role="alert">
-          {{ editor.actionError }}
-        </p>
-        <p
-          v-if="workspace.folderErrorMessage"
-          class="navigation-notice error"
-          role="alert"
-          data-testid="folder-error"
-        >
-          {{ workspace.folderErrorMessage }}
-        </p>
-        <p v-if="workspace.errorMessage" class="navigation-notice error" role="alert" dir="auto">
-          {{ workspace.errorMessage }}
-        </p>
-        <p
-          v-if="workspace.refreshErrorMessage"
-          class="navigation-notice error"
-          role="alert"
-          dir="auto"
-        >
-          {{ workspace.refreshErrorMessage }}
-        </p>
-        <CenterStage />
-      </main>
-      <RightPanel v-if="layout.inspectorOpen && !layout.focusMode" />
-    </div>
+    <component :is="workbench.shell === 'classic' ? ClassicBody : WorkbenchBody" class="body">
+      <DocumentTabs v-show="!layout.focusMode" />
+      <p v-if="workbench.storageNotice" class="navigation-notice" role="status">
+        {{ workbench.storageNotice }}
+      </p>
+      <p v-if="tabs.storageNotice" class="navigation-notice" role="status">
+        {{ tabs.storageNotice }}
+      </p>
+      <p
+        v-if="workspace.rememberErrorMessage"
+        class="navigation-notice"
+        role="alert"
+        data-testid="recents-remember-error"
+      >
+        {{ workspace.rememberErrorMessage }}
+      </p>
+      <p
+        v-if="workspace.recentsLoadErrorMessage"
+        class="navigation-notice error"
+        role="alert"
+        data-testid="recents-load-error"
+      >
+        {{ workspace.recentsLoadErrorMessage }}
+      </p>
+      <p
+        v-if="workspace.recentsRemoveErrorMessage"
+        class="navigation-notice error"
+        role="alert"
+        data-testid="recents-remove-error"
+      >
+        {{ workspace.recentsRemoveErrorMessage }}
+      </p>
+      <p v-if="editor.actionError" class="navigation-notice error" role="alert">
+        {{ editor.actionError }}
+      </p>
+      <p
+        v-if="workspace.folderErrorMessage"
+        class="navigation-notice error"
+        role="alert"
+        data-testid="folder-error"
+      >
+        {{ workspace.folderErrorMessage }}
+      </p>
+      <p v-if="workspace.errorMessage" class="navigation-notice error" role="alert" dir="auto">
+        {{ workspace.errorMessage }}
+      </p>
+      <p
+        v-if="workspace.refreshErrorMessage"
+        class="navigation-notice error"
+        role="alert"
+        dir="auto"
+      >
+        {{ workspace.refreshErrorMessage }}
+      </p>
+      <CenterStage />
+    </component>
 
     <StatusBar v-if="!layout.focusMode" />
 
@@ -147,24 +148,6 @@ useShortcuts([
   display: flex;
   flex-direction: column;
   height: 100%;
-}
-
-.body {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-}
-
-.main {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-}
-
-.main :deep(.pane) {
-  flex: 1;
-  min-height: 0;
 }
 
 .navigation-notice {

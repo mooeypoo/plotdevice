@@ -94,7 +94,8 @@ describe('workspace cached diagnostics', () => {
     })
     const page = mount(ProjectLayout, {
       shallow: true,
-      global: { stubs: { TopBar: true, EditorPane: true } }
+      // The shell's body is stubbed; its slot holds the notices under test.
+      global: { stubs: { TopBar: true, EditorPane: true }, renderStubDefaultSlot: true }
     })
     await flushPromises()
     await workspace.refresh()
@@ -131,7 +132,7 @@ describe('workspace cached diagnostics', () => {
     const workspace = useWorkspaceStore()
     await workspace.openProject('/novels/salt-orchard')
     await useManuscriptStore().load()
-    const page = mount(ProjectLayout, { shallow: true })
+    const page = mount(ProjectLayout, { shallow: true, global: { renderStubDefaultSlot: true } })
     await flushPromises()
     const editor = useEditorStore()
     await editor.open('The Ferry.md')

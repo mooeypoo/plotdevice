@@ -3,7 +3,7 @@
 **Purpose.** Presents the novel through Vue components, Pinia stores, and UI composables.
 
 **Main concepts.** `app/` owns project navigation, document tabs, the protected Writing target, and preferences.
-`workbench/` holds the pure layout model, its storage and the view registry (ADR 0017); the current shell renders every panel through the registry, and features change the screen only through `app/use-workbench-navigation.ts`.
+`workbench/` holds the pure layout model, its storage, the view registry and the workbench shell (ADR 0017); `app/workbench-store.ts` owns the arrangement for both the workbench and the classic panels, and features change the screen only through `app/use-workbench-navigation.ts`.
 `features/` contains the binder, editor, inspector, outline, reference, timeline, codex, and interactions views.
 Outline/Reference panels localize chrome and render authored Markdown with per-block direction; technical code stays isolated LTR.
 The Writing appearance controls set prose size/width without changing markdown or editor history.

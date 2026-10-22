@@ -12,6 +12,7 @@ import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useUiLanguageStore } from './ui-language-store'
+import { useWorkbenchStore } from './workbench-store'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -22,7 +23,15 @@ afterEach(() => {
 const mountLayout = () =>
   mount(ProjectLayout, {
     global: {
-      stubs: { TopBar: true, EditorPane: true, SidePanel: true, RightPanel: true, StatusBar: true }
+      stubs: {
+        TopBar: true,
+        EditorPane: true,
+        SidePanel: true,
+        RightPanel: true,
+        DockArea: true,
+        ShelfArea: true,
+        StatusBar: true
+      }
     }
   })
 
@@ -35,7 +44,16 @@ beforeEach(async () => {
   await useWorkspaceStore().openProject('/book')
 })
 
-describe('ProjectLayout writing preferences', () => {
+const SHELL_CHILDREN = {
+  workbench: ['dock-area-stub', 'div', 'dock-area-stub'],
+  classic: ['side-panel-stub', 'main', 'right-panel-stub']
+} as const
+
+describe.each(['workbench', 'classic'] as const)('ProjectLayout in the %s shell', (shell) => {
+  beforeEach(() => {
+    useWorkbenchStore().setShell(shell)
+  })
+
   it('retranslates a tab-storage notice while retaining the conflicted draft and tab focus', async () => {
     localStorage.setItem('plotdevice.documentTabs', '{')
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
@@ -47,6 +65,8 @@ describe('ProjectLayout writing preferences', () => {
           EditorPane: true,
           SidePanel: true,
           RightPanel: true,
+          DockArea: true,
+          ShelfArea: true,
           StatusBar: true
         }
       }
@@ -64,7 +84,9 @@ describe('ProjectLayout writing preferences', () => {
     const documents = tabs.documents
     const storage = localStorage
     const get = vi.fn((key: string) => storage.getItem(key))
-    const set = vi.fn((key: string, value: string) => { storage.setItem(key, value); })
+    const set = vi.fn((key: string, value: string) => {
+      storage.setItem(key, value)
+    })
     vi.stubGlobal('localStorage', { getItem: get, setItem: set })
     const open = vi.spyOn(editor, 'open')
     const api = plotDeviceApi.current()
@@ -147,6 +169,8 @@ describe('ProjectLayout writing preferences', () => {
           EditorPane: true,
           SidePanel: true,
           RightPanel: true,
+          DockArea: true,
+          ShelfArea: true,
           StatusBar: true
         }
       }
@@ -178,27 +202,25 @@ describe('ProjectLayout writing preferences', () => {
           EditorPane: true,
           SidePanel: true,
           RightPanel: true,
+          DockArea: true,
+          ShelfArea: true,
           StatusBar: true
         }
       }
     })
     await flushPromises()
     const body = wrapper.get('.body')
-    expect([...body.element.children].map((child) => child.localName)).toEqual([
-      'side-panel-stub',
-      'main',
-      'right-panel-stub'
-    ])
+    expect([...body.element.children].map((child) => child.localName)).toEqual(
+      SHELL_CHILDREN[shell]
+    )
     expect(document.documentElement.dir).toBe('ltr')
 
     await useUiLanguageStore().change('he')
     await flushPromises()
     expect(document.documentElement.dir).toBe('rtl')
-    expect([...body.element.children].map((child) => child.localName)).toEqual([
-      'side-panel-stub',
-      'main',
-      'right-panel-stub'
-    ])
+    expect([...body.element.children].map((child) => child.localName)).toEqual(
+      SHELL_CHILDREN[shell]
+    )
     wrapper.unmount()
   })
 })

@@ -3,6 +3,8 @@ import Wordmark from '../shared/Wordmark.vue'
 import { computed } from 'vue'
 import { useLayoutStore } from './layout-store'
 import { useWorkbenchNavigation } from './use-workbench-navigation'
+import { useWorkbenchStore } from './workbench-store'
+import LayoutSwitcher from '../workbench/shell/LayoutSwitcher.vue'
 import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import { useWorkspaceStore } from './workspace-store'
@@ -18,6 +20,7 @@ const manuscript = useManuscriptStore()
 const editor = useEditorStore()
 const layout = useLayoutStore()
 const navigation = useWorkbenchNavigation()
+const workbench = useWorkbenchStore()
 const language = useUiLanguageStore()
 const chrome = useChromePresentation()
 const direction = computed(() => uiDirection(language.locale))
@@ -99,6 +102,7 @@ const crumbs = computed(() => {
           {{ language.t('view-interactions') }}
         </button>
       </div>
+      <LayoutSwitcher v-if="workbench.shell === 'workbench'" />
       <span class="divider" aria-hidden="true"></span>
       <button
         type="button"
