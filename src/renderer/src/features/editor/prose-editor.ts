@@ -31,7 +31,7 @@ export interface ProseEditorOptions {
   readonly completions: () => readonly LinkCompletionTarget[]
   /** Ctrl/Cmd+click on a link. */
   readonly onOpenLink: (link: LinkAt) => void
-  /** Ctrl/Cmd+hover over a link, or Ctrl/Cmd+Shift+Enter with the caret in one. */
+  /** Ctrl/Cmd+hover over a link, or Alt+Enter with the caret in one. */
   readonly onPeek?: (link: LinkAt, near: ScreenRect, byKeyboard: boolean) => void
   /** The pointer left the peeked link, or Ctrl/Cmd was released. */
   readonly onPeekEnd?: () => void
@@ -90,7 +90,8 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
     history(),
     keymap.of([
       {
-        key: 'Mod-Shift-Enter',
+        // Not Mod-Shift-Enter: that is Return to writing, handled at window level as well.
+        key: 'Alt-Enter',
         run: (view) => {
           const found = linkNear(view, view.state.selection.main.head)
           if (found === undefined || options.onPeek === undefined) return false

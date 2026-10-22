@@ -6,6 +6,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
+import { useWorkbenchStore } from './workbench-store'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
 import { useLayoutStore } from './layout-store'
 import { plotDeviceApi } from './plot-device-api'
@@ -173,5 +174,19 @@ describe('document tab writing workflow', () => {
     await close.trigger('click')
     await flushPromises()
     expect(tabs.documents.map((tab) => tab.path)).toEqual(['First frost.md'])
+  })
+
+  it('opens the active document beside Writing and returns the editor to Writing', async () => {
+    const editor = useEditorStore()
+    await editor.open('The Ferry.md')
+    editor.edit('Writing here.')
+    await editor.open('First frost.md', { keep: true })
+    await flushPromises()
+    expect(useDocumentTabsStore().writingPath).toBe('The Ferry.md')
+    await wrapper.get('.document-actions .beside').trigger('click')
+    await flushPromises()
+    expect(editor.entry?.path).toBe('The Ferry.md')
+    const workbench = useWorkbenchStore()
+    expect(Object.values(workbench.splits).map((split) => split.path)).toEqual(['First frost.md'])
   })
 })

@@ -5,6 +5,7 @@ import CardStack from '../../features/cards/CardStack.vue'
 import PeekLayer from '../../features/cards/PeekLayer.vue'
 import CastStrip from '../../features/cast/CastStrip.vue'
 import SceneCard from '../../features/cast/SceneCard.vue'
+import SplitPane from '../../features/split/SplitPane.vue'
 import CodexView from '../../features/codex/CodexView.vue'
 import EditorPane from '../../features/editor/EditorPane.vue'
 import PropertiesView from '../../features/inspector/PropertiesView.vue'
@@ -57,6 +58,9 @@ export const VIEW_REGISTRY: Partial<Readonly<Record<ViewId, ViewDescriptor>>> = 
 
 /** Layers drawn above every region once per project, such as the peek card. */
 export const OVERLAYS: readonly Component[] = [PeekLayer]
+
+/** A read-only split beside the writable document; takes a `splitId` prop. */
+export const SPLIT_PANE: Component = SplitPane
 
 /** What the document view shows when no document is open: the project's home, with a `warnings` slot. */
 export const PROJECT_HOME: Component = ProjectOverview

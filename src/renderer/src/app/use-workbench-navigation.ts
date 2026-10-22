@@ -2,6 +2,7 @@ import { findView } from '../workbench/model/layout'
 import { missingViews } from '../workbench/model/placement-actions'
 import type { ViewId } from '../workbench/model/view-catalog'
 import { activateSection, removeSection, setCenterView } from '../workbench/model/operations'
+import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
 import { useLayoutStore, type MainView, type RightTab } from './layout-store'
 import { useWorkbenchStore } from './workbench-store'
@@ -14,6 +15,7 @@ export function useWorkbenchNavigation() {
   const editor = useEditorStore()
   const layout = useLayoutStore()
   const workbench = useWorkbenchStore()
+  const tabs = useDocumentTabsStore()
 
   /**
    * Shows a view in the main area, after saving the draft; refused while recovery is pending. A
@@ -57,6 +59,31 @@ export function useWorkbenchNavigation() {
     return editor.runNavigation(change)
   }
 
+  /**
+   * Shows a document read-only beside the editor (ADR 0018). Splits sit beside the document, so
+   * the main area returns to it first; refused when every split is locked.
+   */
+  async function openBeside(path: string): Promise<boolean> {
+    if (!(await showCenterView('write'))) return false
+    return workbench.openBeside(path)
+  }
+
+  /**
+   * Makes a split's document the writable one, through the navigation queue, and pins it as the
+   * Writing target if it is part of the manuscript (ADR 0015). The document the editor had moves
+   * into the split, so the comparison continues; with none, the split closes.
+   */
+  async function writeHere(splitId: string): Promise<boolean> {
+    const target = workbench.splits[splitId]?.path
+    if (target === undefined) return false
+    const previous = editor.entry?.path ?? null
+    if (!(await editor.open(target))) return false
+    tabs.writeHere(target)
+    if (previous !== null && previous !== target) workbench.showInSplit(splitId, previous)
+    else workbench.closeSplitView(splitId)
+    return true
+  }
+
   /** Makes `panel` the one its side shows, without opening a closed side. */
   function choosePanel(panel: RightTab): void {
     layout.rightTab = panel
@@ -83,5 +110,14 @@ export function useWorkbenchNavigation() {
     layout.exitFocusMode()
   }
 
-  return { showCenterView, switchLayout, rearrange, choosePanel, revealPanel, revealView }
+  return {
+    showCenterView,
+    switchLayout,
+    rearrange,
+    openBeside,
+    writeHere,
+    choosePanel,
+    revealPanel,
+    revealView
+  }
 }

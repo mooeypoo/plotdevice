@@ -619,5 +619,14 @@
   "scene-card-in-outline": "In the outline",
   "scene-card-no-chapter": "Open a chapter to see it here.",
   "scene-card-no-outline-lines": "The outline doesn't mention this chapter yet.",
-  "scene-card-edit": "Edit in Properties"
+  "scene-card-edit": "Edit in Properties",
+  "split-open-beside": "Open beside",
+  "split-open-beside-label": "Open $1 beside the editor",
+  "split-read-only": "Read-only",
+  "split-lock": "Lock",
+  "split-close": "Close split",
+  "split-empty": "Open a chapter beside to compare it with the one you're writing: use Open beside on a card, in Reference or on a tab.",
+  "split-all-locked": "Both splits are locked. Unlock one to open another document beside.",
+  "split-region": "Beside the editor: $1",
+  "split-resize": "Split width"
 }

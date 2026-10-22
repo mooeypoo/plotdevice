@@ -12,7 +12,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   openLink: [link: LinkAt]
-  /** Asks to peek at a project link: after hovering it, or by keyboard (focus the card). */
+  /** Asks to peek at a project link: after hovering it, or with Alt+Enter (focus the card). */
   peek: [link: LinkAt, near: ScreenRect, byKeyboard: boolean]
   /** The pointer left the link; the peek may close after a short grace. */
   peekEnd: []
@@ -58,7 +58,10 @@ function leave(event: MouseEvent): void {
 }
 
 function keydown(event: KeyboardEvent): void {
-  if (event.key !== 'Enter' || !event.shiftKey || !(event.ctrlKey || event.metaKey)) return
+  // Alt+Enter: Ctrl/Cmd+Shift+Enter is already Return to writing, which runs at window level.
+  if (event.key !== 'Enter' || !event.altKey || event.shiftKey || event.ctrlKey || event.metaKey) {
+    return
+  }
   const found = projectLink(event.target)
   if (found === undefined) return
   event.preventDefault()

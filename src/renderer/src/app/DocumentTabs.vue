@@ -5,11 +5,20 @@ import { useDocumentTabs } from './use-document-tabs'
 import { isolate } from '../shared/isolate'
 import { navigateTabs } from '../shared/tab-navigation'
 import { useUiLanguageStore } from './ui-language-store'
+import { useWorkbenchNavigation } from './use-workbench-navigation'
+import { useWorkbenchStore } from './workbench-store'
 
 const tabs = useDocumentTabsStore()
 const editor = useEditorStore()
 const language = useUiLanguageStore()
 const { documents, active, busy, canWriteHere, activateTab, returnToWriting } = useDocumentTabs()
+const workbench = useWorkbenchStore()
+const navigation = useWorkbenchNavigation()
+
+/** Shows this document beside the Writing one, and returns the editor to Writing. */
+async function openBeside(path: string): Promise<void> {
+  if (await navigation.openBeside(path)) await returnToWriting()
+}
 </script>
 
 <template>
@@ -106,6 +115,16 @@ const { documents, active, busy, canWriteHere, activateTab, returnToWriting } = 
           @click="tabs.writeHere(active.path)"
         >
           {{ language.t('tabs-write-here') }}
+        </button>
+        <button
+          v-if="workbench.shell === 'workbench' && tabs.writingPath && !active.writing"
+          type="button"
+          class="beside"
+          :disabled="busy"
+          :aria-label="language.t('split-open-beside-label', isolate(active.title))"
+          @click="openBeside(active.path)"
+        >
+          {{ language.t('split-open-beside') }}
         </button>
         <button
           type="button"

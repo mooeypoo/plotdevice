@@ -1506,3 +1506,12 @@ card shows authored status, POV, threads, synopsis and outline lines with automa
 direction. The strip above the page sits on the prose column. Real-browser wrapping and
 chip drag feedback remain I7g.
 
+### W5c splits and the peek shortcut
+
+Read-only splits sit at inline-end of the page (on the left in Hebrew) in a row that
+follows the root direction; their separator resizes from the split's inline-start edge
+with the same direction math as docks, tested in both directions. Split titles in
+accessible names are isolated. Keyboard peeks moved from Ctrl/Cmd+Shift+Enter (Return to
+writing) to Alt+Enter, which also avoids Ctrl+Alt acting as AltGr on Windows Hebrew
+layouts. Real-browser split geometry remains I7g.
+

@@ -299,9 +299,9 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 **Done when:** every existing feature can be placed in its accepted regions, layouts survive restart and mirror in Hebrew, and mode and layout switches go through the navigation queue (tested).
 
 ### W5: Reference comes to the page
-- [x] W5a: Peek on project links (hover in rendered panels, Ctrl/Cmd+hover in the editor, Ctrl/Cmd+Shift+Enter everywhere), entry cards with live drafts, the card stack (collapse, reorder by drag or menu, per-user fields by entry kind), and pin/unpin from peeks, cards and Reference. Pinning Reference makes a card, as the brief describes, rather than freezing the panel.
+- [x] W5a: Peek on project links (hover in rendered panels, Ctrl/Cmd+hover in the editor, Alt+Enter on a focused link or the caret's link; Ctrl/Cmd+Shift+Enter stays Return to writing), entry cards with live drafts, the card stack (collapse, reorder by drag or menu, per-user fields by entry kind), and pin/unpin from peeks, cards and Reference. Pinning Reference makes a card, as the brief describes, rather than freezing the panel.
 - [x] W5b: Cast strip above the page (from `pov`, `characters`, `location`, and the live draft's body links; chips peek, pin, or drag to Cards) and the chapter card (synopsis, status, POV, threads, linked outline lines from the current outline's live draft). Both follow Writing; Write and Revise show the strip, Revise adds the chapter card.
-- [ ] W5c: Open beside as a read-only split, lock, and Write here through the navigation queue.
+- [x] W5c: Open beside (from cards, peeks, Reference and the tab bar) as a read-only split at inline-end of the page, up to two; lock keeps a split's document; Write here swaps the split's document into the editor through the navigation queue and pins it as Writing. Splits resize by pointer and keyboard, shrink to keep the page readable, and follow app moves.
 - [ ] W5d: Command palette (entries, views, layouts, modes, menu commands) and chrome fading while typing.
 
 **Done when:** each sub-phase works by keyboard alone, peeks and cards show live drafts without saving, and Write here never drops a draft or bypasses recovery (tested).

@@ -619,5 +619,14 @@
   "scene-card-in-outline": "Heading above the outline lines that link to the chapter being written.",
   "scene-card-no-chapter": "Shown in the chapter panel when no chapter is being written or open.",
   "scene-card-no-outline-lines": "Shown when no line of the current outline links to the chapter being written.",
-  "scene-card-edit": "Opens the chapter in the editor and shows its Properties panel, where its synopsis and status can be changed."
+  "scene-card-edit": "Opens the chapter in the editor and shows its Properties panel, where its synopsis and status can be changed.",
+  "split-open-beside": "Action that shows a document read-only beside the editor, to compare it with the one being written.",
+  "split-open-beside-label": "Accessible name of the Open beside action. $1 is the document's title, written by the writer.",
+  "split-read-only": "Label on a split beside the editor: it can't be edited there. Use Write here to edit it.",
+  "split-lock": "Toggle that keeps a split's document when the writer opens other documents beside. Pressed while locked.",
+  "split-close": "Closes the read-only split beside the editor. Nothing in the novel changes.",
+  "split-empty": "Shown in an empty split beside the editor.",
+  "split-all-locked": "Shown when Open beside can't find a split: there are already two and both are locked.",
+  "split-region": "Accessible name of a read-only split. $1 is the title of the document it shows.",
+  "split-resize": "Accessible name of the separator that resizes a split beside the editor."
 }

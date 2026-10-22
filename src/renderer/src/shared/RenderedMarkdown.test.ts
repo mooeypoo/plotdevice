@@ -39,13 +39,20 @@ describe('RenderedMarkdown peeks', () => {
     expect(view.emitted('peekEnd')).toHaveLength(1)
   })
 
-  it('peeks at a focused link with Ctrl/Cmd+Shift+Enter', async () => {
+  it('peeks at a focused link with Alt+Enter', async () => {
+    const view = mountView()
+    await view.get('a.markdown-link').trigger('keydown', { key: 'Enter', altKey: true })
+    expect(view.emitted('peek')?.[0]?.[2]).toBe(true)
+    await view.get('a.markdown-link').trigger('keydown', { key: 'Enter' })
+    expect(view.emitted('peek')).toHaveLength(1)
+  })
+
+  it('leaves Ctrl/Cmd+Shift+Enter to Return to writing', async () => {
+    // Regression: the peek shortcut was Return to writing's, so both ran.
     const view = mountView()
     await view
       .get('a.markdown-link')
       .trigger('keydown', { key: 'Enter', ctrlKey: true, shiftKey: true })
-    expect(view.emitted('peek')?.[0]?.[2]).toBe(true)
-    await view.get('a.markdown-link').trigger('keydown', { key: 'Enter' })
-    expect(view.emitted('peek')).toHaveLength(1)
+    expect(view.emitted('peek')).toBeUndefined()
   })
 })

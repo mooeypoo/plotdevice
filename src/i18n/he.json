@@ -619,5 +619,14 @@
   "scene-card-in-outline": "במתווה",
   "scene-card-no-chapter": "פתחו פרק כדי לראות אותו כאן.",
   "scene-card-no-outline-lines": "המתווה עדיין לא מזכיר את הפרק הזה.",
-  "scene-card-edit": "עריכה במאפיינים"
+  "scene-card-edit": "עריכה במאפיינים",
+  "split-open-beside": "פתיחה לצד",
+  "split-open-beside-label": "פתיחת $1 לצד העורך",
+  "split-read-only": "לקריאה בלבד",
+  "split-lock": "נעילה",
+  "split-close": "סגירת החלונית",
+  "split-empty": "אפשר לפתוח כאן פרק לצד העורך כדי להשוות אותו לפרק שכותבים: בוחרים \"פתיחה לצד\" בכרטיס, בחלונית העיון או בלשונית.",
+  "split-all-locked": "שתי החלוניות נעולות. כדי לפתוח מסמך נוסף לצד העורך, יש לבטל נעילה של אחת מהן.",
+  "split-region": "לצד העורך: $1",
+  "split-resize": "רוחב החלונית"
 }

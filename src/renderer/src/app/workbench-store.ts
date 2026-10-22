@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import type { MessageKey } from '../../../i18n/translator'
 import type { Layout } from '../workbench/model/layout'
-import type { LayoutChange } from '../workbench/model/operations'
+import { closeSplit, openSplit, type LayoutChange } from '../workbench/model/operations'
 import { PRESETS } from '../workbench/model/presets'
 import {
   deleteLayout,
@@ -201,6 +201,71 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     })
   }
 
+  /** What each read-only split shows, by split id, for this project. */
+  const splits = computed(() => bindings.value.splits)
+  /** Why the last Open beside did nothing, as a message key; cleared when one succeeds. */
+  const splitNotice = ref<MessageKey | null>(null)
+
+  function freshSplitId(): string {
+    const used = new Set(layout.value.center.splits.map((split) => split.id))
+    let n = 1
+    while (used.has(`split-${String(n)}`)) n += 1
+    return `split-${String(n)}`
+  }
+
+  function bindSplit(id: string, path: string): void {
+    updateBindings((current) => ({
+      ...current,
+      splits: { ...current.splits, [id]: { path, locked: current.splits[id]?.locked ?? false } }
+    }))
+  }
+
+  /**
+   * Shows `path` read-only beside the editor: in the split that already shows it, else the first
+   * unlocked split, else a new one. Refused when every split is locked and there is no room.
+   */
+  function openBeside(path: string): boolean {
+    const ids = layout.value.center.splits.map((split) => split.id)
+    const current = bindings.value.splits
+    let id = ids.find((candidate) => current[candidate]?.path === path)
+    id ??= ids.find((candidate) => current[candidate]?.locked !== true)
+    if (id === undefined) {
+      const fresh = freshSplitId()
+      if (!apply((current) => openSplit(current, fresh))) {
+        splitNotice.value = 'split-all-locked'
+        return false
+      }
+      id = fresh
+    }
+    splitNotice.value = null
+    bindSplit(id, path)
+    return true
+  }
+
+  /** Shows `path` in one particular split, keeping its lock. */
+  function showInSplit(id: string, path: string): void {
+    bindSplit(id, path)
+  }
+
+  function setSplitLocked(id: string, locked: boolean): void {
+    const bound = bindings.value.splits[id]
+    if (bound === undefined) return
+    updateBindings((current) => ({
+      ...current,
+      splits: { ...current.splits, [id]: { ...bound, locked } }
+    }))
+  }
+
+  /** Closes a split and forgets what it showed. */
+  function closeSplitView(id: string): void {
+    apply((current) => closeSplit(current, id))
+    splitNotice.value = null
+    updateBindings((current) => ({
+      ...current,
+      splits: Object.fromEntries(Object.entries(current.splits).filter(([key]) => key !== id))
+    }))
+  }
+
   /** Keeps pinned cards and the chosen outline on the files the app moved or renamed. */
   function followMove(from: string, to: string): void {
     const rename = (path: string): string => (path === from ? to : path)
@@ -208,7 +273,8 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     if (
       !current.cards.includes(from) &&
       !current.collapsedCards.includes(from) &&
-      current.outlinePath !== from
+      current.outlinePath !== from &&
+      !Object.values(current.splits).some((split) => split.path === from)
     ) {
       return
     }
@@ -216,7 +282,13 @@ export const useWorkbenchStore = defineStore('workbench', () => {
       ...before,
       cards: before.cards.map(rename),
       collapsedCards: before.collapsedCards.map(rename),
-      outlinePath: before.outlinePath === null ? null : rename(before.outlinePath)
+      outlinePath: before.outlinePath === null ? null : rename(before.outlinePath),
+      splits: Object.fromEntries(
+        Object.entries(before.splits).map(([id, split]) => [
+          id,
+          { ...split, path: rename(split.path) }
+        ])
+      )
     }))
   }
 
@@ -238,6 +310,12 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     storageNotice,
     cards,
     collapsedCards,
+    splits,
+    splitNotice,
+    openBeside,
+    showInSplit,
+    setSplitLocked,
+    closeSplitView,
     pinCard,
     unpinCard,
     moveCard,

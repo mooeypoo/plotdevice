@@ -198,3 +198,14 @@ describe('CardStack drops', () => {
     expect(workbench.cards).toEqual([ILKA, BEA])
   })
 })
+
+describe('EntryCard open beside', () => {
+  it('opens the entry in a split beside the editor', async () => {
+    const card = mount(EntryCard, { props: { path: ILKA } })
+    await flushPromises()
+    await card.get('.beside').trigger('click')
+    await flushPromises()
+    const workbench = useWorkbenchStore()
+    expect(Object.values(workbench.splits).map((split) => split.path)).toEqual([ILKA])
+  })
+})

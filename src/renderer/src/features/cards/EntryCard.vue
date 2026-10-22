@@ -87,6 +87,15 @@ function togglePin(): void {
         <ReferenceButton :title="title" @open="reference.open(path)" />
         <button
           type="button"
+          class="quiet beside"
+          :aria-label="language.t('split-open-beside-label', isolate(title))"
+          :title="language.t('split-open-beside-label', isolate(title))"
+          @click="navigation.openBeside(path)"
+        >
+          {{ language.t('split-open-beside') }}
+        </button>
+        <button
+          type="button"
           class="quiet"
           :aria-label="language.t('codex-open-editor-label', isolate(title))"
           :title="language.t('codex-open-editor-tooltip')"
