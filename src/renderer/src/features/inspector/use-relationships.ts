@@ -3,6 +3,7 @@ import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { choiceFor, linkChoices, nameKey } from '../../shared/link-choices'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
 
 /** One relationship as the editor shows it. `target` is the link text inside `[[…]]`. */
 export interface RelationshipRow {
@@ -29,6 +30,7 @@ export function useRelationships(): {
   const codex = useCodexStore()
   const editor = useEditorStore()
   const manuscript = useManuscriptStore()
+  const { compareText } = useChromePresentation()
   const rows = ref<RelationshipRow[]>([])
 
   const choices = computed(() => linkChoices(manuscript.manuscript?.linkTargets ?? []))
@@ -65,7 +67,7 @@ export function useRelationships(): {
     const unknown = rows.value
       .filter((row) => row.target !== '' && !known.has(nameKey(row.target)))
       .map((row) => ({ target: row.target, label: `${row.target} (no file)`, missing: true }))
-    return [...options, ...unknown].sort((a, b) => a.label.localeCompare(b.label))
+    return [...options, ...unknown].sort((a, b) => compareText(a.label, b.label))
   })
 
   async function save(): Promise<void> {

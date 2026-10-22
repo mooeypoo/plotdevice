@@ -131,6 +131,8 @@ progress, remaining limitations, and the next slice before ending a session.
     preserving the explicit draft-loss and unchanged-files warning.
   - [x] **I3n Native folder-picker title:** use the selected locale for the
     app-owned title; preserve OS controls and selection/cancel behavior.
+  - [x] **I3o Generated-list collation:** collate Codex groups, Overview filter
+    choices, link suggestions, and relationship options in the UI locale.
   - [ ] **Remaining I3:** remaining
     locale-aware formatting/collation, other native dialog wording, and startup
     text.
@@ -1209,8 +1211,24 @@ delivery, and cancellation. Verified lint/dependency boundaries (474 modules/
 production electron-vite build. Documentation build/link/asset checks passed
 across all 16 public pages. No API or dependencies changed.
 
+### I3o Selected-locale collation for generated lists
+
+Codex group names, Overview filter choices, inspector link suggestions, and
+relationship options now use an `Intl.Collator` for the selected interface
+locale. Only presentation order changes: authored labels and filter values,
+persisted group ordering, manuscript section order, relationship targets, and
+file identity remain unchanged.
+
+Live language-change tests verify English/Hebrew ordering, retain active group
+and filter selections, relationship target identity, and avoid preference
+writes or project reads/writes. Pure helper tests cover locale-specific
+collation. Verified lint/dependency boundaries (474 modules/2,409 dependencies),
+typecheck, **1,564 tests across 172 files**, and the production electron-vite
+build. Documentation build/link/asset checks passed across all 16 public pages.
+No API or dependencies changed.
+
 **Next session:** propose a bounded remaining-I3 slice before editing.
-Remaining work includes locale-aware formatting/collation surfaces, other
-native dialog wording and startup fallback. I3 remains incomplete; RTL
+Remaining work includes other interface text, native dialog wording and
+startup fallback. I3 remains incomplete; RTL
 geometry/directional controls and packaged qualification remain I4-I6, and the
 separate Hebrew manual is not implemented.

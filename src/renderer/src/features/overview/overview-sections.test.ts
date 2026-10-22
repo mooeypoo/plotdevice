@@ -79,4 +79,32 @@ describe('filterChoices', () => {
       threads: ['main', 'strike']
     })
   })
+
+  it('collates authored filter values in the selected locale', () => {
+    const mixedBook: ManuscriptDto = {
+      ...book,
+      parts: book.parts.map((part) => ({
+        ...part,
+        chapters: part.chapters.map((entry, index) => ({
+          ...entry,
+          status: index === 0 ? 'שירה' : 'Ari',
+          pov: [index === 0 ? 'שירה' : 'Ari'],
+          threads: [index === 0 ? 'שירה' : 'Ari']
+        }))
+      }))
+    }
+    const english = filterChoices(mixedBook, new Intl.Collator('en').compare)
+    const hebrew = filterChoices(mixedBook, new Intl.Collator('he').compare)
+
+    expect(english).toEqual({
+      statuses: ['Ari', 'שירה'],
+      povs: ['Ari', 'שירה'],
+      threads: ['Ari', 'שירה']
+    })
+    expect(hebrew).toEqual({
+      statuses: ['שירה', 'Ari'],
+      povs: ['שירה', 'Ari'],
+      threads: ['שירה', 'Ari']
+    })
+  })
 })

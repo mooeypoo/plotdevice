@@ -3,6 +3,7 @@ import { useEditorStore } from '../../app/editor-store'
 import { useInspectorStore } from '../../app/inspector-store'
 import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import {
   filterChoices,
   NO_FILTERS,
@@ -33,6 +34,7 @@ export function useOverview(): {
   const editor = useEditorStore()
   const inspector = useInspectorStore()
   const layout = useLayoutStore()
+  const { compareText } = useChromePresentation()
   const filters = ref<OverviewFilters>(NO_FILTERS)
 
   const sections = computed(() =>
@@ -41,7 +43,7 @@ export function useOverview(): {
   const choices = computed(() =>
     manuscript.manuscript === null
       ? { statuses: [], povs: [], threads: [] }
-      : filterChoices(manuscript.manuscript)
+      : filterChoices(manuscript.manuscript, compareText)
   )
 
   return {

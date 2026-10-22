@@ -1,4 +1,5 @@
 import type { LinkTargetDto } from '../../../../contract/dtos'
+import type { TextComparator } from '../../shared/use-chrome-presentation'
 
 /** The file name a link points to: `[[Ilka Szabó|Ilka]]` → `Ilka Szabó`. */
 export function linkTarget(link: string): string {
@@ -17,8 +18,9 @@ export function linkLabel(link: string): string {
 /** File names of the given types, sorted, for a picker's suggestions. */
 export function namesOfType(
   targets: readonly LinkTargetDto[],
-  types: readonly string[]
+  types: readonly string[],
+  compareText: TextComparator = (left, right) => left.localeCompare(right)
 ): readonly string[] {
   const names = targets.filter((target) => target.type !== undefined && types.includes(target.type))
-  return [...new Set(names.map((target) => target.name))].sort((a, b) => a.localeCompare(b))
+  return [...new Set(names.map((target) => target.name))].sort(compareText)
 }

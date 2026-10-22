@@ -20,14 +20,15 @@ const editor = useEditorStore()
 const inspector = useInspectorStore()
 const workspace = useWorkspaceStore()
 const language = useUiLanguageStore()
-const { formatNumber } = useChromePresentation()
+const { formatNumber, compareText } = useChromePresentation()
 
 const properties = computed(() => codex.properties)
 const groupNames = computed(() =>
   characterGroupNames(
     (codex.listing?.entries ?? [])
       .filter((entry) => entry.kind === 'character')
-      .flatMap((entry) => entry.groups ?? [])
+      .flatMap((entry) => entry.groups ?? []),
+    compareText
   )
 )
 const busy = ref(false)
@@ -194,12 +195,7 @@ const KEY_KEYS = {
           </li>
         </ul>
         <p v-else class="empty">
-          {{
-            language.t(
-              'codex-inspector-appears-empty',
-              isolate(editor.entry?.title ?? '')
-            )
-          }}
+          {{ language.t('codex-inspector-appears-empty', isolate(editor.entry?.title ?? '')) }}
         </p>
       </section>
 

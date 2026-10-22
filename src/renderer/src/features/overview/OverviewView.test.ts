@@ -72,6 +72,43 @@ describe('OverviewView', () => {
     expect(view.text()).toContain('First frost')
   })
 
+  it('reorders filter choices by locale while retaining the authored selection', async () => {
+    const current = useManuscriptStore().manuscript
+    if (current === null) throw new Error('Expected a manuscript')
+    useManuscriptStore().manuscript = {
+      ...current,
+      parts: current.parts.map((part) => ({
+        ...part,
+        chapters: part.chapters.map((chapter, index) => ({
+          ...chapter,
+          pov: [index === 0 ? 'שירה' : 'Ari']
+        }))
+      }))
+    }
+    const stored = useManuscriptStore().manuscript
+    const getManuscript = vi.spyOn(fake.api.manuscript, 'getManuscript')
+    const view = mount(OverviewView)
+    const pov = view.findAll('select')[1]
+    if (pov === undefined) throw new Error('Expected a POV filter')
+    const names = (): string[] =>
+      Array.from(pov.element.options)
+        .map((option) => option.value)
+        .filter((value) => value !== '*')
+
+    expect(names()).toEqual(['Ari', 'שירה'])
+    await pov.setValue('Ari')
+    const select = pov.element
+    useUiLanguageStore().locale = 'he'
+    await view.vm.$nextTick()
+
+    expect(names()).toEqual(['שירה', 'Ari'])
+    expect(select.value).toBe('Ari')
+    expect(useManuscriptStore().manuscript).toBe(stored)
+    expect(getManuscript).not.toHaveBeenCalled()
+    expect(view.text()).toContain('First frost')
+    view.unmount()
+  })
+
   it('formats chapter word counts with the interface locale', async () => {
     const manuscript = {
       ...sampleManuscript,

@@ -22,6 +22,21 @@ describe('character list', () => {
       'Main'
     ])
   })
+  it('sorts display names using the selected locale', () => {
+    const names = ['שירה', 'Ari', 'דוד', 'Bea']
+    expect(characterGroupNames(names, new Intl.Collator('en').compare)).toEqual([
+      'Ari',
+      'Bea',
+      'דוד',
+      'שירה'
+    ])
+    expect(characterGroupNames(names, new Intl.Collator('he').compare)).toEqual([
+      'דוד',
+      'שירה',
+      'Ari',
+      'Bea'
+    ])
+  })
   it('unions selected groups without duplicate files and searches names and aliases', () => {
     expect(visibleCharacters(entries, '', ['MAIN', 'Part 2']).map((entry) => entry.path)).toEqual([
       'Ilka.md',

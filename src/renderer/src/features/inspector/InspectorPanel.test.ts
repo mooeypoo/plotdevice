@@ -114,6 +114,40 @@ describe('InspectorPanel', () => {
     panel.unmount()
   })
 
+  it('reorders link suggestions by locale without rereading or changing project data', async () => {
+    const manuscript = useManuscriptStore().manuscript
+    if (manuscript === null) throw new Error('Expected a manuscript')
+    useManuscriptStore().manuscript = {
+      ...manuscript,
+      linkTargets: [
+        ...manuscript.linkTargets,
+        { name: 'שירה', path: 'characters/שירה.md', type: 'character' },
+        { name: 'Ari', path: 'characters/Ari.md', type: 'character' },
+        { name: 'דוד', path: 'characters/דוד.md', type: 'character' }
+      ]
+    }
+    await useEditorStore().open('The Ferry.md')
+    const panel = mount(InspectorPanel)
+    await flushPromises()
+    const suggestions = panel.findAll('datalist')[0]
+    if (suggestions === undefined) throw new Error('Expected POV suggestions')
+    const names = (): string[] =>
+      suggestions.findAll('option').map((option) => option.attributes('value') ?? '')
+    const read = vi.spyOn(fake.api.manuscript, 'getEntryProperties')
+    const write = vi.spyOn(fake.api.manuscript, 'updateEntryProperties')
+
+    expect(names()).toEqual(['Ari', 'Aunt Bea', 'Ilka', 'דוד', 'שירה'])
+    const originalText = useEditorStore().text
+    useUiLanguageStore().locale = 'he'
+    await flushPromises()
+
+    expect(names()).toEqual(['דוד', 'שירה', 'Ari', 'Aunt Bea', 'Ilka'])
+    expect(useEditorStore().text).toBe(originalText)
+    expect(read).not.toHaveBeenCalled()
+    expect(write).not.toHaveBeenCalled()
+    panel.unmount()
+  })
+
   it('retranslates a pending rename confirmation without replanning or changing the name', async () => {
     const editor = useEditorStore()
     await editor.open('The Ferry.md')

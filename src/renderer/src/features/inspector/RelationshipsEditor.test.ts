@@ -77,6 +77,47 @@ describe('RelationshipsEditor', () => {
     ])
   })
 
+  it('reorders relationship choices by locale without changing selected targets or files', async () => {
+    const manuscript = useManuscriptStore().manuscript
+    if (manuscript === null) throw new Error('Expected a manuscript')
+    useManuscriptStore().manuscript = {
+      ...manuscript,
+      linkTargets: [
+        ...manuscript.linkTargets,
+        { name: 'שירה', path: 'characters/שירה.md', type: 'character' },
+        { name: 'Ari', path: 'characters/Ari.md', type: 'character' },
+        { name: 'דוד', path: 'characters/דוד.md', type: 'character' }
+      ]
+    }
+    const ilka = fake.codexProperties.get('characters/Ilka.md')
+    if (ilka === undefined) throw new Error('Expected Ilka properties')
+    fake.codexProperties.set('characters/Ilka.md', {
+      ...ilka,
+      relationships: [{ with: '[[Ari]]', kind: 'friend' }]
+    })
+    await useEditorStore().open('characters/Ilka.md')
+    const editor = mount(RelationshipsEditor, { props: { disabled: false } })
+    await flushPromises()
+    const select = editor.get('select')
+    const choices = (): string[] =>
+      Array.from(select.element.options)
+        .map((option) => option.value)
+        .filter((value) => value !== '')
+    const read = vi.spyOn(fake.api.codex, 'getProperties')
+    const update = vi.spyOn(fake.api.codex, 'updateRelationships')
+
+    expect(choices()).toEqual(['Ari', 'Aunt Bea', 'דוד', 'שירה'])
+    expect(select.element.value).toBe('Ari')
+    useUiLanguageStore().locale = 'he'
+    await editor.vm.$nextTick()
+
+    expect(choices()).toEqual(['דוד', 'שירה', 'Ari', 'Aunt Bea'])
+    expect(select.element.value).toBe('Ari')
+    expect(read).not.toHaveBeenCalled()
+    expect(update).not.toHaveBeenCalled()
+    editor.unmount()
+  })
+
   it('shows relationships it can’t edit read-only, with a note', async () => {
     const ilka = fake.codexProperties.get('characters/Ilka.md')
     if (ilka === undefined) throw new Error('expected Ilka')

@@ -208,8 +208,10 @@ acceptance criteria, and the cross-session checklist.
     explicit draft-loss and unchanged-files warning and close behavior.
   - [x] I3n: Localized native folder-picker title; preserve OS-owned controls,
     folder-selection behavior and cancellation.
-  - [ ] Remaining I3: other interface text, locale-aware formatting/collation
-    surfaces, other native dialog/confirmation wording and startup text.
+  - [x] I3o: Collate generated Codex groups, Overview filter choices, link
+    suggestions and relationship options by UI locale; preserve values/order.
+  - [ ] Remaining I3: other interface text, native dialog/confirmation wording
+    and startup text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.

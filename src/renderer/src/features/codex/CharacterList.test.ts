@@ -46,7 +46,9 @@ describe('character navigation', () => {
     await wrapper.vm.$nextTick()
 
     expect(wrapper.get('input[type="search"]').attributes('aria-label')).toBe('חיפוש דמויות')
-    expect(wrapper.get('input[type="search"]').attributes('placeholder')).toBe('חיפוש לפי שם או כינוי…')
+    expect(wrapper.get('input[type="search"]').attributes('placeholder')).toBe(
+      'חיפוש לפי שם או כינוי…'
+    )
     expect(wrapper.get('input[type="search"]').element).toBe(searchElement)
     expect(document.activeElement).toBe(searchElement)
     expect(wrapper.get<HTMLInputElement>('input[type="search"]').element.value).toBe('Ilk')
@@ -59,9 +61,9 @@ describe('character navigation', () => {
     expect(wrapper.get('.clear').text()).toBe('ניקוי מסנני הקבוצות')
     expect(wrapper.get('.row').element).toBe(row)
     expect(wrapper.get('.row .title').text()).toBe('Ilka')
-    expect(
-      wrapper.get<HTMLInputElement>('.filters input[type="checkbox"]').element.checked
-    ).toBe(true)
+    expect(wrapper.get<HTMLInputElement>('.filters input[type="checkbox"]').element.checked).toBe(
+      true
+    )
     expect(writes).not.toHaveBeenCalled()
     wrapper.unmount()
   })
@@ -82,6 +84,49 @@ describe('character navigation', () => {
 
     await wrapper.setProps({ entries: [] })
     expect(wrapper.text()).toContain('עדיין אין דמויות.')
+    wrapper.unmount()
+  })
+
+  it('reorders group presentation by locale while retaining selected filters and rows', async () => {
+    const [ilka, bea, yael] = entries
+    if (ilka === undefined || bea === undefined || yael === undefined) {
+      throw new Error('Expected sample characters')
+    }
+    const mixedEntries: readonly CodexEntryDto[] = [
+      { ...ilka, groups: ['Main', 'שירה'] },
+      { ...bea, groups: ['Ari', 'דוד'] },
+      yael
+    ]
+    const wrapper = mount(CharacterList, {
+      props: { entries: mixedEntries, selectedPath: 'Ilka.md', projectRoot: '/book' }
+    })
+    await wrapper.get('button[aria-pressed="false"]').trigger('click')
+    const groupNames = (): string[] =>
+      wrapper.findAll('.group-heading bdi').map((heading) => heading.text())
+    expect(groupNames()).toEqual(['Ari', 'Main', 'דוד', 'שירה', 'Ungrouped'])
+
+    const mainFilter = wrapper
+      .findAll('.filters label')
+      .find((label) => label.get('bdi').text() === 'Main')
+    if (mainFilter === undefined) throw new Error('Expected a Main group filter')
+    await mainFilter.get('input').setValue(true)
+    const activeRow = wrapper.get('.row.active').element
+    const writePreference = vi.spyOn(Storage.prototype, 'setItem')
+    writePreference.mockClear()
+
+    useUiLanguageStore().locale = 'he'
+    await wrapper.vm.$nextTick()
+
+    expect(groupNames()).toEqual(['Main'])
+    const selectedFilter = wrapper
+      .findAll('.filters label')
+      .find((label) => label.get<HTMLInputElement>('input').element.checked)
+    expect(selectedFilter?.get('bdi').text()).toBe('Main')
+    expect(wrapper.get('.row.active').element).toBe(activeRow)
+    expect(writePreference).not.toHaveBeenCalled()
+
+    await wrapper.get('.clear').trigger('click')
+    expect(groupNames()).toEqual(['דוד', 'שירה', 'Ari', 'Main', 'ללא קבוצה'])
     wrapper.unmount()
   })
 

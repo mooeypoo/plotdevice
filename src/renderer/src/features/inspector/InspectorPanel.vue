@@ -58,8 +58,12 @@ const { reading: dateCheck, error: dateCheckError } = useStoryDateCheck(
 )
 
 const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
-const characterNames = computed(() => namesOfType(linkTargets.value, ['character']))
-const locationNames = computed(() => namesOfType(linkTargets.value, ['location']))
+const characterNames = computed(() =>
+  namesOfType(linkTargets.value, ['character'], chrome.compareText)
+)
+const locationNames = computed(() =>
+  namesOfType(linkTargets.value, ['location'], chrome.compareText)
+)
 
 const statuses = computed(() => inspector.vocabulary?.statuses ?? [])
 const statusNotInList = computed(() => {
@@ -238,7 +242,9 @@ const partName = computed(() => {
             <dd v-else dir="auto">{{ partName }}</dd>
           </div>
           <div>
-            <dt><label for="inspector-order">{{ language.t('inspector-order') }}</label></dt>
+            <dt>
+              <label for="inspector-order">{{ language.t('inspector-order') }}</label>
+            </dt>
             <dd>
               <input
                 id="inspector-order"
@@ -246,7 +252,9 @@ const partName = computed(() => {
                 class="order"
                 type="number"
                 step="1"
-                :placeholder="properties.order === undefined ? language.t('inspector-no-order') : ''"
+                :placeholder="
+                  properties.order === undefined ? language.t('inspector-no-order') : ''
+                "
                 :disabled="disabled"
                 @change="saveOrder"
               />
@@ -374,11 +382,7 @@ const partName = computed(() => {
               :class="{ on: properties.threads.includes(thread.key) }"
               :aria-pressed="properties.threads.includes(thread.key)"
               :disabled="disabled"
-              :title="
-                thread.unknown
-                  ? language.t('inspector-thread-unknown')
-                  : isolate(thread.key)
-              "
+              :title="thread.unknown ? language.t('inspector-thread-unknown') : isolate(thread.key)"
               @click="toggleThread(thread.key)"
             >
               <span

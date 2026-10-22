@@ -1,15 +1,19 @@
 import type { CodexEntryDto } from '../../../../contract/dtos'
 import { nameKey } from '../../shared/link-choices'
+import type { TextComparator } from '../../shared/use-chrome-presentation'
 
 /** Unique group names, retaining the first spelling and sorting for display. */
-export function characterGroupNames(names: readonly string[]): string[] {
+export function characterGroupNames(
+  names: readonly string[],
+  compareText: TextComparator = (left, right) => left.localeCompare(right)
+): string[] {
   const unique = new Map<string, string>()
   for (const name of names) {
     const trimmed = name.trim().normalize('NFC')
     const key = nameKey(trimmed)
     if (trimmed !== '' && !unique.has(key)) unique.set(key, trimmed)
   }
-  return [...unique.values()].sort((a, b) => a.localeCompare(b))
+  return [...unique.values()].sort(compareText)
 }
 
 /** A collapsible character section; `null` identifies Ungrouped, not a reserved group name. */

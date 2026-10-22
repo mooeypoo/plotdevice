@@ -7,6 +7,16 @@ import { useChromePresentation } from './use-chrome-presentation'
 beforeEach(() => setActivePinia(createPinia()))
 
 describe('chrome count presentation', () => {
+  it('compares display text using the current interface language', () => {
+    const presentation = useChromePresentation()
+    const names = ['שירה', 'Ari', 'דוד', 'Bea']
+    const sorted = (): string[] => [...names].sort(presentation.compareText)
+
+    expect(sorted()).toEqual(['Ari', 'Bea', 'דוד', 'שירה'])
+    useUiLanguageStore().locale = 'he'
+    expect(sorted()).toEqual(['דוד', 'שירה', 'Ari', 'Bea'])
+  })
+
   it.each([
     ['part', 'בחלק'],
     ['chapter', 'בפרק'],

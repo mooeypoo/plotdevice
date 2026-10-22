@@ -2,6 +2,7 @@ import { computed, ref, type ComputedRef } from 'vue'
 import type { CodexEntryDto } from '../../../../contract/dtos'
 import { useWritingPreferencesStore } from '../../app/writing-preferences-store'
 import { nameKey } from '../../shared/link-choices'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import { characterGroupNames, characterSections, visibleCharacters } from './character-list'
 
 /** Character navigation and per-project display choices, independent of membership edits. */
@@ -10,13 +11,15 @@ export function useCharacterList(
   root: ComputedRef<string>
 ) {
   const preferences = useWritingPreferencesStore()
+  const { compareText } = useChromePresentation()
   const search = ref('')
   const view = computed(() => preferences.characterView(root.value))
   const names = computed(() =>
     characterGroupNames(
       entries.value
         .filter((entry) => entry.kind === 'character')
-        .flatMap((entry) => entry.groups ?? [])
+        .flatMap((entry) => entry.groups ?? []),
+      compareText
     )
   )
   // Removed groups must not leave the list invisibly filtered.

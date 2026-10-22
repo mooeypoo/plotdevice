@@ -1,4 +1,5 @@
 import type { ChapterDto, ManuscriptDto, PartDto } from '../../../../contract/dtos'
+import type { TextComparator } from '../../shared/use-chrome-presentation'
 
 /** What the Overview shows: `null` means any. `''` as status means "no status". */
 export interface OverviewFilters {
@@ -81,7 +82,10 @@ export function overviewSections(
 }
 
 /** The values the filters can choose from, as they appear in the book. */
-export function filterChoices(manuscript: ManuscriptDto): {
+export function filterChoices(
+  manuscript: ManuscriptDto,
+  compareText: TextComparator = (left, right) => left.localeCompare(right)
+): {
   readonly statuses: readonly string[]
   readonly povs: readonly string[]
   readonly threads: readonly string[]
@@ -94,7 +98,7 @@ export function filterChoices(manuscript: ManuscriptDto): {
   const unique = (values: readonly string[]): string[] => {
     const seen = new Map<string, string>()
     for (const value of values) if (!seen.has(nameKey(value))) seen.set(nameKey(value), value)
-    return [...seen.values()].sort((a, b) => a.localeCompare(b))
+    return [...seen.values()].sort(compareText)
   }
   return {
     statuses: unique(

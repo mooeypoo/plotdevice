@@ -24,4 +24,25 @@ describe('link helpers', () => {
       )
     ).toEqual(['Aunt Bea', 'Marrow', 'Noël'])
   })
+
+  it('sorts suggestion names using the selected locale', () => {
+    const targets = [
+      { name: 'שירה', path: 'characters/שירה.md', type: 'character' },
+      { name: 'Ari', path: 'characters/Ari.md', type: 'character' },
+      { name: 'דוד', path: 'characters/דוד.md', type: 'character' },
+      { name: 'Bea', path: 'characters/Bea.md', type: 'character' }
+    ]
+    expect(namesOfType(targets, ['character'], new Intl.Collator('en').compare)).toEqual([
+      'Ari',
+      'Bea',
+      'דוד',
+      'שירה'
+    ])
+    expect(namesOfType(targets, ['character'], new Intl.Collator('he').compare)).toEqual([
+      'דוד',
+      'שירה',
+      'Ari',
+      'Bea'
+    ])
+  })
 })
