@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { ref, shallowRef } from 'vue'
 import type { LinkAt } from '../shared/link-at'
 import type { ScreenRect } from '../shared/screen-rect'
@@ -89,3 +89,6 @@ export function usePeek() {
 
   return { peekLink, endHover: peek.endHover, close: peek.close }
 }
+
+// Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(usePeekStore, import.meta.hot))

@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { nextTick, ref } from 'vue'
 
 /** Whether the command palette is open, and where focus goes back when it closes. */
@@ -28,11 +28,17 @@ export const usePaletteStore = defineStore('palette', () => {
     const previous = returnTo
     open.value = false
     returnTo = null
-    await command()
-    await nextTick()
-    const focused = document.activeElement
-    if (focused === null || focused === document.body) previous?.focus()
+    try {
+      await command()
+    } finally {
+      await nextTick()
+      const focused = document.activeElement
+      if (focused === null || focused === document.body) previous?.focus()
+    }
   }
 
   return { open, show, close, runAndClose }
 })
+
+// Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(usePaletteStore, import.meta.hot))

@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { createDocumentReader, type ReadEntry } from './document-reader'
 import { registerMoveFollower } from './move-followers'
 import { useWorkbenchNavigation } from './use-workbench-navigation'
@@ -19,3 +19,6 @@ export const useReferenceStore = defineStore('reference', () => {
 })
 
 registerMoveFollower(() => useReferenceStore())
+
+// Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useReferenceStore, import.meta.hot))

@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
 import type {
   ApiError,
@@ -344,3 +344,6 @@ function withWordCount(manuscript: ManuscriptDto, path: string, delta: number): 
     wordCount: manuscript.wordCount + delta
   }
 }
+
+// Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useManuscriptStore, import.meta.hot))

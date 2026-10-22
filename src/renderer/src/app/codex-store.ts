@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import type {
   AppearanceDto,
@@ -272,3 +272,6 @@ export const useCodexStore = defineStore('codex', () => {
 })
 
 registerEntryOwner(['character', 'location', 'note', 'template', 'outline'], () => useCodexStore())
+
+// Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useCodexStore, import.meta.hot))

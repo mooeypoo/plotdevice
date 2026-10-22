@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, onScopeDispose, ref } from 'vue'
 import type { UiLanguageDto, UiLocale } from '../../../contract/dtos'
 import { uiDirection } from '../../../i18n/locales'
@@ -58,3 +58,6 @@ export const useUiLanguageStore = defineStore('ui-language', () => {
   })
   return { locale, busy, errorMessage, t, initialize, change }
 })
+
+// Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useUiLanguageStore, import.meta.hot))

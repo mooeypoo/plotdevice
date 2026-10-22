@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import type { MessageKey } from '../../../i18n/translator'
 import type { Layout } from '../workbench/model/layout'
@@ -334,3 +334,6 @@ export const useWorkbenchStore = defineStore('workbench', () => {
 })
 
 registerMoveFollower(() => useWorkbenchStore())
+
+// Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useWorkbenchStore, import.meta.hot))

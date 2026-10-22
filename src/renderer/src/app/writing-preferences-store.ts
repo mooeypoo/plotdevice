@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { z } from 'zod'
 import type { ApiResult } from '../../../contract/dtos'
@@ -218,3 +218,7 @@ export const useWritingPreferencesStore = defineStore('writing-preferences', () 
     setPartCollapsed
   }
 })
+
+// Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
+if (import.meta.hot)
+  import.meta.hot.accept(acceptHMRUpdate(useWritingPreferencesStore, import.meta.hot))
