@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { computed, ref, shallowRef } from 'vue'
+import { computed, ref, shallowRef, watch } from 'vue'
 import type { MessageKey } from '../../../i18n/translator'
 import type { Layout } from '../workbench/model/layout'
 import {
@@ -345,9 +345,20 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     }))
   }
 
-  /** The outline this project reads beside the draft; before any choice, the old shell's. */
+  // The old shell's one outline choice carries over to the first project opened as it is retired.
+  let legacyOutlinePath = loadedSettings.legacyOutlinePath
+  watch(root, (opened) => {
+    if (opened === null || legacyOutlinePath === null) return
+    const carried = legacyOutlinePath
+    legacyOutlinePath = null
+    if (bindings.value.outlinePath === null) {
+      updateBindings((current) => ({ ...current, outlinePath: carried }))
+    }
+  })
+
+  /** The outline this project reads beside the draft and on the board. */
   const outlinePath = computed<string | null>({
-    get: () => bindings.value.outlinePath ?? loadedSettings.legacyOutlinePath,
+    get: () => bindings.value.outlinePath,
     set: (path) => {
       updateBindings((current) => ({ ...current, outlinePath: path }))
     }

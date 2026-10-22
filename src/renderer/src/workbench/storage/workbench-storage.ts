@@ -12,7 +12,7 @@ import {
 export const WORKBENCH_KEY = 'plotdevice.workbench'
 /** Per-project bindings, keyed by project root. */
 export const WORKBENCH_PROJECTS_KEY = 'plotdevice.workbenchProjects'
-/** The old shell's layout record, read once to derive the first workbench settings. */
+/** The old shell's layout record: read once to derive the first workbench settings, then removed. */
 export const LEGACY_LAYOUT_KEY = 'plotdevice.layout'
 /** Writing preferences, which hold the old shell's outline width. */
 export const WRITING_PREFERENCES_KEY = 'plotdevice.writingPreferences'
@@ -21,14 +21,15 @@ export const WRITING_PREFERENCES_KEY = 'plotdevice.writingPreferences'
 export type WorkbenchStorageProblem = 'unavailable' | 'invalid' | 'save-failed'
 
 /** The storage calls the adapter needs; `localStorage` by default. */
-export type WorkbenchStorage = Pick<Storage, 'getItem' | 'setItem'>
+export type WorkbenchStorage = Pick<Storage, 'getItem' | 'setItem'> &
+  Partial<Pick<Storage, 'removeItem'>>
 
 /** Per-user settings as loaded. */
 export interface LoadedWorkbenchSettings {
   readonly settings: WorkbenchSettings
   /** True when no workbench settings existed yet and these came from the old shell's keys. */
   readonly derived: boolean
-  /** The old shell's global outline, while its record exists. */
+  /** The old shell's global outline, read with its record in the session that removes it. */
   readonly legacyOutlinePath: string | null
   readonly problem: WorkbenchStorageProblem | null
 }
@@ -90,9 +91,19 @@ function writeJson(
   }
 }
 
+/** Removes the old shell's layout record once its settings live on in the workbench's (W6). */
+function retireLegacyLayout(storage: WorkbenchStorage | undefined): void {
+  try {
+    storage?.removeItem?.(LEGACY_LAYOUT_KEY)
+  } catch (error) {
+    report('save-failed', LEGACY_LAYOUT_KEY, error)
+  }
+}
+
 /**
- * Loads per-user layouts. On first run they are derived from the old shell's keys, which stay
- * untouched. Unusable storage falls back to the presets and is reported, never blocking writing.
+ * Loads per-user layouts. On first run they are derived from the old shell's keys and saved; once
+ * workbench settings are safely stored, the old record is removed. Unusable storage falls back to
+ * the presets and is reported, never blocking writing, and then the old record is kept.
  */
 export function loadWorkbenchSettings(given?: WorkbenchStorage): LoadedWorkbenchSettings {
   const storage = given ?? defaultStorage()
@@ -114,12 +125,12 @@ export function loadWorkbenchSettings(given?: WorkbenchStorage): LoadedWorkbench
       typeof preferences === 'object' && preferences !== null && 'outlineWidth' in preferences
         ? preferences.outlineWidth
         : undefined
-    return {
-      settings: deriveFromLegacy(legacyLayout, outlineWidth).settings,
-      derived: true,
-      legacyOutlinePath,
-      problem: null
-    }
+    const settings = deriveFromLegacy(legacyLayout, outlineWidth).settings
+    if (legacyLayout === undefined)
+      return { settings, derived: true, legacyOutlinePath, problem: null }
+    const saved = writeJson(storage, WORKBENCH_KEY, settings)
+    if (saved === null) retireLegacyLayout(storage)
+    return { settings, derived: true, legacyOutlinePath, problem: saved }
   }
   const parsed = parseWorkbenchSettings(read.value)
   if (parsed === undefined) {
@@ -127,6 +138,7 @@ export function loadWorkbenchSettings(given?: WorkbenchStorage): LoadedWorkbench
     return fallback('invalid')
   }
   if (parsed.dropped > 0) report('invalid', WORKBENCH_KEY, `${String(parsed.dropped)} dropped`)
+  retireLegacyLayout(storage)
   return {
     settings: parsed.settings,
     derived: false,

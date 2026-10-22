@@ -307,8 +307,8 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 **Done when:** each sub-phase works by keyboard alone, peeks and cards show live drafts without saving, and Write here never drops a draft or bypasses recovery (tested).
 
 ### W6: Retire the old shell
-- [ ] Remove `SidePanel`, `RightPanel`, the Classic switch, and `layout-store.ts`.
-- [ ] Remove `plotdevice.layout` and `plotdevice.lastEntry` after a confirmed migration. Update `docs/architecture.md` and the renderer README.
+- [x] Remove `SidePanel`, `RightPanel`, the Classic switch (native menu and palette; contract version 30), and `layout-store.ts`, whose parts moved to the workbench store (focus mode, center view, document presenter) and to navigation in view ids.
+- [x] Remove `plotdevice.layout` and `plotdevice.lastEntry` after a confirmed migration: derived settings are saved, then the old record is removed (or kept if the save fails); the old global outline carries to the first project opened; a project's last entry seeds its tabs once. A source scan keeps the keys inside the migration modules. Update `docs/architecture.md` and the renderer README.
 
 **Done when:** no code reads the old keys, and an upgrade from a pre-W1 profile keeps the writer's arrangement (tested).
 

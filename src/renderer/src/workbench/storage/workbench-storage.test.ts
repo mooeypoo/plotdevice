@@ -33,7 +33,7 @@ const legacyLayout = JSON.stringify({
 const legacyPreferences = JSON.stringify({ version: 1, fontSize: 19, outlineWidth: 480 })
 
 describe('loadWorkbenchSettings', () => {
-  it('derives the first settings from the old shell and leaves its keys untouched', () => {
+  it('derives the first settings from the old shell, saves them, and then retires its record', () => {
     localStorage.setItem(LEGACY_LAYOUT_KEY, legacyLayout)
     localStorage.setItem(WRITING_PREFERENCES_KEY, legacyPreferences)
     const loaded = loadWorkbenchSettings()
@@ -46,9 +46,39 @@ describe('loadWorkbenchSettings', () => {
       start: { collapsed: true, activeSection: 'codex' },
       end: { collapsed: false, activeSection: 'outline', size: 480 }
     })
-    expect(localStorage.getItem(LEGACY_LAYOUT_KEY)).toBe(legacyLayout)
+    expect(localStorage.getItem(LEGACY_LAYOUT_KEY)).toBeNull()
     expect(localStorage.getItem(WRITING_PREFERENCES_KEY)).toBe(legacyPreferences)
-    expect(localStorage.getItem(WORKBENCH_KEY)).toBeNull()
+    expect(JSON.parse(localStorage.getItem(WORKBENCH_KEY) ?? 'null')).toEqual(loaded.settings)
+    // The next start reads the saved settings, the same arrangement, with nothing left to derive.
+    expect(loadWorkbenchSettings()).toMatchObject({
+      settings: loaded.settings,
+      derived: false,
+      legacyOutlinePath: null
+    })
+  })
+
+  it('keeps the old record when the derived settings could not be saved', () => {
+    const items = new Map([[LEGACY_LAYOUT_KEY, legacyLayout]])
+    const failing = {
+      getItem: (key: string) => items.get(key) ?? null,
+      setItem: () => {
+        throw new Error('Full')
+      },
+      removeItem: (key: string) => {
+        items.delete(key)
+      }
+    }
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    expect(loadWorkbenchSettings(failing)).toMatchObject({ derived: true, problem: 'save-failed' })
+    expect(items.get(LEGACY_LAYOUT_KEY)).toBe(legacyLayout)
+  })
+
+  it('retires an old record left beside settings a W1+ version already saved', () => {
+    const settings = loadWorkbenchSettings().settings
+    localStorage.setItem(WORKBENCH_KEY, JSON.stringify(settings))
+    localStorage.setItem(LEGACY_LAYOUT_KEY, legacyLayout)
+    expect(loadWorkbenchSettings()).toMatchObject({ settings, derived: false })
+    expect(localStorage.getItem(LEGACY_LAYOUT_KEY)).toBeNull()
   })
 
   it('starts from the presets on a fresh profile', () => {

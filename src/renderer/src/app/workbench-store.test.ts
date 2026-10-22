@@ -60,17 +60,19 @@ describe('workbench store', () => {
     })
   })
 
-  it('keeps the outline per project, falling back to the old shell’s global choice', async () => {
+  it('keeps the outline per project, carrying the old shell’s choice to the first project', async () => {
     localStorage.setItem('plotdevice.layout', JSON.stringify({ outlinePath: 'Plan.md' }))
     setActivePinia(createPinia())
     await useWorkspaceStore().openProject('/book')
     const workbench = useWorkbenchStore()
     expect(workbench.outlinePath).toBe('Plan.md')
+    expect(localStorage.getItem('plotdevice.layout')).toBeNull()
     workbench.outlinePath = 'Ledger.md'
     expect(workbench.outlinePath).toBe('Ledger.md')
-    expect(localStorage.getItem('plotdevice.layout')).toBe(
-      JSON.stringify({ outlinePath: 'Plan.md' })
-    )
+    // Bound to the project, so it outlives the old record.
+    setActivePinia(createPinia())
+    await useWorkspaceStore().openProject('/book')
+    expect(useWorkbenchStore().outlinePath).toBe('Ledger.md')
   })
 
   it('shows a translated notice when saving fails, and keeps working', () => {
