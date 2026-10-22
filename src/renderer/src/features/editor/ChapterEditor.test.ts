@@ -235,12 +235,16 @@ describe('ChapterEditor peeks', () => {
     return view
   }
 
-  it('peeks at the link under the caret with Ctrl/Cmd+Shift+Enter', () => {
+  it('peeks at the link under the caret with Alt+Enter, not Return to writing’s keys', () => {
     const wrapper = mountEditor()
     const view = viewOf(wrapper)
     view.dispatch({ selection: { anchor: 7 } })
     view.contentDOM.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, shiftKey: true, bubbles: true })
+    )
+    expect(wrapper.emitted('peek')).toBeUndefined()
+    view.contentDOM.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', altKey: true, bubbles: true })
     )
     const [link, , byKeyboard] = wrapper.emitted('peek')?.[0] ?? []
     expect(link).toEqual({ kind: 'wiki', target: 'Ilka' })
