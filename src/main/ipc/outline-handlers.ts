@@ -9,6 +9,8 @@ import type {
 } from '../../contract/dtos'
 import type { CaptureBeat } from '../contexts/outline/application/commands/capture-beat'
 import type { CreateOutline } from '../contexts/outline/application/commands/create-outline'
+import type { MoveBeat } from '../contexts/outline/application/commands/move-beat'
+import type { MoveColumn } from '../contexts/outline/application/commands/move-column'
 import type { SaveOutlineText } from '../contexts/outline/application/commands/save-outline-text'
 import type { ListOutlines } from '../contexts/outline/application/queries/list-outlines'
 import type { OpenOutline } from '../contexts/outline/application/queries/open-outline'
@@ -24,6 +26,8 @@ export interface OutlineUseCases {
   readonly saveOutlineText: SaveOutlineText
   readonly getPlotBoard: GetPlotBoard
   readonly captureBeat: CaptureBeat
+  readonly moveBeat: MoveBeat
+  readonly moveColumn: MoveColumn
 }
 
 /** The outline API as plain functions of untrusted arguments. */
@@ -34,6 +38,8 @@ export interface OutlineHandlers {
   saveEntryText(args: readonly unknown[]): Promise<ApiResult<SavedEntryDto>>
   readBoard(args: readonly unknown[]): Promise<ApiResult<PlotBoardDto>>
   capture(args: readonly unknown[]): Promise<ApiResult<{ readonly version: string }>>
+  moveBeat(args: readonly unknown[]): Promise<ApiResult<PlotBoardDto>>
+  moveColumn(args: readonly unknown[]): Promise<ApiResult<PlotBoardDto>>
 }
 
 const path = z.string().min(1).max(4096)
@@ -45,6 +51,13 @@ const saveArgs = z.tuple([
   z.string().min(1).max(200),
   z.boolean()
 ])
+const version = z.string().min(1).max(200)
+const itemRef = z
+  .object({ line: z.number().int().min(0).max(10_000_000), title: z.string().max(10_000) })
+  .strict()
+const placement = z.union([z.literal('end'), z.object({ before: itemRef }).strict()])
+const moveBeatArgs = z.tuple([path, version, itemRef, itemRef, placement])
+const moveColumnArgs = z.tuple([path, version, itemRef, placement])
 const captureArgs = z.tuple([path, z.string().max(2000), z.string().min(1).max(200).nullable()])
 
 const noProject: ApiResult<never> = {
@@ -70,6 +83,15 @@ const notAllowed: ApiResult<never> = {
     message: 'That file is not one of this project’s outlines.',
     diagnostic: { reason: 'outline-not-allowed' }
   }
+}
+
+/** The board as the file reads now, after a move. */
+async function boardOf(
+  useCases: OutlineUseCases,
+  outline: ProjectPath
+): Promise<ApiResult<PlotBoardDto>> {
+  const board = await useCases.getPlotBoard(outline)
+  return board.ok ? { ok: true, value: board.value } : { ok: false, error: toApiError(board.error) }
 }
 
 /**
@@ -160,6 +182,30 @@ export function createOutlineHandlers(current: () => OutlineUseCases | undefined
           return board.ok
             ? { ok: true, value: board.value }
             : { ok: false, error: toApiError(board.error) }
+        }
+      ),
+
+    moveBeat: (args) =>
+      onOutline<z.infer<typeof moveBeatArgs>, PlotBoardDto>(
+        moveBeatArgs,
+        args,
+        async (useCases, outline, [, at, beat, column, where]) => {
+          const moved = await useCases.moveBeat(outline, at, beat, column, where)
+          return moved.ok
+            ? boardOf(useCases, outline)
+            : { ok: false, error: toApiError(moved.error) }
+        }
+      ),
+
+    moveColumn: (args) =>
+      onOutline<z.infer<typeof moveColumnArgs>, PlotBoardDto>(
+        moveColumnArgs,
+        args,
+        async (useCases, outline, [, at, column, where]) => {
+          const moved = await useCases.moveColumn(outline, at, column, where)
+          return moved.ok
+            ? boardOf(useCases, outline)
+            : { ok: false, error: toApiError(moved.error) }
         }
       ),
 
