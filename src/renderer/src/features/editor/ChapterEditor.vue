@@ -48,10 +48,16 @@ watch(
   { flush: 'post' }
 )
 
+watch(
+  () => writingPreferences.writingDirection,
+  (direction) => editor?.setWritingDirection(direction)
+)
+
 onMounted(() => {
   if (host.value === null) return
   editor = createProseEditor(host.value, {
     text: props.initialText,
+    writingDirection: writingPreferences.writingDirection,
     state: documentView.state,
     readOnly: props.readOnly,
     focusMode: props.focusMode,

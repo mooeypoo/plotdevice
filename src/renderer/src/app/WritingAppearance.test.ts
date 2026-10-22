@@ -51,6 +51,35 @@ describe('WritingAppearance', () => {
     wrapper.unmount()
   })
 
+  it('changes writing direction independently of the translated interface', async () => {
+    const wrapper = mount(WritingAppearance)
+    const select = wrapper.get<HTMLSelectElement>('#prose-direction')
+    const selectElement = select.element
+    expect(wrapper.get('label[for="prose-direction"]').text()).toBe('Text direction')
+    expect(select.element.value).toBe('auto')
+    expect(select.findAll('option').map((option) => option.text())).toEqual([
+      'Automatic per line',
+      'Left to right',
+      'Right to left'
+    ])
+
+    await select.setValue('rtl')
+    expect(useWritingPreferencesStore().writingDirection).toBe('rtl')
+
+    useUiLanguageStore().locale = 'he'
+    await wrapper.vm.$nextTick()
+    expect(wrapper.get('#prose-direction').element).toBe(selectElement)
+    expect(wrapper.get('label[for="prose-direction"]').text()).toBe('כיוון הטקסט')
+    expect(wrapper.findAll('#prose-direction option').map((option) => option.text())).toEqual([
+      'אוטומטי לפי שורה',
+      'משמאל לימין',
+      'מימין לשמאל'
+    ])
+    expect(selectElement.value).toBe('rtl')
+    expect(useWritingPreferencesStore().writingDirection).toBe('rtl')
+    wrapper.unmount()
+  })
+
   it('shows storage failures rather than suggesting settings were saved', async () => {
     const wrapper = mount(WritingAppearance)
     vi.spyOn(console, 'warn').mockImplementation(() => undefined)

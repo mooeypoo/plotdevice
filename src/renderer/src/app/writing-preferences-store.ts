@@ -11,11 +11,16 @@ export const PROSE_FONT_SIZE = { min: 14, max: 28, default: 19 } as const
 export const PROSE_LINE_WIDTH = { min: 45, max: 90, default: 66 } as const
 /** The reference outline's preferred width; smaller windows constrain its displayed width. */
 export const OUTLINE_WIDTH = { min: 240, max: 720, default: 320 } as const
+/** Available prose direction modes, independent of the interface language. */
+export const WRITING_DIRECTIONS = ['auto', 'ltr', 'rtl'] as const
+/** A writer-selected direction mode for the prose surface. */
+export type WritingDirection = (typeof WRITING_DIRECTIONS)[number]
 
 const KEY = 'plotdevice.writingPreferences'
 const fontSizeSchema = z.number().int().min(PROSE_FONT_SIZE.min).max(PROSE_FONT_SIZE.max)
 const lineWidthSchema = z.number().int().min(PROSE_LINE_WIDTH.min).max(PROSE_LINE_WIDTH.max)
 const outlineWidthSchema = z.number().int().min(OUTLINE_WIDTH.min).max(OUTLINE_WIDTH.max)
+const writingDirectionSchema = z.enum(WRITING_DIRECTIONS)
 const characterViewSchema = z.object({
   mode: z.enum(['all', 'grouped']),
   filters: z.array(z.string()),
@@ -28,6 +33,7 @@ const preferencesSchema = z.object({
   fontSize: fontSizeSchema,
   lineWidth: lineWidthSchema,
   outlineWidth: outlineWidthSchema.default(OUTLINE_WIDTH.default),
+  writingDirection: writingDirectionSchema.default('auto'),
   characterViews: z.record(z.string(), characterViewSchema).default({}),
   collapsedParts: z.record(z.string(), z.array(z.string()))
 })
@@ -40,6 +46,7 @@ function defaults(): WritingPreferences {
     fontSize: PROSE_FONT_SIZE.default,
     lineWidth: PROSE_LINE_WIDTH.default,
     outlineWidth: OUTLINE_WIDTH.default,
+    writingDirection: 'auto',
     characterViews: {},
     collapsedParts: {}
   }
@@ -111,6 +118,18 @@ export const useWritingPreferencesStore = defineStore('writing-preferences', () 
     return setTypography('lineWidth', value)
   }
 
+  function setWritingDirection(value: unknown): ApiResult<void> {
+    const parsed = writingDirectionSchema.safeParse(value)
+    if (!parsed.success) {
+      const error = { code: 'invalid-writing-direction', message: parsed.error.message }
+      console.warn('Invalid writing direction.', error)
+      return { ok: false, error }
+    }
+    preferences.value.writingDirection = parsed.data
+    save()
+    return { ok: true, value: undefined }
+  }
+
   function resetTypography(): void {
     preferences.value.fontSize = PROSE_FONT_SIZE.default
     preferences.value.lineWidth = PROSE_LINE_WIDTH.default
@@ -174,10 +193,12 @@ export const useWritingPreferencesStore = defineStore('writing-preferences', () 
   return {
     fontSize,
     lineWidth,
+    writingDirection: computed(() => preferences.value.writingDirection),
     proseStyle,
     storageNotice,
     setFontSize,
     setLineWidth,
+    setWritingDirection,
     resetTypography,
     outlineWidth: computed(() => preferences.value.outlineWidth),
     setOutlineWidth,

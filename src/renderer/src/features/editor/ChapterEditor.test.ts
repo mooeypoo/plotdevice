@@ -7,6 +7,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { useWritingPreferencesStore } from '../../app/writing-preferences-store'
+import { useUiLanguageStore } from '../../app/ui-language-store'
 import ChapterEditor from './ChapterEditor.vue'
 
 beforeEach(() => {
@@ -106,6 +107,62 @@ describe('ChapterEditor appearance', () => {
     expect(undo(view)).toBe(true)
     expect(view.state.doc.toString()).toBe('Original prose.')
     measure.mockRestore()
+    wrapper.unmount()
+  })
+
+  it('switches writing direction live without changing the draft or editor history', async () => {
+    const wrapper = mount(ChapterEditor, {
+      props: {
+        initialText: 'English line\nשורה בעברית',
+        readOnly: false,
+        focusMode: false,
+        linkTargets: [],
+        completions: []
+      },
+      attachTo: document.body
+    })
+    const editorElement = wrapper.get('.cm-editor').element
+    const contentElement = wrapper.get('.cm-content').element
+    if (!(editorElement instanceof HTMLElement) || !(contentElement instanceof HTMLElement))
+      throw new Error('Expected the CodeMirror editor and content elements')
+    const view = EditorView.findFromDOM(editorElement)
+    if (view === null) throw new Error('Expected a mounted CodeMirror view')
+    expect(wrapper.get('.cm-content').attributes('dir')).toBe('auto')
+    expect(wrapper.findAll('.cm-line[dir="auto"]')).toHaveLength(2)
+
+    view.dispatch({ changes: { from: 0, insert: 'First ' }, selection: { anchor: 3 } })
+    const text = view.state.doc.toString()
+    const selection = view.state.selection.main.anchor
+    const historyDepth = undoDepth(view.state)
+    const changes = wrapper.emitted('change')
+    const preferences = useWritingPreferencesStore()
+
+    for (const direction of ['rtl', 'ltr'] as const) {
+      expect(preferences.setWritingDirection(direction).ok).toBe(true)
+      await nextTick()
+      expect(wrapper.get('.cm-editor').element).toBe(editorElement)
+      expect(wrapper.get('.cm-content').element).toBe(contentElement)
+      expect(wrapper.get('.cm-content').attributes('dir')).toBe(direction)
+      expect(wrapper.findAll('.cm-line[dir="auto"]')).toHaveLength(0)
+      expect(view.state.doc.toString()).toBe(text)
+      expect(view.state.selection.main.anchor).toBe(selection)
+      expect(undoDepth(view.state)).toBe(historyDepth)
+      expect(wrapper.emitted('change')).toEqual(changes)
+    }
+
+    useUiLanguageStore().locale = 'he'
+    await nextTick()
+    expect(wrapper.get('.cm-content').attributes('dir')).toBe('ltr')
+
+    expect(preferences.setWritingDirection('auto').ok).toBe(true)
+    await nextTick()
+    expect(wrapper.get('.cm-content').attributes('dir')).toBe('auto')
+    expect(wrapper.findAll('.cm-line[dir="auto"]')).toHaveLength(2)
+    expect(view.state.doc.toString()).toBe(text)
+    expect(view.state.selection.main.anchor).toBe(selection)
+    expect(undoDepth(view.state)).toBe(historyDepth)
+    expect(undo(view)).toBe(true)
+    expect(view.state.doc.toString()).toBe('English line\nשורה בעברית')
     wrapper.unmount()
   })
 })

@@ -163,6 +163,12 @@ progress, remaining limitations, and the next slice before ending a session.
 - [ ] **I5 Writing/reading:** independent direction preference; live CodeMirror
   phrases/placeholders; mixed-script caret/selection, completions and technical
   spans; consistent outline/reference policy without losing history or scroll.
+  - [x] **I5a Writing direction preference:** persist Auto/LTR/RTL independently
+    of UI language; apply it live to CodeMirror without remounting or losing
+    draft, selection, or undo history.
+  - [ ] **Remaining I5:** localize CodeMirror copy; qualify mixed-script
+    caret/selection, completions and technical spans; apply a consistent
+    direction policy to outline/reference reading surfaces.
 - [ ] **I6 Qualification:** catalog validation, translator guide/glossary,
   expanded-text checks, real browser and packaged Linux/Windows journeys.
 - [ ] **D1 Separate approval:** Hebrew VitePress manual/navigation/search/RTL
@@ -1313,3 +1319,25 @@ overflow, pointer/scroll behavior, and packaged Linux/Windows checks remain
 part of I6 qualification. The next implementation phase is I5: independent
 writing/reading direction and mixed-script editor behavior. D1 remains a
 separate approval.
+
+### I5a Independent writing direction
+
+Writing preferences now persist an Auto/LTR/RTL prose mode in per-user
+Chromium storage, with legacy settings defaulting to Auto. The writing
+appearance popover exposes all three modes in English and Hebrew. The active
+CodeMirror editor reconfigures its direction compartment live: Auto retains
+per-line first-strong direction; explicit modes apply to the whole writing
+surface. UI language and prose direction remain independent.
+
+Regression tests cover migration/defaults, validation, persistence, live
+Hebrew labels, and switching direction without replacing the editor or
+changing its text, selection, or undo history. Language switching alone does
+not change the preference or emit manuscript edits. Read-only outline/reference
+direction policy, localized CodeMirror placeholder/ARIA copy, and mixed-script
+completion/technical-span qualification remain in I5. I6 still covers
+catalog/translator workflow and real-browser plus packaged qualification.
+
+Verified lint/dependency boundaries (475 modules/2,430 dependencies),
+typecheck, **1,578 tests across 173 files**, production electron-vite build,
+and docs build/link/asset checks across all 16 public pages. The docs build
+reports existing non-fatal Node/Vite module-type warnings.

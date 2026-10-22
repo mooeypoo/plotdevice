@@ -45,6 +45,7 @@ describe('writing preferences', () => {
       const values = {
         fontSize: preferences.fontSize,
         lineWidth: preferences.lineWidth,
+        writingDirection: preferences.writingDirection,
         outlineWidth: preferences.outlineWidth,
         view: preferences.characterView('/book'),
         collapsed: preferences.isPartCollapsed('/book', 'Part.md')
@@ -58,6 +59,7 @@ describe('writing preferences', () => {
       expect(preferences.storageNotice).not.toMatch(/could not|invalid|preferences-notice-/u)
       expect(preferences.fontSize).toBe(values.fontSize)
       expect(preferences.lineWidth).toBe(values.lineWidth)
+      expect(preferences.writingDirection).toBe(values.writingDirection)
       expect(preferences.outlineWidth).toBe(values.outlineWidth)
       expect(preferences.characterView('/book')).toEqual(values.view)
       expect(preferences.isPartCollapsed('/book', 'Part.md')).toBe(values.collapsed)
@@ -106,6 +108,7 @@ describe('writing preferences', () => {
     const preferences = useWritingPreferencesStore()
     expect(preferences.outlineWidth).toBe(320)
     expect(preferences.fontSize).toBe(24)
+    expect(preferences.writingDirection).toBe('auto')
     expect(preferences.isPartCollapsed('/book', 'Part One.md')).toBe(true)
     expect(preferences.storageNotice).toBe('')
   })
@@ -129,6 +132,30 @@ describe('writing preferences', () => {
     expect(preferences.fontSize).toBe(19)
     expect(preferences.lineWidth).toBe(66)
     expect(preferences.proseStyle).toEqual({ '--prose-size': '19px', '--measure': '66ch' })
+  })
+
+  it('persists writing direction independently of interface language and typography reset', () => {
+    const preferences = useWritingPreferencesStore()
+    expect(preferences.writingDirection).toBe('auto')
+    expect(preferences.setWritingDirection('rtl').ok).toBe(true)
+    useUiLanguageStore().locale = 'he'
+    expect(preferences.writingDirection).toBe('rtl')
+
+    preferences.setFontSize(24)
+    preferences.resetTypography()
+    expect(preferences.writingDirection).toBe('rtl')
+
+    setActivePinia(createPinia())
+    expect(useWritingPreferencesStore().writingDirection).toBe('rtl')
+  })
+
+  it('rejects unsupported writing directions without replacing the selected mode', () => {
+    const preferences = useWritingPreferencesStore()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    expect(preferences.setWritingDirection('rtl').ok).toBe(true)
+    expect(preferences.setWritingDirection('vertical').ok).toBe(false)
+    expect(preferences.writingDirection).toBe('rtl')
+    expect(warn).toHaveBeenCalledOnce()
   })
 
   it('persists both typography controls between app sessions', () => {

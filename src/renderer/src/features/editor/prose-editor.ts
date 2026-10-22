@@ -1,9 +1,10 @@
 import { autocompletion } from '@codemirror/autocomplete'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
-import { Compartment, EditorState, StateEffect } from '@codemirror/state'
+import { Compartment, EditorState, StateEffect, type Extension } from '@codemirror/state'
 import { EditorView, keymap, placeholder } from '@codemirror/view'
 import type { LinkTargetDto } from '../../../../contract/dtos'
+import type { WritingDirection } from '../../app/writing-preferences-store'
 import { focusDimming } from './focus-dimming'
 import { autoLineDirection } from './line-direction'
 import { proseAppearance } from './prose-theme'
@@ -15,6 +16,7 @@ import { createLinkKindLookup } from './wiki-link-scan'
 /** What the editor needs when it is created. */
 export interface ProseEditorOptions {
   readonly text: string
+  readonly writingDirection: WritingDirection
   /** Session state is reused only when its text still matches the freshly read file. */
   readonly state?: EditorState | undefined
   readonly readOnly: boolean
@@ -31,6 +33,7 @@ export interface ProseEditorOptions {
 /** A mounted prose editor and the settings that can change while it is open. */
 export interface ProseEditor {
   setReadOnly(on: boolean): void
+  setWritingDirection(direction: WritingDirection): void
   remeasure(): void
   setFocusMode(on: boolean): void
   setLinkTargets(targets: readonly LinkTargetDto[]): void
@@ -39,11 +42,12 @@ export interface ProseEditor {
   destroy(): void
 }
 
-/** Mounts a CodeMirror editor set up for prose: wrapped lines, per-line text direction (Hebrew). */
+/** Mounts a wrapped prose editor with an independently configurable text-direction mode. */
 export function createProseEditor(parent: HTMLElement, options: ProseEditorOptions): ProseEditor {
   const focusCompartment = new Compartment()
   const linksCompartment = new Compartment()
   const editingCompartment = new Compartment()
+  const directionCompartment = new Compartment()
 
   const extensions = [
     history(),
@@ -51,14 +55,7 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
     markdown({ base: markdownLanguage }),
     proseAppearance(),
     EditorView.lineWrapping,
-    // Each line runs left-to-right or right-to-left by its own first strong character.
-    EditorView.perLineTextDirection.of(true),
-    autoLineDirection(),
-    EditorView.contentAttributes.of({
-      spellcheck: 'true',
-      autocorrect: 'on',
-      'aria-label': 'Prose'
-    }),
+    directionCompartment.of(writingDirectionExtensions(options.writingDirection)),
     placeholder('Begin writing…'),
     editingCompartment.of([
       EditorState.readOnly.of(options.readOnly),
@@ -106,6 +103,11 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
         ])
       })
     },
+    setWritingDirection(direction) {
+      view.dispatch({
+        effects: directionCompartment.reconfigure(writingDirectionExtensions(direction))
+      })
+    },
     remeasure() {
       view.requestMeasure()
     },
@@ -127,6 +129,20 @@ export function createProseEditor(parent: HTMLElement, options: ProseEditorOptio
       view.destroy()
     }
   }
+}
+
+function writingDirectionExtensions(direction: WritingDirection): Extension {
+  return [
+    // Per-line direction is only enabled in Auto; explicit modes apply to the entire prose surface.
+    EditorView.perLineTextDirection.of(direction === 'auto'),
+    EditorView.contentAttributes.of({
+      spellcheck: 'true',
+      autocorrect: 'on',
+      'aria-label': 'Prose',
+      dir: direction
+    }),
+    ...(direction === 'auto' ? [autoLineDirection()] : [])
+  ]
 }
 
 /** The link suggestions, in the app's dark palette. */

@@ -229,6 +229,10 @@ acceptance criteria, and the cross-session checklist.
   - [ ] Remaining I4: real-browser geometry, responsive overflow, pointer and
     scroll qualification (I6).
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.
+  - [x] I5a: Persist Auto/LTR/RTL prose direction independently of UI language;
+    apply live in CodeMirror without losing draft, selection, or undo history.
+  - [ ] Remaining I5: localize CodeMirror copy; qualify mixed-script
+    completions/technical spans and outline/reference reading direction.
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.
 - [ ] D1: Public Hebrew manual/distribution text (separate approval).
 

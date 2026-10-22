@@ -2,6 +2,7 @@
 import {
   PROSE_FONT_SIZE,
   PROSE_LINE_WIDTH,
+  WRITING_DIRECTIONS,
   useWritingPreferencesStore
 } from './writing-preferences-store'
 import { useUiLanguageStore } from './ui-language-store'
@@ -10,6 +11,18 @@ import { useChromePresentation } from '../shared/use-chrome-presentation'
 const preferences = useWritingPreferencesStore()
 const language = useUiLanguageStore()
 const { formatNumber } = useChromePresentation()
+
+const directionLabels = {
+  auto: 'appearance-direction-auto',
+  ltr: 'appearance-direction-ltr',
+  rtl: 'appearance-direction-rtl'
+} as const
+
+function changeWritingDirection(event: Event): void {
+  const target = event.currentTarget
+  if (!(target instanceof HTMLSelectElement)) throw new Error('Expected the writing direction select')
+  preferences.setWritingDirection(target.value)
+}
 </script>
 
 <template>
@@ -70,6 +83,18 @@ const { formatNumber } = useChromePresentation()
         :max="PROSE_LINE_WIDTH.max"
         step="1"
       />
+    </div>
+    <div class="control">
+      <label for="prose-direction">{{ language.t('appearance-direction') }}</label>
+      <select
+        id="prose-direction"
+        :value="preferences.writingDirection"
+        @change="changeWritingDirection"
+      >
+        <option v-for="direction in WRITING_DIRECTIONS" :key="direction" :value="direction">
+          {{ language.t(directionLabels[direction]) }}
+        </option>
+      </select>
     </div>
     <footer>
       <span>{{ language.t('appearance-all-projects') }}</span>
