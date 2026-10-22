@@ -4,7 +4,15 @@ import type { MessageKey } from '../../../i18n/translator'
 import type { Layout } from '../workbench/model/layout'
 import type { LayoutChange } from '../workbench/model/operations'
 import { PRESETS } from '../workbench/model/presets'
-import { storeArrangement } from '../workbench/model/saved-layouts'
+import {
+  deleteLayout,
+  renameLayout,
+  resetPreset,
+  saveLayoutAs,
+  storeArrangement,
+  type SavedLayoutRefusal,
+  type SettingsChange
+} from '../workbench/model/saved-layouts'
 import {
   defaultProjectBindings,
   layoutFor,
@@ -110,6 +118,34 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     return true
   }
 
+  /** Keeps a change to the writer's layouts, or returns why it was refused. */
+  function keep(change: SettingsChange): SavedLayoutRefusal | null {
+    if (!change.ok) return change.error
+    saveSettings(change.value)
+    return null
+  }
+
+  /** Saves the arrangement in use under a new name and uses it for this project. */
+  function saveAs(name: string): SavedLayoutRefusal | null {
+    const id = `user-${crypto.randomUUID()}`
+    const refusal = keep(saveLayoutAs(settings.value, id, name, layout.value))
+    if (refusal === null) setActiveLayout(id)
+    return refusal
+  }
+
+  function rename(id: string, name: string): SavedLayoutRefusal | null {
+    return keep(renameLayout(settings.value, id, name))
+  }
+
+  /** Deletes one of the writer's layouts; a project using it falls back to Write. */
+  function remove(id: string): SavedLayoutRefusal | null {
+    return keep(deleteLayout(settings.value, id))
+  }
+
+  function reset(id: string): SavedLayoutRefusal | null {
+    return keep(resetPreset(settings.value, id))
+  }
+
   function setShell(next: WorkbenchShell): void {
     if (next !== settings.value.shell) saveSettings({ ...settings.value, shell: next })
   }
@@ -132,6 +168,10 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     storageNotice,
     apply,
     setActiveLayout,
+    saveAs,
+    rename,
+    remove,
+    reset,
     setShell
   }
 })

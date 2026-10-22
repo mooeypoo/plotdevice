@@ -9,7 +9,9 @@ import { resizeArea, selectSection, setSectionCollapsed } from '../model/operati
 import { DOCK_SIZE } from '../model/sizes'
 import type { DockSide } from '../model/vocabulary'
 import { registeredView, VIEW_REGISTRY } from '../views/view-registry'
+import MenuButton from './MenuButton.vue'
 import Splitter from './Splitter.vue'
+import { usePlacementMenus } from './use-placement-menus'
 
 const props = defineProps<{
   side: DockSide
@@ -22,6 +24,7 @@ const props = defineProps<{
 const workbench = useWorkbenchStore()
 const language = useUiLanguageStore()
 const direction = computed(() => uiDirection(language.locale))
+const menus = usePlacementMenus()
 const area = computed(() => workbench.layout[props.side])
 /** Sections whose views exist; planned views appear once a feature registers them. */
 const sections = computed(() =>
@@ -106,15 +109,27 @@ function toggle(section: Section): void {
           {{ title(section) }}
         </button>
       </div>
-      <button
-        type="button"
-        class="quiet expand"
-        :aria-expanded="expanded"
-        :aria-controls="panelId"
-        @click="expanded = !expanded"
-      >
-        {{ language.t(expanded ? 'right-panel-restore' : 'right-panel-expand') }}
-      </button>
+      <span class="header-tools">
+        <MenuButton
+          v-if="area.arrangement === 'tabs'"
+          :label="language.t('workbench-panel-options', title(active))"
+          :items="menus.sectionMenu(active.id, active.view)"
+        />
+        <MenuButton
+          v-if="menus.areaMenu(side).length > 0"
+          :label="language.t('workbench-area-options')"
+          :items="menus.areaMenu(side)"
+        />
+        <button
+          type="button"
+          class="quiet expand"
+          :aria-expanded="expanded"
+          :aria-controls="panelId"
+          @click="expanded = !expanded"
+        >
+          {{ language.t(expanded ? 'right-panel-restore' : 'right-panel-expand') }}
+        </button>
+      </span>
     </div>
 
     <div
@@ -134,27 +149,33 @@ function toggle(section: Section): void {
         class="stacked"
         :style="{ flexGrow: section.collapsed ? 0 : section.weight }"
       >
-        <button
-          type="button"
-          class="section-header"
-          :aria-expanded="!section.collapsed"
-          :aria-controls="`workbench-section-${section.id}`"
-          :aria-label="
-            language.t(
-              section.collapsed ? 'workbench-section-expand' : 'workbench-section-collapse',
-              title(section)
-            )
-          "
-          @click="toggle(section)"
-        >
-          <span
-            class="disclosure"
-            :class="{ mirrored: section.collapsed && direction === 'rtl' }"
-            aria-hidden="true"
-            >{{ section.collapsed ? '▸' : '▾' }}</span
+        <div class="section-header-row">
+          <button
+            type="button"
+            class="section-header"
+            :aria-expanded="!section.collapsed"
+            :aria-controls="`workbench-section-${section.id}`"
+            :aria-label="
+              language.t(
+                section.collapsed ? 'workbench-section-expand' : 'workbench-section-collapse',
+                title(section)
+              )
+            "
+            @click="toggle(section)"
           >
-          {{ title(section) }}
-        </button>
+            <span
+              class="disclosure"
+              :class="{ mirrored: section.collapsed && direction === 'rtl' }"
+              aria-hidden="true"
+              >{{ section.collapsed ? '▸' : '▾' }}</span
+            >
+            {{ title(section) }}
+          </button>
+          <MenuButton
+            :label="language.t('workbench-panel-options', title(section))"
+            :items="menus.sectionMenu(section.id, section.view)"
+          />
+        </div>
         <div
           v-if="!section.collapsed"
           :id="`workbench-section-${section.id}`"
@@ -219,11 +240,27 @@ function toggle(section: Section): void {
   color: var(--text-strong);
 }
 
-.expand {
+.header-tools {
+  display: flex;
+  gap: 2px;
+  align-items: center;
   margin: 10px 0 0;
   margin-inline: auto 8px;
+}
+
+.expand {
   padding: 4px 6px;
   font-size: 11px;
+}
+
+.section-header-row {
+  display: flex;
+  align-items: center;
+  padding-inline-end: 6px;
+}
+
+.section-header-row .section-header {
+  flex: 1;
 }
 
 .section-body {

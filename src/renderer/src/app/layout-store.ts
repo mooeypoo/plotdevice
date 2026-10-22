@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { findView } from '../workbench/model/layout'
-import { selectSection, setAreaCollapsed } from '../workbench/model/operations'
+import { selectSection, setAreaCollapsed, setCenterView } from '../workbench/model/operations'
 import type { ViewId } from '../workbench/model/view-catalog'
 import type { AreaRegion } from '../workbench/model/vocabulary'
 import { registerDocumentPresenter } from './document-presenter'
@@ -33,8 +33,16 @@ const RIGHT_VIEWS: Readonly<Record<RightTab, ViewId>> = {
 export const useLayoutStore = defineStore('layout', () => {
   const workbench = useWorkbenchStore()
   const focusMode = ref(false)
-  /** What the main area shows: the editor, or a view of the whole book. */
-  const mainView = ref<MainView>('write')
+  /** What the main area shows: the editor, or a view of the whole book; the layout's center stage. */
+  const mainView = computed<MainView>({
+    get: () => {
+      const view = workbench.layout.center.view
+      return view === 'overview' || view === 'timeline' || view === 'interactions' ? view : 'write'
+    },
+    set: (view) => {
+      workbench.apply((layout) => setCenterView(layout, view === 'write' ? 'document' : view))
+    }
+  })
 
   /** The area holding `view`, which the fixed panels call a side. */
   const sideOf = (view: ViewId): AreaRegion | undefined => findView(workbench.layout, view)?.region

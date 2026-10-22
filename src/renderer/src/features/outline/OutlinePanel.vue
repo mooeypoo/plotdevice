@@ -62,9 +62,15 @@ function choose(event: Event): void {
         {{ language.t('outline-panel-start') }}
       </button>
     </div>
-    <p v-else-if="openInEditor" class="empty">
-      {{ language.t('outline-panel-open-in-editor') }}
-    </p>
+    <template v-else-if="openInEditor">
+      <p class="empty" role="status">{{ language.t('outline-panel-open-in-editor') }}</p>
+      <RenderedMarkdown
+        :text="text ?? ''"
+        :link-targets="manuscript.manuscript?.linkTargets ?? []"
+        :points-here="panel.pointsHere.value"
+        @open-link="panel.openLink"
+      />
+    </template>
     <p v-else-if="loading" class="empty" role="status">
       {{ language.t('outline-panel-loading') }}
     </p>
