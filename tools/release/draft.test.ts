@@ -205,7 +205,8 @@ describe('draft release assembly', () => {
   })
 })
 
-describe('CI release identity CLI', () => {
+// These spawn git and node; a busy Windows CI runner can take well over the 5-second default.
+describe('CI release identity CLI', { timeout: 30_000 }, () => {
   it.each(['valid', 'lightweight', 'off-main', 'mismatch', 'manual'])(
     'validates %s annotated release context in a temporary repository',
     (kind) => {
