@@ -1,21 +1,19 @@
 import { findView } from '../workbench/model/layout'
 import { missingViews } from '../workbench/model/placement-actions'
 import type { ViewId } from '../workbench/model/view-catalog'
-import { activateSection, removeSection, setCenterView } from '../workbench/model/operations'
+import { activateSection, selectSection, setAreaCollapsed } from '../workbench/model/operations'
 import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
-import { useLayoutStore, type MainView, type RightTab } from './layout-store'
 import { useOutlineStore } from './outline-store'
-import { useWorkbenchStore } from './workbench-store'
+import { useWorkbenchStore, type MainView } from './workbench-store'
 import type { Mode } from '../workbench/model/vocabulary'
 
 /**
- * How features change what the screen shows, without knowing how it is arranged. The old shell
- * implements it with its fixed panels; the workbench reimplements it over its layout (ADR 0018).
+ * How features change what the screen shows, without knowing how the workbench arranges it
+ * (ADR 0017, 0018). Views are named by id; the layout decides where they are.
  */
 export function useWorkbenchNavigation() {
   const editor = useEditorStore()
-  const layout = useLayoutStore()
   const workbench = useWorkbenchStore()
   const tabs = useDocumentTabsStore()
 
@@ -24,21 +22,15 @@ export function useWorkbenchNavigation() {
    * view the layout already shows in a panel is brought forward there instead of duplicated.
    */
   function showCenterView(view: MainView): Promise<boolean> {
-    if (layout.mainView === view) return Promise.resolve(true)
+    if (workbench.centerView === view) return Promise.resolve(true)
     const placed = view === 'write' ? undefined : findView(workbench.layout, view)
-    if (placed !== undefined && workbench.shell === 'workbench') {
+    if (placed !== undefined) {
       return Promise.resolve(
         workbench.apply((current) => activateSection(current, placed.section.id))
       )
     }
     return editor.runNavigation(() => {
-      // The classic panels have no shelf, so a view placed there moves to the main area.
-      if (placed !== undefined) {
-        workbench.apply((current) => {
-          const removed = removeSection(current, placed.section.id)
-          return removed.ok ? setCenterView(removed.value, placed.section.view) : removed
-        })
-      } else layout.mainView = view
+      workbench.centerView = view
     })
   }
 
@@ -115,14 +107,58 @@ export function useWorkbenchNavigation() {
     return true
   }
 
-  /** Makes `panel` the one its side shows, without opening a closed side. */
-  function choosePanel(panel: RightTab): void {
-    layout.rightTab = panel
+  /** Makes `view` the one its area shows, without opening a collapsed area. */
+  function choosePanel(view: ViewId): void {
+    const section = findView(workbench.layout, view)?.section
+    if (section !== undefined) workbench.apply((current) => selectSection(current, section.id))
   }
 
-  /** Opens and shows `panel` wherever the layout keeps it; see `revealView`. */
-  function revealPanel(panel: RightTab): void {
-    revealView(panel)
+  /** Whether `view` is on screen: the one its area shows, in an open area. */
+  function isViewShown(view: ViewId): boolean {
+    const placed = findView(workbench.layout, view)
+    if (placed === undefined) return false
+    const area = workbench.layout[placed.region]
+    return !area.collapsed && area.activeSection === placed.section.id
+  }
+
+  /** Whether `view` is the one its area shows, open or collapsed. */
+  function isViewChosen(view: ViewId): boolean {
+    const placed = findView(workbench.layout, view)
+    return (
+      placed !== undefined && workbench.layout[placed.region].activeSection === placed.section.id
+    )
+  }
+
+  /** Whether the area holding `view` is open, whichever of its views it shows. */
+  function isAreaOpen(view: ViewId): boolean {
+    const placed = findView(workbench.layout, view)
+    return placed !== undefined && !workbench.layout[placed.region].collapsed
+  }
+
+  /**
+   * Opens or closes the area holding `view`, keeping the view it shows (Toggle Binder, Toggle
+   * Inspector). A view the layout no longer has comes back where it usually lives.
+   */
+  function toggleArea(view: ViewId): void {
+    setAreaOpen(view, !isAreaOpen(view))
+  }
+
+  /** Opens or closes the area holding `view`; opening a view the layout lost brings it back. */
+  function setAreaOpen(view: ViewId, open: boolean): void {
+    const placed = findView(workbench.layout, view)
+    if (placed === undefined) {
+      if (open) revealView(view)
+      return
+    }
+    workbench.apply((current) => setAreaCollapsed(current, placed.region, !open))
+  }
+
+  /** Hides `view`'s area if `view` is showing there, and otherwise shows it (Toggle Outline). */
+  function toggleView(view: ViewId): void {
+    const placed = findView(workbench.layout, view)
+    if (placed !== undefined && isViewShown(view)) {
+      workbench.apply((current) => setAreaCollapsed(current, placed.region, true))
+    } else revealView(view)
   }
 
   /**
@@ -138,7 +174,7 @@ export function useWorkbenchNavigation() {
     if (section !== undefined) {
       workbench.apply((current) => activateSection(current, section.id))
     }
-    layout.exitFocusMode()
+    workbench.exitFocusMode()
   }
 
   return {
@@ -150,7 +186,12 @@ export function useWorkbenchNavigation() {
     openBeside,
     writeHere,
     choosePanel,
-    revealPanel,
+    isViewShown,
+    isViewChosen,
+    isAreaOpen,
+    toggleArea,
+    setAreaOpen,
+    toggleView,
     revealView
   }
 }

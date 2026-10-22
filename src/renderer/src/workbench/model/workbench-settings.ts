@@ -17,8 +17,6 @@ export interface SavedLayout {
  */
 export interface WorkbenchSettings {
   readonly version: 1
-  /** Which shell renders the project: the workbench, or the classic fixed panels until W6. */
-  readonly shell: WorkbenchShell
   /** Which fields entry cards show, by entry kind; a missing kind uses the cards' defaults. */
   readonly cardFields: Readonly<Record<string, readonly string[]>>
   /** A preset's id maps to its rearrangement; a saved layout's id to its arrangement. */
@@ -26,19 +24,13 @@ export interface WorkbenchSettings {
   readonly saved: readonly SavedLayout[]
 }
 
-/** The two shells while the classic one remains available. */
-export const WORKBENCH_SHELLS = ['workbench', 'classic'] as const
-/** A shell choice. */
-export type WorkbenchShell = (typeof WORKBENCH_SHELLS)[number]
-
 /** Settings with every preset as shipped and no saved layouts. */
 export function defaultWorkbenchSettings(): WorkbenchSettings {
-  return { version: 1, shell: 'workbench', cardFields: {}, arrangements: {}, saved: [] }
+  return { version: 1, cardFields: {}, arrangements: {}, saved: [] }
 }
 
 const envelopeSchema = z.object({
   version: z.literal(1),
-  shell: z.enum(WORKBENCH_SHELLS).default('workbench'),
   cardFields: z.record(z.string(), z.array(z.string())).default({}),
   arrangements: z.record(z.string(), z.unknown()),
   saved: z.array(z.unknown())
@@ -96,8 +88,8 @@ export function parseWorkbenchSettings(value: unknown): ParsedWorkbenchSettings 
       dropped += 1
     }
   }
-  const { shell, cardFields } = envelope.data
-  return { settings: { version: 1, shell, cardFields, arrangements, saved }, dropped }
+  const { cardFields } = envelope.data
+  return { settings: { version: 1, cardFields, arrangements, saved }, dropped }
 }
 
 const projectSchema = z.object({

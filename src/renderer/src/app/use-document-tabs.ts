@@ -2,7 +2,7 @@ import { computed, nextTick, watch } from 'vue'
 import { placeOf } from './entry-owners'
 import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
-import { useLayoutStore } from './layout-store'
+import { useWorkbenchStore } from './workbench-store'
 import { useShortcuts } from './use-shortcuts'
 import { useUiLanguageStore } from './ui-language-store'
 import { formatEntryPlaceTitle } from '../shared/entry-place-label'
@@ -11,7 +11,7 @@ import { formatEntryPlaceTitle } from '../shared/entry-place-label'
 export function useDocumentTabs() {
   const tabs = useDocumentTabsStore()
   const editor = useEditorStore()
-  const layout = useLayoutStore()
+  const workbench = useWorkbenchStore()
   const language = useUiLanguageStore()
   const documents = computed(() => {
     return tabs.ordered.map((tab) => {
@@ -21,7 +21,7 @@ export function useDocumentTabs() {
         title: place === undefined ? tab.path : formatEntryPlaceTitle(place, language.t),
         kind: place?.kind,
         writing: tab.path === tabs.writingPath,
-        active: editor.entry?.path === tab.path && layout.mainView === 'write',
+        active: editor.entry?.path === tab.path && workbench.centerView === 'write',
         unavailable: place === undefined
       }
     })

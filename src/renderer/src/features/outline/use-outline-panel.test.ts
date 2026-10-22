@@ -5,10 +5,10 @@ import { useCodexStore } from '../../app/codex-store'
 import { useOutlineStore } from '../../app/outline-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
-import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { useOutlinePanel } from './use-outline-panel'
+import { useWorkbenchStore } from '../../app/workbench-store'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 
@@ -126,7 +126,7 @@ describe('useOutlinePanel', () => {
     const panel = useOutlinePanel()
     panel.choose('Revision plan.md')
     await flushPromises()
-    expect(useLayoutStore().outlinePath).toBe('Revision plan.md')
+    expect(useWorkbenchStore().outlinePath).toBe('Revision plan.md')
     expect(panel.path.value).toBe('Revision plan.md')
   })
 })

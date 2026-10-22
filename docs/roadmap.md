@@ -374,6 +374,24 @@ the final tightening step for the W/L/P work, planned and approved on its own be
 **Done when:** the redesign plan and glossary are approved; implementation follows as its own
 phases.
 
+### U2: Beautification
+Requested by the writer (2026-10-22): after U1's redesign plan is approved, make the whole app
+impressively beautiful *and* simple, built on U1's visual system. Every element is styled; nothing
+is left as a bare native control.
+
+- [ ] Every control follows the system: **all selects** (one styled select, trigger and menu, that
+  works by keyboard, in RTL and with screen readers), text fields and areas, buttons (primary,
+  quiet, icon), checkboxes and toggles, menus, tabs and pills, cards, scrollbars, focus rings, and
+  hover and active states.
+- [ ] Empty states, notices and loading states designed rather than plain text.
+- [ ] Typography and rhythm across the editor, panels, board, timeline and welcome screens; subtle
+  motion that respects reduced-motion.
+- [ ] Dark theme first, then the light theme with the same care; contrast checked in both.
+- [ ] A screenshot review of every screen in English and Hebrew.
+
+**Done when:** every screen passes the review in both languages and themes, and a test finds no
+native `<select>` or checkbox outside the shared styled components.
+
 ## Proposed release and documentation program
 
 The [release plan](release-plan.md) tracks approved work: MVP version policy,

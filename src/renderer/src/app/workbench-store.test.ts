@@ -4,12 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { resizeArea, setCenterView } from '../workbench/model/operations'
 import { PRESETS } from '../workbench/model/presets'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
-import { useLayoutStore } from './layout-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useUiLanguageStore } from './ui-language-store'
 import { useWorkbenchStore } from './workbench-store'
 import { useWorkspaceStore } from './workspace-store'
 import { documentMoved } from './move-followers'
+import { useWorkbenchNavigation } from './use-workbench-navigation'
 
 beforeEach(async () => {
   localStorage.clear()
@@ -60,13 +60,6 @@ describe('workbench store', () => {
     })
   })
 
-  it('remembers the shell choice', () => {
-    const workbench = useWorkbenchStore()
-    expect(workbench.shell).toBe('workbench')
-    workbench.setShell('classic')
-    expect(stored('plotdevice.workbench')).toMatchObject({ shell: 'classic' })
-  })
-
   it('keeps the outline per project, falling back to the old shell’s global choice', async () => {
     localStorage.setItem('plotdevice.layout', JSON.stringify({ outlinePath: 'Plan.md' }))
     setActivePinia(createPinia())
@@ -97,38 +90,39 @@ describe('workbench store', () => {
   })
 })
 
-describe('layout store over the workbench', () => {
+describe('opening, closing and choosing panels over the workbench', () => {
   it('opens and closes the sides by collapsing the areas that hold them', () => {
-    const layout = useLayoutStore()
     const workbench = useWorkbenchStore()
-    layout.binderOpen = false
+    useWorkbenchNavigation().setAreaOpen('binder', false)
     expect(workbench.layout.start.collapsed).toBe(true)
-    layout.toggleInspector()
+    useWorkbenchNavigation().toggleArea('properties')
     expect(workbench.layout.end.collapsed).toBe(true)
-    expect(layout).toMatchObject({ binderOpen: false, inspectorOpen: false })
+    const navigation = useWorkbenchNavigation()
+    expect([navigation.isAreaOpen('binder'), navigation.isAreaOpen('properties')]).toEqual([
+      false,
+      false
+    ])
   })
 
   it('switches tabs without opening a closed side', () => {
-    const layout = useLayoutStore()
     const workbench = useWorkbenchStore()
-    layout.inspectorOpen = false
-    layout.rightTab = 'reference'
-    layout.sideTab = 'codex'
+    useWorkbenchNavigation().setAreaOpen('properties', false)
+    useWorkbenchNavigation().choosePanel('reference')
+    useWorkbenchNavigation().choosePanel('codex')
     expect(workbench.layout.end).toMatchObject({ collapsed: true, activeSection: 'reference' })
     expect(workbench.layout.start.activeSection).toBe('codex')
-    expect(layout.rightTab).toBe('reference')
+    expect(useWorkbenchNavigation().isViewChosen('reference')).toBe(true)
   })
 
   it('toggles the outline like the old panel', () => {
-    const layout = useLayoutStore()
-    layout.toggleOutline()
-    expect(layout).toMatchObject({ inspectorOpen: true, rightTab: 'outline' })
-    layout.toggleOutline()
-    expect(layout.inspectorOpen).toBe(false)
+    useWorkbenchNavigation().toggleView('outline')
+    expect(useWorkbenchNavigation().isViewShown('outline')).toBe(true)
+    useWorkbenchNavigation().toggleView('outline')
+    expect(useWorkbenchNavigation().isAreaOpen('properties')).toBe(false)
   })
 
   it('no longer writes the old layout key', () => {
-    useLayoutStore().toggleBinder()
+    useWorkbenchNavigation().toggleArea('binder')
     expect(localStorage.getItem('plotdevice.layout')).toBeNull()
   })
 })

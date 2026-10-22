@@ -1,7 +1,6 @@
 import { computed } from 'vue'
 import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
-import { useLayoutStore } from './layout-store'
 import { useReferenceStore } from './reference-store'
 import { useWorkbenchNavigation } from './use-workbench-navigation'
 
@@ -9,11 +8,10 @@ import { useWorkbenchNavigation } from './use-workbench-navigation'
 export function useSidePanelNavigation() {
   const codex = useCodexStore()
   const editor = useEditorStore()
-  const layout = useLayoutStore()
   const reference = useReferenceStore()
   const navigation = useWorkbenchNavigation()
   const selectedCodexPath = computed(() =>
-    layout.rightTab === 'reference' ? reference.path : (editor.entry?.path ?? null)
+    navigation.isViewChosen('reference') ? reference.path : (editor.entry?.path ?? null)
   )
 
   async function openEntry(path: string): Promise<void> {

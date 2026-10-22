@@ -3,7 +3,6 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
-import { useLayoutStore } from '../../app/layout-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkbenchStore } from '../../app/workbench-store'
 import { removeSection, selectSection, setArrangement } from '../model/operations'
@@ -151,7 +150,7 @@ describe('WorkbenchBody', () => {
       'workbench-start',
       'workbench-end'
     ])
-    useLayoutStore().focusMode = true
+    useWorkbenchStore().focusMode = true
     await flushPromises()
     expect(body.findAll('aside')).toHaveLength(0)
     expect(body.text()).toContain('page')

@@ -11,7 +11,7 @@ export const useReferenceStore = defineStore('reference', () => {
   const reader = createDocumentReader()
 
   function open(chosen: string): void {
-    useWorkbenchNavigation().revealPanel('reference')
+    useWorkbenchNavigation().revealView('reference')
     reader.open(chosen)
   }
 

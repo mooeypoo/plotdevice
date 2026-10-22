@@ -61,7 +61,6 @@ describe('loadWorkbenchSettings', () => {
     localStorage.setItem(LEGACY_LAYOUT_KEY, legacyLayout)
     const settings = {
       version: 1 as const,
-      shell: 'classic' as const,
       cardFields: {},
       arrangements: {},
       saved: []

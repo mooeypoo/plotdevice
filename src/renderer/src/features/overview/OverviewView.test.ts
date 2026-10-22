@@ -6,12 +6,12 @@ import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi, sampleManuscript } from '../../app/fake-plot-device-api'
 import { useInspectorStore } from '../../app/inspector-store'
-import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import OverviewView from './OverviewView.vue'
+import { useWorkbenchStore } from '../../app/workbench-store'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 
@@ -144,13 +144,12 @@ describe('OverviewView', () => {
   })
 
   it('opens a chapter to write, leaving the Overview', async () => {
-    const layout = useLayoutStore()
-    layout.mainView = 'overview'
+    useWorkbenchStore().centerView = 'overview'
     const view = mount(OverviewView)
     const title = view.findAll('button.open').find((button) => button.text() === 'First frost')
     await title?.trigger('click')
     await flushPromises()
     expect(useEditorStore().entry?.path).toBe('First frost.md')
-    expect(layout.mainView).toBe('write')
+    expect(useWorkbenchStore().centerView).toBe('write')
   })
 })

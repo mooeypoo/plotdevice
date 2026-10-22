@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue'
-import { useLayoutStore } from '../../app/layout-store'
 import { useWorkbenchStore } from '../../app/workbench-store'
 import { fitToWidth } from '../model/fit-to-width'
 import { DOCK_SIZE, MIN_PAGE_INLINE_SIZE } from '../model/sizes'
@@ -9,7 +8,6 @@ import DockArea from './DockArea.vue'
 import ShelfArea from './ShelfArea.vue'
 
 const workbench = useWorkbenchStore()
-const layout = useLayoutStore()
 const body = useTemplateRef<HTMLElement>('body')
 /** The body's width; until measured, wide enough to show everything. */
 const available = ref(Number.POSITIVE_INFINITY)
@@ -31,7 +29,7 @@ onBeforeUnmount(() => observer?.disconnect())
 
 /** Displayed docks: the stored layout fitted to the window, hidden while focusing. */
 const fitted = computed(() => fitToWidth(workbench.layout, available.value))
-const shown = (side: DockSide): boolean => !layout.focusMode && fitted.value[side].shown
+const shown = (side: DockSide): boolean => !workbench.focusMode && fitted.value[side].shown
 
 /** The widest a dock may be dragged while keeping the page readable beside the other dock. */
 function maximum(side: DockSide): number {
@@ -53,7 +51,7 @@ function maximum(side: DockSide): number {
       <main class="main">
         <slot />
       </main>
-      <ShelfArea v-if="!layout.focusMode" />
+      <ShelfArea v-if="!workbench.focusMode" />
     </div>
     <DockArea v-if="shown('end')" side="end" :size="fitted.end.size" :maximum="maximum('end')" />
   </div>

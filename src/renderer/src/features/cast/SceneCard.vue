@@ -52,7 +52,7 @@ const outlineLines = computed(() => {
 async function editProperties(): Promise<void> {
   const path = chapter.path.value
   if (path === null) return
-  if (await editor.open(path)) navigation.revealPanel('properties')
+  if (await editor.open(path)) navigation.revealView('properties')
 }
 </script>
 

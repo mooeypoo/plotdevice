@@ -2,7 +2,12 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import type { MessageKey } from '../../../i18n/translator'
 import type { Layout } from '../workbench/model/layout'
-import { closeSplit, openSplit, type LayoutChange } from '../workbench/model/operations'
+import {
+  closeSplit,
+  openSplit,
+  setCenterView,
+  type LayoutChange
+} from '../workbench/model/operations'
 import { PRESETS, type PresetId } from '../workbench/model/presets'
 import type { Mode } from '../workbench/model/vocabulary'
 import {
@@ -18,8 +23,7 @@ import {
   defaultProjectBindings,
   layoutFor,
   type ProjectBindings,
-  type WorkbenchSettings,
-  type WorkbenchShell
+  type WorkbenchSettings
 } from '../workbench/model/workbench-settings'
 import {
   loadWorkbenchProjects,
@@ -28,11 +32,16 @@ import {
   saveWorkbenchSettings,
   type WorkbenchStorageProblem
 } from '../workbench/storage/workbench-storage'
+import { registerDocumentPresenter } from './document-presenter'
+import { placeOf } from './entry-owners'
 import { registerMoveFollower } from './move-followers'
 import { useUiLanguageStore } from './ui-language-store'
 
 /** The layout each mode falls back to. */
 const MODE_PRESETS: Readonly<Record<Mode, PresetId>> = { writing: 'write', plotting: 'plot' }
+
+/** The center stage's views; the board only in Plotting mode. */
+export type MainView = 'write' | 'overview' | 'timeline' | 'interactions' | 'plot-board'
 
 const NOTICES: Record<WorkbenchStorageProblem, MessageKey> = {
   unavailable: 'workbench-notice-unavailable',
@@ -67,9 +76,25 @@ export const useWorkbenchStore = defineStore('workbench', () => {
       ? unboundBindings.value
       : (projects.value.projects[root.value] ?? defaultProjectBindings())
   )
-  const shell = computed<WorkbenchShell>(() => settings.value.shell)
-  /** Writing or Plotting; the classic shell only writes. */
-  const mode = computed<Mode>(() => (shell.value === 'workbench' ? bindings.value.mode : 'writing'))
+  /** Writing or Plotting, as the writer left this project. */
+  const mode = computed<Mode>(() => bindings.value.mode)
+  /** Focus mode hides the chrome around the page, over any layout; session state (Q4). */
+  const focusMode = ref(false)
+  /** What the center stage shows: the editor, a view of the whole book, or the board. */
+  const centerView = computed<MainView>({
+    get: () => {
+      const view = layout.value.center.view
+      return view === 'overview' ||
+        view === 'timeline' ||
+        view === 'interactions' ||
+        view === 'plot-board'
+        ? view
+        : 'write'
+    },
+    set: (view) => {
+      apply((current) => setCenterView(current, view === 'write' ? 'document' : view))
+    }
+  })
   /** The layout chosen for this project in the current mode, or that mode's preset if it's gone. */
   const activeLayoutId = computed(() => {
     const chosen = bindings.value.active[mode.value]
@@ -130,7 +155,6 @@ export const useWorkbenchStore = defineStore('workbench', () => {
 
   /** Switches between Writing and Plotting; each mode keeps its own layout (ADR 0017). */
   function setMode(next: Mode): boolean {
-    if (shell.value !== 'workbench') return false
     if (bindings.value.mode !== next) updateBindings((current) => ({ ...current, mode: next }))
     return true
   }
@@ -163,8 +187,21 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     return keep(resetPreset(settings.value, id))
   }
 
-  function setShell(next: WorkbenchShell): void {
-    if (next !== settings.value.shell) saveSettings({ ...settings.value, shell: next })
+  function toggleFocusMode(): void {
+    focusMode.value = !focusMode.value
+  }
+
+  function exitFocusMode(): void {
+    focusMode.value = false
+  }
+
+  /**
+   * Brings the writable document back to the center after navigation. In Plotting mode an
+   * outline's text takes the board's place; any other document is written in Writing mode.
+   */
+  function showDocument(path: string): void {
+    if (mode.value === 'plotting' && placeOf(path)?.kind !== 'outline') setMode('writing')
+    centerView.value = 'write'
   }
 
   /** Pinned cards for this project, in the writer's order. */
@@ -323,7 +360,11 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     mode,
     setMode,
     activeLayoutId,
-    shell,
+    focusMode,
+    centerView,
+    toggleFocusMode,
+    exitFocusMode,
+    showDocument,
     outlinePath,
     storageNotice,
     cards,
@@ -346,12 +387,13 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     saveAs,
     rename,
     remove,
-    reset,
-    setShell
+    reset
   }
 })
 
 registerMoveFollower(() => useWorkbenchStore())
+
+registerDocumentPresenter(() => useWorkbenchStore())
 
 // Keep the store's state and pick up changed actions when Vite hot-reloads this file in development.
 if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useWorkbenchStore, import.meta.hot))

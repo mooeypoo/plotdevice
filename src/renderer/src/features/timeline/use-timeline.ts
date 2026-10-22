@@ -109,7 +109,7 @@ export function useTimeline(): {
     open,
     fixDate: async (path) => {
       await open(path)
-      navigation.revealPanel('properties')
+      navigation.revealView('properties')
       await nextTick()
       document.getElementById('inspector-date')?.focus()
     }

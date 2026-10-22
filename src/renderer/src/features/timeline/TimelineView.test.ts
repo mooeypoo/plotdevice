@@ -1,11 +1,12 @@
 // @vitest-environment happy-dom
+import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
+import { useWorkbenchStore } from '../../app/workbench-store'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
-import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { useUiLanguageStore } from '../../app/ui-language-store'
@@ -177,6 +178,7 @@ describe('TimelineView', () => {
     await view.find('.undated button').trigger('click')
     await flushPromises()
     expect(useEditorStore().entry?.path).toBe('Lost.md')
-    expect(useLayoutStore()).toMatchObject({ mainView: 'write', rightTab: 'properties' })
+    expect(useWorkbenchStore().centerView).toBe('write')
+    expect(useWorkbenchNavigation().isViewChosen('properties')).toBe(true)
   })
 })

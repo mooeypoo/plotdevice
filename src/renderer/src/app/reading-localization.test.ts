@@ -5,12 +5,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ApiResult, CodexListingDto, ManuscriptDto } from '../../../contract/dtos'
 import ReferencePanel from '../features/reference/ReferencePanel.vue'
 import OutlinePanel from '../features/outline/OutlinePanel.vue'
-import SidePanel from './SidePanel.vue'
+import BinderView from '../features/binder/BinderView.vue'
+import CodexView from '../features/codex/CodexView.vue'
 import { useCodexStore } from './codex-store'
 import { useOutlineStore } from './outline-store'
 import { useEditorStore } from './editor-store'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
-import { useLayoutStore } from './layout-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useReferenceStore } from './reference-store'
@@ -44,16 +44,13 @@ describe('listing and reading diagnostics', () => {
         kind === 'manuscript'
           ? vi.spyOn(fake.api.manuscript, 'getManuscript').mockResolvedValueOnce(failure)
           : vi.spyOn(fake.api.codex, 'listCodex').mockResolvedValueOnce(failure)
-      useLayoutStore().sideTab = kind
       const store = kind === 'manuscript' ? useManuscriptStore() : useCodexStore()
       await store.load()
-      const page = mount(SidePanel, { props: { attentionCount: 0 } })
+      const page = mount(kind === 'manuscript' ? BinderView : CodexView)
       expect(page.get('[role="alert"]').text()).toContain('No project is open')
-      const tab = page.get('[role="tab"][aria-selected="true"]').element
       await useUiLanguageStore().change('he')
       expect(page.get('[role="alert"]').text()).not.toContain('No project')
       expect(page.get('[role="alert"]').text()).toMatch(/[\u0590-\u05ff]/u)
-      expect(page.get('[aria-selected="true"]').element).toBe(tab)
       expect(load).toHaveBeenCalledOnce()
       await store.load()
       expect(page.find('[role="alert"]').exists()).toBe(false)
@@ -70,7 +67,7 @@ describe('listing and reading diagnostics', () => {
     vi.spyOn(fake.api.manuscript, 'getManuscript').mockResolvedValueOnce(failure)
     vi.spyOn(fake.api.codex, 'listCodex').mockResolvedValueOnce(failure)
     await Promise.all([manuscript.load(), codex.load()])
-    const page = mount(SidePanel, { props: { attentionCount: 0 } })
+    const page = mount(BinderView)
     expect(page.get('[role="alert"]').text()).toBe('EACCES <img src=x>')
     expect(page.find('img').exists()).toBe(false)
     await useUiLanguageStore().change('he')

@@ -4,11 +4,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from './codex-store'
 import { useEditorStore } from './editor-store'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
-import { useLayoutStore } from './layout-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useReferenceStore } from './reference-store'
 import { useWorkspaceStore } from './workspace-store'
+import { useWorkbenchStore } from './workbench-store'
+import { useWorkbenchNavigation } from './use-workbench-navigation'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 
@@ -28,9 +29,8 @@ describe('independent references', () => {
     editor.edit('Still writing.')
     editor.saveState = 'conflict'
     const reference = useReferenceStore()
-    const layout = useLayoutStore()
-    layout.inspectorOpen = false
-    layout.outlinePath = 'Outline.md'
+    useWorkbenchNavigation().setAreaOpen('properties', false)
+    useWorkbenchStore().outlinePath = 'Outline.md'
     for (const path of [
       'characters/Ilka.md',
       'locations/Marrow.md',
@@ -49,8 +49,11 @@ describe('independent references', () => {
     expect(fake.saves).toEqual([])
     expect(useManuscriptStore().properties?.path).toBe('The Ferry.md')
     expect(useCodexStore().properties).toBeNull()
-    expect([layout.inspectorOpen, layout.rightTab]).toEqual([true, 'reference'])
-    expect(layout.outlinePath).toBe('Outline.md')
+    expect([
+      useWorkbenchNavigation().isAreaOpen('properties'),
+      useWorkbenchNavigation().isViewChosen('reference')
+    ]).toEqual([true, true])
+    expect(useWorkbenchStore().outlinePath).toBe('Outline.md')
   })
 
   it('clears old content immediately and rejects obsolete A → B → A reads', async () => {

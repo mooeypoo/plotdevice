@@ -11,7 +11,7 @@ import { useEditorStore } from './editor-store'
 import { useManuscriptStore } from './manuscript-store'
 import WelcomeScreen from '../features/welcome/WelcomeScreen.vue'
 import ProjectLayout from './ProjectLayout.vue'
-import { useLayoutStore } from './layout-store'
+import { useWorkbenchStore } from './workbench-store'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 const failure: ApiError = {
@@ -206,7 +206,7 @@ describe('recent-project notices', () => {
     const write = vi.spyOn(fake.api.manuscript, 'saveEntryText')
     open.mockClear()
     read.mockClear()
-    useLayoutStore().focusMode = true
+    useWorkbenchStore().focusMode = true
     useUiLanguageStore().locale = 'he'
     await flushPromises()
     expect(wrapper.get('[data-testid=recents-remember-error]').text()).not.toBe(english)

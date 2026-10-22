@@ -8,7 +8,6 @@ import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
 import { useWorkbenchStore } from './workbench-store'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
-import { useLayoutStore } from './layout-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useWorkspaceStore } from './workspace-store'
 import ProjectLayout from './ProjectLayout.vue'
@@ -132,14 +131,14 @@ describe('document tab writing workflow', () => {
     await editor.open('The Ferry.md')
     await flushPromises()
     prose().dispatch({ changes: { from: 0, insert: 'Draft. ' }, selection: { anchor: 3 } })
-    useLayoutStore().mainView = 'overview'
+    useWorkbenchStore().centerView = 'overview'
     await flushPromises()
     expect(wrapper.find('.cm-editor').exists()).toBe(false)
     expect(wrapper.get('[role=tablist][aria-label=Documents]').text()).toContain('Writing')
     const focus = vi.spyOn(HTMLElement.prototype, 'focus')
     await action('Return to writing').trigger('click')
     await flushPromises()
-    expect(useLayoutStore().mainView).toBe('write')
+    expect(useWorkbenchStore().centerView).toBe('write')
     expect(undoDepth(prose().state)).toBe(1)
     expect(prose().state.selection.main.anchor).toBe(3)
     expect(focus).toHaveBeenCalledWith({ preventScroll: true })

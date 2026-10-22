@@ -7,7 +7,6 @@ import CenterStage from './CenterStage.vue'
 import { useUiLanguageStore } from './ui-language-store'
 import { useEditorStore } from './editor-store'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
-import { useLayoutStore } from './layout-store'
 import { useManuscriptStore } from './manuscript-store'
 import { plotDeviceApi } from './plot-device-api'
 import { useWorkbenchStore } from './workbench-store'
@@ -58,19 +57,14 @@ describe('CenterStage strip above the page', () => {
     await useEditorStore().flush()
   })
 
-  it('leaves it out of other views, focus mode and the classic shell', async () => {
+  it('leaves it out of other views and focus mode', async () => {
     const stage = mount(CenterStage)
     await useEditorStore().open('The Ferry.md')
-    const layout = useLayoutStore()
-    layout.focusMode = true
+    useWorkbenchStore().focusMode = true
     await flushPromises()
     expect(stage.find('.marker.cast').exists()).toBe(false)
-    layout.focusMode = false
-    useWorkbenchStore().setShell('classic')
-    await flushPromises()
-    expect(stage.find('.marker.cast').exists()).toBe(false)
-    useWorkbenchStore().setShell('workbench')
-    layout.mainView = 'timeline'
+    useWorkbenchStore().focusMode = false
+    useWorkbenchStore().centerView = 'timeline'
     await flushPromises()
     expect(stage.find('.marker.cast').exists()).toBe(false)
     expect(stage.find('.marker.timeline').exists()).toBe(true)
@@ -112,12 +106,11 @@ describe('CenterStage splits', () => {
     const stage = mount(CenterStage)
     await flushPromises()
     expect(stage.findAll('.split-slot')).toHaveLength(1)
-    useLayoutStore().mainView = 'timeline'
+    useWorkbenchStore().centerView = 'timeline'
     await flushPromises()
     expect(stage.findAll('.split-slot')).toHaveLength(0)
-    useLayoutStore().mainView = 'write'
-    workbench.setShell('classic')
+    useWorkbenchStore().centerView = 'write'
     await flushPromises()
-    expect(stage.findAll('.split-slot')).toHaveLength(0)
+    expect(stage.findAll('.split-slot')).toHaveLength(1)
   })
 })

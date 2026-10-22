@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCodexStore } from '../../app/codex-store'
 import { useEditorStore } from '../../app/editor-store'
 import { createFakePlotDeviceApi } from '../../app/fake-plot-device-api'
-import { useLayoutStore } from '../../app/layout-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { useReferenceStore } from '../../app/reference-store'
@@ -13,6 +12,7 @@ import { useWorkbenchStore } from '../../app/workbench-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import ReferencePanel from './ReferencePanel.vue'
 import type { ApiResult, EntryTextDto } from '../../../../contract/dtos'
+import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 beforeEach(async () => {
@@ -140,7 +140,7 @@ describe('ReferencePanel', () => {
     await wrapper.get('.edit').trigger('click')
     await flushPromises()
     expect(useEditorStore().entry?.path).toBe('characters/Ilka.md')
-    expect(useLayoutStore().rightTab).toBe('properties')
+    expect(useWorkbenchNavigation().isViewChosen('properties')).toBe(true)
     useEditorStore().edit('## Revised history\n\nA new draft.')
     await flushPromises()
     expect(wrapper.get('.view h2').text()).toBe('Revised history')
@@ -275,11 +275,11 @@ describe('ReferencePanel', () => {
           await flushPromises()
         }
       }
-      useLayoutStore().rightTab = 'reference'
+      useWorkbenchNavigation().choosePanel('reference')
       if (finish === undefined) throw new Error('Missing pending action')
       finish(true)
       await flushPromises()
-      expect(useLayoutStore().rightTab).toBe('reference')
+      expect(useWorkbenchNavigation().isViewChosen('reference')).toBe(true)
       if (change !== 'unmount') wrapper.unmount()
     }
   )
@@ -309,7 +309,7 @@ describe('ReferencePanel', () => {
           await flushPromises()
         }
       }
-      useLayoutStore().rightTab = 'reference'
+      useWorkbenchNavigation().choosePanel('reference')
       const captureError = vi.spyOn(useEditorStore(), 'getActionError')
       if (finish === undefined) throw new Error('Missing pending open')
       finish({ ok: false, error: { code: 'test', message: 'Obsolete refusal.' } })
@@ -319,7 +319,7 @@ describe('ReferencePanel', () => {
         wrapper.unmount()
       }
       expect(captureError).not.toHaveBeenCalled()
-      expect(useLayoutStore().rightTab).toBe('reference')
+      expect(useWorkbenchNavigation().isViewChosen('reference')).toBe(true)
     }
   )
 

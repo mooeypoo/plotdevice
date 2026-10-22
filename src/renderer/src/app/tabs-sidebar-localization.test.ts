@@ -11,13 +11,11 @@ import { plotDeviceApi } from './plot-device-api'
 import { useUiLanguageStore } from './ui-language-store'
 import { useWorkspaceStore } from './workspace-store'
 import DocumentTabs from './DocumentTabs.vue'
-import SidePanel from './SidePanel.vue'
 import TopBar from './TopBar.vue'
 import EditorPane from '../features/editor/EditorPane.vue'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 let tabs: ReturnType<typeof mount>
-let sidePanel: ReturnType<typeof mount>
 
 beforeEach(async () => {
   localStorage.clear()
@@ -29,23 +27,19 @@ beforeEach(async () => {
   await useEditorStore().open('The Ferry.md')
   await useEditorStore().open('First frost.md')
   tabs = mount(DocumentTabs, { attachTo: document.body })
-  sidePanel = mount(SidePanel, { attachTo: document.body, props: { attentionCount: 0 } })
 })
 
 afterEach(async () => {
   await useEditorStore().flush()
   tabs.unmount()
-  sidePanel.unmount()
   vi.restoreAllMocks()
 })
 
-describe('document tabs and sidebar localization', () => {
-  it('switches tab and sidebar labels live without replacing controls or changing selection', async () => {
+describe('document tabs localization', () => {
+  it('switches tab labels live without replacing controls or changing selection', async () => {
     const editor = useEditorStore()
     const tabStore = useDocumentTabsStore()
     const documentTab = tabs.get('[role=tab][aria-selected=true]').element
-    const codexTab = sidePanel.get('[role=tab]:nth-child(2)').element
-    const selectedSideTab = sidePanel.get('[role=tab][aria-selected=true]').element
     const openEntry = vi.spyOn(fake.api.manuscript, 'openEntry')
 
     expect(tabs.get('section').attributes('aria-label')).toBe('Open documents')
@@ -53,9 +47,6 @@ describe('document tabs and sidebar localization', () => {
     expect(tabs.text()).toContain('Writing')
     expect(tabs.text()).toContain('Preview')
     expect(tabs.text()).toContain('Keep open')
-    expect(sidePanel.get('[role=tablist]').attributes('aria-label')).toBe('Side panel')
-    expect(sidePanel.text()).toContain('Manuscript')
-    expect(sidePanel.text()).toContain('Codex')
 
     useUiLanguageStore().locale = 'he'
     await flushPromises()
@@ -65,18 +56,10 @@ describe('document tabs and sidebar localization', () => {
     expect(tabs.text()).toContain('כתיבה')
     expect(tabs.text()).toContain('תצוגה מקדימה')
     expect(tabs.text()).toContain('השאר פתוח')
-    expect(sidePanel.get('[role=tablist]').attributes('aria-label')).toBe('חלונית צד')
-    expect(sidePanel.text()).toContain('כתב יד')
-    expect(sidePanel.text()).toContain('קודקס')
     expect(tabs.get('[role=tab][aria-selected=true]').element).toBe(documentTab)
-    expect(sidePanel.get('[role=tab]:nth-child(2)').element).toBe(codexTab)
-    expect(sidePanel.get('[role=tab][aria-selected=true]').element).toBe(selectedSideTab)
     expect(editor.entry?.path).toBe('First frost.md')
     expect(openEntry).not.toHaveBeenCalled()
 
-    await sidePanel.get('[role=tab]:nth-child(2)').trigger('click')
-    expect(sidePanel.get('[role=tab]:nth-child(2)').attributes('aria-selected')).toBe('true')
-    expect(sidePanel.get('nav').attributes('aria-label')).toBe('רשומות בקודקס')
     await tabs
       .findAll('button')
       .find((button) => button.text() === 'השאר פתוח')
