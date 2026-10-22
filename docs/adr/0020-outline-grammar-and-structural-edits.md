@@ -39,6 +39,8 @@ would reformat it, and a general Markdown AST library can't run in pure domain c
 - Lines keep their own endings. New lines use the file's most common ending, and a last line
   without one gains one only when something is placed after it. A moved block carries the
   blank lines that separated it, so a move and its reverse restore the original bytes.
+- A card's linked chapter is edited (synopsis, status) through the manuscript's property
+  commands, never through the outline: each file is written by the context that owns it.
 - Until the board needs it (P2), outlines keep travelling through the codex API: its IPC handler
   forwards listing, creation, open and save to the outline context, so P1 changes no contract.
 

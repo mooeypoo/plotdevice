@@ -100,19 +100,28 @@ export const useManuscriptStore = defineStore('manuscript', () => {
   }
 
   /**
-   * Saves a chapter's synopsis from the Overview. The chapter open in the editor goes through
-   * its version as the inspector does; any other is read first, so an outside edit isn't lost.
+   * Saves a chapter's synopsis or status from outside the inspector (the Overview, a board card).
+   * The chapter open in the editor goes through its version as the inspector does; any other is
+   * read first, so an outside edit isn't lost. Only the keys given change (ADR 0004).
    */
-  async function updateSynopsis(path: string, synopsis: string): Promise<boolean> {
+  async function updateChapterProperties(
+    path: string,
+    changes: Pick<PropertyChangesDto, 'synopsis' | 'status'>
+  ): Promise<boolean> {
     const editor = useEditorStore()
-    if (editor.entry?.path === path) return updateProperties({ synopsis })
+    if (editor.entry?.path === path) return updateProperties(changes)
     const read = await api().getEntryProperties(path)
     if (!read.ok) {
       editor.reportActionError(read.error)
       return false
     }
-    if ((read.value.properties.synopsis ?? '').trim() === synopsis.trim()) return true
-    const result = await api().updateEntryProperties(path, read.value.version, { synopsis })
+    const current = read.value.properties
+    const same =
+      (changes.synopsis === undefined ||
+        (current.synopsis ?? '').trim() === changes.synopsis.trim()) &&
+      (changes.status === undefined || current.status === changes.status)
+    if (same) return true
+    const result = await api().updateEntryProperties(path, read.value.version, changes)
     if (!result.ok) {
       editor.reportActionError(result.error)
       return false
@@ -247,7 +256,9 @@ export const useManuscriptStore = defineStore('manuscript', () => {
     reload,
     readProperties,
     updateProperties,
-    updateSynopsis,
+    updateChapterProperties,
+    /** Saves a chapter's synopsis (the Overview's cell). */
+    updateSynopsis: (path: string, synopsis: string) => updateChapterProperties(path, { synopsis }),
     moveChapter,
     movePart,
     renumberPart,
