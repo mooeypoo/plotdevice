@@ -593,5 +593,21 @@
   "workbench-layout-cancel": "Cancel",
   "workbench-layout-name-empty": "Give the layout a name.",
   "workbench-layout-name-too-long": "Use a name of at most 80 characters.",
-  "workbench-layout-name-taken": "A layout named $1 already exists."
+  "workbench-layout-name-taken": "A layout named $1 already exists.",
+  "cards-stack-title": "Cards",
+  "cards-empty": "Pin characters, places or chapters to keep them here: hover a link and choose Pin, or use Pin in Reference.",
+  "cards-pin": "Pin",
+  "cards-pin-label": "Pin $1 as a card",
+  "cards-unpin-label": "Unpin $1",
+  "cards-collapse": "Collapse the $1 card",
+  "cards-expand": "Expand the $1 card",
+  "cards-options": "Options for the $1 card",
+  "cards-move-up": "Move up",
+  "cards-move-down": "Move down",
+  "cards-field-show": "Show $1 on cards",
+  "cards-field-hide": "Hide $1 on cards",
+  "cards-peek-label": "Preview of $1",
+  "cards-loading": "Loading…",
+  "cards-live-draft": "Showing the editor's current draft.",
+  "cards-list-separator": ", "
 }

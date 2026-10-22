@@ -17,7 +17,7 @@ describe('parseWorkbenchSettings', () => {
       saved: [{ id: 'user-1', name: 'Wide' }]
     }
     expect(parseWorkbenchSettings(value)).toEqual({
-      settings: { ...value, shell: 'workbench' },
+      settings: { ...value, shell: 'workbench', cardFields: {} },
       dropped: 0
     })
   })
@@ -56,6 +56,7 @@ describe('parseWorkbenchSettings', () => {
     expect(parsed?.settings).toEqual({
       version: 1,
       shell: 'workbench',
+      cardFields: {},
       arrangements: { 'user-1': wide },
       saved: [{ id: 'user-1', name: 'Wide' }]
     })
@@ -67,6 +68,13 @@ describe('parseWorkbenchSettings', () => {
 describe('parseWorkbenchProjects', () => {
   it('reads valid bindings', () => {
     const value = { version: 1, projects: { '/novels/salt': defaultProjectBindings() } }
+    const older: Record<string, unknown> = { ...defaultProjectBindings() }
+    delete older['collapsedCards']
+    // Bindings saved before collapsed cards existed still read, with none collapsed.
+    expect(
+      parseWorkbenchProjects({ version: 1, projects: { '/a': older } })?.projects['/a']
+        ?.collapsedCards
+    ).toEqual([])
     expect(parseWorkbenchProjects(value)).toEqual(value)
   })
 

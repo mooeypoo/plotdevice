@@ -9,7 +9,7 @@ import { resizeArea, selectSection, setSectionCollapsed } from '../model/operati
 import { DOCK_SIZE } from '../model/sizes'
 import type { DockSide } from '../model/vocabulary'
 import { registeredView, VIEW_REGISTRY } from '../views/view-registry'
-import MenuButton from './MenuButton.vue'
+import MenuButton from '../../shared/MenuButton.vue'
 import Splitter from './Splitter.vue'
 import { usePlacementMenus } from './use-placement-menus'
 

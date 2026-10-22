@@ -62,6 +62,7 @@ describe('loadWorkbenchSettings', () => {
     const settings = {
       version: 1 as const,
       shell: 'classic' as const,
+      cardFields: {},
       arrangements: {},
       saved: []
     }

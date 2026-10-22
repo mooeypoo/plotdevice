@@ -15,6 +15,8 @@ export function useEditorLinks(navigate?: (path: string) => void | Promise<void>
   readonly completions: ComputedRef<readonly LinkCompletionTarget[]>
   /** Opens a link's target; a markdown link is read relative to `fromPath` (the open entry). */
   readonly openLink: (link: LinkAt, fromPath?: string) => Promise<void>
+  /** The project file a link points to, read from `fromPath` (the open entry by default). */
+  readonly resolveLink: (link: LinkAt, fromPath?: string) => string | undefined
   /** Whether a link means the file at `path`, read from the file at `fromPath`. */
   readonly linkMeans: (link: LinkAt, path: string, fromPath: string) => boolean
   /** Why the last Ctrl/Cmd+click opened nothing; clears itself after a few seconds. */
@@ -76,6 +78,7 @@ export function useEditorLinks(navigate?: (path: string) => void | Promise<void>
   return {
     completions,
     openLink,
+    resolveLink: (link, fromPath) => targetOf(link, fromPath ?? editor.entry?.path),
     linkNotice,
     linkMeans: (link, path, fromPath) => {
       const target = targetOf(link, fromPath)

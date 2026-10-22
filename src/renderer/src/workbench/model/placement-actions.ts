@@ -122,7 +122,11 @@ function homeOf(view: ViewId): AreaRegion | undefined {
   const shipped = Object.values(PRESETS)
     .map((preset) => findView(preset, view)?.region)
     .find((region) => region !== undefined)
-  return shipped ?? AREA_REGIONS.find((region) => VIEW_CATALOG[view].regions.includes(region))
+  // Otherwise the catalog lists a view's regions in order of preference.
+  return (
+    shipped ??
+    VIEW_CATALOG[view].regions.find((region): region is AreaRegion => region !== 'center')
+  )
 }
 
 /** Views among `available` the layout doesn't show, each placed where it usually lives. */

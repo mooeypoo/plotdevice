@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { LinkTargetDto } from '../../../../contract/dtos'
 import { isolate } from '../../shared/isolate'
 import type { LinkAt } from '../../shared/link-at'
+import type { ScreenRect } from '../../shared/screen-rect'
 import type { LinkCompletionTarget } from './link-completion'
 import { createProseEditor, type ProseEditor } from './prose-editor'
 import type { ProseEditorCopy } from './prose-editor-copy'
@@ -24,6 +25,8 @@ const emit = defineEmits<{
   change: [text: string]
   blur: []
   openLink: [link: LinkAt]
+  peek: [link: LinkAt, near: ScreenRect, byKeyboard: boolean]
+  peekEnd: []
 }>()
 
 const host = ref<HTMLElement | null>(null)
@@ -82,6 +85,12 @@ onMounted(() => {
       emit('blur')
     },
     completions: () => props.completions,
+    onPeek: (link, near, byKeyboard) => {
+      emit('peek', link, near, byKeyboard)
+    },
+    onPeekEnd: () => {
+      emit('peekEnd')
+    },
     onOpenLink: (link) => {
       emit('openLink', link)
     }

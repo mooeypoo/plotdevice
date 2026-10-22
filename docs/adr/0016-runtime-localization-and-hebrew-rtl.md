@@ -1488,3 +1488,13 @@ Escape or Tab and return focus to the button. Layout names typed by the writer a
 isolated in messages and fields use automatic direction. Card stack and palette items
 remain for W5; real-browser qualification remains I7g.
 
+### I7d app-side peeks and cards (W5a)
+
+Peek cards open below their link aligned to its inline-start edge: in Hebrew the card's
+right edge meets the link's right edge, flipping above or inward to stay on screen
+(tested in both directions). Titles, field values and summaries use automatic direction;
+titles in messages are isolated, field values are authored text shown unchanged, and
+summaries keep the reading panels' per-block direction. Collapsed card arrows mirror
+through a direction-bound class. A keyboard peek takes focus and returns it on Escape.
+Real-browser placement and pointer behavior remain I7g.
+

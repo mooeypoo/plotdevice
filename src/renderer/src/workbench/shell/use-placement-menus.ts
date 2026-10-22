@@ -13,7 +13,7 @@ import {
 import type { ViewId } from '../model/view-catalog'
 import type { AreaRegion } from '../model/vocabulary'
 import { registeredView, VIEW_REGISTRY } from '../views/view-registry'
-import type { MenuItem } from './menu-item'
+import type { MenuItem } from '../../shared/menu-item'
 
 /** Views a writer can place in panels: every registered view except the document itself. */
 function placeableViews(): ViewId[] {

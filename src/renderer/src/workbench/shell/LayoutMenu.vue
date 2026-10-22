@@ -6,8 +6,8 @@ import { useWorkbenchStore } from '../../app/workbench-store'
 import { isolate } from '../../shared/isolate'
 import { isPresetId } from '../model/presets'
 import type { SavedLayoutRefusal } from '../model/saved-layouts'
-import type { MenuItem } from './menu-item'
-import MenuButton from './MenuButton.vue'
+import type { MenuItem } from '../../shared/menu-item'
+import MenuButton from '../../shared/MenuButton.vue'
 import { usePlacementMenus } from './use-placement-menus'
 
 const workbench = useWorkbenchStore()

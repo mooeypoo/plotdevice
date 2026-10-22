@@ -299,7 +299,7 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 **Done when:** every existing feature can be placed in its accepted regions, layouts survive restart and mirror in Hebrew, and mode and layout switches go through the navigation queue (tested).
 
 ### W5: Reference comes to the page
-- [ ] W5a: Peek on project links (rendered panels and editor), entry cards, the card stack, pin and unpin (including a pinned Reference, moved here from W4), per-user card fields by entry kind.
+- [x] W5a: Peek on project links (hover in rendered panels, Ctrl/Cmd+hover in the editor, Ctrl/Cmd+Shift+Enter everywhere), entry cards with live drafts, the card stack (collapse, reorder by drag or menu, per-user fields by entry kind), and pin/unpin from peeks, cards and Reference. Pinning Reference makes a card, as the brief describes, rather than freezing the panel.
 - [ ] W5b: Cast strip above the page (from `pov`, `characters`, `location`, and the live draft's body links) and the scene card (synopsis, status, POV, threads, linked outline lines).
 - [ ] W5c: Open beside as a read-only split, lock, and Write here through the navigation queue.
 - [ ] W5d: Command palette (entries, views, layouts, modes, menu commands) and chrome fading while typing.

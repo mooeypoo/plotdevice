@@ -6,7 +6,7 @@ import type { Section } from '../model/layout'
 import { resizeArea, selectSection, setAreaCollapsed } from '../model/operations'
 import { SHELF_SIZE } from '../model/sizes'
 import { registeredView, VIEW_REGISTRY } from '../views/view-registry'
-import MenuButton from './MenuButton.vue'
+import MenuButton from '../../shared/MenuButton.vue'
 import Splitter from './Splitter.vue'
 import { usePlacementMenus } from './use-placement-menus'
 

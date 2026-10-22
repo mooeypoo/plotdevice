@@ -593,5 +593,21 @@
   "workbench-layout-cancel": "Leaves the layout name or delete step without changes.",
   "workbench-layout-name-empty": "Shown when a layout name is empty.",
   "workbench-layout-name-too-long": "Shown when a layout name is too long. A letter with its vowel marks counts as one character.",
-  "workbench-layout-name-taken": "Shown when another layout has the same name, ignoring letter case. $1 is that name."
+  "workbench-layout-name-taken": "Shown when another layout has the same name, ignoring letter case. $1 is that name.",
+  "cards-stack-title": "Title of the panel that holds pinned entry cards.",
+  "cards-empty": "Shown in the empty card stack. Explains the two ways to pin a card.",
+  "cards-pin": "Button that pins the shown entry as a card in the card stack.",
+  "cards-pin-label": "Accessible name of the pin button. $1 is the entry's title, written by the writer.",
+  "cards-unpin-label": "Removes a pinned card from the stack. $1 is the entry's title. Nothing in the novel changes.",
+  "cards-collapse": "Collapses a card to one line. $1 is the entry's title.",
+  "cards-expand": "Expands a collapsed card. $1 is the entry's title.",
+  "cards-options": "Accessible name of a card's ⋯ menu. $1 is the entry's title.",
+  "cards-move-up": "Moves a card one place up in the stack.",
+  "cards-move-down": "Moves a card one place down in the stack.",
+  "cards-field-show": "Card menu item that adds a field to every card of this kind. $1 is the field's label, such as Role.",
+  "cards-field-hide": "Card menu item that removes a field from every card of this kind. $1 is the field's label.",
+  "cards-peek-label": "Accessible name of the preview card shown for a link. $1 is the linked entry's title.",
+  "cards-loading": "Shown in a card while the entry is read.",
+  "cards-live-draft": "Note on a card whose entry is open in the main editor: the card shows that live draft, read-only.",
+  "cards-list-separator": "Separator between values of one card field, such as two aliases. Keep the trailing space if your language uses one."
 }

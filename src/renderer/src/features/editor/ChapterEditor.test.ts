@@ -216,3 +216,57 @@ describe('ChapterEditor appearance', () => {
     wrapper.unmount()
   })
 })
+
+describe('ChapterEditor peeks', () => {
+  const mountEditor = () =>
+    mount(ChapterEditor, {
+      attachTo: document.body,
+      props: {
+        initialText: 'See [[Ilka]] here.',
+        readOnly: false,
+        focusMode: false,
+        linkTargets: [],
+        completions: []
+      }
+    })
+  const viewOf = (wrapper: ReturnType<typeof mountEditor>): EditorView => {
+    const view = EditorView.findFromDOM(wrapper.get('.cm-editor').element as HTMLElement)
+    if (view === null) throw new Error('Expected CodeMirror')
+    return view
+  }
+
+  it('peeks at the link under the caret with Ctrl/Cmd+Shift+Enter', () => {
+    const wrapper = mountEditor()
+    const view = viewOf(wrapper)
+    view.dispatch({ selection: { anchor: 7 } })
+    view.contentDOM.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, shiftKey: true, bubbles: true })
+    )
+    const [link, , byKeyboard] = wrapper.emitted('peek')?.[0] ?? []
+    expect(link).toEqual({ kind: 'wiki', target: 'Ilka' })
+    expect(byKeyboard).toBe(true)
+    expect(view.state.doc.toString()).toBe('See [[Ilka]] here.')
+    wrapper.unmount()
+  })
+
+  it('peeks on Ctrl/Cmd+hover once per link, and ends when the key is released', () => {
+    const wrapper = mountEditor()
+    const view = viewOf(wrapper)
+    const position = vi.spyOn(EditorView.prototype, 'posAtCoords').mockReturnValue(7)
+    const move = (ctrlKey: boolean): void => {
+      view.contentDOM.dispatchEvent(
+        new MouseEvent('mousemove', { ctrlKey, clientX: 10, clientY: 10, bubbles: true })
+      )
+    }
+    move(true)
+    move(true)
+    expect(wrapper.emitted('peek')).toHaveLength(1)
+    expect(wrapper.emitted('peek')?.[0]?.[2]).toBe(false)
+    move(false)
+    expect(wrapper.emitted('peekEnd')).toHaveLength(1)
+    position.mockReturnValue(1)
+    move(true)
+    expect(wrapper.emitted('peek')).toHaveLength(1)
+    wrapper.unmount()
+  })
+})

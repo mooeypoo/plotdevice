@@ -5,6 +5,10 @@ import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import { formatEntryPlaceLabel } from '../../shared/entry-place-label'
 import RenderedMarkdown from '../../shared/RenderedMarkdown.vue'
+import { isolate } from '../../shared/isolate'
+import { usePeek } from '../../app/peek-store'
+import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
+import { useWorkbenchStore } from '../../app/workbench-store'
 import { useReferencePanel } from './use-reference-panel'
 
 const reference = useReferenceStore()
@@ -12,6 +16,15 @@ const manuscript = useManuscriptStore()
 const language = useUiLanguageStore()
 const chrome = useChromePresentation()
 const panel = useReferencePanel()
+const peek = usePeek()
+const workbench = useWorkbenchStore()
+const navigation = useWorkbenchNavigation()
+
+/** Pinning keeps this entry as a card in the stack, so Reference stays free for the next lookup. */
+function pin(path: string): void {
+  workbench.pinCard(path)
+  navigation.revealView('card-stack')
+}
 const { text, profile, openInEditor, actionError, linkNotice } = panel
 </script>
 
@@ -28,13 +41,19 @@ const { text, profile, openInEditor, actionError, linkNotice } = panel
           {{
             reference.entry === null
               ? language.t('reference-panel-label')
-              : formatEntryPlaceLabel(
-                  reference.entry.label,
-                  language.t,
-                  chrome.formatNumber
-                )
+              : formatEntryPlaceLabel(reference.entry.label, language.t, chrome.formatNumber)
           }}
         </span>
+        <button
+          v-if="reference.path !== null && reference.entry !== null"
+          type="button"
+          class="quiet pin"
+          :aria-pressed="workbench.cards.includes(reference.path)"
+          :aria-label="language.t('cards-pin-label', isolate(reference.entry.title))"
+          @click="pin(reference.path)"
+        >
+          {{ language.t('cards-pin') }}
+        </button>
         <button
           v-if="reference.entry !== null"
           type="button"
@@ -42,9 +61,7 @@ const { text, profile, openInEditor, actionError, linkNotice } = panel
           @click="panel.edit()"
         >
           {{
-            language.t(
-              openInEditor ? 'reference-panel-show-editor' : 'reference-panel-open-editor'
-            )
+            language.t(openInEditor ? 'reference-panel-show-editor' : 'reference-panel-open-editor')
           }}
         </button>
       </header>
@@ -77,6 +94,11 @@ const { text, profile, openInEditor, actionError, linkNotice } = panel
         :text="text"
         :link-targets="manuscript.manuscript?.linkTargets ?? []"
         @open-link="panel.openLink"
+        @peek="
+          (link, near, byKeyboard) =>
+            peek.peekLink(link, reference.path ?? undefined, near, byKeyboard)
+        "
+        @peek-end="peek.endHover()"
       />
     </template>
     <div v-else class="empty">
@@ -102,7 +124,8 @@ header {
   justify-content: space-between;
   gap: 8px;
 }
-.edit {
+.edit,
+.pin {
   padding: 4px 6px;
   font-size: 11px;
 }

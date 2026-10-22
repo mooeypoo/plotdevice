@@ -9,6 +9,7 @@ import { plotDeviceApi } from './plot-device-api'
 import { useUiLanguageStore } from './ui-language-store'
 import { useWorkbenchStore } from './workbench-store'
 import { useWorkspaceStore } from './workspace-store'
+import { documentMoved } from './move-followers'
 
 beforeEach(async () => {
   localStorage.clear()
@@ -129,5 +130,42 @@ describe('layout store over the workbench', () => {
   it('no longer writes the old layout key', () => {
     useLayoutStore().toggleBinder()
     expect(localStorage.getItem('plotdevice.layout')).toBeNull()
+  })
+})
+
+describe('pinned cards', () => {
+  it('pins once, reorders, collapses and unpins, per project', () => {
+    const workbench = useWorkbenchStore()
+    workbench.pinCard('characters/Ilka.md')
+    workbench.pinCard('characters/Aunt Bea.md')
+    workbench.pinCard('characters/Ilka.md')
+    expect(workbench.cards).toEqual(['characters/Ilka.md', 'characters/Aunt Bea.md'])
+    workbench.moveCard('characters/Aunt Bea.md', 0)
+    expect(workbench.cards).toEqual(['characters/Aunt Bea.md', 'characters/Ilka.md'])
+    workbench.setCardCollapsed('characters/Ilka.md', true)
+    expect(workbench.collapsedCards).toEqual(['characters/Ilka.md'])
+    workbench.unpinCard('characters/Ilka.md')
+    expect(workbench).toMatchObject({ cards: ['characters/Aunt Bea.md'], collapsedCards: [] })
+    const book = useWorkspaceStore().project
+    if (book === null) throw new Error('no project')
+    expect(stored('plotdevice.workbenchProjects')).toMatchObject({
+      projects: { [book.root]: { cards: ['characters/Aunt Bea.md'] } }
+    })
+  })
+
+  it('remembers card fields per kind for every project', () => {
+    const workbench = useWorkbenchStore()
+    expect(workbench.cardFieldsFor('character')).toBeUndefined()
+    workbench.setCardFields('character', ['role'])
+    expect(stored('plotdevice.workbench')).toMatchObject({ cardFields: { character: ['role'] } })
+  })
+
+  it('follows the app’s moves and renames', () => {
+    const workbench = useWorkbenchStore()
+    workbench.pinCard('characters/Ilka.md')
+    workbench.setCardCollapsed('characters/Ilka.md', true)
+    documentMoved('characters/Ilka.md', 'characters/Ilka Szabó.md')
+    expect(workbench.cards).toEqual(['characters/Ilka Szabó.md'])
+    expect(workbench.collapsedCards).toEqual(['characters/Ilka Szabó.md'])
   })
 })
