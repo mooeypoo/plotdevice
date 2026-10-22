@@ -60,7 +60,8 @@ defineEmits<{ open: []; reference: [] }>()
   flex: 1;
   min-width: 0;
   min-height: 32px;
-  padding: 0 10px 0 8px;
+  padding-block: 0;
+  padding-inline: 8px 10px;
   border: none;
   border-radius: 7px;
   background: transparent;
@@ -100,8 +101,7 @@ defineEmits<{ open: []; reference: [] }>()
 .title {
   flex: 1;
   min-width: 0;
-  /* Hebrew titles keep their own direction but line up with the rest of the list. */
-  text-align: left;
+  text-align: start;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

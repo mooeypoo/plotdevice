@@ -83,6 +83,10 @@ function create(title: string): void {
 const marker = computed(() =>
   props.part.number === undefined ? '◇' : romanNumeral(props.part.number)
 )
+const toggleRotation = computed(() => {
+  if (props.expanded) return language.locale === 'he' ? 'rotate(-90deg)' : 'rotate(90deg)'
+  return language.locale === 'he' ? 'rotate(180deg)' : 'none'
+})
 </script>
 
 <template>
@@ -117,7 +121,7 @@ const marker = computed(() =>
           stroke-linecap="round"
           stroke-linejoin="round"
           aria-hidden="true"
-          :style="{ transform: expanded ? 'rotate(90deg)' : 'none' }"
+          :style="{ transform: toggleRotation }"
         >
           <path d="M9 6l6 6-6 6"></path>
         </svg>
@@ -218,7 +222,8 @@ const marker = computed(() =>
 .new-chapter {
   width: 100%;
   min-height: 30px;
-  padding: 0 8px 0 36px;
+  padding-block: 0;
+  padding-inline: 36px 8px;
   border: none;
   background: transparent;
   color: var(--text-muted);
@@ -272,7 +277,8 @@ const marker = computed(() =>
   align-items: baseline;
   gap: 8px;
   min-width: 0;
-  padding: 6px 10px 6px 0;
+  padding-block: 6px;
+  padding-inline: 0 10px;
   border: none;
   background: transparent;
   text-align: start;
@@ -292,7 +298,7 @@ const marker = computed(() =>
 .title {
   flex: 1;
   min-width: 0;
-  text-align: left;
+  text-align: start;
   overflow: hidden;
   font-weight: 500;
   color: var(--text);
@@ -307,12 +313,14 @@ const marker = computed(() =>
 
 .chapters {
   margin: 0;
-  padding: 0 0 0 14px;
+  padding-block: 0;
+  padding-inline: 14px 0;
   list-style: none;
 }
 
 .empty {
-  padding: 6px 10px 6px 36px;
+  padding-block: 6px;
+  padding-inline: 36px 10px;
   font-size: 12px;
   color: var(--text-muted);
 }

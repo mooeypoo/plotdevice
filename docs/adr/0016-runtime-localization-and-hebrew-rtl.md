@@ -142,6 +142,11 @@ progress, remaining limitations, and the next slice before ending a session.
 - [ ] **I4 RTL interface:** binder indentation/disclosures, logical layout,
   icons, responsive chrome, timeline coordinates/scroll, sticky matrix headers,
   keyboard/pointer interaction, selection retained by identity.
+  - [x] **I4a Binder tree flow:** logical chapter indentation and row/title
+    alignment; direction-aware disclosure arrows without changing expansion,
+    selection, ordering, or drag/drop semantics.
+  - [ ] **Remaining I4:** shared layout, directional icons, timeline/matrix
+    geometry, responsive behavior, and pointer/keyboard qualification.
 - [ ] **I5 Writing/reading:** independent direction preference; live CodeMirror
   phrases/placeholders; mixed-script caret/selection, completions and technical
   spans; consistent outline/reference policy without losing history or scroll.
@@ -1251,8 +1256,28 @@ Verified lint/dependency boundaries (475 modules/2,422 dependencies), typecheck,
 **1,567 tests across 173 files**, and the production electron-vite build. No API
 or dependencies changed. The docs build is also run for this handoff.
 
-**Next session:** begin a bounded I4 RTL-geometry slice only after approval.
-I3 translation is complete for the current interface; full RTL geometry and
-directional controls remain I4, independent writing/reading direction remains
-I5, and real-browser/packaged qualification remains I6. The separate Hebrew
-manual is not implemented.
+I3 translation is complete for the current interface. The first approved I4
+slice is documented next.
+
+### I4a Binder tree RTL flow
+
+Chapter indentation, add-chapter indentation, and binder row padding now use
+logical inline properties; titles align to inline-start. Part disclosure arrows
+point toward inline-end when collapsed and down when expanded in either locale.
+The arrow direction updates live when the interface language changes. No
+manuscript order, drag/drop mapping, selected entry, or project data changed.
+
+Regression tests verify expanded/collapsed state, live English/Hebrew arrow
+orientation, retained selection, and unchanged open/move emissions. Existing
+binder drag/drop and project-state tests remain green. Verified lint/dependency
+boundaries (475 modules/2,422 dependencies), typecheck, **1,568 tests across
+173 files**, and the production electron-vite build. The docs build/link/asset
+check passed across all 16 public pages. No API or dependencies changed.
+
+Happy DOM verifies state and direction-dependent styles, not rendered RTL
+geometry. I4 remains incomplete; shared panel placement, directional icons,
+timeline/matrix geometry, and real-browser pointer/keyboard qualification
+remain. Independent writing/reading direction is I5; packaged qualification
+and the separate Hebrew manual remain I6/D1.
+
+**Next session:** propose the next bounded I4 slice before editing.

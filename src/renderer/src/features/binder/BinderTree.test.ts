@@ -29,6 +29,41 @@ const markers = (wrapper: ReturnType<typeof mount>): string[] =>
   wrapper.findAll('.marker').map((marker) => marker.text())
 
 describe('BinderTree', () => {
+  it('mirrors part disclosure direction live without collapsing or changing selection', async () => {
+    const wrapper = mount(BinderTree, {
+      props: { ...props, manuscript: sampleManuscript, selectedPath: 'The Ferry.md' }
+    })
+    const toggle = wrapper.get<HTMLButtonElement>('.toggle')
+    const disclosure = toggle.get('svg')
+    const row = wrapper.get('.row').element
+
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+    expect(disclosure.element.style.transform).toBe('rotate(90deg)')
+    expect(row.getAttribute('aria-current')).toBe('true')
+
+    useUiLanguageStore().locale = 'he'
+    document.documentElement.dir = 'rtl'
+    await wrapper.vm.$nextTick()
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+    expect(disclosure.element.style.transform).toBe('rotate(-90deg)')
+    expect(wrapper.find('.chapters').exists()).toBe(true)
+    expect(wrapper.get('.row').element).toBe(row)
+    expect(row.getAttribute('aria-current')).toBe('true')
+
+    await toggle.trigger('click')
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(disclosure.element.style.transform).toBe('rotate(180deg)')
+    expect(wrapper.find('.chapters').exists()).toBe(false)
+    useUiLanguageStore().locale = 'en'
+    document.documentElement.dir = 'ltr'
+    await wrapper.vm.$nextTick()
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(disclosure.element.style.transform).toBe('none')
+    expect(wrapper.emitted('move')).toBeUndefined()
+    expect(wrapper.emitted('open')).toBeUndefined()
+    wrapper.unmount()
+  })
+
   it('translates binder chrome, section details, status and grouped counts without replacing state', async () => {
     const first = partOne.chapters[0]
     if (first === undefined) throw new Error('Missing chapter')

@@ -216,6 +216,10 @@ acceptance criteria, and the cross-session checklist.
     native dialog labels or startup messages remain; preserve OS-owned and
     technical text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
+  - [x] I4a: Use logical indentation/alignment in the binder and mirror part
+    disclosure direction; preserve selection, order and drag/drop behavior.
+  - [ ] Remaining I4: qualify shared layout, timeline/matrix geometry,
+    directional icons, responsiveness and pointer/keyboard interactions.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.
 - [ ] D1: Public Hebrew manual/distribution text (separate approval).
