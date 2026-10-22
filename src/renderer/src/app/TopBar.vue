@@ -8,12 +8,15 @@ import { useWorkspaceStore } from './workspace-store'
 import { useUiLanguageStore } from './ui-language-store'
 import LanguageSelector from '../shared/LanguageSelector.vue'
 import { isolate } from '../shared/isolate'
+import { formatEntryPlaceCrumb, formatEntryPlaceTitle } from '../shared/entry-place-label'
+import { useChromePresentation } from '../shared/use-chrome-presentation'
 
 const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
 const editor = useEditorStore()
 const layout = useLayoutStore()
 const language = useUiLanguageStore()
+const chrome = useChromePresentation()
 
 const crumbs = computed(() => {
   if (layout.mainView === 'overview') return [language.t('view-overview')]
@@ -24,8 +27,12 @@ const crumbs = computed(() => {
   const part = manuscript.currentPart
   const chapterOfPart = entry.kind === 'chapter' && part !== undefined
   return chapterOfPart
-    ? [part.title, entry.label.split(' · ').pop() ?? '', entry.title]
-    : [entry.title]
+    ? [
+        part.title,
+        formatEntryPlaceCrumb(entry.label, language.t, chrome.formatNumber),
+        formatEntryPlaceTitle(entry, language.t)
+      ]
+    : [formatEntryPlaceTitle(entry, language.t)]
 })
 </script>
 

@@ -4,18 +4,21 @@ import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
 import { useLayoutStore } from './layout-store'
 import { useShortcuts } from './use-shortcuts'
+import { useUiLanguageStore } from './ui-language-store'
+import { formatEntryPlaceTitle } from '../shared/entry-place-label'
 
 /** Document-tab presentation, keyboard commands and guarded navigation through the editor. */
 export function useDocumentTabs() {
   const tabs = useDocumentTabsStore()
   const editor = useEditorStore()
   const layout = useLayoutStore()
+  const language = useUiLanguageStore()
   const documents = computed(() => {
     return tabs.ordered.map((tab) => {
       const place = placeOf(tab.path)
       return {
         ...tab,
-        title: place?.title ?? tab.path,
+        title: place === undefined ? tab.path : formatEntryPlaceTitle(place, language.t),
         kind: place?.kind,
         writing: tab.path === tabs.writingPath,
         active: editor.entry?.path === tab.path && layout.mainView === 'write',

@@ -959,9 +959,29 @@ release or real-browser/native-popover/bidi qualification; shared browser pages
 were not reloaded.
 
 **Next session:** propose a bounded document-tab/sidebar translation slice before
-editing. Remaining I3 work includes generated entry-place labels, tab/sidebar
-chrome, inspector/overview/timeline/interactions/reading text, native dialog and
-close-confirmation wording, and startup fallback. Locale-aware binder/other
-number/date/collation surfaces remain to migrate explicitly. I3 is incomplete;
-RTL geometry/directional controls and packaged qualification remain I4-I6, and
-the separate Hebrew manual is not implemented.
+editing. That approved I3c slice translates tab actions/states/tooltips and
+sidebar tab/navigation names, and replaces generated English `EntryPlace.label`
+strings with a semantic label union formatted at the presentation boundary.
+Numbered/unnumbered parts and chapters, unordered chapters, codex kinds, outlines
+and template labels are represented and translated; Hebrew template titles are
+localized only in generated display, while author-written titles remain exact.
+Breadcrumbs use semantic chapter positions rather than splitting translated
+text. Switching locale preserves document/tab identity and does not call project
+APIs or mutate manuscripts. Contract remains **23**; no new dependencies.
+
+Mounted regressions cover live translated tab/sidebar labels, preserved selected
+controls and draft/navigation state, unchanged tab actions and no locale-triggered
+project reads, isolated close-label titles, localized breadcrumbs, generated
+template titles, and unchanged author-written titles. Pure helper tests cover
+every semantic position kind in both locales. Verified lint/dependency
+boundaries, typecheck, **1,526 tests across 167 files**, production
+electron-vite build, and documentation build/link/asset checks across all 16
+public pages. No API contract or dependencies changed; no manuscript writes,
+push, release, or real-browser/RTL geometry qualification.
+
+**Next session:** propose a bounded I3 slice before editing. Remaining I3 work
+includes inspector/overview/timeline/interactions/reading text, locale-aware
+binder and other number/date/collation surfaces, native dialog/confirmation
+wording, and startup fallback. I3 is incomplete; RTL geometry/directional
+controls and packaged qualification remain I4-I6, and the separate Hebrew
+manual is not implemented.

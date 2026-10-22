@@ -9,6 +9,7 @@ import { useManuscriptStore } from './manuscript-store'
 import { useWorkspaceStore } from './workspace-store'
 import { useReferenceStore } from './reference-store'
 import { useSidePanelNavigation } from './use-side-panel-navigation'
+import { useUiLanguageStore } from './ui-language-store'
 
 defineProps<{ attentionCount: number }>()
 defineEmits<{ move: [request: DropRequest] }>()
@@ -19,27 +20,25 @@ const codex = useCodexStore()
 const editor = useEditorStore()
 const layout = useLayoutStore()
 const reference = useReferenceStore()
+const language = useUiLanguageStore()
 const { openEntry, editEntry, consultEntry, selectedCodexPath } = useSidePanelNavigation()
 
-const TABS: readonly { readonly id: SideTab; readonly label: string }[] = [
-  { id: 'manuscript', label: 'Manuscript' },
-  { id: 'codex', label: 'Codex' }
-]
+const TABS: readonly SideTab[] = ['manuscript', 'codex']
 </script>
 
 <template>
   <div class="side">
-    <div class="tabs" role="tablist" aria-label="Side panel">
+    <div class="tabs" role="tablist" :aria-label="language.t('side-tablist')">
       <button
         v-for="tab in TABS"
-        :key="tab.id"
+        :key="tab"
         type="button"
         role="tab"
-        :aria-selected="layout.sideTab === tab.id"
-        :class="{ selected: layout.sideTab === tab.id }"
-        @click="layout.sideTab = tab.id"
+        :aria-selected="layout.sideTab === tab"
+        :class="{ selected: layout.sideTab === tab }"
+        @click="layout.sideTab = tab"
       >
-        {{ tab.label }}
+        {{ language.t(tab === 'manuscript' ? 'side-manuscript' : 'side-codex') }}
       </button>
     </div>
     <p
@@ -75,7 +74,7 @@ const TABS: readonly { readonly id: SideTab; readonly label: string }[] = [
     <nav
       v-else-if="layout.sideTab === 'codex' && codex.listing && workspace.project"
       class="codex"
-      aria-label="Codex"
+      :aria-label="language.t('side-codex-nav')"
     >
       <CodexList
         :listing="codex.listing"

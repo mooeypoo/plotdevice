@@ -25,7 +25,11 @@ describe('codex store', () => {
     const editor = useEditorStore()
     const codex = useCodexStore()
     expect(await editor.open('characters/Ilka.md')).toBe(true)
-    expect(editor.entry).toMatchObject({ kind: 'character', label: 'Character', title: 'Ilka' })
+    expect(editor.entry).toMatchObject({
+      kind: 'character',
+      label: { type: 'codex-kind', kind: 'character' },
+      title: 'Ilka'
+    })
     expect(editor.text).toBe('Ilka grafts pear trees.\n')
     expect(codex.properties).toMatchObject({ role: 'lead', aliases: ['Ilk'] })
     expect(codex.appearsIn).toEqual([{ path: 'The Ferry.md', title: 'The Ferry', keys: ['pov'] }])

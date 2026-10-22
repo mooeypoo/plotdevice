@@ -10,7 +10,6 @@ import type {
   PartDto,
   PropertyChangesDto
 } from '../../../contract/dtos'
-import { romanNumeral } from '../shared/roman-numeral'
 import { useEditorStore } from './editor-store'
 import { registerEntryOwner } from './entry-owners'
 import type { EntryPlace } from './entry-place'
@@ -267,9 +266,11 @@ registerEntryOwner(['part', 'chapter'], () => useManuscriptStore())
 function indexPlaces(manuscript: ManuscriptDto | null): Map<string, ManuscriptPlace> {
   const places = new Map<string, ManuscriptPlace>()
   if (manuscript === null) return places
-  const chapterLabel = (prefix: string, chapter: ChapterDto): string =>
-    chapter.number === undefined ? prefix : `${prefix} · Chapter ${String(chapter.number)}`
-  const chapterPlace = (chapter: ChapterDto, label: string, part?: PartDto): ManuscriptPlace => ({
+  const chapterPlace = (
+    chapter: ChapterDto,
+    label: EntryPlace['label'],
+    part?: PartDto
+  ): ManuscriptPlace => ({
     place: {
       kind: 'chapter',
       title: chapter.title,
@@ -280,26 +281,43 @@ function indexPlaces(manuscript: ManuscriptDto | null): Map<string, ManuscriptPl
   })
 
   for (const part of manuscript.parts) {
-    const partLabel = `Part ${romanNumeral(part.number ?? 0)}`
-    places.set(part.path, { place: { kind: 'part', title: part.title, label: partLabel }, part })
+    const partNumber = part.number ?? 0
+    places.set(part.path, {
+      place: { kind: 'part', title: part.title, label: { type: 'part', number: partNumber } },
+      part
+    })
     for (const chapter of part.chapters) {
-      places.set(chapter.path, chapterPlace(chapter, chapterLabel(partLabel, chapter), part))
+      places.set(
+        chapter.path,
+        chapterPlace(
+          chapter,
+          {
+            type: 'part-chapter',
+            partNumber,
+            ...(chapter.number !== undefined ? { chapterNumber: chapter.number } : {})
+          },
+          part
+        )
+      )
     }
   }
   for (const part of manuscript.unnumberedParts) {
     places.set(part.path, {
-      place: { kind: 'part', title: part.title, label: 'Not in sequence' },
+      place: { kind: 'part', title: part.title, label: { type: 'not-in-sequence' } },
       part
     })
     for (const chapter of part.chapters) {
-      places.set(chapter.path, chapterPlace(chapter, `${part.title} · not in sequence`, part))
+      places.set(
+        chapter.path,
+        chapterPlace(chapter, { type: 'unsequenced-part-chapter', partTitle: part.title }, part)
+      )
     }
   }
   for (const chapter of manuscript.chapters) {
-    places.set(chapter.path, chapterPlace(chapter, `Chapter ${String(chapter.number)}`))
+    places.set(chapter.path, chapterPlace(chapter, { type: 'chapter', number: chapter.number }))
   }
   for (const { chapter } of manuscript.unordered) {
-    places.set(chapter.path, chapterPlace(chapter, 'Unordered'))
+    places.set(chapter.path, chapterPlace(chapter, { type: 'unordered' }))
   }
   return places
 }

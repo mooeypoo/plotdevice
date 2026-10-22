@@ -29,7 +29,7 @@ describe('manuscript store', () => {
     expect(store.entry).toMatchObject({
       kind: 'chapter',
       title: 'First frost',
-      label: 'Part I · Chapter 2'
+      label: { type: 'part-chapter', partNumber: 1, chapterNumber: 2 }
     })
     expect(store.text).toBe('Four words are here.\n')
     expect(manuscript.currentPart?.title).toBe('Part One: The Orchard')
@@ -38,9 +38,9 @@ describe('manuscript store', () => {
   it('opens a part’s own text, and an unordered chapter', async () => {
     const store = useEditorStore()
     await store.open('Part One.md')
-    expect(store.entry).toMatchObject({ kind: 'part', label: 'Part I' })
+    expect(store.entry).toMatchObject({ kind: 'part', label: { type: 'part', number: 1 } })
     await store.open('Lost.md')
-    expect(store.entry).toMatchObject({ kind: 'chapter', label: 'Unordered' })
+    expect(store.entry).toMatchObject({ kind: 'chapter', label: { type: 'unordered' } })
   })
 
   it('autosaves after a pause, and updates chapter, part, and book word counts', async () => {

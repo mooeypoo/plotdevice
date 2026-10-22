@@ -158,6 +158,12 @@ appearance controls without remounting them. `useChromePresentation` formats
 UI-locale numbers and whole plural-aware status/focus count messages, separating
 raw plural selectors from formatted counts. This display-only policy does not
 alter numeric typography preferences, popover behavior or manuscript word counts.
+Document tabs and sidebar navigation translate their state labels and accessible
+names without changing navigation or tab identity. `EntryPlace` carries semantic
+position data instead of English label strings; the renderer formats chapter,
+part, codex and template labels at display time, so locale changes never reload
+stores. User-authored titles remain unchanged, and breadcrumbs use the semantic
+position rather than parsing translated text.
 Unmigrated failures explicitly display their original message until their producers are migrated.
 Remaining action failures/strings, full RTL geometry and independent content-direction controls
 remain tracked in ADR 0016. No language switch changes novel files or existing writing preferences.

@@ -184,8 +184,10 @@ acceptance criteria, and the cross-session checklist.
     accessibility/labels and dates following the selected interface language.
   - [x] I3b: Project top-bar accessibility/tooltips, complete save/status/focus
     labels/counts, and writing appearance with UI-locale numeric presentation.
-  - [ ] Next approval: bounded document-tab/sidebar translation, then remaining
-    components, formatting surfaces and native/startup text.
+  - [x] I3c: Document-tab actions/states, sidebar tab/navigation names, and
+    generated semantic entry-position and template-title presentation.
+  - [ ] Remaining I3: inspector/overview/timeline/interactions/reading text,
+    locale-aware formatting surfaces, native dialog/confirmation and startup text.
 - [ ] I4: RTL layout, binder, timeline, matrix and interaction qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.

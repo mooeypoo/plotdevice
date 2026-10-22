@@ -4,15 +4,26 @@ import { useEditorStore } from './editor-store'
 import { useDocumentTabs } from './use-document-tabs'
 import { isolate } from '../shared/isolate'
 import { navigateTabs } from '../shared/tab-navigation'
+import { useUiLanguageStore } from './ui-language-store'
 
 const tabs = useDocumentTabsStore()
 const editor = useEditorStore()
+const language = useUiLanguageStore()
 const { documents, active, busy, canWriteHere, activateTab, returnToWriting } = useDocumentTabs()
 </script>
 
 <template>
-  <section v-if="documents.length > 0" class="document-navigation" aria-label="Open documents">
-    <div class="tab-strip" role="tablist" aria-label="Documents" @keydown="navigateTabs">
+  <section
+    v-if="documents.length > 0"
+    class="document-navigation"
+    :aria-label="language.t('tabs-open-documents')"
+  >
+    <div
+      class="tab-strip"
+      role="tablist"
+      :aria-label="language.t('tabs-document-list')"
+      @keydown="navigateTabs"
+    >
       <div
         v-for="tab in documents"
         :key="tab.id"
@@ -35,18 +46,20 @@ const { documents, active, busy, canWriteHere, activateTab, returnToWriting } = 
           @click="activateTab(tab.path, $event)"
           @dblclick="tabs.keep(tab.path)"
         >
-          <span v-if="tab.writing" class="tab-state">Writing</span>
+          <span v-if="tab.writing" class="tab-state">{{ language.t('tabs-writing') }}</span>
           <bdi class="tab-title">{{ tab.title }}</bdi>
-          <span v-if="tab.pinned" class="tab-state">Pinned</span>
-          <span v-else-if="tab.temporary" class="tab-state preview">Preview</span>
-          <span v-if="tab.unavailable" class="missing">Missing</span>
+          <span v-if="tab.pinned" class="tab-state">{{ language.t('tabs-pinned') }}</span>
+          <span v-else-if="tab.temporary" class="tab-state preview">
+            {{ language.t('tabs-preview') }}
+          </span>
+          <span v-if="tab.unavailable" class="missing">{{ language.t('tabs-missing') }}</span>
         </button>
         <button
           v-if="tabs.canClose(tab.path)"
           type="button"
           class="close"
           :disabled="busy"
-          :aria-label="`Close ${isolate(tab.title)}`"
+          :aria-label="language.t('tabs-close-label', isolate(tab.title))"
           @click="editor.closeDocument(tab.path)"
         >
           ×
@@ -59,10 +72,10 @@ const { documents, active, busy, canWriteHere, activateTab, returnToWriting } = 
         type="button"
         class="return"
         :disabled="busy"
-        title="Return to writing (Ctrl+Shift+Enter)"
+        :title="language.t('tabs-return-title', isolate('Ctrl+Shift+Enter'))"
         @click="returnToWriting"
       >
-        Return to writing
+        {{ language.t('tabs-return') }}
       </button>
       <template v-if="active">
         <button
@@ -71,7 +84,7 @@ const { documents, active, busy, canWriteHere, activateTab, returnToWriting } = 
           :disabled="busy"
           @click="tabs.keep(active.path)"
         >
-          Keep open
+          {{ language.t('tabs-keep-open') }}
         </button>
         <button
           type="button"
@@ -79,12 +92,12 @@ const { documents, active, busy, canWriteHere, activateTab, returnToWriting } = 
           :aria-pressed="active.pinned"
           :title="
             active.writing
-              ? 'Lock or release the Writing target'
-              : 'Keep this tab available until unpinned'
+              ? language.t('tabs-writing-pin-tooltip')
+              : language.t('tabs-pin-tooltip')
           "
           @click="tabs.togglePin(active.path)"
         >
-          {{ active.pinned ? 'Unpin' : 'Pin' }}
+          {{ active.pinned ? language.t('tabs-unpin') : language.t('tabs-pin') }}
         </button>
         <button
           v-if="canWriteHere && !active.writing"
@@ -92,15 +105,15 @@ const { documents, active, busy, canWriteHere, activateTab, returnToWriting } = 
           :disabled="busy"
           @click="tabs.writeHere(active.path)"
         >
-          Write here
+          {{ language.t('tabs-write-here') }}
         </button>
         <button
           type="button"
           :disabled="busy"
-          title="Keep the current document, Writing, and pinned tabs"
+          :title="language.t('tabs-close-other-tooltip')"
           @click="editor.closeOtherDocuments()"
         >
-          Close other unpinned
+          {{ language.t('tabs-close-other-unpinned') }}
         </button>
       </template>
     </div>

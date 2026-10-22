@@ -14,6 +14,8 @@ import MissingFileBanner from './MissingFileBanner.vue'
 import { useEditorLinks } from './use-editor-links'
 import { useDocumentTabsStore } from '../../app/document-tabs-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
+import { formatEntryPlaceLabel, formatEntryPlaceTitle } from '../../shared/entry-place-label'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
 
 const manuscript = useManuscriptStore()
 const editor = useEditorStore()
@@ -21,6 +23,7 @@ const workspace = useWorkspaceStore()
 const layout = useLayoutStore()
 const tabs = useDocumentTabsStore()
 const language = useUiLanguageStore()
+const chrome = useChromePresentation()
 
 const readOnly = computed(() => workspace.project?.readOnly ?? false)
 const { completions, openLink, linkNotice } = useEditorLinks()
@@ -44,8 +47,10 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
     <InteractionsView v-else-if="layout.mainView === 'interactions'" />
     <div v-else-if="editor.entry" class="page">
       <header class="heading">
-        <div class="eyebrow" dir="auto">{{ editor.entry.label }}</div>
-        <h1 dir="auto">{{ editor.entry.title }}</h1>
+        <div class="eyebrow" dir="auto">
+          {{ formatEntryPlaceLabel(editor.entry.label, language.t, chrome.formatNumber) }}
+        </div>
+        <h1 dir="auto">{{ formatEntryPlaceTitle(editor.entry, language.t) }}</h1>
       </header>
 
       <p v-if="readOnly" class="notice" role="status">

@@ -18,11 +18,11 @@ import { plotDeviceApi } from './plot-device-api'
 import { useReferenceStore } from './reference-store'
 import { useErrorNotice } from '../shared/use-error-notice'
 
-const KIND_LABELS: Readonly<Record<CodexKindDto, string>> = {
+const KIND_LABELS = {
   character: 'Character',
   location: 'Location',
   note: 'Note'
-}
+} as const
 
 /**
  * The codex tab's data: characters, locations, notes, and untyped files, plus the open codex
@@ -53,18 +53,22 @@ export const useCodexStore = defineStore('codex', () => {
       new Map<string, EntryPlace>([
         ...(listing.value?.entries ?? []).map((entry): [string, EntryPlace] => [
           entry.path,
-          { kind: entry.kind, title: entry.title, label: KIND_LABELS[entry.kind] }
+          {
+            kind: entry.kind,
+            title: entry.title,
+            label: { type: 'codex-kind', kind: entry.kind }
+          }
         ]),
         ...(listing.value?.outlines ?? []).map((outline): [string, EntryPlace] => [
           outline.path,
-          { kind: 'outline', title: outline.title, label: 'Outline' }
+          { kind: 'outline', title: outline.title, label: { type: 'outline' } }
         ]),
         ...(listing.value?.templates ?? []).map((template): [string, EntryPlace] => [
           template.path,
           {
             kind: 'template',
             title: `${KIND_LABELS[template.kind]} template`,
-            label: 'Template',
+            label: { type: 'template' },
             templateOf: template.kind
           }
         ])
