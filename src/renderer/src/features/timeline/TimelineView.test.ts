@@ -116,6 +116,40 @@ describe('TimelineView', () => {
     ])
   })
 
+  it('flows the reading grid and story-date axis RTL without changing chapter or date order', async () => {
+    const language = useUiLanguageStore()
+    await language.initialize()
+    const view = await mountView()
+    const readingTitles = view.findAll('.column-head .chapter').map((head) => head.text())
+    const readingCells = view.findAll('.cell').map((cell) => cell.classes().join(' '))
+    expect(view.get('.timeline').attributes('dir')).toBe('ltr')
+
+    await language.change('he')
+    await flushPromises()
+    expect(view.get('.timeline').attributes('dir')).toBe('rtl')
+    expect(view.findAll('.column-head .chapter').map((head) => head.text())).toEqual(
+      readingTitles
+    )
+    expect(view.findAll('.cell').map((cell) => cell.classes().join(' '))).toEqual(readingCells)
+
+    await view.get('[aria-label="סדר"] button:last-child').trigger('click')
+    await view.get('[aria-label="קנה מידה"] button:first-child').trigger('click')
+    await flushPromises()
+    expect(view.get('.timeline').attributes('dir')).toBe('rtl')
+    const tick = view.get<HTMLElement>('.tick')
+    const bar = view.get<HTMLElement>('.bar')
+    expect(tick.element.style.getPropertyValue('inset-inline-start')).toMatch(/px$/u)
+    expect(bar.element.style.getPropertyValue('inset-inline-start')).toMatch(/px$/u)
+    expect(bar.attributes('dir')).toBe('rtl')
+    expect(bar.find('bdi').text()).toBe('The Ferry')
+    expect(view.findAll('.bar').map((item) => item.attributes('title'))).toContainEqual(
+      expect.stringContaining('3 באוקטובר 1952')
+    )
+    expect(fake.saves).toEqual([])
+    expect(fake.codexWrites).toEqual([])
+    view.unmount()
+  })
+
   it('switches to characters, marking point of view', async () => {
     const view = await mountView()
     const characters = view.findAll('button').find((button) => button.text() === 'Characters')

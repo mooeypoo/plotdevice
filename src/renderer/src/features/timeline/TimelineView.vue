@@ -9,6 +9,7 @@ import { useUiLanguageStore } from '../../app/ui-language-store'
 import { formatStoryDateReading } from '../../shared/story-date-format'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import type { Cell, GridRow } from './reading-grid'
+import { uiDirection } from '../../../../i18n/locales'
 
 const view = useTimeline()
 const language = useUiLanguageStore()
@@ -78,7 +79,12 @@ function setMinGap(event: Event): void {
 </script>
 
 <template>
-  <section ref="host" class="timeline" aria-labelledby="timeline-heading">
+  <section
+    ref="host"
+    class="timeline"
+    :dir="uiDirection(language.locale)"
+    aria-labelledby="timeline-heading"
+  >
     <header>
       <h1 id="timeline-heading">{{ language.t('timeline-heading') }}</h1>
       <div class="controls">
@@ -247,7 +253,7 @@ function setMinGap(event: Event): void {
               :key="tick.day"
               class="tick"
               :class="{ major: tick.major }"
-              :style="{ left: `${x(tick.day)}px` }"
+              :style="{ insetInlineStart: `${x(tick.day)}px` }"
             >
               {{ tick.label }}
             </span>
@@ -268,17 +274,17 @@ function setMinGap(event: Event): void {
                 pov: bar.pov,
                 narrow: (bar.end - bar.start + 1) * pxPerDay < 64
               }"
+              :dir="uiDirection(language.locale)"
               :style="{
-                left: `${x(bar.start)}px`,
+                insetInlineStart: `${x(bar.start)}px`,
                 width: `${Math.max((bar.end - bar.start + 1) * pxPerDay, 8)}px`,
                 top: `${bar.lane * LANE + 5}px`,
                 '--row-color': row.color ?? 'var(--accent)'
               }"
               :title="describe(chapterAt(bar.path) as TimelineChapterDto)"
-              dir="auto"
               @click="view.open(bar.path)"
             >
-              <span class="name">{{ bar.title }}</span>
+              <span class="name"><bdi>{{ bar.title }}</bdi></span>
             </button>
           </div>
         </div>
@@ -385,7 +391,7 @@ h1 {
 .corner,
 .row-name {
   position: sticky;
-  left: 0;
+  inset-inline-start: 0;
   z-index: 1;
   background: var(--bg);
 }
@@ -564,7 +570,7 @@ h1 {
 
 .bar.narrow .name {
   position: absolute;
-  left: calc(100% + 4px);
+  inset-inline-start: calc(100% + 4px);
   color: var(--text);
 }
 

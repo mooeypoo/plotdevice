@@ -149,8 +149,12 @@ progress, remaining limitations, and the next slice before ending a session.
     while root direction places the binder/right inspector on the correct
     inline sides; resize by pointer and arrow keys in the selected direction,
     retaining preferred widths and cancel behavior.
-  - [ ] **Remaining I4:** shared layout, directional icons, timeline/matrix
-    geometry, responsive behavior, and pointer/keyboard qualification.
+  - [x] **I4c Timeline flow:** reading-grid chapter progression and sticky row
+    headings follow inline-start; story-axis ticks and bars use logical offsets
+    so story dates progress from right to left in Hebrew without changing dates.
+  - [ ] **Remaining I4:** interaction-matrix geometry/sticky headers,
+    directional icons, responsive behavior, and real-browser pointer/scroll
+    qualification.
 - [ ] **I5 Writing/reading:** independent direction preference; live CodeMirror
   phrases/placeholders; mixed-script caret/selection, completions and technical
   spans; consistent outline/reference policy without losing history or scroll.

@@ -220,8 +220,10 @@ acceptance criteria, and the cross-session checklist.
     disclosure direction; preserve selection, order and drag/drop behavior.
   - [x] I4b: Place the binder and right panel by root direction; make pointer
     and keyboard resizing follow RTL inline edges without changing stored widths.
-  - [ ] Remaining I4: qualify shared layout, timeline/matrix geometry,
-    directional icons, responsiveness and pointer/keyboard interactions.
+  - [x] I4c: Flow reading-grid columns and sticky headings from inline-start;
+    position story-axis ticks/bars logically so dates progress RTL unchanged.
+  - [ ] Remaining I4: interaction-matrix geometry/sticky headers, directional
+    icons, responsiveness, and real-browser pointer/scroll qualification.
 - [ ] I5: Independent writing/reading direction and mixed-script editor support.
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.
 - [ ] D1: Public Hebrew manual/distribution text (separate approval).
