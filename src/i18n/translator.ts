@@ -221,6 +221,13 @@ type ParameterizedMessages = {
   'board-move-to': [column: string]
   'board-moved-beat': [beat: string, column: string]
   'board-moved-column': [column: string]
+  'board-add-card-label': [column: string]
+  'board-synopsis-label': [chapter: string]
+  'board-status-label': [chapter: string]
+  'board-added': [beat: string, column: string]
+  'board-renamed': [title: string]
+  'board-synopsis-saved': [chapter: string]
+  'board-status-set': [chapter: string, status: string]
 }
 type MessageArguments<Key extends MessageKey> = Key extends keyof ParameterizedMessages
   ? ParameterizedMessages[Key]

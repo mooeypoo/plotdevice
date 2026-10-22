@@ -345,8 +345,8 @@ L1 any time before P2. P1 needs only W2's dependency rules.
 **Done when:** only moved lines change, a stale board refuses to write, and an unresolved outline draft blocks moves.
 
 ### P4: Edit on the board
-- [ ] Add and retitle beats, edit notes.
-- [ ] Edit chapter synopsis and status from a beat card through the existing property commands.
+- [x] Add and retitle beats, edit notes (contract version 29): in place on the card, from the ⋯ menu, F2, and "+ Add card" at a column's foot; Enter keeps the add field open for the next card.
+- [x] Edit chapter synopsis and status from a beat card through the existing property commands (`updateChapterProperties`, shared with the Overview).
 
 **Done when:** each edit changes only its lines or keys, and every edit has a keyboard path.
 

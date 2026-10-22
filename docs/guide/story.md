@@ -45,6 +45,11 @@ the same moves. Only the moved lines change in the file; if the outline changed
 since the board read it, nothing is written and the board reads it again. The Inbox
 column always stays last; drag its cards out to sort them into the story.
 
+Write on the board, too. **+ Add card** at the foot of a column adds cards one after
+another: type a line, press Enter, and type the next. **F2** renames a focused card,
+and its **⋯** menu edits its notes. When a card links to a chapter, the same menu sets
+that chapter's synopsis and status, exactly as the inspector would.
+
 **Capture a beat** is an experimental setting in Writing appearance. When it's on, the
 command palette (Ctrl+K) offers **Capture a beat…**: type one line and press Enter,
 and it is added to the end of the outline's Inbox section, which is created if

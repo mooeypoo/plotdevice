@@ -206,6 +206,28 @@ export interface OutlineApi {
     column: OutlineItemRefDto,
     placement: OutlinePlacementDto
   ): Promise<ApiResult<PlotBoardDto>>
+  /** Adds a one-line beat to a column; returns the board as the file now reads. */
+  addBeat(
+    path: string,
+    version: string,
+    column: OutlineItemRefDto,
+    title: string,
+    placement: OutlinePlacementDto
+  ): Promise<ApiResult<PlotBoardDto>>
+  /** Replaces a beat's title, as Markdown on one line. */
+  retitleBeat(
+    path: string,
+    version: string,
+    beat: OutlineItemRefDto,
+    title: string
+  ): Promise<ApiResult<PlotBoardDto>>
+  /** Replaces a beat's notes; empty notes remove them. */
+  editNotes(
+    path: string,
+    version: string,
+    beat: OutlineItemRefDto,
+    notes: string
+  ): Promise<ApiResult<PlotBoardDto>>
 }
 
 /** The timeline of the open project. */
@@ -261,7 +283,7 @@ export interface RecoveryApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 28
+  readonly contractVersion: 29
   readonly uiLanguage: UiLanguageApi
   readonly recovery: RecoveryApi
   readonly workspace: WorkspaceApi

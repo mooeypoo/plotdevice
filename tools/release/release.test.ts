@@ -97,7 +97,8 @@ describe('local release checks', () => {
   })
 })
 
-describe('release helper CLI', () => {
+// These spawn git and node; a busy Windows CI runner can take well over the 5-second default.
+describe('release helper CLI', { timeout: 30_000 }, () => {
   function fixture(): string {
     const root = mkdtempSync(join(tmpdir(), 'plotdevice-release-'))
     directories.push(root)

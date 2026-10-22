@@ -21,7 +21,10 @@ import {
   type BeatMove,
   type ColumnMove
 } from './board-moves'
+import BeatCard from './BeatCard.vue'
+import { useBeatEditing } from './use-beat-editing'
 import { gapAt, useBoardDrag, type BoardDragged, type BoardDropSpot } from './use-board-drag'
+import { useInspectorStore } from '../../app/inspector-store'
 import { usePlotBoard } from './use-plot-board'
 
 const outlines = useOutlineStore()
@@ -42,25 +45,6 @@ const inFile = computed((): readonly BoardColumnDto[] => board.value?.columns ??
 const focused = ref<BoardPosition>({ column: 0, beat: 0 })
 const isFocusable = (position: BoardPosition): boolean =>
   position.column === focused.value.column && position.beat === focused.value.beat
-
-/** The first line of a beat's notes, as a quiet hint on its card. */
-const firstNote = (beat: BoardBeatDto): string =>
-  beat.notes
-    .split('\n')
-    .find((line) => line.trim() !== '')
-    ?.replace(/^\s*[-*+]\s+/u, '') ?? ''
-
-function facts(beat: BoardBeatDto): string {
-  const chapter = beat.chapter
-  if (chapter === undefined) return ''
-  return [
-    chapter.status,
-    chapter.pov.length > 0 ? language.t('board-pov', chapter.pov.join(', ')) : undefined,
-    language.t('board-words', chapter.wordCount, chrome.formatNumber(chapter.wordCount))
-  ]
-    .filter((part): part is string => part !== undefined && part !== '')
-    .join(' · ')
-}
 
 function choose(event: Event): void {
   if (event.target instanceof HTMLSelectElement) outlines.choose(event.target.value)
@@ -94,6 +78,33 @@ async function runColumnMove(move: ColumnMove, to: number): Promise<void> {
   }
 }
 
+const editing = useBeatEditing(plot, focusCard)
+const statuses = computed(() => useInspectorStore().vocabulary?.statuses ?? [])
+const newCard = ref('')
+const addInput = useTemplateRef<HTMLInputElement[]>('addInput')
+
+async function openAdding(column: number): Promise<void> {
+  newCard.value = ''
+  editing.openAdding(column)
+  await nextTick()
+  addInput.value?.[0]?.focus()
+}
+
+async function addCard(column: BoardColumnDto): Promise<void> {
+  if (await editing.addCard(column, newCard.value)) {
+    newCard.value = ''
+    await nextTick()
+    addInput.value?.[0]?.focus()
+  }
+}
+
+async function closeAdding(column: number): Promise<void> {
+  editing.adding.value = null
+  newCard.value = ''
+  await nextTick()
+  root.value?.querySelector<HTMLElement>(`[data-column="${String(column)}"]`)?.focus()
+}
+
 async function keydown(
   event: KeyboardEvent,
   from: BoardPosition,
@@ -101,6 +112,11 @@ async function keydown(
 ): Promise<void> {
   // Keys inside the title's links belong to the links (Enter opens, Alt+Enter peeks).
   if (event.target !== event.currentTarget) return
+  if (event.key === 'F2' && !readOnly.value) {
+    event.preventDefault()
+    editing.start(from, 'title')
+    return
+  }
   if (event.key === 'Enter' && beat.chapter !== undefined) {
     event.preventDefault()
     await plot.writeChapter(beat.chapter.path)
@@ -134,9 +150,25 @@ async function columnKeydown(event: KeyboardEvent, index: number): Promise<void>
   await runColumnMove(moved.move, moved.to)
 }
 
-function cardMenu(from: BoardPosition): readonly MenuItem[] {
+function cardMenu(from: BoardPosition, beat: BoardBeatDto): readonly MenuItem[] {
   if (readOnly.value) return []
-  const items: MenuItem[] = []
+  const edit = (key: 'title' | 'notes' | 'synopsis' | 'status', label: string): MenuItem => ({
+    key: `edit-${key}`,
+    label,
+    run: () => {
+      editing.start(from, key)
+    }
+  })
+  const items: MenuItem[] = [
+    edit('title', language.t('board-rename')),
+    edit('notes', language.t('board-edit-notes')),
+    ...(beat.chapter === undefined
+      ? []
+      : [
+          edit('synopsis', language.t('board-edit-synopsis')),
+          edit('status', language.t('board-edit-status'))
+        ])
+  ]
   const up = beatKeyMove(shown.value, from, 'ArrowUp', 'ltr')
   const down = beatKeyMove(shown.value, from, 'ArrowDown', 'ltr')
   if (up !== undefined) {
@@ -167,10 +199,17 @@ function cardMenu(from: BoardPosition): readonly MenuItem[] {
 }
 
 function columnMenu(index: number): readonly MenuItem[] {
-  if (readOnly.value || shown.value[index]?.inbox === true) return []
+  if (readOnly.value) return []
+  const add: MenuItem = {
+    key: 'add',
+    label: language.t('board-add-card'),
+    run: () => void openAdding(index)
+  }
+  if (shown.value[index]?.inbox === true) return [add]
   const earlier = columnKeyMove(inFile.value, index, 'ArrowLeft', 'ltr')
   const later = columnKeyMove(inFile.value, index, 'ArrowRight', 'ltr')
   return [
+    add,
     ...(earlier === undefined
       ? []
       : [
@@ -337,7 +376,9 @@ function overColumn(event: DragEvent, column: number): void {
                 class="beat"
                 :data-position="`${columnIndex}-${beatIndex}`"
                 :tabindex="isFocusable({ column: columnIndex, beat: beatIndex }) ? 0 : -1"
-                :draggable="!readOnly"
+                :draggable="
+                  !readOnly && editing.editOf({ column: columnIndex, beat: beatIndex }) === null
+                "
                 @dragstart="
                   drag.start(
                     { kind: 'beat', from: { column: columnIndex, beat: beatIndex } },
@@ -349,41 +390,52 @@ function overColumn(event: DragEvent, column: number): void {
                 @focus="focused = { column: columnIndex, beat: beatIndex }"
                 @keydown="keydown($event, { column: columnIndex, beat: beatIndex }, beat)"
               >
-                <div class="beat-head">
-                  <ul v-if="beat.threads.length > 0" class="threads">
-                    <li
-                      v-for="key in beat.threads"
-                      :key="key"
-                      class="thread"
-                      :style="{ '--thread-color': threads.get(key)?.color ?? 'var(--line-strong)' }"
-                      dir="auto"
-                    >
-                      {{ threads.get(key)?.name ?? key }}
-                    </li>
-                  </ul>
-                  <MenuButton
-                    v-if="!readOnly"
-                    class="more"
-                    :label="language.t('board-card-menu')"
-                    :items="cardMenu({ column: columnIndex, beat: beatIndex })"
-                  />
-                </div>
-                <RenderedMarkdown
-                  class="beat-title"
-                  :text="beat.title"
+                <BeatCard
+                  :beat="beat"
+                  :threads="threads"
                   :link-targets="linkTargets"
+                  :menu="cardMenu({ column: columnIndex, beat: beatIndex }, beat)"
+                  :editing="editing.editOf({ column: columnIndex, beat: beatIndex })"
+                  :statuses="statuses"
                   @open-link="(link) => plot.openLink(link, path ?? undefined)"
                   @peek="
                     (link, near, byKeyboard) =>
                       peek.peekLink(link, path ?? undefined, near, byKeyboard)
                   "
                   @peek-end="peek.endHover()"
+                  @save="
+                    (edit, value) =>
+                      editing.save({ column: columnIndex, beat: beatIndex }, beat, edit, value)
+                  "
+                  @cancel="editing.cancel()"
                 />
-                <p v-if="beat.chapter" class="facts" dir="auto">{{ facts(beat) }}</p>
-                <p v-if="firstNote(beat) !== ''" class="notes" dir="auto">{{ firstNote(beat) }}</p>
               </article>
             </li>
           </ol>
+          <form
+            v-if="editing.adding.value === columnIndex"
+            class="add-field"
+            @submit.prevent="addCard(column)"
+          >
+            <input
+              ref="addInput"
+              v-model="newCard"
+              type="text"
+              dir="auto"
+              maxlength="2000"
+              :aria-label="language.t('board-add-card-label', column.title)"
+              :placeholder="language.t('board-add-card-placeholder')"
+              @keydown.escape.prevent.stop="closeAdding(columnIndex)"
+            />
+          </form>
+          <button
+            v-else-if="!readOnly"
+            type="button"
+            class="add-card quiet"
+            @click="openAdding(columnIndex)"
+          >
+            {{ language.t('board-add-card') }}
+          </button>
         </li>
       </ol>
     </template>
@@ -497,41 +549,7 @@ header {
   outline-offset: 1px;
 }
 
-.beat-title :deep(p) {
-  margin: 0;
-}
-
-.threads {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.thread {
-  padding-inline: 6px 6px;
-  border-inline-start: 3px solid var(--thread-color);
-  color: var(--text-muted);
-  font-size: 11px;
-}
-
-.facts,
-.notes {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.notes {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.column-head,
-.beat-head {
+.column-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -557,8 +575,8 @@ header {
 
 .column:hover .column-head .more,
 .column-head:focus-within .more,
-.beat:hover .more,
-.beat:focus-within .more {
+.beat:hover :deep(.more),
+.beat:focus-within :deep(.more) {
   opacity: 1;
 }
 
@@ -590,6 +608,28 @@ header {
 
 .column.gap-after::after {
   inset-inline-end: -8px;
+}
+
+.add-card {
+  align-self: flex-start;
+  padding-block: 2px;
+  padding-inline: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  opacity: 0;
+}
+
+.column:hover .add-card,
+.add-card:focus-visible {
+  opacity: 1;
+}
+
+.add-field input {
+  width: 100%;
+  padding-block: 6px;
+  padding-inline: 8px;
+  font: inherit;
+  font-size: 13px;
 }
 
 .announcement {

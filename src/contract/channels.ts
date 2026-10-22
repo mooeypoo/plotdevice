@@ -86,7 +86,10 @@ export const OUTLINE_CHANNELS = {
   readBoard: 'outline:read-board',
   capture: 'outline:capture',
   moveBeat: 'outline:move-beat',
-  moveColumn: 'outline:move-column'
+  moveColumn: 'outline:move-column',
+  addBeat: 'outline:add-beat',
+  retitleBeat: 'outline:retitle-beat',
+  editNotes: 'outline:edit-notes'
 } as const satisfies Record<keyof OutlineApi, string>
 
 export const TIMELINE_CHANNELS = {

@@ -3,6 +3,7 @@ import type {
   ApiResult,
   BoardBeatDto,
   BoardColumnDto,
+  OutlineItemRefDto,
   PlotBoardDto
 } from '../../../../contract/dtos'
 import { uiDirection } from '../../../../i18n/locales'
@@ -87,10 +88,11 @@ export function usePlotBoard() {
   )
 
   /**
-   * Runs a move against the board's version (ADR 0020). On success the board shows the file as
-   * the main process read it after writing; on refusal it says why and reads the file again.
+   * Runs a board command against the board's version (ADR 0020). On success the board shows the
+   * file as the main process read it after writing, and `done` is announced; on refusal it says
+   * why, and a stale board is read again.
    */
-  async function move(
+  async function change(
     run: (outline: string, version: string) => Promise<ApiResult<PlotBoardDto>>,
     done: string
   ): Promise<boolean> {
@@ -110,28 +112,56 @@ export function usePlotBoard() {
       (error.code === 'changed-on-disk' || error.code === 'outline-shape-changed')
     moveErrorSource.value = changed ? { notice: 'board-outline-changed' } : error
     announcement.value = ''
-    await load()
+    if (changed) await load()
     return false
   }
 
-  function moveBeat(change: BeatMove, done: string): Promise<boolean> {
-    return move(
+  function moveBeat(move: BeatMove, done: string): Promise<boolean> {
+    return change(
       (outline, version) =>
         plotDeviceApi
           .current()
-          .outline.moveBeat(outline, version, change.beat, change.column, change.placement),
+          .outline.moveBeat(outline, version, move.beat, move.column, move.placement),
       done
     )
   }
 
-  function moveColumn(change: ColumnMove, done: string): Promise<boolean> {
-    return move(
+  function moveColumn(move: ColumnMove, done: string): Promise<boolean> {
+    return change(
       (outline, version) =>
-        plotDeviceApi
-          .current()
-          .outline.moveColumn(outline, version, change.column, change.placement),
+        plotDeviceApi.current().outline.moveColumn(outline, version, move.column, move.placement),
       done
     )
+  }
+
+  function addBeat(column: OutlineItemRefDto, title: string, done: string): Promise<boolean> {
+    return change(
+      (outline, version) =>
+        plotDeviceApi.current().outline.addBeat(outline, version, column, title, 'end'),
+      done
+    )
+  }
+
+  function retitleBeat(beat: OutlineItemRefDto, title: string, done: string): Promise<boolean> {
+    return change(
+      (outline, version) =>
+        plotDeviceApi.current().outline.retitleBeat(outline, version, beat, title),
+      done
+    )
+  }
+
+  function editNotes(beat: OutlineItemRefDto, notes: string, done: string): Promise<boolean> {
+    return change(
+      (outline, version) =>
+        plotDeviceApi.current().outline.editNotes(outline, version, beat, notes),
+      done
+    )
+  }
+
+  /** Says what an edit outside the outline (a chapter's synopsis or status) did. */
+  function announce(done: string): void {
+    moveErrorSource.value = null
+    announcement.value = done
   }
 
   /** Chapters open for writing: back in Writing mode, through the navigation queue. */
@@ -159,6 +189,10 @@ export function usePlotBoard() {
     writeChapter,
     moveBeat,
     moveColumn,
+    addBeat,
+    retitleBeat,
+    editNotes,
+    announce,
     moveError,
     announcement,
     readOnly: computed(() => workspace.project?.readOnly ?? true),

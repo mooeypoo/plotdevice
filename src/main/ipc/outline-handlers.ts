@@ -9,13 +9,18 @@ import type {
 } from '../../contract/dtos'
 import type { CaptureBeat } from '../contexts/outline/application/commands/capture-beat'
 import type { CreateOutline } from '../contexts/outline/application/commands/create-outline'
+import type { AddBeat } from '../contexts/outline/application/commands/add-beat'
+import type { EditNotes } from '../contexts/outline/application/commands/edit-notes'
 import type { MoveBeat } from '../contexts/outline/application/commands/move-beat'
+import type { RetitleBeat } from '../contexts/outline/application/commands/retitle-beat'
 import type { MoveColumn } from '../contexts/outline/application/commands/move-column'
 import type { SaveOutlineText } from '../contexts/outline/application/commands/save-outline-text'
 import type { ListOutlines } from '../contexts/outline/application/queries/list-outlines'
 import type { OpenOutline } from '../contexts/outline/application/queries/open-outline'
 import type { GetPlotBoard } from '../queries/get-plot-board'
+import type { DomainError } from '../shared-kernel/domain-error'
 import { parseProjectPath, type ProjectPath } from '../shared-kernel/project-path'
+import type { Result } from '../shared-kernel/result'
 import { toApiError } from './workspace-dtos'
 
 /** The outline use cases for the open project. */
@@ -28,6 +33,9 @@ export interface OutlineUseCases {
   readonly captureBeat: CaptureBeat
   readonly moveBeat: MoveBeat
   readonly moveColumn: MoveColumn
+  readonly addBeat: AddBeat
+  readonly retitleBeat: RetitleBeat
+  readonly editNotes: EditNotes
 }
 
 /** The outline API as plain functions of untrusted arguments. */
@@ -40,6 +48,9 @@ export interface OutlineHandlers {
   capture(args: readonly unknown[]): Promise<ApiResult<{ readonly version: string }>>
   moveBeat(args: readonly unknown[]): Promise<ApiResult<PlotBoardDto>>
   moveColumn(args: readonly unknown[]): Promise<ApiResult<PlotBoardDto>>
+  addBeat(args: readonly unknown[]): Promise<ApiResult<PlotBoardDto>>
+  retitleBeat(args: readonly unknown[]): Promise<ApiResult<PlotBoardDto>>
+  editNotes(args: readonly unknown[]): Promise<ApiResult<PlotBoardDto>>
 }
 
 const path = z.string().min(1).max(4096)
@@ -58,6 +69,10 @@ const itemRef = z
 const placement = z.union([z.literal('end'), z.object({ before: itemRef }).strict()])
 const moveBeatArgs = z.tuple([path, version, itemRef, itemRef, placement])
 const moveColumnArgs = z.tuple([path, version, itemRef, placement])
+const title = z.string().max(2000)
+const addBeatArgs = z.tuple([path, version, itemRef, title, placement])
+const retitleArgs = z.tuple([path, version, itemRef, title])
+const notesArgs = z.tuple([path, version, itemRef, z.string().max(100_000)])
 const captureArgs = z.tuple([path, z.string().max(2000), z.string().min(1).max(200).nullable()])
 
 const noProject: ApiResult<never> = {
@@ -92,6 +107,17 @@ async function boardOf(
 ): Promise<ApiResult<PlotBoardDto>> {
   const board = await useCases.getPlotBoard(outline)
   return board.ok ? { ok: true, value: board.value } : { ok: false, error: toApiError(board.error) }
+}
+
+/** The board after an edit, or the edit's refusal. */
+function afterEdit(
+  useCases: OutlineUseCases,
+  outline: ProjectPath,
+  edited: Result<unknown, DomainError>
+): Promise<ApiResult<PlotBoardDto>> {
+  return edited.ok
+    ? boardOf(useCases, outline)
+    : Promise.resolve({ ok: false, error: toApiError(edited.error) })
 }
 
 /**
@@ -207,6 +233,30 @@ export function createOutlineHandlers(current: () => OutlineUseCases | undefined
             ? boardOf(useCases, outline)
             : { ok: false, error: toApiError(moved.error) }
         }
+      ),
+
+    addBeat: (args) =>
+      onOutline<z.infer<typeof addBeatArgs>, PlotBoardDto>(
+        addBeatArgs,
+        args,
+        async (useCases, outline, [, at, column, text, where]) =>
+          afterEdit(useCases, outline, await useCases.addBeat(outline, at, column, text, where))
+      ),
+
+    retitleBeat: (args) =>
+      onOutline<z.infer<typeof retitleArgs>, PlotBoardDto>(
+        retitleArgs,
+        args,
+        async (useCases, outline, [, at, beat, text]) =>
+          afterEdit(useCases, outline, await useCases.retitleBeat(outline, at, beat, text))
+      ),
+
+    editNotes: (args) =>
+      onOutline<z.infer<typeof notesArgs>, PlotBoardDto>(
+        notesArgs,
+        args,
+        async (useCases, outline, [, at, beat, notes]) =>
+          afterEdit(useCases, outline, await useCases.editNotes(outline, at, beat, notes))
       ),
 
     capture: (args) =>
