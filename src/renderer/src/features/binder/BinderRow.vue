@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { formatWordCount, statusColor } from './binder-labels'
 import ReferenceButton from '../../shared/ReferenceButton.vue'
+import { useUiLanguageStore } from '../../app/ui-language-store'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
+
+const language = useUiLanguageStore()
+const chrome = useChromePresentation()
 
 defineProps<{
   title: string
@@ -29,14 +34,14 @@ defineEmits<{ open: []; reference: [] }>()
       <span
         class="status"
         :style="{ background: statusColor(status) }"
-        :title="status ?? 'No status'"
+        :title="status ?? language.t('binder-no-status')"
         aria-hidden="true"
       ></span>
       <span class="title" dir="auto">{{ title }}</span>
       <span v-if="warning" class="warning" :title="warning" role="img" :aria-label="warning"
         >!</span
       >
-      <span class="meta">{{ detail ?? formatWordCount(wordCount) }}</span>
+      <span class="meta">{{ detail ?? formatWordCount(wordCount, chrome.formatNumber) }}</span>
     </button>
     <ReferenceButton :title="title" @open="$emit('reference')" />
   </div>

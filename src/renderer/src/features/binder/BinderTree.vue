@@ -9,8 +9,10 @@ import type { DropRequest, DropSpot } from './binder-drop'
 import { provideBinderDrag } from './use-binder-drag'
 import { useBinderCollapse } from './use-binder-collapse'
 import { useUiLanguageStore } from '../../app/ui-language-store'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
 
 const language = useUiLanguageStore()
+const chrome = useChromePresentation()
 
 const props = defineProps<{
   projectRoot: string
@@ -79,7 +81,7 @@ function createChapter(title: string): void {
 </script>
 
 <template>
-  <nav class="binder" aria-label="Binder" @dragover="drag.clear">
+  <nav class="binder" :aria-label="language.t('chrome-binder')" @dragover="drag.clear">
     <div class="scroll">
       <BinderPart
         v-for="(part, index) in manuscript.parts"
@@ -124,36 +126,42 @@ function createChapter(title: string): void {
       </ul>
 
       <div v-if="empty && adding === null" class="empty">
-        <p>No chapters yet. Start with a chapter, or with a part if your book has parts.</p>
+        <p>{{ language.t('binder-empty-copy') }}</p>
         <div v-if="!readOnly" class="start">
-          <button type="button" class="primary" @click="adding = 'chapter'">New chapter</button>
-          <button type="button" @click="adding = 'part'">New part</button>
+          <button type="button" class="primary" @click="adding = 'chapter'">
+            {{ language.t('binder-empty-new-chapter') }}
+          </button>
+          <button type="button" @click="adding = 'part'">
+            {{ language.t('binder-empty-new-part') }}
+          </button>
         </div>
       </div>
 
       <NewEntryInput
         v-if="adding === 'chapter'"
-        placeholder="Chapter title"
+        :placeholder="language.t('binder-chapter-title')"
         @create="createChapter"
         @cancel="adding = null"
       />
       <NewEntryInput
         v-if="adding === 'part'"
-        placeholder="Part title"
+        :placeholder="language.t('binder-part-title')"
         @create="createPart"
         @cancel="adding = null"
       />
 
       <div v-if="!empty && !readOnly && adding === null" class="actions">
         <button v-if="!hasParts" type="button" class="quiet" @click="adding = 'chapter'">
-          + New chapter
+          + {{ language.t('binder-new-chapter') }}
         </button>
-        <button type="button" class="quiet" @click="adding = 'part'">+ New part</button>
+        <button type="button" class="quiet" @click="adding = 'part'">
+          + {{ language.t('binder-new-part') }}
+        </button>
       </div>
 
       <template v-if="manuscript.unnumberedParts.length > 0">
         <div class="divider">
-          <span class="eyebrow">Not in sequence</span>
+          <span class="eyebrow">{{ language.t('binder-not-in-sequence') }}</span>
           <span class="rule" aria-hidden="true"></span>
         </div>
         <BinderPart
@@ -179,11 +187,11 @@ function createChapter(title: string): void {
           @drop="drag.drop"
         >
           <div class="divider">
-            <span class="eyebrow">Unordered</span>
+            <span class="eyebrow">{{ language.t('binder-unordered') }}</span>
             <span class="rule" aria-hidden="true"></span>
-            <span v-if="manuscript.unordered.length > 0" class="count">{{
-              manuscript.unordered.length
-            }}</span>
+            <span v-if="manuscript.unordered.length > 0" class="count">
+              {{ chrome.formatNumber(manuscript.unordered.length) }}
+            </span>
           </div>
           <ul class="flat">
             <li
@@ -205,7 +213,7 @@ function createChapter(title: string): void {
             </li>
           </ul>
           <p v-if="manuscript.unordered.length === 0" class="tray-hint">
-            Drop here to take a chapter out of the book’s order. The file stays.
+            {{ language.t('binder-drop-unordered') }}
           </p>
         </div>
       </template>
@@ -219,11 +227,19 @@ function createChapter(title: string): void {
         @click="$emit('showOverview')"
       >
         <span class="dot" aria-hidden="true"></span>
-        {{ attentionCount }} {{ attentionCount === 1 ? 'thing needs' : 'things need' }} attention
+        {{
+          language.t('binder-attention', attentionCount, chrome.formatNumber(attentionCount))
+        }}
       </button>
       <div class="total">
-        <span>Manuscript</span>
-        <span class="value">{{ formatWordCount(manuscript.wordCount) }} words</span>
+        <span>{{ language.t('side-manuscript') }}</span>
+        <span class="value">{{
+          language.t(
+            'binder-count-words',
+            manuscript.wordCount,
+            formatWordCount(manuscript.wordCount, chrome.formatNumber)
+          )
+        }}</span>
       </div>
     </footer>
   </nav>

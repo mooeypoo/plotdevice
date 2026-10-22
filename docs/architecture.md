@@ -164,6 +164,10 @@ position data instead of English label strings; the renderer formats chapter,
 part, codex and template labels at display time, so locale changes never reload
 stores. User-authored titles remain unchanged, and breadcrumbs use the semantic
 position rather than parsing translated text.
+Binder-tree actions, accessibility names, creation guidance and empty-status text
+also use the live interface catalog. Binder word counts use UI-locale number
+grouping while retaining the established dash for zero; saved status tokens,
+ordering, drag/drop and collapse preferences are not localized or rewritten.
 Unmigrated failures explicitly display their original message until their producers are migrated.
 Remaining action failures/strings, full RTL geometry and independent content-direction controls
 remain tracked in ADR 0016. No language switch changes novel files or existing writing preferences.

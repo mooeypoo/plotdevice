@@ -29,6 +29,105 @@ const markers = (wrapper: ReturnType<typeof mount>): string[] =>
   wrapper.findAll('.marker').map((marker) => marker.text())
 
 describe('BinderTree', () => {
+  it('translates binder chrome, section details, status and grouped counts without replacing state', async () => {
+    const first = partOne.chapters[0]
+    if (first === undefined) throw new Error('Missing chapter')
+    const chapter = { ...first, wordCount: 1234, status: undefined }
+    const manuscript = {
+      ...sampleManuscript,
+      parts: [{ ...partOne, wordCount: 2345, chapters: [chapter] }],
+      chapters: [],
+      unnumberedParts: [{ ...partTwo, number: undefined }],
+      unordered: [{ chapter: { ...chapter, path: 'loose.md' }, reason: 'missing-order' as const }],
+      wordCount: 3456
+    }
+    const wrapper = mount(BinderTree, {
+      props: { ...props, manuscript, attentionCount: 2, selectedPath: chapter.path },
+      attachTo: document.body
+    })
+    const row = wrapper.get<HTMLButtonElement>('.row').element
+    row.focus()
+    const scroller = wrapper.get('.scroll').element
+    scroller.scrollTop = 80
+    const writes = vi.spyOn(Storage.prototype, 'setItem')
+
+    expect(wrapper.get('nav').attributes('aria-label')).toBe('Binder')
+    expect(wrapper.get('.status').attributes('title')).toBe('No status')
+    expect(wrapper.get('.total').text()).toContain('Manuscript')
+    expect(wrapper.get('.total .value').text()).toBe('3,456 words')
+    expect(wrapper.text()).toContain('Not in sequence')
+    expect(wrapper.text()).toContain('Unordered')
+    expect(wrapper.text()).toContain('2 things need attention')
+    expect(wrapper.get('.header .open .words').text()).toBe('2,345')
+    expect(wrapper.get('.row .meta').text()).toBe('1,234')
+
+    useUiLanguageStore().locale = 'he'
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.get('nav').attributes('aria-label')).toBe('קלסר כתב היד')
+    expect(wrapper.get('.status').attributes('title')).toBe('ללא סטטוס')
+    expect(wrapper.get('.total').text()).toContain('כתב יד')
+    expect(wrapper.get('.total .value').text()).toBe('3,456 מילים')
+    expect(wrapper.text()).toContain('לא ברצף הממוספר')
+    expect(wrapper.text()).toContain('ללא סדר')
+    expect(wrapper.text()).toContain('2 פריטים דורשים תשומת לב')
+    expect(wrapper.get('.header .open .words').text()).toBe('2,345')
+    expect(wrapper.get('.row .meta').text()).toBe('1,234')
+    expect(wrapper.get('.row').element).toBe(row)
+    expect(document.activeElement).toBe(row)
+    expect(scroller.scrollTop).toBe(80)
+    expect(row.getAttribute('aria-current')).toBe('true')
+    expect(writes).not.toHaveBeenCalled()
+
+    await wrapper.get('.header .add').trigger('click')
+    const input = wrapper.get('input')
+    input.element.focus()
+    await input.setValue('פרק חדש')
+    const element = input.element
+    writes.mockClear()
+    useUiLanguageStore().locale = 'en'
+    await wrapper.vm.$nextTick()
+    useUiLanguageStore().locale = 'he'
+    await wrapper.vm.$nextTick()
+    expect(wrapper.get('input').element).toBe(element)
+    expect(document.activeElement).toBe(element)
+    expect(wrapper.get('input').element.value).toBe('פרק חדש')
+    expect(writes).not.toHaveBeenCalled()
+    await wrapper.get('.new-entry').trigger('submit')
+    expect(wrapper.emitted('createChapter')).toEqual([[partOne.path, 'פרק חדש']])
+    wrapper.unmount()
+  })
+
+  it('translates empty-manuscript guidance and creation inputs live', async () => {
+    const manuscript = {
+      ...sampleManuscript,
+      parts: [],
+      chapters: [],
+      unnumberedParts: [],
+      unordered: [],
+      wordCount: 0
+    }
+    const wrapper = mount(BinderTree, { props: { ...props, manuscript } })
+    expect(wrapper.text()).toContain('No chapters yet.')
+    expect(wrapper.text()).toContain('New chapter')
+    expect(wrapper.text()).toContain('New part')
+    useUiLanguageStore().locale = 'he'
+    await wrapper.vm.$nextTick()
+    expect(wrapper.text()).toContain('עדיין אין פרקים')
+    expect(wrapper.text()).toContain('פרק חדש')
+    expect(wrapper.text()).toContain('חלק חדש')
+    await wrapper.get('.start button:first-child').trigger('click')
+    expect(wrapper.get('input').attributes('placeholder')).toBe('כותרת הפרק')
+    const input = wrapper.get('input').element
+    useUiLanguageStore().locale = 'en'
+    await wrapper.vm.$nextTick()
+    useUiLanguageStore().locale = 'he'
+    await wrapper.vm.$nextTick()
+    expect(wrapper.get('input').attributes('placeholder')).toBe('כותרת הפרק')
+    expect(wrapper.get('input').element).toBe(input)
+    wrapper.unmount()
+  })
+
   it('retranslates flat, part and unnumbered-part clashes and unordered reasons in place', async () => {
     const first = partOne.chapters[0]
     const second = partOne.chapters[1]

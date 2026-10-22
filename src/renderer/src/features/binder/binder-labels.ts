@@ -33,11 +33,12 @@ export function statusColor(status: string | undefined): string {
   return STATUS_COLORS[status.toLowerCase()] ?? 'var(--status-other)'
 }
 
-const wordFormat = new Intl.NumberFormat(undefined)
-
-/** A word count for the binder: "—" for none, digits grouped for the locale. */
-export function formatWordCount(count: number): string {
-  return count === 0 ? '—' : wordFormat.format(count)
+/** A word count for the binder: "—" for none, otherwise formatted for the UI locale. */
+export function formatWordCount(
+  count: number,
+  formatNumber: (value: number) => string = String
+): string {
+  return count === 0 ? '—' : formatNumber(count)
 }
 
 /** Describes a chapter's order clash, isolating sibling titles only for presentation. */

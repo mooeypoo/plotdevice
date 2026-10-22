@@ -958,8 +958,9 @@ checks across all 16 public pages. No manuscript changes, push,
 release or real-browser/native-popover/bidi qualification; shared browser pages
 were not reloaded.
 
-**Next session:** propose a bounded document-tab/sidebar translation slice before
-editing. That approved I3c slice translates tab actions/states/tooltips and
+### I3c document tabs/sidebar and generated entry labels
+
+The approved I3c slice translates tab actions/states/tooltips and
 sidebar tab/navigation names, and replaces generated English `EntryPlace.label`
 strings with a semantic label union formatted at the presentation boundary.
 Numbered/unnumbered parts and chapters, unordered chapters, codex kinds, outlines
@@ -979,9 +980,30 @@ electron-vite build, and documentation build/link/asset checks across all 16
 public pages. No API contract or dependencies changed; no manuscript writes,
 push, release, or real-browser/RTL geometry qualification.
 
-**Next session:** propose a bounded I3 slice before editing. Remaining I3 work
-includes inspector/overview/timeline/interactions/reading text, locale-aware
-binder and other number/date/collation surfaces, native dialog/confirmation
+### I3d binder tree labels and counts
+
+The binder navigation label, empty-manuscript guidance and creation actions,
+part expand/collapse and open/new-chapter accessibility text, inline title
+placeholders, unnumbered/unordered headings, drop guidance, default no-status
+tooltip, attention action, and manuscript word-count sentence now use the live
+catalog. Raw counts select plural forms; formatted counts use the UI locale.
+The existing count-only row display and em-dash zero remain unchanged.
+
+Changing the interface language preserves binder row/focus/scroll identity,
+collapse state, and an active inline title draft; it never saves a manuscript or
+changes ordering. User-written titles and statuses remain exact; only the
+missing-status UI fallback is translated. Drag/drop, creation arguments, saved
+preferences, and file data remain unchanged. No API or dependencies changed.
+Mounted tests cover translated empty/populated binder surfaces, locale-grouped
+counts, status fallback, unchanged row/selection/scroll identity, focused title
+drafts and exact creation arguments, plus no preference writes on language
+switch. Verified lint/dependency boundaries, typecheck, **1,529 tests across
+167 files**, production electron-vite build, and documentation link/asset checks
+across all 16 public pages.
+
+**Next session:** propose a bounded Codex-list translation slice before editing.
+Remaining I3 work includes inspector/overview/timeline/interactions/reading text,
+other locale-aware number/date/collation surfaces, native dialog/confirmation
 wording, and startup fallback. I3 is incomplete; RTL geometry/directional
 controls and packaged qualification remain I4-I6, and the separate Hebrew
 manual is not implemented.

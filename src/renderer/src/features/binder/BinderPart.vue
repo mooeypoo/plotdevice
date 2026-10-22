@@ -8,8 +8,11 @@ import type { DropSpot } from './binder-drop'
 import { useBinderDrag } from './use-binder-drag'
 import ReferenceButton from '../../shared/ReferenceButton.vue'
 import { useUiLanguageStore } from '../../app/ui-language-store'
+import { useChromePresentation } from '../../shared/use-chrome-presentation'
+import { isolate } from '../../shared/isolate'
 
 const language = useUiLanguageStore()
+const chrome = useChromePresentation()
 
 const props = defineProps<{
   part: PartDto
@@ -97,7 +100,11 @@ const marker = computed(() =>
         type="button"
         class="toggle"
         :aria-expanded="expanded"
-        :aria-label="`${expanded ? 'Collapse' : 'Expand'} ${part.title}`"
+        :aria-label="
+          expanded
+            ? language.t('binder-collapse-part', isolate(part.title))
+            : language.t('binder-expand-part', isolate(part.title))
+        "
         @click="$emit('setExpanded', !expanded)"
       >
         <svg
@@ -118,20 +125,20 @@ const marker = computed(() =>
       <button
         type="button"
         class="open"
-        :title="`Open the text of ${part.title}`"
+        :title="language.t('binder-open-part', isolate(part.title))"
         @click="$emit('open', part.path)"
       >
         <span class="marker">{{ marker }}</span>
         <span class="title" dir="auto">{{ part.title }}</span>
-        <span class="words">{{ formatWordCount(part.wordCount) }}</span>
+        <span class="words">{{ formatWordCount(part.wordCount, chrome.formatNumber) }}</span>
       </button>
       <ReferenceButton :title="part.title" @open="$emit('reference', part.path)" />
       <button
         v-if="!readOnly"
         type="button"
         class="add"
-        :aria-label="`New chapter in ${part.title}`"
-        title="New chapter"
+        :aria-label="language.t('binder-new-chapter-in-part', isolate(part.title))"
+        :title="language.t('binder-new-chapter')"
         @click="startAdding"
       >
         +
@@ -163,10 +170,16 @@ const marker = computed(() =>
         />
       </li>
       <li v-if="adding">
-        <NewEntryInput placeholder="Chapter title" @create="create" @cancel="adding = false" />
+        <NewEntryInput
+          :placeholder="language.t('binder-chapter-title')"
+          @create="create"
+          @cancel="adding = false"
+        />
       </li>
       <li v-else-if="!readOnly">
-        <button type="button" class="new-chapter" @click="startAdding">+ New chapter</button>
+        <button type="button" class="new-chapter" @click="startAdding">
+          + {{ language.t('binder-new-chapter') }}
+        </button>
       </li>
     </ul>
   </section>

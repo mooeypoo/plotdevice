@@ -4,6 +4,7 @@ import type { UnorderedReasonDto } from '../../../../contract/dtos'
 import {
   clashDescription,
   describeUnorderedReason,
+  formatWordCount,
   romanNumeral,
   statusColor
 } from './binder-labels'
@@ -36,6 +37,14 @@ describe('statusColor', () => {
     expect(statusColor('Draft')).toBe('var(--status-draft)')
     expect(statusColor('maybe')).toBe('var(--status-other)')
     expect(statusColor(undefined)).toBe('var(--status-none)')
+  })
+})
+
+describe('formatWordCount', () => {
+  it('keeps zero as a dash and formats nonzero values with the supplied UI locale', () => {
+    const formatNumber = (value: number): string => new Intl.NumberFormat('he').format(value)
+    expect(formatWordCount(0, formatNumber)).toBe('—')
+    expect(formatWordCount(1234567, formatNumber)).toBe(formatNumber(1234567))
   })
 })
 
