@@ -20,6 +20,25 @@ describe('rendered Markdown references', () => {
     expect(host.querySelector('td')?.textContent).toBe('Key')
   })
 
+  it('sets authored Markdown blocks to automatic direction and code to LTR', () => {
+    const host = document.createElement('div')
+    host.innerHTML = renderMarkdown(
+      '# עברית\n\nEnglish paragraph with [[The Ferry|Arrival יעל]].\n\n- עברית\n- English\n\n> ציטוט\n\n`C:/novel/Chapter.md`\n\n```ts\nconst chapter = "פרק";\n```\n\n| מפתח | Key |\n| --- | --- |\n| ערך | Value |',
+      targets,
+      () => false
+    )
+
+    for (const selector of ['h1', 'p', 'ul', 'li', 'blockquote', 'table', 'th', 'td']) {
+      for (const element of host.querySelectorAll(selector)) {
+        expect(element.getAttribute('dir'), selector).toBe('auto')
+      }
+    }
+    expect(host.querySelector('a')?.getAttribute('dir')).toBe('auto')
+    expect(host.querySelector('p code')?.getAttribute('dir')).toBe('ltr')
+    expect(host.querySelector('pre code')?.getAttribute('dir')).toBe('ltr')
+    expect(host.querySelector('pre code')?.textContent).toContain('const chapter = "פרק";')
+  })
+
   it('opens wiki and relative Markdown links by mouse or keyboard activation', () => {
     const host = document.createElement('div')
     const open = vi.fn()

@@ -111,6 +111,21 @@ describe('OutlinePanel', () => {
     wrapper.unmount()
   })
 
+  it('reads mixed-direction outline prose without changing its authored Markdown', async () => {
+    const authored = '# מתווה\n\nEnglish paragraph.\n\n`C:/novel/Chapter.md`'
+    fake.files.set('Outline.md', authored)
+    const wrapper = mount(OutlinePanel)
+    await flushPromises()
+
+    expect(wrapper.get('.view h1').attributes('dir')).toBe('auto')
+    expect(wrapper.get('.view p').attributes('dir')).toBe('auto')
+    expect(wrapper.get('.view p code').attributes('dir')).toBe('ltr')
+    expect(wrapper.get('.view').text()).toContain('English paragraph.')
+    expect(wrapper.get('.view code').text()).toBe('C:/novel/Chapter.md')
+
+    wrapper.unmount()
+  })
+
   it('pairs dropdown labels with their paths and bodies in both directions', async () => {
     await fake.api.codex.createOutline('Clue ledger')
     fake.files.set('Clue ledger.md', '## Clues\n\nThe missing key.')

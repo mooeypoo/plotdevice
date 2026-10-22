@@ -92,10 +92,14 @@ onBeforeUnmount(() => view?.destroy())
   overflow-x: auto;
   padding: 10px;
   background: var(--bg-sunken);
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 .view :deep(code) {
   font-family: var(--font-mono);
   font-size: 0.85em;
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 .view :deep(table) {
   display: block;

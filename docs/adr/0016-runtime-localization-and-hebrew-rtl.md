@@ -160,7 +160,7 @@ progress, remaining limitations, and the next slice before ending a session.
     Codex rows; verify top-bar wrapping remains enabled.
   - [ ] **Remaining I4:** real-browser geometry, responsive overflow,
     pointer, and scroll qualification (see I6).
-- [ ] **I5 Writing/reading:** independent direction preference; live CodeMirror
+- [x] **I5 Writing/reading:** independent direction preference; live CodeMirror
   phrases/placeholders; mixed-script caret/selection, completions and technical
   spans; consistent outline/reference policy without losing history or scroll.
   - [x] **I5a Writing direction preference:** persist Auto/LTR/RTL independently
@@ -169,8 +169,9 @@ progress, remaining limitations, and the next slice before ending a session.
   - [x] **I5b Editor copy and mixed-script spans:** localize CodeMirror label,
     placeholder and link tooltips live; isolate mixed-direction link and
     completion text and set inline code direction without changing the draft.
-  - [ ] **Remaining I5:** set a consistent direction policy for outline and
-    reference reading surfaces; qualify caret/shaping in a real browser (I6).
+  - [x] **I5c Outline/Reference reading direction:** use per-block automatic
+    direction for authored Markdown and isolate technical code LTR.
+  - [ ] **Remaining I5:** qualify caret and shaping in a real browser (I6).
 - [ ] **I6 Qualification:** catalog validation, translator guide/glossary,
   expanded-text checks, real browser and packaged Linux/Windows journeys.
 - [ ] **D1 Separate approval:** Hebrew VitePress manual/navigation/search/RTL
@@ -1318,9 +1319,8 @@ asset checks across all 16 public pages. No API or dependency changed.
 
 I4a-I4e app-side implementation is complete. Real-browser geometry, responsive
 overflow, pointer/scroll behavior, and packaged Linux/Windows checks remain
-part of I6 qualification. I5a-I5b are now complete; the next implementation
-phase is I5c, setting a consistent direction policy for Outline/Reference
-reading surfaces. D1 remains a separate approval.
+part of I6 qualification. I5a-I5c are now complete; I4 browser qualification
+and I6 remain. D1 remains a separate approval.
 
 ### I5a Independent writing direction
 
@@ -1355,11 +1355,30 @@ readable.
 
 Tests verify live labels/placeholders/tooltips, target isolation, mixed-script
 completion values, inline-code direction attributes, and unchanged editor
-content. I5c remains: choose/test a consistent direction policy for Outline
-and Reference reading surfaces. I6 remains responsible for real Chromium
+content. At the I5b checkpoint, I5c remained for Outline/Reference reading
+surfaces; it is now complete. I6 remains responsible for real Chromium
 shaping/caret/popup geometry and packaged qualification.
 
 Verified lint/dependency boundaries (477 modules/2,440 dependencies),
 typecheck, **1,581 tests across 174 files**, production electron-vite build,
 and docs build/link/asset checks across all 16 public pages. Existing
 non-fatal Node/Vite module-type warnings remain unchanged.
+
+### I5c Outline/Reference reading direction
+
+Rendered Markdown now sets automatic direction on each authored heading,
+paragraph, list, blockquote, table, and routed link instead of relying on the
+first strong character in the whole document. Inline code is explicitly LTR;
+fenced and other code blocks are styled LTR and bidi-isolated. Existing
+Outline/Reference metadata directions remain automatic, while app chrome
+continues to follow the selected interface direction.
+
+Tests cover Hebrew/English blocks, mixed-script links, tables/lists/quotes,
+inline and fenced code, and both reading panels' metadata/content. This sets
+DOM direction semantics and CSS; real Chromium bidi shaping and geometry remain
+I6 qualification work.
+
+Verified lint/dependency boundaries (477 modules/2,440 dependencies),
+typecheck, **1,584 tests across 174 files**, production electron-vite build,
+and docs build/link/asset checks across all 16 public pages. The documentation
+build continues to emit the previously noted non-fatal Node/Vite warnings.

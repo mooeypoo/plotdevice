@@ -98,13 +98,25 @@ export function renderMarkdown(
   const kindOf = createLinkKindLookup(targets)
   for (const token of tokens) {
     if (
-      ['paragraph_open', 'heading_open', 'list_item_open', 'th_open', 'td_open'].includes(
-        token.type
-      )
+      [
+        'paragraph_open',
+        'heading_open',
+        'bullet_list_open',
+        'ordered_list_open',
+        'list_item_open',
+        'blockquote_open',
+        'table_open',
+        'th_open',
+        'td_open'
+      ].includes(token.type)
     )
       token.attrSet('dir', 'auto')
+    if (token.type === 'fence') token.attrSet('dir', 'ltr')
     if (token.nesting === -1) parents.pop()
     if (token.type === 'inline' && token.children !== null) {
+      for (const child of token.children) {
+        if (child.type === 'code_inline') child.attrSet('dir', 'ltr')
+      }
       if (decorateLinks(token.children, kindOf, pointsHere)) {
         const block = parents.findLast((parent) => !parent.hidden)
         block?.attrJoin('class', 'markdown-current')

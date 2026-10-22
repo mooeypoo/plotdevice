@@ -111,6 +111,27 @@ describe('ReferencePanel', () => {
     wrapper.unmount()
   })
 
+  it('reads mixed-direction reference text while retaining automatic metadata direction', async () => {
+    fake.files.set(
+      'characters/Ilka.md',
+      '## היסטוריה\n\nEnglish biography.\n\n`C:/novel/Chapter.md`'
+    )
+    useReferenceStore().open('characters/Ilka.md')
+    const wrapper = mount(ReferencePanel)
+    await flushPromises()
+
+    expect(wrapper.get('h2').attributes('dir')).toBe('auto')
+    expect(wrapper.get('.role').attributes('dir')).toBe('auto')
+    expect(wrapper.get('.file-path').attributes('dir')).toBe('auto')
+    expect(wrapper.get('.view h2').attributes('dir')).toBe('auto')
+    expect(wrapper.get('.view p').attributes('dir')).toBe('auto')
+    expect(wrapper.get('.view p code').attributes('dir')).toBe('ltr')
+    expect(wrapper.get('.view').text()).toContain('English biography.')
+    expect(wrapper.get('.view code').text()).toBe('C:/novel/Chapter.md')
+
+    wrapper.unmount()
+  })
+
   it('opens raw Markdown only on request and previews current editor text without another writer', async () => {
     useReferenceStore().open('characters/Ilka.md')
     const wrapper = mount(ReferencePanel)

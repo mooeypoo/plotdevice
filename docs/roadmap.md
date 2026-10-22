@@ -228,13 +228,14 @@ acceptance criteria, and the cross-session checklist.
     logically, and audit existing responsive wrapping.
   - [ ] Remaining I4: real-browser geometry, responsive overflow, pointer and
     scroll qualification (I6).
-- [ ] I5: Independent writing/reading direction and mixed-script editor support.
+- [x] I5: Independent writing/reading direction and mixed-script editor support.
   - [x] I5a: Persist Auto/LTR/RTL prose direction independently of UI language;
     apply live in CodeMirror without losing draft, selection, or undo history.
   - [x] I5b: Localize live CodeMirror copy; isolate mixed-script link,
     completion, and inline-code direction without changing markdown.
-  - [ ] Remaining I5: set a consistent Outline/Reference reading direction;
-    qualify caret and shaping in a real browser (I6).
+  - [x] I5c: Set per-block automatic direction for authored Outline/Reference
+    Markdown and isolate inline/fenced technical code LTR.
+  - [ ] Remaining I5: qualify caret and shaping in a real browser (I6).
 - [ ] I6: Translation workflow and packaged Linux/Windows qualification.
 - [ ] D1: Public Hebrew manual/distribution text (separate approval).
 
