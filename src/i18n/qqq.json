@@ -701,5 +701,6 @@
   "board-status-set": "Announced after a chapter's status is set from a card. $1 is the chapter's title, $2 the status.",
   "app-menu-label": "Accessible name and tooltip of the top bar's one ⋯ menu: interface language, appearance, layouts and Close project (D2).",
   "app-menu-appearance": "⋯ menu and Go to… item that opens the Appearance popover (prose size, width, direction, experimental settings).",
-  "chrome-goto-tooltip": "Tooltip of the quiet Go to… field in the top bar. $1 is the unchanged isolated keyboard shortcut (Ctrl+K)."
+  "chrome-goto-tooltip": "Tooltip of the quiet Go to… field in the top bar. $1 is the unchanged isolated keyboard shortcut (Ctrl+K).",
+  "tabs-actions": "Accessible name of the ⋯ menu for the open document tab: keep open, pin, write here, open beside, close others. $1 is the isolated entry title."
 }

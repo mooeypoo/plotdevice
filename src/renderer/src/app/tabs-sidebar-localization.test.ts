@@ -35,6 +35,18 @@ afterEach(async () => {
   vi.restoreAllMocks()
 })
 
+/** The open document's ⋯ items, read by opening and closing its menu. */
+async function actionLabels(): Promise<string[]> {
+  const trigger = tabs.get('.tab-actions button[aria-haspopup=menu]')
+  await trigger.trigger('click')
+  await flushPromises()
+  const labels = tabs
+    .findAll('.tab-actions [role^=menuitem]')
+    .map((item) => item.attributes('data-label') ?? '')
+  await trigger.trigger('click')
+  return labels
+}
+
 describe('document tabs localization', () => {
   it('switches tab labels live without replacing controls or changing selection', async () => {
     const editor = useEditorStore()
@@ -46,24 +58,23 @@ describe('document tabs localization', () => {
     expect(tabs.get('[role=tablist]').attributes('aria-label')).toBe('Open tabs')
     expect(tabs.text()).toContain('Your chapter')
     expect(tabs.text()).toContain('Preview')
-    expect(tabs.text()).toContain('Keep open')
+    expect(await actionLabels()).toContain('Keep open')
 
     useUiLanguageStore().locale = 'he'
     await flushPromises()
 
     expect(tabs.get('section').attributes('aria-label')).toBe('רשומות פתוחות')
     expect(tabs.get('[role=tablist]').attributes('aria-label')).toBe('לשוניות פתוחות')
-    expect(tabs.text()).toContain('כתיבה')
+    expect(tabs.text()).toContain('הפרק שלך')
     expect(tabs.text()).toContain('תצוגה מקדימה')
-    expect(tabs.text()).toContain('השאר פתוח')
+    expect(await actionLabels()).toContain('השאר פתוח')
     expect(tabs.get('[role=tab][aria-selected=true]').element).toBe(documentTab)
     expect(editor.entry?.path).toBe('First frost.md')
     expect(openEntry).not.toHaveBeenCalled()
 
-    await tabs
-      .findAll('button')
-      .find((button) => button.text() === 'השאר פתוח')
-      ?.trigger('click')
+    await tabs.get('.tab-actions button[aria-haspopup=menu]').trigger('click')
+    await flushPromises()
+    await tabs.get('.tab-actions [data-label="השאר פתוח"]').trigger('click')
     expect(
       tabStore.documents.find((document) => document.path === 'First frost.md')?.temporary
     ).toBe(false)
@@ -77,21 +88,18 @@ describe('document tabs localization', () => {
     useUiLanguageStore().locale = 'he'
     await flushPromises()
 
-    expect(tabs.text()).toContain('הצמד')
+    const labels = (await actionLabels()).join(' ')
+    expect(labels).toContain('הצמד')
+    expect(labels).toContain('כתיבה כאן')
+    expect(labels).toContain('סגירת שאר הלשוניות שאינן מוצמדות')
     expect(tabs.text()).toContain('חזרה לפרק')
-    expect(tabs.text()).toContain('כתיבה כאן')
-    expect(tabs.text()).toContain('סגירת שאר הלשוניות שאינן מוצמדות')
     expect(tabs.get('.return').attributes('title')).toContain('Ctrl+Shift+Enter')
-    expect(tabs.get('.document-actions button[aria-pressed]').attributes('title')).toContain(
-      'הלשונית זמינה'
-    )
     expect(tabs.get('.close').attributes('aria-label')).toContain('סגירה')
     expect(tabs.get('.close').attributes('aria-label')).toContain('\u2068')
     await tabs.get('[role=tab][title="The Ferry.md"]').trigger('click')
     await flushPromises()
-    expect(tabs.get('.document-actions button[aria-pressed]').attributes('title')).toContain(
-      'הפרק שלך'
-    )
+    expect(tabs.find('.return').exists()).toBe(false)
+    expect(await actionLabels()).not.toContain('כתיבה כאן')
   })
 
   it('localizes generated chapter and template labels without translating entry titles', async () => {

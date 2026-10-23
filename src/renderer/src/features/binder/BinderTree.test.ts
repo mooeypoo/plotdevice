@@ -16,7 +16,7 @@ const partTwo: PartDto = {
   chapters: []
 }
 const book = (parts: readonly PartDto[]): ManuscriptDto => ({ ...sampleManuscript, parts })
-const props = { projectRoot: '/book', selectedPath: null, attentionCount: 0, readOnly: false }
+const props = { projectRoot: '/book', selectedPath: null, readOnly: false }
 
 beforeEach(() => {
   localStorage.clear()
@@ -77,7 +77,7 @@ describe('BinderTree', () => {
       wordCount: 3456
     }
     const wrapper = mount(BinderTree, {
-      props: { ...props, manuscript, attentionCount: 2, selectedPath: chapter.path },
+      props: { ...props, manuscript, selectedPath: chapter.path },
       attachTo: document.body
     })
     const row = wrapper.get<HTMLButtonElement>('.row').element
@@ -88,11 +88,8 @@ describe('BinderTree', () => {
 
     expect(wrapper.get('nav').attributes('aria-label')).toBe('Manuscript')
     expect(wrapper.get('.status').attributes('title')).toBe('No status')
-    expect(wrapper.get('.total').text()).toContain('Manuscript')
-    expect(wrapper.get('.total .value').text()).toBe('3,456 words')
     expect(wrapper.text()).toContain('Not in sequence')
     expect(wrapper.text()).toContain('Unordered')
-    expect(wrapper.text()).toContain('2 things need attention')
     expect(wrapper.get('.header .open .words').text()).toBe('2,345')
     expect(wrapper.get('.row .meta').text()).toBe('1,234')
 
@@ -101,11 +98,8 @@ describe('BinderTree', () => {
 
     expect(wrapper.get('nav').attributes('aria-label')).toBe('כתב יד')
     expect(wrapper.get('.status').attributes('title')).toBe('ללא סטטוס')
-    expect(wrapper.get('.total').text()).toContain('כתב יד')
-    expect(wrapper.get('.total .value').text()).toBe('3,456 מילים')
     expect(wrapper.text()).toContain('לא ברצף הממוספר')
     expect(wrapper.text()).toContain('ללא סדר')
-    expect(wrapper.text()).toContain('2 דורשים טיפול')
     expect(wrapper.get('.header .open .words').text()).toBe('2,345')
     expect(wrapper.get('.row .meta').text()).toBe('1,234')
     expect(wrapper.get('.row').element).toBe(row)
