@@ -91,6 +91,9 @@ async function show(name: ScenarioName): Promise<void> {
     case 'appearance':
       click('.appearance-trigger')
       break
+    case 'select-open':
+      click('#inspector-status')
+      break
     case 'writing':
       break
   }

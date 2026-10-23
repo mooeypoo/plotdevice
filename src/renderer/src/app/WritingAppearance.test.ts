@@ -2,6 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { chooseOption, optionLabels, selectedLabel } from '../shared/select-field-testing'
 import WritingAppearance from './WritingAppearance.vue'
 import { useWritingPreferencesStore } from './writing-preferences-store'
 import { useUiLanguageStore } from './ui-language-store'
@@ -53,29 +54,25 @@ describe('WritingAppearance', () => {
 
   it('changes writing direction independently of the translated interface', async () => {
     const wrapper = mount(WritingAppearance)
-    const select = wrapper.get<HTMLSelectElement>('#prose-direction')
+    const select = wrapper.get('#prose-direction')
     const selectElement = select.element
     expect(wrapper.get('label[for="prose-direction"]').text()).toBe('Text direction')
-    expect(select.element.value).toBe('auto')
-    expect(select.findAll('option').map((option) => option.text())).toEqual([
+    expect(selectedLabel(select)).toBe('Automatic per line')
+    expect(await optionLabels(select)).toEqual([
       'Automatic per line',
       'Left to right',
       'Right to left'
     ])
 
-    await select.setValue('rtl')
+    await chooseOption(select, 'rtl')
     expect(useWritingPreferencesStore().writingDirection).toBe('rtl')
 
     useUiLanguageStore().locale = 'he'
     await wrapper.vm.$nextTick()
     expect(wrapper.get('#prose-direction').element).toBe(selectElement)
     expect(wrapper.get('label[for="prose-direction"]').text()).toBe('כיוון הטקסט')
-    expect(wrapper.findAll('#prose-direction option').map((option) => option.text())).toEqual([
-      'אוטומטי לפי שורה',
-      'משמאל לימין',
-      'מימין לשמאל'
-    ])
-    expect(selectElement.value).toBe('rtl')
+    expect(await optionLabels(select)).toEqual(['אוטומטי לפי שורה', 'משמאל לימין', 'מימין לשמאל'])
+    expect(selectedLabel(select)).toBe('מימין לשמאל')
     expect(useWritingPreferencesStore().writingDirection).toBe('rtl')
     wrapper.unmount()
   })

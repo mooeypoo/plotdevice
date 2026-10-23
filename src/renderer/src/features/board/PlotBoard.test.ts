@@ -14,6 +14,7 @@ import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
 import { useWorkbenchStore } from '../../app/workbench-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import PlotBoard from './PlotBoard.vue'
+import { chooseOption } from '../../shared/select-field-testing'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 beforeEach(async () => {
@@ -319,8 +320,7 @@ describe('editing on the board', () => {
     expect(board.get('.announcement').text()).toBe('Synopsis of ⁨The Ferry⁩ saved')
 
     await menuItem(board, 0, 'Chapter status')
-    const select = board.get<HTMLSelectElement>('.beat select')
-    await select.setValue('idea')
+    await chooseOption(board.get('.beat [role="combobox"]'), 'idea')
     await flushPromises()
     expect(write).toHaveBeenLastCalledWith('The Ferry.md', expect.any(String), {
       status: 'idea'

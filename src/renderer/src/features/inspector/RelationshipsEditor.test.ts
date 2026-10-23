@@ -9,6 +9,12 @@ import { useManuscriptStore } from '../../app/manuscript-store'
 import { plotDeviceApi } from '../../app/plot-device-api'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import RelationshipsEditor from './RelationshipsEditor.vue'
+import {
+  chooseOption,
+  optionLabels,
+  optionValues,
+  selectedLabel
+} from '../../shared/select-field-testing'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 
@@ -64,9 +70,8 @@ describe('RelationshipsEditor', () => {
       .find((button) => button.text().includes('Add relationship'))
     await add?.trigger('click')
 
-    const options = editor.findAll('select option').map((option) => option.text())
-    expect(options).toEqual(['Who…', 'Aunt Bea'])
-    await editor.get('select').setValue('Aunt Bea')
+    expect(await optionLabels(editor.get('[role="combobox"]'))).toEqual(['Who…', 'Aunt Bea'])
+    await chooseOption(editor.get('[role="combobox"]'), 'Aunt Bea')
     await flushPromises()
     const kind = editor.findAll('input')[0]
     await kind?.setValue('mentor')
@@ -98,21 +103,19 @@ describe('RelationshipsEditor', () => {
     await useEditorStore().open('characters/Ilka.md')
     const editor = mount(RelationshipsEditor, { props: { disabled: false } })
     await flushPromises()
-    const select = editor.get('select')
-    const choices = (): string[] =>
-      Array.from(select.element.options)
-        .map((option) => option.value)
-        .filter((value) => value !== '')
+    const select = editor.get('[role="combobox"]')
+    const choices = async (): Promise<string[]> =>
+      (await optionValues(select)).filter((value) => value !== '')
     const read = vi.spyOn(fake.api.codex, 'getProperties')
     const update = vi.spyOn(fake.api.codex, 'updateRelationships')
 
-    expect(choices()).toEqual(['Ari', 'Aunt Bea', 'דוד', 'שירה'])
-    expect(select.element.value).toBe('Ari')
+    expect(await choices()).toEqual(['Ari', 'Aunt Bea', 'דוד', 'שירה'])
+    expect(selectedLabel(select)).toBe('Ari')
     useUiLanguageStore().locale = 'he'
     await editor.vm.$nextTick()
 
-    expect(choices()).toEqual(['דוד', 'שירה', 'Ari', 'Aunt Bea'])
-    expect(select.element.value).toBe('Ari')
+    expect(await choices()).toEqual(['דוד', 'שירה', 'Ari', 'Aunt Bea'])
+    expect(selectedLabel(select)).toBe('Ari')
     expect(read).not.toHaveBeenCalled()
     expect(update).not.toHaveBeenCalled()
     editor.unmount()
@@ -131,7 +134,7 @@ describe('RelationshipsEditor', () => {
     await flushPromises()
     expect(editor.text()).toContain('Aunt Bea · mentor')
     expect(editor.text()).toContain('can’t edit safely')
-    expect(editor.find('select').exists()).toBe(false)
+    expect(editor.find('[role="combobox"]').exists()).toBe(false)
     await useUiLanguageStore().change('he')
     await flushPromises()
     expect(editor.text()).toContain('הקשרים בקובץ הזה כתובים בצורה')
@@ -163,8 +166,8 @@ describe('RelationshipsEditor', () => {
     await flushPromises()
 
     expect(editor.get('h3').text()).toBe('קשרים')
-    expect(editor.get('select').attributes('aria-label')).toBe('קשר 1: עם')
-    expect(editor.get('select option[value=""]').text()).toBe('עם מי…')
+    expect(editor.get('[role="combobox"]').attributes('aria-label')).toBe('קשר 1: עם')
+    expect((await optionLabels(editor.get('[role="combobox"]')))[0]).toBe('עם מי…')
     expect(kind.attributes('placeholder')).toBe('סוג: מורה דרך, אחות, יריב/ה…')
     expect(kind.attributes('aria-label')).toBe('קשר 1: סוג')
     expect(kind.element.value).toBe('Unsaved relationship kind')
@@ -190,11 +193,7 @@ describe('RelationshipsEditor', () => {
     await useUiLanguageStore().change('he')
     await flushPromises()
 
-    const missing = editor
-      .findAll('select option')
-      .find((option) => option.attributes('value') === 'Missing friend')
-    expect(missing?.text()).toBe('⁨Missing friend⁩ (אין קובץ)')
-    expect(editor.get('select').element.value).toBe('Missing friend')
+    expect(selectedLabel(editor.get('[role="combobox"]'))).toBe('⁨Missing friend⁩ (אין קובץ)')
     expect(update).not.toHaveBeenCalled()
     editor.unmount()
   })

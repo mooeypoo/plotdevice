@@ -7,6 +7,7 @@ import type {
   OutlineDto
 } from '../../../../contract/dtos'
 import NewEntryInput from '../../shared/NewEntryInput.vue'
+import SelectField from '../../shared/SelectField.vue'
 import { codexSections } from './codex-sections'
 import CharacterList from './CharacterList.vue'
 import CodexEntryList from './CodexEntryList.vue'
@@ -68,10 +69,10 @@ function create(kind: CodexKindDto, title: string): void {
   emit('create', kind, title)
 }
 
-function chooseType(path: string, event: Event): void {
-  const select = event.target as HTMLSelectElement
-  const type = TYPES.find((candidate) => candidate === select.value)
-  select.value = ''
+const TYPE_OPTIONS = TYPES.map((type) => ({ value: type, label: type }))
+
+function chooseType(path: string, value: string): void {
+  const type = TYPES.find((candidate) => candidate === value)
   if (type !== undefined) emit('setType', path, type)
 }
 </script>
@@ -176,15 +177,15 @@ function chooseType(path: string, event: Event): void {
           <span v-if="file.rawType" class="meta">{{
             language.t('codex-raw-type', isolate(file.rawType))
           }}</span>
-          <select
+          <SelectField
             v-if="!readOnly"
+            model-value=""
+            :options="TYPE_OPTIONS"
+            :placeholder="language.t('codex-set-type')"
             :aria-label="language.t('codex-set-type-label', isolate(file.path))"
-            value=""
-            @change="chooseType(file.path, $event)"
-          >
-            <option value="" disabled>{{ language.t('codex-set-type') }}</option>
-            <option v-for="type in TYPES" :key="type" :value="type">{{ type }}</option>
-          </select>
+            size="small"
+            @update:model-value="chooseType(file.path, $event)"
+          />
         </li>
       </ul>
     </section>
@@ -313,8 +314,7 @@ ul {
   white-space: nowrap;
 }
 
-.untyped select {
-  padding: 2px 6px;
-  font-size: 12px;
+.untyped .select-field {
+  flex: none;
 }
 </style>

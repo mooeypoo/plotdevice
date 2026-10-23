@@ -11,6 +11,7 @@ import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useInspectorStore } from '../../app/inspector-store'
 import InspectorPanel from './InspectorPanel.vue'
 import LinkPicker from './LinkPicker.vue'
+import { optionLabels } from '../../shared/select-field-testing'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 
@@ -80,8 +81,8 @@ describe('InspectorPanel', () => {
     expect(panel.get('header .eyebrow').text()).toBe('פרק')
     expect(panel.get('label[for="inspector-order"]').text()).toBe('סדר')
     expect(panel.get('label[for="inspector-title"]').text()).toBe('כותרת')
-    expect(panel.get('#inspector-status').attributes('dir')).toBe('auto')
-    expect(panel.get('#inspector-status').text()).toContain('draft')
+    expect(panel.get('#inspector-status .value').attributes('dir')).toBe('auto')
+    expect(await optionLabels(panel.get('#inspector-status'))).toContain('draft')
     expect(panel.get('label[for="inspector-date"]').text()).toBe('תאריך בסיפור')
     expect(panel.get('label[for="inspector-synopsis"]').text()).toBe('תקציר')
     expect(panel.get('.threads').attributes('aria-label')).toBe('קווי עלילה')

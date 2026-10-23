@@ -65,17 +65,19 @@ onBeforeUnmount(() => {
       <span aria-hidden="true">⋯</span>
     </button>
     <div v-if="open" ref="menu" class="menu" role="menu" :aria-label="label" @keydown="keydown">
-      <button
-        v-for="item in items"
-        :key="item.key"
-        type="button"
-        role="menuitem"
-        tabindex="-1"
-        dir="auto"
-        @click="choose(item)"
-      >
-        {{ item.label }}
-      </button>
+      <template v-for="item in items" :key="item.key">
+        <hr v-if="item.separator" role="separator" />
+        <button
+          type="button"
+          role="menuitem"
+          tabindex="-1"
+          :data-label="item.label"
+          @click="choose(item)"
+        >
+          <span dir="auto">{{ item.label }}</span>
+          <kbd v-if="item.shortcut" dir="ltr">{{ item.shortcut }}</kbd>
+        </button>
+      </template>
     </div>
   </span>
 </template>
@@ -87,8 +89,8 @@ onBeforeUnmount(() => {
 }
 
 .options {
-  padding: 2px 6px;
-  font-size: 13px;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-body);
   line-height: 1;
 }
 
@@ -100,26 +102,43 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   min-width: 13em;
-  padding: 4px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--panel);
-  box-shadow: 0 6px 18px rgb(0 0 0 / 35%);
+  padding: var(--space-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-card);
+  background: var(--raised);
+  box-shadow: var(--shadow-popover);
 }
 
 .menu button {
-  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: var(--space-2) var(--space-3);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-field);
   background: transparent;
   color: var(--text);
-  font-size: 13px;
+  font-size: var(--text-body);
   text-align: start;
 }
 
 .menu button:hover,
 .menu button:focus-visible {
   background: var(--accent-soft);
+  color: var(--text-strong);
   outline: none;
+}
+
+.menu hr {
+  margin: var(--space-2) var(--space-2);
+  border: none;
+  border-block-start: 1px solid var(--line);
+}
+
+kbd {
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--text-small);
 }
 </style>

@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import type { CodexEntryDto } from '../../../../contract/dtos'
 import { useCharacterList } from './use-character-list'
 import CodexEntryList from './CodexEntryList.vue'
+import CheckboxField from '../../shared/CheckboxField.vue'
 import { nameKey } from '../../shared/link-choices'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
@@ -51,14 +52,14 @@ const chrome = useChromePresentation()
           }}<span v-if="filters.length"> · {{ chrome.formatNumber(filters.length) }}</span>
         </summary>
         <p class="hint">{{ language.t('codex-filter-groups-hint') }}</p>
-        <label v-for="name in names" :key="nameKey(name)">
-          <input
-            type="checkbox"
-            :checked="filters.some((filter) => nameKey(filter) === nameKey(name))"
-            @change="characters.toggleFilter(name)"
-          />
+        <CheckboxField
+          v-for="name in names"
+          :key="nameKey(name)"
+          :model-value="filters.some((filter) => nameKey(filter) === nameKey(name))"
+          @update:model-value="characters.toggleFilter(name)"
+        >
           <bdi>{{ name }}</bdi>
-        </label>
+        </CheckboxField>
       </details>
       <button
         v-if="filters.length > 0"
@@ -70,11 +71,7 @@ const chrome = useChromePresentation()
       </button>
     </div>
     <p v-if="visible.length === 0" class="hint empty">
-      {{
-        entries.length === 0
-          ? language.t('codex-no-characters')
-          : language.t('codex-no-match')
-      }}
+      {{ entries.length === 0 ? language.t('codex-no-characters') : language.t('codex-no-match') }}
     </p>
     <p v-else-if="search.trim() && mode === 'grouped'" class="hint empty">
       {{ language.t('codex-searching-grouped') }}
@@ -163,16 +160,10 @@ summary {
   cursor: pointer;
   padding-block: 3px;
 }
-.filters label {
+.filters .checkbox-field {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 2px;
+  padding: var(--space-2) var(--space-1);
   overflow-wrap: anywhere;
-}
-.filters input {
-  margin: 0;
-  accent-color: var(--accent);
 }
 .hint {
   margin: 4px 0;
