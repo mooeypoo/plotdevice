@@ -6,7 +6,7 @@ import BinderRow from './BinderRow.vue'
 import NewEntryInput from '../../shared/NewEntryInput.vue'
 import type { DropSpot } from './binder-drop'
 import { useBinderDrag } from './use-binder-drag'
-import ReferenceButton from '../../shared/ReferenceButton.vue'
+import RowMenu from './RowMenu.vue'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import { isolate } from '../../shared/isolate'
@@ -28,6 +28,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   open: [path: string]
   reference: [path: string]
+  details: [path: string]
+  beside: [path: string]
   createChapter: [partPath: string, title: string]
   setExpanded: [expanded: boolean]
 }>()
@@ -136,7 +138,12 @@ const toggleRotation = computed(() => {
         <span class="title" dir="auto">{{ part.title }}</span>
         <span class="words">{{ formatWordCount(part.wordCount, chrome.formatNumber) }}</span>
       </button>
-      <ReferenceButton :title="part.title" @open="$emit('reference', part.path)" />
+      <RowMenu
+        :title="part.title"
+        @details="$emit('details', part.path)"
+        @beside="$emit('beside', part.path)"
+        @reference="$emit('reference', part.path)"
+      />
       <button
         v-if="!readOnly"
         type="button"
@@ -171,6 +178,8 @@ const toggleRotation = computed(() => {
           :warning="clashDescription(chapter, part.chapters, language.t)"
           @open="$emit('open', chapter.path)"
           @reference="$emit('reference', chapter.path)"
+          @details="$emit('details', chapter.path)"
+          @beside="$emit('beside', chapter.path)"
         />
       </li>
       <li v-if="adding">
@@ -190,6 +199,11 @@ const toggleRotation = computed(() => {
 </template>
 
 <style scoped>
+.header:hover .row-menu,
+.header:focus-within .row-menu {
+  opacity: 1;
+}
+
 .part {
   margin-bottom: 8px;
   border-radius: 7px;

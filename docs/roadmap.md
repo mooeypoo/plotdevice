@@ -410,7 +410,7 @@ native `<select>` or checkbox outside the shared styled components.
 ### U3b: Information architecture
 - [x] The top bar (D1, D2): mode switch, a visible Go to…, side toggles and one ⋯ menu (interface language, Appearance, Layout, Close project). Write is the page; Overview, Timeline and Interactions moved to Plot; the Text tab is gone.
 - [x] Document tabs only with two or more documents, their actions in one ⋯, and Back to your chapter only while away from it; "In this chapter" as a line under the heading; a status bar of words, ⚠ Needs attention and Saved; no empty Needs attention shelf.
-- [ ] Panel headers with one ⋯ and tab overflow; compact Details and "Edit details" (D6).
+- [x] Panel headers with one ⋯ (and double-click to expand) and a More ▾ tab after three; Manuscript rows with a hover ⋯; compact Details (placement and story time folded, characters and place behind one quiet add) and "Edit details" on rows, cards, peeks and the Chapter card (D6). Menus now draw over the page, so scrolling panels never clip them.
 - [ ] The status bar, Go to…'s empty state, the board's fit and header, and "+ Add column" (D5).
 
 **Done when:** every keyboard path still works and is tested, and the harness screens match the

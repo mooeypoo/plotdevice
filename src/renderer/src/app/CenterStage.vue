@@ -177,6 +177,7 @@ function commitShare(id: string, width: number): void {
   gap: var(--space-3);
   align-items: baseline;
   max-inline-size: var(--measure);
+  font-family: var(--font-prose);
   font-size: var(--prose-size);
   margin: calc(-1 * var(--space-5)) auto var(--space-6);
 }

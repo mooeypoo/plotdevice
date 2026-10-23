@@ -12,6 +12,7 @@ import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkbenchStore } from '../../app/workbench-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import { ENTRY_PATH_DRAG_TYPE } from '../../shared/drag-types'
+import { setAreaCollapsed } from '../../workbench/model/operations'
 import CardStack from './CardStack.vue'
 import EntryCard from './EntryCard.vue'
 import PeekLayer from './PeekLayer.vue'
@@ -34,6 +35,23 @@ afterEach(() => {
 })
 
 describe('EntryCard', () => {
+  it('offers Pin, Open beside, Open and Edit details, which shows Details for the entry', async () => {
+    const card = mount(EntryCard, { props: { path: ILKA } })
+    await flushPromises()
+    expect(card.findAll('.actions button').map((button) => button.text())).toEqual([
+      'Pin',
+      'Open beside',
+      'Open',
+      'Edit details'
+    ])
+    useWorkbenchStore().apply((layout) => setAreaCollapsed(layout, 'end', true))
+    await card.get('.actions .details').trigger('click')
+    await flushPromises()
+    expect(useEditorStore().entry?.path).toBe(ILKA)
+    expect(useWorkbenchStore().layout.end.collapsed).toBe(false)
+    await useEditorStore().flush()
+  })
+
   it('shows the title, chosen fields and opening text without saving anything', async () => {
     const save = vi.spyOn(fake.api.codex, 'saveEntryText')
     const card = mount(EntryCard, { props: { path: ILKA } })

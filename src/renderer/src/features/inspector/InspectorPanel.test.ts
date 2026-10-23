@@ -23,6 +23,46 @@ beforeEach(async () => {
 })
 
 describe('InspectorPanel', () => {
+  it('keeps placement and story time folded while drafting, with a summary of each', async () => {
+    await useEditorStore().open('The Ferry.md')
+    const panel = mount(InspectorPanel, { attachTo: document.body })
+    await flushPromises()
+    const groups = panel.findAll('details.group')
+    expect(groups).toHaveLength(2)
+    expect(groups.map((group) => (group.element as HTMLDetailsElement).open)).toEqual([
+      false,
+      false
+    ])
+    expect(groups[0]?.get('summary').text()).toContain('Position')
+    expect(panel.find('#inspector-status').exists()).toBe(true)
+    expect(panel.find('#inspector-synopsis').exists()).toBe(true)
+    panel.unmount()
+  })
+
+  it('opens placement by itself when the order needs attention', async () => {
+    await useEditorStore().open('The Ferry.md')
+    const panel = mount(InspectorPanel, { attachTo: document.body })
+    await flushPromises()
+    await panel.get('#inspector-order').setValue('1.5')
+    await panel.get('#inspector-order').trigger('change')
+    await flushPromises()
+    expect((panel.findAll('details.group')[0]?.element as HTMLDetailsElement).open).toBe(true)
+    panel.unmount()
+  })
+
+  it('offers characters and a place behind one quiet add while the chapter has none', async () => {
+    await useEditorStore().open('First frost.md')
+    const panel = mount(InspectorPanel, { attachTo: document.body })
+    await flushPromises()
+    const labels = (): string[] =>
+      panel.findAll('.field label, .field .eyebrow').map((l) => l.text())
+    expect(labels()).not.toContain('Characters')
+    await panel.get('.add-cast').trigger('click')
+    expect(panel.find('.add-cast').exists()).toBe(false)
+    expect(labels().join(' ')).toContain('Characters')
+    panel.unmount()
+  })
+
   it('retranslates invalid order input without replacing fields, saving or retrying', async () => {
     const editor = useEditorStore()
     await editor.open('The Ferry.md')

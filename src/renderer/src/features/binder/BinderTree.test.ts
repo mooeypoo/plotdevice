@@ -29,6 +29,27 @@ const markers = (wrapper: ReturnType<typeof mount>): string[] =>
   wrapper.findAll('.marker').map((marker) => marker.text())
 
 describe('BinderTree', () => {
+  it('offers Edit details, Open beside and Open in reference in each row’s ⋯', async () => {
+    const wrapper = mount(BinderTree, {
+      props: { ...props, manuscript: sampleManuscript, selectedPath: 'The Ferry.md' },
+      attachTo: document.body
+    })
+    const row = wrapper.findAll('.entry-row')[0]
+    if (row === undefined) throw new Error('Expected a chapter row')
+    await row.get('.row-menu button[aria-haspopup=menu]').trigger('click')
+    expect(row.findAll('[role=menuitem]').map((item) => item.attributes('data-label'))).toEqual([
+      'Edit details',
+      'Open beside',
+      'Open in reference'
+    ])
+    await row.get('[data-label="Edit details"]').trigger('click')
+    await row.get('.row-menu button[aria-haspopup=menu]').trigger('click')
+    await row.get('[data-label="Open beside"]').trigger('click')
+    expect(wrapper.emitted('details')).toEqual([['The Ferry.md']])
+    expect(wrapper.emitted('beside')).toEqual([['The Ferry.md']])
+    wrapper.unmount()
+  })
+
   it('mirrors part disclosure direction live without collapsing or changing selection', async () => {
     const wrapper = mount(BinderTree, {
       props: { ...props, manuscript: sampleManuscript, selectedPath: 'The Ferry.md' }

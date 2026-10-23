@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { formatWordCount, statusColor } from '../../shared/manuscript-labels'
-import ReferenceButton from '../../shared/ReferenceButton.vue'
+import RowMenu from './RowMenu.vue'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
 
@@ -18,7 +18,7 @@ defineProps<{
   warning?: string | undefined
 }>()
 
-defineEmits<{ open: []; reference: [] }>()
+defineEmits<{ open: []; reference: []; details: []; beside: [] }>()
 </script>
 
 <template>
@@ -43,7 +43,12 @@ defineEmits<{ open: []; reference: [] }>()
       >
       <span class="meta">{{ detail ?? formatWordCount(wordCount, chrome.formatNumber) }}</span>
     </button>
-    <ReferenceButton :title="title" @open="$emit('reference')" />
+    <RowMenu
+      :title="title"
+      @details="$emit('details')"
+      @beside="$emit('beside')"
+      @reference="$emit('reference')"
+    />
   </div>
 </template>
 
@@ -51,6 +56,11 @@ defineEmits<{ open: []; reference: [] }>()
 .entry-row {
   display: flex;
   align-items: center;
+}
+
+.entry-row:hover .row-menu,
+.entry-row:focus-within .row-menu {
+  opacity: 1;
 }
 
 .row {

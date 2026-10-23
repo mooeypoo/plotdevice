@@ -24,6 +24,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   open: [path: string]
   reference: [path: string]
+  details: [path: string]
+  beside: [path: string]
   createChapter: [partPath: string | null, title: string]
   createPart: [title: string]
   move: [request: DropRequest]
@@ -91,6 +93,8 @@ function createChapter(title: string): void {
         :part-index="index"
         @open="$emit('open', $event)"
         @reference="$emit('reference', $event)"
+        @details="$emit('details', $event)"
+        @beside="$emit('beside', $event)"
         @set-expanded="collapse.setExpanded(part.path, $event)"
         @create-chapter="(part, title) => $emit('createChapter', part, title)"
       />
@@ -118,6 +122,8 @@ function createChapter(title: string): void {
             :warning="clashDescription(chapter, manuscript.chapters, language.t)"
             @open="$emit('open', chapter.path)"
             @reference="$emit('reference', chapter.path)"
+            @details="$emit('details', chapter.path)"
+            @beside="$emit('beside', chapter.path)"
           />
         </li>
       </ul>
@@ -171,6 +177,8 @@ function createChapter(title: string): void {
           :part-paths="partPaths"
           @open="$emit('open', $event)"
           @reference="$emit('reference', $event)"
+          @details="$emit('details', $event)"
+          @beside="$emit('beside', $event)"
           @set-expanded="collapse.setExpanded(part.path, $event)"
           @create-chapter="(part, title) => $emit('createChapter', part, title)"
         />
@@ -206,6 +214,8 @@ function createChapter(title: string): void {
                 :detail="describeUnorderedReason(item.reason, language.t)"
                 @open="$emit('open', item.chapter.path)"
                 @reference="$emit('reference', item.chapter.path)"
+                @details="$emit('details', item.chapter.path)"
+                @beside="$emit('beside', item.chapter.path)"
               />
             </li>
           </ul>
