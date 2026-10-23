@@ -146,14 +146,17 @@ describe('project chrome translation', () => {
     }
     useEditorStore().wordCount = 0
     const page = mount(StatusBar)
-    expect(page.text()).toContain('0 words in chapter')
-    expect(page.text()).toContain(`\u2068${title}\u2069: 1,000 words`)
-    expect(page.text()).toContain('Manuscript: 1,234,567 words')
+    // The chapter's count is on the bar; the part's and the manuscript's are a hover away.
+    expect(page.get('.count').text()).toBe('0 words in chapter')
+    expect(page.get('.count').attributes('title')).toBe(
+      `\u2068${title}\u2069: 1,000 words · Manuscript: 1,234,567 words`
+    )
     useUiLanguageStore().locale = 'he'
     await flushPromises()
-    expect(page.text()).toContain('0 מילים בפרק')
-    expect(page.text()).toContain(`\u2068${title}\u2069: 1,000 מילים`)
-    expect(page.text()).toContain('כתב היד: 1,234,567 מילים')
+    expect(page.get('.count').text()).toBe('0 מילים בפרק')
+    expect(page.get('.count').attributes('title')).toBe(
+      `\u2068${title}\u2069: 1,000 מילים · כתב היד: 1,234,567 מילים`
+    )
     expect(page.find('img').exists()).toBe(false)
     page.unmount()
   })

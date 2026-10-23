@@ -701,5 +701,6 @@
   "board-status-set": "הסטטוס של $1 הוא עכשיו $2",
   "app-menu-label": "עוד",
   "app-menu-appearance": "מראה…",
-  "chrome-goto-tooltip": "מעבר אל… ($1)"
+  "chrome-goto-tooltip": "מעבר אל… ($1)",
+  "tabs-actions": "פעולות עבור $1"
 }

@@ -15,12 +15,18 @@ import { useWorkspaceStore } from './workspace-store'
 // Markers stand in for the registered views, so this tests where the stage puts them.
 vi.mock('../workbench/views/view-registry', async () => {
   const { h } = await import('vue')
-  // Functional components: each renders a marker, and the document passes its slot through.
+  // Functional components: each renders a marker, and the document passes its slots through.
   const marker = (name: string) => () => h('div', { class: `marker ${name}` })
   const registry = {
     document: {
-      component: (_: unknown, { slots }: { slots: { default?: () => unknown } }) =>
-        h('div', { class: 'marker document' }, slots.default?.() as never)
+      component: (
+        _: unknown,
+        { slots }: { slots: { default?: () => unknown; 'under-heading'?: () => unknown } }
+      ) =>
+        h('div', { class: 'marker document' }, [
+          slots['under-heading']?.() as never,
+          slots.default?.() as never
+        ])
     },
     warnings: { component: marker('warnings') },
     cast: { component: marker('cast') },
@@ -53,6 +59,17 @@ describe('CenterStage strip above the page', () => {
     expect(stage.find('.marker.document').exists()).toBe(true)
     await stage.get('.above .hide').trigger('click')
     expect(useWorkbenchStore().layout.center.above).toBeNull()
+    expect(stage.find('.marker.cast').exists()).toBe(false)
+    await useEditorStore().flush()
+  })
+
+  it('sits under the chapter it describes, never under another document', async () => {
+    const stage = mount(CenterStage)
+    await useEditorStore().open('The Ferry.md')
+    await flushPromises()
+    expect(stage.find('.marker.document > .above .marker.cast').exists()).toBe(true)
+    await useEditorStore().open('First frost.md')
+    await flushPromises()
     expect(stage.find('.marker.cast').exists()).toBe(false)
     await useEditorStore().flush()
   })

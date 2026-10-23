@@ -49,15 +49,36 @@ function prose(): EditorView {
   if (view === null) throw new Error('Expected mounted CodeMirror')
   return view
 }
-const action = (label: string) => {
-  const button = wrapper
-    .findAll('.document-actions button')
-    .find((candidate) => candidate.text() === label)
-  if (button === undefined) throw new Error(`Expected ${label}`)
-  return button
+/** Runs a document action: Back to your chapter, or an item in the open document's ⋯. */
+async function action(label: string): Promise<void> {
+  const back = wrapper.find('.document-actions .return')
+  if (back.exists() && back.text() === label) {
+    await back.trigger('click')
+    return
+  }
+  await wrapper.get('.tab-actions button[aria-haspopup=menu]').trigger('click')
+  await flushPromises()
+  await wrapper.get(`.tab-actions [data-label="${label}"]`).trigger('click')
+  await flushPromises()
 }
 
 describe('document tab writing workflow', () => {
+  it('takes no row for a single document, and shows only the way back while away from it', async () => {
+    const editor = useEditorStore()
+    await editor.open('The Ferry.md')
+    await flushPromises()
+    expect(wrapper.find('.document-navigation').exists()).toBe(false)
+    useWorkbenchStore().setMode('plotting')
+    await flushPromises()
+    expect(wrapper.find('[role=tablist]').exists()).toBe(false)
+    expect(wrapper.get('.document-actions .return').text()).toBe('Back to your chapter')
+    useWorkbenchStore().setMode('writing')
+    await editor.open('First frost.md')
+    await flushPromises()
+    expect(wrapper.findAll('[role=tab]')).toHaveLength(2)
+    expect(wrapper.find('.document-actions .return').exists()).toBe(true)
+  })
+
   it('keeps keyboard focus in the strip when activating tabs with arrows, Home and End', async () => {
     const editor = useEditorStore()
     await editor.open('The Ferry.md')
@@ -84,7 +105,7 @@ describe('document tab writing workflow', () => {
     })
     const pane = wrapper.get('.pane').element
     pane.scrollTop = 140
-    await action('Pin').trigger('click')
+    useDocumentTabsStore().togglePin('The Ferry.md')
     await editor.open('First frost.md', { keep: true })
     await flushPromises()
     expect(prose().state.selection.main.anchor).toBe(0)
@@ -135,9 +156,10 @@ describe('document tab writing workflow', () => {
     useWorkbenchStore().centerView = 'overview'
     await flushPromises()
     expect(wrapper.find('.cm-editor').exists()).toBe(false)
-    expect(wrapper.get('[role=tablist][aria-label="Open tabs"]').text()).toContain('Your chapter')
+    expect(wrapper.find('[role=tablist]').exists()).toBe(false)
+    expect(wrapper.get('.document-actions .return').text()).toBe('Back to your chapter')
     const focus = vi.spyOn(HTMLElement.prototype, 'focus')
-    await action('Back to your chapter').trigger('click')
+    await action('Back to your chapter')
     await flushPromises()
     expect(useWorkbenchStore().centerView).toBe('write')
     expect(undoDepth(prose().state)).toBe(1)
@@ -152,12 +174,12 @@ describe('document tab writing workflow', () => {
     await editor.open('First frost.md')
     await flushPromises()
     expect(wrapper.get('.preview').text()).toBe('Preview')
-    await action('Keep open').trigger('click')
+    await action('Keep open')
     expect(wrapper.find('.preview').exists()).toBe(false)
-    await action('Write here').trigger('click')
+    await action('Write here')
     expect(tabs.writingPath).toBe('First frost.md')
     expect(tabs.writing?.pinned).toBe(true)
-    await action('Unpin').trigger('click')
+    await action('Unpin')
     await wrapper
       .get('[role=tab][aria-selected=true]')
       .trigger('keydown', { key: 'Tab', ctrlKey: true })
@@ -183,7 +205,7 @@ describe('document tab writing workflow', () => {
     await editor.open('First frost.md', { keep: true })
     await flushPromises()
     expect(useDocumentTabsStore().writingPath).toBe('The Ferry.md')
-    await wrapper.get('.document-actions .beside').trigger('click')
+    await action('Open beside')
     await flushPromises()
     expect(editor.entry?.path).toBe('The Ferry.md')
     const workbench = useWorkbenchStore()

@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { ManuscriptDto } from '../../../../contract/dtos'
-import {
-  clashDescription,
-  describeUnorderedReason,
-  formatWordCount
-} from '../../shared/manuscript-labels'
+import { clashDescription, describeUnorderedReason } from '../../shared/manuscript-labels'
 import BinderPart from './BinderPart.vue'
 import BinderRow from './BinderRow.vue'
 import NewEntryInput from '../../shared/NewEntryInput.vue'
@@ -22,15 +18,12 @@ const props = defineProps<{
   projectRoot: string
   manuscript: ManuscriptDto
   selectedPath: string | null
-  /** How many files or warnings need the writer's attention. */
-  attentionCount: number
   readOnly: boolean
 }>()
 
 const emit = defineEmits<{
   open: [path: string]
   reference: [path: string]
-  showOverview: []
   createChapter: [partPath: string | null, title: string]
   createPart: [title: string]
   move: [request: DropRequest]
@@ -222,28 +215,6 @@ function createChapter(title: string): void {
         </div>
       </template>
     </div>
-
-    <footer>
-      <button
-        v-if="attentionCount > 0"
-        type="button"
-        class="attention"
-        @click="$emit('showOverview')"
-      >
-        <span class="dot" aria-hidden="true"></span>
-        {{ language.t('binder-attention', attentionCount, chrome.formatNumber(attentionCount)) }}
-      </button>
-      <div class="total">
-        <span>{{ language.t('side-manuscript') }}</span>
-        <span class="value">{{
-          language.t(
-            'binder-count-words',
-            manuscript.wordCount,
-            formatWordCount(manuscript.wordCount, chrome.formatNumber)
-          )
-        }}</span>
-      </div>
-    </footer>
   </nav>
 </template>
 
@@ -338,43 +309,5 @@ function createChapter(title: string): void {
 .actions button {
   padding: 6px 10px;
   font-size: 12px;
-}
-
-footer {
-  border-top: 1px solid var(--line);
-}
-
-.attention {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 10px 18px;
-  border: none;
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  background: transparent;
-  color: var(--text-dim);
-  font-size: 12px;
-  text-align: start;
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--warning);
-}
-
-.total {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 18px;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.value {
-  color: var(--text);
 }
 </style>

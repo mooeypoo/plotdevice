@@ -1,31 +1,98 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
 import { useDocumentTabs } from './use-document-tabs'
 import { isolate } from '../shared/isolate'
+import MenuButton from '../shared/MenuButton.vue'
+import type { MenuItem } from '../shared/menu-item'
 import { navigateTabs } from '../shared/tab-navigation'
 import { useUiLanguageStore } from './ui-language-store'
 import { useWorkbenchNavigation } from './use-workbench-navigation'
+import { useWorkbenchStore } from './workbench-store'
 
 const tabs = useDocumentTabsStore()
 const editor = useEditorStore()
+const workbench = useWorkbenchStore()
 const language = useUiLanguageStore()
 const { documents, active, busy, canWriteHere, activateTab, returnToWriting } = useDocumentTabs()
 const navigation = useWorkbenchNavigation()
+
+/** Tabs earn their row only once there is more than one document to switch between (F6). */
+const showStrip = computed(() => documents.value.length > 1)
+/** The page shows something other than your chapter, so there is somewhere to go back to. */
+const away = computed(
+  () =>
+    tabs.writingPath !== null &&
+    (workbench.centerView !== 'write' || editor.entry?.path !== tabs.writingPath)
+)
 
 /** Shows this document beside the Writing one, and returns the editor to Writing. */
 async function openBeside(path: string): Promise<void> {
   if (await navigation.openBeside(path)) await returnToWriting()
 }
+
+/** What can be done with the open document, one step away in its ⋯. */
+const actions = computed((): MenuItem[] => {
+  const tab = active.value
+  if (tab === undefined) return []
+  return [
+    ...(tab.temporary
+      ? [
+          {
+            key: 'keep',
+            label: language.t('tabs-keep-open'),
+            run: () => {
+              tabs.keep(tab.path)
+            }
+          }
+        ]
+      : []),
+    {
+      key: 'pin',
+      label: tab.pinned ? language.t('tabs-unpin') : language.t('tabs-pin'),
+      run: () => {
+        tabs.togglePin(tab.path)
+      }
+    },
+    ...(canWriteHere.value && !tab.writing
+      ? [
+          {
+            key: 'write-here',
+            label: language.t('tabs-write-here'),
+            run: () => {
+              tabs.writeHere(tab.path)
+            }
+          }
+        ]
+      : []),
+    ...(tabs.writingPath !== null && !tab.writing
+      ? [
+          {
+            key: 'beside',
+            label: language.t('split-open-beside'),
+            run: () => void openBeside(tab.path)
+          }
+        ]
+      : []),
+    {
+      key: 'close-others',
+      label: language.t('tabs-close-other-unpinned'),
+      separator: true,
+      run: () => void editor.closeOtherDocuments()
+    }
+  ]
+})
 </script>
 
 <template>
   <section
-    v-if="documents.length > 0"
+    v-if="showStrip || away"
     class="document-navigation"
     :aria-label="language.t('tabs-open-documents')"
   >
     <div
+      v-if="showStrip"
       class="tab-strip"
       role="tablist"
       :aria-label="language.t('tabs-document-list')"
@@ -75,7 +142,7 @@ async function openBeside(path: string): Promise<void> {
     </div>
     <div class="document-actions">
       <button
-        v-if="tabs.writingPath"
+        v-if="away"
         type="button"
         class="return"
         :disabled="busy"
@@ -84,68 +151,29 @@ async function openBeside(path: string): Promise<void> {
       >
         {{ language.t('tabs-return') }}
       </button>
-      <template v-if="active">
-        <button
-          v-if="active.temporary"
-          type="button"
-          :disabled="busy"
-          @click="tabs.keep(active.path)"
-        >
-          {{ language.t('tabs-keep-open') }}
-        </button>
-        <button
-          type="button"
-          :disabled="busy"
-          :aria-pressed="active.pinned"
-          :title="
-            active.writing
-              ? language.t('tabs-writing-pin-tooltip')
-              : language.t('tabs-pin-tooltip')
-          "
-          @click="tabs.togglePin(active.path)"
-        >
-          {{ active.pinned ? language.t('tabs-unpin') : language.t('tabs-pin') }}
-        </button>
-        <button
-          v-if="canWriteHere && !active.writing"
-          type="button"
-          :disabled="busy"
-          @click="tabs.writeHere(active.path)"
-        >
-          {{ language.t('tabs-write-here') }}
-        </button>
-        <button
-          v-if="tabs.writingPath && !active.writing"
-          type="button"
-          class="beside"
-          :disabled="busy"
-          :aria-label="language.t('split-open-beside-label', isolate(active.title))"
-          @click="openBeside(active.path)"
-        >
-          {{ language.t('split-open-beside') }}
-        </button>
-        <button
-          type="button"
-          :disabled="busy"
-          :title="language.t('tabs-close-other-tooltip')"
-          @click="editor.closeOtherDocuments()"
-        >
-          {{ language.t('tabs-close-other-unpinned') }}
-        </button>
-      </template>
+      <MenuButton
+        v-if="showStrip && active && workbench.centerView === 'write'"
+        class="tab-actions"
+        :label="language.t('tabs-actions', isolate(active.title))"
+        :items="actions"
+      />
     </div>
   </section>
 </template>
 
 <style scoped>
 .document-navigation {
+  display: flex;
   flex-shrink: 0;
+  align-items: center;
   min-width: 0;
   border-bottom: 1px solid var(--line);
   background: var(--panel);
 }
 .tab-strip {
   display: flex;
+  flex: 1;
+  min-width: 0;
   overflow-x: auto;
   scrollbar-width: thin;
 }
@@ -206,21 +234,21 @@ async function openBeside(path: string): Promise<void> {
 }
 .document-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  padding: 5px 12px;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+  padding: var(--space-2) var(--space-4);
 }
-.document-actions button {
-  padding: 3px 0;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 11px;
-}
+/* One pill back to your chapter, only while the page shows something else. */
 .document-actions .return {
-  color: var(--accent);
+  padding: var(--space-1) var(--space-4);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--text-strong);
+  font-size: var(--text-small);
 }
-.document-actions button:hover,
 .close:hover {
   color: var(--text-strong);
 }

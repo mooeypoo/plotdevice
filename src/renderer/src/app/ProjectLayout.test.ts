@@ -62,6 +62,7 @@ describe('ProjectLayout', () => {
     })
     await flushPromises()
     const editor = useEditorStore()
+    await editor.open('First frost.md', { keep: true })
     await editor.open('The Ferry.md')
     editor.edit('טיוטה שלא נשמרה / unsaved draft')
     editor.saveState = 'conflict'

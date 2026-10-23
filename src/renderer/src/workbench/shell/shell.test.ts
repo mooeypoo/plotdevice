@@ -12,6 +12,15 @@ import AppMenu from '../../app/AppMenu.vue'
 import ShelfArea from './ShelfArea.vue'
 import WorkbenchBody from './WorkbenchBody.vue'
 
+// How many things need attention, so a shelf holding only Needs attention can show or hide.
+const attention = { count: 2 }
+vi.mock('../../app/use-warnings', async () => {
+  const { computed } = await import('vue')
+  return {
+    useWarnings: () => ({ groups: computed(() => []), count: computed(() => attention.count) })
+  }
+})
+
 // Each registered view renders a marker, so these tests exercise the shell, not the features.
 vi.mock('../views/view-registry', async () => {
   const { defineComponent: define, h: render } = await import('vue')
@@ -53,6 +62,7 @@ vi.mock('../views/view-registry', async () => {
 
 let width = 1400
 beforeEach(() => {
+  attention.count = 2
   localStorage.clear()
   setActivePinia(createPinia())
   width = 1400
@@ -172,6 +182,14 @@ describe('WorkbenchBody', () => {
     useWorkbenchStore().setActiveLayout('revise')
     await flushPromises()
     expect(body.find('#workbench-bottom .view-marker.warnings').exists()).toBe(true)
+  })
+
+  it('takes no room for a shelf that would only say nothing needs attention', async () => {
+    attention.count = 0
+    useWorkbenchStore().setActiveLayout('revise')
+    const body = mount(WorkbenchBody)
+    await flushPromises()
+    expect(body.find('#workbench-bottom').exists()).toBe(false)
   })
 })
 
