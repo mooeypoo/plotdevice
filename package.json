@@ -34,7 +34,10 @@
     "docs:build": "node --experimental-strip-types tools/docs/release-data.ts preview && vitepress build docs && node --experimental-strip-types tools/docs/verify-site.ts",
     "docs:build:published": "node --experimental-strip-types tools/docs/release-data.ts github && vitepress build docs && node --experimental-strip-types tools/docs/verify-site.ts",
     "docs:preview": "vitepress preview docs",
-    "docs:check": "node --experimental-strip-types tools/docs/verify-site.ts"
+    "docs:check": "node --experimental-strip-types tools/docs/verify-site.ts",
+    "preview": "vite --config tools/preview/vite.config.ts --open /preview.html",
+    "preview:build": "vite build --config tools/preview/vite.config.ts",
+    "preview:capture": "npm run preview:build && node tools/preview/capture.mjs"
   },
   "devDependencies": {
     "@codemirror/commands": "^6.11.1",
