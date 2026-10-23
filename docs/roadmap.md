@@ -389,6 +389,11 @@ Requested by the writer (2026-10-22): after U1's redesign plan is approved, make
 impressively beautiful *and* simple, built on U1's visual system. Every element is styled; nothing
 is left as a bare native control.
 
+- [x] U2a Tokens and shared controls: the ADR 0021 scales in `global.css`; one styled
+  `SelectField` (an ARIA select-only combobox with typeahead, drawn over panels and mirrored in
+  RTL), `CheckboxField`, `SwitchField` and `RangeField` (native inputs, styled); button variants
+  and field styles; menus with separators, shortcuts and typeahead. All 14 selects, 4 checkboxes
+  and 2 ranges replaced, and a test fails on any native one outside `shared/`.
 - [ ] Every control follows the system: **all selects** (one styled select, trigger and menu, that
   works by keyboard, in RTL and with screen readers), text fields and areas, buttons (primary,
   quiet, icon), checkboxes and toggles, menus, tabs and pills, cards, scrollbars, focus rings, and

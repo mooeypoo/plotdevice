@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { sampleCodex, sampleOutlines } from '../../app/fake-plot-device-api'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import CodexList from './CodexList.vue'
+import { chooseOption, optionLabels } from '../../shared/select-field-testing'
 
 const mountList = (readOnly = false): ReturnType<typeof mount> =>
   mount(CodexList, {
@@ -73,9 +74,9 @@ describe('CodexList', () => {
     expect(document.activeElement).toBe(searchElement)
     expect(list.get<HTMLInputElement>('input[type="search"]').element.value).toBe('Ilk')
     expect(list.text()).toContain('ברירת מחדל')
-    expect(list.get('select').attributes('aria-label')).toContain('Loose thoughts.md')
-    expect(list.get('select').attributes('aria-label')).toContain('הגדרת הסוג')
-    expect(list.get('select option[value="note"]').text()).toBe('note')
+    expect(list.get('[role="combobox"]').attributes('aria-label')).toContain('Loose thoughts.md')
+    expect(list.get('[role="combobox"]').attributes('aria-label')).toContain('הגדרת הסוג')
+    expect(await optionLabels(list.get('[role="combobox"]'))).toContain('note')
     expect(list.text()).toContain('עריכה')
     expect(list.get('.edit').attributes('aria-label')).toContain('פתיחת')
     expect(list.get('.edit').attributes('title')).toBe('פתיחה בעמוד')
@@ -114,7 +115,7 @@ describe('CodexList', () => {
 
   it('sets an untyped file’s type', async () => {
     const list = mountList()
-    await list.get('select').setValue('note')
+    await chooseOption(list.get('[role="combobox"]'), 'note')
     expect(list.emitted('setType')).toEqual([['Loose thoughts.md', 'note']])
   })
 
@@ -142,6 +143,6 @@ describe('CodexList', () => {
   it('offers no changes in a read-only project', () => {
     const list = mountList(true)
     expect(list.text()).not.toContain('+ New')
-    expect(list.find('select').exists()).toBe(false)
+    expect(list.find('[role="combobox"]').exists()).toBe(false)
   })
 })

@@ -12,5 +12,6 @@ Settings/recents/folder failures use live localized notices preserving drafts; f
 Bundled Banana catalogs translate onboarding, chrome/tabs/sidebar/binder, Project Overview summaries/counts, right-panel controls, Codex lists/profile/relationships, Properties/Outline/Template inspectors, Overview, Timeline and Interactions, synopsis/rename controls, generated positions and recent dates; generated lists collate by UI locale. Binder, timeline, matrix and Codex rows flow logically; panel resizing follows RTL pointer/keyboard direction, directional toolbar icons mirror, and CodeMirror copy follows the UI language. ADR 0016 tracks remaining Hebrew/RTL qualification.
 Dates/warnings, placement and migrated action/query/link notices stay semantic; locale switches never reread/rewrite files.
 Recovery keeps outside changes authoritative; failures retain/freeze drafts, and close warnings follow UI language without file writes.
+`shared/` holds the styled controls (`SelectField`, `CheckboxField`, `SwitchField`, `RangeField`, `MenuButton`) built on the `app/global.css` tokens (ADR 0021); features never use native selects, checkboxes or ranges.
 **Must not know about.** Node, Electron, filesystem access, domain classes, or concrete adapters.
 All project reads and writes go through the typed `window.plotDevice` API in `src/contract/`.

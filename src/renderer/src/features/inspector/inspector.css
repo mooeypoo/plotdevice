@@ -38,17 +38,10 @@
   gap: 6px;
 }
 
-:deep(input),
-select,
+:deep(input:not([type='checkbox'], [type='range'])),
+:deep(.select-field),
 textarea {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  background: var(--bg);
-  color: var(--text);
-  font: inherit;
-  font-size: 13px;
+  inline-size: 100%;
 }
 
 textarea {

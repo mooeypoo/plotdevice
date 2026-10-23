@@ -99,6 +99,13 @@ cannot finish within 10,000 folders, choose a smaller folder: initialization is
 refused without changing any novel files. A launch failure leaves the current
 project/draft open. Canceling the native chooser remains a no-op.
 
+## Shared controls
+
+Use the controls in `src/renderer/src/shared/` (`SelectField`, `CheckboxField`, `SwitchField`,
+`RangeField`, `MenuButton`) and the design tokens in `app/global.css`, never a native select,
+checkbox or range: `tools/styles/native-controls.test.ts` fails on one. In tests,
+`shared/select-field-testing.ts` opens a select and picks an option the way a writer would.
+
 ## Design previews
 
 A dev-only page runs the real interface on invented sample data in a browser, with no project

@@ -4,6 +4,8 @@ import type { MessageKey } from '../../../../i18n/translator'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
 import { useWorkbenchStore } from '../../app/workbench-store'
+import SelectField from '../../shared/SelectField.vue'
+import type { SelectOption } from '../../shared/select-option'
 import { viewsIn } from '../model/layout'
 import type { PresetId } from '../model/presets'
 import { layoutChoices, layoutFor, type LayoutChoice } from '../model/workbench-settings'
@@ -32,29 +34,27 @@ const choices = computed(() =>
 const name = (choice: LayoutChoice): string =>
   choice.kind === 'preset' ? language.t(PRESET_NAMES[choice.id as PresetId]) : choice.name
 
-function choose(event: Event): void {
-  if (!(event.target instanceof HTMLSelectElement)) return
-  const select = event.target
-  // A refused switch (a pending recovery decision) puts the choice back.
-  void navigation.switchLayout(select.value).then((switched) => {
-    if (!switched) select.value = workbench.activeLayoutId
-  })
+const options = computed((): SelectOption[] =>
+  choices.value.map((choice) => ({ value: choice.id, label: name(choice) }))
+)
+
+/** A refused switch (a pending recovery decision) leaves the active layout, and so the value, as is. */
+function choose(id: string): void {
+  void navigation.switchLayout(id)
 }
 </script>
 
 <template>
   <span class="layout-switcher-group">
-    <select
+    <SelectField
       v-if="choices.length > 1"
       class="layout-switcher"
+      size="small"
       :aria-label="language.t('workbench-layout-label')"
-      :value="workbench.activeLayoutId"
-      @change="choose"
-    >
-      <option v-for="choice in choices" :key="choice.id" :value="choice.id" dir="auto">
-        {{ name(choice) }}
-      </option>
-    </select>
+      :model-value="workbench.activeLayoutId"
+      :options="options"
+      @update:model-value="choose"
+    />
     <LayoutMenu />
   </span>
 </template>
@@ -67,7 +67,6 @@ function choose(event: Event): void {
 }
 
 .layout-switcher {
-  max-width: 12em;
-  font-size: 12px;
+  max-inline-size: 12em;
 }
 </style>

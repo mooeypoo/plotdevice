@@ -11,6 +11,8 @@ import MenuButton from '../../shared/MenuButton.vue'
 import type { MenuItem } from '../../shared/menu-item'
 import { isolate } from '../../shared/isolate'
 import RenderedMarkdown from '../../shared/RenderedMarkdown.vue'
+import SelectField from '../../shared/SelectField.vue'
+import type { SelectOption } from '../../shared/select-option'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import { moveOnBoard, type BoardPosition } from './board-keys'
 import {
@@ -46,9 +48,13 @@ const focused = ref<BoardPosition>({ column: 0, beat: 0 })
 const isFocusable = (position: BoardPosition): boolean =>
   position.column === focused.value.column && position.beat === focused.value.beat
 
-function choose(event: Event): void {
-  if (event.target instanceof HTMLSelectElement) outlines.choose(event.target.value)
-}
+const outlineChoices = computed((): SelectOption[] =>
+  outlines.outlines.map((outline) => ({
+    value: outline.path,
+    label: outline.title,
+    title: outline.path
+  }))
+)
 
 async function focusCard(position: BoardPosition): Promise<void> {
   focused.value = position
@@ -276,18 +282,14 @@ function overColumn(event: DragEvent, column: number): void {
 <template>
   <section ref="root" class="board" :aria-label="language.t('board-label')">
     <header>
-      <select
+      <SelectField
         v-if="outlines.outlines.length > 1"
         class="choose"
-        dir="auto"
-        :value="path ?? ''"
+        :model-value="path ?? ''"
+        :options="outlineChoices"
         :aria-label="language.t('outline-panel-select-label')"
-        @change="choose"
-      >
-        <option v-for="outline in outlines.outlines" :key="outline.path" :value="outline.path">
-          {{ outline.title }}
-        </option>
-      </select>
+        @update:model-value="outlines.choose($event)"
+      />
       <h2 v-else-if="outlines.outlines.length === 1" class="title" dir="auto">
         {{ outlines.outlines[0]?.title }}
       </h2>
@@ -468,9 +470,7 @@ header {
 }
 
 .choose {
-  max-width: 24em;
-  padding-block: 4px;
-  padding-inline: 8px;
+  max-inline-size: 24em;
 }
 
 .preamble {

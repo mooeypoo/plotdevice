@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { UI_LANGUAGES, isUiLocale } from '../../../i18n/locales'
 import { useUiLanguageStore } from '../app/ui-language-store'
+import SelectField from './SelectField.vue'
+import type { SelectOption } from './select-option'
 
 const language = useUiLanguageStore()
-const select = ref<HTMLSelectElement | null>(null)
+const options: SelectOption[] = UI_LANGUAGES.map((option) => ({
+  value: option.locale,
+  label: option.name,
+  lang: option.locale,
+  dir: option.direction
+}))
 
-async function change(event: Event): Promise<void> {
-  if (!(event.target instanceof HTMLSelectElement)) return
-  const next = event.target.value
+async function change(next: string): Promise<void> {
   if (!isUiLocale(next)) throw new Error('Unsupported language option')
   await language.change(next)
-  if (select.value !== null) select.value.value = language.locale
 }
 </script>
 
@@ -19,17 +22,13 @@ async function change(event: Event): Promise<void> {
   <div class="language">
     <label>
       <span>{{ language.t('language-label') }}</span>
-      <select ref="select" :value="language.locale" :disabled="language.busy" @change="change">
-        <option
-          v-for="option in UI_LANGUAGES"
-          :key="option.locale"
-          :value="option.locale"
-          :lang="option.locale"
-          :dir="option.direction"
-        >
-          {{ option.name }}
-        </option>
-      </select>
+      <SelectField
+        :model-value="language.locale"
+        :options="options"
+        :disabled="language.busy"
+        size="small"
+        @update:model-value="change"
+      />
     </label>
     <p v-if="language.errorMessage" class="notice" role="alert">{{ language.errorMessage }}</p>
     <details v-if="language.locale === 'he'" class="notice">
@@ -42,23 +41,14 @@ async function change(event: Event): Promise<void> {
 <style scoped>
 .language {
   position: relative;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 label {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-}
-select {
-  max-inline-size: 100%;
-  padding: 4px 6px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius);
-  background: var(--raised);
-  color: var(--text);
-  font: inherit;
+  gap: var(--space-2);
 }
 .notice {
   max-inline-size: 24rem;

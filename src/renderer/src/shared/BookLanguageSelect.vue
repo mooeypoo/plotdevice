@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { BOOK_LANGUAGE_CHOICES } from '../../../contract/book-languages'
 import { useUiLanguageStore } from '../app/ui-language-store'
+import SelectField from './SelectField.vue'
+import type { SelectOption } from './select-option'
 
 /** The chosen tag; `null` only while a book declares no language. */
 const model = defineModel<string | null>({ required: true })
@@ -16,34 +18,34 @@ const otherTag = computed(() =>
     : null
 )
 
-function change(event: Event): void {
-  if (event.target instanceof HTMLSelectElement) model.value = event.target.value || null
+const options = computed((): SelectOption[] => [
+  ...(model.value === null ? [{ value: '', label: language.t('book-language-unset') }] : []),
+  ...BOOK_LANGUAGE_CHOICES.map((choice) => ({
+    value: choice.tag,
+    label: choice.name,
+    lang: choice.tag,
+    dir: choice.direction
+  })),
+  ...(otherTag.value === null
+    ? []
+    : [{ value: otherTag.value, label: language.t('book-language-other', otherTag.value) }])
+])
+
+function change(value: string): void {
+  model.value = value || null
 }
 </script>
 
 <template>
   <label class="book-language">
     <span>{{ language.t('book-language-label') }}</span>
-    <select
-      :value="model ?? ''"
+    <SelectField
+      :model-value="model ?? ''"
+      :options="options"
       :disabled="disabled"
       :aria-describedby="describedBy"
-      @change="change"
-    >
-      <option v-if="model === null" value="">{{ language.t('book-language-unset') }}</option>
-      <option
-        v-for="choice in BOOK_LANGUAGE_CHOICES"
-        :key="choice.tag"
-        :value="choice.tag"
-        :lang="choice.tag"
-        :dir="choice.direction"
-      >
-        {{ choice.name }}
-      </option>
-      <option v-if="otherTag !== null" :value="otherTag">
-        {{ language.t('book-language-other', otherTag) }}
-      </option>
-    </select>
+      @update:model-value="change"
+    />
   </label>
 </template>
 
@@ -56,7 +58,7 @@ function change(event: Event): void {
   color: var(--text-muted);
 }
 
-select {
+.select-field {
   align-self: flex-start;
 }
 </style>

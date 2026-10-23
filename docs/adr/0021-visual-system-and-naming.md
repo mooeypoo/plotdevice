@@ -31,6 +31,12 @@ reach but never cluttering", and for every element to be styled (U2).
 - **Shared controls.** Select, Checkbox, Switch, Range, Button, TextField and Menu live once in
   `renderer/src/shared/`. Features never use a native `<select>` or checkbox directly, and a
   test enforces it.
+
+  How they are built (U2a): the select is the ARIA select-only combobox, a button with a listbox
+  drawn over the page (inside the popover when it sits in one), so panels never clip it.
+  Checkbox, Switch and Range stay native inputs, styled, so forms, tests and screen readers keep
+  working. Buttons and text fields are global styles (`primary`, `quiet`, `ghost`, `icon`,
+  `small`) rather than components: a class carries everything a wrapper would.
 - **Tiers.**
   - **Always visible:** what's needed every minute.
   - **One step away:** one labelled control, the ⋯ menu, or Go to… (Ctrl+K).

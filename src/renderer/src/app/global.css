@@ -47,7 +47,39 @@
   --font-mono: ui-monospace, 'Cascadia Code', 'DejaVu Sans Mono', monospace;
   --prose-size: 19px;
   --measure: 66ch;
-  --radius: 8px;
+
+  /* The scales from ADR 0021. Components use these, never literal sizes. */
+  --text-caption: 11px;
+  --text-small: 12px;
+  --text-body: 13px;
+  --text-title: 15px;
+  --text-heading: 22px;
+  --text-display: 32px;
+
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 8px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 48px;
+
+  --radius-field: 6px;
+  --radius-card: 10px;
+  --radius-pill: 999px;
+  --radius: var(--radius-field);
+
+  --control-height: 32px;
+  --control-height-small: 28px;
+
+  --accent-ink: #1a1610;
+  --accent-hover: #e3c084;
+  --shadow-popover: 0 14px 40px rgb(0 0 0 / 45%);
+
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --duration-quick: 120ms;
+  --duration-panel: 180ms;
 
   /* Older names still used by the welcome screens. */
   --background: var(--bg);
@@ -73,18 +105,21 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: var(--text-body);
   -webkit-font-smoothing: antialiased;
 }
 
 button {
   padding: 0.5rem 1rem;
   border: 1px solid var(--line-strong);
-  border-radius: var(--radius);
+  border-radius: var(--radius-field);
   background: var(--raised);
   color: var(--text);
   font: inherit;
   cursor: pointer;
+  transition:
+    background-color var(--duration-quick) var(--ease-out),
+    color var(--duration-quick) var(--ease-out);
 }
 
 button:hover:not(:disabled) {
@@ -96,15 +131,16 @@ button:disabled {
   opacity: 0.55;
 }
 
+/* Button variants: primary (filled amber), quiet (text), ghost (outline), icon (square). */
 button.primary {
   border-color: var(--accent);
   background: var(--accent);
-  color: #1a1610;
+  color: var(--accent-ink);
   font-weight: 500;
 }
 
 button.primary:hover:not(:disabled) {
-  background: #e3c084;
+  background: var(--accent-hover);
 }
 
 button.quiet {
@@ -118,6 +154,46 @@ button.quiet:hover:not(:disabled) {
   color: var(--text);
 }
 
+button.ghost {
+  background: transparent;
+  color: var(--text);
+}
+
+button.icon {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: var(--control-height-small);
+  block-size: var(--control-height-small);
+  padding: 0 var(--space-2);
+}
+
+button.small {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-small);
+}
+
+/* Text fields: one height scale, one radius, one focus ring. */
+input:not([type='checkbox'], [type='radio'], [type='range']),
+textarea {
+  min-block-size: var(--control-height);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-field);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+input:not([type='checkbox'], [type='radio'], [type='range'])::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+input:disabled,
+textarea:disabled {
+  opacity: 0.55;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -129,7 +205,7 @@ code {
 }
 
 .eyebrow {
-  font-size: 11px;
+  font-size: var(--text-caption);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -162,4 +238,13 @@ code {
 
 ::-webkit-scrollbar-track {
   background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0s !important;
+    animation-duration: 0s !important;
+  }
 }

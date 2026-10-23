@@ -5,6 +5,8 @@ import { useWorkspaceStore } from '../../app/workspace-store'
 import { formatWordCount, statusColor } from '../../shared/manuscript-labels'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import { romanNumeral } from '../../shared/roman-numeral'
+import SelectField from '../../shared/SelectField.vue'
+import type { SelectOption } from '../../shared/select-option'
 import SynopsisCell from './SynopsisCell.vue'
 import type { OverviewSectionLabel } from './overview-sections'
 import { useOverview } from './use-overview'
@@ -19,10 +21,26 @@ const shown = computed(() =>
   sections.value.filter((section) => section.chapters.length > 0 || !filtering.value)
 )
 
-function setFilter(key: 'status' | 'pov' | 'thread', event: Event): void {
-  const value = (event.target as HTMLSelectElement).value
+function setFilter(key: 'status' | 'pov' | 'thread', value: string): void {
   filters.value = { ...filters.value, [key]: value === '*' ? null : value }
 }
+
+const statusChoices = computed((): SelectOption[] => [
+  { value: '*', label: language.t('overview-any') },
+  ...choices.value.statuses.map((status) => ({ value: status, label: status })),
+  { value: '', label: language.t('binder-no-status') }
+])
+const povChoices = computed((): SelectOption[] => [
+  { value: '*', label: language.t('overview-anyone') },
+  ...choices.value.povs.map((pov) => ({ value: pov, label: pov }))
+])
+const threadChoices = computed((): SelectOption[] => [
+  { value: '*', label: language.t('overview-any') },
+  ...choices.value.threads.map((thread) => ({
+    value: thread,
+    label: overview.threadLabel(thread).name
+  }))
+])
 
 function sectionLabel(label: OverviewSectionLabel): string {
   switch (label.kind) {
@@ -46,29 +64,30 @@ function sectionLabel(label: OverviewSectionLabel): string {
       <div class="filters" role="group" :aria-label="language.t('overview-filters')">
         <label>
           {{ language.t('overview-status') }}
-          <select :value="filters.status ?? '*'" @change="setFilter('status', $event)">
-            <option value="*">{{ language.t('overview-any') }}</option>
-            <option v-for="status in choices.statuses" :key="status" :value="status">
-              {{ status }}
-            </option>
-            <option value="">{{ language.t('binder-no-status') }}</option>
-          </select>
+          <SelectField
+            :model-value="filters.status ?? '*'"
+            :options="statusChoices"
+            size="small"
+            @update:model-value="setFilter('status', $event)"
+          />
         </label>
         <label>
           {{ language.t('overview-pov') }}
-          <select :value="filters.pov ?? '*'" dir="auto" @change="setFilter('pov', $event)">
-            <option value="*">{{ language.t('overview-anyone') }}</option>
-            <option v-for="pov in choices.povs" :key="pov" :value="pov">{{ pov }}</option>
-          </select>
+          <SelectField
+            :model-value="filters.pov ?? '*'"
+            :options="povChoices"
+            size="small"
+            @update:model-value="setFilter('pov', $event)"
+          />
         </label>
         <label>
           {{ language.t('overview-thread') }}
-          <select :value="filters.thread ?? '*'" @change="setFilter('thread', $event)">
-            <option value="*">{{ language.t('overview-any') }}</option>
-            <option v-for="thread in choices.threads" :key="thread" :value="thread">
-              {{ overview.threadLabel(thread).name }}
-            </option>
-          </select>
+          <SelectField
+            :model-value="filters.thread ?? '*'"
+            :options="threadChoices"
+            size="small"
+            @update:model-value="setFilter('thread', $event)"
+          />
         </label>
         <button v-if="filtering" type="button" class="quiet small" @click="overview.clear()">
           {{ language.t('overview-clear-filters') }}
@@ -183,14 +202,8 @@ h1 {
   color: var(--text-muted);
 }
 
-.filters select {
-  min-width: 140px;
-  padding: 5px 8px;
-}
-
-.small {
-  padding: 5px 10px;
-  font-size: 12px;
+.filters .select-field {
+  min-inline-size: 140px;
 }
 
 .section {

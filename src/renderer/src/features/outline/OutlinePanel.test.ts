@@ -10,6 +10,7 @@ import { plotDeviceApi } from '../../app/plot-device-api'
 import OutlinePanel from './OutlinePanel.vue'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkbenchStore } from '../../app/workbench-store'
+import { chooseOption } from '../../shared/select-field-testing'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 beforeEach(async () => {
@@ -38,7 +39,7 @@ describe('OutlinePanel', () => {
     await flushPromises()
 
     expect(wrapper.get('.outline').attributes('aria-label')).toBe('מתווה')
-    expect(wrapper.get('select').attributes('aria-label')).toBe('מתווה להצגה')
+    expect(wrapper.get('[role="combobox"]').attributes('aria-label')).toBe('מתווה להצגה')
     expect(wrapper.get('button.small').text()).toBe('עריכה')
     expect(wrapper.get('.file-path').text()).toBe('Outline.md')
     expect(wrapper.get('.view').element).toBe(view)
@@ -129,9 +130,9 @@ describe('OutlinePanel', () => {
     await useOutlineStore().reload()
     const wrapper = mount(OutlinePanel)
     await flushPromises()
-    const choose = wrapper.get('select')
+    const choose = wrapper.get('[role="combobox"]')
     for (const path of ['Clue ledger.md', 'Outline.md', 'Clue ledger.md']) {
-      await choose.setValue(path)
+      await chooseOption(choose, path)
       await flushPromises()
       expect(wrapper.get('.file-path').text()).toBe(path)
       expect(wrapper.get('.view').text()).toContain(
