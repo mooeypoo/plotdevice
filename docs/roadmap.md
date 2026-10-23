@@ -355,20 +355,20 @@ Guiding principle (writer, 2026-10-22): the interface should be beautifully simp
 features easy to reach but never cluttering the page. Prioritize features *with* simplicity. This is
 the final tightening step for the W/L/P work, planned and approved on its own before any change.
 
-- [ ] U1a Research and audit: inventory every control, menu, tab, button and shortcut across the
+- [x] U1a Research and audit ([audit](plans/u1/audit.md), from the new preview harness): inventory every control, menu, tab, button and shortcut across the
   top bar, panels, ⋯ menus, document tabs, native menus and the palette; map each to the tasks it
   serves; find duplicates, dead ends and unclear names. Walk real writing, revising and plotting
   sessions in English and Hebrew.
-- [ ] U1b Vocabulary: one name per concept everywhere, in a glossary (en/he) the catalogs follow.
+- [ ] U1b Vocabulary (drafted, awaiting approval: [glossary](plans/u1/glossary.md)): one name per concept everywhere, in a glossary (en/he) the catalogs follow.
   Known clashes: "Binder" (button, menu) vs "Manuscript" (tab) for the same panel; "Inspector"
   (button) vs "Properties" (tab); "view", "panel" and "layout" are not explained anywhere.
-- [ ] U1c Information architecture: what is always visible, what is one step away (palette, a
+- [ ] U1c Information architecture (drafted, awaiting approval: [redesign plan](plans/u1/redesign.md), decisions D1–D4): what is always visible, what is one step away (palette, a
   single menu), what is advanced. Decide the fate of each duplicate control; prefer progressive
   disclosure over more buttons.
-- [ ] U1d Visual system: type scale, spacing, color tokens (dark and the planned light theme),
+- [ ] U1d Visual system (drafted, awaiting approval: ADR 0021, proposed): type scale, spacing, color tokens (dark and the planned light theme),
   shapes (pills, chips, cards), icon set with visible labels where needed, and focus/hover states;
   checked for contrast and RTL.
-- [ ] U1e A written redesign plan with before/after mock-ups, an ADR for the visual system and
+- [ ] U1e (drafted, awaiting approval: the redesign plan and clickable mock-ups in `docs/plans/u1/mockups.html`) A written redesign plan with before/after mock-ups, an ADR for the visual system and
   naming, and phased implementation steps that keep every keyboard path and RTL guarantee.
 
 **Done when:** the redesign plan and glossary are approved; implementation follows as its own

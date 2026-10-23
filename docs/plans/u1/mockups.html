@@ -1,0 +1,615 @@
+<meta charset="utf-8">
+<title>Plot Device Redesign</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Frank+Ruhl+Libre:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Hebrew:wght@400;500;600&display=swap">
+<style>
+/* Layout: a review desk. A narrow control rail, then the app frame at full width, then the
+   decisions it answers. The page itself follows the viewer's theme; the frame shows the app in
+   the theme chosen with its own toggle. */
+:root {
+  /* Page chrome, dark-first like the app. */
+  --page-bg: #101114;
+  --page-surface: #17181c;
+  --page-line: #2a2b31;
+  --page-text: #e3ddd1;
+  --page-muted: #98948b;
+  --page-accent: #d8b26e;
+  --page-accent-ink: #1a1408;
+  color-scheme: dark;
+
+  /* The app's proposed tokens (ADR 0021): dark. */
+  --dk-bg: #141518; --dk-panel: #17181c; --dk-raised: #1e1f24; --dk-hover: #22232a;
+  --dk-line: #222328; --dk-line-strong: #2c2d33;
+  --dk-text: #e3ddd1; --dk-strong: #f0eadf; --dk-prose: #ded8cc; --dk-muted: #98948b; --dk-faint: #55524c;
+  --dk-accent: #d8b26e; --dk-accent-soft: rgba(216, 178, 110, 0.14); --dk-accent-ink: #1a1408;
+  --dk-thread-main: #4f7cac; --dk-thread-strike: #b5654a; --dk-ok: #7fb89a; --dk-warn: #d8b26e;
+  --dk-link: #e6c48a; --dk-link-place: #9cc9c2; --dk-shadow: rgba(0, 0, 0, 0.5);
+  /* The app's proposed tokens: light. */
+  --lt-bg: #f7f4ee; --lt-panel: #f1ede5; --lt-raised: #ffffff; --lt-hover: #ebe5da;
+  --lt-line: #e3dccf; --lt-line-strong: #d3cab9;
+  --lt-text: #2a2722; --lt-strong: #1c1a16; --lt-prose: #24211c; --lt-muted: #6c665c; --lt-faint: #b3ab9c;
+  --lt-accent: #9a6a1c; --lt-accent-soft: rgba(154, 106, 28, 0.12); --lt-accent-ink: #ffffff;
+  --lt-thread-main: #3d6a99; --lt-thread-strike: #a4532f; --lt-ok: #3f7d5c; --lt-warn: #9a6a1c;
+  --lt-link: #8a5a12; --lt-link-place: #2f7068; --lt-shadow: rgba(60, 45, 20, 0.18);
+
+  --font-ui: 'IBM Plex Sans', 'IBM Plex Sans Hebrew', system-ui, sans-serif;
+  --font-prose: 'Literata', 'Frank Ruhl Libre', Georgia, serif;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --page-bg: #f4f1ea; --page-surface: #fbf9f5; --page-line: #ddd6c8;
+    --page-text: #2a2722; --page-muted: #6c665c; --page-accent: #9a6a1c; --page-accent-ink: #ffffff;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --page-bg: #f4f1ea; --page-surface: #fbf9f5; --page-line: #ddd6c8;
+  --page-text: #2a2722; --page-muted: #6c665c; --page-accent: #9a6a1c; --page-accent-ink: #ffffff;
+  color-scheme: light;
+}
+
+body {
+  background: var(--page-bg);
+  color: var(--page-text);
+  font: 14px/1.5 var(--font-ui);
+}
+.wrap {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 24px;
+}
+header.intro { display: grid; gap: 6px; max-width: 72ch; }
+header.intro h1 {
+  margin: 0;
+  font: 600 32px/1.15 var(--font-prose);
+  text-wrap: balance;
+}
+header.intro p { margin: 0; color: var(--page-muted); }
+.eyebrow {
+  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--page-accent);
+}
+
+/* Controls */
+.controls {
+  display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center;
+  padding-block: 12px; border-block: 1px solid var(--page-line);
+}
+.group { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.group > .label {
+  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--page-muted);
+}
+.seg {
+  display: inline-flex; flex-wrap: wrap; padding: 2px; gap: 2px;
+  border: 1px solid var(--page-line); border-radius: 999px; background: var(--page-surface);
+}
+.seg button {
+  font: 500 13px/1 var(--font-ui); color: var(--page-muted);
+  padding: 7px 12px; border: 0; border-radius: 999px; background: transparent; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--page-accent); color: var(--page-accent-ink); }
+.seg button:focus-visible, .tabs-screens button:focus-visible {
+  outline: 2px solid var(--page-accent); outline-offset: 2px;
+}
+.tabs-screens { display: flex; flex-wrap: wrap; gap: 6px; }
+.tabs-screens button {
+  font: 500 13px/1 var(--font-ui); color: var(--page-text);
+  padding: 8px 12px; border: 1px solid var(--page-line); border-radius: 6px;
+  background: var(--page-surface); cursor: pointer;
+}
+.tabs-screens button[aria-pressed="true"] { border-color: var(--page-accent); color: var(--page-accent); }
+
+/* Stage: the app frame scaled to fit */
+.stage {
+  position: relative; width: 100%;
+  border: 1px solid var(--page-line); border-radius: 10px; overflow: hidden;
+  background: var(--page-surface);
+}
+.stage-inner { width: 1200px; height: 750px; transform-origin: 0 0; }
+.stage img { display: block; width: 100%; height: auto; max-width: 100%; }
+.caption { margin: 0; color: var(--page-muted); font-size: 13px; }
+
+/* Notes under the frame */
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.note {
+  min-width: 0; padding: 14px 16px; border: 1px solid var(--page-line); border-radius: 10px;
+  background: var(--page-surface); display: grid; gap: 6px; align-content: start;
+}
+.note h3 { margin: 0; font: 600 15px/1.3 var(--font-ui); }
+.note p { margin: 0; color: var(--page-muted); }
+.tag {
+  justify-self: start; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--page-accent);
+}
+section.decisions { display: grid; gap: 12px; }
+section.decisions h2 { margin: 0; font: 600 22px/1.2 var(--font-prose); }
+
+/* ============ The app frame ============ */
+.app {
+  --bg: var(--dk-bg); --panel: var(--dk-panel); --raised: var(--dk-raised); --hover: var(--dk-hover);
+  --line: var(--dk-line); --line-strong: var(--dk-line-strong);
+  --text: var(--dk-text); --strong: var(--dk-strong); --prose: var(--dk-prose); --muted: var(--dk-muted); --faint: var(--dk-faint);
+  --accent: var(--dk-accent); --accent-soft: var(--dk-accent-soft); --accent-ink: var(--dk-accent-ink);
+  --thread-main: var(--dk-thread-main); --thread-strike: var(--dk-thread-strike); --ok: var(--dk-ok); --warn: var(--dk-warn);
+  --link: var(--dk-link); --link-place: var(--dk-link-place); --shadow: var(--dk-shadow);
+  position: relative; width: 1200px; height: 750px; overflow: hidden;
+  display: grid; grid-template-rows: 44px 1fr 28px;
+  background: var(--bg); color: var(--text); font: 13px/20px var(--font-ui);
+}
+.app[data-app-theme="light"] {
+  --bg: var(--lt-bg); --panel: var(--lt-panel); --raised: var(--lt-raised); --hover: var(--lt-hover);
+  --line: var(--lt-line); --line-strong: var(--lt-line-strong);
+  --text: var(--lt-text); --strong: var(--lt-strong); --prose: var(--lt-prose); --muted: var(--lt-muted); --faint: var(--lt-faint);
+  --accent: var(--lt-accent); --accent-soft: var(--lt-accent-soft); --accent-ink: var(--lt-accent-ink);
+  --thread-main: var(--lt-thread-main); --thread-strike: var(--lt-thread-strike); --ok: var(--lt-ok); --warn: var(--lt-warn);
+  --link: var(--lt-link); --link-place: var(--lt-link-place); --shadow: var(--lt-shadow);
+}
+.app[dir="rtl"] { --font-prose: 'Frank Ruhl Libre', 'Literata', Georgia, serif; }
+
+.bar {
+  display: flex; align-items: center; gap: 12px; padding-inline: 16px;
+  border-block-end: 1px solid var(--line); background: var(--panel);
+}
+.project { font-weight: 600; color: var(--strong); white-space: nowrap; }
+.crumb { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.crumb b { color: var(--text); font-weight: 400; }
+.spacer { flex: 1; }
+.pill {
+  display: inline-flex; padding: 2px; gap: 2px; border-radius: 999px; background: var(--raised);
+  border: 1px solid var(--line);
+}
+.pill span { padding: 3px 12px; border-radius: 999px; color: var(--muted); font-weight: 500; font-size: 12px; }
+.pill span.on { background: var(--accent); color: var(--accent-ink); }
+.views { display: inline-flex; gap: 2px; }
+.views span { padding: 4px 10px; border-radius: 999px; color: var(--muted); font-size: 12px; }
+.views span.on { background: var(--accent-soft); color: var(--strong); }
+.goto {
+  display: inline-flex; align-items: center; gap: 8px; height: 28px; padding-inline: 10px;
+  min-width: 190px; border: 1px solid var(--line-strong); border-radius: 6px; color: var(--muted);
+  background: var(--bg); font-size: 12px;
+}
+.goto kbd { margin-inline-start: auto; font: 11px var(--font-ui); color: var(--faint); }
+.icon-btn {
+  display: inline-flex; align-items: center; gap: 6px; height: 28px; padding-inline: 8px;
+  border-radius: 6px; color: var(--muted); font-size: 12px;
+}
+.icon-btn.on { background: var(--hover); color: var(--text); }
+.icon-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.app[dir="rtl"] .mirror { transform: scaleX(-1); }
+
+.body { display: grid; grid-template-columns: 240px 1fr 300px; min-height: 0; }
+.body.no-end { grid-template-columns: 240px 1fr; }
+.side { background: var(--panel); min-height: 0; display: flex; flex-direction: column; }
+.side.start { border-inline-end: 1px solid var(--line); }
+.side.end { border-inline-start: 1px solid var(--line); }
+.side-head {
+  display: flex; align-items: center; gap: 4px; padding: 8px 10px 0;
+  border-block-end: 1px solid var(--line);
+}
+.side-head .tab {
+  padding: 6px 8px 8px; font-size: 12px; color: var(--muted); border-block-end: 2px solid transparent;
+}
+.side-head .tab.on { color: var(--strong); border-block-end-color: var(--accent); }
+.side-head .more { margin-inline-start: auto; padding: 4px 6px; color: var(--muted); font-weight: 600; }
+.side-body { padding: 12px; display: grid; gap: 4px; align-content: start; overflow: hidden; }
+.group-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-block: 8px 2px; }
+.row { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 6px; color: var(--text); }
+.row .n { color: var(--faint); width: 14px; font-variant-numeric: tabular-nums; }
+.row .count { margin-inline-start: auto; color: var(--faint); font-size: 12px; font-variant-numeric: tabular-nums; }
+.row.on { background: var(--accent-soft); color: var(--strong); }
+.row.add { color: var(--muted); font-size: 12px; }
+
+.page { min-width: 0; overflow: hidden; display: flex; justify-content: center; padding-block: 44px; }
+.page-inner { width: 560px; max-width: 100%; }
+.page .place { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.page h1 { margin: 6px 0 4px; font: 400 34px/1.2 var(--font-prose); color: var(--strong); }
+.cast { font-size: 12px; color: var(--muted); margin-block-end: 22px; }
+.cast a { color: var(--link); text-decoration: none; border-block-end: 1px dotted currentColor; }
+.cast a.place-link { color: var(--link-place); }
+.prose p { margin: 0 0 16px; font: 18px/1.7 var(--font-prose); color: var(--prose); }
+.prose a { color: inherit; text-decoration: underline dotted var(--link); text-underline-offset: 4px; }
+
+.outline-panel h4 { margin: 4px 0 2px; font: 600 13px/1.3 var(--font-ui); color: var(--strong); }
+.outline-panel .meta { font-size: 12px; color: var(--muted); margin-block-end: 8px; }
+.outline-panel ul { margin: 0; padding-inline-start: 16px; display: grid; gap: 6px; }
+.outline-panel li { font: 13px/1.5 var(--font-prose); color: var(--text); }
+.outline-panel li.here { color: var(--strong); background: var(--accent-soft); border-radius: 4px; padding: 2px 6px; margin-inline-start: -6px; list-style: none; }
+
+.field { display: grid; gap: 4px; }
+.field .k { font-size: 12px; color: var(--muted); }
+.select {
+  display: flex; align-items: center; justify-content: space-between; height: 30px; padding-inline: 10px;
+  border: 1px solid var(--line-strong); border-radius: 6px; background: var(--bg); color: var(--text);
+}
+.select svg { width: 14px; height: 14px; stroke: var(--muted); fill: none; stroke-width: 1.8; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { padding: 2px 10px; border-radius: 999px; background: var(--raised); border: 1px solid var(--line-strong); font-size: 12px; }
+.chip.thread { border-inline-start: 3px solid var(--thread-main); }
+.add-quiet { color: var(--muted); font-size: 12px; }
+.disclosure {
+  display: flex; align-items: center; gap: 6px; padding-block: 8px; border-block-start: 1px solid var(--line);
+  color: var(--muted); font-size: 12px;
+}
+.textarea { min-height: 56px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--bg); font: 13px/1.5 var(--font-prose); color: var(--text); }
+
+.status {
+  display: flex; align-items: center; gap: 16px; padding-inline: 16px; font-size: 12px; color: var(--muted);
+  border-block-start: 1px solid var(--line); background: var(--panel);
+}
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); margin-inline-end: 6px; }
+
+/* Board */
+.board { min-width: 0; padding: 22px 24px; display: grid; gap: 14px; align-content: start; overflow: hidden; }
+.board-head { display: flex; align-items: center; gap: 10px; }
+.board-head .name { font: 600 15px/22px var(--font-ui); color: var(--strong); }
+.board-head .quiet { color: var(--muted); font-size: 12px; padding: 4px 8px; border: 1px solid var(--line-strong); border-radius: 6px; }
+.board-head .help { width: 22px; height: 22px; display: inline-grid; place-items: center; border-radius: 50%; border: 1px solid var(--line-strong); color: var(--muted); font-size: 12px; }
+.preamble { font: italic 15px/1.5 var(--font-prose); color: var(--muted); }
+.columns { display: flex; gap: 12px; overflow: hidden; mask-image: linear-gradient(to right, black 92%, transparent); }
+.app[dir="rtl"] .columns { mask-image: linear-gradient(to left, black 92%, transparent); }
+.column { flex: 0 0 236px; padding: 10px; border-radius: 10px; background: var(--panel); display: grid; gap: 8px; align-content: start; }
+.column.inbox { background: transparent; border: 1px dashed var(--line-strong); }
+.column h5 { margin: 0; display: flex; justify-content: space-between; font: 600 13px/20px var(--font-ui); color: var(--strong); }
+.column h5 span { color: var(--faint); font-weight: 400; }
+.beat { padding: 8px 10px; border-radius: 10px; background: var(--raised); border: 1px solid var(--line); display: grid; gap: 4px; }
+.beat .t { font: 14px/1.45 var(--font-prose); color: var(--strong); }
+.beat .t a { color: inherit; text-decoration: underline dotted var(--link); text-underline-offset: 3px; }
+.beat .f { font-size: 12px; color: var(--muted); }
+.beat .th { font-size: 11px; color: var(--muted); padding-inline-start: 6px; border-inline-start: 3px solid var(--thread-main); }
+.beat .th.strike { border-inline-start-color: var(--thread-strike); }
+.add-beat { color: var(--muted); font-size: 12px; padding: 4px 2px; }
+
+/* Overlays */
+.scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.35); }
+.app[data-app-theme="light"] .scrim { background: rgba(40, 30, 10, 0.18); }
+.palette {
+  position: absolute; inset-block-start: 84px; inset-inline-start: 50%; translate: -50% 0; width: 560px;
+  background: var(--raised); border: 1px solid var(--line-strong); border-radius: 10px;
+  box-shadow: 0 18px 48px var(--shadow); overflow: hidden;
+}
+.app[dir="rtl"] .palette { translate: 50% 0; }
+.palette .input { margin: 10px; height: 36px; display: flex; align-items: center; padding-inline: 12px; border-radius: 6px; border: 1px solid var(--accent); color: var(--muted); }
+.palette .sec { padding: 6px 16px 2px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.palette .item { display: flex; justify-content: space-between; padding: 7px 16px; color: var(--text); }
+.palette .item.on { background: var(--accent-soft); color: var(--strong); }
+.palette .item small { color: var(--muted); }
+.palette .foot { display: flex; justify-content: space-between; padding: 8px 16px; border-block-start: 1px solid var(--line); color: var(--muted); font-size: 12px; margin-block-start: 6px; }
+.menu {
+  position: absolute; inset-block-start: 40px; inset-inline-end: 14px; width: 240px;
+  background: var(--raised); border: 1px solid var(--line-strong); border-radius: 10px;
+  box-shadow: 0 14px 40px var(--shadow); padding: 6px;
+}
+.menu .mi { display: flex; justify-content: space-between; padding: 7px 10px; border-radius: 6px; color: var(--text); }
+.menu .mi.on { background: var(--accent-soft); }
+.menu .mi small { color: var(--muted); }
+.menu hr { border: 0; border-block-start: 1px solid var(--line); margin: 6px 4px; }
+.submenu { inset-inline-end: 262px; inset-block-start: 112px; width: 200px; }
+.check { color: var(--accent); width: 14px; display: inline-block; }
+
+/* Welcome */
+.welcome { grid-row: 1 / -1; display: grid; place-items: center; }
+.welcome-inner { width: 440px; display: grid; gap: 18px; justify-items: center; text-align: center; }
+.welcome h1 { margin: 0; font: 400 40px/1.1 var(--font-prose); color: var(--strong); }
+.welcome h1 .dot-sep { color: var(--accent); }
+.welcome p { margin: 0; color: var(--muted); }
+.primary { padding: 8px 18px; border-radius: 6px; background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.recents { width: 100%; text-align: start; display: grid; }
+.recents .r { display: flex; justify-content: space-between; padding: 10px 6px; border-block-start: 1px solid var(--line); }
+.recents .r small { color: var(--muted); }
+.welcome .lang { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 12px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <span class="eyebrow">U1 · for review</span>
+    <h1>Simple by default, everything one step away</h1>
+    <p>The proposed interface for Plot Device, beside what the app looks like today. Switch screens, language and theme; "Today" shows a capture from the preview harness.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="Mock-up options">
+    <div class="group">
+      <span class="label" id="lbl-screen">Screen</span>
+      <div class="tabs-screens" role="group" aria-labelledby="lbl-screen" id="screens"></div>
+    </div>
+    <div class="group">
+      <span class="label" id="lbl-version">Version</span>
+      <div class="seg" role="group" aria-labelledby="lbl-version">
+        <button type="button" id="v-after" aria-pressed="true">Proposed</button>
+        <button type="button" id="v-before" aria-pressed="false">Today</button>
+      </div>
+    </div>
+    <div class="group">
+      <span class="label" id="lbl-lang">Language</span>
+      <div class="seg" role="group" aria-labelledby="lbl-lang">
+        <button type="button" id="l-en" aria-pressed="true">English</button>
+        <button type="button" id="l-he" aria-pressed="false">עברית</button>
+      </div>
+    </div>
+    <div class="group">
+      <span class="label" id="lbl-theme">App theme</span>
+      <div class="seg" role="group" aria-labelledby="lbl-theme">
+        <button type="button" id="t-dark" aria-pressed="true">Dark</button>
+        <button type="button" id="t-light" aria-pressed="false">Light</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage" id="stage"><div class="stage-inner" id="stage-inner"></div></div>
+  <p class="caption" id="caption"></p>
+
+  <div class="notes" id="notes"></div>
+
+  <section class="decisions" aria-labelledby="decisions-title">
+    <h2 id="decisions-title">Decisions to approve</h2>
+    <div class="notes">
+      <div class="note"><span class="tag">D1</span><h3>Write is the page; Plot is the whole story</h3><p>Board, Overview, Timeline and Interactions move into Plot. The Write screen loses its view tabs, so "Write" appears once.</p></div>
+      <div class="note"><span class="tag">D2</span><h3>Settings leave the top bar</h3><p>Interface language, layouts, appearance and Close project move into one ⋯ menu. The welcome screen keeps the language picker.</p></div>
+      <div class="note"><span class="tag">D3</span><h3>Board items are beats</h3><p>"+ Add beat" on the board; "card" means only an entry you pinned.</p></div>
+      <div class="note"><span class="tag">D4</span><h3>The outline comes first beside the page</h3><p>Standard opens with Manuscript on one side and Outline first on the other. Properties becomes compact.</p></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var S = {
+    en: {
+      project: 'The Salt Orchard', crumbPart: 'Part One', crumbChapter: 'The Ferry',
+      write: 'Write', plot: 'Plot', goto: 'Go to…', manuscript: 'Manuscript', codex: 'Codex',
+      outline: 'Outline', properties: 'Properties', reference: 'Reference', focus: 'Focus',
+      board: 'Board', overview: 'Overview', timeline: 'Timeline', interactions: 'Interactions',
+      partOne: 'Part One: The Orchard', ferry: 'The Ferry', frost: 'First frost', newChapter: '+ New chapter',
+      place: 'Part I · Chapter 1', inChapter: 'In this chapter',
+      p1: 'The ferry came in low against the water, its engine coughing the way it had every autumn since <a>Ilka</a> was a girl.',
+      p2: 'She stood at the rail with her one bag and watched <a>Marrow</a> rise out of the fog: the cannery chimney first, then the church, then the long grey line of the orchard wall.',
+      p3: '<a>Aunt Bea</a> was already at the gate. Of course she was.',
+      words: '83 words in this chapter', saved: 'Saved', attention: '2 need attention',
+      plan: 'Working plan', planMeta: 'Highlighting this chapter',
+      o1: 'The Ferry: Ilka arrives; Bea is already at the gate.', o2: 'First frost: the orchard’s first loss.', o3: 'Ilka finds the ledger. Bea lies about it.',
+      status: 'Status', draft: 'Draft', pov: 'Point of view', threads: 'Threads', mainPlot: 'Main plot',
+      synopsis: 'Synopsis', synopsisText: 'Ilka returns to Marrow; Bea meets her at the gate as if she never left.',
+      placement: 'Placement · Part One, first', storyTime: 'Story time · 3 October 1952', addPeople: '+ Add characters or a place',
+      editText: 'Edit as text', preamble: 'Ilka comes back for the orchard and stays for the strike.',
+      partTwo: 'Part Two', inbox: 'Inbox', addBeat: '+ Add beat',
+      b1: '<a>The Ferry</a>: Ilka arrives; Bea is already at the gate.', b1f: 'Draft · Ilka · 92 words',
+      b2: '<a>First frost</a>: the orchard’s first loss.', b2f: 'Outline · 41 words', b3: 'Ilka finds the ledger. Bea lies about it.',
+      b4: 'The cannery whistle stops.', b5: 'Who told the foreman?', b6: 'The orchard gate should creak in every chapter it appears.',
+      strike: 'The cannery strike',
+      search: 'Go to an entry, view or command…', recent: 'Recent', suggested: 'Suggested',
+      toPlot: 'Switch to Plot', showOutline: 'Show Outline', capture: 'Capture a beat', chapter: 'Chapter', mode: 'Mode', panel: 'Panel', command: 'Command',
+      footHint: 'Shift+Enter opens beside the page', results: '8 results',
+      settings: 'Settings', layout: 'Layout', closeProject: 'Close project', appearance: 'Appearance', language: 'Interface language',
+      standard: 'Standard', sideBySide: 'Side by side', saveLayout: 'Save layout as…',
+      tagline: 'Your novel, as plain markdown files.', open: 'Open folder…', winter: 'The Winter Ledger',
+      d1: 'Oct 22', d2: 'Sep 30'
+    },
+    he: {
+      project: 'The Salt Orchard', crumbPart: 'Part One', crumbChapter: 'The Ferry',
+      write: 'כתיבה', plot: 'עלילה', goto: 'מעבר אל…', manuscript: 'כתב יד', codex: 'קודקס',
+      outline: 'מתווה', properties: 'מאפיינים', reference: 'עיון', focus: 'ריכוז',
+      board: 'לוח', overview: 'מבט־על', timeline: 'ציר הזמן', interactions: 'מפגשים',
+      partOne: 'Part One: The Orchard', ferry: 'The Ferry', frost: 'First frost', newChapter: '+ פרק חדש',
+      place: 'חלק I · פרק 1', inChapter: 'בפרק הזה',
+      p1: 'The ferry came in low against the water, its engine coughing the way it had every autumn since <a>Ilka</a> was a girl.',
+      p2: 'She stood at the rail with her one bag and watched <a>Marrow</a> rise out of the fog: the cannery chimney first, then the church, then the long grey line of the orchard wall.',
+      p3: '<a>Aunt Bea</a> was already at the gate. Of course she was.',
+      words: '83 מילים בפרק', saved: 'נשמר', attention: '2 דורשים טיפול',
+      plan: 'Working plan', planMeta: 'הפרק הזה מודגש',
+      o1: 'The Ferry: Ilka arrives; Bea is already at the gate.', o2: 'First frost: the orchard’s first loss.', o3: 'Ilka finds the ledger. Bea lies about it.',
+      status: 'סטטוס', draft: 'טיוטה', pov: 'נקודת מבט', threads: 'קווי עלילה', mainPlot: 'Main plot',
+      synopsis: 'תקציר', synopsisText: 'Ilka returns to Marrow; Bea meets her at the gate as if she never left.',
+      placement: 'מיקום · Part One, ראשון', storyTime: 'זמן בסיפור · 3 באוקטובר 1952', addPeople: '+ הוספת דמויות או מקום',
+      editText: 'עריכה כטקסט', preamble: 'Ilka comes back for the orchard and stays for the strike.',
+      partTwo: 'Part Two', inbox: 'רעיונות', addBeat: '+ הוספת נקודת עלילה',
+      b1: '<a>The Ferry</a>: Ilka arrives; Bea is already at the gate.', b1f: 'טיוטה · Ilka · 92 מילים',
+      b2: '<a>First frost</a>: the orchard’s first loss.', b2f: 'מתווה · 41 מילים', b3: 'Ilka finds the ledger. Bea lies about it.',
+      b4: 'The cannery whistle stops.', b5: 'Who told the foreman?', b6: 'The orchard gate should creak in every chapter it appears.',
+      strike: 'The cannery strike',
+      search: 'מעבר לרשומה, לתצוגה או לפקודה…', recent: 'אחרונים', suggested: 'מוצעים',
+      toPlot: 'מעבר לעלילה', showOutline: 'הצגת המתווה', capture: 'תפיסת נקודת עלילה', chapter: 'פרק', mode: 'מצב', panel: 'חלונית', command: 'פקודה',
+      footHint: 'Shift+Enter פותח לצד העמוד', results: '8 תוצאות',
+      settings: 'הגדרות', layout: 'פריסה', closeProject: 'סגירת הפרויקט', appearance: 'מראה', language: 'שפת הממשק',
+      standard: 'רגילה', sideBySide: 'זה לצד זה', saveLayout: 'שמירת הפריסה בשם…',
+      tagline: 'הרומן שלך, כקובצי Markdown פשוטים.', open: 'פתיחת תיקייה…', winter: 'The Winter Ledger',
+      d1: '22 באוק׳', d2: '30 בספט׳'
+    }
+  };
+
+  var ICON = {
+    start: '<svg viewBox="0 0 24 24" class="mirror"><rect x="3" y="4" width="18" height="16" rx="2.5"></rect><path d="M9 4v16"></path></svg>',
+    end: '<svg viewBox="0 0 24 24" class="mirror"><rect x="3" y="4" width="18" height="16" rx="2.5"></rect><path d="M15 4v16"></path></svg>',
+    focus: '<svg viewBox="0 0 24 24"><path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4"></path></svg>',
+    search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4.5-4.5"></path></svg>',
+    chevron: '<svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"></path></svg>'
+  };
+
+  function topBar(t, mode) {
+    var views = mode === 'plot'
+      ? '<span class="views"><span class="on">' + t.board + '</span><span>' + t.overview + '</span><span>' + t.timeline + '</span><span>' + t.interactions + '</span></span>'
+      : '<span class="crumb" dir="auto">' + t.crumbPart + ' › <b>' + t.crumbChapter + '</b></span>';
+    return '<div class="bar">' +
+      '<span class="project" dir="auto">' + t.project + '</span>' + views + '<span class="spacer"></span>' +
+      '<span class="pill"><span' + (mode === 'write' ? ' class="on"' : '') + '>' + t.write + '</span><span' + (mode === 'plot' ? ' class="on"' : '') + '>' + t.plot + '</span></span>' +
+      '<span class="goto">' + '<span class="icon-btn" style="padding:0;height:auto">' + ICON.search + '</span>' + t.goto + '<kbd>Ctrl K</kbd></span>' +
+      '<span class="icon-btn on">' + ICON.start + t.manuscript + '</span>' +
+      '<span class="icon-btn on">' + ICON.end + (mode === 'plot' ? t.reference : t.outline) + '</span>' +
+      (mode === 'write' ? '<span class="icon-btn">' + ICON.focus + '</span>' : '') +
+      '<span class="icon-btn" style="font-weight:700">⋯</span>' +
+      '</div>';
+  }
+
+  function manuscriptSide(t) {
+    return '<aside class="side start"><div class="side-head"><span class="tab on">' + t.manuscript + '</span><span class="tab">' + t.codex + '</span><span class="more">⋯</span></div>' +
+      '<div class="side-body"><div class="group-label" dir="auto">' + t.partOne + '</div>' +
+      '<div class="row on"><span class="n">1</span><span dir="auto">' + t.ferry + '</span><span class="count">92</span></div>' +
+      '<div class="row"><span class="n">2</span><span dir="auto">' + t.frost + '</span><span class="count">41</span></div>' +
+      '<div class="row add">' + t.newChapter + '</div></div></aside>';
+  }
+
+  function status(t) {
+    return '<div class="status"><span>' + t.words + '</span><span class="spacer"></span><span>⚠ ' + t.attention + '</span><span><span class="dot"></span>' + t.saved + '</span></div>';
+  }
+
+  function page(t) {
+    return '<main class="page"><div class="page-inner">' +
+      '<div class="place">' + t.place + '</div><h1 dir="auto">' + t.ferry + '</h1>' +
+      '<div class="cast">' + t.inChapter + ': <a dir="auto">Ilka</a> · <a class="place-link" dir="auto">Marrow</a></div>' +
+      '<div class="prose" dir="auto"><p>' + t.p1 + '</p><p>' + t.p2 + '</p><p>' + t.p3 + '</p></div>' +
+      '</div></main>';
+  }
+
+  function outlineSide(t) {
+    return '<aside class="side end"><div class="side-head"><span class="tab on">' + t.outline + '</span><span class="tab">' + t.properties + '</span><span class="tab">' + t.reference + '</span><span class="more">⋯</span></div>' +
+      '<div class="side-body outline-panel"><h4 dir="auto">' + t.plan + '</h4><div class="meta">' + t.planMeta + '</div>' +
+      '<div class="group-label">Part One</div><ul dir="auto"><li class="here">' + t.o1 + '</li><li>' + t.o2 + '</li><li>' + t.o3 + '</li></ul></div></aside>';
+  }
+
+  function propertiesSide(t) {
+    return '<aside class="side end"><div class="side-head"><span class="tab">' + t.outline + '</span><span class="tab on">' + t.properties + '</span><span class="tab">' + t.reference + '</span><span class="more">⋯</span></div>' +
+      '<div class="side-body" style="gap:12px">' +
+      '<div class="field"><span class="k">' + t.status + '</span><span class="select">' + t.draft + ICON.chevron + '</span></div>' +
+      '<div class="field"><span class="k">' + t.pov + '</span><div class="chips"><span class="chip" dir="auto">Ilka</span></div></div>' +
+      '<div class="field"><span class="k">' + t.threads + '</span><div class="chips"><span class="chip thread" dir="auto">' + t.mainPlot + '</span></div></div>' +
+      '<div class="field"><span class="k">' + t.synopsis + '</span><div class="textarea" dir="auto">' + t.synopsisText + '</div></div>' +
+      '<span class="add-quiet">' + t.addPeople + '</span>' +
+      '<div class="disclosure">▸ ' + t.placement + '</div><div class="disclosure">▸ ' + t.storyTime + '</div>' +
+      '</div></aside>';
+  }
+
+  function writeScreen(t, end) {
+    return topBar(t, 'write') + '<div class="body">' + manuscriptSide(t) + page(t) + (end === 'properties' ? propertiesSide(t) : outlineSide(t)) + '</div>' + status(t);
+  }
+
+  function boardScreen(t) {
+    function beat(title, facts, thread) {
+      return '<div class="beat">' + (thread ? '<span class="th' + (thread === 'strike' ? ' strike' : '') + '" dir="auto">' + (thread === 'strike' ? t.strike : t.mainPlot) + '</span>' : '') +
+        '<div class="t" dir="auto">' + title + '</div>' + (facts ? '<div class="f" dir="auto">' + facts + '</div>' : '') + '</div>';
+    }
+    return topBar(t, 'plot') + '<div class="body no-end">' + manuscriptSide(t) +
+      '<main class="board"><div class="board-head"><span class="name" dir="auto">' + t.plan + ' ▾</span><span class="quiet">' + t.editText + '</span><span class="help">?</span></div>' +
+      '<div class="preamble" dir="auto">' + t.preamble + '</div>' +
+      '<div class="columns">' +
+      '<div class="column"><h5><span style="color:inherit;font-weight:600" dir="auto">Part One</span><span>3</span></h5>' + beat(t.b1, t.b1f, 'main') + beat(t.b2, t.b2f, 'main') + beat(t.b3, '', 'strike') + '<div class="add-beat">' + t.addBeat + '</div></div>' +
+      '<div class="column"><h5><span style="color:inherit;font-weight:600" dir="auto">' + t.partTwo + '</span><span>2</span></h5>' + beat(t.b4, '', 'strike') + beat(t.b5, '', '') + '<div class="add-beat">' + t.addBeat + '</div></div>' +
+      '<div class="column inbox"><h5><span style="color:inherit;font-weight:600">' + t.inbox + '</span><span>1</span></h5>' + beat(t.b6, '', '') + '<div class="add-beat">' + t.addBeat + '</div></div>' +
+      '</div></main></div>' + status(t);
+  }
+
+  function gotoScreen(t) {
+    return writeScreen(t, 'outline') + '<div class="scrim"></div><div class="palette">' +
+      '<div class="input">' + t.search + '</div>' +
+      '<div class="sec">' + t.recent + '</div>' +
+      '<div class="item on"><span dir="auto">' + t.ferry + '</span><small>' + t.chapter + '</small></div>' +
+      '<div class="item"><span dir="auto">' + t.plan + '</span><small>' + t.outline + '</small></div>' +
+      '<div class="sec">' + t.suggested + '</div>' +
+      '<div class="item"><span>' + t.toPlot + '</span><small>' + t.mode + '</small></div>' +
+      '<div class="item"><span>' + t.showOutline + '</span><small>' + t.panel + '</small></div>' +
+      '<div class="item"><span>' + t.focus + '</span><small>' + t.command + '</small></div>' +
+      '<div class="item"><span>' + t.capture + '</span><small>' + t.command + '</small></div>' +
+      '<div class="foot"><span>' + t.results + '</span><span>' + t.footHint + '</span></div></div>';
+  }
+
+  function menuScreen(t) {
+    return writeScreen(t, 'outline') +
+      '<div class="menu"><div class="mi"><span>' + t.settings + '</span><small>›</small></div>' +
+      '<div class="mi on"><span>' + t.layout + '</span><small>›</small></div>' +
+      '<div class="mi"><span>' + t.appearance + '</span><small></small></div>' +
+      '<hr><div class="mi"><span>' + t.closeProject + '</span></div></div>' +
+      '<div class="menu submenu"><div class="mi"><span><span class="check">✓</span>' + t.standard + '</span></div>' +
+      '<div class="mi"><span><span class="check"></span>' + t.sideBySide + '</span></div>' +
+      '<hr><div class="mi"><span><span class="check"></span>' + t.saveLayout + '</span></div></div>';
+  }
+
+  function welcomeScreen(t) {
+    return '<div class="welcome"><div class="welcome-inner">' +
+      '<h1>Plot<span class="dot-sep">·</span>Device</h1><p>' + t.tagline + '</p><span class="primary">' + t.open + '</span>' +
+      '<div class="recents"><div class="r"><span dir="auto">' + t.project + '</span><small>' + t.d1 + '</small></div>' +
+      '<div class="r"><span dir="auto">' + t.winter + '</span><small>' + t.d2 + '</small></div></div>' +
+      '<div class="lang">' + t.language + '<span class="select" style="height:26px">' + (t === S.he ? 'עברית' : 'English') + ICON.chevron + '</span></div>' +
+      '</div></div>';
+  }
+
+  var SCREENS = [
+    { id: 'write', name: 'Write', before: 'writing', render: function (t) { return writeScreen(t, 'outline'); },
+      caption: 'Writing a chapter: one row of chrome, the outline beside the page, one count and the save state below.',
+      notes: [['F1', 'One "Write"', 'The mode switch is the only control called Write. No view tabs, no layout select.'], ['F4', '15 controls → 8', 'Project, place, mode, Go to…, two sides, focus, ⋯. Side toggles carry labels on wide windows.'], ['F6', 'One bar above the page', 'No tab bar with one document; "In this chapter" is a line under the heading, not a bar.']] },
+    { id: 'properties', name: 'Properties', before: 'writing', render: function (t) { return writeScreen(t, 'properties'); },
+      caption: 'Properties, compact: the four keys used while drafting, the rest folded away.',
+      notes: [['F7', 'Four fields, not twelve', 'Status, point of view, threads, synopsis. Placement and story time open on request.'], ['F10', 'A styled select', 'Every select in the app becomes this control, with typeahead and RTL.'], ['F5', 'One ⋯ per side', 'Panel and side menus merge; Expand moves into it.']] },
+    { id: 'board', name: 'Plot · Board', before: 'board', render: boardScreen,
+      caption: 'Plot: the board in the centre, Overview, Timeline and Interactions beside it in the top bar.',
+      notes: [['D1', 'Plot holds the whole-story views', 'Board, Overview, Timeline, Interactions. "Edit as text" replaces the Text tab.'], ['F9', 'No clipped column', 'Columns scroll with a soft edge and start from the first column in both directions.'], ['D3', 'Beats', '"+ Add beat"; cards on the board are beats.']] },
+    { id: 'goto', name: 'Go to…', before: 'palette', render: gotoScreen,
+      caption: 'Go to… with nothing typed: recent documents and a few suggestions, grouped.',
+      notes: [['F13', 'Short and grouped', 'Recent, then Suggested; names from the glossary.'], ['', 'Always visible', 'A quiet search field in the top bar makes the palette discoverable.']] },
+    { id: 'menu', name: '⋯ menu', before: 'dock-menu', render: menuScreen,
+      caption: 'The one ⋯ menu: settings, layouts and Close project, out of the top bar.',
+      notes: [['D2', 'Rarely needed, one step away', 'Interface language, appearance and layouts live here.'], ['F3', 'Layouts named by what they arrange', 'Standard and Side by side, instead of presets named like modes.']] },
+    { id: 'welcome', name: 'Welcome', before: 'welcome', render: welcomeScreen,
+      caption: 'Welcome: unchanged in spirit, with a styled select and the prose face for the wordmark.',
+      notes: [['F11', 'One heading face', 'Every heading uses the prose or UI face; no Times fallback anywhere.']] }
+  ];
+
+  var state = { screen: 'write', version: 'after', lang: 'en', theme: 'dark' };
+  try {
+    var saved = JSON.parse(localStorage.getItem('u1-mockups') || '{}');
+    for (var key in saved) if (key in state) state[key] = saved[key];
+  } catch (e) {}
+
+  var screensBox = document.getElementById('screens');
+  SCREENS.forEach(function (s) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.id = 'screen-' + s.id; b.textContent = s.name;
+    b.addEventListener('click', function () { state.screen = s.id; render(); });
+    screensBox.appendChild(b);
+  });
+  [['v-after', 'version', 'after'], ['v-before', 'version', 'before'], ['l-en', 'lang', 'en'], ['l-he', 'lang', 'he'], ['t-dark', 'theme', 'dark'], ['t-light', 'theme', 'light']].forEach(function (c) {
+    document.getElementById(c[0]).addEventListener('click', function () { state[c[1]] = c[2]; render(); });
+  });
+
+  var stageInner = document.getElementById('stage-inner');
+  var stage = document.getElementById('stage');
+
+  function fit() {
+    if (state.version === 'before') { stageInner.style.transform = ''; stage.style.height = ''; return; }
+    var scale = stage.clientWidth / 1200;
+    stageInner.style.transform = 'scale(' + scale + ')';
+    stage.style.height = Math.round(750 * scale) + 'px';
+  }
+
+  function render() {
+    try { localStorage.setItem('u1-mockups', JSON.stringify(state)); } catch (e) {}
+    var s = SCREENS.filter(function (x) { return x.id === state.screen; })[0];
+    var t = S[state.lang];
+    SCREENS.forEach(function (x) { document.getElementById('screen-' + x.id).setAttribute('aria-pressed', String(x.id === s.id)); });
+    document.getElementById('v-after').setAttribute('aria-pressed', String(state.version === 'after'));
+    document.getElementById('v-before').setAttribute('aria-pressed', String(state.version === 'before'));
+    document.getElementById('l-en').setAttribute('aria-pressed', String(state.lang === 'en'));
+    document.getElementById('l-he').setAttribute('aria-pressed', String(state.lang === 'he'));
+    document.getElementById('t-dark').setAttribute('aria-pressed', String(state.theme === 'dark'));
+    document.getElementById('t-light').setAttribute('aria-pressed', String(state.theme === 'light'));
+    if (state.version === 'before') {
+      stageInner.style.width = '100%'; stageInner.style.height = 'auto';
+      stageInner.innerHTML = '<img src="screens/' + s.before + '.' + state.lang + '.png" alt="The app today: ' + s.name + ' (' + (state.lang === 'he' ? 'Hebrew' : 'English') + ', dark, the only theme today)">';
+      document.getElementById('caption').textContent = 'Today, captured by the preview harness (dark only; the light theme is new).';
+    } else {
+      stageInner.style.width = '1200px'; stageInner.style.height = '750px';
+      stageInner.innerHTML = '<div class="app" data-app-theme="' + state.theme + '" dir="' + (state.lang === 'he' ? 'rtl' : 'ltr') + '" lang="' + state.lang + '">' + s.render(t) + '</div>';
+      document.getElementById('caption').textContent = s.caption;
+    }
+    document.getElementById('notes').innerHTML = s.notes.map(function (n) {
+      return '<div class="note">' + (n[0] ? '<span class="tag">' + n[0] + '</span>' : '') + '<h3>' + n[1] + '</h3><p>' + n[2] + '</p></div>';
+    }).join('');
+    fit();
+  }
+
+  window.addEventListener('resize', fit);
+  render();
+})();
+</script>
