@@ -14,3 +14,8 @@ export interface MenuItem {
   /** Opens a submenu of these items instead of running. */
   readonly children?: readonly MenuItem[]
 }
+
+/** Starts a new group with these items: a line is drawn before the first of them. */
+export function menuGroup(items: readonly MenuItem[]): MenuItem[] {
+  return items.map((item, index) => (index === 0 ? { ...item, separator: true } : item))
+}

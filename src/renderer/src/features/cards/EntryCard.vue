@@ -3,14 +3,13 @@ import { computed, toRef } from 'vue'
 import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { usePeek } from '../../app/peek-store'
-import { useReferenceStore } from '../../app/reference-store'
+import { useSidePanelNavigation } from '../../app/use-side-panel-navigation'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useEntryCard } from '../../app/use-entry-card'
 import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
 import { useWorkbenchStore } from '../../app/workbench-store'
 import { uiDirection } from '../../../../i18n/locales'
 import { isolate } from '../../shared/isolate'
-import ReferenceButton from '../../shared/ReferenceButton.vue'
 import RenderedMarkdown from '../../shared/RenderedMarkdown.vue'
 import { cardFieldValues, chosenFields, firstSection, isCardKind } from './card-summary'
 
@@ -27,7 +26,7 @@ const card = useEntryCard(toRef(props, 'path'))
 const workbench = useWorkbenchStore()
 const editor = useEditorStore()
 const manuscript = useManuscriptStore()
-const reference = useReferenceStore()
+const { editDetails } = useSidePanelNavigation()
 const navigation = useWorkbenchNavigation()
 const language = useUiLanguageStore()
 const peek = usePeek()
@@ -84,7 +83,6 @@ function togglePin(): void {
         >
           {{ language.t('cards-pin') }}
         </button>
-        <ReferenceButton :title="title" @open="reference.open(path)" />
         <button
           type="button"
           class="quiet beside"
@@ -101,7 +99,10 @@ function togglePin(): void {
           :title="language.t('codex-open-editor-tooltip')"
           @click="editor.open(path)"
         >
-          {{ language.t('codex-edit') }}
+          {{ language.t('card-open') }}
+        </button>
+        <button type="button" class="quiet details" @click="editDetails(path)">
+          {{ language.t('scene-card-edit') }}
         </button>
       </span>
     </header>

@@ -10,7 +10,6 @@ import { isPresetId, type PresetId } from '../model/presets'
 import type { SavedLayoutRefusal } from '../model/saved-layouts'
 import { layoutChoices, layoutFor, type LayoutChoice } from '../model/workbench-settings'
 import { VIEW_REGISTRY } from '../views/view-registry'
-import { usePlacementMenus } from './use-placement-menus'
 
 const PRESET_NAMES: Record<PresetId, MessageKey> = {
   write: 'workbench-layout-write',
@@ -30,7 +29,6 @@ export function useLayoutActions() {
   const workbench = useWorkbenchStore()
   const language = useUiLanguageStore()
   const navigation = useWorkbenchNavigation()
-  const menus = usePlacementMenus()
 
   const step = ref<LayoutStep | null>(null)
   const name = ref('')
@@ -106,8 +104,7 @@ export function useLayoutActions() {
             }
           }
         ]
-      : []),
-    ...menus.showMenu().map((item, index) => (index === 0 ? { ...item, separator: true } : item))
+      : [])
   ])
 
   const errorMessage = computed(() => {

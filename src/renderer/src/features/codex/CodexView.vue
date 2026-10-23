@@ -10,7 +10,7 @@ const workspace = useWorkspaceStore()
 const codex = useCodexStore()
 const outlines = useOutlineStore()
 const language = useUiLanguageStore()
-const { editEntry, consultEntry, selectedCodexPath } = useSidePanelNavigation()
+const { editDetails, consultEntry, selectedCodexPath } = useSidePanelNavigation()
 </script>
 
 <template>
@@ -29,7 +29,7 @@ const { editEntry, consultEntry, selectedCodexPath } = useSidePanelNavigation()
       :selected-path="selectedCodexPath"
       :read-only="workspace.project.readOnly"
       @open="consultEntry($event)"
-      @edit="editEntry($event)"
+      @edit="editDetails($event)"
       @create="(kind, title) => codex.createEntry(kind, title)"
       @set-type="(path, type) => codex.setEntryType(path, type)"
       @edit-template="codex.editTemplate($event)"

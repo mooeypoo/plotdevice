@@ -702,5 +702,9 @@
   "app-menu-label": "עוד",
   "app-menu-appearance": "מראה…",
   "chrome-goto-tooltip": "מעבר אל… ($1)",
-  "tabs-actions": "פעולות עבור $1"
+  "tabs-actions": "פעולות עבור $1",
+  "workbench-more-panels": "עוד",
+  "card-open": "פתיחה",
+  "inspector-story-when": "מתי בסיפור",
+  "inspector-add-cast": "+ הוספת דמויות או מקום"
 }

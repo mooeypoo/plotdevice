@@ -702,5 +702,9 @@
   "app-menu-label": "Accessible name and tooltip of the top bar's one ⋯ menu: interface language, appearance, layouts and Close project (D2).",
   "app-menu-appearance": "⋯ menu and Go to… item that opens the Appearance popover (prose size, width, direction, experimental settings).",
   "chrome-goto-tooltip": "Tooltip of the quiet Go to… field in the top bar. $1 is the unchanged isolated keyboard shortcut (Ctrl+K).",
-  "tabs-actions": "Accessible name of the ⋯ menu for the open document tab: keep open, pin, write here, open beside, close others. $1 is the isolated entry title."
+  "tabs-actions": "Accessible name of the ⋯ menu for the open document tab: keep open, pin, write here, open beside, close others. $1 is the isolated entry title.",
+  "workbench-more-panels": "A tab in a side panel listing the panels that don't fit after the first three (F5). Short: it shows with a ▾.",
+  "card-open": "Button on a card or peek that shows the entry on the page (glossary: Open). Its accessible name is codex-open-editor-label.",
+  "inspector-story-when": "Heading of the collapsible Details group with the chapter's story date and story time; a short summary follows it.",
+  "inspector-add-cast": "Quiet button in Details for a chapter with no characters and no location yet; it shows both pickers (F7)."
 }

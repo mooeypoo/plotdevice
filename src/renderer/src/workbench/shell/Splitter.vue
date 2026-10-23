@@ -24,6 +24,8 @@ const emit = defineEmits<{
   preview: [size: number | null]
   /** The size to keep. */
   commit: [size: number]
+  /** A double-click on the separator: widen or restore the panel it belongs to. */
+  expand: []
 }>()
 
 const language = useUiLanguageStore()
@@ -99,6 +101,7 @@ function keydown(event: KeyboardEvent): void {
     @pointercancel="cancel"
     @lostpointercapture="finish"
     @keydown="keydown"
+    @dblclick="emit('expand')"
   ></div>
 </template>
 

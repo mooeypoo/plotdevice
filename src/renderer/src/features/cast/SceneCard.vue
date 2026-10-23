@@ -2,19 +2,17 @@
 import { computed, watch } from 'vue'
 import { useOutlineStore } from '../../app/outline-store'
 import { createDocumentReader } from '../../app/document-reader'
-import { useEditorStore } from '../../app/editor-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useEditorLinks } from '../../app/use-editor-links'
 import { useLiveDraft } from '../../app/use-live-draft'
-import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
+import { useSidePanelNavigation } from '../../app/use-side-panel-navigation'
 import { useWritingChapter } from '../../app/use-writing-chapter'
 import { linkText } from '../../shared/link-text'
 import { outlineLinesFor } from './outline-mentions'
 
 const chapter = useWritingChapter()
 const outlines = useOutlineStore()
-const editor = useEditorStore()
-const navigation = useWorkbenchNavigation()
+const { editDetails } = useSidePanelNavigation()
 const links = useEditorLinks()
 const language = useUiLanguageStore()
 
@@ -49,10 +47,9 @@ const outlineLines = computed(() => {
   return outlineLinesFor(outlineText.value, (link) => links.linkMeans(link, chapterPath, from))
 })
 
-async function editProperties(): Promise<void> {
+function editProperties(): void {
   const path = chapter.path.value
-  if (path === null) return
-  if (await editor.open(path)) navigation.revealView('properties')
+  if (path !== null) void editDetails(path)
 }
 </script>
 

@@ -56,7 +56,9 @@ async function show(name: ScenarioName): Promise<void> {
       usePaletteStore().show()
       break
     case 'dock-menu':
-      click(`[aria-label="${useUiLanguageStore().t('workbench-area-options')}"]`)
+      click(
+        `[aria-label="${useUiLanguageStore().t('workbench-panel-options', useUiLanguageStore().t('side-manuscript'))}"]`
+      )
       break
     case 'peek': {
       const width = window.innerWidth

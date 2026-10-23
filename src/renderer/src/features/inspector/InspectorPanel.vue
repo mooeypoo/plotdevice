@@ -59,6 +59,38 @@ const { reading: dateCheck, error: dateCheckError } = useStoryDateCheck(
   () => properties.value?.path
 )
 
+/**
+ * Details stays compact while drafting (F7): placement and story time fold away, and empty
+ * characters and place wait behind one quiet "+ Add". A problem in a group opens it.
+ */
+const placementOpen = ref(false)
+const storyTimeOpen = ref(false)
+const castShown = ref(false)
+const castEmpty = computed(
+  () =>
+    properties.value?.kind === 'chapter' &&
+    properties.value.characters.length === 0 &&
+    properties.value.location.length === 0
+)
+watch(
+  () => properties.value?.path,
+  () => {
+    castShown.value = false
+  }
+)
+watch(
+  () => dateCheckError.value !== null || dateCheck.value?.kind === 'invalid',
+  (problem) => {
+    if (problem) storyTimeOpen.value = true
+  },
+  { immediate: true }
+)
+const storySummary = computed(() =>
+  [properties.value?.storyDate, properties.value?.storyTime]
+    .filter((part): part is string => part !== undefined && part !== '')
+    .join(' · ')
+)
+
 const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
 const characterNames = computed(() =>
   namesOfType(linkTargets.value, ['character'], chrome.compareText)
@@ -118,6 +150,16 @@ const placement = computed(() => {
     clash: clashDescription(chapter, siblings, language.t)
   }
 })
+
+watch(
+  () =>
+    orderHint.value !== null ||
+    (placement.value !== undefined && ('clash' in placement.value || 'reason' in placement.value)),
+  (problem) => {
+    if (problem) placementOpen.value = true
+  },
+  { immediate: true }
+)
 
 async function save(changes: PropertyChangesDto): Promise<void> {
   busy.value = true
@@ -220,6 +262,14 @@ const partName = computed(() => {
   if (part === undefined) return '—'
   return manuscript.currentPart?.title ?? linkLabel(part)
 })
+const placementSummary = computed(() => {
+  const current = properties.value
+  if (current === null) return ''
+  const order =
+    current.order === undefined ? '' : `${language.t('inspector-order')} ${current.order}`
+  const part = current.kind === 'chapter' ? (manuscript.currentPart?.title ?? '') : ''
+  return [part, order].filter((piece) => piece !== '').join(' · ')
+})
 </script>
 
 <template>
@@ -231,90 +281,6 @@ const partName = computed(() => {
       <header>
         <span class="eyebrow">{{ kindLabel(properties.kind) }}</span>
       </header>
-
-      <section class="position" :aria-label="language.t('inspector-position')">
-        <dl>
-          <div v-if="properties.kind === 'chapter'">
-            <dt>
-              <label v-if="partOptions.length > 0 && !readOnly" for="inspector-part">
-                {{ language.t('inspector-part') }}
-              </label>
-              <template v-else>{{ language.t('inspector-part') }}</template>
-            </dt>
-            <dd v-if="partOptions.length > 0 && !readOnly">
-              <SelectField
-                id="inspector-part"
-                class="part-select"
-                size="small"
-                :model-value="manuscript.currentPart?.path ?? ''"
-                :options="partChoices"
-                :disabled="disabled"
-                @update:model-value="changePart"
-              />
-            </dd>
-            <dd v-else dir="auto">{{ partName }}</dd>
-          </div>
-          <div>
-            <dt>
-              <label for="inspector-order">{{ language.t('inspector-order') }}</label>
-            </dt>
-            <dd>
-              <input
-                id="inspector-order"
-                v-model="order"
-                class="order"
-                type="number"
-                step="1"
-                :placeholder="
-                  properties.order === undefined ? language.t('inspector-no-order') : ''
-                "
-                :disabled="disabled"
-                @change="saveOrder"
-              />
-            </dd>
-          </div>
-        </dl>
-        <p v-if="orderHint" class="hint bad">{{ orderHint }}</p>
-        <div v-if="!readOnly && (canMoveUp || canMoveDown)" class="moves">
-          <button
-            type="button"
-            class="quiet small"
-            :disabled="disabled || !canMoveUp"
-            :title="moveTitle('up', properties.kind)"
-            @click="run(moves.moveUp)"
-          >
-            ↑ {{ language.t('inspector-move-up-label') }}
-          </button>
-          <button
-            type="button"
-            class="quiet small"
-            :disabled="disabled || !canMoveDown"
-            :title="moveTitle('down', properties.kind)"
-            @click="run(moves.moveDown)"
-          >
-            ↓ {{ language.t('inspector-move-down-label') }}
-          </button>
-        </div>
-        <button
-          v-if="properties.kind === 'chapter' && properties.order !== undefined"
-          type="button"
-          class="quiet small"
-          :disabled="disabled"
-          :title="language.t('inspector-remove-order-tooltip')"
-          @click="save({ order: null })"
-        >
-          {{ language.t('inspector-remove-order') }}
-        </button>
-        <p v-if="placement && 'reason' in placement" class="note">
-          {{ placement.reason }}
-        </p>
-        <div v-if="placement && 'clash' in placement" class="note warn">
-          <p>{{ placement.clash }}</p>
-          <button type="button" :disabled="disabled" @click="renumber">
-            {{ language.t('inspector-renumber-part') }}
-          </button>
-        </div>
-      </section>
 
       <div class="field">
         <label class="eyebrow" for="inspector-title">{{ language.t('inspector-title') }}</label>
@@ -362,20 +328,31 @@ const partName = computed(() => {
           :disabled="disabled"
           @change="save({ pov: $event })"
         />
-        <LinkPicker
-          :label="language.t('inspector-characters')"
-          :links="properties.characters"
-          :suggestions="characterNames"
+        <template v-if="castShown || !castEmpty">
+          <LinkPicker
+            :label="language.t('inspector-characters')"
+            :links="properties.characters"
+            :suggestions="characterNames"
+            :disabled="disabled"
+            @change="save({ characters: $event })"
+          />
+          <LinkPicker
+            :label="language.t('inspector-location')"
+            :links="properties.location"
+            :suggestions="locationNames"
+            :disabled="disabled"
+            @change="save({ location: $event })"
+          />
+        </template>
+        <button
+          v-else
+          type="button"
+          class="quiet small add-cast"
           :disabled="disabled"
-          @change="save({ characters: $event })"
-        />
-        <LinkPicker
-          :label="language.t('inspector-location')"
-          :links="properties.location"
-          :suggestions="locationNames"
-          :disabled="disabled"
-          @change="save({ location: $event })"
-        />
+          @click="castShown = true"
+        >
+          {{ language.t('inspector-add-cast') }}
+        </button>
 
         <div v-if="threads.length > 0" class="field">
           <span class="eyebrow">{{ language.t('inspector-threads') }}</span>
@@ -400,7 +377,126 @@ const partName = computed(() => {
             </button>
           </div>
         </div>
+      </template>
 
+      <div class="field">
+        <label class="eyebrow" for="inspector-synopsis">
+          {{ language.t('inspector-synopsis') }}
+        </label>
+        <textarea
+          id="inspector-synopsis"
+          v-model="synopsis"
+          rows="5"
+          dir="auto"
+          :disabled="disabled"
+          @change="saveText('synopsis', synopsis)"
+        ></textarea>
+      </div>
+
+      <details
+        class="group"
+        :open="placementOpen"
+        @toggle="placementOpen = ($event.target as HTMLDetailsElement).open"
+      >
+        <summary>
+          <span class="eyebrow">{{ language.t('inspector-position') }}</span>
+          <span class="summary" dir="auto">{{ placementSummary }}</span>
+        </summary>
+        <section class="position" :aria-label="language.t('inspector-position')">
+          <dl>
+            <div v-if="properties.kind === 'chapter'">
+              <dt>
+                <label v-if="partOptions.length > 0 && !readOnly" for="inspector-part">
+                  {{ language.t('inspector-part') }}
+                </label>
+                <template v-else>{{ language.t('inspector-part') }}</template>
+              </dt>
+              <dd v-if="partOptions.length > 0 && !readOnly">
+                <SelectField
+                  id="inspector-part"
+                  class="part-select"
+                  size="small"
+                  :model-value="manuscript.currentPart?.path ?? ''"
+                  :options="partChoices"
+                  :disabled="disabled"
+                  @update:model-value="changePart"
+                />
+              </dd>
+              <dd v-else dir="auto">{{ partName }}</dd>
+            </div>
+            <div>
+              <dt>
+                <label for="inspector-order">{{ language.t('inspector-order') }}</label>
+              </dt>
+              <dd>
+                <input
+                  id="inspector-order"
+                  v-model="order"
+                  class="order"
+                  type="number"
+                  step="1"
+                  :placeholder="
+                    properties.order === undefined ? language.t('inspector-no-order') : ''
+                  "
+                  :disabled="disabled"
+                  @change="saveOrder"
+                />
+              </dd>
+            </div>
+          </dl>
+          <p v-if="orderHint" class="hint bad">{{ orderHint }}</p>
+          <div v-if="!readOnly && (canMoveUp || canMoveDown)" class="moves">
+            <button
+              type="button"
+              class="quiet small"
+              :disabled="disabled || !canMoveUp"
+              :title="moveTitle('up', properties.kind)"
+              @click="run(moves.moveUp)"
+            >
+              ↑ {{ language.t('inspector-move-up-label') }}
+            </button>
+            <button
+              type="button"
+              class="quiet small"
+              :disabled="disabled || !canMoveDown"
+              :title="moveTitle('down', properties.kind)"
+              @click="run(moves.moveDown)"
+            >
+              ↓ {{ language.t('inspector-move-down-label') }}
+            </button>
+          </div>
+          <button
+            v-if="properties.kind === 'chapter' && properties.order !== undefined"
+            type="button"
+            class="quiet small"
+            :disabled="disabled"
+            :title="language.t('inspector-remove-order-tooltip')"
+            @click="save({ order: null })"
+          >
+            {{ language.t('inspector-remove-order') }}
+          </button>
+          <p v-if="placement && 'reason' in placement" class="note">
+            {{ placement.reason }}
+          </p>
+          <div v-if="placement && 'clash' in placement" class="note warn">
+            <p>{{ placement.clash }}</p>
+            <button type="button" :disabled="disabled" @click="renumber">
+              {{ language.t('inspector-renumber-part') }}
+            </button>
+          </div>
+        </section>
+      </details>
+
+      <details
+        v-if="properties.kind === 'chapter'"
+        class="group"
+        :open="storyTimeOpen"
+        @toggle="storyTimeOpen = ($event.target as HTMLDetailsElement).open"
+      >
+        <summary>
+          <span class="eyebrow">{{ language.t('inspector-story-when') }}</span>
+          <span class="summary" dir="auto">{{ storySummary }}</span>
+        </summary>
         <div class="field">
           <label class="eyebrow" for="inspector-date">
             {{ language.t('inspector-story-date') }}
@@ -442,21 +538,7 @@ const partName = computed(() => {
             @change="saveText('storyTime', storyTime)"
           />
         </div>
-      </template>
-
-      <div class="field">
-        <label class="eyebrow" for="inspector-synopsis">
-          {{ language.t('inspector-synopsis') }}
-        </label>
-        <textarea
-          id="inspector-synopsis"
-          v-model="synopsis"
-          rows="5"
-          dir="auto"
-          :disabled="disabled"
-          @change="saveText('synopsis', synopsis)"
-        ></textarea>
-      </div>
+      </details>
 
       <p v-if="editor.actionError" class="note warn" role="alert">
         {{ editor.actionError }}
@@ -470,6 +552,39 @@ const partName = computed(() => {
 <style scoped src="./inspector.css"></style>
 
 <style scoped>
+.group {
+  border-block-start: 1px solid var(--line);
+  padding-block-start: var(--space-3);
+}
+
+.group summary {
+  display: flex;
+  gap: var(--space-3);
+  align-items: baseline;
+  cursor: pointer;
+  list-style-position: outside;
+}
+
+.group summary .summary {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--text-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group[open] > summary {
+  margin-block-end: var(--space-4);
+}
+
+.group > .field + .field {
+  margin-block-start: var(--space-4);
+}
+
+.add-cast {
+  align-self: flex-start;
+}
+
 .position dl {
   display: flex;
   gap: 24px;

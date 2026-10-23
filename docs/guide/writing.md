@@ -27,9 +27,11 @@ Do not assume the page's visible text has reached disk. The
 
 ## Give the chapter its place in the story
 
-In Details, set status, point of view, characters, location, threads, dates,
-and a short synopsis. Use what helps; metadata is not homework you must finish
-before writing.
+In **Details**, set status, point of view, threads and a short synopsis. Characters
+and a place are one **+ Add** away. Placement (part and order) and the story's date
+and time are folded below; open them when you need them. Use what helps; metadata
+is not homework you must finish before writing. **Edit details** in a Manuscript row's
+**⋯**, on a card or a peek, opens any entry with its Details in view.
 
 Statuses and threads are defined in `novel.md`. A value outside the project's
 list stays visible rather than being silently removed.
@@ -39,12 +41,14 @@ list stays visible rather than being silently removed.
 ### Consult another page without leaving your draft
 
 Select a character, location, or note in **Codex** to read it in the right-hand
-**Reference** panel. Each part and chapter in the Manuscript panel also has an **Open in
-reference** button beside it; the normal chapter button still opens it on the page.
+**Reference** panel. Each part and chapter in the Manuscript panel has a **⋯** (on hover
+or focus) with **Open in reference**, **Open beside** and **Edit details**; the row
+itself still opens it on the page.
 The manuscript's cursor, selection, scroll position and undo history stay in place
 when you switch references.
 
-Use **Expand/Restore** or drag the panel separator for more reading space. With
+Use **Expand** in the panel's **⋯**, double-click its inner edge, or drag that edge for
+more reading space. With
 the separator focused, Left/Right adjusts its width; Home/End chooses its limits.
 The preferred reading width is shared with **Outline** and remembered on this
 computer. References remain readable during a manuscript conflict, but **Open on the
