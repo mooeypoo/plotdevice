@@ -1,6 +1,9 @@
 # U1b: Glossary — one name per concept
 
-**Status:** approved by the writer (2026-10-23). The en/he message catalogs follow it (implementation phase U3a), and it moves into the translator guide.
+**Status:** approved by the writer (2026-10-23), and applied in U3a. **The authoritative copy is
+now the [translator guide's glossary](../../guide/translation.md#glossary)**, which adds U3a's
+decisions: **Page** for the center view, **Your chapter** for the writing tab's marker, and
+**לוח העלילה** for the Board view (the layout stays לוח).
 
 **How to read it.** The **name** is what the interface says, in English and Hebrew. *Not* lists
 the names in use today that will go. Code may keep its internal names (`binder`, `scene-card`,

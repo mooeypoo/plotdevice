@@ -10,26 +10,26 @@ right-hand **Reference** tab without replacing your manuscript. Select another
 entry to switch references. Character rows put the role (or other names when
 there is no role) below the name, with room for two lines.
 
-Use **Edit** beside an entry, or **Open in editor** in the reference, to edit its
-raw Markdown in the center and its supported profile properties in **Properties**.
+Use **Edit** beside an entry, or **Open on the page** in the reference, to edit its
+raw Markdown in the center and its supported profile details in **Details**.
 A character can have other names, a role, groups, a birth date, and relationships.
-Creating an entry still opens it in the editor so you can write it immediately.
-Editor pages join the document tabs: keep or pin one for longer work, then use
-**Return to writing** to resume your manuscript. Pin your Writing chapter first
-when you want to annotate other manuscript pages without changing that target.
+Creating an entry still opens it on the page so you can write it immediately.
+Entries you open join the tabs: keep or pin one for longer work, then use
+**Back to your chapter** to resume your manuscript. Pin your chapter first
+when you want to annotate other manuscript pages without changing it.
 [Learn the tab workflow](writing.md#keep-your-writing-chapter-close).
 
 The reference has its own reading position for each file during this project
 session. It supports the same inert Markdown as the outline: project links work,
 but raw HTML, remote images, and web navigation do not run. Links followed inside
 a reference replace that reference, not the manuscript. If the same file is open
-in the editor, the reference shows its current draft, clearly labelled; there is
+on the page, the reference shows its current draft, clearly labelled; there is
 never a second writable copy.
 
-**Properties** always describes the main editor document. Switch between
-**Properties**, **Outline**, and **Reference** without losing your selected
+**Details** always describes the entry on the page. Switch between
+**Details**, **Outline**, and **Reference** without losing your selected
 reference or outline. Reference and outline share a resizable reading width;
-Properties retains its fixed width. Reference selection and reading positions
+Details keeps its fixed width. Reference selection and reading positions
 reset when you leave the project; no project files are changed by looking things up.
 
 The **Appears in** list connects characters and locations to chapters. It uses
@@ -39,7 +39,7 @@ in ordinary prose alone does not add an appearance.
 ## Organize your cast
 
 Keep supporting characters in the codex without keeping every name in view.
-Open a character and use **Groups** in the inspector: choose an existing name
+Open a character and use **Groups** in Details: choose an existing name
 from the suggestions, or type a new one and press Enter. A character can belong
 to several groups, such as **Main cast**, **Part 2**, and **The Observatory**.
 Use the remove button on a group chip to remove only that membership.
@@ -80,8 +80,8 @@ Use wikilinks such as `[[Ilka Szabó]]` or `[[locations/Marrow]]`. Link completi
 candidate types and uses a path when a name is ambiguous. `Ctrl`+click opens a link.
 
 Links to characters, locations, and notes open in Reference; links to manuscript
-entries open in the main editor unless followed from inside Reference itself.
-The **Listed by** character links in the relationships inspector also open in Reference.
+entries open on the page unless followed from inside Reference itself.
+The **Listed by** character links in its relationships also open in Reference.
 
 Aliases can help you find a character by another name. If two entries share a name,
 choose deliberately rather than assuming the first result is the intended one.

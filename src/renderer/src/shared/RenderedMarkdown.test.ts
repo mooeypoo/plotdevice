@@ -47,8 +47,8 @@ describe('RenderedMarkdown peeks', () => {
     expect(view.emitted('peek')).toHaveLength(1)
   })
 
-  it('leaves Ctrl/Cmd+Shift+Enter to Return to writing', async () => {
-    // Regression: the peek shortcut was Return to writing's, so both ran.
+  it('leaves Ctrl/Cmd+Shift+Enter to Back to your chapter', async () => {
+    // Regression: the peek shortcut was Back to your chapter's, so both ran.
     const view = mountView()
     await view
       .get('a.markdown-link')

@@ -375,10 +375,10 @@ the final tightening step for the W/L/P work, planned and approved on its own be
 phases. Approved 2026-10-23. The phases below run in this order: U3a, U2a, U3b, U2b.
 
 ### U3a: Vocabulary
-- [ ] Catalog renames per the [glossary](plans/u1/glossary.md), in en, he and qqq: Manuscript (not
+- [x] Catalog renames per the [glossary](guide/translation.md#glossary), in en, he and qqq: Manuscript (not
   Binder), Details (not Properties or Inspector), Plot and Write modes, Standard / Side by side /
   Board layouts, beats on the board, Go to… for the palette.
-- [ ] The glossary moves into the translator guide. No layout changes.
+- [x] The glossary moves into the translator guide, and a catalog test fails on any retired name. The user guide uses the new names. No layout changes.
 
 **Done when:** no screen shows a name the glossary lists under "Not", in either language.
 

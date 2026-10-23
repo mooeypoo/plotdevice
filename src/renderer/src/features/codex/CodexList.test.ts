@@ -78,7 +78,7 @@ describe('CodexList', () => {
     expect(list.get('select option[value="note"]').text()).toBe('note')
     expect(list.text()).toContain('עריכה')
     expect(list.get('.edit').attributes('aria-label')).toContain('פתיחת')
-    expect(list.get('.edit').attributes('title')).toBe('פתיחה בעורך')
+    expect(list.get('.edit').attributes('title')).toBe('פתיחה בעמוד')
 
     const create = list.findAll('button').find((button) => button.text().includes('מקום חדש'))
     await create?.trigger('click')

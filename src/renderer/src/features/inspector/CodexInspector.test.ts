@@ -203,7 +203,7 @@ describe('CodexInspector', () => {
     await language.change('he')
     await flushPromises()
 
-    expect(panel.get('.inspector').attributes('aria-label')).toBe('מאפיינים')
+    expect(panel.get('.inspector').attributes('aria-label')).toBe('פרטים')
     expect(panel.text()).toContain('כינויים')
     expect(panel.text()).toContain('קבוצות')
     expect(panel.text()).toContain('תפקיד')
@@ -212,7 +212,9 @@ describe('CodexInspector', () => {
     expect(panel.text()).toContain('נקודת מבט')
     expect(panel.text()).toContain('קשרים')
     expect(
-      panel.findAll('button.remove').some((button) => button.attributes('aria-label') === 'הסרת ⁨Ilk⁩')
+      panel
+        .findAll('button.remove')
+        .some((button) => button.attributes('aria-label') === 'הסרת ⁨Ilk⁩')
     ).toBe(true)
     expect(panel.get<HTMLInputElement>('#codex-role').element.value).toBe('Unsaved role')
     expect(propertiesRead).toHaveBeenCalledTimes(propertyReads)

@@ -212,14 +212,14 @@ describe('ChapterEditor appearance', () => {
       throw new Error('Expected the CodeMirror editor and content elements')
     const view = EditorView.findFromDOM(editorElement)
     if (view === null) throw new Error('Expected a mounted CodeMirror view')
-    expect(wrapper.get('.cm-content').attributes('aria-label')).toBe('Prose editor')
+    expect(wrapper.get('.cm-content').attributes('aria-label')).toBe('Page')
     expect(wrapper.get('.cm-placeholder').text()).toBe('Begin writing…')
 
     useUiLanguageStore().locale = 'he'
     await nextTick()
     expect(wrapper.get('.cm-editor').element).toBe(editorElement)
     expect(wrapper.get('.cm-content').element).toBe(contentElement)
-    expect(wrapper.get('.cm-content').attributes('aria-label')).toBe('עורך הטקסט')
+    expect(wrapper.get('.cm-content').attributes('aria-label')).toBe('עמוד')
     expect(wrapper.get('.cm-placeholder').text()).toBe('אפשר להתחיל לכתוב…')
 
     view.dispatch({ changes: { from: 0, insert: '[[יעל]]' } })
@@ -264,7 +264,7 @@ describe('ChapterEditor peeks', () => {
     return view
   }
 
-  it('peeks at the link under the caret with Alt+Enter, not Return to writing’s keys', () => {
+  it('peeks at the link under the caret with Alt+Enter, not Back to your chapter’s keys', () => {
     const wrapper = mountEditor()
     const view = viewOf(wrapper)
     view.dispatch({ selection: { anchor: 7 } })

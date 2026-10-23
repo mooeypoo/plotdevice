@@ -19,13 +19,13 @@ beforeEach(() => {
 describe('WritingAppearance', () => {
   it('uses a native popover for keyboard dismissal and outside-click handling', () => {
     const wrapper = mount(WritingAppearance)
-    expect(wrapper.get('[aria-label="Writing appearance"]').attributes('popovertarget')).toBe(
+    expect(wrapper.get('[aria-label="Appearance"]').attributes('popovertarget')).toBe(
       'writing-appearance'
     )
     expect(wrapper.get('#writing-appearance').attributes()).toHaveProperty('popover')
-    expect(
-      wrapper.get('[aria-label="Close writing appearance"]').attributes('popovertargetaction')
-    ).toBe('hide')
+    expect(wrapper.get('[aria-label="Close Appearance"]').attributes('popovertargetaction')).toBe(
+      'hide'
+    )
     wrapper.unmount()
   })
 

@@ -28,9 +28,7 @@ function pluralClauses(message: string): RegExpMatchArray[] {
 }
 
 function pluralParameterIndexes(message: string): string[] {
-  return pluralClauses(message).flatMap((clause) =>
-    clause[1] === undefined ? [] : [clause[1]]
-  )
+  return pluralClauses(message).flatMap((clause) => (clause[1] === undefined ? [] : [clause[1]]))
 }
 
 describe('bundled localization foundation', () => {
@@ -54,17 +52,13 @@ describe('bundled localization foundation', () => {
 
       expect(parameterIndexes(hebrew), key).toEqual(englishParameters)
       for (const parameter of englishParameters) {
-        expect(parameterIndexes(notes), `${key} must document $${parameter}`).toContain(
-          parameter
-        )
+        expect(parameterIndexes(notes), `${key} must document $${parameter}`).toContain(parameter)
       }
 
       const englishPlurals = pluralParameterIndexes(english)
       expect(pluralParameterIndexes(hebrew), key).toEqual(englishPlurals)
       for (const parameter of englishPlurals) {
-        expect(englishParameters, `${key} plural must reference an argument`).toContain(
-          parameter
-        )
+        expect(englishParameters, `${key} plural must reference an argument`).toContain(parameter)
       }
       for (const message of [english, hebrew]) {
         const clauses = pluralClauses(message)
@@ -79,12 +73,12 @@ describe('bundled localization foundation', () => {
   it('keeps formatter instances independent and changes messages without reloading catalogs', () => {
     const first = createTranslator('en')
     const second = createTranslator('he')
-    expect(first.t('view-write')).toBe('Write')
-    expect(second.t('view-write')).toBe('כתיבה')
+    expect(first.t('view-write')).toBe('Page')
+    expect(second.t('view-write')).toBe('עמוד')
     first.setLocale('he')
     second.setLocale('en')
-    expect(first.t('view-write')).toBe('כתיבה')
-    expect(second.t('view-write')).toBe('Write')
+    expect(first.t('view-write')).toBe('עמוד')
+    expect(second.t('view-write')).toBe('Page')
     expect(first.t('about-detail', '1.2.3')).toContain('גרסה 1.2.3')
   })
 

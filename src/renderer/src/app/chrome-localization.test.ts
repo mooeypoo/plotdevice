@@ -35,8 +35,8 @@ describe('project chrome translation', () => {
   it('mirrors directional toolbar and breadcrumb icons when the interface is RTL', async () => {
     const page = mount(TopBar)
     const topBar = page.get('.top-bar')
-    const binderIcon = page.get('[aria-label=Binder] .directional-icon')
-    const inspectorIcon = page.get('[aria-label=Inspector] .directional-icon')
+    const binderIcon = page.get('[aria-label=Manuscript] .directional-icon')
+    const inspectorIcon = page.get('[aria-label=Details] .directional-icon')
     expect(topBar.attributes('dir')).toBe('ltr')
     expect(page.findAll('.separator').length).toBeGreaterThan(0)
     expect(binderIcon.classes()).not.toContain('mirrored')
@@ -47,15 +47,15 @@ describe('project chrome translation', () => {
     expect(topBar.attributes('dir')).toBe('rtl')
     expect(binderIcon.classes()).toContain('mirrored')
     expect(inspectorIcon.classes()).toContain('mirrored')
-    expect(page.findAll('.separator').every((separator) => separator.classes().includes('mirrored'))).toBe(
-      true
-    )
+    expect(
+      page.findAll('.separator').every((separator) => separator.classes().includes('mirrored'))
+    ).toBe(true)
     page.unmount()
   })
 
   it('translates top-bar accessible labels without replacing controls or changing panel actions', async () => {
     const page = mount(TopBar, { attachTo: document.body })
-    const button = page.get<HTMLButtonElement>('[aria-label=Binder]').element
+    const button = page.get<HTMLButtonElement>('[aria-label=Manuscript]').element
     button.focus()
     const project = useWorkspaceStore().project
     const entry = useEditorStore().entry
@@ -64,26 +64,26 @@ describe('project chrome translation', () => {
     await flushPromises()
     expect(page.get('nav').attributes('aria-label')).toBe('מיקום')
     expect(page.get('[role=tablist]').attributes('aria-label')).toBe('תצוגה')
-    expect(button.getAttribute('aria-label')).toBe('קלסר כתב היד')
+    expect(button.getAttribute('aria-label')).toBe('כתב יד')
     expect(button.title).toContain('Ctrl+\\')
-    expect(page.get('[aria-label="מאפיינים"]').attributes('title')).toBe(
-      'מאפיינים (\u2068Ctrl+Shift+I\u2069)'
+    expect(page.get('[aria-label="פרטים"]').attributes('title')).toBe(
+      'פרטים (\u2068Ctrl+Shift+I\u2069)'
     )
-    expect(page.get('[aria-label="מצב מיקוד"]').attributes('title')).toBe(
-      'מצב מיקוד (\u2068Ctrl+Shift+F\u2069)'
+    expect(page.get('[aria-label="ריכוז"]').attributes('title')).toBe(
+      'ריכוז (\u2068Ctrl+Shift+F\u2069)'
     )
-    expect(page.get('[aria-label="קלסר כתב היד"]').element).toBe(button)
+    expect(page.get('[aria-label="כתב יד"]').element).toBe(button)
     expect(document.activeElement).toBe(button)
     expect(useWorkspaceStore().project).toBe(project)
     expect(useEditorStore().entry).toBe(entry)
     expect(open).not.toHaveBeenCalled()
     const before = useWorkbenchNavigation().isAreaOpen('binder')
-    await page.get('[aria-label="קלסר כתב היד"]').trigger('click')
+    await page.get('[aria-label="כתב יד"]').trigger('click')
     expect(useWorkbenchNavigation().isAreaOpen('binder')).toBe(!before)
     const inspector = useWorkbenchNavigation().isAreaOpen('properties')
-    await page.get('[aria-label="מאפיינים"]').trigger('click')
+    await page.get('[aria-label="פרטים"]').trigger('click')
     expect(useWorkbenchNavigation().isAreaOpen('properties')).toBe(!inspector)
-    await page.get('[aria-label="מצב מיקוד"]').trigger('click')
+    await page.get('[aria-label="ריכוז"]').trigger('click')
     expect(useWorkbenchStore().focusMode).toBe(true)
     page.unmount()
   })
@@ -164,18 +164,20 @@ describe('project chrome translation', () => {
     const panel = page.get('[popover]').element
     input.focus()
     const storage = localStorage
-    const set = vi.fn((key: string, value: string) => { storage.setItem(key, value); })
+    const set = vi.fn((key: string, value: string) => {
+      storage.setItem(key, value)
+    })
     vi.stubGlobal('localStorage', { getItem: (key: string) => storage.getItem(key), setItem: set })
     const preferences = useWritingPreferencesStore()
     useUiLanguageStore().locale = 'he'
     await flushPromises()
-    expect(page.get('h2').text()).toBe('מראה הכתיבה')
+    expect(page.get('h2').text()).toBe('מראה')
     expect(page.get('label[for=prose-size]').text()).toBe('גודל הטקסט')
     expect(page.get('label[for=prose-width]').text()).toBe('רוחב השורה')
     expect(page.get('output[for=prose-size]').text()).toBe('19 פיקסלים')
     expect(page.get('output[for=prose-width]').text()).toBe('66 יחידות תו')
-    expect(page.get('.appearance-trigger').attributes('aria-label')).toBe('מראה הכתיבה')
-    expect(page.get('.close').attributes('aria-label')).toBe('סגירת מראה הכתיבה')
+    expect(page.get('.appearance-trigger').attributes('aria-label')).toBe('מראה')
+    expect(page.get('.close').attributes('aria-label')).toBe('סגירת המראה')
     expect(page.get('.close').attributes('popovertargetaction')).toBe('hide')
     expect(page.get('.reset').text()).toBe('איפוס')
     expect(page.get('[popover]').element).toBe(panel)
@@ -217,7 +219,7 @@ describe('project chrome translation', () => {
     useUiLanguageStore().locale = 'he'
     await flushPromises()
     expect(page.get('.focus-chrome').text()).toContain('3 מילים')
-    expect(page.get('.focus-chrome button').text()).toContain('יציאה ממיקוד')
+    expect(page.get('.focus-chrome button').text()).toContain('יציאה מריכוז')
     expect(page.get('.focus-chrome button').element).toBe(button)
     expect(editor.saveState).toBe('conflict')
     expect(save).not.toHaveBeenCalled()

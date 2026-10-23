@@ -134,9 +134,9 @@ describe('document tab writing workflow', () => {
     useWorkbenchStore().centerView = 'overview'
     await flushPromises()
     expect(wrapper.find('.cm-editor').exists()).toBe(false)
-    expect(wrapper.get('[role=tablist][aria-label=Documents]').text()).toContain('Writing')
+    expect(wrapper.get('[role=tablist][aria-label="Open tabs"]').text()).toContain('Your chapter')
     const focus = vi.spyOn(HTMLElement.prototype, 'focus')
-    await action('Return to writing').trigger('click')
+    await action('Back to your chapter').trigger('click')
     await flushPromises()
     expect(useWorkbenchStore().centerView).toBe('write')
     expect(undoDepth(prose().state)).toBe(1)

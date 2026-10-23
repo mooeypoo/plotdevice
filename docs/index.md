@@ -30,7 +30,7 @@ import { data as release } from './release.data'
     </div>
   </div>
   <figure>
-    <img class="desk" src="./images/editor.png" alt="Plot Device's dark writing desk, with manuscript parts on the left, an open chapter in the middle, and chapter properties on the right." width="1200" height="771">
+    <img class="desk" src="./images/editor.png" alt="Plot Device's dark writing desk, with manuscript parts on the left, an open chapter in the middle, and the chapter's details on the right." width="1200" height="771">
     <figcaption class="caption">The writing desk, with the bundled sample novel. Your prose in the middle; everything else within reach.</figcaption>
   </figure>
   <div class="chapters">
