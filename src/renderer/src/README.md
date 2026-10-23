@@ -4,7 +4,7 @@
 
 **Main concepts.** `app/` owns project navigation, document tabs, the protected Writing target, and preferences.
 `workbench/` holds the pure layout model, its storage, the view registry and the workbench shell (ADR 0017); `app/workbench-store.ts` owns the arrangement, focus mode and the center view, and features change the screen only through `app/use-workbench-navigation.ts`, naming views by id.
-`features/` contains the binder, editor, inspector, outline, board, capture, reference, timeline, codex, and interactions views. Writing or Plotting is a per-project mode in the workbench store; Plotting shows the beat board (or the outline's text) in the center.
+`features/` contains the binder, editor, inspector, outline, board, capture, reference, timeline, codex, and interactions views. Write or Plot is a per-project mode in the workbench store: Write shows the page, Plot the board, Overview, Timeline or Interactions (D1). The top bar's one ⋯ (`AppMenu`) holds the interface language, Appearance, layouts and Close project.
 Outline/Reference panels localize chrome and render authored Markdown with per-block direction; technical code stays isolated LTR.
 The Writing appearance controls set prose size/width without changing markdown or editor history.
 Tabs preserve session undo, selection and scroll; only navigation metadata persists in `userData`, never drafts.

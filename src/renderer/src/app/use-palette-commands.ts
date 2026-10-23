@@ -20,6 +20,7 @@ import { useUiLanguageStore } from './ui-language-store'
 import { useWorkbenchNavigation } from './use-workbench-navigation'
 import { viewDirectory } from './view-directory'
 import { useWorkbenchStore } from './workbench-store'
+import { openAppearance } from './appearance-popover'
 
 /** What a palette item does, which also groups and labels it. */
 export type PaletteKind = 'entry' | 'view' | 'layout' | 'command'
@@ -194,7 +195,8 @@ export function usePaletteCommands() {
       command('toggle-outline', 'menu-toggle-outline', () => {
         navigation.toggleView('outline')
       }),
-      command('toggle-focus-mode', 'menu-focus', workbench.toggleFocusMode)
+      command('toggle-focus-mode', 'menu-focus', workbench.toggleFocusMode),
+      command('appearance', 'app-menu-appearance', openAppearance)
     ]
   })
 

@@ -76,7 +76,7 @@ describe('switching modes', () => {
     expect(editor.text).toBe('Mine.')
   })
 
-  it('shows the outline as text in Plotting, and returns to the chapter in Writing', async () => {
+  it('edits the outline as text on the page in Write, and returns to the chapter after plotting', async () => {
     const editor = useEditorStore()
     const navigation = useWorkbenchNavigation()
     await editor.open('First frost.md')
@@ -84,10 +84,21 @@ describe('switching modes', () => {
     expect(await navigation.showOutlineText()).toBe(true)
     expect(editor.entry?.path).toBe('Outline.md')
     expect(useWorkbenchStore().centerView).toBe('write')
-    expect(useWorkbenchStore().mode).toBe('plotting')
+    expect(useWorkbenchStore().mode).toBe('writing')
     expect(await navigation.showCenterView('plot-board')).toBe(true)
+    expect(useWorkbenchStore().mode).toBe('plotting')
     expect(await navigation.switchMode('writing')).toBe(true)
     expect(editor.entry?.path).toBe('First frost.md')
+  })
+
+  it('shows the book views in Plot, switching mode when asked from Write', async () => {
+    const navigation = useWorkbenchNavigation()
+    expect(await navigation.showCenterView('timeline')).toBe(true)
+    expect(useWorkbenchStore().mode).toBe('plotting')
+    expect(useWorkbenchStore().centerView).toBe('timeline')
+    expect(await navigation.showCenterView('write')).toBe(true)
+    expect(useWorkbenchStore().mode).toBe('writing')
+    expect(useWorkbenchStore().centerView).toBe('write')
   })
 
   it('goes back to Writing when another document opens while plotting', async () => {
@@ -100,18 +111,21 @@ describe('switching modes', () => {
 })
 
 describe('the top bar', () => {
-  it('offers Board and Text in Plot, and Page in Write', async () => {
+  it('shows the place in Write, and Plot’s views of the whole story in Plot', async () => {
     const bar = mount(TopBar)
     const tabs = (): string[] => bar.findAll('[role="tab"]').map((tab) => tab.text())
-    expect(tabs()).toEqual(['Page', 'Overview', 'Timeline', 'Interactions'])
+    expect(tabs()).toEqual([])
+    expect(bar.find('nav.crumbs').exists()).toBe(true)
     const modes = bar.findAll('.mode-switch button')
     expect(modes.map((button) => button.text())).toEqual(['Write', 'Plot'])
     await modes[1]?.trigger('click')
     await flushPromises()
-    expect(tabs()).toEqual(['Board', 'Text', 'Overview', 'Timeline', 'Interactions'])
+    expect(tabs()).toEqual(['Board', 'Overview', 'Timeline', 'Interactions'])
+    expect(bar.find('nav.crumbs').exists()).toBe(false)
+    expect(bar.find('[aria-label="Focus"]').exists()).toBe(false)
     expect(bar.get('.mode-switch button[aria-pressed="true"]').text()).toBe('Plot')
     await useUiLanguageStore().change('he')
-    expect(tabs().slice(0, 2)).toEqual(['לוח העלילה', 'טקסט'])
+    expect(tabs().slice(0, 2)).toEqual(['לוח העלילה', 'מבט־על'])
     bar.unmount()
   })
 })

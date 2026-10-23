@@ -33,7 +33,6 @@ import {
   type WorkbenchStorageProblem
 } from '../workbench/storage/workbench-storage'
 import { registerDocumentPresenter } from './document-presenter'
-import { placeOf } from './entry-owners'
 import { registerMoveFollower } from './move-followers'
 import { useUiLanguageStore } from './ui-language-store'
 
@@ -80,16 +79,17 @@ export const useWorkbenchStore = defineStore('workbench', () => {
   const mode = computed<Mode>(() => bindings.value.mode)
   /** Focus mode hides the chrome around the page, over any layout; session state (Q4). */
   const focusMode = ref(false)
-  /** What the center stage shows: the editor, a view of the whole book, or the board. */
+  /**
+   * What the center stage shows. Write is the page and nothing else; Plot shows the board or a
+   * view of the whole book (D1). A layout saved before that rule reads as its mode's default.
+   */
   const centerView = computed<MainView>({
     get: () => {
+      if (mode.value === 'writing') return 'write'
       const view = layout.value.center.view
-      return view === 'overview' ||
-        view === 'timeline' ||
-        view === 'interactions' ||
-        view === 'plot-board'
+      return view === 'overview' || view === 'timeline' || view === 'interactions'
         ? view
-        : 'write'
+        : 'plot-board'
     },
     set: (view) => {
       apply((current) => setCenterView(current, view === 'write' ? 'document' : view))
@@ -195,12 +195,9 @@ export const useWorkbenchStore = defineStore('workbench', () => {
     focusMode.value = false
   }
 
-  /**
-   * Brings the writable document back to the center after navigation. In Plotting mode an
-   * outline's text takes the board's place; any other document is written in Writing mode.
-   */
-  function showDocument(path: string): void {
-    if (mode.value === 'plotting' && placeOf(path)?.kind !== 'outline') setMode('writing')
+  /** Brings the writable document back to the center after navigation: documents are written in Write. */
+  function showDocument(): void {
+    setMode('writing')
     centerView.value = 'write'
   }
 

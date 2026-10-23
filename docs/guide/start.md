@@ -25,12 +25,18 @@ The chapter's title and story details live in YAML frontmatter above its prose.
 You can edit them in the Details panel without touching that syntax.
 The [file format](../file-format.md) explains the same files for other editors.
 
-## Try the views
+## Write and Plot
 
-- **Write** keeps the page and its details close.
-- **Overview** shows chapters, status, threads, and synopses.
-- **Timeline** follows manuscript order or story dates.
-- **Interactions** shows which characters share chapters.
+The switch in the top bar has two modes:
+
+- **Write** is the page, with your manuscript and the chapter's details beside it.
+- **Plot** is the whole story: the **Board**, **Overview** (chapters, status, threads and
+  synopses), **Timeline** (manuscript order or story dates) and **Interactions** (which
+  characters share chapters).
+
+**Go to…** (Ctrl+K) finds any chapter, character, view or command. The **⋯** menu at the end
+of the top bar holds what you need less often: the interface language, **Appearance**, layouts,
+and **Close project**.
 
 There is also a place for the [outline you write yourself](story.md#your-outline),
 which is different from the derived overview.
