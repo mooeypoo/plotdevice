@@ -8,7 +8,8 @@ export type MessageKey = Exclude<keyof typeof en, '@metadata'>
 type ParameterizedMessages = {
   'chrome-binder-tooltip': [shortcut: string]
   'chrome-inspector-tooltip': [shortcut: string]
-  'chrome-focus-tooltip': [shortcut: string]
+  'chrome-focus-tooltip': [shortcut: string],
+  'chrome-goto-tooltip': [shortcut: string]
   'chrome-leave-focus': [shortcut: string]
   'chrome-count-part': [count: number, formatted: string]
   'chrome-count-chapter': [count: number, formatted: string]

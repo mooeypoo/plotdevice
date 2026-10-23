@@ -63,7 +63,7 @@ describe('project chrome translation', () => {
     useUiLanguageStore().locale = 'he'
     await flushPromises()
     expect(page.get('nav').attributes('aria-label')).toBe('מיקום')
-    expect(page.get('[role=tablist]').attributes('aria-label')).toBe('תצוגה')
+    expect(page.get('.app-menu button[aria-haspopup=menu]').attributes('aria-label')).toBe('עוד')
     expect(button.getAttribute('aria-label')).toBe('כתב יד')
     expect(button.title).toContain('Ctrl+\\')
     expect(page.get('[aria-label="פרטים"]').attributes('title')).toBe(
@@ -176,7 +176,6 @@ describe('project chrome translation', () => {
     expect(page.get('label[for=prose-width]').text()).toBe('רוחב השורה')
     expect(page.get('output[for=prose-size]').text()).toBe('19 פיקסלים')
     expect(page.get('output[for=prose-width]').text()).toBe('66 יחידות תו')
-    expect(page.get('.appearance-trigger').attributes('aria-label')).toBe('מראה')
     expect(page.get('.close').attributes('aria-label')).toBe('סגירת המראה')
     expect(page.get('.close').attributes('popovertargetaction')).toBe('hide')
     expect(page.get('.reset').text()).toBe('איפוס')

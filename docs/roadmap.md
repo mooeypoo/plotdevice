@@ -408,7 +408,7 @@ is left as a bare native control.
 native `<select>` or checkbox outside the shared styled components.
 
 ### U3b: Information architecture
-- [ ] The top bar (D1, D2): mode switch, a visible Go to…, side toggles and one ⋯ menu.
+- [x] The top bar (D1, D2): mode switch, a visible Go to…, side toggles and one ⋯ menu (interface language, Appearance, Layout, Close project). Write is the page; Overview, Timeline and Interactions moved to Plot; the Text tab is gone.
 - [ ] Document tabs only with two or more documents; "In this chapter" as a line under the heading.
 - [ ] Panel headers with one ⋯ and tab overflow; compact Details and "Edit details" (D6).
 - [ ] The status bar, Go to…'s empty state, the board's fit and header, and "+ Add column" (D5).

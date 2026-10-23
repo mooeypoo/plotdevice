@@ -85,7 +85,7 @@ describe('the workbench center stage', () => {
     expect(await useWorkbenchNavigation().showCenterView('timeline')).toBe(true)
     expect(useWorkbenchStore().layout.center.view).toBe('timeline')
     expect(JSON.parse(localStorage.getItem('plotdevice.workbench') ?? '{}')).toMatchObject({
-      arrangements: { write: { center: { view: 'timeline' } } }
+      arrangements: { plot: { center: { view: 'timeline' } } }
     })
   })
 

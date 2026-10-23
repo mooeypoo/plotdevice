@@ -8,11 +8,9 @@ import { useWorkbenchStore } from '../../app/workbench-store'
 import { removeSection, selectSection, setArrangement } from '../model/operations'
 import type { ViewId } from '../model/view-catalog'
 import DockArea from './DockArea.vue'
-import LayoutMenu from './LayoutMenu.vue'
-import LayoutSwitcher from './LayoutSwitcher.vue'
+import AppMenu from '../../app/AppMenu.vue'
 import ShelfArea from './ShelfArea.vue'
 import WorkbenchBody from './WorkbenchBody.vue'
-import { chooseOption, optionLabels } from '../../shared/select-field-testing'
 
 // Each registered view renders a marker, so these tests exercise the shell, not the features.
 vi.mock('../views/view-registry', async () => {
@@ -189,19 +187,6 @@ describe('ShelfArea', () => {
   })
 })
 
-describe('LayoutSwitcher', () => {
-  it('offers the Writing layouts that can be shown, and switches between them', async () => {
-    const switcher = mount(LayoutSwitcher)
-    expect(await optionLabels(switcher)).toEqual(['Standard', 'Side by side'])
-    await chooseOption(switcher, 'revise')
-    await flushPromises()
-    expect(useWorkbenchStore().activeLayoutId).toBe('revise')
-    useUiLanguageStore().locale = 'he'
-    await flushPromises()
-    expect(await optionLabels(switcher)).toEqual(['רגילה', 'זה לצד זה'])
-  })
-})
-
 describe('placement menus', () => {
   const openMenu = async (wrapper: ReturnType<typeof mount>, label: string) => {
     const button = wrapper
@@ -272,30 +257,59 @@ describe('placement menus', () => {
   })
 })
 
-describe('LayoutMenu', () => {
-  const choose = async (wrapper: ReturnType<typeof mount>, text: string) => {
-    await wrapper.get('button[aria-haspopup=menu]').trigger('click')
+describe('the Layout submenu', () => {
+  /** Opens the ⋯ menu's Layout submenu and chooses an item in it by its label. */
+  const choose = async (wrapper: ReturnType<typeof mount>, label: string) => {
+    if (!wrapper.find('[role=menu]').exists()) {
+      await wrapper.get('button[aria-haspopup=menu]').trigger('click')
+      await flushPromises()
+    }
+    await wrapper.get('[data-opens="layout"]').trigger('click')
     await flushPromises()
-    const item = wrapper.findAll('[role=menuitem]').find((candidate) => candidate.text() === text)
-    if (item === undefined) throw new Error(`No item ${text}`)
-    await item.trigger('click')
+    await wrapper.get(`[data-submenu="layout"] [data-label="${label}"]`).trigger('click')
     await flushPromises()
   }
 
+  it('lists this mode’s layouts with the chosen one checked, and switches between them', async () => {
+    const menu = mount(AppMenu, { attachTo: document.body })
+    await menu.get('button[aria-haspopup=menu]').trigger('click')
+    await menu.get('[data-opens="layout"]').trigger('click')
+    await flushPromises()
+    const radios = menu.findAll('[data-submenu="layout"] [role=menuitemradio]')
+    expect(radios.map((radio) => radio.attributes('data-label'))).toEqual([
+      'Standard',
+      'Side by side'
+    ])
+    expect(radios[0]?.attributes('aria-checked')).toBe('true')
+    await radios[1]?.trigger('click')
+    await flushPromises()
+    expect(useWorkbenchStore().activeLayoutId).toBe('revise')
+    useUiLanguageStore().locale = 'he'
+    await menu.get('button[aria-haspopup=menu]').trigger('click')
+    await menu.get('[data-opens="layout"]').trigger('click')
+    await flushPromises()
+    expect(
+      menu
+        .findAll('[data-submenu="layout"] [role=menuitemradio]')
+        .map((radio) => radio.attributes('data-label'))
+    ).toEqual(['רגילה', 'זה לצד זה'])
+    menu.unmount()
+  })
+
   it('saves, renames and deletes the writer’s own layout', async () => {
     const workbench = useWorkbenchStore()
-    const menu = mount(LayoutMenu, { attachTo: document.body })
+    const menu = mount(AppMenu, { attachTo: document.body })
     await choose(menu, 'Save as new layout…')
     await menu.get('form').trigger('submit')
     expect(menu.get('[role=alert]').text()).toBe('Give the layout a name.')
-    await menu.get('input').setValue('Wide reference')
+    await menu.get('form input').setValue('Wide reference')
     await menu.get('form').trigger('submit')
     expect(workbench.settings.saved.map((entry) => entry.name)).toEqual(['Wide reference'])
     expect(workbench.activeLayoutId).toMatch(/^user-/u)
 
     await choose(menu, 'Rename…')
-    expect((menu.get('input').element as HTMLInputElement).value).toBe('Wide reference')
-    await menu.get('input').setValue('Wide')
+    expect((menu.get('form input').element as HTMLInputElement).value).toBe('Wide reference')
+    await menu.get('form input').setValue('Wide')
     await menu.get('form').trigger('submit')
     expect(workbench.settings.saved[0]?.name).toBe('Wide')
 
@@ -310,9 +324,9 @@ describe('LayoutMenu', () => {
   it('isolates a taken name in its message', async () => {
     const workbench = useWorkbenchStore()
     workbench.saveAs('מבט רחב')
-    const menu = mount(LayoutMenu, { attachTo: document.body })
+    const menu = mount(AppMenu, { attachTo: document.body })
     await choose(menu, 'Save as new layout…')
-    await menu.get('input').setValue('מבט רחב')
+    await menu.get('form input').setValue('מבט רחב')
     await menu.get('form').trigger('submit')
     expect(menu.get('[role=alert]').text()).toBe('A layout named ⁨מבט רחב⁩ already exists.')
     menu.unmount()
@@ -321,7 +335,7 @@ describe('LayoutMenu', () => {
   it('resets a rearranged preset and shows closed views again', async () => {
     const workbench = useWorkbenchStore()
     workbench.apply((layout) => removeSection(layout, 'reference'))
-    const menu = mount(LayoutMenu, { attachTo: document.body })
+    const menu = mount(AppMenu, { attachTo: document.body })
     await choose(menu, 'Show Reference')
     expect(workbench.layout.end.sections.map((section) => section.view)).toContain('reference')
     await choose(menu, 'Reset to default')

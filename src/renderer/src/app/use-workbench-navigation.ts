@@ -18,11 +18,13 @@ export function useWorkbenchNavigation() {
   const tabs = useDocumentTabsStore()
 
   /**
-   * Shows a view in the main area, after saving the draft; refused while recovery is pending. A
-   * view the layout already shows in a panel is brought forward there instead of duplicated.
+   * Shows a view in the main area, after saving the draft; refused while recovery is pending.
+   * The page belongs to Write and the board and book views to Plot, so this switches mode when
+   * needed (D1). A view the layout already shows in a panel is brought forward there instead.
    */
   function showCenterView(view: MainView): Promise<boolean> {
-    if (workbench.centerView === view) return Promise.resolve(true)
+    const mode: Mode = view === 'write' ? 'writing' : 'plotting'
+    if (workbench.mode === mode && workbench.centerView === view) return Promise.resolve(true)
     const placed = view === 'write' ? undefined : findView(workbench.layout, view)
     if (placed !== undefined) {
       return Promise.resolve(
@@ -30,6 +32,7 @@ export function useWorkbenchNavigation() {
       )
     }
     return editor.runNavigation(() => {
+      workbench.setMode(mode)
       workbench.centerView = view
     })
   }
@@ -65,8 +68,8 @@ export function useWorkbenchNavigation() {
   }
 
   /**
-   * In Plotting mode, the current outline's Markdown in the writable editor instead of the board:
-   * only one of them is on screen, so only one can be edited (brief §4.4).
+   * "Edit as text": the current outline's Markdown on the page, in Write. The board and the text
+   * are never both on screen, so only one can be edited (brief §4.4).
    */
   async function showOutlineText(): Promise<boolean> {
     const outline = useOutlineStore().currentPath
