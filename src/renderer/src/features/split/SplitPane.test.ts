@@ -47,7 +47,7 @@ describe('SplitPane', () => {
     editor.edit('A new line.')
     await flushPromises()
     expect(pane.text()).toContain('A new line.')
-    expect(pane.get('[role=status]').text()).toContain('current draft')
+    expect(pane.get('[role=status]').text()).toContain('draft open on the page')
     await editor.flush()
   })
 
@@ -70,6 +70,6 @@ describe('SplitPane', () => {
     useUiLanguageStore().locale = 'he'
     workbench.openBeside('First frost.md')
     await flushPromises()
-    expect(empty.get('section').attributes('aria-label')).toBe('לצד העורך: ⁨First frost⁩')
+    expect(empty.get('section').attributes('aria-label')).toBe('בצד העמוד: ⁨First frost⁩')
   })
 })

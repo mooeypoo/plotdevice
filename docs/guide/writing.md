@@ -1,12 +1,12 @@
 # Make room for the words
 
-The binder is your manuscript's structure. The editor is the chapter's text.
-The inspector holds the properties that make the rest of the story visible.
+The Manuscript panel is your book's structure. The page is the chapter's text.
+The Details panel holds the details that make the rest of the story visible.
 
 ## Arrange parts and chapters
 
-Create parts and chapters from the binder. Drag to reorder chapters, move them
-between parts, or reorder parts. Keyboard alternatives in the inspector include
+Create parts and chapters from the Manuscript panel. Drag to reorder chapters, move them
+between parts, or reorder parts. Keyboard alternatives in Details include
 **Move up**, **Move down**, and a part selector.
 
 The unordered tray holds chapters outside the numbered manuscript. Removing a
@@ -18,16 +18,16 @@ define placement. [Read the exact rules](../file-format.md#order).
 
 ## Write and save
 
-The editor shows Markdown source. Changes autosave after a short pause and when
-the editor loses focus. Check the save status before closing or switching tools.
+The page shows Markdown source. Changes autosave after a short pause and when
+the page loses focus. Check the save status before closing or switching tools.
 
 If saving fails or a file changes outside the app, stop and read the notice.
-Do not assume the editor's visible text has reached disk. The
+Do not assume the page's visible text has reached disk. The
 [safety guide](safety.md) explains the available choices.
 
 ## Give the chapter its place in the story
 
-In the inspector, set status, point of view, characters, location, threads, dates,
+In Details, set status, point of view, characters, location, threads, dates,
 and a short synopsis. Use what helps; metadata is not homework you must finish
 before writing.
 
@@ -39,30 +39,30 @@ list stays visible rather than being silently removed.
 ### Consult another page without leaving your draft
 
 Select a character, location, or note in **Codex** to read it in the right-hand
-**Reference** tab. Each part and chapter in the binder also has an **Open in
-reference** button beside it; the normal chapter button still opens the editor.
+**Reference** panel. Each part and chapter in the Manuscript panel also has an **Open in
+reference** button beside it; the normal chapter button still opens it on the page.
 The manuscript's cursor, selection, scroll position and undo history stay in place
 when you switch references.
 
 Use **Expand/Restore** or drag the panel separator for more reading space. With
 the separator focused, Left/Right adjusts its width; Home/End chooses its limits.
 The preferred reading width is shared with **Outline** and remembered on this
-computer. References remain readable during a manuscript conflict, but **Open in
-editor** still requires resolving any unsaved changes before leaving that draft.
+computer. References remain readable during a manuscript conflict, but **Open on the
+page** still requires resolving any unsaved changes before leaving that draft.
 
 ### Keep your writing chapter close
 
-The first manuscript you open becomes **Writing**, shown first in the document
-tabs. While Writing is unpinned, actually editing another part or chapter makes
-that document your new Writing target. Reading another page or editing a
+The first manuscript page you open becomes **Your chapter**, shown first in the
+tabs. While it is unpinned, actually editing another part or chapter makes
+that one your chapter instead. Reading another page or editing a
 character does not change it.
 
-Use **Pin** on Writing to lock your target while comparing or annotating other
+Use **Pin** on your chapter to lock it while comparing or annotating other
 chapters. **Write here** on another manuscript tab explicitly chooses and pins
 that document instead. **Unpin** releases the lock; it does not close the tab.
-Pinning another document keeps it available without changing Writing.
+Pinning another tab keeps it available without changing your chapter.
 
-**Return to writing** brings you back from another document, Overview, Timeline,
+**Back to your chapter** brings you back from another entry, Overview, Timeline,
 or Interactions. A document's undo history, selection and reading position survive
 switching tabs during this project session. If its text changes outside the app,
 reopening it loads the disk version with fresh editor history.
@@ -72,39 +72,39 @@ open**, double-click its tab, pin it, or edit its text to keep it. New documents
 start kept. Opening a page already in the strip activates its existing tab.
 
 Close an ordinary tab with its **×**, or use **Close other unpinned** to clear
-comparisons while keeping the current document, Writing and pinned tabs. Unpin
-other pinned tabs before closing them. To close Writing, first choose another
+comparisons while keeping the current entry, your chapter and pinned tabs. Unpin
+other pinned tabs before closing them. To close your chapter, first choose another
 manuscript with **Write here**. Closing tabs never deletes files.
 
 Switching or closing tabs saves first. A conflict, missing file or failed save
 keeps your draft open until you resolve it; read-only Reference lookups still work.
-Tab paths, order, pins and Writing are remembered per project on this computer.
+Tab paths, order, pins and your chapter are remembered per project on this computer.
 Reopening reads the files on disk: tabs are **not an unsaved-draft backup**, and
 undo, selection and scroll are not restored after closing the project or app.
 
 ### Adjust the writing surface
 
-Use **Writing appearance** in the status bar to adjust prose size and line width.
-Focus mode hides the surrounding panels. Appearance preferences belong to the app's
+Use **Appearance** in the status bar to adjust prose size and line width.
+**Focus** hides the surrounding panels. Appearance preferences belong to the app's
 per-user settings, not the novel's Markdown.
 
 | Action | Shortcut |
 | --- | --- |
-| Toggle binder | `Ctrl+\` |
-| Toggle inspector | `Ctrl+Shift+I` |
-| Toggle outline panel | `Ctrl+Shift+O` |
-| Focus mode | `Ctrl+Shift+F` |
-| Return to writing | `Ctrl+Shift+Enter` |
+| Toggle Manuscript | `Ctrl+\` |
+| Toggle Details | `Ctrl+Shift+I` |
+| Toggle Outline panel | `Ctrl+Shift+O` |
+| Focus | `Ctrl+Shift+F` |
+| Back to your chapter | `Ctrl+Shift+Enter` |
 | Next / previous document | `Ctrl+Tab` / `Ctrl+Shift+Tab` |
 | Close current document tab | `Ctrl+W` |
 
-These are the Linux/Windows shortcuts. Document shortcuts also work in focus mode.
+These are the Linux/Windows shortcuts. Tab shortcuts also work in Focus.
 With the document strip focused, use Left/Right or Home/End to activate tabs.
 The native **Edit** menu includes undo, redo, cut, copy, paste, and select all.
 
 ## More than one writing direction
 
-The editor supports right-to-left prose alongside left-to-right text. For example:
+The page supports right-to-left prose alongside left-to-right text. For example:
 
 <p dir="rtl" lang="he">יעל פתחה את המחברת. <bdi lang="en">Chapter One</bdi> עדיין חיכה לשם.</p>
 

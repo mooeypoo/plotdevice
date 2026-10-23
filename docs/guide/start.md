@@ -18,16 +18,16 @@ Unknown or untyped files are not deleted.
 
 ## Write the first chapter
 
-Use **New chapter** in the manuscript binder, enter a title, and start writing.
+Use **New chapter** in the Manuscript panel, enter a title, and start writing.
 Parts are optional; add them when they help you think about the book.
 
-The chapter's title and story properties live in YAML frontmatter above its prose.
-You can edit the properties through the inspector without touching that syntax.
+The chapter's title and story details live in YAML frontmatter above its prose.
+You can edit them in the Details panel without touching that syntax.
 The [file format](../file-format.md) explains the same files for other editors.
 
 ## Try the views
 
-- **Write** keeps the draft and its properties close.
+- **Write** keeps the page and its details close.
 - **Overview** shows chapters, status, threads, and synopses.
 - **Timeline** follows manuscript order or story dates.
 - **Interactions** shows which characters share chapters.

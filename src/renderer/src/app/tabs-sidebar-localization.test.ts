@@ -42,17 +42,17 @@ describe('document tabs localization', () => {
     const documentTab = tabs.get('[role=tab][aria-selected=true]').element
     const openEntry = vi.spyOn(fake.api.manuscript, 'openEntry')
 
-    expect(tabs.get('section').attributes('aria-label')).toBe('Open documents')
-    expect(tabs.get('[role=tablist]').attributes('aria-label')).toBe('Documents')
-    expect(tabs.text()).toContain('Writing')
+    expect(tabs.get('section').attributes('aria-label')).toBe('Open entries')
+    expect(tabs.get('[role=tablist]').attributes('aria-label')).toBe('Open tabs')
+    expect(tabs.text()).toContain('Your chapter')
     expect(tabs.text()).toContain('Preview')
     expect(tabs.text()).toContain('Keep open')
 
     useUiLanguageStore().locale = 'he'
     await flushPromises()
 
-    expect(tabs.get('section').attributes('aria-label')).toBe('מסמכים פתוחים')
-    expect(tabs.get('[role=tablist]').attributes('aria-label')).toBe('מסמכים')
+    expect(tabs.get('section').attributes('aria-label')).toBe('רשומות פתוחות')
+    expect(tabs.get('[role=tablist]').attributes('aria-label')).toBe('לשוניות פתוחות')
     expect(tabs.text()).toContain('כתיבה')
     expect(tabs.text()).toContain('תצוגה מקדימה')
     expect(tabs.text()).toContain('השאר פתוח')
@@ -64,9 +64,9 @@ describe('document tabs localization', () => {
       .findAll('button')
       .find((button) => button.text() === 'השאר פתוח')
       ?.trigger('click')
-    expect(tabStore.documents.find((document) => document.path === 'First frost.md')?.temporary).toBe(
-      false
-    )
+    expect(
+      tabStore.documents.find((document) => document.path === 'First frost.md')?.temporary
+    ).toBe(false)
   })
 
   it('translates action names and isolates document titles in close labels', async () => {
@@ -78,7 +78,7 @@ describe('document tabs localization', () => {
     await flushPromises()
 
     expect(tabs.text()).toContain('הצמד')
-    expect(tabs.text()).toContain('חזרה לכתיבה')
+    expect(tabs.text()).toContain('חזרה לפרק')
     expect(tabs.text()).toContain('כתיבה כאן')
     expect(tabs.text()).toContain('סגירת שאר הלשוניות שאינן מוצמדות')
     expect(tabs.get('.return').attributes('title')).toContain('Ctrl+Shift+Enter')
@@ -90,7 +90,7 @@ describe('document tabs localization', () => {
     await tabs.get('[role=tab][title="The Ferry.md"]').trigger('click')
     await flushPromises()
     expect(tabs.get('.document-actions button[aria-pressed]').attributes('title')).toContain(
-      'יעד הכתיבה'
+      'הפרק שלך'
     )
   })
 
