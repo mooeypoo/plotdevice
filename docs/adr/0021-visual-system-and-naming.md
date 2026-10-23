@@ -1,6 +1,6 @@
 # ADR 0021: One visual system and one name per concept
 
-**Status:** proposed (2026-10-23), not yet approved. From roadmap U1; details in
+**Status:** accepted (2026-10-23). From roadmap U1; details in
 `docs/plans/u1/redesign.md` and `docs/plans/u1/glossary.md`, evidence in
 `docs/plans/u1/audit.md`.
 

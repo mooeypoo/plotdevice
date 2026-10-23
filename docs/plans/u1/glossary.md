@@ -1,7 +1,6 @@
 # U1b: Glossary — one name per concept
 
-**Status:** proposed (2026-10-23), for the writer's approval. Once approved, the en/he message
-catalogs follow it (implementation phase U3a), and it moves into the translator guide.
+**Status:** approved by the writer (2026-10-23). The en/he message catalogs follow it (implementation phase U3a), and it moves into the translator guide.
 
 **How to read it.** The **name** is what the interface says, in English and Hebrew. *Not* lists
 the names in use today that will go. Code may keep its internal names (`binder`, `scene-card`,
@@ -21,7 +20,7 @@ The mode switch is the **only** control named Write. Nothing else in the top bar
 | Name (en / he) | What it is | Not |
 |---|---|---|
 | **Page** / **עמוד** | The writable editor in the middle, with the chapter you are writing. | "document", "editor" (in the interface) |
-| **Panel** / **חלונית** | One tool beside the page: Manuscript, Codex, Properties, Outline, Reference, Cards, Chapter card, Needs attention. | "view", "section", "tab" |
+| **Panel** / **חלונית** | One tool beside the page: Manuscript, Codex, Details, Outline, Reference, Cards, Chapter card, Needs attention. | "view", "section", "tab" |
 | **Side** / **צד** | Where panels live: the side before the page, the side after it, and below. Mirrors in Hebrew. | "dock", "area", "shelf", "start/end" |
 | **Layout** / **פריסה** | A saved arrangement of panels for one mode. Advanced; reached from the ⋯ menu. | presets named like modes ("Write", "Plot") |
 | **Split** / **פיצול** | A second, read-only page beside yours. | "open beside" as a noun |
@@ -52,7 +51,7 @@ The mode switch is the **only** control named Write. Nothing else in the top bar
 |---|---|---|
 | **Manuscript** / **כתב יד** | See above. | "Binder" |
 | **Codex** / **קודקס** | See above. | |
-| **Properties** / **מאפיינים** | The chapter's or entry's keys. | "Inspector" (button, menu) |
+| **Details** / **פרטים** | The chapter's or entry's keys: status, point of view, synopsis and the rest. A plain word for writers who don't think in "properties" (writer, 2026-10-23). | "Inspector" (button, menu), "Properties" |
 | **Outline** / **מתווה** | The outline beside the page, highlighting your chapter. | |
 | **Reference** / **עיון** | An entry read beside the page. | |
 | **Cards** / **כרטיסים** | Entries you pinned, stacked. | "Show Cards" vs "Pinned" vs "Cards" |
@@ -67,6 +66,7 @@ The mode switch is the **only** control named Write. Nothing else in the top bar
 | **Open** / **פתיחה** | Show an entry on the page. | |
 | **Peek** / **הצצה** | A small card for a link, without leaving the page. | |
 | **Pin** / **הצמדה** | Keep a card in Cards. | |
+| **Edit details** / **עריכת פרטים** | Open Details for an entry, from its peek, its card in Cards, the Chapter card or its Manuscript row. | |
 | **Open beside** / **פתיחה בצד** | Show an entry in a split. | an icon with no label |
 | **Write here** / **כתיבה כאן** | Make a split's chapter the one you write. | |
 | **Back to your chapter** / **חזרה לפרק** | Return to the chapter you are writing. | "Return to writing" |

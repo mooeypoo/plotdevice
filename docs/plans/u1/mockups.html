@@ -354,8 +354,9 @@ section.decisions h2 { margin: 0; font: 600 22px/1.2 var(--font-prose); }
       <div class="note"><span class="tag">D1</span><h3>Write is the page; Plot is the whole story</h3><p>Board, Overview, Timeline and Interactions move into Plot. The Write screen loses its view tabs, so "Write" appears once.</p></div>
       <div class="note"><span class="tag">D2</span><h3>Settings leave the top bar</h3><p>Interface language, layouts, appearance and Close project move into one ⋯ menu. The welcome screen keeps the language picker.</p></div>
       <div class="note"><span class="tag">D3</span><h3>Board items are beats</h3><p>"+ Add beat" on the board; "card" means only an entry you pinned.</p></div>
-      <div class="note"><span class="tag">D4</span><h3>The outline comes first beside the page</h3><p>Standard opens with Manuscript on one side and Outline first on the other. Properties becomes compact.</p></div>
+      <div class="note"><span class="tag">D4</span><h3>The outline comes first beside the page</h3><p>Standard opens with Manuscript on one side and Outline first on the other. Details becomes compact.</p></div>
       <div class="note"><span class="tag">D5</span><h3>Parts and columns are both one click away</h3><p>The Manuscript side keeps "+ New part" beside "+ New chapter", as today. The board gains "+ Add column" after the last column, which adds one ## heading to the outline; if no part has that name, it offers to create the part too.</p></div>
+      <div class="note"><span class="tag">D6</span><h3>"Details", not "Properties"</h3><p>The panel with an entry's keys is called Details. "Edit details" opens it from a peek, a pinned card, the Chapter card or a Manuscript row.</p></div>
     </div>
   </section>
 </div>
@@ -366,7 +367,7 @@ section.decisions h2 { margin: 0; font: 600 22px/1.2 var(--font-prose); }
     en: {
       project: 'The Salt Orchard', crumbPart: 'Part One', crumbChapter: 'The Ferry',
       write: 'Write', plot: 'Plot', goto: 'Go to…', manuscript: 'Manuscript', codex: 'Codex',
-      outline: 'Outline', properties: 'Properties', reference: 'Reference', focus: 'Focus',
+      outline: 'Outline', properties: 'Details', reference: 'Reference', focus: 'Focus',
       board: 'Board', overview: 'Overview', timeline: 'Timeline', interactions: 'Interactions',
       partOne: 'Part One: The Orchard', ferry: 'The Ferry', frost: 'First frost', newChapter: '+ New chapter', newPart: '+ New part', addColumn: '+ Add column',
       place: 'Part I · Chapter 1', inChapter: 'In this chapter',
@@ -396,7 +397,7 @@ section.decisions h2 { margin: 0; font: 600 22px/1.2 var(--font-prose); }
     he: {
       project: 'The Salt Orchard', crumbPart: 'Part One', crumbChapter: 'The Ferry',
       write: 'כתיבה', plot: 'עלילה', goto: 'מעבר אל…', manuscript: 'כתב יד', codex: 'קודקס',
-      outline: 'מתווה', properties: 'מאפיינים', reference: 'עיון', focus: 'ריכוז',
+      outline: 'מתווה', properties: 'פרטים', reference: 'עיון', focus: 'ריכוז',
       board: 'לוח', overview: 'מבט־על', timeline: 'ציר הזמן', interactions: 'מפגשים',
       partOne: 'Part One: The Orchard', ferry: 'The Ferry', frost: 'First frost', newChapter: '+ פרק חדש', newPart: '+ חלק חדש', addColumn: '+ הוספת עמודה',
       place: 'חלק I · פרק 1', inChapter: 'בפרק הזה',
@@ -544,9 +545,9 @@ section.decisions h2 { margin: 0; font: 600 22px/1.2 var(--font-prose); }
     { id: 'write', name: 'Write', before: 'writing', render: function (t) { return writeScreen(t, 'outline'); },
       caption: 'Writing a chapter: one row of chrome, the outline beside the page, one count and the save state below.',
       notes: [['F1', 'One "Write"', 'The mode switch is the only control called Write. No view tabs, no layout select.'], ['F4', '15 controls → 8', 'Project, place, mode, Go to…, two sides, focus, ⋯. Side toggles carry labels on wide windows.'], ['F6', 'One bar above the page', 'No tab bar with one document; "In this chapter" is a line under the heading, not a bar.']] },
-    { id: 'properties', name: 'Properties', before: 'writing', render: function (t) { return writeScreen(t, 'properties'); },
-      caption: 'Properties, compact: the four keys used while drafting, the rest folded away.',
-      notes: [['F7', 'Four fields, not twelve', 'Status, point of view, threads, synopsis. Placement and story time open on request.'], ['F10', 'A styled select', 'Every select in the app becomes this control, with typeahead and RTL.'], ['F5', 'One ⋯ per side', 'Panel and side menus merge; Expand moves into it.']] },
+    { id: 'properties', name: 'Details', before: 'writing', render: function (t) { return writeScreen(t, 'properties'); },
+      caption: 'Details, compact: the four keys used while drafting, the rest folded away.',
+      notes: [['D6', 'Details, not Properties', 'A word writers know. "Edit details" on a peek, a pinned card, the Chapter card or a Manuscript row opens this panel.'], ['F7', 'Four fields, not twelve', 'Status, point of view, threads, synopsis. Placement and story time open on request.'], ['F10', 'A styled select', 'Every select in the app becomes this control, with typeahead and RTL.'], ['F5', 'One ⋯ per side', 'Panel and side menus merge; Expand moves into it.']] },
     { id: 'board', name: 'Plot · Board', before: 'board', render: boardScreen,
       caption: 'Plot: the board in the centre, Overview, Timeline and Interactions beside it in the top bar.',
       notes: [['D1', 'Plot holds the whole-story views', 'Board, Overview, Timeline, Interactions. "Edit as text" replaces the Text tab.'], ['D5', '+ Add column', 'Adds a ## heading to the outline in place, no trip to Edit as text. Columns are outline headings, not parts.'], ['F9', 'No clipped column', 'Columns scroll with a soft edge and start from the first column in both directions.'], ['D3', 'Beats', '"+ Add beat"; cards on the board are beats.']] },

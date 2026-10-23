@@ -1,6 +1,6 @@
 # U1c–e: Redesign plan — simple by default, everything one step away
 
-**Status:** proposed (2026-10-23), for the writer's approval. Inputs: [audit.md](audit.md)
+**Status:** approved by the writer (2026-10-23), with D6 added. Inputs: [audit.md](audit.md)
 (findings F1–F15) and [glossary.md](glossary.md). See the clickable
 [mock-ups](mockups.html).
 
@@ -35,8 +35,8 @@ entry. *Recommended.*
 
 **D4. What Standard (the default Write layout) opens with.**
 - Manuscript on the near side.
-- **Outline** first on the far side, then Properties, Reference and Cards.
-- Properties becomes compact (see the panels section below).
+- **Outline** first on the far side, then Details, Reference and Cards.
+- Details becomes compact (see the panels section below).
 - *Recommended,* because writers read the outline more than they edit keys while drafting.
 
 **D5. Parts and columns are both one click away** (writer, 2026-10-23).
@@ -48,6 +48,13 @@ entry. *Recommended.*
   offers to create that part too.
 - Columns can be collapsed, and Go to… jumps to a column, so a book with ten parts stays
   readable.
+
+**D6. "Details", not "Properties"** (writer, 2026-10-23).
+- The panel with an entry's keys is called **Details** (he **פרטים**). "Properties" is a
+  software word; writers know "details".
+- **Edit details** opens it for an entry from wherever the entry shows as a card: its peek, its
+  card in Cards, the Chapter card, and its Manuscript row's menu.
+- Board beats aren't entries, so they don't get it yet; that waits for the Plot Board rethink.
 
 ## Information architecture
 
@@ -88,7 +95,7 @@ Plot mode:   [◆ The Salt Orchard]  (Board · Overview · Timeline · Interacti
   - row icons appear on hover or focus, with labels in a tooltip;
   - "Open beside" moves into each row's menu;
   - the footer count goes, because the status bar has it (F8, F12).
-- **Properties, compact** (F7):
+- **Details, compact** (F7):
   - **Status · Point of view · Threads · Synopsis** are always shown;
   - **Placement** (part, order, title) and **Story time** (date, time) are collapsible groups,
     closed by default;
@@ -198,7 +205,7 @@ This replaces 21 sizes.
 - Shortcuts read "Ctrl+K" in both languages, isolated.
 - Chevrons and arrows mirror; clocks and media icons don't.
 
-## Implementation phases (to be added to the roadmap when approved)
+## Implementation phases
 
 1. **U3a Vocabulary.**
    - Catalog renames per the glossary, in en, he and qqq.
@@ -214,7 +221,7 @@ This replaces 21 sizes.
 3. **U3b Information architecture.**
    - The top bar (D1, D2), document tabs, the "In this chapter" line.
    - Panel headers with one ⋯ and overflow.
-   - Compact Properties, the status bar, Go to…'s empty state, the board's fit and header.
+   - Compact Details, "Edit details" (D6), the status bar, Go to…'s empty state, the board's fit and header.
    - The board's **+ Add column** (D5), with its outline planner and tests.
    - Every change is behind the same stores and navigation, with existing keyboard paths kept and
      tested.
