@@ -202,6 +202,8 @@ section.decisions h2 { margin: 0; font: 600 22px/1.2 var(--font-prose); }
 .row .count { margin-inline-start: auto; color: var(--faint); font-size: 12px; font-variant-numeric: tabular-nums; }
 .row.on { background: var(--accent-soft); color: var(--strong); }
 .row.add { color: var(--muted); font-size: 12px; }
+.adds { display: flex; flex-wrap: wrap; gap: 2px 4px; }
+.adds .row.add { padding-inline: 8px; }
 
 .page { min-width: 0; overflow: hidden; display: flex; justify-content: center; padding-block: 44px; }
 .page-inner { width: 560px; max-width: 100%; }
@@ -262,6 +264,7 @@ section.decisions h2 { margin: 0; font: 600 22px/1.2 var(--font-prose); }
 .beat .th { font-size: 11px; color: var(--muted); padding-inline-start: 6px; border-inline-start: 3px solid var(--thread-main); }
 .beat .th.strike { border-inline-start-color: var(--thread-strike); }
 .add-beat { color: var(--muted); font-size: 12px; padding: 4px 2px; }
+.column.add-col { flex: 0 0 140px; background: transparent; border: 1px dashed var(--line); color: var(--muted); font-size: 12px; align-content: start; }
 
 /* Overlays */
 .scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.35); }
@@ -352,6 +355,7 @@ section.decisions h2 { margin: 0; font: 600 22px/1.2 var(--font-prose); }
       <div class="note"><span class="tag">D2</span><h3>Settings leave the top bar</h3><p>Interface language, layouts, appearance and Close project move into one ⋯ menu. The welcome screen keeps the language picker.</p></div>
       <div class="note"><span class="tag">D3</span><h3>Board items are beats</h3><p>"+ Add beat" on the board; "card" means only an entry you pinned.</p></div>
       <div class="note"><span class="tag">D4</span><h3>The outline comes first beside the page</h3><p>Standard opens with Manuscript on one side and Outline first on the other. Properties becomes compact.</p></div>
+      <div class="note"><span class="tag">D5</span><h3>Parts and columns are both one click away</h3><p>The Manuscript side keeps "+ New part" beside "+ New chapter", as today. The board gains "+ Add column" after the last column, which adds one ## heading to the outline; if no part has that name, it offers to create the part too.</p></div>
     </div>
   </section>
 </div>
@@ -364,7 +368,7 @@ section.decisions h2 { margin: 0; font: 600 22px/1.2 var(--font-prose); }
       write: 'Write', plot: 'Plot', goto: 'Go to…', manuscript: 'Manuscript', codex: 'Codex',
       outline: 'Outline', properties: 'Properties', reference: 'Reference', focus: 'Focus',
       board: 'Board', overview: 'Overview', timeline: 'Timeline', interactions: 'Interactions',
-      partOne: 'Part One: The Orchard', ferry: 'The Ferry', frost: 'First frost', newChapter: '+ New chapter',
+      partOne: 'Part One: The Orchard', ferry: 'The Ferry', frost: 'First frost', newChapter: '+ New chapter', newPart: '+ New part', addColumn: '+ Add column',
       place: 'Part I · Chapter 1', inChapter: 'In this chapter',
       p1: 'The ferry came in low against the water, its engine coughing the way it had every autumn since <a>Ilka</a> was a girl.',
       p2: 'She stood at the rail with her one bag and watched <a>Marrow</a> rise out of the fog: the cannery chimney first, then the church, then the long grey line of the orchard wall.',
@@ -394,7 +398,7 @@ section.decisions h2 { margin: 0; font: 600 22px/1.2 var(--font-prose); }
       write: 'כתיבה', plot: 'עלילה', goto: 'מעבר אל…', manuscript: 'כתב יד', codex: 'קודקס',
       outline: 'מתווה', properties: 'מאפיינים', reference: 'עיון', focus: 'ריכוז',
       board: 'לוח', overview: 'מבט־על', timeline: 'ציר הזמן', interactions: 'מפגשים',
-      partOne: 'Part One: The Orchard', ferry: 'The Ferry', frost: 'First frost', newChapter: '+ פרק חדש',
+      partOne: 'Part One: The Orchard', ferry: 'The Ferry', frost: 'First frost', newChapter: '+ פרק חדש', newPart: '+ חלק חדש', addColumn: '+ הוספת עמודה',
       place: 'חלק I · פרק 1', inChapter: 'בפרק הזה',
       p1: 'The ferry came in low against the water, its engine coughing the way it had every autumn since <a>Ilka</a> was a girl.',
       p2: 'She stood at the rail with her one bag and watched <a>Marrow</a> rise out of the fog: the cannery chimney first, then the church, then the long grey line of the orchard wall.',
@@ -449,7 +453,7 @@ section.decisions h2 { margin: 0; font: 600 22px/1.2 var(--font-prose); }
       '<div class="side-body"><div class="group-label" dir="auto">' + t.partOne + '</div>' +
       '<div class="row on"><span class="n">1</span><span dir="auto">' + t.ferry + '</span><span class="count">92</span></div>' +
       '<div class="row"><span class="n">2</span><span dir="auto">' + t.frost + '</span><span class="count">41</span></div>' +
-      '<div class="row add">' + t.newChapter + '</div></div></aside>';
+      '<div class="adds"><div class="row add">' + t.newChapter + '</div><div class="row add">' + t.newPart + '</div></div></div></aside>';
   }
 
   function status(t) {
@@ -497,6 +501,7 @@ section.decisions h2 { margin: 0; font: 600 22px/1.2 var(--font-prose); }
       '<div class="columns">' +
       '<div class="column"><h5><span style="color:inherit;font-weight:600" dir="auto">Part One</span><span>3</span></h5>' + beat(t.b1, t.b1f, 'main') + beat(t.b2, t.b2f, 'main') + beat(t.b3, '', 'strike') + '<div class="add-beat">' + t.addBeat + '</div></div>' +
       '<div class="column"><h5><span style="color:inherit;font-weight:600" dir="auto">' + t.partTwo + '</span><span>2</span></h5>' + beat(t.b4, '', 'strike') + beat(t.b5, '', '') + '<div class="add-beat">' + t.addBeat + '</div></div>' +
+      '<div class="column add-col">' + t.addColumn + '</div>' +
       '<div class="column inbox"><h5><span style="color:inherit;font-weight:600">' + t.inbox + '</span><span>1</span></h5>' + beat(t.b6, '', '') + '<div class="add-beat">' + t.addBeat + '</div></div>' +
       '</div></main></div>' + status(t);
   }
@@ -544,7 +549,7 @@ section.decisions h2 { margin: 0; font: 600 22px/1.2 var(--font-prose); }
       notes: [['F7', 'Four fields, not twelve', 'Status, point of view, threads, synopsis. Placement and story time open on request.'], ['F10', 'A styled select', 'Every select in the app becomes this control, with typeahead and RTL.'], ['F5', 'One ⋯ per side', 'Panel and side menus merge; Expand moves into it.']] },
     { id: 'board', name: 'Plot · Board', before: 'board', render: boardScreen,
       caption: 'Plot: the board in the centre, Overview, Timeline and Interactions beside it in the top bar.',
-      notes: [['D1', 'Plot holds the whole-story views', 'Board, Overview, Timeline, Interactions. "Edit as text" replaces the Text tab.'], ['F9', 'No clipped column', 'Columns scroll with a soft edge and start from the first column in both directions.'], ['D3', 'Beats', '"+ Add beat"; cards on the board are beats.']] },
+      notes: [['D1', 'Plot holds the whole-story views', 'Board, Overview, Timeline, Interactions. "Edit as text" replaces the Text tab.'], ['D5', '+ Add column', 'Adds a ## heading to the outline in place, no trip to Edit as text. Columns are outline headings, not parts.'], ['F9', 'No clipped column', 'Columns scroll with a soft edge and start from the first column in both directions.'], ['D3', 'Beats', '"+ Add beat"; cards on the board are beats.']] },
     { id: 'goto', name: 'Go to…', before: 'palette', render: gotoScreen,
       caption: 'Go to… with nothing typed: recent documents and a few suggestions, grouped.',
       notes: [['F13', 'Short and grouped', 'Recent, then Suggested; names from the glossary.'], ['', 'Always visible', 'A quiet search field in the top bar makes the palette discoverable.']] },

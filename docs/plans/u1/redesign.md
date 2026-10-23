@@ -39,6 +39,16 @@ entry. *Recommended.*
 - Properties becomes compact (see the panels section below).
 - *Recommended,* because writers read the outline more than they edit keys while drafting.
 
+**D5. Parts and columns are both one click away** (writer, 2026-10-23).
+- The Manuscript side keeps **+ New part** beside **+ New chapter**, as today. Parts are crucial
+  to a book's structure and must never be hidden.
+- The board gains **+ Add column** after the last column, before the Inbox. It adds one `##`
+  heading to the outline, named in place, with no trip to Edit as text.
+- Columns are the outline's headings, not parts. If no part has the new column's name, the board
+  offers to create that part too.
+- Columns can be collapsed, and Go to… jumps to a column, so a book with ten parts stays
+  readable.
+
 ## Information architecture
 
 ### Top bar (one row, fewer controls)
@@ -94,6 +104,8 @@ Plot mode:   [◆ The Salt Orchard]  (Board · Overview · Timeline · Interacti
     The keyboard hint moves into a "?" popover.
   - **Columns fit:** the board scrolls horizontally with soft edge fades and starts at the first
     column in both directions, so the Inbox is never silently clipped (F9).
+  - **+ Add column** sits after the last column, before the Inbox (D5). It needs a new outline
+    planner, "add a heading", built like `addBeat` (a version-checked line splice).
 - **Overview, Timeline, Interactions** keep their own heading. The breadcrumb shows nothing for
   them, so the name appears once (F12).
 
@@ -203,6 +215,7 @@ This replaces 21 sizes.
    - The top bar (D1, D2), document tabs, the "In this chapter" line.
    - Panel headers with one ⋯ and overflow.
    - Compact Properties, the status bar, Go to…'s empty state, the board's fit and header.
+   - The board's **+ Add column** (D5), with its outline planner and tests.
    - Every change is behind the same stores and navigation, with existing keyboard paths kept and
      tested.
 4. **U2b Beauty and light.**
