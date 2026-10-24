@@ -274,7 +274,7 @@ const placementSummary = computed(() => {
 
 <template>
   <aside class="inspector" :aria-label="language.t('inspector-label')">
-    <p v-if="inspector.vocabularyError" class="hint bad" role="alert">
+    <p v-if="inspector.vocabularyError" class="notice error" role="alert">
       {{ inspector.vocabularyError }}
     </p>
     <template v-if="properties">
@@ -444,7 +444,7 @@ const placementSummary = computed(() => {
               </dd>
             </div>
           </dl>
-          <p v-if="orderHint" class="hint bad">{{ orderHint }}</p>
+          <p v-if="orderHint" class="notice error">{{ orderHint }}</p>
           <div v-if="!readOnly && (canMoveUp || canMoveDown)" class="moves">
             <button
               type="button"
@@ -475,10 +475,10 @@ const placementSummary = computed(() => {
           >
             {{ language.t('inspector-remove-order') }}
           </button>
-          <p v-if="placement && 'reason' in placement" class="note">
+          <p v-if="placement && 'reason' in placement" class="notice">
             {{ placement.reason }}
           </p>
-          <div v-if="placement && 'clash' in placement" class="note warn">
+          <div v-if="placement && 'clash' in placement" class="notice warn">
             <p>{{ placement.clash }}</p>
             <button type="button" :disabled="disabled" @click="renumber">
               {{ language.t('inspector-renumber-part') }}
@@ -513,7 +513,7 @@ const placementSummary = computed(() => {
             :disabled="disabled"
             @change="saveDate"
           />
-          <p v-if="dateCheckError" class="hint bad" role="alert">{{ dateCheckError }}</p>
+          <p v-if="dateCheckError" class="notice error" role="alert">{{ dateCheckError }}</p>
           <p
             v-if="dateCheck && dateCheck.kind !== 'undated'"
             class="hint"
@@ -540,10 +540,10 @@ const placementSummary = computed(() => {
         </div>
       </details>
 
-      <p v-if="editor.actionError" class="note warn" role="alert">
+      <p v-if="editor.actionError" class="notice warn" role="alert">
         {{ editor.actionError }}
       </p>
-      <p v-if="readOnly" class="note">{{ language.t('inspector-read-only') }}</p>
+      <p v-if="readOnly" class="notice">{{ language.t('inspector-read-only') }}</p>
     </template>
     <p v-else class="empty">{{ language.t('inspector-empty') }}</p>
   </aside>

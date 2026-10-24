@@ -234,6 +234,7 @@ function keydown(event: KeyboardEvent): void {
 }
 
 .palette {
+  animation: rise-in var(--duration-quick) var(--ease-out);
   display: flex;
   flex-direction: column;
   width: min(560px, calc(100vw - 32px));
@@ -289,7 +290,6 @@ ul {
 
 .empty {
   margin: var(--space-2) var(--space-5) var(--space-3);
-  color: var(--text-muted);
 }
 
 footer {

@@ -94,7 +94,7 @@ const { text, profile, openInEditor, actionError, linkNotice } = panel
           {{ language.t('reference-panel-retry') }}
         </button>
       </p>
-      <p v-if="reference.loading && !openInEditor" class="notice" role="status">
+      <p v-if="reference.loading && !openInEditor" class="loading" role="status">
         {{ language.t('reference-panel-loading') }}
       </p>
       <RenderedMarkdown
@@ -170,14 +170,9 @@ h2 {
   white-space: nowrap;
 }
 .notice,
+.loading,
 .empty p {
   margin: var(--space-4) 0;
-  color: var(--text-muted);
-  font-size: var(--text-small);
-  line-height: 1.6;
-}
-.error {
-  color: var(--danger);
 }
 .retry {
   padding: var(--space-1) var(--space-3);

@@ -138,7 +138,7 @@ function setMinGap(event: Event): void {
       </p>
     </header>
 
-    <p v-if="error" class="hint query-error" role="alert" dir="auto">{{ error }}</p>
+    <p v-if="error" class="notice error" role="alert" dir="auto">{{ error }}</p>
     <p v-if="timeline && timeline.chapters.length === 0" class="empty">
       {{ language.t('timeline-no-chapters') }}
     </p>
@@ -361,18 +361,12 @@ h1 {
 }
 
 .hint,
-.empty,
 .muted {
   color: var(--text-muted);
 }
 
 .hint {
   margin: var(--space-3) 0 0;
-}
-
-.query-error {
-  color: var(--danger);
-  overflow-wrap: anywhere;
 }
 
 .grid {

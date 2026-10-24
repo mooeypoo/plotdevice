@@ -71,6 +71,7 @@ watch(
 
 <style scoped>
 .layout-dialog {
+  animation: rise-in var(--duration-quick) var(--ease-out);
   position: absolute;
   z-index: 10;
   top: 100%;

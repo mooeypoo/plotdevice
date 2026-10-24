@@ -157,7 +157,6 @@ li :deep(.entry-card header) {
 
 .empty {
   margin: 0;
-  color: var(--text-muted);
   font-size: var(--text-body);
 }
 </style>

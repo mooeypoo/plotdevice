@@ -83,7 +83,7 @@ const items = computed((): MenuItem[] => [
   <span class="app-menu">
     <MenuButton :label="language.t('app-menu-label')" :items="items" />
     <LayoutDialog :actions="layouts" />
-    <p v-if="language.errorMessage" class="notice" role="alert">{{ language.errorMessage }}</p>
+    <p v-if="language.errorMessage" class="notice warn" role="alert">{{ language.errorMessage }}</p>
   </span>
 </template>
 
@@ -99,7 +99,5 @@ const items = computed((): MenuItem[] => [
   inset-inline-end: 0;
   max-inline-size: 24rem;
   margin: var(--space-2) 0 0;
-  color: var(--warning);
-  font-size: var(--text-small);
 }
 </style>

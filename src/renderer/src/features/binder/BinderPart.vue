@@ -282,7 +282,7 @@ const toggleRotation = computed(() => {
 }
 
 .toggle svg {
-  transition: transform 120ms ease;
+  transition: transform var(--duration-quick) var(--ease-out);
 }
 
 .open {
@@ -336,6 +336,5 @@ const toggleRotation = computed(() => {
   padding-block: var(--space-3);
   padding-inline: var(--space-7) var(--space-3);
   font-size: var(--text-small);
-  color: var(--text-muted);
 }
 </style>

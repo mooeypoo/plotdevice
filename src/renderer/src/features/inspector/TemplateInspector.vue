@@ -19,7 +19,7 @@ const kind = computed(() => language.t(kindKeys[editor.entry?.templateOf ?? 'not
     <header>
       <span class="eyebrow">{{ language.t('entry-place-template') }}</span>
     </header>
-    <div class="note">
+    <div class="notice">
       <p>
         {{ language.t('template-inspector-description', kind) }}
       </p>

@@ -297,11 +297,70 @@ code {
   background: transparent;
 }
 
+/* States (U2b-3): one look for a view with nothing in it yet, a load in progress, and a notice.
+   Components place them; these classes say what they are. */
+.empty,
+.loading {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* A quiet line that sweeps while something loads. */
+.loading::after {
+  content: '';
+  display: block;
+  inline-size: 6em;
+  block-size: 2px;
+  margin-block-start: var(--space-3);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, transparent, var(--accent), transparent) 0 0 / 200% 100%;
+  animation: loading-sweep 1.4s var(--ease-out) infinite;
+}
+
+@keyframes loading-sweep {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+.notice {
+  padding: var(--space-3) var(--space-4);
+  border-inline-start: 3px solid var(--line-strong);
+  border-radius: var(--radius-field);
+  background: var(--hover);
+  color: var(--text);
+  font-size: var(--text-small);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.notice.warn {
+  border-inline-start-color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.notice.error {
+  border-inline-start-color: var(--danger);
+  background: var(--danger-soft);
+}
+
+/* Motion (U2b-3): what opens rises into place. Everything stops under reduced motion, below. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     transition-duration: 0s !important;
     animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
   }
 }
