@@ -139,6 +139,6 @@ const saveTone = computed(() => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  transition: background 200ms ease;
+  transition: background var(--duration-panel) var(--ease-out);
 }
 </style>

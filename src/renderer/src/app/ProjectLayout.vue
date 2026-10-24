@@ -82,15 +82,15 @@ useShortcuts([
 
     <WorkbenchBody class="body">
       <DocumentTabs v-show="!workbench.focusMode" />
-      <p v-if="workbench.storageNotice" class="navigation-notice" role="status">
+      <p v-if="workbench.storageNotice" class="navigation-notice notice" role="status">
         {{ workbench.storageNotice }}
       </p>
-      <p v-if="tabs.storageNotice" class="navigation-notice" role="status">
+      <p v-if="tabs.storageNotice" class="navigation-notice notice" role="status">
         {{ tabs.storageNotice }}
       </p>
       <p
         v-if="workspace.rememberErrorMessage"
-        class="navigation-notice"
+        class="navigation-notice notice"
         role="alert"
         data-testid="recents-remember-error"
       >
@@ -98,7 +98,7 @@ useShortcuts([
       </p>
       <p
         v-if="workspace.recentsLoadErrorMessage"
-        class="navigation-notice error"
+        class="navigation-notice notice error"
         role="alert"
         data-testid="recents-load-error"
       >
@@ -106,29 +106,34 @@ useShortcuts([
       </p>
       <p
         v-if="workspace.recentsRemoveErrorMessage"
-        class="navigation-notice error"
+        class="navigation-notice notice error"
         role="alert"
         data-testid="recents-remove-error"
       >
         {{ workspace.recentsRemoveErrorMessage }}
       </p>
-      <p v-if="editor.actionError" class="navigation-notice error" role="alert">
+      <p v-if="editor.actionError" class="navigation-notice notice error" role="alert">
         {{ editor.actionError }}
       </p>
       <p
         v-if="workspace.folderErrorMessage"
-        class="navigation-notice error"
+        class="navigation-notice notice error"
         role="alert"
         data-testid="folder-error"
       >
         {{ workspace.folderErrorMessage }}
       </p>
-      <p v-if="workspace.errorMessage" class="navigation-notice error" role="alert" dir="auto">
+      <p
+        v-if="workspace.errorMessage"
+        class="navigation-notice notice error"
+        role="alert"
+        dir="auto"
+      >
         {{ workspace.errorMessage }}
       </p>
       <p
         v-if="workspace.refreshErrorMessage"
-        class="navigation-notice error"
+        class="navigation-notice notice error"
         role="alert"
         dir="auto"
       >
@@ -158,20 +163,15 @@ useShortcuts([
 }
 
 .navigation-notice {
-  margin: 0;
-  padding: var(--space-3) var(--space-5);
-  color: var(--text-muted);
-  font-size: var(--text-small);
-}
-.navigation-notice.error {
-  color: var(--danger);
+  margin: var(--space-2) var(--space-4) 0;
 }
 
 .layout
   :deep(
     :is(.top-bar, .status-bar, .document-navigation, .dock, .shelf, .above, .side, #right-panel)
   ) {
-  transition: opacity 400ms ease;
+  /* Slower than other motion on purpose: the chrome fades out of the way while you type. */
+  transition: opacity 400ms var(--ease-out);
 }
 
 /* While the writer types, everything around the page steps back; hovering brings a part back. */
@@ -189,15 +189,6 @@ useShortcuts([
   opacity: 1;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .layout
-    :deep(
-      :is(.top-bar, .status-bar, .document-navigation, .dock, .shelf, .above, .side, #right-panel)
-    ) {
-    transition: none;
-  }
-}
-
 .focus-chrome {
   position: fixed;
   top: 14px;
@@ -208,7 +199,7 @@ useShortcuts([
   color: var(--text-muted);
   font-size: var(--text-small);
   opacity: 0.6;
-  transition: opacity 200ms ease;
+  transition: opacity var(--duration-panel) var(--ease-out);
 }
 
 .focus-chrome:hover {

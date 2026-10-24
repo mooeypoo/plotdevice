@@ -74,7 +74,7 @@ function chapterPath(index: number): string {
       </p>
     </header>
 
-    <p v-if="error" class="hint query-error" role="alert" dir="auto">{{ error }}</p>
+    <p v-if="error" class="notice error" role="alert" dir="auto">{{ error }}</p>
     <p v-if="matrix && matrix.characters.length === 0" class="empty">
       {{ language.t('interactions-empty') }}
     </p>
@@ -187,7 +187,6 @@ h1 {
 }
 
 .hint,
-.empty,
 .muted {
   color: var(--text-muted);
 }
@@ -196,11 +195,6 @@ h1 {
   margin: var(--space-3) 0 var(--space-5);
   max-width: 640px;
   line-height: 1.5;
-}
-
-.query-error {
-  color: var(--danger);
-  overflow-wrap: anywhere;
 }
 
 .segmented {

@@ -312,8 +312,4 @@ td {
   text-align: end;
   color: var(--text-muted);
 }
-
-.empty {
-  color: var(--text-muted);
-}
 </style>

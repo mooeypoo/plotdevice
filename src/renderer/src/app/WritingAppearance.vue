@@ -119,7 +119,7 @@ const directionOptions = computed(() =>
         {{ language.t('appearance-reset') }}
       </button>
     </footer>
-    <p v-if="preferences.storageNotice" class="notice" role="status">
+    <p v-if="preferences.storageNotice" class="notice warn" role="status">
       {{ preferences.storageNotice }}
     </p>
   </section>
@@ -156,6 +156,7 @@ const directionOptions = computed(() =>
 }
 
 .appearance-panel {
+  animation: rise-in var(--duration-quick) var(--ease-out);
   position: fixed;
   inset: auto;
   inset-inline-end: 18px;
@@ -231,7 +232,5 @@ footer {
 
 .notice {
   margin: var(--space-4) 0 0;
-  color: var(--warning);
-  line-height: 1.5;
 }
 </style>

@@ -14,22 +14,17 @@
   gap: var(--space-3);
 }
 
-.note {
+.notice {
   margin: var(--space-3) 0 0;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-field);
-  background: var(--raised);
-  color: var(--text-dim);
-  line-height: 1.45;
 }
 
-.note p {
+.notice p {
   margin: 0 0 var(--space-3);
 }
 
-.note.warn {
-  background: var(--accent-soft);
-  color: var(--text);
+/* A date that reads as invalid, under its field. */
+.hint.bad {
+  color: var(--danger);
 }
 
 :deep(.field) {
@@ -61,12 +56,4 @@ textarea {
   margin: 0;
   font-size: var(--text-small);
   color: var(--ok);
-}
-
-.hint.bad {
-  color: var(--danger);
-}
-
-.empty {
-  color: var(--text-muted);
 }

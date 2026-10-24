@@ -115,7 +115,7 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
 
 .focus .heading {
   opacity: 0.35;
-  transition: opacity 200ms ease;
+  transition: opacity var(--duration-panel) var(--ease-out);
 }
 
 .focus .heading:hover {
@@ -136,17 +136,7 @@ h1 {
 }
 
 .notice {
-  max-width: calc(var(--measure) + 48px);
+  max-width: calc(var(--measure) + var(--space-8));
   margin: 0 auto var(--space-6);
-  padding: var(--space-4) var(--space-5);
-  border-radius: var(--radius-card);
-  background: var(--raised);
-  color: var(--text-dim);
-  line-height: 1.5;
-}
-
-.notice.error {
-  background: var(--danger-soft);
-  color: var(--text);
 }
 </style>

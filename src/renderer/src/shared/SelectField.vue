@@ -327,6 +327,7 @@ defineExpose({
 <style>
 /* The list is teleported to the body, outside the component's scope. */
 .select-list {
+  animation: rise-in var(--duration-quick) var(--ease-out);
   position: fixed;
   z-index: 1000;
   overflow-y: auto;

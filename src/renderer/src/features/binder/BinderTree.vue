@@ -298,7 +298,6 @@ function createChapter(title: string): void {
 .empty {
   margin: var(--space-3);
   line-height: 1.5;
-  color: var(--text-muted);
 }
 
 .empty p {
