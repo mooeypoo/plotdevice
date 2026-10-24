@@ -43,6 +43,11 @@ would reformat it, and a general Markdown AST library can't run in pure domain c
   commands, never through the outline: each file is written by the context that owns it.
 - Until the board needs it (P2), outlines keep travelling through the codex API: its IPC handler
   forwards listing, creation, open and save to the outline context, so P1 changes no contract.
+- Columns can be added from the board (U3b, D5, contract version 31): `AddColumn` writes one
+  `## name` heading before another column or after the last line, with a blank line around it,
+  and refuses a name another column already has. The board places it after the last column and
+  before the Inbox, wherever the Inbox sits in the file. Creating a matching manuscript part is
+  a separate, explicit step through the manuscript's own command.
 
 ## Consequences
 

@@ -13,6 +13,7 @@ export function registerOutlineIpc(handlers: OutlineHandlers): void {
   handleTrusted(OUTLINE_CHANNELS.moveBeat, (_, args) => handlers.moveBeat(args))
   handleTrusted(OUTLINE_CHANNELS.moveColumn, (_, args) => handlers.moveColumn(args))
   handleTrusted(OUTLINE_CHANNELS.addBeat, (_, args) => handlers.addBeat(args))
+  handleTrusted(OUTLINE_CHANNELS.addColumn, (_, args) => handlers.addColumn(args))
   handleTrusted(OUTLINE_CHANNELS.retitleBeat, (_, args) => handlers.retitleBeat(args))
   handleTrusted(OUTLINE_CHANNELS.editNotes, (_, args) => handlers.editNotes(args))
 }

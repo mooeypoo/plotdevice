@@ -19,7 +19,7 @@ import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import { writeOutline } from '../../app/outline-writes'
 import { useErrorNotice } from '../../shared/use-error-notice'
-import type { BeatMove, ColumnMove } from './board-moves'
+import { newColumnPlacement, type BeatMove, type ColumnMove } from './board-moves'
 
 /** A column as the board draws it: the Inbox goes last, whatever its place in the file. */
 export interface ShownColumn {
@@ -142,6 +142,15 @@ export function usePlotBoard() {
     )
   }
 
+  function addColumn(title: string, done: string): Promise<boolean> {
+    const placement = newColumnPlacement(board.value?.columns ?? [])
+    return change(
+      (outline, version) =>
+        plotDeviceApi.current().outline.addColumn(outline, version, title, placement),
+      done
+    )
+  }
+
   function retitleBeat(beat: OutlineItemRefDto, title: string, done: string): Promise<boolean> {
     return change(
       (outline, version) =>
@@ -190,6 +199,7 @@ export function usePlotBoard() {
     moveBeat,
     moveColumn,
     addBeat,
+    addColumn,
     retitleBeat,
     editNotes,
     announce,

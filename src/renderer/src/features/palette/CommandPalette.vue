@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useDocumentTabsStore } from '../../app/document-tabs-store'
+import { useEditorStore } from '../../app/editor-store'
 import { usePaletteStore } from '../../app/palette-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { usePaletteCommands, type PaletteItem } from '../../app/use-palette-commands'
@@ -13,6 +14,7 @@ const MAX_RESULTS = 50
 
 const palette = usePaletteStore()
 const tabs = useDocumentTabsStore()
+const editor = useEditorStore()
 const language = useUiLanguageStore()
 const chrome = useChromePresentation()
 const { items } = usePaletteCommands()
@@ -22,17 +24,55 @@ const query = ref('')
 const activeIndex = ref(0)
 const matcher = computed(() => createMatcher(language.locale))
 
-/** With nothing typed: open documents first, then views, layouts and commands. */
-const results = computed((): PaletteItem[] => {
-  if (query.value.trim() === '') {
-    const open = new Set(tabs.documents.map((tab) => tab.path))
+/** What Go to… suggests before anything is typed: the other mode, Focus, Capture, the outline. */
+const SUGGESTED = new Set([
+  'command:mode-plotting',
+  'command:mode-writing',
+  'command:toggle-focus-mode',
+  'command:capture-beat',
+  'command:toggle-outline',
+  'command:show-outline-text'
+])
+
+interface ResultGroup {
+  readonly id: string
+  readonly label?: string
+  readonly items: readonly PaletteItem[]
+}
+
+/**
+ * With nothing typed: Recent (open documents, the one on the page first), Suggested, then
+ * everything else (F13). Typing searches everything as one list.
+ */
+const groups = computed((): ResultGroup[] => {
+  if (query.value.trim() !== '') {
     return [
-      ...items.value.filter((item) => item.path !== undefined && open.has(item.path)),
-      ...items.value.filter((item) => item.kind !== 'entry')
-    ].slice(0, MAX_RESULTS)
+      { id: 'all', items: matcher.value.filter(items.value, query.value).slice(0, MAX_RESULTS) }
+    ]
   }
-  return matcher.value.filter(items.value, query.value).slice(0, MAX_RESULTS)
+  const current = editor.entry?.path
+  const open = [
+    ...(current === undefined ? [] : [current]),
+    ...tabs.documents.map((tab) => tab.path).filter((path) => path !== current)
+  ]
+  const recent = open.flatMap((path) => {
+    const item = items.value.find((candidate) => candidate.path === path)
+    return item === undefined ? [] : [item]
+  })
+  const others = items.value.filter((item) => item.kind !== 'entry')
+  const suggested = others.filter((item) => SUGGESTED.has(item.id))
+  const rest = others.filter((item) => !SUGGESTED.has(item.id))
+  return [
+    { id: 'recent', label: language.t('palette-group-recent'), items: recent },
+    { id: 'suggested', label: language.t('palette-group-suggested'), items: suggested },
+    { id: 'rest', label: language.t('palette-group-rest'), items: rest }
+  ].filter((group) => group.items.length > 0)
 })
+/** Every result in order, as the keyboard moves through them. */
+const results = computed((): PaletteItem[] =>
+  groups.value.flatMap((group) => group.items).slice(0, MAX_RESULTS)
+)
+const indexOf = (item: PaletteItem): number => results.value.indexOf(item)
 const active = computed(() => results.value[activeIndex.value])
 const count = computed(() =>
   language.t('palette-count', results.value.length, chrome.formatNumber(results.value.length))
@@ -115,19 +155,46 @@ function keydown(event: KeyboardEvent): void {
         @keydown="keydown"
       />
       <ul id="palette-options" role="listbox" :aria-label="language.t('palette-title')">
-        <li
-          v-for="(item, index) in results"
-          :id="optionId(item)"
-          :key="item.id"
-          role="option"
-          :aria-selected="index === activeIndex"
-          :class="{ active: index === activeIndex }"
-          @pointermove="activeIndex = index"
-          @click="run(item, $event.shiftKey)"
-        >
-          <span class="title" dir="auto">{{ item.title }}</span>
-          <span class="detail" dir="auto">{{ item.detail }}</span>
-        </li>
+        <template v-for="group in groups" :key="group.id">
+          <li
+            v-if="group.label"
+            role="group"
+            class="group"
+            :aria-labelledby="`palette-group-${group.id}`"
+          >
+            <span :id="`palette-group-${group.id}`" class="group-label">{{ group.label }}</span>
+            <ul role="none">
+              <li
+                v-for="item in group.items"
+                :id="optionId(item)"
+                :key="item.id"
+                role="option"
+                :aria-selected="indexOf(item) === activeIndex"
+                :class="{ active: indexOf(item) === activeIndex }"
+                @pointermove="activeIndex = indexOf(item)"
+                @click="run(item, $event.shiftKey)"
+              >
+                <span class="title" dir="auto">{{ item.title }}</span>
+                <span class="detail" dir="auto">{{ item.detail }}</span>
+              </li>
+            </ul>
+          </li>
+          <template v-else>
+            <li
+              v-for="item in group.items"
+              :id="optionId(item)"
+              :key="item.id"
+              role="option"
+              :aria-selected="indexOf(item) === activeIndex"
+              :class="{ active: indexOf(item) === activeIndex }"
+              @pointermove="activeIndex = indexOf(item)"
+              @click="run(item, $event.shiftKey)"
+            >
+              <span class="title" dir="auto">{{ item.title }}</span>
+              <span class="detail" dir="auto">{{ item.detail }}</span>
+            </li>
+          </template>
+        </template>
       </ul>
       <p v-if="results.length === 0" class="empty">{{ language.t('palette-empty') }}</p>
       <footer>
@@ -141,6 +208,21 @@ function keydown(event: KeyboardEvent): void {
 </template>
 
 <style scoped>
+.group > ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.group-label {
+  display: block;
+  padding: var(--space-3) var(--space-5) var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .backdrop {
   position: fixed;
   z-index: 60;
@@ -178,7 +260,7 @@ ul {
   list-style: none;
 }
 
-li {
+[role='option'] {
   display: flex;
   gap: 12px;
   align-items: baseline;
@@ -188,7 +270,7 @@ li {
   cursor: pointer;
 }
 
-li.active {
+[role='option'].active {
   background: var(--accent-soft);
 }
 

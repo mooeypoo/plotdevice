@@ -11,6 +11,8 @@ type ParameterizedMessages = {
   'chrome-focus-tooltip': [shortcut: string]
   'chrome-goto-tooltip': [shortcut: string]
   'tabs-actions': [title: string]
+  'board-added-column': [title: string]
+  'board-create-part-offer': [title: string]
   'chrome-leave-focus': [shortcut: string]
   'chrome-count-part': [count: number, formatted: string]
   'chrome-count-chapter': [count: number, formatted: string]

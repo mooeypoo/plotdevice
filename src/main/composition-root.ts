@@ -34,6 +34,7 @@ import { registerOutlineIpc } from './ipc/outline-ipc'
 import { createCaptureBeat } from './contexts/outline/application/commands/capture-beat'
 import { createMoveBeat } from './contexts/outline/application/commands/move-beat'
 import { createAddBeat } from './contexts/outline/application/commands/add-beat'
+import { createAddColumn } from './contexts/outline/application/commands/add-column'
 import { createRetitleBeat } from './contexts/outline/application/commands/retitle-beat'
 import { createEditNotes } from './contexts/outline/application/commands/edit-notes'
 import { createMoveColumn } from './contexts/outline/application/commands/move-column'
@@ -224,6 +225,7 @@ export function composeApplication(language: UiLanguageService): LaunchFolders {
       moveBeat: createMoveBeat({ repository: outlineRepository, settings: outlineSettings }),
       moveColumn: createMoveColumn({ repository: outlineRepository, settings: outlineSettings }),
       addBeat: createAddBeat({ repository: outlineRepository, settings: outlineSettings }),
+      addColumn: createAddColumn({ repository: outlineRepository, settings: outlineSettings }),
       retitleBeat: createRetitleBeat({ repository: outlineRepository, settings: outlineSettings }),
       editNotes: createEditNotes({ repository: outlineRepository, settings: outlineSettings })
     }

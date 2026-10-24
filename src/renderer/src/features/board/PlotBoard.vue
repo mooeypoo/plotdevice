@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, useTemplateRef } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
 import type { BoardBeatDto, BoardColumnDto } from '../../../../contract/dtos'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useOutlineStore } from '../../app/outline-store'
@@ -23,6 +23,7 @@ import {
   type BeatMove,
   type ColumnMove
 } from './board-moves'
+import AddColumnTile from './AddColumnTile.vue'
 import BeatCard from './BeatCard.vue'
 import { useBeatEditing } from './use-beat-editing'
 import { gapAt, useBoardDrag, type BoardDragged, type BoardDropSpot } from './use-board-drag'
@@ -76,6 +77,69 @@ const columnTitle = (ref: { readonly title: string }): string => isolate(ref.tit
 async function runBeatMove(move: BeatMove, to: BoardPosition): Promise<void> {
   const done = language.t('board-moved-beat', isolate(move.beat.title), columnTitle(move.column))
   if (await plot.moveBeat(move, done)) await focusCard(to)
+}
+
+/**
+ * Columns scroll sideways with a soft edge wherever there is more to see, and every outline
+ * opens at its first column, in either direction, so no column is ever silently cut off (F9).
+ */
+const columnsList = useTemplateRef<HTMLElement>('columnsList')
+const fades = ref({ 'fade-left': false, 'fade-right': false })
+
+function measureFades(): void {
+  const list = columnsList.value
+  if (list === null) return
+  const travelled = Math.abs(list.scrollLeft)
+  const remaining = list.scrollWidth - list.clientWidth - travelled
+  const rtl = direction.value === 'rtl'
+  fades.value = {
+    'fade-left': rtl ? remaining > 1 : travelled > 1,
+    'fade-right': rtl ? travelled > 1 : remaining > 1
+  }
+}
+
+watch(
+  () => board.value?.path,
+  async () => {
+    await nextTick()
+    if (columnsList.value !== null) columnsList.value.scrollLeft = 0
+    measureFades()
+  }
+)
+watch(
+  () => shown.value.length,
+  () => void nextTick(measureFades)
+)
+let resizing: ResizeObserver | undefined
+onMounted(() => {
+  if (typeof ResizeObserver === 'undefined') return
+  resizing = new ResizeObserver(measureFades)
+  if (root.value !== null) resizing.observe(root.value)
+})
+onBeforeUnmount(() => resizing?.disconnect())
+
+/** The "+ Add column" tile sits after the last column, before the Inbox (D5). */
+const tileAt = computed(() => {
+  const inbox = shown.value.findIndex((column) => column.inbox)
+  return inbox < 0 ? shown.value.length : inbox
+})
+/** A column just added whose name no part has: the board offers to create the part too. */
+const partOffer = ref<string | null>(null)
+
+async function addColumn(title: string, done: () => void): Promise<void> {
+  const text = title.trim()
+  if (!(await plot.addColumn(text, language.t('board-added-column', isolate(text))))) return
+  done()
+  const key = (value: string): string => value.normalize('NFC').toLocaleLowerCase()
+  const book = manuscript.manuscript
+  const parts = [...(book?.parts ?? []), ...(book?.unnumberedParts ?? [])]
+  partOffer.value = parts.some((part) => key(part.title) === key(text)) ? null : text
+}
+
+async function createPart(): Promise<void> {
+  const title = partOffer.value
+  partOffer.value = null
+  if (title !== null) await manuscript.createPart(title)
 }
 
 async function runColumnMove(move: ColumnMove, to: number): Promise<void> {
@@ -293,13 +357,33 @@ function overColumn(event: DragEvent, column: number): void {
       <h2 v-else-if="outlines.outlines.length === 1" class="title" dir="auto">
         {{ outlines.outlines[0]?.title }}
       </h2>
-      <p v-if="!readOnly && shown.length > 0" class="muted hint">
-        {{ language.t('board-keys-hint') }}
-      </p>
+      <button
+        v-if="path !== null"
+        type="button"
+        class="quiet small edit-text"
+        @click="navigation.showOutlineText()"
+      >
+        {{ language.t('board-edit-text') }}
+      </button>
+      <details v-if="!readOnly && shown.length > 0" class="help">
+        <summary :aria-label="language.t('board-keys-help')" :title="language.t('board-keys-help')">
+          ?
+        </summary>
+        <p class="hint">{{ language.t('board-keys-hint') }}</p>
+      </details>
       <p v-if="linkNotice" class="muted" role="status">{{ linkNotice }}</p>
     </header>
     <p v-if="plot.moveError.value" class="notice" role="alert">{{ plot.moveError.value }}</p>
     <p class="announcement" role="status" aria-live="polite">{{ plot.announcement.value }}</p>
+    <div v-if="partOffer !== null" class="offer" role="status">
+      <span>{{ language.t('board-create-part-offer', isolate(partOffer)) }}</span>
+      <button type="button" class="small primary" @click="createPart">
+        {{ language.t('board-create-part') }}
+      </button>
+      <button type="button" class="small quiet" @click="partOffer = null">
+        {{ language.t('board-no-thanks') }}
+      </button>
+    </div>
 
     <div v-if="outlines.outlines.length === 0" class="empty">
       <p>{{ language.t('board-no-outline') }}</p>
@@ -330,115 +414,125 @@ function overColumn(event: DragEvent, column: number): void {
           {{ language.t('board-edit-text') }}
         </button>
       </div>
-      <ol v-else class="columns" :dir="direction" @dragend="drag.end()">
-        <li
-          v-for="(column, columnIndex) in shown"
-          :key="column.line"
-          class="column"
-          :class="{
-            inbox: column.inbox,
-            'gap-before': drag.isColumnGap(columnIndex) && !column.inbox,
-            'gap-after': column.inbox
-              ? drag.isColumnGap(movableCount)
-              : columnIndex === movableCount - 1 && drag.isColumnGap(movableCount)
-          }"
-          @dragover="overColumn($event, columnIndex)"
-          @drop="drag.drop"
-        >
-          <div class="column-head">
-            <h3
-              class="column-title"
-              dir="auto"
-              tabindex="0"
-              :data-column="columnIndex"
-              :draggable="!readOnly && !column.inbox"
-              @dragstart="drag.start({ kind: 'column', from: columnIndex }, $event)"
-              @keydown="columnKeydown($event, columnIndex)"
-            >
-              <span>{{ column.title }}</span>
-              <span class="count">{{ chrome.formatNumber(column.beats.length) }}</span>
-            </h3>
-            <MenuButton
-              v-if="columnMenu(columnIndex).length > 0"
-              class="more"
-              :label="language.t('board-column-menu')"
-              :items="columnMenu(columnIndex)"
-            />
-          </div>
-          <ol
-            class="beats"
-            :class="{ 'gap-end': drag.isBeatGap(columnIndex, column.beats.length) }"
+      <ol
+        v-else
+        ref="columnsList"
+        class="columns"
+        :class="fades"
+        :dir="direction"
+        @dragend="drag.end()"
+        @scroll="measureFades"
+      >
+        <template v-for="(column, columnIndex) in shown" :key="column.line">
+          <AddColumnTile v-if="!readOnly && columnIndex === tileAt" @add="addColumn" />
+          <li
+            class="column"
+            :class="{
+              inbox: column.inbox,
+              'gap-before': drag.isColumnGap(columnIndex) && !column.inbox,
+              'gap-after': column.inbox
+                ? drag.isColumnGap(movableCount)
+                : columnIndex === movableCount - 1 && drag.isColumnGap(movableCount)
+            }"
+            @dragover="overColumn($event, columnIndex)"
+            @drop="drag.drop"
           >
-            <li
-              v-for="(beat, beatIndex) in column.beats"
-              :key="beat.line"
-              :class="{ 'gap-before': drag.isBeatGap(columnIndex, beatIndex) }"
-            >
-              <article
-                class="beat"
-                :data-position="`${columnIndex}-${beatIndex}`"
-                :tabindex="isFocusable({ column: columnIndex, beat: beatIndex }) ? 0 : -1"
-                :draggable="
-                  !readOnly && editing.editOf({ column: columnIndex, beat: beatIndex }) === null
-                "
-                @dragstart="
-                  drag.start(
-                    { kind: 'beat', from: { column: columnIndex, beat: beatIndex } },
-                    $event
-                  )
-                "
-                @dragover.stop="overCard($event, columnIndex, beatIndex)"
-                @drop.stop="drag.drop"
-                @focus="focused = { column: columnIndex, beat: beatIndex }"
-                @keydown="keydown($event, { column: columnIndex, beat: beatIndex }, beat)"
+            <div class="column-head">
+              <h3
+                class="column-title"
+                dir="auto"
+                tabindex="0"
+                :data-column="columnIndex"
+                :draggable="!readOnly && !column.inbox"
+                @dragstart="drag.start({ kind: 'column', from: columnIndex }, $event)"
+                @keydown="columnKeydown($event, columnIndex)"
               >
-                <BeatCard
-                  :beat="beat"
-                  :threads="threads"
-                  :link-targets="linkTargets"
-                  :menu="cardMenu({ column: columnIndex, beat: beatIndex }, beat)"
-                  :editing="editing.editOf({ column: columnIndex, beat: beatIndex })"
-                  :statuses="statuses"
-                  @open-link="(link) => plot.openLink(link, path ?? undefined)"
-                  @peek="
-                    (link, near, byKeyboard) =>
-                      peek.peekLink(link, path ?? undefined, near, byKeyboard)
+                <span>{{ column.title }}</span>
+                <span class="count">{{ chrome.formatNumber(column.beats.length) }}</span>
+              </h3>
+              <MenuButton
+                v-if="columnMenu(columnIndex).length > 0"
+                class="more"
+                :label="language.t('board-column-menu')"
+                :items="columnMenu(columnIndex)"
+              />
+            </div>
+            <ol
+              class="beats"
+              :class="{ 'gap-end': drag.isBeatGap(columnIndex, column.beats.length) }"
+            >
+              <li
+                v-for="(beat, beatIndex) in column.beats"
+                :key="beat.line"
+                :class="{ 'gap-before': drag.isBeatGap(columnIndex, beatIndex) }"
+              >
+                <article
+                  class="beat"
+                  :data-position="`${columnIndex}-${beatIndex}`"
+                  :tabindex="isFocusable({ column: columnIndex, beat: beatIndex }) ? 0 : -1"
+                  :draggable="
+                    !readOnly && editing.editOf({ column: columnIndex, beat: beatIndex }) === null
                   "
-                  @peek-end="peek.endHover()"
-                  @save="
-                    (edit, value) =>
-                      editing.save({ column: columnIndex, beat: beatIndex }, beat, edit, value)
+                  @dragstart="
+                    drag.start(
+                      { kind: 'beat', from: { column: columnIndex, beat: beatIndex } },
+                      $event
+                    )
                   "
-                  @cancel="editing.cancel()"
-                />
-              </article>
-            </li>
-          </ol>
-          <form
-            v-if="editing.adding.value === columnIndex"
-            class="add-field"
-            @submit.prevent="addCard(column)"
-          >
-            <input
-              ref="addInput"
-              v-model="newCard"
-              type="text"
-              dir="auto"
-              maxlength="2000"
-              :aria-label="language.t('board-add-card-label', column.title)"
-              :placeholder="language.t('board-add-card-placeholder')"
-              @keydown.escape.prevent.stop="closeAdding(columnIndex)"
-            />
-          </form>
-          <button
-            v-else-if="!readOnly"
-            type="button"
-            class="add-card quiet"
-            @click="openAdding(columnIndex)"
-          >
-            {{ language.t('board-add-card') }}
-          </button>
-        </li>
+                  @dragover.stop="overCard($event, columnIndex, beatIndex)"
+                  @drop.stop="drag.drop"
+                  @focus="focused = { column: columnIndex, beat: beatIndex }"
+                  @keydown="keydown($event, { column: columnIndex, beat: beatIndex }, beat)"
+                >
+                  <BeatCard
+                    :beat="beat"
+                    :threads="threads"
+                    :link-targets="linkTargets"
+                    :menu="cardMenu({ column: columnIndex, beat: beatIndex }, beat)"
+                    :editing="editing.editOf({ column: columnIndex, beat: beatIndex })"
+                    :statuses="statuses"
+                    @open-link="(link) => plot.openLink(link, path ?? undefined)"
+                    @peek="
+                      (link, near, byKeyboard) =>
+                        peek.peekLink(link, path ?? undefined, near, byKeyboard)
+                    "
+                    @peek-end="peek.endHover()"
+                    @save="
+                      (edit, value) =>
+                        editing.save({ column: columnIndex, beat: beatIndex }, beat, edit, value)
+                    "
+                    @cancel="editing.cancel()"
+                  />
+                </article>
+              </li>
+            </ol>
+            <form
+              v-if="editing.adding.value === columnIndex"
+              class="add-field"
+              @submit.prevent="addCard(column)"
+            >
+              <input
+                ref="addInput"
+                v-model="newCard"
+                type="text"
+                dir="auto"
+                maxlength="2000"
+                :aria-label="language.t('board-add-card-label', column.title)"
+                :placeholder="language.t('board-add-card-placeholder')"
+                @keydown.escape.prevent.stop="closeAdding(columnIndex)"
+              />
+            </form>
+            <button
+              v-else-if="!readOnly"
+              type="button"
+              class="add-card quiet"
+              @click="openAdding(columnIndex)"
+            >
+              {{ language.t('board-add-card') }}
+            </button>
+          </li>
+        </template>
+        <AddColumnTile v-if="!readOnly && tileAt === shown.length" @add="addColumn" />
       </ol>
     </template>
   </section>
@@ -479,6 +573,9 @@ header {
 }
 
 .columns {
+  --fade-left: 0px;
+  --fade-right: 0px;
+
   display: flex;
   flex: 1;
   align-items: flex-start;
@@ -487,7 +584,23 @@ header {
   margin: 0;
   padding: 0;
   overflow: auto;
+  scroll-padding-inline: var(--space-6);
   list-style: none;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black var(--fade-left),
+    black calc(100% - var(--fade-right)),
+    transparent 100%
+  );
+}
+
+.columns.fade-left {
+  --fade-left: 40px;
+}
+
+.columns.fade-right {
+  --fade-right: 40px;
 }
 
 .column {
@@ -647,8 +760,52 @@ header {
   font-size: 12px;
 }
 
-.hint {
+.help {
+  position: relative;
   margin-inline-start: auto;
+}
+
+.help summary {
+  display: grid;
+  place-items: center;
+  inline-size: 22px;
+  block-size: 22px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  color: var(--text-muted);
+  font-size: var(--text-small);
+  cursor: pointer;
+  list-style: none;
+}
+
+.help summary::-webkit-details-marker {
+  display: none;
+}
+
+.help .hint {
+  position: absolute;
+  z-index: 10;
+  inset-block-start: calc(100% + var(--space-2));
+  inset-inline-end: 0;
+  inline-size: max-content;
+  max-inline-size: 22em;
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-card);
+  background: var(--raised);
+  box-shadow: var(--shadow-popover);
+  color: var(--text);
+  font-size: var(--text-small);
+}
+
+.offer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  color: var(--text);
+  font-size: var(--text-small);
 }
 
 .empty {

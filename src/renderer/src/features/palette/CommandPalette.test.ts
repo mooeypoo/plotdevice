@@ -44,6 +44,30 @@ const titles = (palette: Awaited<ReturnType<typeof openPalette>>): string[] =>
   palette.findAll('[role=option] .title').map((option) => option.text())
 
 describe('CommandPalette', () => {
+  it('groups what it offers before anything is typed: Recent, Suggested, everything else', async () => {
+    await useEditorStore().open('First frost.md', { keep: true })
+    await useEditorStore().open('The Ferry.md')
+    const palette = await openPalette()
+    const groups = palette.findAll('[role=group]')
+    expect(groups.map((group) => group.get('.group-label').text())).toEqual([
+      'Recent',
+      'Suggested',
+      'Everything else'
+    ])
+    expect(groups[0]?.findAll('[role=option] .title').map((t) => t.text())).toEqual([
+      'The Ferry',
+      'First frost'
+    ])
+    expect(groups[1]?.findAll('[role=option] .title').map((t) => t.text())).toContain(
+      'Switch to Plot'
+    )
+    await palette.get('input').trigger('keydown', { key: 'ArrowDown' })
+    expect(palette.get('[role=option][aria-selected=true] .title').text()).toBe('First frost')
+    await palette.get('input').setValue('timeline')
+    expect(palette.find('[role=group]').exists()).toBe(false)
+    palette.unmount()
+  })
+
   it('opens with focus in its field and lists views and commands', async () => {
     const palette = await openPalette()
     const input = palette.get('input')

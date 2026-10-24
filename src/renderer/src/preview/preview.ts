@@ -82,10 +82,12 @@ async function show(name: ScenarioName): Promise<void> {
     case 'board':
     case 'board-card-menu':
     case 'board-add-card':
+    case 'board-add-column':
       await navigation.switchMode('plotting')
       await settle(300)
       if (name === 'board-card-menu') click('.beat .more button')
       if (name === 'board-add-card') click('.add-card')
+      if (name === 'board-add-column') click('.add-column button')
       break
     case 'capture':
       useWritingPreferencesStore().setCaptureBeats(true)
