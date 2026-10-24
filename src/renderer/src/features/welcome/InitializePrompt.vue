@@ -108,7 +108,7 @@ const bookLanguage = ref<string | null>(language.locale)
 
 h1 {
   margin: 0 0 var(--space-4);
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-prose);
   font-weight: 400;
   font-size: var(--text-heading);
 }

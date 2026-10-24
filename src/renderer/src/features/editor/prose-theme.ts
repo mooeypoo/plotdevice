@@ -29,7 +29,11 @@ const proseTheme = EditorView.theme(
       color: 'var(--text-faint)',
       transition: 'color var(--duration-quick) var(--ease-out)'
     },
-    '.cm-dimmed .cm-wikilink': { color: 'inherit', textDecorationColor: 'var(--line-strong)' },
+    // A dimmed line dims its links too, including the Markdown highlighting inside them.
+    '.cm-dimmed .cm-wikilink, .cm-dimmed .cm-wikilink *': {
+      color: 'inherit',
+      textDecorationColor: 'var(--line-strong)'
+    },
     '.cm-line[dir="auto"]': { textAlign: 'start' },
     '.cm-wikilink': {
       textDecoration: 'underline dotted',
