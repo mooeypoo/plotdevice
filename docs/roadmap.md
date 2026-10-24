@@ -394,7 +394,7 @@ is left as a bare native control.
   RTL), `CheckboxField`, `SwitchField` and `RangeField` (native inputs, styled); button variants
   and field styles; menus with separators, shortcuts and typeahead. All 14 selects, 4 checkboxes
   and 2 ranges replaced, and a test fails on any native one outside `shared/`.
-- [ ] Every control follows the system: **all selects** (one styled select, trigger and menu, that
+- [x] Every control follows the system: **all selects** (one styled select, trigger and menu, that
   works by keyboard, in RTL and with screen readers), text fields and areas, buttons (primary,
   quiet, icon), checkboxes and toggles, menus, tabs and pills, cards, scrollbars, focus rings, and
   hover and active states.
@@ -405,7 +405,7 @@ is left as a bare native control.
   palette, peeks and dialogs rise into place; panels ease on Expand; all motion uses the tokens
   and stops under reduced motion.)
 - [x] Dark theme first, then the light theme with the same care; contrast checked in both (U2b-1: **Theme ▸** in the ⋯ menu, stored beside the interface language and applied through Electron's `nativeTheme`; a contrast test checks every text colour on every ground in both).
-- [ ] A screenshot review of every screen in English and Hebrew.
+- [x] A screenshot review of every screen in English and Hebrew, dark and light (U2b-4: [review](plans/u2/review.md), 22 scenarios × 4 in `docs/plans/u2/screens/`).
 
 **Done when:** every screen passes the review in both languages and themes, and a test finds no
 native `<select>` or checkbox outside the shared styled components.

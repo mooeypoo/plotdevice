@@ -130,6 +130,8 @@ describe('PlotBoard', () => {
     const board = mount(PlotBoard)
     await flushPromises()
     expect(board.text()).toContain('no ## headings')
+    expect(board.find('.add-column').exists()).toBe(true)
+    expect(board.findAll('button').filter((b) => b.text() === 'Edit as text')).toHaveLength(1)
     useOutlineStore().outlines = []
     await flushPromises()
     expect(board.text()).toContain('There is no outline yet')

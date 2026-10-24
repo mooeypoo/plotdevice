@@ -19,7 +19,9 @@ export const SCENARIOS = [
   'capture',
   'appearance',
   'select-open',
-  'app-menu'
+  'app-menu',
+  'board-empty',
+  'conflict'
 ] as const
 /** A screen the harness can show. */
 export type ScenarioName = (typeof SCENARIOS)[number]
