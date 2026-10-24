@@ -718,5 +718,12 @@
   "board-keys-help": "מקלדת",
   "palette-group-recent": "אחרונים",
   "palette-group-suggested": "מוצעים",
-  "palette-group-rest": "כל השאר"
+  "palette-group-rest": "כל השאר",
+  "app-menu-theme": "ערכת נושא",
+  "app-menu-theme-system": "לפי המערכת",
+  "app-menu-theme-dark": "כהה",
+  "app-menu-theme-light": "בהיר",
+  "palette-theme-system": "ערכת נושא לפי המערכת",
+  "palette-theme-dark": "ערכת נושא כהה",
+  "palette-theme-light": "ערכת נושא בהירה"
 }

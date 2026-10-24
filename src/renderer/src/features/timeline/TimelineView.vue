@@ -478,11 +478,7 @@ h1 {
 }
 
 .cell.gap {
-  background: repeating-linear-gradient(
-    135deg,
-    transparent 0 6px,
-    rgba(216, 178, 110, 0.12) 6px 12px
-  );
+  background: repeating-linear-gradient(135deg, transparent 0 6px, var(--accent-soft) 6px 12px);
 }
 
 .story-body {

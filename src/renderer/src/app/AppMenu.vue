@@ -7,6 +7,7 @@ import LayoutDialog from '../workbench/shell/LayoutDialog.vue'
 import { useLayoutActions } from '../workbench/shell/use-layout-actions'
 import { openAppearance } from './appearance-popover'
 import { useUiLanguageStore } from './ui-language-store'
+import { useUiThemeStore } from './ui-theme-store'
 import { useWorkspaceStore } from './workspace-store'
 
 /**
@@ -15,7 +16,14 @@ import { useWorkspaceStore } from './workspace-store'
  */
 const language = useUiLanguageStore()
 const workspace = useWorkspaceStore()
+const theme = useUiThemeStore()
 const layouts = useLayoutActions()
+
+const THEMES = [
+  { value: 'system', label: 'app-menu-theme-system' },
+  { value: 'dark', label: 'app-menu-theme-dark' },
+  { value: 'light', label: 'app-menu-theme-light' }
+] as const
 
 const items = computed((): MenuItem[] => [
   {
@@ -41,6 +49,17 @@ const items = computed((): MenuItem[] => [
           ]
         : [])
     ]
+  },
+  {
+    key: 'theme',
+    label: language.t('app-menu-theme'),
+    run: () => undefined,
+    children: THEMES.map(({ value, label }): MenuItem => ({
+      key: value,
+      label: language.t(label),
+      checked: theme.theme === value,
+      run: () => void theme.change(value)
+    }))
   },
   { key: 'appearance', label: language.t('app-menu-appearance'), run: openAppearance },
   {

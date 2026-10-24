@@ -1,8 +1,12 @@
-import { app, BrowserWindow, screen, shell } from 'electron'
+import { app, BrowserWindow, nativeTheme, screen, shell } from 'electron'
 import { join } from 'node:path'
 import icon from '../../resources/icon.png?asset'
 import { installAppMenu } from './app-menu'
-import { composeApplication, composeUiLanguage, composeWindowStateStore } from './composition-root'
+import {
+  composeApplication,
+  composeUiPreferences,
+  composeWindowStateStore
+} from './composition-root'
 import { createTranslator } from '../i18n/translator'
 import { UI_LANGUAGE_CHANNELS } from '../contract/channels'
 import type { UiLanguageService } from './ui-language'
@@ -45,6 +49,8 @@ async function createMainWindow(
     ...(visible ? saved.bounds : { width: 1200, height: 800 }),
     show: false,
     title: 'Plot Device',
+    // The page's own ground, so the window never flashes the other theme before it paints.
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#141518' : '#f7f4ee',
     autoHideMenuBar: false,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -110,7 +116,9 @@ if (!app.requestSingleInstanceLock()) {
 
   void app.whenReady().then(async () => {
     if (process.platform === 'win32') app.setAppUserModelId('tech.moriel.plotdevice')
-    const language = await composeUiLanguage()
+    const { language } = await composeUiPreferences((theme) => {
+      nativeTheme.themeSource = theme
+    })
     launch = composeApplication(language)
     launch.remember(launchFolder(userArguments(process.argv, app.isPackaged), process.cwd()))
     mainWindow = await createMainWindow(composeWindowStateStore(), language)

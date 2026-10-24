@@ -401,7 +401,7 @@ is left as a bare native control.
 - [ ] Empty states, notices and loading states designed rather than plain text.
 - [ ] Typography and rhythm across the editor, panels, board, timeline and welcome screens; subtle
   motion that respects reduced-motion.
-- [ ] Dark theme first, then the light theme with the same care; contrast checked in both.
+- [x] Dark theme first, then the light theme with the same care; contrast checked in both (U2b-1: **Theme ▸** in the ⋯ menu, stored beside the interface language and applied through Electron's `nativeTheme`; a contrast test checks every text colour on every ground in both).
 - [ ] A screenshot review of every screen in English and Hebrew.
 
 **Done when:** every screen passes the review in both languages and themes, and a test finds no
@@ -447,7 +447,6 @@ native deb permissions and publisher authentication are not changed by metadata.
 - Chrome cleanup (writer feedback on W5) is now phase U1 above.
 - A Plot Board rethink (writer, 2026-10-23), once the U phases are solid. Include whether beats get "Edit details" for the chapters they link.
 - The user guide now uses the U1 names and places (U3a, U3b), but still has no page of its own for the workbench: layouts, splits, cards and peeks. Write one with U2b's screenshots.
-- `npm run preview:capture` sometimes ends with `ENOTEMPTY` while removing Chrome's temporary profile; every screen is captured first. Retry the removal or wait for the browser's helpers to exit.
 - Workbench follow-ups (out of the proposed W/L/P plan): dragging tabs and sections between panels (W4 provides menu and keyboard moves); a Search view with full-text search (the palette only jumps to entries); the thread grid (threads × chapters, reusing the timeline's reading-order grid); pop-out windows; a visual `novel.md` settings editor for language, vocabulary, statuses and folders (ADR 0004 and 0007); scene-level cards once scenes exist.
 - Renderer coupling: 44 feature files import `app/` stores directly. W2 cuts feature-to-feature imports only; narrowing features' access to app stores is separate work.
 - Documentation tooling: the offline manual build passes but emits Node module-type and Vite native-config compatibility warnings. Address module configuration separately from reference UI work.

@@ -249,7 +249,7 @@ function writingDirectionExtensions(
   ]
 }
 
-/** The link suggestions, in the app's dark palette. */
+/** The link suggestions, in the app's palette (dark or light). */
 const completionTheme = EditorView.theme({
   '.cm-tooltip.cm-tooltip-autocomplete': {
     border: '1px solid var(--line-strong)',

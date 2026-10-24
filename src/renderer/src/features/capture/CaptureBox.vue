@@ -65,7 +65,7 @@ async function keydown(event: KeyboardEvent): Promise<void> {
   display: flex;
   justify-content: center;
   padding-top: 18vh;
-  background: rgb(0 0 0 / 25%);
+  background: var(--scrim);
 }
 
 .box {
@@ -77,7 +77,7 @@ async function keydown(event: KeyboardEvent): Promise<void> {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
-  box-shadow: 0 16px 40px rgb(0 0 0 / 45%);
+  box-shadow: var(--shadow-popover);
   align-self: flex-start;
 }
 

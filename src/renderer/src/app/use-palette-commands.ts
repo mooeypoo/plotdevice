@@ -21,6 +21,7 @@ import { useWorkbenchNavigation } from './use-workbench-navigation'
 import { viewDirectory } from './view-directory'
 import { useWorkbenchStore } from './workbench-store'
 import { openAppearance } from './appearance-popover'
+import { useUiThemeStore } from './ui-theme-store'
 
 /** What a palette item does, which also groups and labels it. */
 export type PaletteKind = 'entry' | 'view' | 'layout' | 'command'
@@ -72,6 +73,7 @@ export function usePaletteCommands() {
   const chrome = useChromePresentation()
   const preferences = useWritingPreferencesStore()
   const outlines = useOutlineStore()
+  const themes = useUiThemeStore()
 
   const entries = computed((): PaletteItem[] => {
     const aliases = new Map(
@@ -196,7 +198,10 @@ export function usePaletteCommands() {
         navigation.toggleView('outline')
       }),
       command('toggle-focus-mode', 'menu-focus', workbench.toggleFocusMode),
-      command('appearance', 'app-menu-appearance', openAppearance)
+      command('appearance', 'app-menu-appearance', openAppearance),
+      ...(['system', 'dark', 'light'] as const).map((theme) =>
+        command(`theme-${theme}`, `palette-theme-${theme}`, () => themes.change(theme))
+      )
     ]
   })
 

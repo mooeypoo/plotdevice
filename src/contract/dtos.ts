@@ -3,6 +3,9 @@
 /** Bundled interface languages; manuscript language is independent. */
 export type UiLocale = 'en' | 'he'
 
+/** The app's theme: following the operating system, or always dark or light. */
+export type UiTheme = 'system' | 'dark' | 'light'
+
 /** App-wide language settings, never project metadata. */
 export interface UiLanguageDto {
   readonly locale: UiLocale

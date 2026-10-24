@@ -78,7 +78,7 @@ function focusout(event: FocusEvent): void {
   max-height: min(420px, calc(100vh - 16px));
   overflow-y: auto;
   border-radius: 6px;
-  box-shadow: 0 10px 28px rgb(0 0 0 / 45%);
+  box-shadow: var(--shadow-popover);
 }
 
 .peek:focus-visible {
