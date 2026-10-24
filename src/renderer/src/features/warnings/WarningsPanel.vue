@@ -72,28 +72,28 @@ const linkName = (path: string): string => path.replace(/\.md$/iu, '')
 
 <style scoped>
 .warnings {
-  margin-top: 36px;
+  margin-top: var(--space-7);
 }
 
 .intro {
-  margin: 8px 0 0;
+  margin: var(--space-3) 0 0;
   color: var(--text-muted);
   line-height: 1.5;
 }
 
 .group {
-  margin-top: 22px;
+  margin-top: var(--space-6);
 }
 
 h3 {
-  margin: 0 0 6px;
-  font-size: 13px;
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-body);
   font-weight: 600;
   color: var(--text);
 }
 
 .count {
-  margin-inline-start: 6px;
+  margin-inline-start: var(--space-3);
   font-weight: 400;
   color: var(--text-muted);
 }
@@ -107,8 +107,8 @@ ul {
 li {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 10px 0;
+  gap: var(--space-1);
+  padding: var(--space-3) 0;
   border-bottom: 1px solid var(--line);
 }
 
@@ -118,7 +118,7 @@ li {
   border: none;
   background: transparent;
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: var(--text-small);
   color: var(--text);
   text-align: start;
 }
@@ -132,13 +132,13 @@ button.path {
 .fixes {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 4px;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
 }
 
 .fix {
-  padding: 3px 10px;
-  font-size: 12px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-small);
 }
 
 .message {

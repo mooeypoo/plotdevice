@@ -61,9 +61,9 @@ function cancel(): void {
 <style scoped>
 .show {
   width: 100%;
-  padding: 2px 4px;
+  padding: var(--space-1) var(--space-2);
   border: none;
-  border-radius: 5px;
+  border-radius: var(--radius-field);
   background: transparent;
   color: var(--text-dim);
   font: inherit;
@@ -82,9 +82,9 @@ function cancel(): void {
 
 .edit {
   width: 100%;
-  padding: 4px 6px;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--accent);
-  border-radius: 6px;
+  border-radius: var(--radius-field);
   background: var(--bg);
   color: var(--text);
   font: inherit;

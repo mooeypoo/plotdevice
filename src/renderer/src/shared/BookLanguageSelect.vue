@@ -53,8 +53,8 @@ function change(value: string): void {
 .book-language {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.85rem;
+  gap: var(--space-2);
+  font-size: var(--text-body);
   color: var(--text-muted);
 }
 

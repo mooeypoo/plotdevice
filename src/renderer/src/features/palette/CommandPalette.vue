@@ -239,34 +239,34 @@ function keydown(event: KeyboardEvent): void {
   width: min(560px, calc(100vw - 32px));
   max-height: 70vh;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   background: var(--panel);
   box-shadow: var(--shadow-popover);
   align-self: flex-start;
 }
 
 input {
-  margin: 10px;
-  padding: 8px 10px;
-  font-size: 15px;
+  margin: var(--space-3);
+  padding: var(--space-3) var(--space-3);
+  font-size: var(--text-title);
 }
 
 ul {
   flex: 1;
   min-height: 0;
   margin: 0;
-  padding: 0 6px;
+  padding: 0 var(--space-3);
   overflow-y: auto;
   list-style: none;
 }
 
 [role='option'] {
   display: flex;
-  gap: 12px;
+  gap: var(--space-4);
   align-items: baseline;
   justify-content: space-between;
-  padding: 6px 10px;
-  border-radius: 4px;
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--radius-field);
   cursor: pointer;
 }
 
@@ -284,21 +284,21 @@ ul {
 .detail {
   flex-shrink: 0;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 
 .empty {
-  margin: 4px 16px 10px;
+  margin: var(--space-2) var(--space-5) var(--space-3);
   color: var(--text-muted);
 }
 
 footer {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  padding: 8px 16px;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-5);
   border-top: 1px solid var(--line);
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 </style>

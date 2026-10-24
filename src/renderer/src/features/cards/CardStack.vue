@@ -124,13 +124,13 @@ function drop(event: DragEvent, index: number): void {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 10px;
+  padding: var(--space-3);
 }
 
 ol {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -152,12 +152,12 @@ li.dragging {
 
 /* Leave room for the card's menu beside its own actions. */
 li :deep(.entry-card header) {
-  padding-inline-end: 28px;
+  padding-inline-end: var(--space-6);
 }
 
 .empty {
   margin: 0;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--text-body);
 }
 </style>

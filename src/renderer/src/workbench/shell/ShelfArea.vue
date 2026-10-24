@@ -148,14 +148,14 @@ function select(section: Section): void {
 
 .shelf-header {
   display: flex;
-  gap: 8px;
+  gap: var(--space-3);
   align-items: center;
-  padding: 6px 10px;
+  padding: var(--space-3) var(--space-3);
 }
 
 .title {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -165,12 +165,12 @@ function select(section: Section): void {
 }
 
 .toggle {
-  padding: 2px 6px;
+  padding: var(--space-1) var(--space-3);
 }
 
 .section-title {
   display: inline-flex;
-  gap: 2px;
+  gap: var(--space-1);
   align-items: center;
 }
 
@@ -181,7 +181,7 @@ function select(section: Section): void {
 .shelf-content {
   display: flex;
   flex: 1;
-  gap: 16px;
+  gap: var(--space-5);
   min-height: 0;
 }
 
@@ -189,6 +189,6 @@ function select(section: Section): void {
   flex-basis: 0;
   min-width: 0;
   overflow: auto;
-  padding: 0 16px 16px;
+  padding: 0 var(--space-5) var(--space-5);
 }
 </style>

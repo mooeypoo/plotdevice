@@ -542,23 +542,23 @@ function overColumn(event: DragEvent, column: number): void {
 .board {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-4);
   height: 100%;
   min-height: 0;
-  padding-block: 16px;
-  padding-inline: 20px;
+  padding-block: var(--space-5);
+  padding-inline: var(--space-5);
   overflow: hidden;
 }
 
 header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-4);
 }
 
 .title {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--text-title);
   font-weight: 600;
   color: var(--text-strong);
 }
@@ -579,7 +579,7 @@ header {
   display: flex;
   flex: 1;
   align-items: flex-start;
-  gap: 14px;
+  gap: var(--space-5);
   min-height: 0;
   margin: 0;
   padding: 0;
@@ -608,10 +608,10 @@ header {
   display: flex;
   flex: 0 0 260px;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-3);
   max-height: 100%;
-  padding: 10px;
-  border-radius: 10px;
+  padding: var(--space-3);
+  border-radius: var(--radius-card);
   background: var(--panel);
 }
 
@@ -623,9 +623,9 @@ header {
 .column-title {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-3);
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-body);
   font-weight: 600;
   color: var(--text-strong);
 }
@@ -638,7 +638,7 @@ header {
 .beats {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-3);
   margin: 0;
   padding: 0;
   overflow-y: auto;
@@ -648,13 +648,13 @@ header {
 .beat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-block: 8px;
-  padding-inline: 10px;
+  gap: var(--space-2);
+  padding-block: var(--space-3);
+  padding-inline: var(--space-3);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   background: var(--raised);
-  font-size: 13px;
+  font-size: var(--text-body);
 }
 
 .beat:focus-visible {
@@ -666,7 +666,7 @@ header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 6px;
+  gap: var(--space-3);
 }
 
 .column-head .column-title {
@@ -725,10 +725,10 @@ header {
 
 .add-card {
   align-self: flex-start;
-  padding-block: 2px;
-  padding-inline: 6px;
+  padding-block: var(--space-1);
+  padding-inline: var(--space-3);
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
   opacity: 0;
 }
 
@@ -739,10 +739,10 @@ header {
 
 .add-field input {
   width: 100%;
-  padding-block: 6px;
-  padding-inline: 8px;
+  padding-block: var(--space-3);
+  padding-inline: var(--space-3);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-body);
 }
 
 .announcement {
@@ -757,7 +757,7 @@ header {
 .notice {
   margin: 0;
   color: var(--text-dim);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 
 .help {
@@ -821,6 +821,6 @@ header {
 .muted {
   margin: 0;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 </style>

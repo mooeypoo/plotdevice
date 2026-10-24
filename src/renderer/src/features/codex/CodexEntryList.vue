@@ -55,14 +55,14 @@ ul {
 .row {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--space-3);
   flex: 1;
   min-width: 0;
   min-height: 32px;
-  padding-block: 6px;
-  padding-inline: 14px 10px;
+  padding-block: var(--space-3);
+  padding-inline: var(--space-5) var(--space-3);
   border: none;
-  border-radius: 7px;
+  border-radius: var(--radius-field);
   background: transparent;
   color: var(--text-dim);
   text-align: start;
@@ -70,8 +70,8 @@ ul {
 .row.character {
   flex-direction: column;
   align-items: stretch;
-  gap: 3px;
-  padding-block: 8px;
+  gap: var(--space-1);
+  padding-block: var(--space-3);
 }
 .row:hover:not(.active) {
   background: var(--hover);
@@ -92,7 +92,7 @@ ul {
   flex-shrink: 0;
   max-width: 45%;
   overflow: hidden;
-  font-size: 11px;
+  font-size: var(--text-caption);
   color: var(--text-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -108,11 +108,11 @@ ul {
 }
 .edit {
   flex-shrink: 0;
-  padding: 5px;
+  padding: var(--space-2);
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 10px;
+  font-size: var(--text-caption);
 }
 .edit:hover,
 .edit:focus-visible {

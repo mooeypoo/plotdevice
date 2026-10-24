@@ -308,14 +308,14 @@ function setMinGap(event: Event): void {
 <style scoped>
 .timeline {
   max-width: 100%;
-  padding-bottom: 80px;
-  font-size: 13px;
+  padding-bottom: calc(var(--space-8) + var(--space-7));
+  font-size: var(--text-body);
 }
 
 h1 {
-  margin: 0 0 14px;
+  margin: 0 0 var(--space-5);
   font-family: var(--font-prose);
-  font-size: 32px;
+  font-size: var(--text-display);
   font-weight: 400;
   color: var(--text-strong);
 }
@@ -324,23 +324,23 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-4);
 }
 
 .segmented {
   display: flex;
-  padding: 2px;
-  border-radius: 8px;
+  padding: var(--space-1);
+  border-radius: var(--radius-field);
   background: var(--raised);
 }
 
 .segmented button {
-  padding: 4px 12px;
+  padding: var(--space-2) var(--space-4);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-field);
   background: transparent;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 
 .segmented button.on {
@@ -351,13 +351,13 @@ h1 {
 .gap-setting {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-3);
   color: var(--text-muted);
 }
 
 .gap-setting input {
   width: 52px;
-  padding: 3px 6px;
+  padding: var(--space-1) var(--space-3);
 }
 
 .hint,
@@ -367,7 +367,7 @@ h1 {
 }
 
 .hint {
-  margin: 10px 0 0;
+  margin: var(--space-3) 0 0;
 }
 
 .query-error {
@@ -377,7 +377,7 @@ h1 {
 
 .grid {
   display: grid;
-  margin-top: 18px;
+  margin-top: var(--space-5);
   overflow-x: auto;
 }
 
@@ -392,8 +392,8 @@ h1 {
 .column-head {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 6px 6px 8px;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-3) var(--space-3);
   border-bottom: 1px solid var(--line-strong);
 }
 
@@ -408,13 +408,13 @@ h1 {
 }
 
 .label {
-  margin-inline-end: 4px;
+  margin-inline-end: var(--space-2);
   color: var(--text-muted);
   font-weight: 400;
 }
 
 .date {
-  font-size: 11px;
+  font-size: var(--text-caption);
   color: var(--text-dim);
 }
 
@@ -424,15 +424,15 @@ h1 {
 }
 
 .back {
-  font-size: 11px;
+  font-size: var(--text-caption);
   color: var(--warning);
 }
 
 .row-name {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 10px 0 4px;
+  gap: var(--space-3);
+  padding: 0 var(--space-3) 0 var(--space-2);
   border-bottom: 1px solid var(--line);
   color: var(--text);
 }
@@ -441,12 +441,12 @@ h1 {
   flex-shrink: 0;
   width: 8px;
   height: 8px;
-  border-radius: 2px;
+  border-radius: var(--radius-field);
 }
 
 .gap-note {
   margin-inline-start: auto;
-  font-size: 11px;
+  font-size: var(--text-caption);
   color: var(--warning);
   white-space: nowrap;
 }
@@ -465,8 +465,8 @@ h1 {
 .cell.pov::after {
   display: block;
   height: 12px;
-  margin: 0 3px;
-  border-radius: 4px;
+  margin: 0 var(--space-1);
+  border-radius: var(--radius-field);
   background: var(--row-color);
   opacity: 0.55;
   content: '';
@@ -483,7 +483,7 @@ h1 {
 
 .story-body {
   display: flex;
-  margin-top: 18px;
+  margin-top: var(--space-5);
 }
 
 .names {
@@ -513,9 +513,9 @@ h1 {
 .tick {
   position: absolute;
   bottom: 4px;
-  padding-inline-start: 4px;
+  padding-inline-start: var(--space-2);
   border-inline-start: 1px solid var(--line);
-  font-size: 11px;
+  font-size: var(--text-caption);
   color: var(--text-muted);
   white-space: nowrap;
 }
@@ -534,12 +534,12 @@ h1 {
   position: absolute;
   height: 20px;
   overflow: hidden;
-  padding: 0 6px;
+  padding: 0 var(--space-3);
   border: 1px solid var(--row-color);
-  border-radius: 5px;
+  border-radius: var(--radius-field);
   background: color-mix(in srgb, var(--row-color) 45%, transparent);
   color: var(--text-strong);
-  font-size: 11px;
+  font-size: var(--text-caption);
   line-height: 18px;
   text-align: start;
   text-overflow: ellipsis;
@@ -568,11 +568,11 @@ h1 {
 }
 
 .undated {
-  margin-top: 28px;
+  margin-top: var(--space-6);
 }
 
 .undated ul {
-  margin: 8px 0 0;
+  margin: var(--space-3) 0 0;
   padding: 0;
   list-style: none;
 }
@@ -580,8 +580,8 @@ h1 {
 .undated li {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 6px 0;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
   border-bottom: 1px solid var(--line);
 }
 

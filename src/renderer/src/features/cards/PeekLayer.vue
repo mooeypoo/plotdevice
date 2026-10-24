@@ -77,7 +77,7 @@ function focusout(event: FocusEvent): void {
   width: min(360px, calc(100vw - 16px));
   max-height: min(420px, calc(100vh - 16px));
   overflow-y: auto;
-  border-radius: 6px;
+  border-radius: var(--radius-field);
   box-shadow: var(--shadow-popover);
 }
 

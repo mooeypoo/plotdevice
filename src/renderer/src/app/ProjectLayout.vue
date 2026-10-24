@@ -159,9 +159,9 @@ useShortcuts([
 
 .navigation-notice {
   margin: 0;
-  padding: 8px 16px;
+  padding: var(--space-3) var(--space-5);
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .navigation-notice.error {
   color: var(--danger);
@@ -204,9 +204,9 @@ useShortcuts([
   inset-inline-end: 20px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-4);
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
   opacity: 0.6;
   transition: opacity 200ms ease;
 }

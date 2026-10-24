@@ -67,7 +67,7 @@ function input(event: Event): void {
 .range-field::-webkit-slider-thumb {
   inline-size: 14px;
   block-size: 14px;
-  margin-block-start: -5px;
+  margin-block-start: calc(-1 * var(--space-2));
   border: 2px solid var(--accent);
   border-radius: 50%;
   background: var(--raised);

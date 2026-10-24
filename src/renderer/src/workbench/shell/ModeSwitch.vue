@@ -33,19 +33,19 @@ function choose(mode: Mode): void {
 <style scoped>
 .mode-switch {
   display: flex;
-  padding: 2px;
+  padding: var(--space-1);
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .mode-switch button {
-  padding-block: 3px;
-  padding-inline: 12px;
+  padding-block: var(--space-1);
+  padding-inline: var(--space-4);
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 
 .mode-switch button.on {

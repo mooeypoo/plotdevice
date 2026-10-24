@@ -46,6 +46,6 @@ const kind = computed(() => language.t(kindKeys[editor.entry?.templateOf ?? 'not
 }
 
 code {
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 </style>
