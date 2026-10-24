@@ -54,7 +54,7 @@ defineEmits<{
   max-width: calc(var(--measure) + 48px);
   margin: 0 auto 28px;
   padding: 14px 18px;
-  border: 1px solid rgba(216, 178, 110, 0.35);
+  border: 1px solid var(--warning-line);
   border-radius: 10px;
   background: var(--accent-soft);
   line-height: 1.5;

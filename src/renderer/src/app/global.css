@@ -3,7 +3,7 @@
 /* Design tokens: a dark writing room. Off-black grounds, warm off-white prose, one amber accent.
    Text colors pass 4.5:1 on every surface they sit on, except --text-faint, which is decorative. */
 :root {
-  color-scheme: dark;
+  color-scheme: light dark;
 
   --bg: #141518;
   --bg-sunken: #111215;
@@ -76,6 +76,11 @@
   --accent-ink: #1a1610;
   --accent-hover: #e3c084;
   --shadow-popover: 0 14px 40px rgb(0 0 0 / 45%);
+  --scrim: rgb(0 0 0 / 35%);
+  --danger-soft: rgb(227 155 123 / 12%);
+  --danger-line: rgb(227 155 123 / 35%);
+  --warning-soft: rgb(216 178 110 / 12%);
+  --warning-line: rgb(216 178 110 / 35%);
 
   --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
   --duration-quick: 120ms;
@@ -85,6 +90,58 @@
   --background: var(--bg);
   --surface: var(--raised);
   --border: var(--line-strong);
+}
+
+/* The light theme: the same roles on warm paper, each text colour at 4.5:1 or more on the grounds
+   it sits on (tools/styles/contrast.test.ts). Electron's nativeTheme drives the media query. */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f7f4ee;
+    --bg-sunken: #efeae1;
+    --panel: #f1ede5;
+    --raised: #ffffff;
+    --hover: #ebe5da;
+    --active: #e4ddcf;
+    --line: #e3dccf;
+    --line-strong: #d3cab9;
+
+    --text: #2a2722;
+    --text-strong: #1c1a16;
+    --prose: #24211c;
+    --text-dim: #4d483f;
+    --text-muted: #615b51;
+    --text-faint: #b3ab9c;
+
+    --accent: #87591a;
+    --accent-soft: rgb(154 106 28 / 12%);
+    --selection: rgb(154 106 28 / 22%);
+    --ok: #3a7454;
+    --warning: #87591a;
+    --danger: #a8401f;
+
+    --link-character: #7e5310;
+    --link-location: #2b6861;
+    --link-note: #65489f;
+    --link-other: #4d483f;
+    --link-missing: #a8401f;
+
+    --status-idea: #6b7686;
+    --status-outline: #3d6a99;
+    --status-draft: #9a6a1c;
+    --status-revised: #3f7d5c;
+    --status-final: #2a2722;
+    --status-other: #65489f;
+    --status-none: #d3cab9;
+
+    --accent-ink: #ffffff;
+    --accent-hover: #74490f;
+    --shadow-popover: 0 14px 40px rgb(60 45 20 / 18%);
+    --scrim: rgb(40 30 10 / 18%);
+    --danger-soft: rgb(168 64 31 / 9%);
+    --danger-line: rgb(168 64 31 / 35%);
+    --warning-soft: rgb(135 89 26 / 10%);
+    --warning-line: rgb(135 89 26 / 35%);
+  }
 }
 
 *,

@@ -1,5 +1,6 @@
 import type {
   UiLanguageApi,
+  UiThemeApi,
   CodexApi,
   InspectorApi,
   InteractionsApi,
@@ -16,6 +17,12 @@ export const UI_LANGUAGE_CHANNELS = {
   set: 'ui-language:set',
   onChanged: 'ui-language:changed'
 } as const satisfies Record<keyof UiLanguageApi, string>
+
+/** The app theme. */
+export const UI_THEME_CHANNELS = {
+  get: 'ui-theme:get',
+  set: 'ui-theme:set'
+} as const satisfies Record<keyof UiThemeApi, string>
 
 /** Explicit recovery requests. */
 export const RECOVERY_CHANNELS = {

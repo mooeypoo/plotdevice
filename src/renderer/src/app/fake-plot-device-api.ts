@@ -2,6 +2,7 @@ import type { AppMenuCommand, PlotDeviceApi } from '../../../contract/api'
 import type {
   ApiResult,
   UiLanguageDto,
+  UiTheme,
   EntryPropertiesDto,
   ManuscriptDto,
   CodexListingDto,
@@ -237,6 +238,8 @@ export function createFakePlotDeviceApi(): {
   closedProjects: number
   properties: Map<string, EntryPropertiesDto>
   created: string[]
+  /** The app theme the writer chose. */
+  theme: UiTheme
   moves: string[]
   renames: string[]
   renamePlan: { current: RenamePlanDto | null }
@@ -284,6 +287,7 @@ export function createFakePlotDeviceApi(): {
     saves: [] as string[],
     closedProjects: 0,
     created: [] as string[],
+    theme: 'system' as UiTheme,
     moves: [] as string[],
     renames: [] as string[]
   }
@@ -368,7 +372,7 @@ export function createFakePlotDeviceApi(): {
   >()
 
   const api: PlotDeviceApi = {
-    contractVersion: 31,
+    contractVersion: 32,
     uiLanguage: {
       get: () => Promise.resolve(language),
       set: (locale) => {
@@ -379,6 +383,13 @@ export function createFakePlotDeviceApi(): {
       onChanged: (listener) => {
         languageListeners.add(listener)
         return () => languageListeners.delete(listener)
+      }
+    },
+    uiTheme: {
+      get: () => Promise.resolve(state.theme),
+      set: (theme) => {
+        state.theme = theme
+        return Promise.resolve({ ok: true, value: theme })
       }
     },
     recovery: {
@@ -997,6 +1008,9 @@ export function createFakePlotDeviceApi(): {
     renamePlan,
     get created() {
       return state.created
+    },
+    get theme() {
+      return state.theme
     }
   }
 }

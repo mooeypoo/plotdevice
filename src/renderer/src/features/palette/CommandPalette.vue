@@ -230,7 +230,7 @@ function keydown(event: KeyboardEvent): void {
   display: flex;
   justify-content: center;
   padding-top: 12vh;
-  background: rgb(0 0 0 / 35%);
+  background: var(--scrim);
 }
 
 .palette {
@@ -241,7 +241,7 @@ function keydown(event: KeyboardEvent): void {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
-  box-shadow: 0 16px 40px rgb(0 0 0 / 50%);
+  box-shadow: var(--shadow-popover);
   align-self: flex-start;
 }
 

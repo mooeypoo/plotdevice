@@ -25,7 +25,10 @@ const proseTheme = EditorView.theme(
     '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, ::selection':
       { backgroundColor: 'var(--selection)' },
     '.cm-placeholder': { color: 'var(--text-faint)', fontStyle: 'italic' },
-    '.cm-dimmed': { color: 'var(--text-faint)', transition: 'color 160ms ease' },
+    '.cm-dimmed': {
+      color: 'var(--text-faint)',
+      transition: 'color var(--duration-quick) var(--ease-out)'
+    },
     '.cm-dimmed .cm-wikilink': { color: 'inherit', textDecorationColor: 'var(--line-strong)' },
     '.cm-line[dir="auto"]': { textAlign: 'start' },
     '.cm-wikilink': {
@@ -43,8 +46,8 @@ const proseTheme = EditorView.theme(
     '.cm-wikilink-ambiguous': { color: 'var(--warning)', textDecorationStyle: 'wavy' },
     '.cm-wikilink-missing': { color: 'var(--link-missing)', textDecorationStyle: 'dashed' },
     '.cm-wikilink-embed': { fontStyle: 'italic' }
-  },
-  { dark: true }
+  }
+  // No dark or light flag: every colour is a token, so the editor follows the app's theme.
 )
 
 /** Markdown styling: headings and emphasis look like what they mean; their marks stay visible but dim. */

@@ -718,5 +718,12 @@
   "board-keys-help": "Accessible name of the ? button on the board that shows the keyboard hint.",
   "palette-group-recent": "Go to… heading over the documents open in tabs, the one on the page first, shown before anything is typed.",
   "palette-group-suggested": "Go to… heading over a few likely commands (the other mode, Focus, capture, the outline), shown before anything is typed.",
-  "palette-group-rest": "Go to… heading over the remaining views, layouts and commands, shown before anything is typed."
+  "palette-group-rest": "Go to… heading over the remaining views, layouts and commands, shown before anything is typed.",
+  "app-menu-theme": "⋯ menu submenu choosing the app's colours: following the system, dark or light.",
+  "app-menu-theme-system": "Theme choice: follow the operating system's light or dark setting.",
+  "app-menu-theme-dark": "Theme choice: always dark.",
+  "app-menu-theme-light": "Theme choice: always light.",
+  "palette-theme-system": "Go to… command: the app follows the operating system's light or dark setting.",
+  "palette-theme-dark": "Go to… command: the app is always dark.",
+  "palette-theme-light": "Go to… command: the app is always light."
 }

@@ -113,13 +113,15 @@ folder and no Electron. It exists for design reviews (the U1 audit and U2's scre
 
 ```bash
 npm run preview          # open it in a browser; pick a screen with ?scenario=…&lang=en|he
-npm run preview:capture  # build it and capture every scenario in English and Hebrew
+npm run preview:capture  # build it and capture every scenario in English and Hebrew, dark and light
 ```
 
 Scenarios are listed in `src/renderer/src/preview/scenarios.ts` (welcome, writing, revise,
 palette, board, capture and others). `preview:capture` drives the installed Google Chrome
-headlessly (set `CHROME` to use another binary) and writes `docs/plans/u1/screens/` unless given
-another folder. The preview is never part of the app build.
+headlessly (set `CHROME` to use another binary) and writes `docs/plans/u2/screens/` unless given
+another folder, as `scenario.lang.theme.png`. The app follows `prefers-color-scheme`, so a
+browser's own dark or light setting (or its devtools' emulation) picks the theme in
+`npm run preview`. The preview is never part of the app build.
 
 ## Documentation
 

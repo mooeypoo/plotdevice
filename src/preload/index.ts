@@ -3,6 +3,7 @@ import type { AppMenuCommand, PlotDeviceApi } from '../contract/api'
 import {
   APP_CHANNELS,
   UI_LANGUAGE_CHANNELS,
+  UI_THEME_CHANNELS,
   RECOVERY_CHANNELS,
   CODEX_CHANNELS,
   EVENT_CHANNELS,
@@ -15,6 +16,7 @@ import {
 } from '../contract/channels'
 import type {
   UiLanguageDto,
+  UiTheme,
   ApiResult,
   AppearanceDto,
   CodexListingDto,
@@ -46,7 +48,7 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 31,
+  contractVersion: 32,
   uiLanguage: {
     get: () => invoke<UiLanguageDto>(UI_LANGUAGE_CHANNELS.get),
     set: (locale) => invoke<ApiResult<UiLanguageDto>>(UI_LANGUAGE_CHANNELS.set, locale),
@@ -57,6 +59,10 @@ const plotDevice: PlotDeviceApi = {
       ipcRenderer.on(UI_LANGUAGE_CHANNELS.onChanged, handler)
       return () => ipcRenderer.removeListener(UI_LANGUAGE_CHANNELS.onChanged, handler)
     }
+  },
+  uiTheme: {
+    get: () => invoke<UiTheme>(UI_THEME_CHANNELS.get),
+    set: (theme) => invoke<ApiResult<UiTheme>>(UI_THEME_CHANNELS.set, theme)
   },
   recovery: {
     capture: (path, version) => invoke<ApiResult<string>>(RECOVERY_CHANNELS.capture, path, version),

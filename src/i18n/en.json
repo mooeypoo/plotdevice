@@ -718,5 +718,12 @@
   "board-keys-help": "Keyboard",
   "palette-group-recent": "Recent",
   "palette-group-suggested": "Suggested",
-  "palette-group-rest": "Everything else"
+  "palette-group-rest": "Everything else",
+  "app-menu-theme": "Theme",
+  "app-menu-theme-system": "Match the system",
+  "app-menu-theme-dark": "Dark",
+  "app-menu-theme-light": "Light",
+  "palette-theme-system": "Use the system’s theme",
+  "palette-theme-dark": "Use the dark theme",
+  "palette-theme-light": "Use the light theme"
 }

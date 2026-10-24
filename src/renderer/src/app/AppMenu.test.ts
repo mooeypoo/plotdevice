@@ -6,6 +6,7 @@ import AppMenu from './AppMenu.vue'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
 import { plotDeviceApi } from './plot-device-api'
 import { useUiLanguageStore } from './ui-language-store'
+import { useUiThemeStore } from './ui-theme-store'
 import WritingAppearance from './WritingAppearance.vue'
 import { useWorkspaceStore } from './workspace-store'
 
@@ -35,7 +36,7 @@ describe('the ⋯ menu', () => {
       menu
         .findAll('[role=menu] > [role=menuitem], [role=menu] > [role=none] > [role=menuitem]')
         .map((item) => item.attributes('data-label'))
-    ).toEqual(['Interface language', 'Appearance…', 'Layout', 'Close project'])
+    ).toEqual(['Interface language', 'Theme', 'Appearance…', 'Layout', 'Close project'])
     menu.unmount()
   })
 
@@ -86,6 +87,25 @@ describe('the ⋯ menu', () => {
     menu.unmount()
     appearance.unmount()
     Reflect.deleteProperty(HTMLElement.prototype, 'togglePopover')
+  })
+
+  it('chooses the theme, with the current one checked', async () => {
+    const menu = mount(AppMenu, { attachTo: document.body })
+    await open(menu)
+    await menu.get('[data-opens="theme"]').trigger('click')
+    await flushPromises()
+    const radios = menu.findAll('[data-submenu="theme"] [role=menuitemradio]')
+    expect(radios.map((radio) => radio.attributes('data-label'))).toEqual([
+      'Match the system',
+      'Dark',
+      'Light'
+    ])
+    expect(radios[0]?.attributes('aria-checked')).toBe('true')
+    await radios[2]?.trigger('click')
+    await flushPromises()
+    expect(fake.theme).toBe('light')
+    expect(useUiThemeStore().theme).toBe('light')
+    menu.unmount()
   })
 
   it('closes the project', async () => {

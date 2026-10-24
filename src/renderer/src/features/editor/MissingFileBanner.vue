@@ -70,9 +70,9 @@ defineEmits<{
   max-width: calc(var(--measure) + 48px);
   margin: 0 auto 28px;
   padding: 14px 18px;
-  border: 1px solid rgba(227, 155, 123, 0.35);
+  border: 1px solid var(--danger-line);
   border-radius: 10px;
-  background: rgba(227, 155, 123, 0.12);
+  background: var(--danger-soft);
   line-height: 1.5;
 }
 

@@ -2,7 +2,7 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { copySampleNovel, type SampleNovelCopy } from '../testing/sample-novel'
-import { createJsonUiLanguageStore } from './json-ui-language-store'
+import { createJsonUiLanguageStore, createJsonUiPreferences } from './json-ui-language-store'
 
 let fixture: SampleNovelCopy
 let folder: string
@@ -23,6 +23,21 @@ async function projectBytes(root: string): Promise<Record<string, string>> {
 }
 
 describe('interface preference persistence', () => {
+  it('keeps the theme beside the language: saving one never loses the other', async () => {
+    const stores = createJsonUiPreferences(folder)
+    expect(await stores.theme.load()).toEqual({ ok: true, value: undefined })
+    await Promise.all([stores.language.save('he'), stores.theme.save('light')])
+    expect(JSON.parse(await readFile(join(folder, 'ui-preferences.json'), 'utf8'))).toEqual({
+      version: 1,
+      locale: 'he',
+      theme: 'light'
+    })
+    await stores.language.save('en')
+    const reopened = createJsonUiPreferences(folder)
+    expect(await reopened.theme.load()).toEqual({ ok: true, value: 'light' })
+    expect(await reopened.language.load()).toEqual({ ok: true, value: 'en' })
+  })
+
   it('handles first launch, saves atomically and restores without touching any project bytes', async () => {
     const before = await projectBytes(fixture.root)
     const store = createJsonUiLanguageStore(folder)

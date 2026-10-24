@@ -146,7 +146,7 @@ h1 {
 }
 
 .notice.error {
-  background: rgba(227, 155, 123, 0.12);
+  background: var(--danger-soft);
   color: var(--text);
 }
 </style>
