@@ -88,6 +88,7 @@ export const OUTLINE_CHANNELS = {
   moveBeat: 'outline:move-beat',
   moveColumn: 'outline:move-column',
   addBeat: 'outline:add-beat',
+  addColumn: 'outline:add-column',
   retitleBeat: 'outline:retitle-beat',
   editNotes: 'outline:edit-notes'
 } as const satisfies Record<keyof OutlineApi, string>

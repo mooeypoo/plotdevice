@@ -74,6 +74,8 @@ export function formatApiError(error: ApiError, t: Translator['t']): string {
     case 'outline-shape-changed':
     case 'outline-invalid-beat':
     case 'outline-invalid-notes':
+    case 'outline-invalid-column':
+    case 'outline-column-exists':
       return t(`error-${diagnostic.reason}`)
     case 'name-matches':
       return t('error-name-matches')

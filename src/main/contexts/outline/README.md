@@ -4,7 +4,7 @@
 
 **Main concepts.** `OutlineFile` (path and title), `newOutlineText`, `OutlineWords` (a new outline's title and the Inbox heading, resolved from the book language by the composition root, ADR 0019).
 
-**Use cases.** Queries: `ListOutlines` (by title, leaving out the template folder), `OpenOutline`. Commands: `CreateOutline` (at the project root, named uniquely across the project), `SaveOutlineText` (version-checked). Commands refuse read-only projects. Until `api.outline` arrives in P2, the codex IPC handler forwards outline calls here.
+**Use cases.** Queries: `ListOutlines` (by title, leaving out the template folder), `OpenOutline`. Commands: `CreateOutline` (at the project root, named uniquely across the project), `SaveOutlineText` (version-checked), and the board's version-checked line edits `CaptureBeat`, `MoveBeat`, `MoveColumn`, `AddBeat`, `AddColumn` (one `##` heading, refusing a name already used), `RetitleBeat` and `EditNotes`. Commands refuse read-only projects. Until `api.outline` arrives in P2, the codex IPC handler forwards outline calls here.
 
 **Ports.** `OutlineRepository`, with an in-memory fake beside it.
 

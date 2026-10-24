@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { BoardColumnDto } from '../../../../contract/dtos'
-import { beatDrop, beatKeyMove, columnDrop, columnKeyMove } from './board-moves'
+import { beatDrop, beatKeyMove, columnDrop, columnKeyMove, newColumnPlacement } from './board-moves'
 
 const beat = (line: number, title: string): BoardColumnDto['beats'][number] => ({
   line,
@@ -52,6 +52,15 @@ describe('columnDrop', () => {
       placement: { before: { title: 'Inbox' } }
     })
     expect(columnDrop([inbox, one, two], 0, 2)).toMatchObject({ placement: 'end' })
+  })
+})
+
+describe('newColumnPlacement', () => {
+  it('goes after the last column and before the Inbox, wherever the Inbox is in the file', () => {
+    expect(newColumnPlacement([one, two, inbox])).toEqual({ before: { line: 8, title: 'Inbox' } })
+    expect(newColumnPlacement([inbox, one, two])).toBe('end')
+    expect(newColumnPlacement([inbox])).toEqual({ before: { line: 8, title: 'Inbox' } })
+    expect(newColumnPlacement([])).toBe('end')
   })
 })
 

@@ -408,10 +408,11 @@ is left as a bare native control.
 native `<select>` or checkbox outside the shared styled components.
 
 ### U3b: Information architecture
+Shipped in four stacked PRs (U3b-1 to U3b-4).
 - [x] The top bar (D1, D2): mode switch, a visible Go to…, side toggles and one ⋯ menu (interface language, Appearance, Layout, Close project). Write is the page; Overview, Timeline and Interactions moved to Plot; the Text tab is gone.
 - [x] Document tabs only with two or more documents, their actions in one ⋯, and Back to your chapter only while away from it; "In this chapter" as a line under the heading; a status bar of words, ⚠ Needs attention and Saved; no empty Needs attention shelf.
 - [x] Panel headers with one ⋯ (and double-click to expand) and a More ▾ tab after three; Manuscript rows with a hover ⋯; compact Details (placement and story time folded, characters and place behind one quiet add) and "Edit details" on rows, cards, peeks and the Chapter card (D6). Menus now draw over the page, so scrolling panels never clip them.
-- [ ] The status bar, Go to…'s empty state, the board's fit and header, and "+ Add column" (D5).
+- [x] The status bar, Go to…'s empty state (Recent, Suggested, everything else), the board's fit (soft edges, opens at its first column) and header (outline name, Edit as text, ? for keys), and "+ Add column" with the offer to create the part (D5, contract version 31).
 
 **Done when:** every keyboard path still works and is tested, and the harness screens match the
 mock-ups in both languages.
@@ -445,7 +446,8 @@ native deb permissions and publisher authentication are not changed by metadata.
 ## Later
 - Chrome cleanup (writer feedback on W5) is now phase U1 above.
 - A Plot Board rethink (writer, 2026-10-23), once the U phases are solid. Include whether beats get "Edit details" for the chapters they link.
-- The user guide doesn't yet describe the workbench (layouts, palette, peeks and cards, splits); it has a short Plotting section. Bring it up to date with U1, when names and places settle.
+- The user guide now uses the U1 names and places (U3a, U3b), but still has no page of its own for the workbench: layouts, splits, cards and peeks. Write one with U2b's screenshots.
+- `npm run preview:capture` sometimes ends with `ENOTEMPTY` while removing Chrome's temporary profile; every screen is captured first. Retry the removal or wait for the browser's helpers to exit.
 - Workbench follow-ups (out of the proposed W/L/P plan): dragging tabs and sections between panels (W4 provides menu and keyboard moves); a Search view with full-text search (the palette only jumps to entries); the thread grid (threads × chapters, reusing the timeline's reading-order grid); pop-out windows; a visual `novel.md` settings editor for language, vocabulary, statuses and folders (ADR 0004 and 0007); scene-level cards once scenes exist.
 - Renderer coupling: 44 feature files import `app/` stores directly. W2 cuts feature-to-feature imports only; narrowing features' access to app stores is separate work.
 - Documentation tooling: the offline manual build passes but emits Node module-type and Vite native-config compatibility warnings. Address module configuration separately from reference UI work.

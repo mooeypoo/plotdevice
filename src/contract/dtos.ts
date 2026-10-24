@@ -104,7 +104,14 @@ export type ErrorDiagnosticDto =
   | { readonly reason: 'frontmatter-unsupported'; readonly key: string }
   | { readonly reason: 'link-needs-no-folder'; readonly name: string }
   | { readonly reason: 'key-needs-no-quotes'; readonly key: string }
-  | { readonly reason: 'outline-shape-changed' | 'outline-invalid-beat' | 'outline-invalid-notes' }
+  | {
+      readonly reason:
+        | 'outline-shape-changed'
+        | 'outline-invalid-beat'
+        | 'outline-invalid-notes'
+        | 'outline-invalid-column'
+        | 'outline-column-exists'
+    }
 
 /** A folder the writer picked in the native dialog. */
 export interface FolderChoiceDto {

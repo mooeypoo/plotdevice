@@ -42,6 +42,40 @@ const withInboxFirst = {
 }
 
 describe('PlotBoard', () => {
+  it('names the outline, offers Edit as text, and keeps the keyboard hint behind ?', async () => {
+    const board = mount(PlotBoard, { attachTo: document.body })
+    await flushPromises()
+    expect(board.find('header .hint').isVisible()).toBe(false)
+    expect(board.get('header .help summary').attributes('aria-label')).toBe('Keyboard')
+    await board.get('header .edit-text').trigger('click')
+    await flushPromises()
+    expect(useWorkbenchStore().mode).toBe('writing')
+    expect(useEditorStore().entry?.path).toBe(useOutlineStore().currentPath)
+    board.unmount()
+    await useEditorStore().flush()
+  })
+
+  it('adds a column after the last one, and offers to create the part it names', async () => {
+    fake.board.current = withInboxFirst
+    const board = mount(PlotBoard, { attachTo: document.body })
+    await flushPromises()
+    const tiles = board.findAll('.columns > li')
+    expect(tiles.at(-2)?.classes()).toContain('add-column')
+    expect(tiles.at(-1)?.classes()).toContain('inbox')
+    await board.get('.add-column button').trigger('click')
+    await board.get('.add-column input').setValue('Part Three')
+    await board.get('.add-column form').trigger('submit')
+    await flushPromises()
+    expect(fake.boardMoves).toEqual(['add column Part Three end'])
+    expect(board.get('.announcement').text()).toBe('Column \u2068Part Three\u2069 added')
+    expect(board.get('.offer').text()).toContain('No part is called \u2068Part Three\u2069 yet')
+    await board.get('.offer .primary').trigger('click')
+    await flushPromises()
+    expect(fake.created).toContain('Part Three/Part Three.md')
+    expect(board.find('.offer').exists()).toBe(false)
+    board.unmount()
+  })
+
   it('shows columns in document order with the Inbox last, and cards with their facts', async () => {
     fake.board.current = withInboxFirst
     const board = mount(PlotBoard)

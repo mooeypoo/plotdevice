@@ -706,5 +706,17 @@
   "workbench-more-panels": "עוד",
   "card-open": "פתיחה",
   "inspector-story-when": "מתי בסיפור",
-  "inspector-add-cast": "+ הוספת דמויות או מקום"
+  "inspector-add-cast": "+ הוספת דמויות או מקום",
+  "error-outline-invalid-column": "שם של עמודה הוא שורת טקסט אחת, ואינו יכול להיות רק סימני #.",
+  "error-outline-column-exists": "בלוח העלילה כבר יש עמודה בשם הזה.",
+  "board-add-column": "+ הוספת עמודה",
+  "board-add-column-label": "שם העמודה החדשה",
+  "board-added-column": "העמודה $1 נוספה",
+  "board-create-part-offer": "אין עדיין חלק בשם $1. ליצור אחד?",
+  "board-create-part": "יצירת חלק",
+  "board-no-thanks": "לא תודה",
+  "board-keys-help": "מקלדת",
+  "palette-group-recent": "אחרונים",
+  "palette-group-suggested": "מוצעים",
+  "palette-group-rest": "כל השאר"
 }

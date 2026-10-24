@@ -36,8 +36,8 @@ chapter shows that chapter's status, point of view and word count; a `#tag` that
 matches one of your threads in `novel.md` marks the beat with that thread. Text the
 board doesn't recognize stays exactly where it is.
 
-Use **Go to…** and choose **Edit the outline as text** to edit the outline itself on the page,
-in Write; switch back to Plot to look at the board again. The board
+Choose **Edit as text** beside the outline's name to edit the outline itself on the page,
+in Write; switch back to Plot to look at the board again. **?** shows the board's keys. The board
 reads the file each time; it stores nothing of its own. Use the arrow keys to move
 between beats, and Enter to go and write a beat's chapter.
 
@@ -46,6 +46,10 @@ beat or a column heading focused, **Alt+arrow keys** move it, and its **⋯** me
 the same moves. Only the moved lines change in the file; if the outline changed
 since the board read it, nothing is written and the board reads it again. The Inbox
 column always stays last; drag its beats out to sort them into the story.
+
+**+ Add column**, after the last column, adds a `##` heading to the outline: type its name
+and press Enter. If no part of your manuscript has that name yet, the board offers to
+create one too; nothing is created unless you choose **Create part**.
 
 Write on the board, too. **+ Add beat** at the foot of a column adds beats one after
 another: type a line, press Enter, and type the next. **F2** renames a focused beat,

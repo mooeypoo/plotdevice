@@ -10,6 +10,7 @@ import type {
 import type { CaptureBeat } from '../contexts/outline/application/commands/capture-beat'
 import type { CreateOutline } from '../contexts/outline/application/commands/create-outline'
 import type { AddBeat } from '../contexts/outline/application/commands/add-beat'
+import type { AddColumn } from '../contexts/outline/application/commands/add-column'
 import type { EditNotes } from '../contexts/outline/application/commands/edit-notes'
 import type { MoveBeat } from '../contexts/outline/application/commands/move-beat'
 import type { RetitleBeat } from '../contexts/outline/application/commands/retitle-beat'
@@ -34,6 +35,7 @@ export interface OutlineUseCases {
   readonly moveBeat: MoveBeat
   readonly moveColumn: MoveColumn
   readonly addBeat: AddBeat
+  readonly addColumn: AddColumn
   readonly retitleBeat: RetitleBeat
   readonly editNotes: EditNotes
 }
@@ -49,6 +51,7 @@ export interface OutlineHandlers {
   moveBeat(args: readonly unknown[]): Promise<ApiResult<PlotBoardDto>>
   moveColumn(args: readonly unknown[]): Promise<ApiResult<PlotBoardDto>>
   addBeat(args: readonly unknown[]): Promise<ApiResult<PlotBoardDto>>
+  addColumn(args: readonly unknown[]): Promise<ApiResult<PlotBoardDto>>
   retitleBeat(args: readonly unknown[]): Promise<ApiResult<PlotBoardDto>>
   editNotes(args: readonly unknown[]): Promise<ApiResult<PlotBoardDto>>
 }
@@ -71,6 +74,7 @@ const moveBeatArgs = z.tuple([path, version, itemRef, itemRef, placement])
 const moveColumnArgs = z.tuple([path, version, itemRef, placement])
 const title = z.string().max(2000)
 const addBeatArgs = z.tuple([path, version, itemRef, title, placement])
+const addColumnArgs = z.tuple([path, version, title, placement])
 const retitleArgs = z.tuple([path, version, itemRef, title])
 const notesArgs = z.tuple([path, version, itemRef, z.string().max(100_000)])
 const captureArgs = z.tuple([path, z.string().max(2000), z.string().min(1).max(200).nullable()])
@@ -241,6 +245,14 @@ export function createOutlineHandlers(current: () => OutlineUseCases | undefined
         args,
         async (useCases, outline, [, at, column, text, where]) =>
           afterEdit(useCases, outline, await useCases.addBeat(outline, at, column, text, where))
+      ),
+
+    addColumn: (args) =>
+      onOutline<z.infer<typeof addColumnArgs>, PlotBoardDto>(
+        addColumnArgs,
+        args,
+        async (useCases, outline, [, at, text, where]) =>
+          afterEdit(useCases, outline, await useCases.addColumn(outline, at, text, where))
       ),
 
     retitleBeat: (args) =>
