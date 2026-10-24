@@ -111,7 +111,7 @@ const saveTone = computed(() => {
   gap: var(--space-5);
   height: 30px;
   flex-shrink: 0;
-  padding: 0 18px;
+  padding: 0 var(--space-5);
   border-top: 1px solid var(--line);
   background: var(--panel);
   color: var(--text-muted);
@@ -132,7 +132,7 @@ const saveTone = computed(() => {
 .save {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-3);
 }
 
 .dot {

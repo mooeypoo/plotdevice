@@ -94,7 +94,7 @@ const outlineChoices = computed((): SelectOption[] =>
 .outline {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-3);
   min-height: 0;
 }
 
@@ -102,7 +102,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-3);
 }
 
 .title {
@@ -118,7 +118,7 @@ header {
 .file-path {
   overflow: hidden;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--text-caption);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -134,6 +134,6 @@ header {
 }
 
 .empty p {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-4);
 }
 </style>

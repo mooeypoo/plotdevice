@@ -43,9 +43,9 @@ function move(request: DropRequest): void {
 
 <style scoped>
 .load-error {
-  margin: 10px;
+  margin: var(--space-3);
   color: var(--danger);
-  font-size: 12px;
+  font-size: var(--text-small);
   overflow-wrap: anywhere;
 }
 </style>

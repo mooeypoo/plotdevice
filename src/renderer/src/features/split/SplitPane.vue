@@ -119,9 +119,9 @@ watch([() => codex.revision, () => manuscript.manuscript], () => void reader.rel
 
 header {
   display: flex;
-  gap: 8px;
+  gap: var(--space-3);
   align-items: center;
-  padding: 10px 14px;
+  padding: var(--space-3) var(--space-5);
   border-bottom: 1px solid var(--line);
 }
 
@@ -134,40 +134,40 @@ h2 {
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  font-size: 14px;
+  font-size: var(--text-title);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .read-only {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--text-caption);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .actions {
   display: inline-flex;
-  gap: 2px;
+  gap: var(--space-1);
 }
 
 .actions button,
 .close {
-  padding: 2px 6px;
-  font-size: 11px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-caption);
 }
 
 .body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 24px 28px 40vh;
+  padding: var(--space-6) var(--space-6) 40vh;
 }
 
 .note {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-4);
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--text-body);
 }
 
 .note.error {

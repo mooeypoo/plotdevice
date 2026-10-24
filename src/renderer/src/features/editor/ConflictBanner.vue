@@ -50,12 +50,12 @@ defineEmits<{
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px 20px;
+  gap: var(--space-4) var(--space-5);
   max-width: calc(var(--measure) + 48px);
-  margin: 0 auto 28px;
-  padding: 14px 18px;
+  margin: 0 auto var(--space-6);
+  padding: var(--space-5) var(--space-5);
   border: 1px solid var(--warning-line);
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   background: var(--accent-soft);
   line-height: 1.5;
 }
@@ -72,16 +72,16 @@ strong {
 
 .actions {
   display: flex;
-  gap: 8px;
+  gap: var(--space-3);
   flex-wrap: wrap;
 }
 
 .error {
   color: var(--danger);
-  margin: 8px 0 0;
+  margin: var(--space-3) 0 0;
 }
 
 .copy-path {
-  margin: 8px 0 0;
+  margin: var(--space-3) 0 0;
 }
 </style>

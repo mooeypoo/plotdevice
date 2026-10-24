@@ -194,18 +194,18 @@ function chooseType(path: string, value: string): void {
 
 <style scoped>
 .codex {
-  padding-bottom: 12px;
+  padding-bottom: var(--space-4);
 }
 
 .section {
-  margin-bottom: 14px;
+  margin-bottom: var(--space-5);
 }
 
 .divider {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 6px 8px;
+  gap: var(--space-3);
+  margin: var(--space-3) var(--space-3);
 }
 
 h2 {
@@ -219,7 +219,7 @@ h2 {
 }
 
 .count {
-  font-size: 11px;
+  font-size: var(--text-caption);
   color: var(--text-muted);
 }
 
@@ -232,13 +232,13 @@ ul {
 .row {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--space-3);
   width: 100%;
   min-height: 32px;
-  padding-block: 6px;
-  padding-inline: 14px 10px;
+  padding-block: var(--space-3);
+  padding-inline: var(--space-5) var(--space-3);
   border: none;
-  border-radius: 7px;
+  border-radius: var(--radius-field);
   background: transparent;
   color: var(--text-dim);
   text-align: start;
@@ -267,7 +267,7 @@ ul {
   flex-shrink: 0;
   max-width: 45%;
   overflow: hidden;
-  font-size: 11px;
+  font-size: var(--text-caption);
   color: var(--text-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -276,11 +276,11 @@ ul {
 .new {
   width: 100%;
   min-height: 30px;
-  padding: 0 14px;
+  padding: 0 var(--space-5);
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
   text-align: start;
 }
 
@@ -289,8 +289,8 @@ ul {
 }
 
 .hint {
-  margin: 0 8px 6px;
-  font-size: 12px;
+  margin: 0 var(--space-3) var(--space-3);
+  font-size: var(--text-small);
   line-height: 1.4;
   color: var(--text-muted);
 }
@@ -299,16 +299,16 @@ ul {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 8px;
-  padding-block: 6px;
-  padding-inline: 14px 10px;
+  gap: var(--space-2) var(--space-3);
+  padding-block: var(--space-3);
+  padding-inline: var(--space-5) var(--space-3);
 }
 
 .path {
   flex: 1 1 100%;
   overflow: hidden;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-small);
   color: var(--text-dim);
   text-overflow: ellipsis;
   white-space: nowrap;

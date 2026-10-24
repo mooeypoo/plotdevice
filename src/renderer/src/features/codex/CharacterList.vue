@@ -108,38 +108,38 @@ const chrome = useChromePresentation()
 <style scoped>
 .controls {
   display: grid;
-  gap: 8px;
-  margin: 8px 4px 10px;
+  gap: var(--space-3);
+  margin: var(--space-3) var(--space-2) var(--space-3);
 }
 input[type='search'] {
   width: 100%;
   min-width: 0;
-  padding: 6px 8px;
+  padding: var(--space-3) var(--space-3);
   border: 1px solid var(--line-strong);
-  border-radius: 7px;
+  border-radius: var(--radius-field);
   background: var(--bg);
   color: var(--text);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .tools {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-3);
 }
 .modes {
   display: flex;
-  gap: 2px;
-  padding: 2px;
+  gap: var(--space-1);
+  padding: var(--space-1);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius-field);
 }
 .modes button {
   border: none;
   background: transparent;
-  padding: 3px 9px;
-  font-size: 11px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-caption);
   color: var(--text-muted);
 }
 .modes button[aria-pressed='true'] {
@@ -148,17 +148,17 @@ input[type='search'] {
 }
 .count {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: var(--text-caption);
   font-weight: 400;
   color: var(--text-muted);
 }
 .filters {
-  font-size: 12px;
+  font-size: var(--text-small);
   color: var(--text-dim);
 }
 summary {
   cursor: pointer;
-  padding-block: 3px;
+  padding-block: var(--space-1);
 }
 .filters .checkbox-field {
   display: flex;
@@ -166,13 +166,13 @@ summary {
   overflow-wrap: anywhere;
 }
 .hint {
-  margin: 4px 0;
-  font-size: 11px;
+  margin: var(--space-2) 0;
+  font-size: var(--text-caption);
   line-height: 1.5;
   color: var(--text-muted);
 }
 .empty {
-  margin: 8px;
+  margin: var(--space-3);
 }
 .clear {
   justify-self: start;
@@ -180,22 +180,22 @@ summary {
   border: none;
   background: transparent;
   color: var(--accent);
-  font-size: 11px;
+  font-size: var(--text-caption);
 }
 h3 {
-  margin: 8px 0 2px;
+  margin: var(--space-3) 0 var(--space-1);
 }
 .group-heading {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--space-3);
   width: 100%;
-  padding: 5px 8px;
+  padding: var(--space-2) var(--space-3);
   border: none;
   background: transparent;
   text-align: start;
   color: var(--text-dim);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .group-heading bdi {
   flex: 1;

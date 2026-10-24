@@ -86,8 +86,8 @@ function remove(index: number): void {
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin: 0 0 6px;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-3);
   padding: 0;
   list-style: none;
 }
@@ -95,9 +95,9 @@ function remove(index: number): void {
 .chip {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 4px 3px 10px;
-  border-radius: 999px;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
   background: var(--accent-soft);
   color: var(--link-character);
 }

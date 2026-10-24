@@ -125,18 +125,18 @@ h4 {
 .relationship {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px 0;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
   border-bottom: 1px solid var(--line);
 }
 
 .line {
   display: flex;
-  gap: 4px;
+  gap: var(--space-2);
 }
 
 .remove {
-  padding: 0 10px;
+  padding: 0 var(--space-3);
   border: none;
   background: transparent;
   color: var(--text-muted);
@@ -145,7 +145,7 @@ h4 {
 .plain {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -165,14 +165,14 @@ h4 {
 }
 
 .small-text {
-  margin: 2px 0 0;
-  font-size: 12px;
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-small);
 }
 
 .listed-by {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 10px;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
 }
 </style>

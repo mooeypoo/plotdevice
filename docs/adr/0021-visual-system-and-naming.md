@@ -28,6 +28,8 @@ reach but never cluttering", and for every element to be styled (U2).
   - surfaces, text, lines and one accent, for dark and light themes.
 
   Components use tokens, never literal sizes or colours.
+  `tools/styles/scale.test.ts` fails on a literal font size, radius, padding, margin or gap in
+  any renderer stylesheet; a deliberate exception says why in an `/* off-scale: … */` comment.
 - **Shared controls.** Select, Checkbox, Switch, Range, Button, TextField and Menu live once in
   `renderer/src/shared/`. Features never use a native `<select>` or checkbox directly, and a
   test enforces it.

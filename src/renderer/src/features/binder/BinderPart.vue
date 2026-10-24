@@ -205,8 +205,8 @@ const toggleRotation = computed(() => {
 }
 
 .part {
-  margin-bottom: 8px;
-  border-radius: 7px;
+  margin-bottom: var(--space-3);
+  border-radius: var(--radius-field);
 }
 
 /* Drop indicators: a line in the gap where the dragged entry would land. */
@@ -224,24 +224,24 @@ const toggleRotation = computed(() => {
 }
 
 .chapters li {
-  border-radius: 7px;
+  border-radius: var(--radius-field);
 }
 
 .header {
   display: flex;
   align-items: center;
-  border-radius: 7px;
+  border-radius: var(--radius-field);
 }
 
 .new-chapter {
   width: 100%;
   min-height: 30px;
   padding-block: 0;
-  padding-inline: 36px 8px;
+  padding-inline: var(--space-7) var(--space-3);
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
   text-align: start;
 }
 
@@ -252,12 +252,12 @@ const toggleRotation = computed(() => {
 .add {
   width: 26px;
   height: 26px;
-  margin-inline-end: 4px;
+  margin-inline-end: var(--space-2);
   padding: 0;
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 16px;
+  font-size: var(--text-title);
   opacity: 0.5;
 }
 
@@ -289,10 +289,10 @@ const toggleRotation = computed(() => {
   display: flex;
   flex: 1;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--space-3);
   min-width: 0;
-  padding-block: 6px;
-  padding-inline: 0 10px;
+  padding-block: var(--space-3);
+  padding-inline: 0 var(--space-3);
   border: none;
   background: transparent;
   text-align: start;
@@ -305,7 +305,7 @@ const toggleRotation = computed(() => {
 .marker {
   min-width: 20px;
   font-family: var(--font-prose);
-  font-size: 12px;
+  font-size: var(--text-small);
   color: var(--text-muted);
 }
 
@@ -321,21 +321,21 @@ const toggleRotation = computed(() => {
 }
 
 .words {
-  font-size: 11px;
+  font-size: var(--text-caption);
   color: var(--text-muted);
 }
 
 .chapters {
   margin: 0;
   padding-block: 0;
-  padding-inline: 14px 0;
+  padding-inline: var(--space-5) 0;
   list-style: none;
 }
 
 .empty {
-  padding-block: 6px;
-  padding-inline: 36px 10px;
-  font-size: 12px;
+  padding-block: var(--space-3);
+  padding-inline: var(--space-7) var(--space-3);
+  font-size: var(--text-small);
   color: var(--text-muted);
 }
 </style>

@@ -129,18 +129,18 @@ const directionOptions = computed(() =>
 .experimental {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-3);
   margin: 0;
-  padding-block: 8px;
-  padding-inline: 10px;
+  padding-block: var(--space-3);
+  padding-inline: var(--space-3);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-field);
 }
 
 .experimental legend {
-  padding-inline: 4px;
+  padding-inline: var(--space-2);
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--text-caption);
 }
 
 .toggle {
@@ -164,7 +164,7 @@ const directionOptions = computed(() =>
   max-height: calc(100vh - 58px);
   overflow-y: auto;
   margin: 0;
-  padding: 18px;
+  padding: var(--space-5);
   border: 1px solid var(--line-strong);
   border-top: 2px solid var(--accent);
   border-radius: var(--radius);
@@ -180,38 +180,38 @@ footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-4);
 }
 
 h2 {
   margin: 0;
   color: var(--text-strong);
-  font-size: 14px;
+  font-size: var(--text-title);
   font-weight: 500;
 }
 
 .close,
 .reset {
-  padding: 3px 5px;
-  font-size: 12px;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-small);
 }
 
 .hint,
 footer {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 
 .hint {
-  margin: 8px 0 22px;
+  margin: var(--space-3) 0 var(--space-6);
   line-height: 1.5;
 }
 
 .control {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
 }
 
 output {
@@ -225,12 +225,12 @@ output {
 }
 
 footer {
-  padding-top: 12px;
+  padding-top: var(--space-4);
   border-top: 1px solid var(--line);
 }
 
 .notice {
-  margin: 12px 0 0;
+  margin: var(--space-4) 0 0;
   color: var(--warning);
   line-height: 1.5;
 }

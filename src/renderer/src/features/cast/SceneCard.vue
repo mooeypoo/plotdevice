@@ -94,16 +94,16 @@ function editProperties(): void {
 .scene-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-3);
   min-height: 0;
   overflow-y: auto;
-  padding: 14px 16px 32px;
-  font-size: 13px;
+  padding: var(--space-5) var(--space-5) var(--space-7);
+  font-size: var(--text-body);
 }
 
 header {
   display: flex;
-  gap: 8px;
+  gap: var(--space-3);
   align-items: center;
 }
 
@@ -111,27 +111,27 @@ h3 {
   flex: 1;
   min-width: 0;
   margin: 0;
-  font-size: 15px;
+  font-size: var(--text-title);
 }
 
 h4 {
-  margin: 6px 0 0;
+  margin: var(--space-3) 0 0;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--text-caption);
   font-weight: normal;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .edit {
-  padding: 4px 6px;
-  font-size: 11px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-caption);
 }
 
 .fields {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 2px 10px;
+  gap: var(--space-1) var(--space-3);
   margin: 0;
 }
 
@@ -153,9 +153,9 @@ dd {
 .outline-lines {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-3);
   margin: 0;
-  padding-inline-start: 18px;
+  padding-inline-start: var(--space-5);
 }
 
 .empty {

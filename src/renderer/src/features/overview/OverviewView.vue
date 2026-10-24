@@ -169,20 +169,20 @@ function sectionLabel(label: OverviewSectionLabel): string {
 .overview {
   max-width: 980px;
   margin: 0 auto;
-  padding-bottom: 80px;
-  font-size: 14px;
+  padding-bottom: calc(var(--space-8) + var(--space-7));
+  font-size: var(--text-title);
 }
 
 h1 {
   margin: 0;
   font-family: var(--font-prose);
-  font-size: 32px;
+  font-size: var(--text-display);
   font-weight: 400;
   color: var(--text-strong);
 }
 
 .hint {
-  margin: 6px 0 18px;
+  margin: var(--space-3) 0 var(--space-5);
   color: var(--text-muted);
 }
 
@@ -190,15 +190,15 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
 }
 
 .filters label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 12px;
+  gap: var(--space-2);
+  font-size: var(--text-small);
   color: var(--text-muted);
 }
 
@@ -207,17 +207,17 @@ h1 {
 }
 
 .section {
-  margin-bottom: 28px;
+  margin-bottom: var(--space-6);
 }
 
 h2 {
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  margin: 0 0 6px;
-  padding-bottom: 6px;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-3);
+  padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--line-strong);
-  font-size: 13px;
+  font-size: var(--text-body);
   font-weight: 500;
 }
 
@@ -233,13 +233,13 @@ h2 {
 }
 
 .count {
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 400;
   color: var(--text-muted);
 }
 
 .part-synopsis {
-  margin: 0 0 8px;
+  margin: 0 0 var(--space-3);
   color: var(--text-dim);
 }
 
@@ -249,7 +249,7 @@ table {
 }
 
 td {
-  padding: 8px 6px;
+  padding: var(--space-3) var(--space-3);
   border-bottom: 1px solid var(--line);
   vertical-align: top;
 }
@@ -283,16 +283,16 @@ td {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-  font-size: 12px;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  font-size: var(--text-small);
   color: var(--text-muted);
 }
 
 .status {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--space-2);
 }
 
 .dot {
@@ -302,9 +302,9 @@ td {
 }
 
 .thread {
-  padding: 0 6px;
+  padding: 0 var(--space-3);
   border: 1px solid var(--line-strong);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .words {

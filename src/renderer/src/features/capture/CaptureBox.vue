@@ -71,11 +71,11 @@ async function keydown(event: KeyboardEvent): Promise<void> {
 .box {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-3);
   width: min(520px, calc(100vw - 32px));
-  padding: 14px;
+  padding: var(--space-5);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   background: var(--panel);
   box-shadow: var(--shadow-popover);
   align-self: flex-start;
@@ -83,18 +83,18 @@ async function keydown(event: KeyboardEvent): Promise<void> {
 
 label {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 
 input {
-  padding-block: 8px;
-  padding-inline: 10px;
-  font-size: 15px;
+  padding-block: var(--space-3);
+  padding-inline: var(--space-3);
+  font-size: var(--text-title);
 }
 
 .error {
   margin: 0;
   color: var(--danger);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 </style>
