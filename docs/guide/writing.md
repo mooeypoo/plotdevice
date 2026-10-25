@@ -84,7 +84,7 @@ undo, selection and scroll are not restored after closing the project or app.
 
 ### Adjust the writing surface
 
-Use **Appearance** in the status bar to adjust prose size and line width.
+Use **Appearance…** in the top bar's **⋯** menu to adjust prose size and line width.
 **Focus** hides the surrounding panels. Appearance preferences belong to the app's
 per-user settings, not the novel's Markdown.
 

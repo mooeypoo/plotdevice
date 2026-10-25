@@ -64,6 +64,7 @@ describe('CenterStage strip above the page', () => {
     await flushPromises()
     expect(stage.find('.marker.cast').exists()).toBe(false)
     useWorkbenchStore().focusMode = false
+    useWorkbenchStore().setMode('plotting')
     useWorkbenchStore().centerView = 'timeline'
     await flushPromises()
     expect(stage.find('.marker.cast').exists()).toBe(false)
@@ -106,10 +107,11 @@ describe('CenterStage splits', () => {
     const stage = mount(CenterStage)
     await flushPromises()
     expect(stage.findAll('.split-slot')).toHaveLength(1)
+    useWorkbenchStore().setMode('plotting')
     useWorkbenchStore().centerView = 'timeline'
     await flushPromises()
     expect(stage.findAll('.split-slot')).toHaveLength(0)
-    useWorkbenchStore().centerView = 'write'
+    useWorkbenchStore().setMode('writing')
     await flushPromises()
     expect(stage.findAll('.split-slot')).toHaveLength(1)
   })

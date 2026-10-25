@@ -131,6 +131,7 @@ describe('document tab writing workflow', () => {
     await editor.open('The Ferry.md')
     await flushPromises()
     prose().dispatch({ changes: { from: 0, insert: 'Draft. ' }, selection: { anchor: 3 } })
+    useWorkbenchStore().setMode('plotting')
     useWorkbenchStore().centerView = 'overview'
     await flushPromises()
     expect(wrapper.find('.cm-editor').exists()).toBe(false)

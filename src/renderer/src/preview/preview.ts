@@ -16,6 +16,7 @@ import { useWorkspaceStore } from '../app/workspace-store'
 import { useWritingPreferencesStore } from '../app/writing-preferences-store'
 import { enrichSample } from './preview-sample'
 import { parseScenario, type ScenarioName } from './scenarios'
+import { openAppearance } from '../app/appearance-popover'
 
 /*
  * A dev-only page that runs the real app on invented sample data in a browser, so screens can be
@@ -89,7 +90,12 @@ async function show(name: ScenarioName): Promise<void> {
       useCaptureStore().show()
       break
     case 'appearance':
-      click('.appearance-trigger')
+      openAppearance()
+      break
+    case 'app-menu':
+      click('.app-menu button[aria-haspopup="menu"]')
+      await settle()
+      click('[data-opens="layout"]')
       break
     case 'select-open':
       click('#inspector-status')

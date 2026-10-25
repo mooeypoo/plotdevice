@@ -698,5 +698,8 @@
   "board-renamed": "השם שונה ל־$1",
   "board-notes-saved": "ההערות נשמרו",
   "board-synopsis-saved": "התקציר של $1 נשמר",
-  "board-status-set": "הסטטוס של $1 הוא עכשיו $2"
+  "board-status-set": "הסטטוס של $1 הוא עכשיו $2",
+  "app-menu-label": "עוד",
+  "app-menu-appearance": "מראה…",
+  "chrome-goto-tooltip": "מעבר אל… ($1)"
 }

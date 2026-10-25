@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref, useTemplateRef } from 'vue'
-import { moveMenuFocus } from './use-menu-keys'
+import { menuItemsOf, moveMenuFocus } from './use-menu-keys'
 import type { MenuItem } from './menu-item'
 
 defineProps<{
@@ -10,6 +10,8 @@ defineProps<{
 }>()
 
 const open = ref(false)
+/** The submenu that is open, by its item's key. */
+const openChild = ref<string | null>(null)
 const button = useTemplateRef<HTMLButtonElement>('button')
 const menu = useTemplateRef<HTMLElement>('menu')
 const root = useTemplateRef<HTMLElement>('root')
@@ -20,29 +22,64 @@ function closeOnOutside(event: PointerEvent): void {
 
 async function show(): Promise<void> {
   open.value = true
+  openChild.value = null
   document.addEventListener('pointerdown', closeOnOutside)
   await nextTick()
-  menu.value?.querySelector<HTMLElement>('[role="menuitem"]')?.focus()
+  if (menu.value !== null) menuItemsOf(menu.value)[0]?.focus()
 }
 
 function close(returnFocus: boolean): void {
   open.value = false
+  openChild.value = null
   document.removeEventListener('pointerdown', closeOnOutside)
   if (returnFocus) button.value?.focus()
 }
 
 function choose(item: MenuItem): void {
+  if (item.disabled === true) return
+  if (item.children !== undefined) {
+    void openSubmenu(item.key)
+    return
+  }
   close(true)
   item.run()
 }
 
+async function openSubmenu(key: string): Promise<void> {
+  openChild.value = key
+  await nextTick()
+  const submenu = menu.value?.querySelector<HTMLElement>(`[data-submenu="${CSS.escape(key)}"]`)
+  if (submenu) menuItemsOf(submenu)[0]?.focus()
+}
+
+function closeSubmenu(): void {
+  const key = openChild.value
+  openChild.value = null
+  if (key !== null)
+    menu.value?.querySelector<HTMLElement>(`[data-opens="${CSS.escape(key)}"]`)?.focus()
+}
+
 function keydown(event: KeyboardEvent): void {
+  const target = event.target instanceof HTMLElement ? event.target : null
+  const container = target?.closest<HTMLElement>('[role="menu"]') ?? menu.value
+  const inSubmenu = container?.dataset['submenu'] !== undefined
+  // The submenu opens beside its item, toward the page; either side arrow opens or closes it, so
+  // the key that points at it and the one menus usually use both work, in either direction.
+  const sideways = event.key === 'ArrowLeft' || event.key === 'ArrowRight'
+  const opens = target?.dataset['opens']
   if (event.key === 'Escape') {
     event.preventDefault()
     event.stopPropagation()
-    close(true)
+    if (inSubmenu) closeSubmenu()
+    else close(true)
   } else if (event.key === 'Tab') close(false)
-  else if (menu.value !== null) moveMenuFocus(event, menu.value)
+  else if (opens !== undefined && (sideways || event.key === 'Enter' || event.key === ' ')) {
+    event.preventDefault()
+    void openSubmenu(opens)
+  } else if (inSubmenu && sideways) {
+    event.preventDefault()
+    closeSubmenu()
+  } else if (container !== null) moveMenuFocus(event, container)
 }
 
 onBeforeUnmount(() => {
@@ -67,13 +104,62 @@ onBeforeUnmount(() => {
     <div v-if="open" ref="menu" class="menu" role="menu" :aria-label="label" @keydown="keydown">
       <template v-for="item in items" :key="item.key">
         <hr v-if="item.separator" role="separator" />
+        <div v-if="item.children" role="none" class="has-submenu">
+          <button
+            type="button"
+            role="menuitem"
+            tabindex="-1"
+            aria-haspopup="menu"
+            :aria-expanded="openChild === item.key"
+            :data-opens="item.key"
+            :data-label="item.label"
+            @click="openChild === item.key ? closeSubmenu() : openSubmenu(item.key)"
+          >
+            <span dir="auto">{{ item.label }}</span>
+            <span class="chevron" aria-hidden="true">›</span>
+          </button>
+          <div
+            v-if="openChild === item.key"
+            class="menu submenu"
+            role="menu"
+            :aria-label="item.label"
+            :data-submenu="item.key"
+          >
+            <template v-for="child in item.children" :key="child.key">
+              <hr v-if="child.separator" role="separator" />
+              <button
+                type="button"
+                :role="child.checked === undefined ? 'menuitem' : 'menuitemradio'"
+                :aria-checked="child.checked"
+                :aria-disabled="child.disabled ? 'true' : undefined"
+                tabindex="-1"
+                :class="{ note: child.disabled }"
+                :data-label="child.label"
+                @click="choose(child)"
+              >
+                <span v-if="child.checked !== undefined" class="check" aria-hidden="true">{{
+                  child.checked ? '✓' : ''
+                }}</span>
+                <span dir="auto">{{ child.label }}</span>
+                <kbd v-if="child.shortcut" dir="ltr">{{ child.shortcut }}</kbd>
+              </button>
+            </template>
+          </div>
+        </div>
         <button
+          v-else
           type="button"
-          role="menuitem"
+          :role="item.checked === undefined ? 'menuitem' : 'menuitemradio'"
+          :aria-checked="item.checked"
+          :aria-disabled="item.disabled ? 'true' : undefined"
           tabindex="-1"
+          :class="{ note: item.disabled }"
           :data-label="item.label"
           @click="choose(item)"
         >
+          <span v-if="item.checked !== undefined" class="check" aria-hidden="true">{{
+            item.checked ? '✓' : ''
+          }}</span>
           <span dir="auto">{{ item.label }}</span>
           <kbd v-if="item.shortcut" dir="ltr">{{ item.shortcut }}</kbd>
         </button>
@@ -112,7 +198,7 @@ onBeforeUnmount(() => {
 .menu button {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: var(--space-5);
   padding: var(--space-2) var(--space-3);
   border: none;
@@ -128,6 +214,41 @@ onBeforeUnmount(() => {
   background: var(--accent-soft);
   color: var(--text-strong);
   outline: none;
+}
+
+.has-submenu {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.submenu {
+  top: calc(-1 * var(--space-2));
+  inset-inline-end: calc(100% + var(--space-2));
+}
+
+[dir='rtl'] .chevron {
+  transform: scaleX(-1);
+}
+
+.chevron,
+kbd {
+  margin-inline-start: auto;
+}
+
+.chevron {
+  color: var(--text-muted);
+}
+
+.check {
+  inline-size: 1em;
+  color: var(--accent);
+}
+
+.menu button.note {
+  color: var(--text-muted);
+  font-size: var(--text-small);
+  cursor: default;
 }
 
 .menu hr {

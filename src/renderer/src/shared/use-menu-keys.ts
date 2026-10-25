@@ -1,6 +1,15 @@
+/** A menu's own items, not those of a submenu inside it, leaving out disabled ones. */
+export function menuItemsOf(menu: HTMLElement): HTMLElement[] {
+  return [
+    ...menu.querySelectorAll<HTMLElement>(
+      ':scope > [role^="menuitem"]:not(:disabled, [aria-disabled="true"]), :scope > [role="none"] > [role^="menuitem"]'
+    )
+  ]
+}
+
 /** Moves focus between a menu's items with the arrow keys, Home and End. Returns whether it did. */
 export function moveMenuFocus(event: KeyboardEvent, menu: HTMLElement): boolean {
-  const items = [...menu.querySelectorAll<HTMLElement>('[role="menuitem"]:not(:disabled)')]
+  const items = menuItemsOf(menu)
   if (items.length === 0) return false
   const index = items.findIndex((item) => item === document.activeElement)
   let next: number

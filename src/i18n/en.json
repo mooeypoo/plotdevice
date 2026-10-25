@@ -698,5 +698,8 @@
   "board-renamed": "Renamed to $1",
   "board-notes-saved": "Notes saved",
   "board-synopsis-saved": "Synopsis of $1 saved",
-  "board-status-set": "$1 is now $2"
+  "board-status-set": "$1 is now $2",
+  "app-menu-label": "More",
+  "app-menu-appearance": "Appearance…",
+  "chrome-goto-tooltip": "Go to… ($1)"
 }

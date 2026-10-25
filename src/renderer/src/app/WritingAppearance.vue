@@ -11,6 +11,7 @@ import SelectField from '../shared/SelectField.vue'
 import SwitchField from '../shared/SwitchField.vue'
 import { useChromePresentation } from '../shared/use-chrome-presentation'
 import { computed } from 'vue'
+import { APPEARANCE_POPOVER_ID } from './appearance-popover'
 
 const preferences = useWritingPreferencesStore()
 const language = useUiLanguageStore()
@@ -31,18 +32,8 @@ const directionOptions = computed(() =>
 </script>
 
 <template>
-  <button
-    type="button"
-    class="appearance-trigger quiet"
-    popovertarget="writing-appearance"
-    :aria-label="language.t('appearance-heading')"
-    :title="language.t('appearance-heading')"
-  >
-    <span class="sample" aria-hidden="true">Aa</span>
-    {{ language.t('appearance-trigger') }}
-  </button>
   <section
-    id="writing-appearance"
+    :id="APPEARANCE_POPOVER_ID"
     popover
     class="appearance-panel"
     aria-labelledby="writing-appearance-title"
@@ -162,20 +153,6 @@ const directionOptions = computed(() =>
 
 .toggle.nested {
   padding-inline-start: var(--space-5);
-}
-
-.appearance-trigger {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 2px 6px;
-  font-size: 12px;
-}
-
-.sample {
-  color: var(--accent);
-  font-family: var(--font-prose);
-  font-size: 15px;
 }
 
 .appearance-panel {
