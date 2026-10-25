@@ -51,7 +51,7 @@ describe('welcome and project initialization translation', () => {
     expect(page.get('h1').text()).toBe(`להפוך את „\u2068${name}\u2069” לפרויקט?`)
     expect(page.get('form label').text()).toBe('כותרת')
     expect(page.get('button[type=submit]').text()).toBe('יצירת פרויקט')
-    expect(page.get('form button[type=button]').text()).toBe('חזרה')
+    expect(page.get('form button[type=button]:not([role="combobox"])').text()).toBe('חזרה')
     expect(page.text()).toContain('novel.md')
     expect(page.text()).not.toContain('Nothing else')
     expect(page.find('img, b').exists()).toBe(false)
@@ -109,7 +109,7 @@ describe('welcome and project initialization translation', () => {
         await flushPromises()
         expect(open).toHaveBeenCalledExactlyOnceWith('/parent')
       } else {
-        await page.get('button').trigger('click')
+        await page.get('button:not([role="combobox"])').trigger('click')
         await flushPromises()
         expect(workspace.screen).toBe('welcome')
         expect(initialize).not.toHaveBeenCalled()

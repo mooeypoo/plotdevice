@@ -16,7 +16,8 @@ export const SCENARIOS = [
   'board-card-menu',
   'board-add-card',
   'capture',
-  'appearance'
+  'appearance',
+  'select-open'
 ] as const
 /** A screen the harness can show. */
 export type ScenarioName = (typeof SCENARIOS)[number]

@@ -12,6 +12,8 @@ import RenameOffer from './RenameOffer.vue'
 import { usePositionMoves } from './use-position-moves'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { isolate } from '../../shared/isolate'
+import SelectField from '../../shared/SelectField.vue'
+import type { SelectOption } from '../../shared/select-option'
 import { formatStoryDateReading } from '../../shared/story-date-format'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import { useStoryDateCheck } from './use-story-date-check'
@@ -73,6 +75,18 @@ const statusNotInList = computed(() => {
     ? status
     : undefined
 })
+const statusChoices = computed((): SelectOption[] => [
+  { value: '', label: language.t('binder-no-status') },
+  ...statuses.value.map((status) => ({ value: status, label: status })),
+  ...(statusNotInList.value === undefined
+    ? []
+    : [
+        {
+          value: statusNotInList.value,
+          label: language.t('inspector-status-not-in-list', isolate(statusNotInList.value))
+        }
+      ])
+])
 
 const threads = computed(() => {
   const known = inspector.vocabulary?.threads ?? []
@@ -135,8 +149,7 @@ function saveOrder(): void {
   void save({ order: value })
 }
 
-function saveStatus(event: Event): void {
-  const value = (event.target as HTMLSelectElement).value
+function saveStatus(value: string): void {
   if (value !== (properties.value?.status ?? '')) void save({ status: value })
 }
 
@@ -181,10 +194,14 @@ async function run(action: () => Promise<unknown>): Promise<void> {
   }
 }
 
-function changePart(event: Event): void {
-  const value = (event.target as HTMLSelectElement).value
+function changePart(value: string): void {
   if (value !== '') void run(() => moves.moveToPart(value))
 }
+
+const partChoices = computed((): SelectOption[] => [
+  ...(manuscript.currentPart === undefined ? [{ value: '', label: partName.value }] : []),
+  ...partOptions.value.map((option) => ({ value: option.path, label: option.title }))
+])
 
 function kindLabel(kind: 'part' | 'chapter'): string {
   return language.t(kind === 'part' ? 'inspector-part' : 'inspector-chapter')
@@ -225,19 +242,15 @@ const partName = computed(() => {
               <template v-else>{{ language.t('inspector-part') }}</template>
             </dt>
             <dd v-if="partOptions.length > 0 && !readOnly">
-              <select
+              <SelectField
                 id="inspector-part"
                 class="part-select"
-                dir="auto"
-                :value="manuscript.currentPart?.path ?? ''"
+                size="small"
+                :model-value="manuscript.currentPart?.path ?? ''"
+                :options="partChoices"
                 :disabled="disabled"
-                @change="changePart"
-              >
-                <option v-if="manuscript.currentPart === undefined" value="">{{ partName }}</option>
-                <option v-for="option in partOptions" :key="option.path" :value="option.path">
-                  {{ option.title }}
-                </option>
-              </select>
+                @update:model-value="changePart"
+              />
             </dd>
             <dd v-else dir="auto">{{ partName }}</dd>
           </div>
@@ -321,19 +334,13 @@ const partName = computed(() => {
 
       <div v-if="properties.kind === 'chapter'" class="field">
         <label class="eyebrow" for="inspector-status">{{ language.t('inspector-status') }}</label>
-        <select
+        <SelectField
           id="inspector-status"
-          dir="auto"
-          :value="properties.status ?? ''"
+          :model-value="properties.status ?? ''"
+          :options="statusChoices"
           :disabled="disabled"
-          @change="saveStatus"
-        >
-          <option value="">{{ language.t('binder-no-status') }}</option>
-          <option v-for="status in statuses" :key="status" :value="status">{{ status }}</option>
-          <option v-if="statusNotInList" :value="statusNotInList">
-            {{ language.t('inspector-status-not-in-list', isolate(statusNotInList)) }}
-          </option>
-        </select>
+          @update:model-value="saveStatus"
+        />
         <button
           v-if="statusNotInList"
           type="button"
@@ -489,8 +496,7 @@ const partName = computed(() => {
 }
 
 .position .part-select {
-  max-width: 150px;
-  padding: 3px 6px;
+  max-inline-size: 150px;
 }
 
 .moves {

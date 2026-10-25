@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import RenderedMarkdown from '../../shared/RenderedMarkdown.vue'
+import SelectField from '../../shared/SelectField.vue'
+import type { SelectOption } from '../../shared/select-option'
 import { useOutlinePanel } from './use-outline-panel'
 import { usePeek } from '../../app/peek-store'
 
@@ -13,31 +16,27 @@ const panel = useOutlinePanel()
 const peek = usePeek()
 const { outlines, path, text, openInEditor, loading, error, linkNotice } = panel
 
-function choose(event: Event): void {
-  panel.choose((event.target as HTMLSelectElement).value)
-}
+const outlineChoices = computed((): SelectOption[] =>
+  outlines.value.map((outline) => ({
+    value: outline.path,
+    label: outline.title,
+    title: outline.path
+  }))
+)
 </script>
 
 <template>
   <section class="outline" :aria-label="language.t('entry-place-outline')">
     <header>
-      <select
+      <SelectField
         v-if="outlines.length > 1"
         class="choose"
-        dir="auto"
-        :value="path ?? ''"
+        size="small"
+        :model-value="path ?? ''"
+        :options="outlineChoices"
         :aria-label="language.t('outline-panel-select-label')"
-        @change="choose"
-      >
-        <option
-          v-for="outline in outlines"
-          :key="outline.path"
-          :value="outline.path"
-          :title="outline.path"
-        >
-          {{ outline.title }}
-        </option>
-      </select>
+        @update:model-value="panel.choose($event)"
+      />
       <span v-else-if="outlines.length === 1" class="title" dir="auto">{{
         outlines[0]?.title
       }}</span>
@@ -113,13 +112,7 @@ header {
 
 .choose {
   flex: 1;
-  min-width: 0;
-  padding: 4px 8px;
-}
-
-.small {
-  padding: 4px 10px;
-  font-size: 12px;
+  min-inline-size: 0;
 }
 
 .file-path {

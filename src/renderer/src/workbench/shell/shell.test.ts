@@ -12,6 +12,7 @@ import LayoutMenu from './LayoutMenu.vue'
 import LayoutSwitcher from './LayoutSwitcher.vue'
 import ShelfArea from './ShelfArea.vue'
 import WorkbenchBody from './WorkbenchBody.vue'
+import { chooseOption, optionLabels } from '../../shared/select-field-testing'
 
 // Each registered view renders a marker, so these tests exercise the shell, not the features.
 vi.mock('../views/view-registry', async () => {
@@ -191,19 +192,13 @@ describe('ShelfArea', () => {
 describe('LayoutSwitcher', () => {
   it('offers the Writing layouts that can be shown, and switches between them', async () => {
     const switcher = mount(LayoutSwitcher)
-    expect(switcher.findAll('option').map((option) => option.text())).toEqual([
-      'Standard',
-      'Side by side'
-    ])
-    await switcher.get('select').setValue('revise')
+    expect(await optionLabels(switcher)).toEqual(['Standard', 'Side by side'])
+    await chooseOption(switcher, 'revise')
     await flushPromises()
     expect(useWorkbenchStore().activeLayoutId).toBe('revise')
     useUiLanguageStore().locale = 'he'
     await flushPromises()
-    expect(switcher.findAll('option').map((option) => option.text())).toEqual([
-      'רגילה',
-      'זה לצד זה'
-    ])
+    expect(await optionLabels(switcher)).toEqual(['רגילה', 'זה לצד זה'])
   })
 })
 

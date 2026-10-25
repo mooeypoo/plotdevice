@@ -6,7 +6,11 @@ import {
   useWritingPreferencesStore
 } from './writing-preferences-store'
 import { useUiLanguageStore } from './ui-language-store'
+import RangeField from '../shared/RangeField.vue'
+import SelectField from '../shared/SelectField.vue'
+import SwitchField from '../shared/SwitchField.vue'
 import { useChromePresentation } from '../shared/use-chrome-presentation'
+import { computed } from 'vue'
 
 const preferences = useWritingPreferencesStore()
 const language = useUiLanguageStore()
@@ -18,12 +22,12 @@ const directionLabels = {
   rtl: 'appearance-direction-rtl'
 } as const
 
-function changeWritingDirection(event: Event): void {
-  const target = event.currentTarget
-  if (!(target instanceof HTMLSelectElement))
-    throw new Error('Expected the writing direction select')
-  preferences.setWritingDirection(target.value)
-}
+const directionOptions = computed(() =>
+  WRITING_DIRECTIONS.map((direction) => ({
+    value: direction,
+    label: language.t(directionLabels[direction])
+  }))
+)
 </script>
 
 <template>
@@ -61,13 +65,11 @@ function changeWritingDirection(event: Event): void {
       <output for="prose-size">{{
         language.t('appearance-pixels', formatNumber(preferences.fontSize))
       }}</output>
-      <input
+      <RangeField
         id="prose-size"
-        v-model.number="preferences.fontSize"
-        type="range"
+        v-model="preferences.fontSize"
         :min="PROSE_FONT_SIZE.min"
         :max="PROSE_FONT_SIZE.max"
-        step="1"
         autofocus
       />
     </div>
@@ -76,57 +78,49 @@ function changeWritingDirection(event: Event): void {
       <output for="prose-width">{{
         language.t('appearance-characters', formatNumber(preferences.lineWidth))
       }}</output>
-      <input
+      <RangeField
         id="prose-width"
-        v-model.number="preferences.lineWidth"
-        type="range"
+        v-model="preferences.lineWidth"
         :min="PROSE_LINE_WIDTH.min"
         :max="PROSE_LINE_WIDTH.max"
-        step="1"
       />
     </div>
     <div class="control">
       <label for="prose-direction">{{ language.t('appearance-direction') }}</label>
-      <select
+      <SelectField
         id="prose-direction"
-        :value="preferences.writingDirection"
-        @change="changeWritingDirection"
-      >
-        <option v-for="direction in WRITING_DIRECTIONS" :key="direction" :value="direction">
-          {{ language.t(directionLabels[direction]) }}
-        </option>
-      </select>
-    </div>
-    <div class="control toggle">
-      <input
-        id="fade-while-typing"
-        type="checkbox"
-        :checked="preferences.fadeWhileTyping"
-        @change="preferences.setFadeWhileTyping(($event.target as HTMLInputElement).checked)"
+        :model-value="preferences.writingDirection"
+        :options="directionOptions"
+        @update:model-value="preferences.setWritingDirection($event)"
       />
-      <label for="fade-while-typing">{{ language.t('appearance-fade') }}</label>
     </div>
+    <SwitchField
+      id="fade-while-typing"
+      class="toggle"
+      :model-value="preferences.fadeWhileTyping"
+      @update:model-value="preferences.setFadeWhileTyping($event)"
+    >
+      {{ language.t('appearance-fade') }}
+    </SwitchField>
     <fieldset class="experimental">
       <legend>{{ language.t('appearance-experimental') }}</legend>
-      <div class="control toggle">
-        <input
-          id="capture-beats"
-          type="checkbox"
-          :checked="preferences.captureBeats"
-          @change="preferences.setCaptureBeats(($event.target as HTMLInputElement).checked)"
-        />
-        <label for="capture-beats">{{ language.t('appearance-capture') }}</label>
-      </div>
-      <div class="control toggle nested">
-        <input
-          id="capture-links-chapter"
-          type="checkbox"
-          :checked="preferences.captureLinksChapter"
-          :disabled="!preferences.captureBeats"
-          @change="preferences.setCaptureLinksChapter(($event.target as HTMLInputElement).checked)"
-        />
-        <label for="capture-links-chapter">{{ language.t('appearance-capture-link') }}</label>
-      </div>
+      <SwitchField
+        id="capture-beats"
+        class="toggle"
+        :model-value="preferences.captureBeats"
+        @update:model-value="preferences.setCaptureBeats($event)"
+      >
+        {{ language.t('appearance-capture') }}
+      </SwitchField>
+      <SwitchField
+        id="capture-links-chapter"
+        class="toggle nested"
+        :model-value="preferences.captureLinksChapter"
+        :disabled="!preferences.captureBeats"
+        @update:model-value="preferences.setCaptureLinksChapter($event)"
+      >
+        {{ language.t('appearance-capture-link') }}
+      </SwitchField>
     </fieldset>
     <footer>
       <span>{{ language.t('appearance-all-projects') }}</span>
@@ -158,15 +152,16 @@ function changeWritingDirection(event: Event): void {
   font-size: 11px;
 }
 
-.control.toggle.nested {
-  padding-inline-start: 22px;
+.toggle {
+  margin-block-end: var(--space-4);
 }
 
-.control.toggle {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: center;
+.experimental .toggle {
+  margin-block-end: 0;
+}
+
+.toggle.nested {
+  padding-inline-start: var(--space-5);
 }
 
 .appearance-trigger {
@@ -198,7 +193,7 @@ function changeWritingDirection(event: Event): void {
   border-radius: var(--radius);
   background: var(--panel);
   color: var(--text);
-  box-shadow: 0 12px 40px #0006;
+  box-shadow: var(--shadow-popover);
   font: 13px var(--font-ui);
   white-space: normal;
 }
@@ -247,12 +242,9 @@ output {
   font-variant-numeric: tabular-nums;
 }
 
-input {
+.range-field,
+.select-field {
   grid-column: 1 / -1;
-  width: 100%;
-  margin: 0;
-  accent-color: var(--accent);
-  cursor: pointer;
 }
 
 footer {

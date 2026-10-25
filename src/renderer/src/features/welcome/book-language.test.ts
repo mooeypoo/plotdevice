@@ -8,6 +8,7 @@ import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import InitializePrompt from './InitializePrompt.vue'
 import ProjectOverview from './ProjectOverview.vue'
+import { chooseOption, selectedLabel } from '../../shared/select-field-testing'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 
@@ -31,8 +32,7 @@ describe('choosing the book language', () => {
     const initialize = vi.spyOn(fake.api.workspace, 'initializeProject')
     const page = mount(InitializePrompt)
 
-    const select = page.get<HTMLSelectElement>('select:not(.language select)')
-    expect(select.element.value).toBe('he')
+    expect(selectedLabel(page.get('.book-language [role="combobox"]'))).toBe('עברית')
     await page.get('form').trigger('submit')
     await flushPromises()
     expect(initialize).toHaveBeenCalledWith('/novels/new', 'new', 'he')
@@ -44,26 +44,25 @@ describe('choosing the book language', () => {
     const set = vi.spyOn(fake.api.workspace, 'setBookLanguage')
     const page = mount(ProjectOverview)
 
-    const select = page.get<HTMLSelectElement>('.book-language select')
-    expect(select.element.value).toBe('')
-    expect(select.text()).toContain('Not set (English)')
-    expect(page.find('.book-language button').exists()).toBe(false)
+    const select = page.get('.book-language [role="combobox"]')
+    expect(selectedLabel(select)).toBe('Not set (English)')
+    expect(page.find('.book-language button[type="submit"]').exists()).toBe(false)
 
-    await select.setValue('he')
+    await chooseOption(select, 'he')
     expect(set).not.toHaveBeenCalled()
     await page.get('.book-language form').trigger('submit')
     await flushPromises()
     expect(set).toHaveBeenCalledExactlyOnceWith('he')
     expect(workspace.project.language).toEqual({ declared: 'he', direction: 'rtl' })
-    expect(page.find('.book-language button').exists()).toBe(false)
+    expect(page.find('.book-language button[type="submit"]').exists()).toBe(false)
   })
 
   it('shows a declared language the app has no words for', () => {
     const workspace = useWorkspaceStore()
     workspace.project = { ...sampleSummary, language: { declared: 'ar', direction: 'rtl' } }
     const page = mount(ProjectOverview)
-    const select = page.get<HTMLSelectElement>('.book-language select')
-    expect(select.element.value).toBe('ar')
-    expect(select.text()).toContain('ar (words in English)')
+    expect(selectedLabel(page.get('.book-language [role="combobox"]'))).toBe(
+      'ar (words in English)'
+    )
   })
 })

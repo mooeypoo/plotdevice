@@ -12,6 +12,7 @@ import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import OverviewView from './OverviewView.vue'
 import { useWorkbenchStore } from '../../app/workbench-store'
+import { chooseOption, optionValues, selectedLabel } from '../../shared/select-field-testing'
 
 let fake: ReturnType<typeof createFakePlotDeviceApi>
 
@@ -40,8 +41,8 @@ describe('OverviewView', () => {
 
   it('filters, and says how many of a part’s chapters match', async () => {
     const view = mount(OverviewView)
-    const [, pov] = view.findAll('select')
-    await pov?.setValue('Ilka')
+    const [, pov] = view.findAll('[role="combobox"]')
+    if (pov !== undefined) await chooseOption(pov, 'Ilka')
     expect(view.text()).toContain('1 of 2')
     expect(view.text()).not.toContain('First frost')
     const clear = view.findAll('button').find((button) => button.text() === 'Clear filters')
@@ -51,9 +52,10 @@ describe('OverviewView', () => {
 
   it('translates controls and generated labels while preserving filters and authored values', async () => {
     const view = mount(OverviewView)
-    const [status, pov] = view.findAll('select')
-    await status?.setValue('')
-    await pov?.setValue('Ilka')
+    const [status, pov] = view.findAll('[role="combobox"]')
+    if (status === undefined || pov === undefined) throw new Error('Expected two filters')
+    await chooseOption(status, '')
+    await chooseOption(pov, 'Ilka')
     expect(view.text()).toContain('1 of 2')
 
     useUiLanguageStore().locale = 'he'
@@ -64,8 +66,8 @@ describe('OverviewView', () => {
     expect(view.text()).toContain('1 מתוך 2')
     expect(view.text()).toContain('The Ferry')
     expect(view.text()).toContain('ללא סטטוס')
-    expect(view.get('select').element.value).toBe('')
-    expect(view.findAll('select')[1]?.element.value).toBe('Ilka')
+    expect(selectedLabel(status)).toBe('ללא סטטוס')
+    expect(selectedLabel(pov)).toBe('Ilka')
     expect(view.find('button.quiet').text()).toBe('ניקוי המסננים')
 
     await view.get('button.quiet').trigger('click')
@@ -88,21 +90,18 @@ describe('OverviewView', () => {
     const stored = useManuscriptStore().manuscript
     const getManuscript = vi.spyOn(fake.api.manuscript, 'getManuscript')
     const view = mount(OverviewView)
-    const pov = view.findAll('select')[1]
+    const pov = view.findAll('[role="combobox"]')[1]
     if (pov === undefined) throw new Error('Expected a POV filter')
-    const names = (): string[] =>
-      Array.from(pov.element.options)
-        .map((option) => option.value)
-        .filter((value) => value !== '*')
+    const names = async (): Promise<string[]> =>
+      (await optionValues(pov)).filter((value) => value !== '*')
 
-    expect(names()).toEqual(['Ari', 'שירה'])
-    await pov.setValue('Ari')
-    const select = pov.element
+    expect(await names()).toEqual(['Ari', 'שירה'])
+    await chooseOption(pov, 'Ari')
     useUiLanguageStore().locale = 'he'
     await view.vm.$nextTick()
 
-    expect(names()).toEqual(['שירה', 'Ari'])
-    expect(select.value).toBe('Ari')
+    expect(await names()).toEqual(['שירה', 'Ari'])
+    expect(selectedLabel(pov)).toBe('Ari')
     expect(useManuscriptStore().manuscript).toBe(stored)
     expect(getManuscript).not.toHaveBeenCalled()
     expect(view.text()).toContain('First frost')

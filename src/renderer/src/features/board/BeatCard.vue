@@ -6,6 +6,8 @@ import MenuButton from '../../shared/MenuButton.vue'
 import type { MenuItem } from '../../shared/menu-item'
 import type { LinkAt } from '../../shared/link-at'
 import RenderedMarkdown from '../../shared/RenderedMarkdown.vue'
+import SelectField from '../../shared/SelectField.vue'
+import type { SelectOption } from '../../shared/select-option'
 import type { ScreenRect } from '../../shared/screen-rect'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import type { BeatEdit } from './beat-edit'
@@ -30,7 +32,8 @@ const emit = defineEmits<{
 const language = useUiLanguageStore()
 const chrome = useChromePresentation()
 const draft = ref('')
-const field = useTemplateRef<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('field')
+const field = useTemplateRef<HTMLInputElement | HTMLTextAreaElement>('field')
+const statusField = useTemplateRef<InstanceType<typeof SelectField>>('statusField')
 
 /** The first line of a beat's notes, as a quiet hint on its card. */
 const firstNote = (beat: BoardBeatDto): string =>
@@ -52,11 +55,11 @@ function facts(beat: BoardBeatDto): string {
 }
 
 /** The statuses to choose from: the project's, and the chapter's own if it isn't one of them. */
-const statusChoices = (): readonly string[] => {
+const statusChoices = (): SelectOption[] => {
   const own = props.beat.chapter?.status
-  return own === undefined || props.statuses.includes(own)
-    ? props.statuses
-    : [...props.statuses, own]
+  const statuses =
+    own === undefined || props.statuses.includes(own) ? props.statuses : [...props.statuses, own]
+  return statuses.map((status) => ({ value: status, label: status }))
 }
 
 function startDraft(edit: BeatEdit | null): void {
@@ -70,6 +73,7 @@ function startDraft(edit: BeatEdit | null): void {
           ? (props.beat.chapter?.synopsis ?? '')
           : (props.beat.chapter?.status ?? '')
   void nextTick(() => {
+    statusField.value?.focus()
     field.value?.focus()
     if (field.value instanceof HTMLInputElement) field.value.select()
   })
@@ -139,19 +143,17 @@ function keydown(event: KeyboardEvent): void {
   />
 
   <template v-if="beat.chapter">
-    <select
+    <SelectField
       v-if="editing === 'status'"
-      ref="field"
+      ref="statusField"
       class="field"
-      dir="auto"
-      :value="beat.chapter.status ?? ''"
+      size="small"
+      :model-value="beat.chapter.status ?? ''"
+      :options="statusChoices()"
       :aria-label="language.t('board-status-label', beat.chapter.title)"
-      @change="emit('save', 'status', ($event.target as HTMLSelectElement).value)"
+      @update:model-value="emit('save', 'status', $event)"
       @keydown="keydown"
-    >
-      <option v-if="beat.chapter.status === undefined" value="" disabled></option>
-      <option v-for="status in statusChoices()" :key="status" :value="status">{{ status }}</option>
-    </select>
+    />
     <p v-else class="facts" dir="auto">{{ facts(beat) }}</p>
     <p v-if="beat.chapter.synopsis && editing !== 'synopsis'" class="synopsis" dir="auto">
       {{ beat.chapter.synopsis }}
@@ -250,12 +252,6 @@ function keydown(event: KeyboardEvent): void {
 .actions {
   display: flex;
   gap: 6px;
-}
-
-.small {
-  padding-block: 2px;
-  padding-inline: 8px;
-  font-size: 12px;
 }
 
 .more {

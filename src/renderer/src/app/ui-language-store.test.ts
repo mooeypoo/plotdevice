@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed } from 'vue'
 import LanguageSelector from '../shared/LanguageSelector.vue'
+import { chooseOption, optionsOf, selectedLabel } from '../shared/select-field-testing'
 import { useEditorStore } from './editor-store'
 import { createFakePlotDeviceApi } from './fake-plot-device-api'
 import { useManuscriptStore } from './manuscript-store'
@@ -51,10 +52,11 @@ describe('reactive interface language', () => {
     const writing = vi.spyOn(fake.api.manuscript, 'saveEntryText')
     const selector = mount(LanguageSelector)
     expect(selector.find('label').text()).toContain('Interface language')
-    await selector.find('select').setValue('he')
+    await chooseOption(selector, 'he')
     await flushPromises()
     expect(selector.find('label').text()).toContain('שפת הממשק')
-    expect(selector.find('option[value="he"]').attributes('dir')).toBe('rtl')
+    const hebrew = (await optionsOf(selector)).find((option) => option.dataset['value'] === 'he')
+    expect(hebrew?.getAttribute('dir')).toBe('rtl')
     expect(editor.entry).toBe(entry)
     expect(editor.text).toBe('טיוטה בעברית with English')
     expect(editor.saveState).toBe('unsaved')
@@ -74,10 +76,10 @@ describe('reactive interface language', () => {
       error: { code: 'ui-language-write', message: 'Disk full' }
     })
     const selector = mount(LanguageSelector)
-    await selector.find('select').setValue('he')
+    await chooseOption(selector, 'he')
     await flushPromises()
     expect(language.locale).toBe('en')
-    expect(selector.find('select').element.value).toBe('en')
+    expect(selectedLabel(selector)).toBe('English')
     expect(selector.find('[role="alert"]').text()).toContain('previous language')
     expect(report).toHaveBeenCalledOnce()
     selector.unmount()

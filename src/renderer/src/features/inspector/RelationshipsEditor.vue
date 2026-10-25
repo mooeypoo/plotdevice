@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useCodexStore } from '../../app/codex-store'
 import { useReferenceStore } from '../../app/reference-store'
 import { isolate } from '../../shared/isolate'
+import SelectField from '../../shared/SelectField.vue'
+import type { SelectOption } from '../../shared/select-option'
 import { useChromePresentation } from '../../shared/use-chrome-presentation'
 import { linkLabel } from './link-targets'
 import { useRelationships } from './use-relationships'
@@ -14,6 +17,16 @@ const { formatNumber } = useChromePresentation()
 const codex = useCodexStore()
 const reference = useReferenceStore()
 const { rows, characters, add, remove, save } = useRelationships()
+
+const characterOptions = computed((): SelectOption[] => [
+  { value: '', label: language.t('codex-inspector-relationship-who'), disabled: true },
+  ...characters.value.map((option) => ({
+    value: option.target,
+    label: option.missing
+      ? language.t('codex-inspector-relationship-missing', isolate(option.target))
+      : option.label
+  }))
+])
 </script>
 
 <template>
@@ -25,28 +38,18 @@ const { rows, characters, add, remove, save } = useRelationships()
     <template v-if="codex.properties?.relationshipsEditable">
       <div v-for="(row, index) in rows" :key="index" class="relationship">
         <div class="line">
-          <select
+          <SelectField
             v-model="row.target"
+            :options="characterOptions"
+            :placeholder="language.t('codex-inspector-relationship-who')"
             :aria-label="language.t('codex-inspector-relationship-with', formatNumber(index + 1))"
-            dir="auto"
             :disabled="disabled"
-            @change="save"
-          >
-            <option value="" disabled>{{ language.t('codex-inspector-relationship-who') }}</option>
-            <option v-for="option in characters" :key="option.target" :value="option.target">
-              {{
-                option.missing
-                  ? language.t('codex-inspector-relationship-missing', isolate(option.target))
-                  : option.label
-              }}
-            </option>
-          </select>
+            @update:model-value="save"
+          />
           <button
             type="button"
             class="remove"
-            :aria-label="
-              language.t('codex-inspector-relationship-remove', formatNumber(index + 1))
-            "
+            :aria-label="language.t('codex-inspector-relationship-remove', formatNumber(index + 1))"
             :disabled="disabled"
             @click="remove(index)"
           >
@@ -81,9 +84,7 @@ const { rows, characters, add, remove, save } = useRelationships()
       <ul class="plain">
         <li v-for="(relationship, index) in codex.properties?.relationships ?? []" :key="index">
           <span dir="auto">{{ linkLabel(relationship.with) }}</span>
-          <span v-if="relationship.kind" class="muted" dir="auto">
-            · {{ relationship.kind }}
-          </span>
+          <span v-if="relationship.kind" class="muted" dir="auto"> · {{ relationship.kind }} </span>
           <p v-if="relationship.note" class="muted small-text" dir="auto">
             {{ relationship.note }}
           </p>
