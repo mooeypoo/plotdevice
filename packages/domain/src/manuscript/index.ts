@@ -2,6 +2,7 @@ export {
   chapterCopyFileFor,
   chapterFileFor,
   findDuplicateIds,
+  markdownFileFor,
   projectFolderName,
   suggestRelinks,
   type ChapterFileWithId,

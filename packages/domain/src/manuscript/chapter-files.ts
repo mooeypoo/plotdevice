@@ -12,7 +12,15 @@ const UNSAFE_IN_FOLDER_NAMES = /[<>:"/\\|?*\u0000-\u001f]/g
  * automatically afterwards (owner decision); the author can rename it explicitly.
  */
 export function chapterFileFor(title: string, existing: readonly ProjectPath[]): ProjectPath {
-  return freeFileName(MANUSCRIPT, safeStem(title), existing)
+  return markdownFileFor(MANUSCRIPT, title, existing, 'chapter')
+}
+
+/**
+ * A Markdown file in `folder` named from a title, by the same rules as chapters. `fallback` names
+ * the file when the title has no usable characters, and suffixes a reserved name (`con-outline`).
+ */
+export function markdownFileFor(folder: string, title: string, existing: readonly ProjectPath[], fallback: string): ProjectPath {
+  return freeFileName(folder, safeStem(title, fallback), existing)
 }
 
 /**
@@ -31,7 +39,7 @@ function freeFileName(folder: string, stem: string, existing: readonly ProjectPa
   }
 }
 
-function safeStem(title: string): string {
+function safeStem(title: string, fallback = 'chapter'): string {
   const slug = title
     .normalize('NFC')
     .toLowerCase()
@@ -41,8 +49,8 @@ function safeStem(title: string): string {
     .replace(/-{2,}/g, '-')
     .replace(/^[-.]+|[-.]+$/g, '')
   const short = Array.from(slug).slice(0, MAX_STEM_CHARACTERS).join('').replace(/[-.]+$/, '')
-  if (short === '') return 'chapter'
-  return isReservedName(short) ? `${short}-chapter` : short
+  if (short === '') return fallback
+  return isReservedName(short) ? `${short}-${fallback}` : short
 }
 
 /** The folder for a new project: the title as written, minus characters no file system accepts. */

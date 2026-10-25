@@ -31,3 +31,8 @@ export function newContentsFile(title: string): string {
 export function newChapterFile(title: string, id: string, body = ''): string {
   return `---\ntitle: ${formatScalar(title)}\nid: ${formatScalar(id)}\n---\n${body}`
 }
+
+/** A new outline: just its title (Milestone 4, decision 4). */
+export function newOutlineFile(title: string): string {
+  return `# ${title.replace(/^#/, '\\#')}\n`
+}

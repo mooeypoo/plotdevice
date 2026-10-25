@@ -32,6 +32,16 @@ export {
 } from './session/writing-session'
 export type { FileStore, ReadProblem, RenameProblem, Revision, StoredText, TextToStore, WriteProblem } from './ports/file-store'
 export type { IdGenerator } from './ports/id-generator'
+export type { OutlineDocument, OutlineRepository, OutlineSummary, OutlineWriteProblem } from './ports/outline-repository'
+export {
+  createOutlineSession,
+  type OutlineEditFailure,
+  type OutlineEvent,
+  type OutlineSession,
+  type OutlineSessionOptions,
+  type OutlineState,
+  type UndoFailure,
+} from './outlines/outline-session'
 export type { JournalEntry, JournalStep, JournalStore } from './ports/journal-store'
 export type { CreateFolderProblem, ProjectFolders } from './ports/project-folders'
 export type {

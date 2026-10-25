@@ -13,7 +13,7 @@ export {
 } from './contents'
 export { formatScalar, readFrontmatter, setFrontmatterValues, splitFrontmatter, type Frontmatter, type FrontmatterProblem } from './frontmatter'
 export { rewriteLinksTo, type RewriteOptions } from './links'
-export { newChapterFile, newContentsFile, newProjectFile, type NewProjectDetails } from './new-files'
+export { newChapterFile, newContentsFile, newOutlineFile, newProjectFile, type NewProjectDetails } from './new-files'
 export { lineEndingOf } from './text'
 export { htmlToMarkdown, pastedMarkdown } from './paste'
 export { editOutline, type OutlineEditOptions } from './edit-outline'
