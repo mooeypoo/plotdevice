@@ -104,6 +104,13 @@ async function show(name: ScenarioName): Promise<void> {
     case 'select-open':
       click('#inspector-status')
       break
+    case 'board-empty':
+      await navigation.switchMode('plotting')
+      await settle(300)
+      break
+    case 'conflict':
+      editor.saveState = 'conflict'
+      break
     case 'writing':
       break
   }
@@ -115,6 +122,8 @@ async function start(): Promise<void> {
   localStorage.clear()
   const fake = createFakePlotDeviceApi()
   enrichSample(fake)
+  // An outline with no ## headings yet: the board explains, and offers Edit as text.
+  if (scenario.name === 'board-empty') fake.board.current = { ...fake.board.current, columns: [] }
   plotDeviceApi.current = () => fake.api
   const pinia = createPinia()
   setActivePinia(pinia)

@@ -48,6 +48,21 @@ describe('sizes', () => {
     expect(strays).toEqual([])
   })
 
+  // F11: one prose face and one UI face. A named family outside the font files fell back to Times.
+  it('name their typeface only through the font tokens', () => {
+    const named = styleFiles(renderer)
+      .filter((file) => !file.includes(join('assets', 'fonts')))
+      .flatMap((file) =>
+        stylesOf(file, readFileSync(file, 'utf8'))
+          .split('\n')
+          .filter(
+            (line) => /^\s*font-family\s*:/u.test(line) && !/var\(--font-|inherit/u.test(line)
+          )
+          .map((line) => `${relative(root, file)}: ${line.trim()}`)
+      )
+    expect(named).toEqual([])
+  })
+
   it('find a literal size, and accept tokens, hairlines, em and a reasoned exception', () => {
     const css = [
       'a {',

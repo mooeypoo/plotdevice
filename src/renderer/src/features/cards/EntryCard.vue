@@ -153,14 +153,16 @@ function togglePin(): void {
   font-size: var(--text-body);
 }
 
+/* In a narrow panel the actions wrap below the title as a row, never word by word. */
 header {
   display: flex;
-  gap: var(--space-3);
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
   align-items: center;
 }
 
 h3 {
-  flex: 1;
+  flex: 1 1 8em;
   min-width: 0;
   margin: 0;
   overflow: hidden;
@@ -171,12 +173,15 @@ h3 {
 
 .actions {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: var(--space-1);
   align-items: center;
+  margin-inline-start: auto;
 }
 
 .actions button {
   padding: var(--space-1) var(--space-3);
+  white-space: nowrap;
   font-size: var(--text-caption);
 }
 

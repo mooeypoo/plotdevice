@@ -408,12 +408,13 @@ function overColumn(event: DragEvent, column: number): void {
         @peek="(link, near, byKeyboard) => peek.peekLink(link, path ?? undefined, near, byKeyboard)"
         @peek-end="peek.endHover()"
       />
-      <div v-if="columns.length === 0" class="empty">
-        <p>{{ language.t('board-no-columns') }}</p>
-        <button type="button" @click="navigation.showOutlineText()">
-          {{ language.t('board-edit-text') }}
-        </button>
-      </div>
+      <template v-if="columns.length === 0">
+        <p class="empty">{{ language.t('board-no-columns') }}</p>
+        <!-- The first column is one step away; Edit as text is in the header. -->
+        <ol v-if="!readOnly" class="columns">
+          <AddColumnTile @add="addColumn" />
+        </ol>
+      </template>
       <ol
         v-else
         ref="columnsList"
