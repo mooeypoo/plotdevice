@@ -60,6 +60,13 @@ module.exports = {
       from: { path: pkg('storage') },
       to: { path: pkg('application'), dependencyTypesNot: ['type-only'] },
     },
+    onlyMayImport('editor-is-just-an-editor', 'editor-codemirror: CodeMirror, domain and shared; no Vue, files or app logic', pkg('editor-codemirror'), [
+      pkg('editor-codemirror'),
+      pkg('domain'),
+      pkg('shared'),
+      npm('@codemirror/[^/]+'),
+      npm('@lezer/[^/]+'),
+    ]),
     onlyMayImport('presentation-is-framework-free', 'presentation: shared and contracts; no Vue', pkg('presentation'), [
       pkg('presentation'),
       pkg('shared'),
@@ -104,6 +111,7 @@ module.exports = {
           pkg('markdown'),
           pkg('storage'),
           pkg('presentation'),
+          pkg('editor-codemirror'),
           pkg('i18n'),
           pkg('ui-vue'),
           desktop('renderer'),
