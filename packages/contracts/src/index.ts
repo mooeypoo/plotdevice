@@ -17,13 +17,17 @@ export {
 export { channels, eventChannel } from './channels'
 export {
   localeSchema,
+  pageWidthSchema,
   preferencesPatchSchema,
   preferencesSchema,
   themePreferenceSchema,
+  writingSizeSchema,
   type Locale,
+  type PageWidth,
   type Preferences,
   type PreferencesPatch,
   type ThemePreference,
+  type WritingSize,
 } from './preferences'
 export {
   contentsChangeSchema,

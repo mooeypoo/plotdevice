@@ -1,13 +1,13 @@
 import type { PlotDeviceApi } from '@plotdevice/contracts'
+import { createPinia } from 'pinia'
 import { createApp } from 'vue'
+import { apiKey } from './api'
 import App from './App.vue'
+import { answerFlushRequests } from './closing'
 import './styles/base.css'
 
 /** Starts the interface in `element`, talking to the host only through `api`. */
 export function mountApp(element: Element, api: PlotDeviceApi): void {
-  // Nothing waits to be saved yet; the writing view will send its pending text first (Milestone 3, step 3).
-  api.onEvent((event) => {
-    if (event.kind === 'flush') void api.flushed()
-  })
-  createApp(App, { api }).mount(element)
+  answerFlushRequests(api)
+  createApp(App).use(createPinia()).provide(apiKey, api).mount(element)
 }

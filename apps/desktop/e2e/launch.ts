@@ -35,6 +35,13 @@ export async function launch(userData: string, extraEnv: Record<string, string> 
     env: { ...env, ...extraEnv, PLOTDEVICE_USER_DATA: userData },
   })
   const page = await app.firstWindow()
-  await page.getByTestId('language').waitFor()
+  await page.locator('.shell').waitFor()
   return { app, page }
+}
+
+/** Opens the Settings panel, where the language and theme are chosen. */
+export async function openSettings(page: Page): Promise<void> {
+  const panel = page.locator('.settings-menu')
+  await panel.waitFor()
+  if ((await panel.getAttribute('open')) === null) await panel.locator('summary').click()
 }

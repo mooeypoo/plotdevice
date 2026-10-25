@@ -1,12 +1,16 @@
 import { createRecentProjectsSession, createWritingSession, type SessionEvent } from '@plotdevice/application'
-import { channels, type OpenChapterResult, type OpenProjectResult, type ProjectView, type ResolveConflictResult } from '@plotdevice/contracts'
+import { channels, type OpenChapterResult, type OpenProjectResult, type ProjectChangeResult, type ProjectView, type ResolveConflictResult } from '@plotdevice/contracts'
 import { createAppDataFile, createJournalStore, createProjectFolders, randomIdGenerator } from '@plotdevice/fs-node'
 import { createProjectRepository } from '@plotdevice/storage'
 import { access, cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import { moveDown, moveUp } from '@plotdevice/presentation'
+import type { ProjectPath } from '@plotdevice/shared'
 import { createIpcHandlers, type Sender } from './ipc'
+
+const MEDIUM_PAGE = { writingSize: 'medium', pageWidth: 'medium' } as const
 
 const FIXTURE = join(import.meta.dirname, '../../../../tests/fixtures/projects/salt-orchard')
 const appUrl = 'file:///opt/plotdevice/out/renderer/index.html'
@@ -32,7 +36,7 @@ async function setup() {
   const handlers = createIpcHandlers({
     appUrl,
     appInfo: { name: 'Plot Device', version: '0.1.0', platform: 'linux' },
-    currentPreferences: () => ({ theme: 'system', locale: 'en' }),
+    currentPreferences: () => ({ theme: 'system', locale: 'en', ...MEDIUM_PAGE }),
     updatePreferences: async () => {
       throw new Error('not used')
     },
@@ -126,6 +130,40 @@ describe('project calls', () => {
     expect(resolved.value.project.chapters).toContainEqual({ file: 'manuscript/frost-my-version.md', title: 'Frost (my version)', status: 'ok', listed: false })
     expect(await context.read('manuscript/frost.md')).toBe(theirs)
     expect(await context.read('manuscript/frost-my-version.md')).toMatch(/\nMine\.\n$/)
+  })
+
+  it('moves each chapter one step in reading order, and back, with the navigator\'s placements', async () => {
+    const context = await setup()
+    let current = await openChosen(context)
+    const order = (view: ProjectView): string[] => view.contents.flatMap((entry) => (entry.kind === 'chapter' ? [entry.file] : [`[${entry.name}]`, ...entry.chapters.map((c) => c.file)]))
+    const partOf = (view: ProjectView, file: string): string | null => {
+      for (const entry of view.contents) if (entry.kind === 'part' && entry.chapters.some((c) => c.file === file)) return entry.name
+      return null
+    }
+    const move = async (file: ProjectPath, placement: { part: number | null; index: number }) => {
+      const moved = (await context.call(channels.changeContents, { kind: 'move-chapter', file, placement })) as ProjectChangeResult
+      if (!moved.ok) throw new Error(moved.error)
+      current = moved.value
+    }
+    const original = order(current)
+    for (const file of current.chapters.filter((c) => c.listed).map((c) => c.file)) {
+      const down = moveDown(current.contents, file)
+      if (!down) continue
+      const before = order(current)
+      const partBefore = partOf(current, file)
+      await move(file, down)
+      const after = order(current)
+      // One step: past the next entry, or across a part boundary (into or out of a part) in place.
+      const steppedPast = after.indexOf(file) === before.indexOf(file) + 1
+      const crossedBoundary = after.indexOf(file) === before.indexOf(file) && partOf(current, file) !== partBefore
+      expect(steppedPast || crossedBoundary).toBe(true)
+      expect(after.filter((entry) => entry !== file)).toEqual(before.filter((entry) => entry !== file))
+      const up = moveUp(current.contents, file)
+      if (!up) throw new Error('no way back up')
+      await move(file, up)
+      expect(order(current)).toEqual(before)
+    }
+    expect(order(current)).toEqual(original)
   })
 
   it('creates a project where the author chooses, or not at all', async () => {

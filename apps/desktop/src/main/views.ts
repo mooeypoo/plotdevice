@@ -1,19 +1,24 @@
 import type { ProjectSnapshot, SaveStatus, SessionEvent } from '@plotdevice/application'
 import type { HostEvent, ProjectView, SaveStatusView } from '@plotdevice/contracts'
+import { chapterNumbers, directionOfLanguage } from '@plotdevice/domain'
+import type { ProjectPath } from '@plotdevice/shared'
 
 /** The project as the page sees it: what to show, without revisions or other bookkeeping. */
 export function projectView(snapshot: ProjectSnapshot): ProjectView {
   const { details } = snapshot
+  const numbers = chapterNumbers(snapshot.contents, details.chapterNumbering)
+  const ref = (chapter: { file: ProjectPath; linkText: string }) => ({ file: chapter.file, linkText: chapter.linkText, number: numbers.get(chapter.file) ?? null })
   return {
     root: snapshot.root,
     title: details.title,
     ...(details.author ? { author: details.author } : {}),
     language: details.language,
+    direction: directionOfLanguage(details.language),
     chapterNumbering: details.chapterNumbering,
     contents: snapshot.contents.entries.map((entry) =>
       entry.kind === 'chapter'
-        ? { kind: 'chapter', file: entry.file, linkText: entry.linkText }
-        : { kind: 'part', name: entry.name, chapters: entry.chapters.map((chapter) => ({ file: chapter.file, linkText: chapter.linkText })) },
+        ? { kind: 'chapter', ...ref(entry) }
+        : { kind: 'part', name: entry.name, chapters: entry.chapters.map(ref) },
     ),
     chapters: snapshot.chapters.map((chapter) => ({
       file: chapter.file,

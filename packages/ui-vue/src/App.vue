@@ -1,55 +1,40 @@
 <script setup lang="ts">
-import type { AppInfo, Locale, PlotDeviceApi, ThemePreference } from '@plotdevice/contracts'
-import { catalogs, createTranslator } from '@plotdevice/i18n'
-import { computed, ref } from 'vue'
+import type { AppInfo } from '@plotdevice/contracts'
+import { storeToRefs } from 'pinia'
+import { ref } from 'vue'
+import { useApi } from './api'
+import PromptDialog from './components/PromptDialog.vue'
+import SettingsMenu from './components/SettingsMenu.vue'
+import WelcomeView from './components/WelcomeView.vue'
+import WritingView from './components/WritingView.vue'
 import { useAppearance } from './composables/use-appearance'
-import { usePreferences } from './composables/use-preferences'
+import { useProjectStore } from './stores/project'
+import { useSettingsStore } from './stores/settings'
+import { useViewStore } from './stores/view'
 
-const props = defineProps<{ api: PlotDeviceApi }>()
-
-const { preferences, saveFailed, update } = usePreferences(props.api)
+const api = useApi()
+const settings = useSettingsStore()
+const { preferences } = storeToRefs(settings)
 useAppearance(preferences)
-
-const translate = createTranslator(catalogs)
-const locale = computed(() => preferences.value?.locale ?? 'en')
-const t = (key: string, ...params: (string | number)[]): string => translate(locale.value, key, ...params)
+const store = useProjectStore()
+const view = useViewStore()
 
 const appInfo = ref<AppInfo | null>(null)
-void props.api.getAppInfo().then((info) => (appInfo.value = info))
-
-const languages: { value: Locale; label: string }[] = [
-  { value: 'en', label: 'English' },
-  { value: 'he', label: 'עברית' },
-]
-const themes: ThemePreference[] = ['system', 'light', 'dark']
+void api.getAppInfo().then((info) => (appInfo.value = info))
 </script>
 
 <template>
-  <div v-if="preferences" class="shell">
-    <header class="shell-header">
-      <span class="app-name">{{ t('app-name') }}</span>
-      <div class="settings">
-        <label>
-          {{ t('settings-language') }}
-          <select data-testid="language" :value="preferences.locale" @change="update({ locale: ($event.target as HTMLSelectElement).value as Locale })">
-            <option v-for="language in languages" :key="language.value" :value="language.value" :lang="language.value">{{ language.label }}</option>
-          </select>
-        </label>
-        <label>
-          {{ t('settings-theme') }}
-          <select data-testid="theme" :value="preferences.theme" @change="update({ theme: ($event.target as HTMLSelectElement).value as ThemePreference })">
-            <option v-for="theme in themes" :key="theme" :value="theme">{{ t(`theme-${theme}`) }}</option>
-          </select>
-        </label>
-      </div>
+  <div v-if="settings.preferences" class="shell" :class="{ 'focus-mode': view.focusMode }">
+    <header v-if="!view.focusMode" class="shell-header">
+      <span class="app-name">{{ settings.t('app-name') }}</span>
+      <span v-if="store.project" class="project-title" dir="auto">{{ store.project.title }}</span>
+      <SettingsMenu />
     </header>
 
-    <main class="page">
-      <p class="welcome">{{ t('shell-welcome') }}</p>
-      <p class="secondary">{{ t('shell-next') }}</p>
-      <p v-if="saveFailed" class="warning" role="status">⚠ {{ t('settings-save-failed') }}</p>
-    </main>
+    <WritingView v-if="store.project" :key="store.project.root" :project="store.project" />
+    <WelcomeView v-else />
 
-    <footer v-if="appInfo" class="secondary">{{ t('app-version', appInfo.version) }}</footer>
+    <footer v-if="appInfo && !store.project" class="secondary app-footer">{{ settings.t('app-version', appInfo.version) }}</footer>
+    <PromptDialog />
   </div>
 </template>

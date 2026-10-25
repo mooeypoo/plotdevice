@@ -12,9 +12,11 @@
   },
   "dependencies": {
     "@plotdevice/contracts": "workspace:*",
+    "@plotdevice/editor-codemirror": "workspace:*",
     "@plotdevice/i18n": "workspace:*",
     "@plotdevice/presentation": "workspace:*",
     "@plotdevice/shared": "workspace:*",
+    "pinia": "^4.1.0",
     "vue": "^3.5.44"
   },
   "devDependencies": {

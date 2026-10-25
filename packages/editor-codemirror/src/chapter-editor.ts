@@ -9,6 +9,24 @@ import { livePreview } from './live-preview'
 import { setParagraphDirection, setPhraseDirection } from './paragraph-direction'
 import { editorSettings, type EditorSettings } from './settings'
 
+/** The page: prose type, theme colours (CSS variables inherit into the shadow root), comfortable measure. */
+const pageTheme = EditorView.theme({
+  '&': { color: 'var(--color-text)', backgroundColor: 'transparent', fontSize: 'var(--writing-font-size, 1.15rem)' },
+  '&.cm-focused': { outline: 'none' },
+  '.cm-scroller': { fontFamily: "Georgia, 'Noto Serif Hebrew', 'Frank Ruehl CLM', serif", lineHeight: '1.75' },
+  '.cm-content': { caretColor: 'var(--color-text)', paddingBlock: '2rem' },
+  '.cm-cursor': { borderInlineStartColor: 'var(--color-text)' },
+  '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection': { backgroundColor: 'color-mix(in srgb, var(--color-accent) 25%, transparent)' },
+  '.cm-heading': { fontWeight: '650' },
+  '.cm-h1': { fontSize: '1.6em' },
+  '.cm-h2': { fontSize: '1.35em' },
+  '.cm-h3': { fontSize: '1.15em' },
+  '.cm-quote': { color: 'var(--color-text-secondary)', fontStyle: 'italic' },
+  '.cm-kept': { fontFamily: 'ui-monospace, monospace', fontSize: '0.85em', color: 'var(--color-text-secondary)' },
+  '.cm-scene-break': { display: 'inline-block', inlineSize: '100%', textAlign: 'center', color: 'var(--color-text-secondary)' },
+  '.cm-bullet': { color: 'var(--color-text-secondary)' },
+})
+
 const prose = HighlightStyle.define([
   { tag: tags.emphasis, fontStyle: 'italic' },
   { tag: tags.strong, fontWeight: '700' },
@@ -19,8 +37,6 @@ const prose = HighlightStyle.define([
 export interface ChapterEditorOptions {
   text: string
   settings: EditorSettings
-  /** Nonce of the page's Content Security Policy, for the editor's own styles (ADR 0004). */
-  cspNonce: string
   /** Called after each change the author makes; read the text with `text()` when it's time to save. */
   onChange: () => void
 }
@@ -41,8 +57,13 @@ export interface ChapterEditor {
   destroy(): void
 }
 
-/** CodeMirror edits the Markdown text itself, so saving returns exactly what is in the editor. */
+/**
+ * CodeMirror edits the Markdown text itself, so saving returns exactly what is in the editor. It lives
+ * in a shadow root, where its styles are constructed stylesheets rather than `<style>` tags, so the
+ * page's strict Content Security Policy needs no exception (ADR 0004).
+ */
 export function createChapterEditor(parent: HTMLElement, options: ChapterEditorOptions): ChapterEditor {
+  const root = parent.shadowRoot ?? parent.attachShadow({ mode: 'open' })
   const settings = new Compartment()
   let current = options.settings
   const contentAttributes = new Compartment()
@@ -53,7 +74,7 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
     EditorView.lineWrapping,
     syntaxHighlighting(prose),
     livePreview,
-    EditorView.cspNonce.of(options.cspNonce),
+    pageTheme,
     contentAttributes.of(attributesFor(current)),
     // `load` replaces the state without an update, so every change seen here is the author's.
     EditorView.updateListener.of((update) => {
@@ -61,7 +82,7 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
     }),
   ]
   const stateFor = (text: string) => chapterState(text, settings, current, viewExtensions)
-  const view = new EditorView({ parent, state: stateFor(options.text) })
+  const view = new EditorView({ parent: root, root, state: stateFor(options.text) })
 
   const run = (command: StateCommand): void => {
     command(view)

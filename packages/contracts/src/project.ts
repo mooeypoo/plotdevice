@@ -37,6 +37,8 @@ export type OpenProjectRequest = z.infer<typeof openProjectSchema>
 export interface ChapterRef {
   file: ProjectPath
   linkText: string
+  /** As the project's numbering setting shows it; `null` when unnumbered. */
+  number: number | null
 }
 
 /** The project as the page shows it. Revisions and other bookkeeping stay in the main process. */
@@ -45,8 +47,10 @@ export interface ProjectView {
   title: string
   author?: string
   language: string
+  /** The book's text direction, from its language. */
+  direction: 'ltr' | 'rtl'
   chapterNumbering: 'continuous' | 'per-part' | 'none'
-  contents: ({ kind: 'chapter'; file: ProjectPath; linkText: string } | { kind: 'part'; name: string; chapters: ChapterRef[] })[]
+  contents: (({ kind: 'chapter' } & ChapterRef) | { kind: 'part'; name: string; chapters: ChapterRef[] })[]
   chapters: { file: ProjectPath; title?: string; status: 'ok' | 'unreadable'; listed: boolean }[]
   missing: ProjectPath[]
   outdatedLinkText: { file: ProjectPath; linkText: string; title: string }[]

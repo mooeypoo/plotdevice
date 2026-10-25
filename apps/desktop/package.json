@@ -16,8 +16,10 @@
   "devDependencies": {
     "@plotdevice/application": "workspace:*",
     "@plotdevice/contracts": "workspace:*",
+    "@plotdevice/domain": "workspace:*",
     "@plotdevice/fs-node": "workspace:*",
     "@plotdevice/i18n": "workspace:*",
+    "@plotdevice/presentation": "workspace:*",
     "@plotdevice/shared": "workspace:*",
     "@plotdevice/storage": "workspace:*",
     "@plotdevice/ui-vue": "workspace:*",

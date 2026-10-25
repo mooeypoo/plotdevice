@@ -53,3 +53,8 @@ Spike B built both behind one interface and compared them with 98 automated chec
   - spellcheck in English and Hebrew together
   - how Obsidian, GitHub and Pandoc render the direction markers (sample: `tests/fixtures/chapters/direction-markers.md`)
 - **Pinned for the skeleton:** `vue-tsc` requires TypeScript 6.x. TypeScript 7 has no JavaScript API yet.
+
+## Implementation note (Milestone 3)
+
+- **No nonce after all.** The editor sits in a shadow root. There, CodeMirror's style library uses constructed stylesheets, which a Content Security Policy doesn't restrict, instead of `<style>` tags. The strict policy (`style-src 'self'`) stays exactly as it is. A nonce baked into a public build would have been a weak guard anyway. Theme colours still reach the editor, because CSS variables inherit across the shadow boundary.
+- **Line endings.** CodeMirror normally turns every `\r\n` into `\n`. The editor sets its line separator from the chapter's own line ending and reads its text with `sliceDoc`, so Windows-ending chapters stay byte-identical. Tests cover CRLF and mixed endings.

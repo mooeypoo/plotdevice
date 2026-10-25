@@ -4,18 +4,20 @@ import { describe, expect, it } from 'vitest'
 import { createIpcHandlers, isAppUrl, type Sender } from './ipc'
 import type { ProjectIpcContext } from './project-ipc'
 
+const MEDIUM_PAGE = { writingSize: 'medium', pageWidth: 'medium' } as const
+
 const appUrl = 'file:///opt/plotdevice/out/renderer/index.html'
 const appPage: Sender = { url: `${appUrl}?x=1#top`, fromAppWindow: true }
 
 function setup(saveError?: string) {
-  let current: Preferences = { theme: 'system', locale: 'en' }
+  let current: Preferences = { theme: 'system', locale: 'en', ...MEDIUM_PAGE }
   const handlers = createIpcHandlers({
     appUrl,
     appInfo: { name: 'Plot Device', version: '0.1.0', platform: 'linux' },
     currentPreferences: () => current,
     updatePreferences: async (patch) => {
       if (saveError) return err(saveError)
-      current = { theme: patch.theme ?? current.theme, locale: patch.locale ?? current.locale }
+      current = { ...current, ...Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined)) }
       return ok(current)
     },
     // Project calls are covered in project-ipc.test.ts.
@@ -32,8 +34,8 @@ function setup(saveError?: string) {
 describe('IPC handlers', () => {
   it('serve the app page', async () => {
     const { call } = setup()
-    expect(await call(channels.getPreferences, appPage)).toEqual({ theme: 'system', locale: 'en' })
-    expect(await call(channels.setPreferences, appPage, { locale: 'he' })).toEqual({ theme: 'system', locale: 'he' })
+    expect(await call(channels.getPreferences, appPage)).toEqual({ theme: 'system', locale: 'en', ...MEDIUM_PAGE })
+    expect(await call(channels.setPreferences, appPage, { locale: 'he' })).toEqual({ theme: 'system', locale: 'he', ...MEDIUM_PAGE })
   })
 
   it.each([
@@ -49,7 +51,7 @@ describe('IPC handlers', () => {
   it.each([[{ theme: 'neon' }], [{ fontSize: 30 }], ['dark'], [null]])('refuse an invalid payload, changing nothing: %j', async (payload) => {
     const { call, current } = setup()
     await expect(call(channels.setPreferences, appPage, payload)).rejects.toThrow('invalid-payload')
-    expect(current()).toEqual({ theme: 'system', locale: 'en' })
+    expect(current()).toEqual({ theme: 'system', locale: 'en', ...MEDIUM_PAGE })
   })
 
   it('report a failed save instead of pretending it worked', async () => {

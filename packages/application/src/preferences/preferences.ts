@@ -1,13 +1,15 @@
-import type { Locale, Preferences, PreferencesPatch, ThemePreference } from '@plotdevice/contracts'
+import type { Locale, PageWidth, Preferences, PreferencesPatch, ThemePreference, WritingSize } from '@plotdevice/contracts'
 import { err, ok, type Result } from '@plotdevice/shared'
 import type { PreferencesStore, PreferencesWriteFailure } from './preferences-store'
 
 const THEMES: readonly ThemePreference[] = ['system', 'light', 'dark']
 const LOCALES: readonly Locale[] = ['en', 'he']
+const WRITING_SIZES: readonly WritingSize[] = ['small', 'medium', 'large']
+const PAGE_WIDTHS: readonly PageWidth[] = ['narrow', 'medium', 'wide']
 
-/** First-run settings: follow the system theme, and use Hebrew if the system is in Hebrew. */
+/** First-run settings: follow the system theme, use Hebrew if the system is in Hebrew, and a medium page. */
 export function defaultPreferences(systemLocale: string): Preferences {
-  return { theme: 'system', locale: systemLocale.toLowerCase().startsWith('he') ? 'he' : 'en' }
+  return { theme: 'system', locale: systemLocale.toLowerCase().startsWith('he') ? 'he' : 'en', writingSize: 'medium', pageWidth: 'medium' }
 }
 
 /**
@@ -26,6 +28,8 @@ export function parsePreferences(text: string, defaults: Preferences): Result<Pr
   return ok({
     theme: THEMES.find((t) => t === record.theme) ?? defaults.theme,
     locale: LOCALES.find((l) => l === record.locale) ?? defaults.locale,
+    writingSize: WRITING_SIZES.find((size) => size === record.writingSize) ?? defaults.writingSize,
+    pageWidth: PAGE_WIDTHS.find((width) => width === record.pageWidth) ?? defaults.pageWidth,
   })
 }
 
@@ -89,7 +93,12 @@ export async function updatePreferences(
   patch: PreferencesPatch,
 ): Promise<Result<Preferences, PreferencesWriteFailure>> {
   // Field by field: a patch may carry `undefined`, which must not erase a setting.
-  const next: Preferences = { theme: patch.theme ?? current.theme, locale: patch.locale ?? current.locale }
+  const next: Preferences = {
+    theme: patch.theme ?? current.theme,
+    locale: patch.locale ?? current.locale,
+    writingSize: patch.writingSize ?? current.writingSize,
+    pageWidth: patch.pageWidth ?? current.pageWidth,
+  }
   const written = await store.write(`${JSON.stringify(next, null, 2)}\n`)
   return written.ok ? ok(next) : written
 }
