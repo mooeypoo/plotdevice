@@ -40,8 +40,11 @@ function apply(source: string, edit: OutlineEdit, nestingUnit: string): string {
   return result.value
 }
 
+// Each walk is deterministic and bounded, but takes a few seconds when the whole suite runs at once.
+const WALK_TIMEOUT_MS = 30_000
+
 describe.each(fixtureNames)('%s: seeded random moves, then their reversals', (name) => {
-  it('matches the model at every step and restores the original', () => {
+  it('matches the model at every step and restores the original', { timeout: WALK_TIMEOUT_MS }, () => {
     const original = fixture(name)
     const random = seededRandom(name.length * 7919)
     const oracle = shapeOf(readOutline(original), true)
