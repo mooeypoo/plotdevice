@@ -47,6 +47,43 @@ jobs:
       - name: End-to-end tests (Windows)
         if: runner.os == 'Windows'
         run: pnpm exec playwright test
+
+      # Installers (Milestone 7), tested as an author would install and remove them.
+      - name: Build the installers
+        working-directory: apps/desktop
+        run: pnpm exec electron-builder --publish never
+      - name: Install, check and remove the .deb
+        if: runner.os == 'Linux'
+        working-directory: apps/desktop/dist
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq desktop-file-utils appstream
+          sudo apt-get install -y ./plotdevice_*_amd64.deb
+          test -x "/opt/Plot Device/plotdevice"
+          desktop-file-validate /usr/share/applications/plotdevice.desktop
+          appstreamcli validate --no-net --explain /usr/share/metainfo/tech.moriel.plotdevice.metainfo.xml
+          sudo apt-get remove -y plotdevice
+          test ! -e "/opt/Plot Device/plotdevice"
+      - name: Install, check and remove the Windows installer
+        if: runner.os == 'Windows'
+        working-directory: apps/desktop/dist
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem plotdevice-*-setup.exe | Select-Object -First 1
+          Start-Process -FilePath $installer.FullName -ArgumentList '/S' -Wait
+          $app = Get-ChildItem -Path "$env:LOCALAPPDATA\Programs" -Recurse -Filter plotdevice.exe | Select-Object -First 1
+          if (-not $app) { throw 'Plot Device was not installed' }
+          $uninstaller = Get-ChildItem -Path $app.DirectoryName -Filter 'Uninstall*.exe' | Select-Object -First 1
+          Start-Process -FilePath $uninstaller.FullName -ArgumentList '/S' -Wait
+          Start-Sleep -Seconds 5
+          if (Test-Path $app.FullName) { throw 'Plot Device was not uninstalled' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ matrix.os }}
+          path: |
+            apps/desktop/dist/*.AppImage
+            apps/desktop/dist/*.deb
+            apps/desktop/dist/*-setup.exe
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

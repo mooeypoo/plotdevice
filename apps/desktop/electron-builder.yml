@@ -58,3 +58,6 @@ appImage:
 deb:
   artifactName: plotdevice_${version}_${arch}.${ext}
   packageCategory: editors
+  fpm:
+    - build/tech.moriel.plotdevice.metainfo.xml=/usr/share/metainfo/tech.moriel.plotdevice.metainfo.xml
+    - ../../LICENSE=/usr/share/doc/plotdevice/LICENSE

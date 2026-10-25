@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream metadata: how Linux app catalogues describe Plot Device. -->
+<component type="desktop-application">
+  <id>tech.moriel.plotdevice</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Plot Device</name>
+  <summary>Write a novel in plain Markdown files</summary>
+  <description>
+    <p>
+      A writing studio for novelists. Write chapters, plan the story in outlines, and keep characters,
+      places and notes beside the page, all as ordinary Markdown files you own.
+    </p>
+    <p>English and Hebrew, including mixed-direction prose. Everything you write is yours.</p>
+  </description>
+  <launchable type="desktop-id">plotdevice.desktop</launchable>
+  <developer id="tech.moriel">
+    <name>Moriel Schottlender</name>
+  </developer>
+  <url type="homepage">https://github.com/mooeypoo/plotdevice</url>
+  <categories>
+    <category>Office</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.2.0" date="2026-10-25"/>
+  </releases>
+</component>
