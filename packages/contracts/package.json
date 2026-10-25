@@ -1,0 +1,15 @@
+{
+  "name": "@plotdevice/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./channels": "./src/channels.ts"
+  },
+  "dependencies": {
+    "zod": "^4.6.7",
+    "@plotdevice/shared": "workspace:*"
+  }
+}

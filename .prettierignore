@@ -1,0 +1,6 @@
+tests/fixtures/
+pnpm-lock.yaml
+dist/
+out/
+docs/
+*.md

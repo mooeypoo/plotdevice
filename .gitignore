@@ -1,0 +1,9 @@
+node_modules/
+dist/
+out/
+.tsbuild/
+*.tsbuildinfo
+test-results/
+playwright-report/
+# Leftovers from spike branches when switching branches locally.
+spikes/
