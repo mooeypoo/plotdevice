@@ -49,6 +49,8 @@ export interface PreferencesSession {
   current(): Preferences
   /** Queued: each change applies to the settings left by the previous one, never to a stale copy. */
   update(patch: PreferencesPatch): Promise<Result<Preferences, PreferencesWriteFailure>>
+  /** Resolves once every queued change has been saved (or has failed). The app waits for this before quitting. */
+  idle(): Promise<void>
 }
 
 /**
@@ -68,6 +70,14 @@ export function createPreferencesSession(store: PreferencesStore, initial: Prefe
       })
       queue = run.catch(() => undefined)
       return run
+    },
+    idle: async () => {
+      // Changes may be queued while waiting, so wait until the queue stops growing.
+      let seen: Promise<unknown> | undefined
+      while (seen !== queue) {
+        seen = queue
+        await queue
+      }
     },
   }
 }

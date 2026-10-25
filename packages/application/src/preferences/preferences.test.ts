@@ -74,6 +74,19 @@ describe('a preferences session', () => {
     expect(JSON.parse(state.text ?? '')).toEqual({ theme: 'dark', locale: 'he' })
   })
 
+  it('idle() waits for every queued change, including ones queued while waiting', async () => {
+    const { store, state } = memoryStore(null)
+    let release = (): void => undefined
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    const session = createPreferencesSession({ ...store, write: async (text: string) => (await gate, store.write(text)) }, { theme: 'system', locale: 'en' })
+    void session.update({ locale: 'he' })
+    const idle = session.idle()
+    void session.update({ theme: 'dark' })
+    release()
+    await idle
+    expect(JSON.parse(state.text ?? '')).toEqual({ theme: 'dark', locale: 'he' })
+  })
+
   it('keeps going after a failed save', async () => {
     let fail = true
     const { store } = memoryStore(null)

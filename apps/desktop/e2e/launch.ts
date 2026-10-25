@@ -26,13 +26,13 @@ export interface Launched {
 }
 
 /** Starts the built app with its settings in `userData`, and waits for the interface. */
-export async function launch(userData: string): Promise<Launched> {
+export async function launch(userData: string, extraEnv: Record<string, string> = {}): Promise<Launched> {
   // VS Code's extension host sets ELECTRON_RUN_AS_NODE, which would turn Electron into plain Node.
   const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[0] !== 'ELECTRON_RUN_AS_NODE' && entry[1] !== undefined))
   const app = await electron.launch({
     executablePath: electronPath,
     args: [appFolder, ...(chromiumSandboxBlocked() ? ['--no-sandbox'] : [])],
-    env: { ...env, PLOTDEVICE_USER_DATA: userData },
+    env: { ...env, ...extraEnv, PLOTDEVICE_USER_DATA: userData },
   })
   const page = await app.firstWindow()
   await page.getByTestId('language').waitFor()

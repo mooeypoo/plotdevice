@@ -66,6 +66,16 @@ test('regression: two quick changes both stick (language, then theme, without wa
   await expect(running.page.getByTestId('theme')).toHaveValue('dark')
 })
 
+test('regression: closing the app right after a change still saves it (Windows saves are slower)', async () => {
+  running = await launch(userData, { PLOTDEVICE_TEST_SAVE_DELAY_MS: '1500' })
+  await running.page.getByTestId('theme').selectOption('dark')
+  await running.page.getByTestId('language').selectOption('he')
+  await running.app.close() // immediately, while both saves are still running
+  running = await launch(userData)
+  await expect(running.page.getByTestId('theme')).toHaveValue('dark')
+  await expect(running.page.getByTestId('language')).toHaveValue('he')
+})
+
 test('regression: the footer shows the app version, not Electron\'s', async () => {
   running = await launch(userData)
   const { version } = JSON.parse(await readFile(join(import.meta.dirname, '..', 'package.json'), 'utf8')) as { version: string }
