@@ -251,19 +251,19 @@ function toggle(section: Section): void {
   flex: 1;
   flex-basis: 200px;
   min-width: 0;
-  gap: 4px;
-  padding: 10px 10px 0;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) 0;
 }
 
 .tabs button {
   flex: 1;
-  padding: 6px 0;
+  padding: var(--space-3) 0;
   border: none;
   border-bottom: 2px solid transparent;
   border-radius: 0;
   background: transparent;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -275,10 +275,10 @@ function toggle(section: Section): void {
 
 .header-tools {
   display: flex;
-  gap: 2px;
+  gap: var(--space-1);
   align-items: center;
-  margin: 10px 0 0;
-  margin-inline: auto 8px;
+  margin: var(--space-3) 0 0;
+  margin-inline: auto var(--space-3);
 }
 
 .more-tabs :deep(.options) {
@@ -291,7 +291,7 @@ function toggle(section: Section): void {
 .section-header-row {
   display: flex;
   align-items: center;
-  padding-inline-end: 6px;
+  padding-inline-end: var(--space-3);
 }
 
 .section-header-row .section-header {
@@ -309,7 +309,7 @@ function toggle(section: Section): void {
 .section-body.view-outline {
   display: block;
   overflow-y: auto;
-  padding: 16px 18px 40px;
+  padding: var(--space-5) var(--space-5) var(--space-7);
 }
 
 .stacked {
@@ -326,14 +326,14 @@ function toggle(section: Section): void {
 
 .section-header {
   display: flex;
-  gap: 6px;
+  gap: var(--space-3);
   align-items: center;
-  padding: 8px 10px;
+  padding: var(--space-3) var(--space-3);
   border: none;
   border-radius: 0;
   background: transparent;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
   letter-spacing: 0.06em;
   text-align: start;
   text-transform: uppercase;

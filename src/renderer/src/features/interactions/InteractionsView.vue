@@ -174,14 +174,14 @@ function chapterPath(index: number): string {
 
 <style scoped>
 .interactions {
-  padding-bottom: 80px;
-  font-size: 13px;
+  padding-bottom: calc(var(--space-8) + var(--space-7));
+  font-size: var(--text-body);
 }
 
 h1 {
   margin: 0;
   font-family: var(--font-prose);
-  font-size: 32px;
+  font-size: var(--text-display);
   font-weight: 400;
   color: var(--text-strong);
 }
@@ -193,7 +193,7 @@ h1 {
 }
 
 .hint {
-  margin: 6px 0 14px;
+  margin: var(--space-3) 0 var(--space-5);
   max-width: 640px;
   line-height: 1.5;
 }
@@ -205,18 +205,18 @@ h1 {
 
 .segmented {
   display: inline-flex;
-  padding: 2px;
-  border-radius: 8px;
+  padding: var(--space-1);
+  border-radius: var(--radius-field);
   background: var(--raised);
 }
 
 .segmented button {
-  padding: 4px 12px;
+  padding: var(--space-2) var(--space-4);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-field);
   background: transparent;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 
 .segmented button.on {
@@ -225,7 +225,7 @@ h1 {
 }
 
 .scroll {
-  margin-top: 18px;
+  margin-top: var(--space-5);
   overflow-x: auto;
 }
 
@@ -235,14 +235,14 @@ table {
 }
 
 th {
-  padding: 4px 8px;
+  padding: var(--space-2) var(--space-3);
   font-weight: 500;
   color: var(--text);
   white-space: nowrap;
 }
 
 thead th {
-  font-size: 12px;
+  font-size: var(--text-small);
   text-align: center;
 }
 
@@ -266,7 +266,7 @@ tbody th {
   height: 36px;
   padding: 0;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius-field);
   background: color-mix(in srgb, var(--accent) calc(var(--strength, 0) * 70%), transparent);
   color: var(--text-strong);
   font: inherit;
@@ -289,12 +289,12 @@ tbody th {
 }
 
 .details {
-  margin-top: 24px;
+  margin-top: var(--space-6);
 }
 
 .details h2 {
-  margin: 0 0 8px;
-  font-size: 15px;
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-title);
   font-weight: 500;
   color: var(--text-strong);
 }
@@ -306,7 +306,7 @@ tbody th {
 }
 
 .details li {
-  padding: 6px 0;
+  padding: var(--space-3) 0;
   border-bottom: 1px solid var(--line);
 }
 

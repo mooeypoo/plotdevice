@@ -104,7 +104,7 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
 /* Measured in the prose font, so the heading column lines up with the text column exactly. */
 .heading {
   max-width: var(--measure);
-  margin: 0 auto 30px;
+  margin: 0 auto var(--space-7);
   font-family: var(--font-prose);
   font-size: var(--prose-size);
 }
@@ -127,9 +127,9 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
 }
 
 h1 {
-  margin: 6px 0 0;
+  margin: var(--space-3) 0 0;
   font-family: var(--font-prose);
-  font-size: 36px;
+  font-size: var(--text-display);
   font-weight: 400;
   line-height: 1.2;
   color: var(--text-strong);
@@ -137,9 +137,9 @@ h1 {
 
 .notice {
   max-width: calc(var(--measure) + 48px);
-  margin: 0 auto 28px;
-  padding: 12px 18px;
-  border-radius: 10px;
+  margin: 0 auto var(--space-6);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-card);
   background: var(--raised);
   color: var(--text-dim);
   line-height: 1.5;

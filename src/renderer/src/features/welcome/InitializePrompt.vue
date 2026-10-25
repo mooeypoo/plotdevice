@@ -103,14 +103,14 @@ const bookLanguage = ref<string | null>(language.locale)
 .prompt {
   max-width: 34rem;
   margin: 0 auto;
-  padding: 14vh 1.5rem 3rem;
+  padding: 14vh var(--space-6) var(--space-8);
 }
 
 h1 {
-  margin: 0 0 0.75rem;
+  margin: 0 0 var(--space-4);
   font-family: Georgia, 'Times New Roman', serif;
   font-weight: 400;
-  font-size: 1.75rem;
+  font-size: var(--text-heading);
 }
 
 p {
@@ -120,37 +120,37 @@ p {
 form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  gap: var(--space-5);
+  margin-top: var(--space-6);
 }
 
 label {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.85rem;
+  gap: var(--space-2);
+  font-size: var(--text-body);
   color: var(--text-muted);
 }
 
 input {
-  padding: 0.55rem 0.7rem;
+  padding: var(--space-3) var(--space-4);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-field);
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  font-size: 1rem;
+  font-size: var(--text-title);
 }
 
 .actions {
   display: flex;
-  gap: 0.75rem;
-  margin-top: 1rem;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
 }
 
 .help {
-  margin: 0.35rem 0 0;
-  font-size: 0.85rem;
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-body);
   color: var(--text-muted);
 }
 

@@ -224,7 +224,7 @@ h3 {
 .plain {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -245,16 +245,16 @@ h3 {
 }
 
 .small-text {
-  margin: 2px 0 0;
-  font-size: 12px;
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-small);
 }
 
 .others {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 4px 12px;
+  gap: var(--space-2) var(--space-4);
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-body);
 }
 
 .others dt {

@@ -66,14 +66,14 @@ defineEmits<{ open: []; reference: []; details: []; beside: [] }>()
 .row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-3);
   flex: 1;
   min-width: 0;
   min-height: 32px;
   padding-block: 0;
-  padding-inline: 8px 10px;
+  padding-inline: var(--space-3) var(--space-3);
   border: none;
-  border-radius: 7px;
+  border-radius: var(--radius-field);
   background: transparent;
   color: var(--text-dim);
   text-align: start;
@@ -92,7 +92,7 @@ defineEmits<{ open: []; reference: []; details: []; beside: [] }>()
 .number {
   flex-shrink: 0;
   width: 20px;
-  font-size: 11px;
+  font-size: var(--text-caption);
   text-align: end;
   color: var(--text-muted);
 }
@@ -125,13 +125,13 @@ defineEmits<{ open: []; reference: []; details: []; beside: [] }>()
   border-radius: 50%;
   background: var(--accent-soft);
   color: var(--warning);
-  font-size: 10px;
+  font-size: var(--text-caption);
   font-weight: 600;
 }
 
 .meta {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: var(--text-caption);
   color: var(--text-muted);
 }
 </style>

@@ -114,7 +114,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .view {
-  font-size: 15px;
+  font-size: var(--text-title);
   font-family: var(--font-prose);
   line-height: 1.72;
   color: var(--prose);
@@ -157,7 +157,7 @@ onBeforeUnmount(() => {
 }
 .view :deep(pre) {
   overflow-x: auto;
-  padding: 10px;
+  padding: var(--space-3);
   background: var(--bg-sunken);
   direction: ltr;
   unicode-bidi: isolate;
@@ -175,12 +175,12 @@ onBeforeUnmount(() => {
 }
 .view :deep(th),
 .view :deep(td) {
-  padding: 4px 8px;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--line-strong);
 }
 .view :deep(.markdown-current) {
   background: var(--accent-soft);
-  border-radius: 4px;
+  border-radius: var(--radius-field);
 }
 .view :deep(.markdown-link) {
   color: var(--link-other);

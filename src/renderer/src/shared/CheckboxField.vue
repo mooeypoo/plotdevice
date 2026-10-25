@@ -45,7 +45,7 @@ input {
   block-size: 16px;
   margin: 0;
   border: 1px solid var(--line-strong);
-  border-radius: 4px;
+  border-radius: var(--radius-field);
   background: var(--bg);
   appearance: none;
   cursor: inherit;
@@ -67,7 +67,7 @@ input:checked::after {
   content: '';
   inline-size: 9px;
   block-size: 5px;
-  margin-block-end: 2px;
+  margin-block-end: var(--space-1);
   border-block-end: 2px solid var(--accent-ink);
   border-inline-start: 2px solid var(--accent-ink);
   transform: rotate(-45deg);

@@ -400,7 +400,8 @@ is left as a bare native control.
   hover and active states.
 - [ ] Empty states, notices and loading states designed rather than plain text.
 - [ ] Typography and rhythm across the editor, panels, board, timeline and welcome screens; subtle
-  motion that respects reduced-motion.
+  motion that respects reduced-motion. (U2b-2 done: every size comes from the type, space and
+  radius scales, and `tools/styles/scale.test.ts` keeps it so. Motion follows in U2b-3.)
 - [x] Dark theme first, then the light theme with the same care; contrast checked in both (U2b-1: **Theme ▸** in the ⋯ menu, stored beside the interface language and applied through Electron's `nativeTheme`; a contrast test checks every text colour on every ground in both).
 - [ ] A screenshot review of every screen in English and Hebrew.
 

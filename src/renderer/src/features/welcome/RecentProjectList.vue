@@ -56,8 +56,8 @@ const { formatDate } = useRecentProjectDates()
 }
 
 h2 {
-  margin: 0 0 0.5rem;
-  font-size: 0.8rem;
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-small);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -74,7 +74,7 @@ ul {
 li {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-4);
   border-bottom: 1px solid var(--border);
 }
 
@@ -84,7 +84,7 @@ li {
   flex-direction: column;
   align-items: flex-start;
   min-width: 0;
-  padding: 0.6rem 0.25rem;
+  padding: var(--space-3) var(--space-2);
   border: none;
   background: none;
   text-align: start;
@@ -101,7 +101,7 @@ li {
 .details {
   max-width: 100%;
   overflow: hidden;
-  font-size: 0.8rem;
+  font-size: var(--text-small);
   color: var(--text-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -112,16 +112,16 @@ li {
 }
 
 .date {
-  font-size: 0.8rem;
+  font-size: var(--text-small);
   color: var(--text-muted);
   white-space: nowrap;
 }
 
 .remove {
-  padding: 0.25rem 0.5rem;
+  padding: var(--space-2) var(--space-3);
   border: none;
   background: none;
-  font-size: 1.1rem;
+  font-size: var(--text-title);
   color: var(--text-muted);
 }
 

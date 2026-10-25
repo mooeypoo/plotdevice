@@ -230,7 +230,7 @@ function createChapter(title: string): void {
 
 <style scoped>
 .flat li {
-  border-radius: 7px;
+  border-radius: var(--radius-field);
 }
 
 .gap-before {
@@ -242,8 +242,8 @@ function createChapter(title: string): void {
 }
 
 .tray {
-  border-radius: 8px;
-  padding-bottom: 4px;
+  border-radius: var(--radius-field);
+  padding-bottom: var(--space-2);
 }
 
 .tray.over {
@@ -252,9 +252,9 @@ function createChapter(title: string): void {
 }
 
 .tray-hint {
-  margin: 0 8px;
-  padding: 10px 0;
-  font-size: 12px;
+  margin: 0 var(--space-3);
+  padding: var(--space-3) 0;
+  font-size: var(--text-small);
   color: var(--text-muted);
 }
 
@@ -268,7 +268,7 @@ function createChapter(title: string): void {
 .scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 14px 10px 10px;
+  padding: var(--space-5) var(--space-3) var(--space-3);
 }
 
 .flat {
@@ -280,8 +280,8 @@ function createChapter(title: string): void {
 .divider {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 16px 8px 6px;
+  gap: var(--space-3);
+  margin: var(--space-5) var(--space-3) var(--space-3);
 }
 
 .rule {
@@ -291,33 +291,33 @@ function createChapter(title: string): void {
 }
 
 .count {
-  font-size: 11px;
+  font-size: var(--text-caption);
   color: var(--text-muted);
 }
 
 .empty {
-  margin: 8px;
+  margin: var(--space-3);
   line-height: 1.5;
   color: var(--text-muted);
 }
 
 .empty p {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-4);
 }
 
 .start {
   display: flex;
-  gap: 8px;
+  gap: var(--space-3);
 }
 
 .actions {
   display: flex;
-  gap: 4px;
-  margin: 10px 0 0;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
 }
 
 .actions button {
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: var(--space-3) var(--space-3);
+  font-size: var(--text-small);
 }
 </style>

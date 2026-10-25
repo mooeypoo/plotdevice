@@ -587,27 +587,27 @@ const placementSummary = computed(() => {
 
 .position dl {
   display: flex;
-  gap: 24px;
+  gap: var(--space-6);
   margin: 0;
 }
 
 .position dt {
-  font-size: 11px;
+  font-size: var(--text-caption);
   color: var(--text-muted);
 }
 
 .position dd {
-  margin: 2px 0 0;
+  margin: var(--space-1) 0 0;
   color: var(--text);
 }
 
 .position .order {
   width: 72px;
-  padding: 4px 8px;
+  padding: var(--space-2) var(--space-3);
 }
 
 .position .small {
-  margin-top: 8px;
+  margin-top: var(--space-3);
 }
 
 .position .part-select {
@@ -616,22 +616,22 @@ const placementSummary = computed(() => {
 
 .moves {
   display: flex;
-  gap: 4px;
+  gap: var(--space-2);
 }
 
 .threads {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--space-3);
 }
 
 .thread {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  font-size: 12px;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-small);
   color: var(--text-muted);
 }
 
@@ -643,6 +643,6 @@ const placementSummary = computed(() => {
 .swatch {
   width: 8px;
   height: 8px;
-  border-radius: 2px;
+  border-radius: var(--radius-field);
 }
 </style>

@@ -70,7 +70,7 @@ function remove(item: string): void {
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -79,16 +79,16 @@ function remove(item: string): void {
 .chip {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 4px 3px 10px;
-  border-radius: 999px;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
   background: var(--accent-soft);
-  font-size: 12px;
+  font-size: var(--text-small);
   color: var(--text);
 }
 
 .remove {
-  padding: 0 6px;
+  padding: 0 var(--space-3);
   border: none;
   background: transparent;
   color: var(--text-muted);

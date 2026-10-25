@@ -191,7 +191,7 @@ function keydown(event: KeyboardEvent): void {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 6px;
+  gap: var(--space-3);
 }
 
 .beat-title :deep(p) {
@@ -201,17 +201,17 @@ function keydown(event: KeyboardEvent): void {
 .threads {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .thread {
-  padding-inline: 6px;
+  padding-inline: var(--space-3);
   border-inline-start: 3px solid var(--thread-color);
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--text-caption);
 }
 
 .facts,
@@ -219,7 +219,7 @@ function keydown(event: KeyboardEvent): void {
 .synopsis {
   margin: 0;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 
 .notes {
@@ -238,20 +238,20 @@ function keydown(event: KeyboardEvent): void {
 
 .field {
   width: 100%;
-  padding-block: 4px;
-  padding-inline: 6px;
+  padding-block: var(--space-2);
+  padding-inline: var(--space-3);
   font: inherit;
 }
 
 .area {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-3);
 }
 
 .actions {
   display: flex;
-  gap: 6px;
+  gap: var(--space-3);
 }
 
 .more {

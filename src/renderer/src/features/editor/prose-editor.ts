@@ -253,25 +253,26 @@ function writingDirectionExtensions(
 const completionTheme = EditorView.theme({
   '.cm-tooltip.cm-tooltip-autocomplete': {
     border: '1px solid var(--line-strong)',
-    borderRadius: '8px',
+    borderRadius: 'var(--radius-card)',
     background: 'var(--raised)',
+    boxShadow: 'var(--shadow-popover)',
     fontFamily: 'var(--font-ui)',
-    fontSize: '13px',
+    fontSize: 'var(--text-body)',
     overflow: 'hidden'
   },
   '.cm-tooltip.cm-tooltip-autocomplete > ul': {
     fontFamily: 'var(--font-ui)'
   },
   '.cm-tooltip-autocomplete > ul > li': {
-    padding: '4px 10px',
+    padding: 'var(--space-2) var(--space-4)',
     color: 'var(--text)'
   },
   '.cm-tooltip-autocomplete > ul > li[aria-selected]': {
-    background: 'var(--active)',
+    background: 'var(--accent-soft)',
     color: 'var(--text-strong)'
   },
   '.cm-completionDetail': {
-    marginInlineStart: '10px',
+    marginInlineStart: 'var(--space-4)',
     fontStyle: 'normal',
     color: 'var(--text-muted)'
   },

@@ -64,21 +64,21 @@ const language = useUiLanguageStore()
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: var(--space-6);
   max-width: 36rem;
   margin: 0 auto;
-  padding: 12vh 1.5rem 3rem;
+  padding: 12vh var(--space-6) var(--space-8);
   text-align: center;
 }
 
 .title {
   margin: 0;
-  font-size: 3rem;
+  font-size: 3rem; /* off-scale: the wordmark on the welcome screen is the one display moment */
   font-weight: 400;
 }
 
 .tagline {
-  margin: 0.25rem 0 0;
+  margin: var(--space-2) 0 0;
   color: var(--text-muted);
 }
 

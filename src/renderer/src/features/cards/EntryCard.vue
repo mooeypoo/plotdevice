@@ -143,17 +143,17 @@ function togglePin(): void {
 .entry-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius-field);
   background: var(--panel);
-  font-size: 13px;
+  font-size: var(--text-body);
 }
 
 header {
   display: flex;
-  gap: 6px;
+  gap: var(--space-3);
   align-items: center;
 }
 
@@ -162,24 +162,24 @@ h3 {
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  font-size: 14px;
+  font-size: var(--text-title);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .actions {
   display: inline-flex;
-  gap: 2px;
+  gap: var(--space-1);
   align-items: center;
 }
 
 .actions button {
-  padding: 2px 6px;
-  font-size: 11px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-caption);
 }
 
 .disclosure {
-  padding: 2px 4px;
+  padding: var(--space-1) var(--space-2);
 }
 
 .disclosure .mirrored {
@@ -190,7 +190,7 @@ h3 {
 .fields {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 2px 10px;
+  gap: var(--space-1) var(--space-3);
   margin: 0;
 }
 
@@ -206,7 +206,7 @@ dd {
 .note {
   margin: 0;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 
 .note.error {
@@ -214,6 +214,6 @@ dd {
 }
 
 .summary {
-  font-size: 13px;
+  font-size: var(--text-body);
 }
 </style>

@@ -25,7 +25,7 @@ const kind = computed(() => editor.entry?.kind)
 <style scoped>
 .nothing {
   margin: 0;
-  padding: 16px 18px;
+  padding: var(--space-5) var(--space-5);
   color: var(--text-muted);
 }
 </style>

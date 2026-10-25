@@ -111,45 +111,45 @@ const counts = computed(() => {
 .overview {
   max-width: var(--measure);
   margin: 0 auto;
-  padding-bottom: 80px;
-  font-size: 14px;
+  padding-bottom: calc(var(--space-8) + var(--space-7));
+  font-size: var(--text-title);
 }
 
 h1 {
-  margin: 6px 0 0;
+  margin: var(--space-3) 0 0;
   font-family: var(--font-prose);
-  font-size: 36px;
+  font-size: var(--text-display);
   font-weight: 400;
   color: var(--text-strong);
 }
 
 .author {
-  margin: 6px 0 0;
+  margin: var(--space-3) 0 0;
   color: var(--text-dim);
 }
 
 .root {
-  margin: 6px 0 0;
-  font-size: 12px;
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-small);
   color: var(--text-muted);
 }
 
 .hint {
-  margin: 28px 0 0;
+  margin: var(--space-6) 0 0;
   font-family: var(--font-prose);
-  font-size: 18px;
+  font-size: var(--text-title);
   font-style: italic;
   color: var(--text-dim);
 }
 
 h2 {
-  margin: 36px 0 12px;
+  margin: var(--space-7) 0 var(--space-4);
 }
 
 .banner {
-  margin: 24px 0 0;
-  padding: 12px 16px;
-  border-radius: 10px;
+  margin: var(--space-6) 0 0;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-card);
   background: var(--raised);
   color: var(--text-dim);
 }
@@ -157,21 +157,21 @@ h2 {
 .counts {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .counts li {
-  padding: 10px 14px;
+  padding: var(--space-3) var(--space-5);
   border: 1px solid var(--line-strong);
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   color: var(--text-dim);
 }
 
 .value {
-  font-size: 18px;
+  font-size: var(--text-title);
   font-weight: 600;
   color: var(--text-strong);
 }
@@ -185,19 +185,19 @@ h2 {
 .list li {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 10px 0;
+  gap: var(--space-1);
+  padding: var(--space-3) 0;
   border-bottom: 1px solid var(--line);
   line-height: 1.5;
 }
 
 .book-language {
-  margin-top: 36px;
+  margin-top: var(--space-7);
 }
 
 .book-language form {
   display: flex;
-  gap: 10px;
+  gap: var(--space-3);
   align-items: flex-end;
 }
 

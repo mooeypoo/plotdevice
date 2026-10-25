@@ -125,65 +125,65 @@ const { text, profile, openInEditor, actionError, linkNotice } = panel
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 20px 18px 40px;
+  padding: var(--space-5) var(--space-5) var(--space-7);
 }
 header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-3);
 }
 .edit,
 .pin,
 .beside {
-  padding: 4px 6px;
-  font-size: 11px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-caption);
 }
 h2 {
-  margin: 12px 0 8px;
+  margin: var(--space-4) 0 var(--space-3);
   font-family: var(--font-prose);
-  font-size: 26px;
+  font-size: var(--text-heading);
   font-weight: 400;
   line-height: 1.25;
   color: var(--text-strong);
   overflow-wrap: anywhere;
 }
 .role {
-  margin: 0 0 8px;
+  margin: 0 0 var(--space-3);
   color: var(--text-dim);
   line-height: 1.5;
 }
 .aliases {
-  margin: 0 0 8px;
+  margin: 0 0 var(--space-3);
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
 .file-path {
   display: block;
   overflow: hidden;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--text-caption);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .notice,
 .empty p {
-  margin: 12px 0;
+  margin: var(--space-4) 0;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
   line-height: 1.6;
 }
 .error {
   color: var(--danger);
 }
 .retry {
-  padding: 2px 6px;
+  padding: var(--space-1) var(--space-3);
   font-size: inherit;
 }
 .empty h2 {
-  font-size: 22px;
+  font-size: var(--text-heading);
 }
 </style>

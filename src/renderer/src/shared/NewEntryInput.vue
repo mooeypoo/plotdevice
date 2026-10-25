@@ -38,14 +38,14 @@ function create(): void {
 
 <style scoped>
 .new-entry {
-  padding: 2px 4px 4px 36px;
+  padding: var(--space-1) var(--space-2) var(--space-2) var(--space-7);
 }
 
 input {
   width: 100%;
-  padding: 6px 8px;
+  padding: var(--space-3) var(--space-3);
   border: 1px solid var(--accent);
-  border-radius: 6px;
+  border-radius: var(--radius-field);
   background: var(--bg);
   color: var(--text);
   font: inherit;

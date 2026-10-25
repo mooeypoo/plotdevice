@@ -194,15 +194,15 @@ const actions = computed((): MenuItem[] => {
 .document-tab {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-3);
   min-height: 37px;
   max-width: 300px;
-  padding: 8px 12px;
+  padding: var(--space-3) var(--space-4);
   border: none;
   border-radius: 0;
   background: transparent;
   color: var(--text-dim);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .tab-title {
   overflow: hidden;
@@ -215,7 +215,7 @@ const actions = computed((): MenuItem[] => {
 .tab-state {
   flex-shrink: 0;
   color: var(--accent);
-  font-size: 9px;
+  font-size: var(--text-caption);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -224,10 +224,10 @@ const actions = computed((): MenuItem[] => {
 }
 .missing {
   color: var(--danger);
-  font-size: 10px;
+  font-size: var(--text-caption);
 }
 .close {
-  padding: 6px 8px;
+  padding: var(--space-3) var(--space-3);
   border: none;
   background: transparent;
   color: var(--text-muted);

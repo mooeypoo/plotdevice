@@ -167,7 +167,7 @@ body {
 }
 
 button {
-  padding: 0.5rem 1rem;
+  padding: var(--space-3) var(--space-5);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-field);
   background: var(--raised);
@@ -289,7 +289,7 @@ code {
 
 ::-webkit-scrollbar-thumb {
   border: 3px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   background: var(--line-strong) padding-box;
 }
 

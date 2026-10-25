@@ -165,9 +165,9 @@ function commitShare(id: string, width: number): void {
 
 .split-notice {
   max-width: var(--measure);
-  margin: -32px auto 16px;
+  margin: calc(-1 * var(--space-7)) auto var(--space-5);
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 
 /* Sits on the prose column, so the strip lines up with the text it describes. */
@@ -204,7 +204,7 @@ function commitShare(id: string, width: number): void {
   min-width: 0;
   height: 100%;
   overflow-y: auto;
-  padding: 56px 40px 0;
+  padding: var(--space-8) var(--space-7) 0;
   scroll-padding-bottom: 40vh;
 }
 

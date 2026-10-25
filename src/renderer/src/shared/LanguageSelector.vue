@@ -52,7 +52,7 @@ label {
 }
 .notice {
   max-inline-size: 24rem;
-  margin: 6px 0 0;
+  margin: var(--space-3) 0 0;
   color: var(--warning);
 }
 </style>
