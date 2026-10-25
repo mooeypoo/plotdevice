@@ -4,9 +4,12 @@
   "private": true,
   "license": "GPL-3.0-or-later",
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "dependencies": {
     "@plotdevice/application": "workspace:*",
-    "@plotdevice/shared": "workspace:*"
+    "@plotdevice/shared": "workspace:*",
+    "chokidar": "^6.0.0"
   }
 }

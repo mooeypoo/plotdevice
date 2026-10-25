@@ -1,6 +1,6 @@
-import { createPreferencesSession, createRecentProjectsSession, createWritingSession, loadPreferences, type PreferencesStore } from '@plotdevice/application'
+import { createPreferencesSession, createRecentProjectsSession, createWritingSession, loadPreferences, type PreferencesStore, type ProjectRepository, type WritingSession } from '@plotdevice/application'
 import { eventChannel, type AppInfo } from '@plotdevice/contracts'
-import { createAppDataFile, createJournalStore, createPreferencesFileStore, createProjectFolders, randomIdGenerator } from '@plotdevice/fs-node'
+import { createAppDataFile, createJournalStore, createPreferencesFileStore, createProjectFolders, randomIdGenerator, watchProject, type ProjectWatcher } from '@plotdevice/fs-node'
 import { catalogs, createTranslator } from '@plotdevice/i18n'
 import { createProjectRepository } from '@plotdevice/storage'
 import { app, BrowserWindow, dialog, ipcMain, session } from 'electron'
@@ -9,6 +9,7 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { createIpcHandlers } from './ipc'
 import { denyAllPermissions, hardenWebContents } from './security'
+import { enableSpellingMenu, spellcheckLanguages } from './spellcheck'
 import { hostEvent } from './views'
 
 // Development builds keep their own settings, apart from any installed release (ADR 0001). Tests may
@@ -39,17 +40,19 @@ app.on('before-quit', (event) => {
 void app.whenReady().then(async () => {
   denyAllPermissions(session.defaultSession)
   const userData = app.getPath('userData')
-  const store = withTestDelay(createPreferencesFileStore(userData))
+  const store = withSlowPreferences(createPreferencesFileStore(userData))
   const loaded = await loadPreferences(store, app.getLocale())
   if (loaded.notice) console.warn('The settings file could not be read. Defaults are in use; the old file was kept.')
   const preferences = createPreferencesSession(store, loaded.preferences)
   const t = createTranslator(catalogs)
   const translate = (key: string): string => t(preferences.current().locale, key)
 
-  const repository = createProjectRepository({ folders: createProjectFolders(), journals: createJournalStore(userData), ids: randomIdGenerator })
+  const repository = withSlowChapterSaves(createProjectRepository({ folders: createProjectFolders(), journals: createJournalStore(userData), ids: randomIdGenerator }))
   const writing = createWritingSession({ repository, copyLabel: () => translate('conflict-copy-label') })
   const recent = await createRecentProjectsSession(createAppDataFile(userData, 'recent'))
   pendingWork.push(() => preferences.idle(), () => writing.idle(), () => recent.idle())
+  const stopWatching = watchOpenProject(writing)
+  pendingWork.push(stopWatching)
   await reopenLastProject(writing, recent.current().projects[0]?.root)
 
   const window = new BrowserWindow({
@@ -67,6 +70,17 @@ void app.whenReady().then(async () => {
     },
   })
   writing.onEvent((event) => window.webContents.send(eventChannel, hostEvent(event)))
+  enableSpellingMenu(window, translate)
+  // Linux and Windows check spelling with the dictionaries chosen here; macOS detects the language itself.
+  const checkSpelling = (): void => {
+    const project = writing.project()
+    const available = session.defaultSession.availableSpellCheckerLanguages
+    session.defaultSession.setSpellCheckerLanguages(spellcheckLanguages(project?.details.language ?? 'en', preferences.current().locale, available))
+  }
+  if (process.platform !== 'darwin') {
+    checkSpelling()
+    writing.onEvent((event) => event.kind === 'project-changed' && checkSpelling())
+  }
 
   // Before the window closes, the page sends any text still waiting for its autosave delay.
   const flushWaiters: (() => void)[] = []
@@ -118,21 +132,53 @@ const FLUSH_TIMEOUT_MS = 2000
 /** Test-only (unpackaged builds): the folder every folder dialog "chooses"; empty means cancelled. */
 const testFolderChoice = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_CHOOSE_FOLDER
 
+const REFRESH_DELAY_MS = 300
+
+/**
+ * Watches the open project's folder for changes made by other programs. A changed chapter is checked
+ * (and reloaded quietly if it has no unsaved edits); anything else refreshes the project shortly after.
+ */
+function watchOpenProject(writing: WritingSession): () => Promise<void> {
+  let watched: { root: string; watcher: ProjectWatcher } | null = null
+  let refresh: ReturnType<typeof setTimeout> | undefined
+  writing.onEvent((event) => {
+    if (event.kind !== 'project-changed' || watched?.root === event.project.root) return
+    void watched?.watcher.close()
+    watched = {
+      root: event.project.root,
+      watcher: watchProject(event.project.root, (change) => {
+        if (change.kind === 'changed') void writing.fileChanged(change.path)
+        clearTimeout(refresh)
+        refresh = setTimeout(() => void writing.refreshProject(), REFRESH_DELAY_MS)
+      }),
+    }
+  })
+  return async () => {
+    clearTimeout(refresh)
+    await watched?.watcher.close()
+  }
+}
+
 /** Returns the author to the project they had open (PRD G2). If it can't be opened, the welcome screen shows instead. */
-async function reopenLastProject(writing: ReturnType<typeof createWritingSession>, root: string | undefined): Promise<void> {
+async function reopenLastProject(writing: WritingSession, root: string | undefined): Promise<void> {
   if (root === undefined) return
   const opened = await writing.openProject(root)
   if (!opened.ok) console.warn(`The last project could not be reopened (${opened.error}).`)
 }
 
 /**
- * Test-only (unpackaged builds): slows every settings save, so end-to-end tests can reproduce a save
- * still running when the app is closed, as happens on Windows.
+ * Test-only (unpackaged builds): slows every settings and chapter save, so end-to-end tests can
+ * reproduce a save still running when the app is closed, as happens on Windows.
  */
-function withTestDelay(store: PreferencesStore): PreferencesStore {
-  const delayMs = app.isPackaged ? 0 : Number(process.env.PLOTDEVICE_TEST_SAVE_DELAY_MS ?? 0)
-  if (!delayMs) return store
-  return { ...store, write: async (text) => (await new Promise((resolve) => setTimeout(resolve, delayMs)), store.write(text)) }
+const testSaveDelayMs = app.isPackaged ? 0 : Number(process.env.PLOTDEVICE_TEST_SAVE_DELAY_MS ?? 0)
+const testDelay = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, testSaveDelayMs))
+
+function withSlowPreferences(store: PreferencesStore): PreferencesStore {
+  return testSaveDelayMs ? { ...store, write: async (text) => (await testDelay(), store.write(text)) } : store
+}
+
+function withSlowChapterSaves(repository: ProjectRepository): ProjectRepository {
+  return testSaveDelayMs ? { ...repository, saveChapter: async (...args) => (await testDelay(), repository.saveChapter(...args)) } : repository
 }
 
 function platformOf(platform: NodeJS.Platform): AppInfo['platform'] {

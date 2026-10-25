@@ -211,6 +211,27 @@ describe('writing session', () => {
     expect(disk.has(FROST)).toBe(false)
   })
 
+  it('refreshes the project after changes elsewhere, keeping open chapters renamable', async () => {
+    const { session, elsewhere } = await openSession()
+    const frost = await openChapter(session, FROST)
+    session.saveChapter(FROST, 'Saved here.\n', frost.generation)
+    await session.idle()
+    elsewhere('manuscript/added-elsewhere.md', 'New.\n')
+    await session.refreshProject()
+    expect(session.project()?.chapters.map((c) => c.file)).toContain('manuscript/added-elsewhere.md')
+    expect((await session.renameChapter(FROST, 'Early Frost')).ok).toBe(true)
+  })
+
+  it("doesn't announce a refresh that found only the app's own saves", async () => {
+    const { session, events } = await openSession()
+    const frost = await openChapter(session, FROST)
+    session.saveChapter(FROST, 'Saved here.\n', frost.generation)
+    await session.idle()
+    const before = events.filter((e) => e.kind === 'project-changed').length
+    await session.refreshProject()
+    expect(events.filter((e) => e.kind === 'project-changed')).toHaveLength(before)
+  })
+
   it('finishes saving before opening another project', async () => {
     const { session, writes } = await openSession()
     const frost = await openChapter(session, FROST)

@@ -6,6 +6,7 @@ import { tags } from '@lezer/highlight'
 import { chapterState } from './chapter-state'
 import { formatCommands, insertLink, type FormatCommand } from './format'
 import { livePreview } from './live-preview'
+import { pasteText } from './paste'
 import { setParagraphDirection, setPhraseDirection } from './paragraph-direction'
 import { editorSettings, type EditorSettings } from './settings'
 
@@ -39,6 +40,8 @@ export interface ChapterEditorOptions {
   settings: EditorSettings
   /** Called after each change the author makes; read the text with `text()` when it's time to save. */
   onChange: () => void
+  /** Turns the clipboard's HTML and plain text into the Markdown to insert (ADR 0004). */
+  convertPaste: (html: string, plain: string) => string
 }
 
 /** The chapter editor as the interface uses it. The text in and out is the chapter's Markdown body, byte for byte. */
@@ -76,6 +79,16 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
     livePreview,
     pageTheme,
     contentAttributes.of(attributesFor(current)),
+    EditorView.domEventHandlers({
+      paste(event, view) {
+        const data = event.clipboardData
+        if (!data) return false
+        const text = options.convertPaste(data.getData('text/html'), data.getData('text/plain'))
+        event.preventDefault()
+        if (text) pasteText(text)(view)
+        return true
+      },
+    }),
     // `load` replaces the state without an update, so every change seen here is the author's.
     EditorView.updateListener.of((update) => {
       if (update.docChanged) options.onChange()

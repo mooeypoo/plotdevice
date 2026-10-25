@@ -107,5 +107,9 @@
   "settings-page-width": "Page width",
   "width-narrow": "Narrow",
   "width-medium": "Medium",
-  "width-wide": "Wide"
+  "width-wide": "Wide",
+  "spelling-add": "Add to dictionary",
+  "edit-cut": "Cut",
+  "edit-copy": "Copy",
+  "edit-paste": "Paste"
 }

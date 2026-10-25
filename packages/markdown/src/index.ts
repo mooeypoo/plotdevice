@@ -15,3 +15,4 @@ export { formatScalar, readFrontmatter, setFrontmatterValues, splitFrontmatter, 
 export { rewriteLinksTo, type RewriteOptions } from './links'
 export { newChapterFile, newContentsFile, newProjectFile, type NewProjectDetails } from './new-files'
 export { lineEndingOf } from './text'
+export { htmlToMarkdown, pastedMarkdown } from './paste'

@@ -52,6 +52,8 @@ export interface WritingSession {
   saveStatus(file: ProjectPath): SaveStatus | null
   /** A hint that a file changed on disk, from the file watcher. */
   fileChanged(file: ProjectPath): Promise<void>
+  /** Reads the project again after changes elsewhere (chapters added or removed, the contents edited). */
+  refreshProject(): Promise<void>
   resolveConflict(file: ProjectPath, choice: ConflictChoice): Promise<Result<ConflictResolved, ResolveProblem>>
   changeContents(change: ContentsChange): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   renameChapter(file: ProjectPath, title: string): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
@@ -127,6 +129,16 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
     showReload(state, disk.value.text, disk.value.revision)
   }
 
+  /** The snapshot, with the revision each open chapter was last saved at: the snapshot may have been read mid-save. */
+  function withOpenRevisions(snapshot: ProjectSnapshot): ProjectSnapshot {
+    let current = snapshot
+    for (const state of chapters.values()) {
+      const status = state.autosave.status()
+      if (status.kind === 'saved') current = withRevision(current, state.file, status.revision)
+    }
+    return current
+  }
+
   async function switchProject<P>(open: () => Promise<Result<ProjectSnapshot, P>>): Promise<Result<ProjectSnapshot, P>> {
     await idleChapters()
     const opened = await open()
@@ -176,6 +188,17 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
       const state = chapters.get(file)
       if (state && project) await reloadIfUnedited(state, project.root)
     },
+
+    refreshProject: () =>
+      serially(async () => {
+        if (!project) return
+        const reopened = await repository.open(project.root)
+        if (!reopened.ok || reopened.value.root !== project?.root) return
+        const next = withOpenRevisions(reopened.value)
+        // The app's own saves change only revisions; nobody needs to hear about those.
+        if (withoutRevisions(next) === withoutRevisions(project)) project = next
+        else setProject(next)
+      }),
 
     resolveConflict: (file, choice) =>
       serially(async (): Promise<Result<ConflictResolved, ResolveProblem>> => {
@@ -238,11 +261,7 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
       serially(async () => {
         if (!project) return err('no-project')
         await idleChapters()
-        let current = project
-        for (const state of chapters.values()) {
-          const status = state.autosave.status()
-          if (status.kind === 'saved') current = withRevision(current, state.file, status.revision)
-        }
+        const current = withOpenRevisions(project)
         const renamed = await repository.renameChapterFile(current, file, newName)
         if (!renamed.ok) return renamed
         setProject(renamed.value.snapshot)
@@ -269,4 +288,9 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
 
 function withRevision(snapshot: ProjectSnapshot, file: ProjectPath, revision: Revision): ProjectSnapshot {
   return { ...snapshot, chapters: snapshot.chapters.map((chapter) => (chapter.file === file ? { ...chapter, revision } : chapter)) }
+}
+
+/** Everything about a snapshot that the author can see. */
+function withoutRevisions(snapshot: ProjectSnapshot): string {
+  return JSON.stringify({ ...snapshot, contentsRevision: null, chapters: snapshot.chapters.map((chapter) => ({ ...chapter, revision: null })) })
 }

@@ -11,6 +11,7 @@ import { chapterState } from './chapter-state'
 import { formatCommands, insertLink, type FormatCommand } from './format'
 import { lineBreak, newParagraph } from './keys'
 import { directionLayout, setParagraphDirection, setPhraseDirection } from './paragraph-direction'
+import { pasteText } from './paste'
 import type { EditorSettings } from './settings'
 
 const english: EditorSettings = { projectDirection: 'ltr', directionMode: 'project', language: 'en', labels: { chapterText: 'Chapter text', sceneBreak: 'Scene break' } }
@@ -195,5 +196,17 @@ describe('direction markers, only when needed (ADR 0004)', () => {
     const from = body.indexOf('The letter.')
     const emptied = state.update({ changes: { from, to: from + 'The letter.'.length }, userEvent: 'delete.selection' }).state
     expect(emptied.sliceDoc()).toBe('Before.\n\nAfter.\n')
+  })
+})
+
+describe('pasting', () => {
+  it("uses the chapter's own line ending, whatever the clipboard used", () => {
+    const state = at(stateOf('Before.\r\n\r\nAfter.\r\n'), 'Before.', 'after')
+    expect(run(state, pasteText(' One.\n\nTwo.')).sliceDoc()).toBe('Before. One.\r\n\r\nTwo.\r\n\r\nAfter.\r\n')
+    expect(run(at(stateOf('A.\n'), 'A.', 'after'), pasteText(' B.\r\nC.')).sliceDoc()).toBe('A. B.\nC.\n')
+  })
+
+  it('replaces the selection', () => {
+    expect(run(at(stateOf('The frost came early.\n'), 'frost'), pasteText('*salt*')).sliceDoc()).toBe('The *salt* came early.\n')
   })
 })

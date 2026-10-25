@@ -1,5 +1,6 @@
 import type { HostEvent, Preferences, ProjectView, SaveStatusView } from '@plotdevice/contracts'
 import { createChapterEditor, type ChapterEditor, type EditorSettings, type FormatCommand } from '@plotdevice/editor-codemirror'
+import { pastedMarkdown } from '@plotdevice/markdown'
 import type { ProjectPath } from '@plotdevice/shared'
 import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 import { useApi } from '../api'
@@ -121,6 +122,7 @@ export function useChapterWriting(host: Ref<HTMLElement | null>) {
         clearTimeout(timer)
         timer = setTimeout(flush, AUTOSAVE_DELAY_MS)
       },
+      convertPaste: pastedMarkdown,
     })
     stopEvents = api.onEvent(onHostEvent)
     window.addEventListener('blur', onBlur)

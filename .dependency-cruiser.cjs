@@ -45,8 +45,21 @@ module.exports = {
       'markdown-is-pure',
       'markdown: text in, text out. Its own source-mapped model, not domain types (ADR 0003); no file access',
       pkg('markdown'),
-      // `mdast` is the type-only @types/mdast package, reported by its bare name.
-      [pkg('markdown'), pkg('shared'), npm('yaml'), npm('micromark'), npm('mdast-util-from-markdown'), npm('@types/mdast'), '^mdast$'],
+      // `mdast` and `hast` are the type-only @types packages, reported by their bare names.
+      [
+        pkg('markdown'),
+        pkg('shared'),
+        npm('yaml'),
+        npm('micromark'),
+        npm('mdast-util-from-markdown'),
+        npm('mdast-util-to-markdown'),
+        npm('hast-util-from-html'),
+        npm('hast-util-to-mdast'),
+        npm('@types/mdast'),
+        npm('@types/hast'),
+        '^mdast$',
+        '^hast$',
+      ],
     ),
     onlyMayImport(
       'storage-reaches-files-through-ports',
@@ -79,10 +92,10 @@ module.exports = {
     ]),
     {
       name: 'fs-node-implements-ports',
-      comment: 'fs-node: Node built-ins, shared, and application port types',
+      comment: 'fs-node: Node built-ins, shared, application port types, and chokidar for watching folders',
       severity: 'error',
       from: { path: pkg('fs-node'), pathNot: notTests },
-      to: { pathNot: [pkg('fs-node'), pkg('shared'), pkg('application')], dependencyTypesNot: ['core'] },
+      to: { pathNot: [pkg('fs-node'), pkg('shared'), pkg('application'), npm('chokidar')], dependencyTypesNot: ['core'] },
     },
     {
       name: 'fs-node-uses-port-types-only',
