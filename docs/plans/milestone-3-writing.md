@@ -20,7 +20,7 @@ The first version an author could actually use: open or create a project, see th
    - **Saving, honestly:** one write at a time per file, newer content never overwritten by older. The status shows **Saved** only once the text is on disk (ADR 0005, and the acceptance criteria carried from the Phase 0 plan, §12.3).
    - **Edits made elsewhere:** the app notices changes from other apps. An unedited chapter reloads quietly; a chapter with unsaved edits gets the conflict prompt (point 6).
 6. **Conflicts, explained plainly:** if a chapter changed elsewhere while the author has unsaved edits, the app doesn't save over it. It offers:
-   - **"Keep both"** (recommended): the author's text is saved as a new file next to the chapter, `… (my version).md`, and the chapter shows the other app's version. The copy appears under "Not in the book yet", so nothing is lost and everything stays visible in the folder.
+   - **"Keep both"** (recommended): the author's text is saved as a new file next to the chapter, `frost-my-version.md` (in the interface language; parentheses are kept out of file names because they break Markdown links), and the chapter shows the other app's version. The copy appears under "Not in the book yet", so nothing is lost and everything stays visible in the folder.
    - **"Use my version":** after a clear warning, the author's text replaces the file.
 7. **Comfort:**
    - Focus mode hides everything but the page.

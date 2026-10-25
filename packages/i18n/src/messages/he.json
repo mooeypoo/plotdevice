@@ -9,5 +9,9 @@
   "theme-system": "לפי המערכת",
   "theme-light": "בהירה",
   "theme-dark": "כהה",
-  "settings-save-failed": "לא ניתן היה לשמור את ההגדרות. הן יחולו עד לסגירת Plot Device."
+  "settings-save-failed": "לא ניתן היה לשמור את ההגדרות. הן יחולו עד לסגירת Plot Device.",
+  "conflict-copy-label": "הגרסה שלי",
+  "dialog-open-project": "פתיחת תיקיית פרויקט",
+  "dialog-new-project-location": "בחירת מיקום לפרויקט החדש",
+  "dialog-choose": "בחירה"
 }

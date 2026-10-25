@@ -205,9 +205,15 @@ importers:
       '@plotdevice/fs-node':
         specifier: workspace:*
         version: link:../../packages/fs-node
+      '@plotdevice/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       '@plotdevice/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@plotdevice/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
       '@plotdevice/ui-vue':
         specifier: workspace:*
         version: link:../../packages/ui-vue

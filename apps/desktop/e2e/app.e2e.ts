@@ -20,7 +20,7 @@ test.afterEach(async () => {
 /** A colour as the browser reports it, e.g. `rgb(25, 30, 39)`. */
 const rgb = (hex: string): string => `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ')})`
 
-test('the page is isolated: no Node, no require, only the three-call bridge', async () => {
+test('the page is isolated: no Node, no require, only the typed bridge', async () => {
   running = await launch(userData)
   const exposed = await running.page.evaluate(() => {
     const scope = globalThis as unknown as Record<string, unknown>
@@ -30,7 +30,27 @@ test('the page is isolated: no Node, no require, only the three-call bridge', as
       bridge: Object.keys((window as unknown as { plotDevice: object }).plotDevice).sort(),
     }
   })
-  expect(exposed).toEqual({ process: 'undefined', require: 'undefined', bridge: ['getAppInfo', 'getPreferences', 'setPreferences'] })
+  // Listed in full, so widening the bridge is always a deliberate change.
+  const bridge = [
+    'changeContents',
+    'createProject',
+    'flushed',
+    'forgetRecentProject',
+    'getAppInfo',
+    'getOpenProject',
+    'getPreferences',
+    'getRecentProjects',
+    'leftOff',
+    'onEvent',
+    'openChapter',
+    'openProject',
+    'renameChapter',
+    'renameChapterFile',
+    'resolveConflict',
+    'saveChapter',
+    'setPreferences',
+  ]
+  expect(exposed).toEqual({ process: 'undefined', require: 'undefined', bridge })
 })
 
 test('switching to Hebrew flips the interface to right-to-left without reloading the page', async () => {

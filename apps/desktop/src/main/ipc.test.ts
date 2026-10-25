@@ -2,6 +2,7 @@ import { channels, type Preferences } from '@plotdevice/contracts'
 import { err, ok } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
 import { createIpcHandlers, isAppUrl, type Sender } from './ipc'
+import type { ProjectIpcContext } from './project-ipc'
 
 const appUrl = 'file:///opt/plotdevice/out/renderer/index.html'
 const appPage: Sender = { url: `${appUrl}?x=1#top`, fromAppWindow: true }
@@ -17,6 +18,8 @@ function setup(saveError?: string) {
       current = { theme: patch.theme ?? current.theme, locale: patch.locale ?? current.locale }
       return ok(current)
     },
+    // Project calls are covered in project-ipc.test.ts.
+    projects: {} as ProjectIpcContext,
   })
   const call = (channel: string, sender: Sender, payload?: unknown) => {
     const handler = handlers[channel]

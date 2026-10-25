@@ -1,11 +1,15 @@
-import { createPreferencesSession, loadPreferences, type PreferencesStore } from '@plotdevice/application'
-import type { AppInfo } from '@plotdevice/contracts'
-import { createPreferencesFileStore } from '@plotdevice/fs-node'
-import { app, BrowserWindow, ipcMain, session } from 'electron'
+import { createPreferencesSession, createRecentProjectsSession, createWritingSession, loadPreferences, type PreferencesStore } from '@plotdevice/application'
+import { eventChannel, type AppInfo } from '@plotdevice/contracts'
+import { createAppDataFile, createJournalStore, createPreferencesFileStore, createProjectFolders, randomIdGenerator } from '@plotdevice/fs-node'
+import { catalogs, createTranslator } from '@plotdevice/i18n'
+import { createProjectRepository } from '@plotdevice/storage'
+import { app, BrowserWindow, dialog, ipcMain, session } from 'electron'
+import { access } from 'node:fs/promises'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { createIpcHandlers } from './ipc'
 import { denyAllPermissions, hardenWebContents } from './security'
+import { hostEvent } from './views'
 
 // Development builds keep their own settings, apart from any installed release (ADR 0001). Tests may
 // point unpackaged builds at a temporary folder.
@@ -34,11 +38,19 @@ app.on('before-quit', (event) => {
 
 void app.whenReady().then(async () => {
   denyAllPermissions(session.defaultSession)
-  const store = withTestDelay(createPreferencesFileStore(app.getPath('userData')))
+  const userData = app.getPath('userData')
+  const store = withTestDelay(createPreferencesFileStore(userData))
   const loaded = await loadPreferences(store, app.getLocale())
   if (loaded.notice) console.warn('The settings file could not be read. Defaults are in use; the old file was kept.')
   const preferences = createPreferencesSession(store, loaded.preferences)
-  pendingWork.push(() => preferences.idle())
+  const t = createTranslator(catalogs)
+  const translate = (key: string): string => t(preferences.current().locale, key)
+
+  const repository = createProjectRepository({ folders: createProjectFolders(), journals: createJournalStore(userData), ids: randomIdGenerator })
+  const writing = createWritingSession({ repository, copyLabel: () => translate('conflict-copy-label') })
+  const recent = await createRecentProjectsSession(createAppDataFile(userData, 'recent'))
+  pendingWork.push(() => preferences.idle(), () => writing.idle(), () => recent.idle())
+  await reopenLastProject(writing, recent.current().projects[0]?.root)
 
   const window = new BrowserWindow({
     width: 1100,
@@ -54,6 +66,29 @@ void app.whenReady().then(async () => {
       spellcheck: true,
     },
   })
+  writing.onEvent((event) => window.webContents.send(eventChannel, hostEvent(event)))
+
+  // Before the window closes, the page sends any text still waiting for its autosave delay.
+  const flushWaiters: (() => void)[] = []
+  let closingAfterFlush = false
+  window.on('close', (event) => {
+    if (closingAfterFlush) return
+    event.preventDefault()
+    void new Promise<void>((resolve) => {
+      flushWaiters.push(resolve)
+      window.webContents.send(eventChannel, { kind: 'flush' })
+      setTimeout(resolve, FLUSH_TIMEOUT_MS)
+    }).then(() => {
+      closingAfterFlush = true
+      window.close()
+    })
+  })
+
+  const chooseFolder = async (titleKey: string): Promise<string | null> => {
+    if (testFolderChoice !== undefined) return testFolderChoice || null
+    const chosen = await dialog.showOpenDialog(window, { title: translate(titleKey), buttonLabel: translate('dialog-choose'), properties: ['openDirectory', 'createDirectory'] })
+    return chosen.canceled ? null : (chosen.filePaths[0] ?? null)
+  }
 
   const appInfo: AppInfo = { name: 'Plot Device', version: app.getVersion(), platform: platformOf(process.platform) }
   const handlers = createIpcHandlers({
@@ -61,6 +96,14 @@ void app.whenReady().then(async () => {
     appInfo,
     currentPreferences: () => preferences.current(),
     updatePreferences: (patch) => preferences.update(patch),
+    projects: {
+      session: writing,
+      recent,
+      chooseProjectFolder: () => chooseFolder('dialog-open-project'),
+      chooseNewProjectLocation: () => chooseFolder('dialog-new-project-location'),
+      folderExists: (path) => access(path).then(() => true, () => false),
+      onFlushed: () => flushWaiters.splice(0).forEach((resolve) => resolve()),
+    },
   })
   for (const [channel, handle] of Object.entries(handlers)) {
     ipcMain.handle(channel, (event, payload: unknown) => handle({ url: event.senderFrame?.url, fromAppWindow: event.sender === window.webContents }, payload))
@@ -69,6 +112,18 @@ void app.whenReady().then(async () => {
   window.once('ready-to-show', () => window.show())
   await (devServerUrl ? window.loadURL(devServerUrl) : window.loadFile(indexFile))
 })
+
+const FLUSH_TIMEOUT_MS = 2000
+
+/** Test-only (unpackaged builds): the folder every folder dialog "chooses"; empty means cancelled. */
+const testFolderChoice = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_CHOOSE_FOLDER
+
+/** Returns the author to the project they had open (PRD G2). If it can't be opened, the welcome screen shows instead. */
+async function reopenLastProject(writing: ReturnType<typeof createWritingSession>, root: string | undefined): Promise<void> {
+  if (root === undefined) return
+  const opened = await writing.openProject(root)
+  if (!opened.ok) console.warn(`The last project could not be reopened (${opened.error}).`)
+}
 
 /**
  * Test-only (unpackaged builds): slows every settings save, so end-to-end tests can reproduce a save

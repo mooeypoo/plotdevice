@@ -9,5 +9,9 @@
   "theme-system": "Match the system",
   "theme-light": "Light",
   "theme-dark": "Dark",
-  "settings-save-failed": "Your settings couldn't be saved. They'll apply until you close Plot Device."
+  "settings-save-failed": "Your settings couldn't be saved. They'll apply until you close Plot Device.",
+  "conflict-copy-label": "my version",
+  "dialog-open-project": "Open a project folder",
+  "dialog-new-project-location": "Choose where to create the project",
+  "dialog-choose": "Choose"
 }

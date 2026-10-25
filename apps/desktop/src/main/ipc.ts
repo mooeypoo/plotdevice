@@ -1,5 +1,7 @@
 import { channels, preferencesPatchSchema, type AppInfo, type Preferences, type PreferencesPatch } from '@plotdevice/contracts'
 import type { Result } from '@plotdevice/shared'
+import { IpcRefused, parsePayload } from './payload'
+import { createProjectHandlers, type PayloadHandler, type ProjectIpcContext } from './project-ipc'
 
 /** What the main process knows about who sent a request. */
 export interface Sender {
@@ -14,10 +16,8 @@ export interface IpcContext {
   appInfo: AppInfo
   currentPreferences(): Preferences
   updatePreferences(patch: PreferencesPatch): Promise<Result<Preferences, string>>
+  projects: ProjectIpcContext
 }
-
-/** A refused request. Only its message crosses to the renderer, never a stack or internals. */
-export class IpcRefused extends Error {}
 
 export type IpcHandler = (sender: Sender, payload: unknown) => Promise<unknown>
 
@@ -26,27 +26,25 @@ export type IpcHandler = (sender: Sender, payload: unknown) => Promise<unknown>
  * payload is validated, because the renderer is treated as untrusted.
  */
 export function createIpcHandlers(context: IpcContext): Record<string, IpcHandler> {
-  const requireAppPage = (sender: Sender): void => {
-    if (!sender.fromAppWindow || !isAppUrl(sender.url, context.appUrl)) throw new IpcRefused('untrusted-sender')
-  }
-  return {
-    [channels.getAppInfo]: async (sender) => {
-      requireAppPage(sender)
-      return context.appInfo
-    },
-    [channels.getPreferences]: async (sender) => {
-      requireAppPage(sender)
-      return context.currentPreferences()
-    },
-    [channels.setPreferences]: async (sender, payload) => {
-      requireAppPage(sender)
-      const patch = preferencesPatchSchema.safeParse(payload)
-      if (!patch.success) throw new IpcRefused('invalid-payload')
-      const saved = await context.updatePreferences(patch.data)
+  const handlers: Record<string, PayloadHandler> = {
+    [channels.getAppInfo]: async () => context.appInfo,
+    [channels.getPreferences]: async () => context.currentPreferences(),
+    [channels.setPreferences]: async (payload) => {
+      const saved = await context.updatePreferences(parsePayload(preferencesPatchSchema, payload))
       if (!saved.ok) throw new IpcRefused(`save-failed:${saved.error}`)
       return saved.value
     },
+    ...createProjectHandlers(context.projects),
   }
+  return Object.fromEntries(
+    Object.entries(handlers).map(([channel, handle]) => [
+      channel,
+      async (sender: Sender, payload: unknown) => {
+        if (!sender.fromAppWindow || !isAppUrl(sender.url, context.appUrl)) throw new IpcRefused('untrusted-sender')
+        return handle(payload)
+      },
+    ]),
+  )
 }
 
 /** Same document as the app's page: same file for `file:` URLs, same origin for the dev server. */
