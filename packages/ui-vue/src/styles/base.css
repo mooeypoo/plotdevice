@@ -113,7 +113,7 @@ label { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--col
 .navigator-section li { padding-block: 0.15rem; }
 
 .menu { position: relative; display: inline-block; }
-.navigator .menu-button { border-color: transparent; background: none; }
+.navigator .menu-button, .outline-card .menu-button, .column-head .menu-button, .list-row .menu-button { border-color: transparent; background: none; }
 .menu-list {
   position: absolute;
   inset-inline-start: 0;
@@ -163,6 +163,66 @@ label { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--col
   border-block-start: 1px solid color-mix(in srgb, var(--color-text-secondary) 20%, transparent);
 }
 .notice { color: var(--color-text); }
+
+/* Workspaces */
+.workspace-switch, .segmented { display: inline-flex; border: 1px solid color-mix(in srgb, var(--color-text-secondary) 40%, transparent); border-radius: 8px; overflow: hidden; }
+.workspace-switch button, .segmented button { border: none; border-radius: 0; background: none; padding-inline: 0.9rem; }
+.workspace-switch button[aria-pressed='true'], .segmented button[aria-pressed='true'] { background: var(--color-accent); color: var(--color-on-accent); }
+.shell-header .settings-menu { margin-inline-start: 0; }
+.shell-header .workspace-switch { margin-inline-start: auto; }
+
+/* Story */
+.story { display: grid; grid-template-columns: minmax(13rem, 16rem) 1fr; min-block-size: 0; }
+.story .toolbar { align-items: center; flex-wrap: wrap; }
+.outline-title { font: 600 1.2rem/1.3 Georgia, 'Noto Serif Hebrew', serif; margin: 0; margin-inline-end: auto; }
+.story .desk { display: flex; flex-direction: column; }
+.story-page { flex: 1; overflow: auto; padding-inline: 1rem; padding-block: 0.5rem 1rem; }
+.empty-outline { color: var(--color-text-secondary); }
+.board { display: flex; gap: 0.9rem; align-items: flex-start; overflow-x: auto; padding-block: 0.5rem; }
+.column {
+  flex: 0 0 17rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  background: color-mix(in srgb, var(--color-text-secondary) 8%, var(--color-app));
+  border-radius: 10px;
+  min-block-size: 6rem;
+}
+.new-column { background: none; border: 1px dashed color-mix(in srgb, var(--color-text-secondary) 35%, transparent); }
+.column-head { display: flex; align-items: center; gap: 0.25rem; }
+.column-head h3 { flex: 1; margin: 0; font-size: 0.95rem; font-weight: 600; }
+.column-intro { margin: 0; font-size: 0.85rem; }
+.group-label { margin: 0.4rem 0 0; font-size: 0.8rem; font-weight: 600; color: var(--color-text-secondary); }
+.add { border-style: dashed; background: none; color: var(--color-text-secondary); text-align: start; }
+.outline-card {
+  padding: 0.55rem 0.65rem;
+  background: var(--color-card);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
+  cursor: grab;
+}
+.outline-card.locked { cursor: default; border-inline-start: 3px solid var(--color-warning); }
+.outline-card:focus-visible, .list-row:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.card-head { display: flex; align-items: flex-start; gap: 0.35rem; }
+.card-text { flex: 1; }
+.card-section { margin: 0 0 0.25rem; font-size: 0.75rem; }
+.card-details { margin: 0.35rem 0 0; padding-inline-start: 1rem; list-style: disc; font-size: 0.85rem; color: var(--color-text-secondary); }
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: 0.8rem; padding-block: 0.5rem; }
+.cards-grid .outline-card { min-block-size: 7rem; }
+.list-section { margin-block-end: 1rem; }
+.list-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; padding-block: 0.15rem; padding-inline-start: calc(var(--depth, 0) * 1.4rem); border-radius: 6px; }
+.list-row .is-card { font-weight: 600; }
+.toggle { border: none; background: none; padding: 0 0.25rem; }
+.toggle-space { inline-size: 1.3rem; }
+.lock { font-size: 0.8rem; }
+.editable-text { flex: 1; min-inline-size: 8rem; }
+.inline-link { color: var(--color-accent); text-decoration: underline; }
+.kept { font-size: 0.8rem; color: var(--color-text-secondary); border: 1px dashed color-mix(in srgb, var(--color-text-secondary) 40%, transparent); border-radius: 6px; padding: 0.3rem 0.5rem; }
+.kept summary { cursor: pointer; }
+.kept pre { white-space: pre-wrap; margin: 0.3rem 0 0; font-size: 0.8rem; }
+.manuscript-outline { max-inline-size: 36rem; }
+.manuscript-outline .part > ol { padding-inline-start: 0.75rem; }
 
 /* Dialogs */
 .dialog {

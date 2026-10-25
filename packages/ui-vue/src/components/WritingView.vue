@@ -2,7 +2,7 @@
 import type { ProjectView } from '@plotdevice/contracts'
 import type { FormatCommand } from '@plotdevice/editor-codemirror'
 import type { ProjectPath } from '@plotdevice/shared'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useChapterWriting } from '../composables/use-chapter-writing'
 import { usePrompt } from '../composables/use-prompt'
 import { useProjectStore } from '../stores/project'
@@ -68,11 +68,30 @@ function setFocusMode(on: boolean): void {
 }
 
 function onKey(event: KeyboardEvent): void {
+  if (view.workspace !== 'write') return
   if (event.key === 'Escape' && view.focusMode) setFocusMode(false)
   else if (event.key.toLowerCase() === 'f' && event.shiftKey && (event.ctrlKey || event.metaKey)) setFocusMode(!view.focusMode)
   else return
   event.preventDefault()
 }
+
+// A chapter chosen in the Story workspace's manuscript outline.
+watch(
+  () => view.chapterRequest,
+  (file) => {
+    if (!file) return
+    view.chapterRequest = null
+    void writing.open(file)
+  },
+)
+
+// Back in Write, the cursor is where it was.
+watch(
+  () => view.workspace,
+  (workspace) => {
+    if (workspace === 'write') void nextTick(() => writing.focus())
+  },
+)
 
 onMounted(() => {
   window.addEventListener('keydown', onKey)
