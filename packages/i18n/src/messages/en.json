@@ -212,5 +212,10 @@
   "compiled-missing": "The book was saved as “$1”, without these missing chapters: $2.",
   "compile-failed": "The book couldn't be saved there. Nothing was changed.",
   "reference-rename-file": "Rename file…",
-  "prompt-file-name-page": "File name"
+  "prompt-file-name-page": "File name",
+  "about": "About Plot Device",
+  "about-license": "Plot Device is free software: you may use, study, share and change it under the GNU General Public License, version 3 or later.",
+  "about-yours": "Everything you write with Plot Device is yours, under your own copyright. The licence covers the program, never your writing.",
+  "about-credits": "Open-source components ($1)",
+  "about-full-license": "The full licence (in English)"
 }

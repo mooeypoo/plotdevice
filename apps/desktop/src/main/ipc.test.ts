@@ -17,6 +17,7 @@ function setup(saveError?: string) {
   const handlers = createIpcHandlers({
     appUrl,
     appInfo: { name: 'Plot Device', version: '0.1.0', platform: 'linux' },
+    about: async () => ({ name: 'Plot Device', version: '0.1.0', licenseText: '', thirdParty: [] }),
     currentPreferences: () => current,
     updatePreferences: async (patch) => {
       if (saveError) return err(saveError)

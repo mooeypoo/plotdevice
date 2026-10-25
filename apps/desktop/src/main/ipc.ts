@@ -1,4 +1,4 @@
-import { channels, preferencesPatchSchema, type AppInfo, type Preferences, type PreferencesPatch } from '@plotdevice/contracts'
+import { channels, preferencesPatchSchema, type AboutView, type AppInfo, type Preferences, type PreferencesPatch } from '@plotdevice/contracts'
 import type { Result } from '@plotdevice/shared'
 import { IpcRefused, parsePayload } from './payload'
 import { createOutlineHandlers, type OutlineIpcContext } from './outline-ipc'
@@ -17,6 +17,7 @@ export interface Sender {
 export interface IpcContext {
   appUrl: string
   appInfo: AppInfo
+  about: () => Promise<AboutView>
   currentPreferences(): Preferences
   updatePreferences(patch: PreferencesPatch): Promise<Result<Preferences, string>>
   projects: ProjectIpcContext
@@ -34,6 +35,7 @@ export type IpcHandler = (sender: Sender, payload: unknown) => Promise<unknown>
 export function createIpcHandlers(context: IpcContext): Record<string, IpcHandler> {
   const handlers: Record<string, PayloadHandler> = {
     [channels.getAppInfo]: async () => context.appInfo,
+    [channels.getAbout]: () => context.about(),
     [channels.getPreferences]: async () => context.currentPreferences(),
     [channels.setPreferences]: async (payload) => {
       const saved = await context.updatePreferences(parsePayload(preferencesPatchSchema, payload))

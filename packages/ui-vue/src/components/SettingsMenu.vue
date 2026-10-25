@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Locale, PageWidth, ThemePreference, WritingSize } from '@plotdevice/contracts'
+import { ref } from 'vue'
 import { useSettingsStore } from '../stores/settings'
+import AboutDialog from './AboutDialog.vue'
 
 const settings = useSettingsStore()
 const t = settings.t
@@ -12,6 +14,7 @@ const themes: ThemePreference[] = ['system', 'light', 'dark']
 const sizes: WritingSize[] = ['small', 'medium', 'large']
 const widths: PageWidth[] = ['narrow', 'medium', 'wide']
 const valueOf = (event: Event): string => (event.target as HTMLSelectElement).value
+const about = ref<InstanceType<typeof AboutDialog> | null>(null)
 </script>
 
 <template>
@@ -43,6 +46,9 @@ const valueOf = (event: Event): string => (event.target as HTMLSelectElement).va
         </select>
       </label>
       <p v-if="settings.saveFailed" class="warning" role="status">⚠ {{ t('settings-save-failed') }}</p>
+      <button type="button" class="link-button" data-testid="open-about" @click="about?.show()">{{ t('about') }}</button>
     </div>
   </details>
+  <!-- Beside the panel, not in it: it stays open when the panel closes. -->
+  <AboutDialog ref="about" />
 </template>

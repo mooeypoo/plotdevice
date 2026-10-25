@@ -1,6 +1,7 @@
 // IPC channel names. Kept free of zod so the preload script stays tiny.
 export const channels = {
   getAppInfo: 'plotdevice:get-app-info',
+  getAbout: 'plotdevice:get-about',
   getPreferences: 'plotdevice:get-preferences',
   setPreferences: 'plotdevice:set-preferences',
   getRecentProjects: 'plotdevice:get-recent-projects',

@@ -9,7 +9,7 @@ import {
   type ProjectRepository,
   type WritingSession,
 } from '@plotdevice/application'
-import { eventChannel, type AppInfo, type HostEvent } from '@plotdevice/contracts'
+import { eventChannel, type AboutView, type AppInfo, type HostEvent } from '@plotdevice/contracts'
 import {
   createAppDataFile,
   createBackupStore,
@@ -24,7 +24,7 @@ import {
 import { catalogs, createTranslator } from '@plotdevice/i18n'
 import { compileManuscript, createOutlineRepository, createProjectRepository, createReferenceRepository, createVersionRepository, withBackups } from '@plotdevice/storage'
 import { app, BrowserWindow, dialog, ipcMain, session } from 'electron'
-import { access, stat } from 'node:fs/promises'
+import { access, readFile, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { createIpcHandlers } from './ipc'
@@ -168,6 +168,7 @@ void app.whenReady().then(async () => {
   const handlers = createIpcHandlers({
     appUrl,
     appInfo,
+    about: () => readAbout(appInfo),
     currentPreferences: () => preferences.current(),
     updatePreferences: (patch) => preferences.update(patch),
     projects: {
@@ -222,6 +223,22 @@ const FLUSH_TIMEOUT_MS = 2000
 const testFolderChoice = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_CHOOSE_FOLDER
 /** Test-only (unpackaged builds): the file every save dialog "chooses"; empty means cancelled. */
 const testSaveAs = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_SAVE_AS
+
+/**
+ * The licence and the credits list: shipped as resources in an installed app, and found in the
+ * repository (where `pnpm build` generates the list) during development.
+ */
+async function readAbout(appInfo: AppInfo): Promise<AboutView> {
+  const [licensePath, creditsPath] = app.isPackaged
+    ? [join(process.resourcesPath, 'LICENSE'), join(process.resourcesPath, 'third-party-licenses.json')]
+    : [join(app.getAppPath(), '../../LICENSE'), join(app.getAppPath(), 'build/third-party-licenses.json')]
+  const licenseText = await readFile(licensePath, 'utf8').catch(() => '')
+  const thirdParty = await readFile(creditsPath, 'utf8').then(
+    (text) => JSON.parse(text) as AboutView['thirdParty'],
+    () => [],
+  )
+  return { name: appInfo.name, version: appInfo.version, licenseText, thirdParty }
+}
 
 const REFRESH_DELAY_MS = 300
 

@@ -1,4 +1,4 @@
-import type { AppInfo } from './app-info'
+import type { AboutView, AppInfo } from './app-info'
 import type { HostEvent, LeftOffRequest, OpenChapterResult, ResolveConflictRequest, ResolveConflictResult, SaveChapterRequest } from './chapter'
 import type { OutlineEditRequest, OutlineResult, OutlineSummaryView, Place } from './outline'
 import type { Preferences, PreferencesPatch } from './preferences'
@@ -20,6 +20,8 @@ import type { ProjectPath } from '@plotdevice/shared'
 /** Everything the renderer may ask of the host. Exposed as `window.plotDevice` by the preload script. */
 export interface PlotDeviceApi {
   getAppInfo(): Promise<AppInfo>
+  /** The version, the licence and the open-source credits, for the About window. */
+  getAbout(): Promise<AboutView>
   getPreferences(): Promise<Preferences>
   /** Applies the change, saves it, and returns the settings now in effect. */
   setPreferences(patch: PreferencesPatch): Promise<Preferences>

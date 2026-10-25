@@ -1,5 +1,5 @@
 export type { PlotDeviceApi } from './api'
-export { appInfoSchema, type AppInfo } from './app-info'
+export { appInfoSchema, type AboutView, type AppInfo, type ThirdPartyPackage } from './app-info'
 export {
   leftOffSchema,
   openChapterSchema,

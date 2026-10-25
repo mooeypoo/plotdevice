@@ -43,6 +43,7 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'editOutline',
     'flushed',
     'forgetRecentProject',
+    'getAbout',
     'getAppInfo',
     'getOpenProject',
     'getPreferences',
@@ -180,4 +181,19 @@ test('an unreadable settings file falls back to defaults and is kept, not delete
   await expect(running.page.getByTestId('theme')).toHaveValue('system')
   const files = await readdir(userData)
   expect(files.filter((name) => name.startsWith('preferences.unreadable-'))).toHaveLength(1)
+})
+
+test('the About window shows the version, the licence and the open-source credits', async () => {
+  running = await launch(userData)
+  await openSettings(running.page)
+  await running.page.getByTestId('open-about').click()
+  const about = running.page.getByTestId('about')
+  await expect(about).toBeVisible()
+  await expect(about.getByTestId('about-version')).toHaveText('Version 0.2.0')
+  await expect(about).toContainText('Everything you write with Plot Device is yours')
+  await about.getByText(/Open-source components/).click()
+  await expect(about.getByTestId('credits')).toContainText('vue')
+  await expect(about.getByTestId('credits')).toContainText('electron')
+  await about.getByText('The full licence').click()
+  await expect(about.locator('.license')).toContainText('GNU GENERAL PUBLIC LICENSE')
 })

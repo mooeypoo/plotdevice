@@ -42,6 +42,7 @@ async function setup() {
   const handlers = createIpcHandlers({
     appUrl,
     appInfo: { name: 'Plot Device', version: '0.1.0', platform: 'linux' },
+    about: async () => ({ name: 'Plot Device', version: '0.1.0', licenseText: '', thirdParty: [] }),
     currentPreferences: () => ({ theme: 'system', locale: 'en', ...MEDIUM_PAGE }),
     updatePreferences: async () => {
       throw new Error('not used')

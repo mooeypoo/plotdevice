@@ -5,6 +5,7 @@ import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 // The only bridge between the sandboxed page and the host: typed calls and one event stream, nothing else.
 const api: PlotDeviceApi = {
   getAppInfo: () => ipcRenderer.invoke(channels.getAppInfo),
+  getAbout: () => ipcRenderer.invoke(channels.getAbout),
   getPreferences: () => ipcRenderer.invoke(channels.getPreferences),
   setPreferences: (patch) => ipcRenderer.invoke(channels.setPreferences, patch),
   getRecentProjects: () => ipcRenderer.invoke(channels.getRecentProjects),
