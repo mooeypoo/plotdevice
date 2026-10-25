@@ -1,6 +1,6 @@
 # Milestone 4: Story outlines (Gate 4)
 
-Status: **Proposed, awaiting owner approval.** No code yet.
+Status: **Approved** (owner, 2026-10-25), with the recommended decisions. "Story" is a test label that may be replaced (decision 1).
 
 ## Goal
 
@@ -65,7 +65,11 @@ Moving "The gate" to *Ending* changes exactly two lines of this file and nothing
 
 ## Decisions I recommend (**Decide** where marked)
 
-1. **Workspace names** (**Decide**): **Story** and **Write** (Hebrew: **סיפור** and **כתיבה**), shown as a two-button switch in the header. PRD §11 leaves "Story" as a working name; this keeps it until authors test it. (**Recommended**)
+1. **Workspace names** (approved): **Story** and **Write** (Hebrew: **סיפור** and **כתיבה**), shown as a two-button switch in the header. "Story" is a working name (PRD §11) and **must stay cheap to replace** after testing with authors:
+   - **The name lives in two messages only:** `workspace-story` in `en.json` and `he.json`. Renaming the workspace means editing those two lines.
+   - **Code and saved settings use a fixed internal ID** (`story`), never the label. Like the `plotdevice` token, the ID never changes, so a rename touches no code and needs no migration of anyone's saved settings.
+   - **A test enforces it:** it fails if the word appears in interface code outside the message catalogs.
+   - **Docs** call it "the Story workspace (working name)", so a rename is a find-and-replace there too.
 2. **Undo** (**Decide**): each structural edit can be undone during the session. Undo restores the file's previous text **only if the file hasn't changed since the app's own edit**. If it has (another app edited it), undo is refused with an explanation instead of overwriting. Nothing is stored in the project folder. (**Recommended**)
 3. **What can be edited in a card** (**Decide**, PRD §11's open question): in this milestone, a card or detail is **one line of text**, edited in place. Inline formatting and links in that line are kept exactly and shown formatted. Anything longer inside a card (extra paragraphs, code, a table) is carried along and marked "kept as written"; it is edited in a text editor for now. For example:
    ```markdown
