@@ -1,96 +1,109 @@
 # Milestone 2: Projects and the reading order (Gate 2)
 
-Status: **Proposed, awaiting owner approval.** No code yet.
+Status: **Approved** (owner, 2026-10-25). Core only, no interface; dependencies approved; defaults approved; manual file renaming added.
 
 ## Goal
 
-An author can create a project, see and arrange its chapters and parts, and close and reopen it. Everything is stored exactly as `DOMAIN_AND_FILE_FORMAT.md` 0.4 describes, so the same folder makes sense in Obsidian or a file browser.
+The core can create a project, read and change its reading order and parts, read and save chapter text, and rename a chapter file safely. Everything is stored exactly as `DOMAIN_AND_FILE_FORMAT.md` 0.4 describes, and is proven by tests on real folders.
 
-Writing inside a chapter comes in Milestone 3 (Gate 3, with the CodeMirror editor). Gate 2 does include reading and saving a chapter's text in the core, tested, so the editor plugs straight into it.
+There is no interface in this milestone (owner decision). Screens arrive with the editor in Milestone 3, on top of these use cases.
 
-**What an author can do at the end, in the app:**
-1. Create a project: choose a folder, a title and a language. The app writes `project.md`, `CONTENTS.md` and `manuscript/`.
-2. Open a project, or a recent one. The app shows the contents: parts and chapters, numbered per the project setting.
-3. Add a chapter (its file is named from its title), add a part, rename either, and move chapters up or down and in or out of parts, using the keyboard or buttons. Drag-and-drop comes later.
-4. Remove a chapter from the book. The file stays, and the chapter moves to **Not in the book yet**.
-5. See chapter files that the contents doesn't list (**Not in the book yet**, with "Add to the book"), and contents entries whose file is missing (**Missing**, with "Remove from contents").
-6. Close and reopen: everything is as it was. Edit `CONTENTS.md` in another app, reopen, and the new order shows.
-
-## Proposal: include a minimal interface (**Decide**)
-
-`IMPLEMENTATION_PLAN.md` describes Gate 2 as core and storage only. I recommend adding the small interface above anyway (**Recommended**), so you can try each behaviour yourself rather than only reading test results. It uses plain lists and buttons; the real Story and Write design comes in Gates 3 and 4.
+**What the core can do at the end:**
+1. **Create a project.** Given a location, a title and a language, it writes `project.md`, `CONTENTS.md` and `manuscript/` in a new folder named after the title.
+2. **Open a project:**
+   - read the details and the contents (parts and chapters, numbered per the project setting)
+   - find chapter files the contents doesn't list ("Not in the book yet")
+   - find contents entries whose file is missing ("Missing")
+   - find contents link text that no longer matches a chapter's title
+   - finish any rename that was interrupted by a crash
+3. **Change the book:**
+   - add a chapter (its file is named from its title) or a part
+   - rename either
+   - move a chapter, including into or out of a part
+   - remove a chapter from the book (the file stays)
+   - add an unlisted chapter to the book
+4. **Read and save a chapter's text,** revision-checked: a chapter changed outside the app is never overwritten.
+5. **Rename a chapter's file (explicit, owner request):**
+   - the new name is checked for Windows-unsafe characters, reserved names and collisions
+   - the file is renamed, its line in `CONTENTS.md` updated, and every link to it in the project rewritten: inline links, reference links and `[[wikilinks]]`, in chapters, outlines and notes
+   - it runs through the crash-safe journal from ADR 0005, so an interruption is finished on the next open
+6. **Relink a chapter that was renamed outside the app:** if a missing chapter's `id` turns up in an unlisted file, the core suggests the match; the author confirms, and only then is anything changed.
 
 ## What gets built
 
 | Package | New |
 |---|---|
-| `shared` | `ProjectPath`: forward-slash project-relative paths, with the Windows-safe validation from Spike C (reserved names, forbidden characters, NFC and case-insensitive collisions) |
-| `domain/project` | Project details (title, author, language, chapter numbering, id, schema version) and their rules |
-| `domain/manuscript` | The book's structure: chapters, optional parts, order. Operations: add, move, rename, remove, add to book. Invariants: a file appears once, parts don't nest, names aren't empty. Chapter numbering (`continuous`, `per-part`, `none`). Chapter file names from titles |
-| `markdown` (new) | Pure text codecs following ADR 0003: split frontmatter, read and patch frontmatter values by splicing; parse `CONTENTS.md` with source ranges and edit it by splicing (the Spike A method, rebuilt properly); write new `project.md`, `CONTENTS.md` and chapter files |
-| `storage` (new) | Repositories that open, create and change a project through a `FileStore` port: revision-checked, writes queued per file (ADR 0005); detects unlisted and missing chapters |
-| `application` | Use cases: create, open, add, move, rename, remove, add-to-book, read and save chapter text. Ports: `FileStore`, `IdGenerator`, `FolderPicker`. Recent projects in the personal settings |
-| `fs-node` | `FileStore` on the real file system, using the atomic writer, with stale-write checks and stale temp-file cleanup when a project opens |
-| `contracts` | Project calls and their zod schemas |
-| `ui-vue` | Welcome screen (new, open, recent), new-project form, contents view with the actions above, warnings in plain words |
-| `apps/desktop` | Native folder picker; project calls over IPC |
+| `shared` | `ProjectPath`: forward-slash project paths with Windows-safe validation (reserved names, forbidden characters, NFC and case-insensitive collisions) |
+| `domain/project` | Project details and their rules |
+| `domain/manuscript` | The book's structure: chapters, optional parts, order, numbering (`continuous`, `per-part`, `none`), file names from titles. Operations: add, move, rename, remove, add to book, rename file. Invariants: a file appears once, parts don't nest, names aren't empty |
+| `markdown` (new) | Pure text codecs (ADR 0003): split frontmatter; read and patch it by splicing; parse and edit `CONTENTS.md` by splicing; rewrite links to a renamed file; write new `project.md`, `CONTENTS.md` and chapter files |
+| `storage` (new) | Project repository over the `FileStore` and `JournalStore` ports: revision-checked writes queued per file, discovery of unlisted and missing chapters, the rename journal with recovery (ADR 0005) |
+| `application` | Use cases for everything above. Ports: `FileStore`, `JournalStore`, `IdGenerator` |
+| `fs-node` | `FileStore` (atomic writes, stale-write checks, symlink-escape refusal, stale temp-file cleanup) and `JournalStore` (in the OS app-data folder) |
 
-## Decisions I'll apply unless you say otherwise
+No changes to `contracts`, `ui-vue` or `apps/desktop` in this milestone.
 
-1. **New chapter file names come from the title,** and are never changed afterwards:
+## Decisions applied
+
+1. **New chapter file names come from the title,** and are never renamed automatically:
    - Latin letters are lowercased and spaces become hyphens: "The Crossing" → `the-crossing.md`.
    - Hebrew is kept as is: "המעבר" → `המעבר.md`.
    - Characters Windows forbids are removed.
-   - Collisions (including case and Unicode variants) get `-2`, `-3`, and so on.
-2. **A new project gets a folder named after its title** inside a location the author picks, never inside an existing project.
-3. **Changing a chapter title writes two files:** the chapter's frontmatter, then its line in `CONTENTS.md`.
-   - **Order matters:** the title is the authority, so the chapter file is written first.
-   - **If the app stops in between:** on the next open it notices the outdated link text and offers to update it. Nothing is lost, because the title already lives in the chapter.
-   - The full multi-file journal from ADR 0005 arrives with "Rename source file", where a half-done operation could break links.
-4. **IDs** (ADR 0008, to be written): short random IDs with a type prefix (`ch-k3f9q2`, `prj-7d2k9q`), created through the `IdGenerator` port and checked for duplicates when a project opens.
-5. **No file watching yet.** Changes made outside the app show on reopen or on a "Reload" button. Live watching (ADR 0005, "hints only") arrives with the editor in Gate 3, where it matters.
+   - Collisions, including case and Unicode variants, get `-2`, `-3`, and so on.
 
-## Dependencies
+   **The author can rename a file explicitly** (point 5 above).
+2. **A new project gets a folder named after its title,** inside a location the author picks, never inside an existing project.
+3. **A title change writes the chapter file first, then its line in `CONTENTS.md`.** If interrupted, the next open reports the outdated link text and offers the update. File renames, which can break links, always go through the journal.
+4. **IDs** (ADR 0008): short random IDs with a type prefix (`ch-k3f9q2`), from the `IdGenerator` port, checked for duplicates when a project opens.
+5. **No file watching yet.** That arrives with the editor.
+6. **Link rewriting is conservative:**
+   - A `[[wikilink]]` is rewritten only when it unambiguously means the renamed file: its name is unique in the project, or it gives the full path.
+   - Text inside code is never touched.
+   - The rename reports how many links it updated, and in which files.
 
-All three were already used in the spikes and are covered by ADR 0003:
+## Dependencies (approved)
 
-| Package | Why |
-|---|---|
-| `yaml` | Read frontmatter. Edits are splices, never re-serialization (ADR 0005) |
-| `micromark`, `mdast-util-from-markdown` (+ `@types/mdast`) | Parse `CONTENTS.md` with source ranges (ADR 0003) |
-
-**Approve?** No GFM extension is needed yet.
+- `yaml`
+- `micromark`
+- `mdast-util-from-markdown`
+- `@types/mdast` (types only)
 
 ## Docs
 
-- **ADR 0002, "Architecture and boundaries":** it records what Milestone 1 built and why.
-- **ADR 0008, "IDs":** as in decision 4 above.
-- **New architecture rules for `markdown` and `storage`,** each with a violation fixture:
+- **ADR 0002, "Architecture and boundaries":** records what Milestone 1 built.
+- **ADR 0008, "IDs".**
+- **Architecture rules for `markdown` and `storage`,** each with a violation fixture:
   - `markdown` stays pure; no file access.
-  - `storage` reaches files only through the port.
-- Package READMEs for `markdown` and `storage`.
+  - `storage` reaches files only through ports.
+- Package READMEs.
 
 ## Tests
 
-The approach follows `AGENTS.md`, "Testing and quality requirements". Domain, markdown and storage are written test-first.
+Domain, markdown and storage are written test-first (`AGENTS.md`).
 
-- **Domain:** every manuscript operation and its invariants; numbering in all three styles; file names from English, Hebrew, mixed and forbidden-character titles, with collisions.
+- **Domain:** every operation and invariant; numbering in all three styles; file names from English, Hebrew, mixed and forbidden-character titles, with collisions.
 - **Markdown:** a `CONTENTS.md` fixture set.
-  - **Cases:** parts, a prologue and an epilogue, paths with spaces, Hebrew titles, CRLF, a BOM, extra paragraphs, and a broken list.
-  - **Properties checked:** opening and saving without edits gives identical bytes; every edit commutes with the model and changes only its own lines (the Spike A method); frontmatter patches keep comments, unknown keys and CRLF.
+  - **Cases:** parts, a prologue and an epilogue, paths with spaces, Hebrew, CRLF, a BOM, extra paragraphs, a broken list.
+  - **Properties checked:** opening and saving without edits gives identical bytes; every edit commutes with the model and is local (the Spike A method); frontmatter patches keep comments, unknown keys and CRLF.
+  - **Link rewriting:** inline, angle-bracket, reference, titled and fragment links; wikilinks with alias, heading and folder; similar names left alone; code left alone.
 - **Storage, on real temporary folders:**
-  - Creating a project writes exactly the documented files.
+  - Creating a project writes exactly the documented bytes.
   - Every operation writes the expected bytes; reopening gives the same result.
-  - A `CONTENTS.md` changed outside the app is refused as stale, never overwritten.
-  - Unlisted and missing chapters are found; Windows-unsafe or colliding names are refused.
-- **Interface, end-to-end:** create a project in a temporary folder (the picker is replaced by a test hook), add chapters and a part, reorder them, restart, and check both the screen and the exact bytes of `CONTENTS.md`. Then reorder `CONTENTS.md` outside the app, reopen, and check the new order.
-- **Fixtures:** `tests/fixtures/projects/salt-orchard/` is updated to the accepted format (`CONTENTS.md` instead of the spike's YAML manifest).
+  - A stale `CONTENTS.md` or chapter is refused.
+  - Unlisted, missing and outdated-title chapters are found.
+  - Unsafe or colliding names are refused.
+  - **Rename journal:** killed at every step, with real child processes, then recovered.
+- **Scenario tests** (the core half of `PRD.md` scenarios A, E, G, I):
+  - create a project, add chapters, save chapter text, reopen, and find everything intact
+  - reorder chapters without renaming any file
+  - an external edit makes a save refuse rather than overwrite
+  - a missing chapter is reported and nothing is changed
 
 ## Work order
 
-1. Docs (ADR 0002, ADR 0008), the fixtures, and the new architecture rules.
-2. `ProjectPath`, `domain/project` and `domain/manuscript`, test-first.
-3. `markdown`: frontmatter, then `CONTENTS.md`, test-first.
-4. `storage` with the `FileStore` port, plus `fs-node`'s `FileStore`.
-5. Application use cases, then contracts and IPC.
-6. The interface, then the end-to-end tests. Results get recorded here, as for Milestone 1.
+1. Docs, fixtures and architecture rules.
+2. `ProjectPath`, `domain/project` and `domain/manuscript`.
+3. `markdown`: frontmatter, `CONTENTS.md`, link rewriting.
+4. `fs-node` `FileStore` and `JournalStore`.
+5. `storage`.
+6. Application use cases and scenario tests; results recorded here.
