@@ -11,6 +11,7 @@
   },
   "scripts": {
     "dev": "pnpm --filter @plotdevice/desktop dev",
+    "dev:no-sandbox": "pnpm --filter @plotdevice/desktop dev:no-sandbox",
     "build": "pnpm --filter @plotdevice/desktop build",
     "lint": "eslint .",
     "typecheck": "tsc -b && tsc --noEmit -p packages/storage/test && pnpm --filter @plotdevice/ui-vue --filter @plotdevice/desktop typecheck",

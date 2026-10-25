@@ -27,8 +27,8 @@
   The end-to-end tests clear it themselves.
 - **"The SUID sandbox helper binary was found, but is not configured correctly" on Ubuntu 24.04 and later.**
   Ubuntu restricts the user namespaces Chromium's sandbox needs. Either allow them
-  (`sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`; resets at reboot), or run the app with
-  `--no-sandbox` for local development only. The end-to-end tests detect the restriction and add
+  (`sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`; resets at reboot), or run the app without
+  the sandbox for local development only: `pnpm dev:no-sandbox`. The end-to-end tests detect the restriction and add
   `--no-sandbox`; CI lifts the restriction instead, so the sandbox stays on there.
 - **Electron's binary is missing** (`node_modules/electron/dist` doesn't exist): that's normal until the
   first launch, which downloads it. To download it ahead of time (for example, before going offline), run
