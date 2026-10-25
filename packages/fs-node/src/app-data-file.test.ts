@@ -2,7 +2,7 @@ import { chmod, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { createPreferencesFileStore } from './preferences-file-store'
+import { createPreferencesFileStore } from './app-data-file'
 
 const dirs: string[] = []
 afterEach(async () => {

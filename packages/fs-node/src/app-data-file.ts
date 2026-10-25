@@ -1,14 +1,12 @@
 import { readFile, rename } from 'node:fs/promises'
 import { join } from 'node:path'
-import type { PreferencesStore } from '@plotdevice/application'
+import type { AppDataFile, PreferencesStore } from '@plotdevice/application'
 import { err, ok } from '@plotdevice/shared'
 import { AtomicWriteError, writeAtomically } from './atomic-write'
 
-const FILE = 'preferences.json'
-
-/** Personal settings as `preferences.json` in the app-data folder, written atomically. */
-export function createPreferencesFileStore(directory: string): PreferencesStore {
-  const path = join(directory, FILE)
+/** `<name>.json` in the app-data folder, written atomically. */
+export function createAppDataFile(directory: string, name: string): AppDataFile {
+  const path = join(directory, `${name}.json`)
   return {
     async read() {
       try {
@@ -29,7 +27,12 @@ export function createPreferencesFileStore(directory: string): PreferencesStore 
     },
     async setAside() {
       const stamp = new Date().toISOString().replace(/[:.]/g, '-')
-      await rename(path, join(directory, `preferences.unreadable-${stamp}.json`)).catch(() => undefined)
+      await rename(path, join(directory, `${name}.unreadable-${stamp}.json`)).catch(() => undefined)
     },
   }
+}
+
+/** Personal settings as `preferences.json` in the app-data folder. */
+export function createPreferencesFileStore(directory: string): PreferencesStore {
+  return createAppDataFile(directory, 'preferences')
 }

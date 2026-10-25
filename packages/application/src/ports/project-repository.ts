@@ -56,6 +56,15 @@ export type CreateProblem = 'invalid-details' | 'folder-exists' | 'inside-projec
 export type ChangeProblem = 'stale' | 'invalid' | 'not-found' | 'unreadable' | 'write-failed'
 export type RenameFileProblem = ChangeProblem | 'invalid-name' | 'name-taken'
 
+export interface FileRenamed {
+  snapshot: ProjectSnapshot
+  /** The chapter's new path. */
+  file: ProjectPath
+  linksUpdated: number
+  /** Files whose text changed because their links were updated. */
+  filesChanged: ProjectPath[]
+}
+
 export interface ChapterText {
   /** The chapter's text without its frontmatter. */
   text: string
@@ -73,8 +82,13 @@ export interface ProjectRepository {
   /** Writes the chapter's frontmatter first, then its line in `CONTENTS.md` (Milestone 2, decision 3). */
   renameChapter(snapshot: ProjectSnapshot, file: ProjectPath, title: string): Promise<Result<ProjectSnapshot, ChangeProblem>>
   /** Renames a chapter's file and fixes every link to it, through the recovery journal. */
-  renameChapterFile(snapshot: ProjectSnapshot, file: ProjectPath, newName: string): Promise<Result<{ snapshot: ProjectSnapshot; linksUpdated: number; filesChanged: ProjectPath[] }, RenameFileProblem>>
+  renameChapterFile(snapshot: ProjectSnapshot, file: ProjectPath, newName: string): Promise<Result<FileRenamed, RenameFileProblem>>
   readChapter(root: string, file: ProjectPath): Promise<Result<ChapterText, 'missing' | 'unreadable'>>
   /** Saves the text, keeping the frontmatter as it is; refused if the file changed since `expected`. */
   saveChapter(root: string, file: ProjectPath, text: string, expected: Revision): Promise<Result<Revision, 'stale' | 'missing' | 'unreadable' | 'write-failed'>>
+  /**
+   * "Keep both": writes `text` as a new chapter next to `file`, named and titled with `label`, keeping the
+   * chapter's other details but with a new id. Never overwrites; works even if `file` is gone.
+   */
+  saveChapterCopy(root: string, file: ProjectPath, text: string, label: string): Promise<Result<ProjectPath, 'write-failed'>>
 }

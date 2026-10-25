@@ -8,6 +8,28 @@ export {
   type PreferencesSession,
 } from './preferences/preferences'
 export type { PreferencesStore, PreferencesWriteFailure } from './preferences/preferences-store'
+export { createChapterAutosave, type ChapterAutosave, type SaveStatus, type WriteChapter } from './chapters/chapter-autosave'
+export type { AppDataFile, AppDataWriteFailure } from './ports/app-data-file'
+export {
+  createRecentProjectsSession,
+  MAX_RECENT_PROJECTS,
+  parseRecentProjects,
+  type LeftOff,
+  type RecentProject,
+  type RecentProjects,
+  type RecentProjectsSession,
+} from './recent/recent-projects'
+export {
+  createWritingSession,
+  type ConflictChoice,
+  type ConflictResolved,
+  type NoProject,
+  type OpenedChapter,
+  type ResolveProblem,
+  type SessionEvent,
+  type WritingSession,
+  type WritingSessionOptions,
+} from './session/writing-session'
 export type { FileStore, ReadProblem, RenameProblem, Revision, StoredText, TextToStore, WriteProblem } from './ports/file-store'
 export type { IdGenerator } from './ports/id-generator'
 export type { JournalEntry, JournalStep, JournalStore } from './ports/journal-store'
@@ -18,6 +40,7 @@ export type {
   ChapterText,
   ContentsChange,
   CreateProblem,
+  FileRenamed,
   OpenProblem,
   ProjectRepository,
   ProjectSnapshot,

@@ -1,6 +1,6 @@
 import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { chapterFileFor, findDuplicateIds, projectFolderName, suggestRelinks } from './chapter-files'
+import { chapterCopyFileFor, chapterFileFor, findDuplicateIds, projectFolderName, suggestRelinks } from './chapter-files'
 
 const existing = (...paths: string[]) => paths as ProjectPath[]
 
@@ -27,6 +27,23 @@ describe('chapterFileFor: a new chapter file name from its title', () => {
   it('keeps very long titles within a safe length', () => {
     const path = chapterFileFor('A'.repeat(300), [])
     expect(path.length).toBeLessThanOrEqual('manuscript/'.length + 100 + '.md'.length)
+  })
+})
+
+describe('chapterCopyFileFor: where "keep both" puts the author\'s text', () => {
+  const frost = 'manuscript/frost.md' as ProjectPath
+
+  it('sits next to the chapter, named after it', () => {
+    expect(chapterCopyFileFor(frost, 'my version', [frost])).toBe('manuscript/frost-my-version.md')
+  })
+
+  it('never takes an existing name, whatever its case', () => {
+    const taken = [frost, 'manuscript/Frost-My-Version.md' as ProjectPath]
+    expect(chapterCopyFileFor(frost, 'my version', taken)).toBe('manuscript/frost-my-version-2.md')
+  })
+
+  it('uses the label in the interface language', () => {
+    expect(chapterCopyFileFor('manuscript/כפור.md' as ProjectPath, 'הגרסה שלי', [])).toBe('manuscript/כפור-הגרסה-שלי.md')
   })
 })
 

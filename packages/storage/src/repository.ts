@@ -15,6 +15,7 @@ import type {
 import {
   addChapter,
   addPart,
+  chapterCopyFileFor,
   chapterFileFor,
   CURRENT_SCHEMA_VERSION,
   moveChapter,
@@ -26,7 +27,7 @@ import {
   validateNewProject,
   type ManuscriptProblem,
 } from '@plotdevice/domain'
-import { editContents, newChapterFile, newContentsFile, newProjectFile, rewriteLinksTo, setFrontmatterValues, splitFrontmatter, type ContentsEdit } from '@plotdevice/markdown'
+import { editContents, newChapterFile, newContentsFile, newProjectFile, readFrontmatter, rewriteLinksTo, setFrontmatterValues, splitFrontmatter, type ContentsEdit } from '@plotdevice/markdown'
 import { collisionKey, dirnameOf, err, ok, parseProjectPath, stemOf, type ProjectPath, type Result } from '@plotdevice/shared'
 import { recoverJournals, runJournaled, type CrashAt } from './journal'
 import { CONTENTS_FILE, MANUSCRIPT_FOLDER, PROJECT_FILE, readDetails, readProject } from './read-project'
@@ -136,7 +137,7 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       const target = targetPath(file, newName)
       if (!target.ok) return target
       const to = target.value
-      if (to === file) return ok({ snapshot, linksUpdated: 0, filesChanged: [] })
+      if (to === file) return ok({ snapshot, file, linksUpdated: 0, filesChanged: [] })
       const files = await store.listMarkdownFiles()
       const others = files.filter((f) => collisionKey(f) !== collisionKey(file))
       if (others.some((f) => collisionKey(f) === collisionKey(to))) return err('name-taken')
@@ -171,7 +172,7 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       const reopened = await reopen(snapshot.root)
       if (!reopened.ok) return reopened
       const filesChanged = steps.flatMap((step) => (step.kind === 'write' ? [step.path] : [])).sort()
-      return ok({ snapshot: reopened.value, linksUpdated, filesChanged })
+      return ok({ snapshot: reopened.value, file: to, linksUpdated, filesChanged })
     },
 
     async readChapter(root, file) {
@@ -189,6 +190,26 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       const written = await store.write(file, { text: frontmatter + text, hasBom: current.value.hasBom }, expected)
       if (written.ok) return written
       return err(written.error.code === 'stale' ? 'stale' : 'write-failed')
+    },
+
+    async saveChapterCopy(root, file, text, label) {
+      const store = folders.open(root)
+      const current = await store.read(file)
+      const frontmatter = current.ok ? (splitFrontmatter(current.value.text).frontmatter?.text ?? '') : ''
+      const values = current.ok ? readFrontmatter(current.value.text) : null
+      const title = values?.ok && typeof values.value.title === 'string' ? values.value.title : stemOf(file)
+      const copyTitle = `${title} (${label})`
+      const id = ids.next('ch')
+      const withDetails = setFrontmatterValues(frontmatter, { title: copyTitle, id })
+      const content = { text: withDetails.ok ? withDetails.value + text : newChapterFile(copyTitle, id, text), hasBom: current.ok && current.value.hasBom }
+      // A name taken between listing and writing is refused (`expected: null`), so look again.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const copy = chapterCopyFileFor(file, label, await store.listMarkdownFiles())
+        const written = await store.write(copy, content, null)
+        if (written.ok) return ok(copy)
+        if (written.error.code !== 'stale') break
+      }
+      return err('write-failed')
     },
   }
 }

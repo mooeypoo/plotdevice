@@ -1,6 +1,6 @@
 # Milestone 3: Writing (Gate 3)
 
-Status: **Proposed, awaiting owner approval.** No code yet.
+Status: **Approved** (owner, 2026-10-25), with the recommended autosave timing, "Keep both" as the default conflict choice, and the listed dependencies.
 
 ## Goal
 

@@ -1,4 +1,5 @@
 export {
+  chapterCopyFileFor,
   chapterFileFor,
   findDuplicateIds,
   projectFolderName,

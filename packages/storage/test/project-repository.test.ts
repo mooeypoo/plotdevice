@@ -302,3 +302,39 @@ describe('renaming a chapter file (explicit, through the recovery journal)', () 
     expect(await readFile(join(root, 'outlines/main-story.md'), 'utf8')).toBe('# Rewritten in another app\n')
   })
 })
+
+describe('keeping both versions of a chapter changed elsewhere (PRD scenario G, core half)', () => {
+  const elsewhere = '---\ntitle: Frost\nid: ch-p0n1zz\npov: Ilka # who tells it\n---\nEdited in another app.\n'
+
+  it("saves the author's text next to the chapter, with its details, a new title and a new id", async () => {
+    const { root, repository, read } = await setup()
+    await writeFile(join(root, 'manuscript/frost.md'), elsewhere)
+    const copy = unwrap(await repository.saveChapterCopy(root, p('manuscript/frost.md'), 'יעל wrote this in the app.\n', 'my version'))
+    expect(copy).toBe('manuscript/frost-my-version.md')
+    expect(await read('manuscript/frost-my-version.md')).toBe('---\ntitle: Frost (my version)\nid: ch-t00001\npov: Ilka # who tells it\n---\nיעל wrote this in the app.\n')
+    expect(await read('manuscript/frost.md')).toBe(elsewhere)
+  })
+
+  it('shows the copy as not in the book yet, with no duplicate ids', async () => {
+    const { root, repository } = await setup()
+    await writeFile(join(root, 'manuscript/frost.md'), elsewhere)
+    unwrap(await repository.saveChapterCopy(root, p('manuscript/frost.md'), 'Mine.\n', 'my version'))
+    const reopened = unwrap(await repository.open(root))
+    expect(reopened.chapters.find((c) => c.file === 'manuscript/frost-my-version.md')).toMatchObject({ title: 'Frost (my version)', listed: false })
+    expect(reopened.duplicateIds).toEqual([])
+  })
+
+  it('never overwrites an earlier copy', async () => {
+    const { root, repository, read } = await setup()
+    unwrap(await repository.saveChapterCopy(root, p('manuscript/frost.md'), 'First.\n', 'my version'))
+    expect(unwrap(await repository.saveChapterCopy(root, p('manuscript/frost.md'), 'Second.\n', 'my version'))).toBe('manuscript/frost-my-version-2.md')
+    expect(await read('manuscript/frost-my-version.md')).toMatch(/\nFirst\.\n$/)
+  })
+
+  it("still saves the author's text when the chapter was deleted elsewhere", async () => {
+    const { root, repository, read } = await setup()
+    await unlink(join(root, 'manuscript/frost.md'))
+    unwrap(await repository.saveChapterCopy(root, p('manuscript/frost.md'), 'Mine.\n', 'my version'))
+    expect(await read('manuscript/frost-my-version.md')).toBe('---\ntitle: frost (my version)\nid: ch-t00001\n---\nMine.\n')
+  })
+})

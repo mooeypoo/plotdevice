@@ -1,4 +1,4 @@
-import { collisionKey, isReservedName, type ProjectPath } from '@plotdevice/shared'
+import { collisionKey, dirnameOf, isReservedName, stemOf, type ProjectPath } from '@plotdevice/shared'
 
 const MANUSCRIPT = 'manuscript'
 const MAX_STEM_CHARACTERS = 100
@@ -12,10 +12,21 @@ const UNSAFE_IN_FOLDER_NAMES = /[<>:"/\\|?*\u0000-\u001f]/g
  * automatically afterwards (owner decision); the author can rename it explicitly.
  */
 export function chapterFileFor(title: string, existing: readonly ProjectPath[]): ProjectPath {
-  const stem = safeStem(title)
+  return freeFileName(MANUSCRIPT, safeStem(title), existing)
+}
+
+/**
+ * Where the author's text goes when they keep both versions of a chapter changed elsewhere: next to
+ * it, named after it plus `label` ("my version" in the interface language): `frost-my-version.md`.
+ */
+export function chapterCopyFileFor(file: ProjectPath, label: string, existing: readonly ProjectPath[]): ProjectPath {
+  return freeFileName(dirnameOf(file), safeStem(`${stemOf(file)} ${label}`), existing)
+}
+
+function freeFileName(folder: string, stem: string, existing: readonly ProjectPath[]): ProjectPath {
   const taken = new Set(existing.map(collisionKey))
   for (let n = 1; ; n++) {
-    const candidate = `${MANUSCRIPT}/${n === 1 ? stem : `${stem}-${n}`}.md`
+    const candidate = `${folder ? `${folder}/` : ''}${n === 1 ? stem : `${stem}-${n}`}.md`
     if (!taken.has(collisionKey(candidate))) return candidate as ProjectPath
   }
 }
