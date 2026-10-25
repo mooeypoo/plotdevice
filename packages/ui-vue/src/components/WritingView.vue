@@ -2,7 +2,7 @@
 import type { ProjectView } from '@plotdevice/contracts'
 import type { FormatCommand } from '@plotdevice/editor-codemirror'
 import type { ProjectPath } from '@plotdevice/shared'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useChapterWriting } from '../composables/use-chapter-writing'
 import { usePrompt } from '../composables/use-prompt'
 import { useProjectStore } from '../stores/project'
@@ -61,12 +61,17 @@ function firstChapter(): { file: ProjectPath; cursor: number } | null {
   return null
 }
 
+/** Entering or leaving focus mode returns the author to the page, cursor where it was. */
+function setFocusMode(on: boolean): void {
+  view.focusMode = on
+  void nextTick(() => writing.focus())
+}
+
 function onKey(event: KeyboardEvent): void {
-  if (event.key === 'Escape' && view.focusMode) view.focusMode = false
-  else if (event.key.toLowerCase() === 'f' && event.shiftKey && (event.ctrlKey || event.metaKey)) view.focusMode = !view.focusMode
+  if (event.key === 'Escape' && view.focusMode) setFocusMode(false)
+  else if (event.key.toLowerCase() === 'f' && event.shiftKey && (event.ctrlKey || event.metaKey)) setFocusMode(!view.focusMode)
   else return
   event.preventDefault()
-  writing.focus()
 }
 
 onMounted(() => {
@@ -88,9 +93,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         </button>
         <MenuButton :label="t('toolbar-format')" :text="t('toolbar-format')" :items="formatItems" testid="format-menu" />
         <MenuButton :label="t('toolbar-direction')" :text="t('toolbar-direction')" :items="directionItems" testid="direction-menu" />
-        <button type="button" data-testid="focus-mode" @click="view.focusMode = true">{{ t('focus-enter') }}</button>
+        <button type="button" data-testid="focus-mode" @click="setFocusMode(true)">{{ t('focus-enter') }}</button>
       </div>
-      <button v-else type="button" class="leave-focus" data-testid="leave-focus" @click="view.focusMode = false">{{ t('focus-exit') }}</button>
+      <button v-else type="button" class="leave-focus" data-testid="leave-focus" @click="setFocusMode(false)">{{ t('focus-exit') }}</button>
 
       <div class="paper" :class="pageClasses">
         <p v-if="writing.state.value === 'unreadable'" class="warning" role="alert">{{ t('chapter-unreadable') }}</p>

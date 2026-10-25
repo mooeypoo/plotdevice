@@ -1,6 +1,6 @@
 # Milestone 3: Writing (Gate 3)
 
-Status: **Approved** (owner, 2026-10-25), with the recommended autosave timing, "Keep both" as the default conflict choice, and the listed dependencies.
+Status: **Complete** (2026-10-25), on branch `milestone-3/writing`. Approved by the owner with the recommended autosave timing, "Keep both" as the default conflict choice, and the listed dependencies. Results are at the end of this document.
 
 ## Goal
 
@@ -92,3 +92,58 @@ These follow `AGENTS.md`. The autosave queue and conflict handling are written t
 3. The interface: welcome, navigator, writing view, conflict dialog, focus mode, settings.
 4. File watching, paste conversion, spellcheck, flushing saves on quit.
 5. End-to-end scenarios, the accessibility pass, docs and results.
+
+## Results
+
+| Check | Result |
+|---|---|
+| `pnpm lint` | OK |
+| `pnpm typecheck` | OK |
+| `pnpm test` | **398 tests pass** (255 before this milestone) |
+| `pnpm arch` | **21 checks pass**, including the new `editor-is-just-an-editor` rule and its fixture |
+| `pnpm build` | OK |
+| `pnpm e2e` | **22 end-to-end tests pass** in the real app (10 before), with no CSP violations |
+
+**What the tests prove:**
+- **Autosave** (application, test-first): 100 rapid saves give one write at a time, never older text after newer, with each write expecting the revision the previous one produced. "Saved" appears only for a confirmed write, never while newer text waits. A conflict stops saving and keeps the newest text; a failure is reported and retried on the next change. Mutation checks confirm the "saved too early" and conflict tests fail when their guards are removed.
+- **Never overwriting a reload:** every text the editor loads has a generation number. A save typed into an older generation, before the editor showed a reload, becomes a conflict instead of a silent overwrite. A mutation check confirms the test catches its removal.
+- **Conflicts** (scenario G): "Keep both" leaves the other app's version in the chapter and writes the author's text to `frost-my-version.md`. The copy keeps the chapter's other frontmatter keys and comments, with a new title and a new id, and appears under "Not in the book yet". "Use my version" replaces the file only after the choice. Both work in the real app.
+- **The editor** (state-level, no screen):
+  - Every chapter fixture opens and saves byte-identically, as do CRLF, mixed line endings, trailing spaces and a missing final newline.
+  - Typing changes only its own paragraph.
+  - Enter starts a paragraph and continues lists; Shift+Enter writes a backslash break.
+  - Formatting writes plain Markdown, and applying it again removes it.
+  - Direction markers are written only when needed, protected from Backspace, and removed with an emptied paragraph, in Hebrew and in CRLF files.
+- **Pasting:** Word, Google Docs (including its style-only bold and italic), web pages and Hebrew Word HTML become clean, escaped Markdown. Scripts, styles and images are dropped; unsafe links keep only their text. Markdown copied from a code editor pastes as written.
+- **Scenarios in the real app:**
+  - **A:** create, write, quit and reopen, returning to the same chapter (PRD G2).
+  - **F:** a Hebrew book with a marked English phrase, in a Hebrew interface, survives reopening with the marker hidden.
+  - **G:** both conflict choices, plus a quiet reload of an unedited chapter.
+  - **H:** theme, language and focus mode keep the same editor instance, the cursor and undo history.
+- **Also covered:**
+  - Keyboard reordering.
+  - Keyboard-only formatting.
+  - Every control named in both languages.
+  - The project folder gains no app files.
+  - Quitting or closing the window right after typing still saves, with saves slowed as on Windows. The quit test fails without its fix.
+- **The navigator's move placements** match the domain's on the sample novel. Every chapter moves one step and back.
+
+**Where the work differs from the plan:**
+- **"Keep both" names the copy `frost-my-version.md`, not `frost (my version).md`.** Parentheses are kept out of file names because they break Markdown links. The label follows the interface language.
+- **No CSP nonce.** The editor lives in a shadow root, where CodeMirror's styles are constructed stylesheets, which the CSP doesn't restrict. The strict policy is unchanged (ADR 0004 note).
+- **Paste conversion runs in the page,** with pure libraries and no DOM, rather than in the main process. Either way the CSP needs no exception; in the page it stays synchronous.
+- **Two bugs found and fixed while building:**
+  - CodeMirror would have turned every Windows line ending into `\n` on first save. Caught by the new CRLF tests.
+  - Quitting the app (as opposed to closing the window) could finish before the page sent its last second of typing. Caught by a new end-to-end test.
+
+**Not done, needs the owner:**
+- **A screen-reader pass with Orca.** It needs a desktop session with audio; the automated checks cover names, labels and keyboard paths only.
+- **Windows.** CI runs every test on Windows, but nobody has written in the app there by hand.
+- **Spellcheck dictionaries:** on Linux (and on Windows without OS dictionaries), Electron downloads Hunspell dictionaries from Google's servers the first time a language is chosen. Decide whether that's acceptable or whether to bundle dictionaries.
+- **chokidar 6 is a rewrite released this month.** File events are only hints, so a bug there can't lose text, but it is worth watching.
+
+**Later (noted, not in this milestone):**
+- **Home and End in mixed-direction lines** follow CodeMirror's visual behaviour. In a left-to-right line that starts with a Hebrew word, Home stops after that word. This is standard for bidirectional editors, but worth checking with authors.
+- Pasted HTML's `dir` attributes could become direction markers; for now they are ignored.
+- A "Find…" for a moved project currently opens the folder dialog without updating the recent entry it replaces.
+- Prettier reports long lines across the repository (55 files before this milestone); CI doesn't enforce it. Decide whether to reformat once.

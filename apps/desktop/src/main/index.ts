@@ -26,15 +26,20 @@ app.on('window-all-closed', () => app.quit())
 
 /** Work that must finish before the app quits, such as a settings save still in progress. */
 const pendingWork: (() => Promise<void>)[] = []
+/** Asks the page to send text still waiting for its autosave delay; set once the window exists. */
+let flushPage: () => Promise<void> = async () => undefined
 let finishedPendingWork = false
 app.on('before-quit', (event) => {
   if (finishedPendingWork) return
-  // Closing the window right after a change must not lose it (seen on Windows, where saves are slower).
+  // Closing right after a change must not lose it (seen on Windows, where saves are slower). The page
+  // sends its pending text first, so the saves waited for below include it.
   event.preventDefault()
-  void Promise.all(pendingWork.map((wait) => wait())).finally(() => {
-    finishedPendingWork = true
-    app.quit()
-  })
+  void flushPage()
+    .then(() => Promise.all(pendingWork.map((wait) => wait())))
+    .finally(() => {
+      finishedPendingWork = true
+      app.quit()
+    })
 })
 
 void app.whenReady().then(async () => {
@@ -84,18 +89,20 @@ void app.whenReady().then(async () => {
 
   // Before the window closes, the page sends any text still waiting for its autosave delay.
   const flushWaiters: (() => void)[] = []
-  let closingAfterFlush = false
-  window.on('close', (event) => {
-    if (closingAfterFlush) return
-    event.preventDefault()
-    void new Promise<void>((resolve) => {
+  let pageFlushed = false
+  flushPage = async () => {
+    if (pageFlushed || window.isDestroyed()) return
+    await new Promise<void>((resolve) => {
       flushWaiters.push(resolve)
       window.webContents.send(eventChannel, { kind: 'flush' })
       setTimeout(resolve, FLUSH_TIMEOUT_MS)
-    }).then(() => {
-      closingAfterFlush = true
-      window.close()
     })
+    pageFlushed = true
+  }
+  window.on('close', (event) => {
+    if (pageFlushed) return
+    event.preventDefault()
+    void flushPage().then(() => window.close())
   })
 
   const chooseFolder = async (titleKey: string): Promise<string | null> => {

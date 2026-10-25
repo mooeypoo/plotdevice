@@ -56,7 +56,7 @@ export function useChapterWriting(host: Ref<HTMLElement | null>) {
   }
 
   async function open(next: ProjectPath, cursor = 0): Promise<void> {
-    if (next === file.value && state.value === 'ready') return
+    if (next === file.value && state.value === 'ready') return editor?.focus()
     flush()
     rememberPosition()
     file.value = next
