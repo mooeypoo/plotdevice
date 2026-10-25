@@ -1,96 +1,58 @@
-# Plot Device
+# Plot Device — Authoritative Agent Instructions (New Implementation)
 
-A local desktop app for writing a novel. It works on a folder of plain markdown files that stays fully usable without the app (Obsidian, git, any text editor). The app is a lens on that folder: an editor, plus views that make the story visible (binder, outline, timeline, characters, interactions).
+> Read `docs/PRD.md`, `docs/UX_SPEC.md`, `docs/DOMAIN_AND_FILE_FORMAT.md`, `docs/ARCHITECTURE.md`, and `docs/IMPLEMENTATION_PLAN.md` before starting. This is a CLEAN BUILD, not a legacy refactor.
 
-## App identity
+## Mission and priority
+Plot Device is an approachable writing studio for fiction authors, backed by ordinary local Markdown. Optimize for nontechnical writer experience, portability, reliability, and maintainability, in that order when tradeoffs are otherwise equal. The workspaces are **Story** (working name) and **Write**, used in any order. Planning is never required to write.
 
-The display name is **Plot Device**. Everywhere a technical token is needed, it is **`plotdevice`**: lowercase, no space, no hyphen.
+Priority of authority: explicit user decisions > current PRD/UX/file-format/architecture/ADRs > this document > agent choices. Legacy source and documentation are **not** specifications. When specs conflict, identify and record the conflict rather than silently resolving it by copying legacy behavior.
 
-Set these in Phase 0 and never change them. The settings folder and the Windows installer identity depend on them, so a rename would orphan user settings and break upgrades.
+## Clean-room migration rule
+- Do not import or bulk-copy the previous `mooeypoo/plotdevice` implementation. Do not run migrations from its data model without separate approval.
+- Legacy repository may be inspected read-only in a separate folder. Only copy assets after verifying filenames/licenses and only port code following a reviewed extraction proposal (path, dependencies, tests, new responsibility). Reimplement when extraction retains old assumptions.
+- Do not copy legacy `src/`, package files, build configuration, `AGENTS.md`, `CLAUDE.md`, UI views, routes, Electron IPC, workbench machinery, or domain contexts wholesale.
 
-| Setting | Value |
-|---|---|
-| `productName` (window title, menus, installer) | `Plot Device` |
-| `package.json` `name`, repo name | `plotdevice` |
-| Linux `executableName` | `plotdevice` |
-| `appId` | `tech.moriel.plotdevice` |
-| Settings folder (`userData`) | `plotdevice` under the OS app-data directory (see below) |
-| Preload global / API interface | `window.plotDevice` / `PlotDeviceApi` (camelCase per TypeScript convention) |
+## Product invariants
+1. One Markdown file per **chapter**, optional parts, no required Scene entity or scene files. Scene separators inside chapter prose are formatting only in MVP.
+2. Manuscript order is in a project manifest, **not** filenames or filesystem order. Rename source files only by controlled explicit operation; IDs remain stable.
+3. Each author-created outline is ordinary Markdown: `##` sections, primary bullets as items/cards, nested bullets as details. Board, Outline and Cards are **projections**, not separate data stores. Multiple independent outlines are allowed.
+4. Outline headings/cards do not automatically mean manuscript chapters/scenes. Cross-references are explicit and optional; moving an outline card never moves prose.
+5. All essential author data remains legible and organized without Plot Device; avoid opaque ID-only index files as the sole means of recovering story order.
+6. The application owns UX, not authors' text. Never lose unknown Markdown/frontmatter or silently overwrite concurrent external edits.
+7. First-class EN/HE UI, RTL/LTR mixed prose, system/light/dark themes. Locale, UI direction, document language and text direction are distinct.
 
-Electron would otherwise name the settings folder after `productName` (`Plot Device`, with a space). Override it in `src/main/index.ts` before `app` is ready:
+## Architecture / dependency laws
+- DDD-inspired logical contexts: Project/Manifest, Manuscript, Outline, Story Bible, References, Workspace, Export. Avoid microservice ceremony.
+- Pure TypeScript domain; no Electron, Vue, Node, filesystem, Markdown parser, IPC, UI library, or translation framework imports.
+- Application owns commands, queries and ports; imports domain but never infrastructure.
+- Infrastructure implements storage ports, Markdown AST/frontmatter adapters, safe file writes and OS services.
+- Presentation owns view-model projections, not parsing/storage; UI components render and handle interactions.
+- Electron main is privileged host; renderer is sandboxed with context isolation and a restrictive CSP; preload exposes narrow typed validated IPC. No direct `fs` in Vue.
+- Enforce these constraints with TS project references and dependency-cruiser (or equivalent static dependency tests) in CI. No exception without ADR.
+- Favor simple functions and explicit boundaries, not factories/interfaces for every helper. Use strict TypeScript, `noUncheckedIndexedAccess`; avoid `any`.
 
-```ts
-app.setPath('userData', join(app.getPath('appData'), 'plotdevice'))
-```
+## Safety rules learned from legacy work
+- Preserve unknown frontmatter fields, key order, comments, body, BOM, line endings and unsupported Markdown wherever possible.
+- No-op load/save must be byte-identical. Do targeted patches when feasible, not destructive full document regeneration.
+- Use revision/hash compare-before-write; if stale, refuse overwrite and offer recovery. Use atomic write/replace and recoverable backup where possible.
+- Treat file watcher events as hints, not as conflict detection; account for app's own writes.
+- Normalize project-relative paths with `/`, use safe platform path APIs only in infrastructure. Check case collisions, Windows reserved names, path traversal and symlink escape before writes.
+- Never infer links solely from display titles. Validate IDs, duplicate IDs and broken references.
+- A failed or invalid parse must not trigger 'repair' writes without user approval.
 
-Read these before changing code:
+## Coding conventions
+- Vue 3 Composition API with TypeScript, Electron, strict TS monorepo, Vitest, ESLint/Prettier. Select exact versions during scaffold; don't cargo-cult legacy lockfile.
+- Tiptap vs CodeMirror **undecided**: run documented spike including RTL/BiDi, Markdown fidelity, keyboard selection, accessibility, performance and pasting before standardizing.
+- Banana-style keyed JSON localization; translator facade supports parameters, plural, gender, CLDR as needed; avoid gettext/POT. Use logical CSS properties, isolation for user content and keyboard-accessible drag alternatives.
+- Document exported domain/application interfaces concisely. Explain *why* in comments; avoid verbose boilerplate. A short README per bounded context is encouraged.
+- No new app feature, cross-context coupling, schema change or dependency without identifying which requirement it serves.
 
-- `docs/file-format.md` is the contract for the files on disk. It outranks everything else.
-- `docs/architecture.md` describes the layers, bounded contexts, and dependency rules.
-- `docs/roadmap.md` lists the phases. Work on one phase at a time.
-- `docs/adr/` holds short decision records. Add one when you make a decision a future developer would question.
+## Quality gates
+- Tests: pure domain; Markdown round-trip and targeted edits; stale write and atomic recovery; schema fixtures; typed IPC contracts; critical UI E2E; EN/HE mixed text; theme persistence and editor-not-remounting.
+- Reuse a **copy** of any legacy fixture as test-only data after inspecting its contents and license; never make it the new canonical file format.
+- Run lint, typecheck, unit/integration tests, dependency boundary checks and production compile before reporting milestone complete. Report exact commands and failures.
+- Implement one approved milestone at a time. Begin by listing files to create/change, acceptance tests, and open decisions; obtain human approval before modifying code. Do not auto-build the whole PRD.
+- For each milestone, report: functionality demonstrated; tests; architecture boundary compliance; known limitations; ADRs.
 
-## Non-negotiables
-
-1. **The folder is the source of truth.** No database, no hidden app files in the project folder. All derived data (indexes, word counts, the timeline) can be rebuilt from the files. Per-user UI state (window size, recent projects) lives in Electron's `userData` directory, never in the novel folder.
-2. **Never damage the user's files.**
-   - Preserve unknown frontmatter keys, key order, YAML comments, the body, and line endings.
-   - Change only the keys the app owns.
-   - Write atomically (`write-file-atomic`).
-   - If a file can't be parsed, show a warning and leave the file untouched.
-3. **Domain code is pure.** `domain/` imports nothing from Electron, Node, Vue, or any infrastructure library. `dependency-cruiser` enforces this, and lint must pass.
-4. **The renderer never touches the filesystem.** It only talks to the main process through the typed API in `src/contract/`.
-5. **Linux and Windows both work.**
-   - Use `node:path` for all filesystem paths in infrastructure. Store project-relative paths (`ProjectPath`) with forward slashes. Domain code never imports `node:path`.
-   - Validate file names (Windows-forbidden characters, reserved names, and characters that break wikilinks).
-   - Expect case-insensitive file systems.
-
-## Stack
-
-- Electron, scaffolded with electron-vite and packaged with electron-builder.
-- Vue 3 (`<script setup lang="ts">`, Composition API) and Pinia.
-- TypeScript in strict mode, with `noUncheckedIndexedAccess`. No `any`; use `unknown` and narrow.
-- CodeMirror 6 for the editor.
-- `yaml` (Document API, which preserves formatting) for frontmatter, and `zod` to validate parsed data and IPC payloads.
-- `chokidar` for file watching.
-- Vitest for tests, ESLint with typescript-eslint and eslint-plugin-vue, Prettier, and dependency-cruiser.
-
-Check with me before adding a dependency that isn't on this list.
-
-## Code style
-
-- Write clear code first. A function name should say what it does, so a comment only needs to say *why*.
-- Use TSDoc on exported domain and application symbols: one or two sentences, no restating the signature.
-- Each bounded context has a `README.md` of at most 15 lines covering its purpose, main concepts, and what it must not know about.
-- Use small files with one concept per file. Use named exports, no default exports (Vue SFCs excepted).
-- Return `Result<T, E>` (in `shared-kernel`) for expected failures such as invalid input or a missing file. Throw only for bugs.
-- Use the domain language in code. Use `Part`, `Chapter`, `Thread`, `StoryDate`, `Character`, not `Item`, `Node`, or `Data`.
-- Vue components only present. Logic belongs in composables (UI logic) or behind the API (domain logic).
-
-## Testing
-
-- Domain and application code: unit tests next to the source (`*.test.ts`). Write them first for new domain rules.
-- Infrastructure: tests run against a copy of `fixtures/sample-novel/` in a temp directory.
-- Every bug fix includes a test that would have caught it.
-- Round-trip test: reading and then writing any fixture file without changes must produce identical bytes.
-
-## Commands
-
-```bash
-npm run dev          # run the app with hot reload
-npm run test         # vitest
-npm run lint         # eslint + dependency-cruiser
-npm run typecheck    # vue-tsc --noEmit
-npm run build:linux  # AppImage + deb
-npm run build:win    # NSIS installer (normally built in CI)
-```
-
-Before saying a task is done, run `npm run lint && npm run typecheck && npm run test && npx electron-vite build`. The build compiles the Vue templates, which lint and typecheck don't.
-
-Setup, local builds, and troubleshooting (including the Ubuntu sandbox error) are in `docs/development.md`.
-
-## Working style (all agents)
-
-- Start each phase with a written plan, including the files you'll touch, and wait for approval before changing code.
-- Keep changes scoped to the current phase. Note anything else you spot in `docs/roadmap.md` under "Later".
-- When you finish a phase, update the relevant context README and tick the phase in the roadmap.
+## Explicit phase-zero task
+Read the docs, propose repo scaffold and 3 short throwaway spikes (outline editing/roundtrip, editor selection, safe manifest writes), and STOP for approval. Do not implement the full app or copy legacy source as the first action.

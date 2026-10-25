@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- The same nib, simplified for 16-32 px: a larger nib, one bold curve, no breather hole. -->
-  <rect x="0" y="0" width="512" height="512" rx="96" fill="#1b1c21"/>
-  <path d="M256 40 L 368 196 C 378 211 375 232 362 245 L 256 352 L 150 245 C 137 232 134 211 144 196 Z"
-        fill="#f0eadf"/>
-  <path d="M256 150 L 256 352" stroke="#141518" stroke-width="26" stroke-linecap="round"/>
-  <path d="M256 352 C 256 410, 176 404, 154 444 C 140 472, 214 474, 280 446 C 330 426, 372 432, 420 452"
-        fill="none" stroke="#c99a45" stroke-width="40" stroke-linecap="round"/>
-</svg>

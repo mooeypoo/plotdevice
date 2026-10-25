@@ -1,10 +1,6 @@
-# Plot Device — Claude Code
+# Claude Code entry point
 
-`AGENTS.md` is the single source of project instructions for every coding agent. Follow it in full:
+Follow [AGENTS.md](AGENTS.md) as the authoritative engineering instructions.
+Read `docs/PRD.md`, `docs/UX_SPEC.md`, `docs/DOMAIN_AND_FILE_FORMAT.md`, `docs/ARCHITECTURE.md`, and `docs/IMPLEMENTATION_PLAN.md` before working.
 
-@AGENTS.md
-
-## Claude Code specifics
-
-- Plan each phase in plan mode.
-- Keep project rules in `AGENTS.md`, not here. Only Claude-specific notes belong in this file.
+This repository is a **new implementation**. The legacy repository is not an implementation template. Do not refactor it in place or bring over legacy product assumptions. Start with the phase-zero review and wait for approval before writing production implementation.
