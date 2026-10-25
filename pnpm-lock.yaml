@@ -221,6 +221,15 @@ importers:
         specifier: workspace:*
         version: link:../shared
 
+  packages/fs-node:
+    dependencies:
+      '@plotdevice/application':
+        specifier: workspace:*
+        version: link:../application
+      '@plotdevice/shared':
+        specifier: workspace:*
+        version: link:../shared
+
   packages/shared: {}
 
 packages:
