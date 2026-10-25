@@ -33,8 +33,27 @@ C. File operations: manifest-driven order, stale-write detection, atomic safe sa
 - Stale-save conflict prompts, recoverable writing, missing files, backups, migration, large fixture performance, keyboard navigation, mixed RTL accessibility, packaging/install tests.
 
 ## Per-milestone required evidence
+Testing follows `AGENTS.md`, "Testing and quality requirements": each milestone states its testing requirements before coding and reports actual results before completion.
+
 1. Demo of named author workflow.
 2. Unit/integration/E2E test results and Markdown before/after fixtures.
 3. Dependency-boundary lint/TS checks.
 4. Screenshots or videos in English/Hebrew, light/dark.
 5. Decisions and known limitations; explicit next gate approval.
+
+### Testing requirements for milestones
+
+Every implementation milestone must identify its relevant automated tests and acceptance criteria.
+
+Testing should be proportional to the feature's complexity and risk, following the testing philosophy in `AGENTS.md`.
+
+Each milestone completion report must include:
+
+- The important behaviors verified.
+- The tests executed and their results.
+- Any known gaps or deferred testing, with justification.
+- Confirmation that architecture checks and type checking pass.
+
+High-risk persistence and data-transformation functionality requires more thorough testing than simple presentation components.
+
+Avoid arbitrary coverage targets, duplicate tests, or tests that primarily assert implementation details.

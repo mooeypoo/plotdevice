@@ -54,5 +54,85 @@ Priority of authority: explicit user decisions > current PRD/UX/file-format/arch
 - Implement one approved milestone at a time. Begin by listing files to create/change, acceptance tests, and open decisions; obtain human approval before modifying code. Do not auto-build the whole PRD.
 - For each milestone, report: functionality demonstrated; tests; architecture boundary compliance; known limitations; ADRs.
 
+## Testing and quality requirements
+- Test observable behavior, domain invariants, regressions and meaningful failure conditions, not implementation details.
+- Every significant feature or bug fix ships with appropriate automated tests. Meaningful bug fixes include a regression test whenever practical.
+- Test the highest-risk areas most thoroughly: Markdown preservation, outline transformations, manuscript ordering and safe persistence (stale writes, atomicity, recovery).
+- Test domain and application logic without Electron or Vue. Test file operations against real temporary files where appropriate, not mocked filesystems.
+- UI tests cover meaningful user interactions and accessibility. A small number of end-to-end tests cover essential author workflows.
+- Include English, Hebrew, other Unicode (combining marks, emoji) and mixed-direction content in relevant tests.
+- Architecture rules are enforced automatically, including tests that prove the rules detect violations.
+- Keep tests deterministic (seeded randomness, no timing races) and maintainable, with minimal mocking.
+- No arbitrary coverage targets, and no tests written only to raise the count.
+- Prefer test-first for high-risk domain and persistence operations. It is optional for straightforward UI work.
+- Each milestone states its testing requirements before coding and reports the actual results (commands and output) before completion.
+
+## Testing and quality requirements
+
+Testing is an essential part of implementing Plot Device, but tests must provide meaningful confidence rather than maximize test counts or coverage percentages.
+
+### Testing philosophy
+
+- **Test observable behavior, domain invariants, and important failure conditions.** Prefer tests that demonstrate a real requirement over tests that mirror implementation details.
+- **Every meaningful feature or bug fix should include appropriate tests.** Choose the smallest test level that provides useful confidence.
+- **Prioritize high-risk functionality.** Markdown preservation, manuscript ordering, outline transformations, file writes, recovery, and user-authored content deserve especially strong testing.
+- **Keep tests maintainable.** Use descriptive names, realistic fixtures, and clear assertions. Avoid unnecessary mocking and complicated test infrastructure.
+- **Do not test implementation trivia.** Avoid tests that merely confirm a function was called, mock the entire implementation, or duplicate TypeScript's static type checks.
+- **Do not chase arbitrary coverage percentages.** Coverage may help identify gaps, but it is not a substitute for meaningful behavioral assertions.
+- **Regression tests are required for meaningful bugs.** Reproduce the failure in a test before or alongside the fix whenever practical.
+- **Tests should remain deterministic.** Avoid timing-sensitive assumptions, external services, and dependencies on a developer's machine unless explicitly testing platform behavior.
+
+### Testing strategy
+
+Use the appropriate test level for each responsibility:
+
+**Domain and application tests**
+- Validate business rules, entities, ordering, linking, and permitted operations.
+- Test use cases through their public interfaces.
+- Use in-memory implementations of repository ports where appropriate.
+- Do not require Electron, Vue, or actual filesystem access.
+
+**Markdown and persistence tests**
+- Use realistic Markdown fixtures, including English, Hebrew, mixed-direction text, Unicode, unusual whitespace, CRLF, and malformed content.
+- Verify that parsing and saving without changes preserves the original bytes.
+- Verify that editing one element does not unexpectedly alter unrelated content.
+- Test missing files, conflicts, interrupted writes, and recovery.
+- Prefer actual temporary files for filesystem integration tests over excessive mocking.
+
+**Presentation and UI tests**
+- Test meaningful interactions such as creating chapters, editing outlines, switching views, finding references, and changing workspace layouts.
+- Test behavior and accessibility from the user's perspective rather than asserting internal Vue component structure.
+- Use focused component tests for reusable widgets with meaningful interaction logic.
+- Use a small number of end-to-end tests for essential writer workflows.
+- Include English/Hebrew and RTL/LTR cases where direction affects behavior.
+
+**Architecture tests**
+- Automatically enforce dependency boundaries.
+- Verify that the domain remains independent of Vue, Electron, Node filesystem APIs, and Markdown libraries.
+- Test that architectural rules actually detect intentional violations.
+
+### Implementation expectations
+
+For each implementation milestone:
+
+1. Identify the important behaviors and risks that need testing before implementation.
+2. Implement tests alongside the feature, using test-first development where it helps clarify domain rules.
+3. Run the relevant tests during development.
+4. Before declaring the milestone complete, run linting, type checking, architecture checks, and the relevant automated test suite.
+5. Run the production build when the affected packages or milestone require it.
+6. Report what was tested, what passed, and any known gaps.
+
+Do not add tests merely to increase the number of tests.
+
+Do not skip important tests merely to finish a milestone faster.
+
+A feature is not complete when it only works in a demonstration. It is complete when its important behaviors and failure conditions are verified and it meets its acceptance criteria.
+
+### Testability as an architecture signal
+
+If a domain operation is difficult to test without starting Electron, mounting Vue components, or using real project files, investigate whether responsibilities are improperly coupled.
+
+Favor code that is naturally testable because of clear separation of concerns, rather than adding abstractions solely to make tests possible.
+
 ## Explicit phase-zero task
 Read the docs, propose repo scaffold and 3 short throwaway spikes (outline editing/roundtrip, editor selection, safe manifest writes), and STOP for approval. Do not implement the full app or copy legacy source as the first action.
