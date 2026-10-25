@@ -38,6 +38,7 @@ export {
   renameChapterFileSchema,
   renameChapterSchema,
   type ChapterRef,
+  type CompileResult,
   type ContentsChangeRequest,
   type CreateProjectResult,
   type NewProjectRequest,

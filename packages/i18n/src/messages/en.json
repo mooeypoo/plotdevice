@@ -206,5 +206,9 @@
   "versions-copied": "Saved as “$1”.",
   "versions-stale": "This file changed in another app since you opened its versions. Nothing was restored.",
   "versions-failed": "That didn't work. Nothing was changed.",
-  "versions-close": "Close"
+  "versions-close": "Close",
+  "compile-book": "Compile book…",
+  "compiled": "The book was saved as “$1”.",
+  "compiled-missing": "The book was saved as “$1”, without these missing chapters: $2.",
+  "compile-failed": "The book couldn't be saved there. Nothing was changed."
 }

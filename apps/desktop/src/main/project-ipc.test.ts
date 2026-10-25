@@ -1,7 +1,7 @@
 import { createOutlineSession, createRecentProjectsSession, createWritingSession, type SessionEvent } from '@plotdevice/application'
 import { channels, type CardLinksView, type CopyVersionResult, type VersionResult, type VersionsView, type OpenChapterResult, type ReferenceResult, type ReferenceSummaryView, type OpenProjectResult, type OutlineResult, type ProjectChangeResult, type ProjectView, type ResolveConflictResult } from '@plotdevice/contracts'
 import { createAppDataFile, createBackupStore, createJournalStore, createProjectFolders, randomIdGenerator } from '@plotdevice/fs-node'
-import { createOutlineRepository, createProjectRepository, createReferenceRepository, createVersionRepository, withBackups } from '@plotdevice/storage'
+import { compileManuscript, createOutlineRepository, createProjectRepository, createReferenceRepository, createVersionRepository, withBackups } from '@plotdevice/storage'
 import { access, cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -35,7 +35,7 @@ async function setup() {
   const session = createWritingSession({ repository, copyLabel: () => 'my version' })
   const events: SessionEvent[] = []
   session.onEvent((event) => events.push(event))
-  const dialogs = { folder: null as string | null, location: null as string | null }
+  const dialogs = { folder: null as string | null, location: null as string | null, saveAs: null as string | null, suggested: '' }
   let flushed = 0
   const recent = await createRecentProjectsSession(createAppDataFile(appData, 'recent'))
   const outlines = createOutlineSession({ repository: createOutlineRepository({ folders }), root: () => session.project()?.root ?? null })
@@ -53,6 +53,12 @@ async function setup() {
       chooseNewProjectLocation: async () => dialogs.location,
       folderExists: (path) => access(path).then(() => true, () => false),
       onFlushed: () => flushed++,
+      chooseSaveLocation: async (suggested) => ((dialogs.suggested = suggested), dialogs.saveAs),
+      compile: (snapshot) => compileManuscript(createProjectFolders(), snapshot),
+      writeOutside: (path, text) => writeFile(path, text).then(
+        () => true,
+        () => false,
+      ),
     },
     outlines: { outlines, writing: session, recent },
     references: { references: createReferenceRepository({ folders }), writing: session, recent },
@@ -321,5 +327,17 @@ describe('version calls', () => {
     expect(copy).toMatch(/^---\ntitle: Frost \(version 1\)\nid: ch-[0-9a-z]{6}\n---\n/)
     expect(copy).not.toContain('ch-p0n1zz')
     expect(copy).toContain('the frost came early')
+  })
+})
+
+describe('compiling the book', () => {
+  it('suggests a file next to the project folder, writes the book there, and leaves the project alone', async () => {
+    const context = await setup()
+    await openChosen(context)
+    expect(await context.call(channels.compileBook)).toEqual({ ok: false, error: 'cancelled' })
+    expect(context.dialogs.suggested).toBe(join(context.base, 'The Salt Orchard.md'))
+    context.dialogs.saveAs = join(context.base, 'book.md')
+    expect(await context.call(channels.compileBook)).toEqual({ ok: true, value: { path: join(context.base, 'book.md'), missing: [] } })
+    expect(await readFile(join(context.base, 'book.md'), 'utf8')).toContain('## 4. Frost')
   })
 })

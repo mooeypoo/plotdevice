@@ -78,3 +78,6 @@ export interface OpenedProject {
 export type OpenProjectResult = Result<OpenedProject, 'cancelled' | 'not-a-project' | 'unreadable' | 'newer-format' | 'not-recent'>
 export type CreateProjectResult = Result<OpenedProject, 'cancelled' | 'invalid-details' | 'folder-exists' | 'inside-project' | 'io'>
 export type ProjectChangeResult = Result<ProjectView, 'stale' | 'invalid' | 'not-found' | 'unreadable' | 'write-failed' | 'invalid-name' | 'name-taken' | 'no-project'>
+
+/** The compiled book was written to `path`; `missing` chapters couldn't be read and are not in it. */
+export type CompileResult = Result<{ path: string; missing: { file: ProjectPath; title: string }[] }, 'cancelled' | 'no-project' | 'write-failed'>

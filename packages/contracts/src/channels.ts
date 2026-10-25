@@ -9,6 +9,7 @@ export const channels = {
   openProject: 'plotdevice:open-project',
   createProject: 'plotdevice:create-project',
   changeContents: 'plotdevice:change-contents',
+  compileBook: 'plotdevice:compile-book',
   renameChapter: 'plotdevice:rename-chapter',
   renameChapterFile: 'plotdevice:rename-chapter-file',
   openChapter: 'plotdevice:open-chapter',

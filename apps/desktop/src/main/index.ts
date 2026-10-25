@@ -19,9 +19,10 @@ import {
   randomIdGenerator,
   watchProject,
   type ProjectWatcher,
+  writeAtomically,
 } from '@plotdevice/fs-node'
 import { catalogs, createTranslator } from '@plotdevice/i18n'
-import { createOutlineRepository, createProjectRepository, createReferenceRepository, createVersionRepository, withBackups } from '@plotdevice/storage'
+import { compileManuscript, createOutlineRepository, createProjectRepository, createReferenceRepository, createVersionRepository, withBackups } from '@plotdevice/storage'
 import { app, BrowserWindow, dialog, ipcMain, session } from 'electron'
 import { access } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -152,6 +153,16 @@ void app.whenReady().then(async () => {
       chooseNewProjectLocation: () => chooseFolder('dialog-new-project-location'),
       folderExists: (path) => access(path).then(() => true, () => false),
       onFlushed: () => flushWaiters.splice(0).forEach((resolve) => resolve()),
+      chooseSaveLocation: async (suggested) => {
+        if (testSaveAs !== undefined) return testSaveAs || null
+        const chosen = await dialog.showSaveDialog(window, { defaultPath: suggested, filters: [{ name: 'Markdown', extensions: ['md'] }] })
+        return chosen.canceled || !chosen.filePath ? null : chosen.filePath
+      },
+      compile: (snapshot) => compileManuscript(createProjectFolders(), snapshot),
+      writeOutside: (path, text) => writeAtomically(path, new TextEncoder().encode(text)).then(
+        () => true,
+        () => false,
+      ),
     },
     outlines: { outlines, writing, recent },
     references: { references: createReferenceRepository({ folders }), writing, recent },
@@ -175,6 +186,8 @@ const FLUSH_TIMEOUT_MS = 2000
 
 /** Test-only (unpackaged builds): the folder every folder dialog "chooses"; empty means cancelled. */
 const testFolderChoice = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_CHOOSE_FOLDER
+/** Test-only (unpackaged builds): the file every save dialog "chooses"; empty means cancelled. */
+const testSaveAs = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_SAVE_AS
 
 const REFRESH_DELAY_MS = 300
 

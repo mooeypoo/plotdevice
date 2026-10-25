@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { cp, mkdtemp, readFile, rm } from 'node:fs/promises'
+import { cp, mkdtemp, readdir, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { launch, openSettings, type Launched } from './launch'
@@ -71,4 +71,21 @@ test('the Versions panel is named and usable by keyboard, in both languages', as
   await page.keyboard.press('Escape')
   await expect(page.getByTestId('versions')).toBeHidden()
   expect(pageMessages.filter((message) => /Content.Security.Policy/i.test(message))).toEqual([])
+})
+
+test('scenario E: move a chapter, compile the book, and the order changed with no file renamed', async () => {
+  const savedAs = join(base, 'compiled.md')
+  running = await launch(join(base, 'user-data'), { PLOTDEVICE_TEST_CHOOSE_FOLDER: root, PLOTDEVICE_TEST_SAVE_AS: savedAs })
+  const { page } = running
+  await page.getByTestId('open-project').click()
+  await page.locator('.project-title').waitFor()
+  const files = await readdir(join(root, 'manuscript'))
+  await page.locator('[data-chapter="manuscript/frost.md"]').focus()
+  await page.keyboard.press('Alt+ArrowUp') // out of Part Two, to just before it
+  await expect.poll(async () => (await read('CONTENTS.md')).indexOf('frost.md') < (await read('CONTENTS.md')).indexOf('Part Two')).toBe(true)
+  await page.getByTestId('compile-book').click()
+  await expect(page.getByRole('alert')).toContainText('compiled.md')
+  const book = await readFile(savedAs, 'utf8')
+  expect(book.split('\n').filter((line) => line.startsWith('#'))).toEqual(['## 1. Prologue', '# Part One: Arrival', '## 2. The Crossing', '## 3. The Orchard Gate', '## 4. Frost', '# Part Two: Salt', '## 5. Epilogue'])
+  expect(await readdir(join(root, 'manuscript'))).toEqual(files)
 })

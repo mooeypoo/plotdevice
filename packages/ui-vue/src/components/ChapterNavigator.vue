@@ -3,12 +3,14 @@ import type { ChapterRef, ProjectView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { nextTick, toRef } from 'vue'
 import { useNavigator } from '../composables/use-navigator'
+import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import MenuButton from './MenuButton.vue'
 
 const props = defineProps<{ project: ProjectView; openFile: ProjectPath | null }>()
 const emit = defineEmits<{ open: [file: ProjectPath] }>()
 const settings = useSettingsStore()
+const store = useProjectStore()
 const t = settings.t
 const nav = useNavigator(toRef(props, 'project'), toRef(props, 'openFile'), (file) => emit('open', file))
 
@@ -77,6 +79,7 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
     <div class="actions start">
       <button type="button" data-testid="new-chapter" @click="nav.addChapter">{{ t('navigator-new-chapter') }}</button>
       <button type="button" @click="nav.addPart">{{ t('navigator-new-part') }}</button>
+      <button type="button" data-testid="compile-book" @click="store.compile">{{ t('compile-book') }}</button>
     </div>
 
     <section v-if="nav.missing.value.length > 0" class="navigator-section">

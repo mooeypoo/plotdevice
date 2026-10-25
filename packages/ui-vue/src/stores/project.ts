@@ -84,6 +84,16 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   const changeContents = (request: ContentsChangeRequest) => change(() => api.changeContents(request))
+
+  /** Compiles the book where the author chooses, and says where it went and what was missing. */
+  async function compile(): Promise<void> {
+    const compiled = await api.compileBook()
+    if (compiled.ok) {
+      const { path, missing } = compiled.value
+      if (missing.length === 0) tell('compiled', path)
+      else tell('compiled-missing', path, missing.map((chapter) => chapter.title).join(', '))
+    } else if (compiled.error !== 'cancelled') tell('compile-failed')
+  }
   const renameChapter = (file: ProjectPath, title: string) => change(() => api.renameChapter(file, title))
   const renameChapterFile = (file: ProjectPath, newName: string) => change(() => api.renameChapterFile(file, newName))
 
@@ -96,5 +106,5 @@ export const useProjectStore = defineStore('project', () => {
   })
   void refreshRecent()
 
-  return { opened, project, recent, statuses, notice, tell, setProject, open, create, forget, changeContents, renameChapter, renameChapterFile }
+  return { opened, project, recent, statuses, notice, tell, setProject, open, create, forget, changeContents, renameChapter, renameChapterFile, compile }
 })

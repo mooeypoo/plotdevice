@@ -5,6 +5,7 @@ import type { Preferences, PreferencesPatch } from './preferences'
 import type { CardLinksView, ReferenceKind, ReferencePageView, ReferenceResult, ReferenceSummaryView } from './references'
 import type { CopyVersionResult, VersionResult, VersionsView } from './versions'
 import type {
+  CompileResult,
   ContentsChangeRequest,
   CreateProjectResult,
   NewProjectRequest,
@@ -33,6 +34,8 @@ export interface PlotDeviceApi {
   createProject(details: NewProjectRequest): Promise<CreateProjectResult>
 
   changeContents(change: ContentsChangeRequest): Promise<ProjectChangeResult>
+  /** Compiles the book into one Markdown file, asking the author where to save it. */
+  compileBook(): Promise<CompileResult>
   renameChapter(file: ProjectPath, title: string): Promise<ProjectChangeResult>
   renameChapterFile(file: ProjectPath, newName: string): Promise<ProjectChangeResult>
 
