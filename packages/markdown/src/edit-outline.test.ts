@@ -126,6 +126,15 @@ describe('examples, exact output', () => {
   })
 })
 
+describe('reusing an outline already read', () => {
+  it('gives the same result, and is ignored when it was read from different text', () => {
+    const edit: OutlineEdit = { kind: 'move-item', from: { section: 0, path: [1] }, to: { section: 2, parentPath: [], index: 0 } }
+    const expected = apply(basic, edit)
+    expect(editOutline(basic, edit, { parsed: readOutline(basic) })).toEqual({ ok: true, value: expected })
+    expect(editOutline(basic, edit, { parsed: readOutline(fixture('basic-he.md')) })).toEqual({ ok: true, value: expected })
+  })
+})
+
 describe('the outline title', () => {
   it('renames the title', () => {
     expect(apply(basic, { kind: 'set-title', text: 'מטע המלח' })).toBe(basic.replace('# The Salt Orchard', '# מטע המלח'))

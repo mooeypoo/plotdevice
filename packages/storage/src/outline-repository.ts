@@ -8,6 +8,14 @@ import { err, ok, type ProjectPath } from '@plotdevice/shared'
  * its exact bytes, and never written over a change made elsewhere (ADR 0005).
  */
 export function createOutlineRepository({ folders }: { folders: ProjectFolders }): OutlineRepository {
+  // The last reading of each outline, so an edit doesn't read the same text twice (Milestone 6, performance).
+  const lastRead = new Map<string, ParsedOutline>()
+  const documentOf = (root: string, file: ProjectPath, text: string, revision: Revision): OutlineDocument => {
+    const parsed = readOutline(text)
+    lastRead.set(`${root}\u0000${file}`, parsed)
+    return { file, outline: outlineOf(parsed), revision, nestingUnit: parsed.nestingUnit, invalidDetails: parsed.frontmatter?.valid === false }
+  }
+
   return {
     async listOutlines(root) {
       const store = folders.open(root)
@@ -30,7 +38,7 @@ export function createOutlineRepository({ folders }: { folders: ProjectFolders }
       for (let attempt = 0; attempt < 3; attempt++) {
         const file = outlineFileFor(name, await store.listMarkdownFiles())
         const written = await store.write(file, content, null)
-        if (written.ok) return ok(documentOf(file, content.text, written.value))
+        if (written.ok) return ok(documentOf(root, file, content.text, written.value))
         if (written.error.code !== 'stale') break
       }
       return err('write-failed')
@@ -39,7 +47,7 @@ export function createOutlineRepository({ folders }: { folders: ProjectFolders }
     async readOutline(root, file) {
       const read = await folders.open(root).read(file)
       if (!read.ok) return err(read.error === 'missing' ? 'missing' : 'unreadable')
-      return ok(documentOf(file, read.value.text, read.value.revision))
+      return ok(documentOf(root, file, read.value.text, read.value.revision))
     },
 
     async editOutline(root, file, edit, expected, nestingUnit) {
@@ -47,11 +55,12 @@ export function createOutlineRepository({ folders }: { folders: ProjectFolders }
       const current = await store.read(file)
       if (!current.ok) return err(current.error === 'missing' ? 'missing' : 'unreadable')
       if (current.value.revision !== expected) return err('stale')
-      const edited = editOutline(current.value.text, edit, nestingUnit ? { nestingUnit } : {})
+      const parsed = lastRead.get(`${root}\u0000${file}`)
+      const edited = editOutline(current.value.text, edit, { ...(nestingUnit ? { nestingUnit } : {}), ...(parsed ? { parsed } : {}) })
       if (!edited.ok) return err(edited.error)
       const written = await store.write(file, { text: edited.value, hasBom: current.value.hasBom }, expected)
       if (!written.ok) return err(written.error.code === 'stale' ? 'stale' : 'write-failed')
-      return ok({ document: documentOf(file, edited.value, written.value), previous: current.value.text })
+      return ok({ document: documentOf(root, file, edited.value, written.value), previous: current.value.text })
     },
 
     async restoreOutline(root, file, text, expected) {
@@ -61,14 +70,9 @@ export function createOutlineRepository({ folders }: { folders: ProjectFolders }
       if (current.value.revision !== expected) return err('stale')
       const written = await store.write(file, { text, hasBom: current.value.hasBom }, expected)
       if (!written.ok) return err(written.error.code === 'stale' ? 'stale' : 'write-failed')
-      return ok(documentOf(file, text, written.value))
+      return ok(documentOf(root, file, text, written.value))
     },
   }
-}
-
-function documentOf(file: ProjectPath, text: string, revision: Revision): OutlineDocument {
-  const parsed = readOutline(text)
-  return { file, outline: outlineOf(parsed), revision, nestingUnit: parsed.nestingUnit, invalidDetails: parsed.frontmatter?.valid === false }
 }
 
 /** The markdown package's source model, as the domain's outline (ADR 0003, point 7). */

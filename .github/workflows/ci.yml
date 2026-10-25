@@ -28,6 +28,8 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm arch
+      - name: Performance limits (alone, so other tests don't skew the timings)
+        run: pnpm perf
       - run: pnpm build
 
       # Electron 45 downloads its binary on first use; do it here, not inside the first test's timeout.

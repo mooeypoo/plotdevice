@@ -1,6 +1,6 @@
 # Milestone 6: Backups, renaming pages, and the compiled book (Gate 6, first half)
 
-Status: **Approved** (owner, 2026-10-25), with the recommended backup timing, retention and compiled format.
+Status: **Complete** (2026-10-25), on branch `milestone-6/safety-net-and-compile`. Approved by the owner with the recommended backup timing, retention and compiled format. Results are at the end of this document.
 
 ## Goal
 
@@ -96,3 +96,58 @@ These follow `AGENTS.md`. Backups, restoring and compiling are written test-firs
 3. The compiled book (scenario E).
 4. Renaming page files through the journal.
 5. The large generated project and performance limits; end-to-end scenarios, docs and results.
+
+## Results
+
+| Check | Result |
+|---|---|
+| `pnpm lint` | OK |
+| `pnpm typecheck` | OK |
+| `pnpm test` | **789 tests pass** (747 before this milestone) |
+| `pnpm perf` | **4 performance limits pass**, run alone (a new command and CI step) |
+| `pnpm arch` | **89 checks pass** |
+| `pnpm build` | OK |
+| `pnpm e2e` | **40 end-to-end tests pass** in the real app (36 before), with no CSP violations |
+
+**Measured on the generated book** (150 chapters, 2,000 outline cards; median of five runs on a developer machine):
+
+| Action | Time | Limit |
+|---|---|---|
+| Open the project | 44 ms | 1,500 ms |
+| Switch chapters | under 1 ms | 200 ms |
+| Move a chapter | 59 ms | 300 ms |
+| Move a card on the 2,000-card outline | 351 ms | 500 ms |
+
+**What the tests prove:**
+- **Backups:**
+  - A backup is byte-identical to the file it replaces, BOM and CRLF included.
+  - It is taken before the first change, then at most every ten minutes.
+  - New files and refused writes are never backed up.
+  - Pruning follows the retention rules at their boundaries, in UTC.
+  - A mutation check confirms the ten-minute rule is guarded.
+- **Versions:**
+  - Restoring writes the old version back byte for byte, refused after a change elsewhere.
+  - What it replaces is kept, so a restore can be undone.
+  - An open chapter shows the restored text at once, and text typed into the replaced version is never saved over it.
+  - A copied version gets a new chapter id.
+- **The compiled book:**
+  - Reading order and parts come from `CONTENTS.md`, with numbering per the setting, Pandoc metadata (`dir: rtl` for Hebrew), and no frontmatter.
+  - Direction markers are kept, line endings are `\n`, and missing chapters are reported.
+  - Nothing in the project changes.
+  - **Scenario E** in the real app: moving a chapter changes the compiled order, and no file is renamed.
+- **Renaming a page's file** fixes every link in outlines, chapters and other pages, inline and wiki. An interruption at each of its five points is finished on the next open. A card's link still opens the page afterwards.
+
+**Where the work differs from the plan:**
+- **Performance checks run on their own (`pnpm perf`).** Timed alongside the parallel unit tests they were not deterministic, so they get their own command and CI step.
+- **Moving a card on a 2,000-card outline first took about 630 ms,** because each edit read the outline twice. The repository now reuses its last reading of the same text, which the editor accepts only if it matches exactly.
+- **Bugs found and fixed while building:**
+  - Two backups in the same millisecond overwrote each other; a backup now never replaces another.
+  - Two tests were flaky under the full suite's load (the crash test's start-up, and the random walks' 5 s limit), and are fixed.
+
+**Not done, needs the owner:**
+- **Packaging and installers** (Milestone 7): the production app identity, AppImage, deb and Windows installers, and the upgrade path from the old app.
+- **Trying versions and compiling with authors;** a screen-reader pass with Orca.
+
+**Later (noted, not in this milestone):**
+- Word and EPUB output through Pandoc, with the owner's approval of that dependency.
+- Backups follow a file's path: after a rename, its earlier versions stay under the old name.

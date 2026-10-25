@@ -8,4 +8,5 @@ place text is generated rather than spliced).
 - Text in, text out: no file access, no Node, no domain types (its own source-mapped model).
 - Parses for structure and offsets only; every edit is a splice, never a re-serialization, so the
   author's formatting, comments, line endings and unknown content survive.
+- An edit can reuse an outline already read from the same text (checked), to stay fast on large outlines.
 - Tested on byte-exact fixtures in `tests/fixtures/`, loaded with `?raw` imports.

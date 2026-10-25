@@ -17,8 +17,9 @@
 | `pnpm typecheck` | `tsc -b` for the pure packages, `vue-tsc` for the Vue packages |
 | `pnpm test` | Unit and integration tests (Vitest) |
 | `pnpm arch` | Architecture rules: the real code must pass, every deliberate violation must be caught |
+| `pnpm perf` | Performance limits on a generated 150-chapter book, run alone so other tests don't skew the timings |
 | `pnpm e2e` | Build, then drive the real app with Playwright |
-| `pnpm check` | lint, typecheck, test, arch and build: run before saying a task is done |
+| `pnpm check` | lint, typecheck, test, arch, perf and build: run before saying a task is done |
 
 ## Troubleshooting
 

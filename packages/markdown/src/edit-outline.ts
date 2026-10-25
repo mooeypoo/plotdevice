@@ -9,6 +9,11 @@ export interface OutlineEditOptions {
    * level). The app remembers it from when the outline was opened. Defaults to two spaces.
    */
   nestingUnit?: string
+  /**
+   * The outline already read from this exact text, to skip reading it again (a 2,000-card outline
+   * takes about 300 ms). Used only if its source is the text being edited; otherwise ignored.
+   */
+  parsed?: ParsedOutline
 }
 
 /**
@@ -22,7 +27,7 @@ export function editOutline(source: string, edit: OutlineEdit, options: OutlineE
   const eol = lineEndingOf(source)
   const hasFinalNewline = source === '' || source.endsWith('\n')
   const work = hasFinalNewline ? source : source + eol
-  const parsed = readOutline(work)
+  const parsed = options.parsed?.source === work ? options.parsed : readOutline(work)
   const outline = { ...parsed, nestingUnit: parsed.nestingUnit ?? options.nestingUnit ?? '  ' }
   const splices = planSplices(outline, edit, eol)
   if (!splices.ok) return splices

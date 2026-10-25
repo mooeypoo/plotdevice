@@ -17,8 +17,9 @@
     "typecheck": "tsc -b && tsc --noEmit -p packages/storage/test && pnpm --filter @plotdevice/ui-vue --filter @plotdevice/desktop typecheck",
     "test": "vitest run",
     "arch": "vitest run --config tooling/vitest.arch.config.ts",
+    "perf": "vitest run --config vitest.perf.config.ts",
     "e2e": "pnpm build && playwright test",
-    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm arch && pnpm build",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm arch && pnpm perf && pnpm build",
     "format": "prettier --write ."
   },
   "devDependencies": {

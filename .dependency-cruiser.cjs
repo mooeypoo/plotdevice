@@ -4,8 +4,9 @@ const pkg = (name) => `(^|/)packages/${name}/`
 const desktop = (part) => `(^|/)apps/desktop/src/${part}/`
 // An empty alternative instead of `(…)?`: dependency-cruiser rejects nested quantifiers as unsafe regexes.
 const npm = (name) => `(^|/)node_modules/(\\.pnpm/[^/]+/node_modules/|)${name}/`
-// Tests and their support files (`*.test-support.ts`) may also import Vitest and fixtures.
-const notTests = '\\.test(-support)?\\.ts$'
+// Tests, their support files (`*.test-support.ts`) and performance checks (`*.perf.ts`) may also import
+// Vitest, fixtures and Node.
+const notTests = '\\.(test(-support)?|perf)\\.ts$'
 
 /** `from` may import only what `allowed` matches (tests may also import vitest). */
 const onlyMayImport = (name, comment, from, allowed) => ({
