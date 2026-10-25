@@ -1,6 +1,6 @@
 # Milestone 1: Walking skeleton
 
-Status: **Approved** (owner, 2026-10-25). Decisions below are resolved.
+Status: **Complete** (2026-10-25), on branch `milestone-1/walking-skeleton`. Results are at the end of this document.
 
 ## Goal
 
@@ -105,3 +105,32 @@ These are the checks that must pass, run on Linux and Windows CI:
 4. `i18n`, `presentation`, `ui-vue` (tokens and shell).
 5. `apps/desktop`: main, preload, renderer, security settings.
 6. End-to-end tests, `docs/development.md`, a context README per package.
+
+## Results
+
+Every check passed on a **fresh clone**, running the same sequence as CI:
+
+| Check | Result |
+|---|---|
+| `pnpm install --frozen-lockfile` | OK |
+| `pnpm lint` | OK |
+| `pnpm typecheck` | OK (`tsc -b`, plus `vue-tsc` and the end-to-end test config) |
+| `pnpm test` | **86 tests pass** (unit and integration, including 8 real SIGKILLs during atomic writes) |
+| `pnpm arch` | **17 checks pass**: the real code has no violations; all 14 rules catch their deliberate-violation fixtures, and a `.vue` file is checked too |
+| `pnpm build` | OK; the built page carries the strict CSP |
+| `pnpm exec playwright test` | **9 end-to-end tests pass** on the real app |
+
+**Every acceptance criterion is met, except one:** the Windows column runs in CI on the first push and hasn't run yet.
+
+**Bugs found along the way, each with a regression test that fails without its fix:**
+- **Two quick settings changes raced in the main process,** and the second save undid the first (language reverted to English). Updates are now serialized in an application `PreferencesSession`, and the UI applies only the reply to its latest request. Found by a screenshot, not by the tests at first.
+- **The footer showed Electron's version (45.0.0) instead of the app's.** The tests launched the main file instead of the app folder.
+- **A settings change carrying `undefined` could erase a setting.** TypeScript caught it.
+- **`frame-ancestors` is ignored in a `<meta>` CSP,** and Chromium warns about it. It's removed; the app refuses embedding anyway.
+
+**Where the work differs from the plan:**
+- **No `Clock` port and no `getAppInfo` use case.** Nothing needed them yet: app info is a host fact assembled in `main`. Ports are added when a use case needs one.
+- **The "switching doesn't remount" check is an end-to-end test,** not a component test. A component test would have needed a DOM library, which isn't an approved dependency.
+- **The architecture rules have 14 rules, not the handful listed.** The extra ones are type-only rules for application→contracts and fs-node→application, and a preload rule.
+- **Electron 45 downloads its binary on first launch, not during install.** That replaces the Spike B note that blamed pnpm. CI downloads it explicitly before the end-to-end tests.
+- **On Ubuntu 24.04+, the end-to-end tests detect the AppArmor restriction and add `--no-sandbox` locally.** CI lifts the restriction instead, so the sandbox stays on there.
