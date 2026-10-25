@@ -53,6 +53,7 @@ export default defineConfig(
       '**/*.vue',
       'src/renderer/src/env.d.ts',
       '*.config.{ts,mts,mjs}',
+      'tools/**/*.config.{ts,mts,mjs}',
       'docs/.vitepress/config.mts',
       'docs/*.data.ts',
       'docs/.vitepress/theme/index.ts'

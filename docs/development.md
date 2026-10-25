@@ -99,6 +99,21 @@ cannot finish within 10,000 folders, choose a smaller folder: initialization is
 refused without changing any novel files. A launch failure leaves the current
 project/draft open. Canceling the native chooser remains a no-op.
 
+## Design previews
+
+A dev-only page runs the real interface on invented sample data in a browser, with no project
+folder and no Electron. It exists for design reviews (the U1 audit and U2's screenshot review).
+
+```bash
+npm run preview          # open it in a browser; pick a screen with ?scenario=…&lang=en|he
+npm run preview:capture  # build it and capture every scenario in English and Hebrew
+```
+
+Scenarios are listed in `src/renderer/src/preview/scenarios.ts` (welcome, writing, revise,
+palette, board, capture and others). `preview:capture` drives the installed Google Chrome
+headlessly (set `CHROME` to use another binary) and writes `docs/plans/u1/screens/` unless given
+another folder. The preview is never part of the app build.
+
 ## Documentation
 
 ```bash
