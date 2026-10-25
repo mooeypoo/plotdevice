@@ -19,8 +19,16 @@ module.exports = {
   forbidden: [
     { name: 'no-circular', severity: 'error', from: {}, to: { circular: true } },
     onlyMayImport('shared-is-a-leaf', 'shared is the kernel: no internal packages, no libraries', pkg('shared'), [pkg('shared')]),
-    onlyMayImport('domain-is-pure', 'domain: only shared. No Node, Vue, Electron, parsers or other libraries', pkg('domain'), [pkg('domain'), pkg('shared')]),
-    onlyMayImport('application-imports-inward', 'application: domain, shared and contract types only', pkg('application'), [pkg('application'), pkg('domain'), pkg('shared'), pkg('contracts')]),
+    onlyMayImport('domain-is-pure', 'domain: only shared. No Node, Vue, Electron, parsers or other libraries', pkg('domain'), [
+      pkg('domain'),
+      pkg('shared'),
+    ]),
+    onlyMayImport('application-imports-inward', 'application: domain, shared and contract types only', pkg('application'), [
+      pkg('application'),
+      pkg('domain'),
+      pkg('shared'),
+      pkg('contracts'),
+    ]),
     {
       name: 'application-uses-contract-types-only',
       comment: 'application may use contract types, never runtime code (zod schemas belong to the transport)',
@@ -28,9 +36,39 @@ module.exports = {
       from: { path: pkg('application') },
       to: { path: pkg('contracts'), dependencyTypesNot: ['type-only'] },
     },
-    onlyMayImport('contracts-are-schemas', 'contracts: shared and zod only', pkg('contracts'), [pkg('contracts'), pkg('shared'), npm('zod')]),
-    onlyMayImport('presentation-is-framework-free', 'presentation: shared and contracts; no Vue', pkg('presentation'), [pkg('presentation'), pkg('shared'), pkg('contracts')]),
-    onlyMayImport('i18n-is-framework-free', 'i18n: shared and banana-i18n; no Vue', pkg('i18n'), [pkg('i18n'), pkg('shared'), npm('banana-i18n')]),
+    onlyMayImport('contracts-are-schemas', 'contracts: shared and zod only', pkg('contracts'), [
+      pkg('contracts'),
+      pkg('shared'),
+      npm('zod'),
+    ]),
+    onlyMayImport(
+      'markdown-is-pure',
+      'markdown: text in, text out. Its own source-mapped model, not domain types (ADR 0003); no file access',
+      pkg('markdown'),
+      [pkg('markdown'), pkg('shared'), npm('yaml'), npm('micromark'), npm('mdast-util-from-markdown'), npm('@types/mdast')],
+    ),
+    onlyMayImport(
+      'storage-reaches-files-through-ports',
+      'storage: domain, markdown, shared, and application port types; files only via ports',
+      pkg('storage'),
+      [pkg('storage'), pkg('application'), pkg('domain'), pkg('markdown'), pkg('shared')],
+    ),
+    {
+      name: 'storage-uses-port-types-only',
+      severity: 'error',
+      from: { path: pkg('storage') },
+      to: { path: pkg('application'), dependencyTypesNot: ['type-only'] },
+    },
+    onlyMayImport('presentation-is-framework-free', 'presentation: shared and contracts; no Vue', pkg('presentation'), [
+      pkg('presentation'),
+      pkg('shared'),
+      pkg('contracts'),
+    ]),
+    onlyMayImport('i18n-is-framework-free', 'i18n: shared and banana-i18n; no Vue', pkg('i18n'), [
+      pkg('i18n'),
+      pkg('shared'),
+      npm('banana-i18n'),
+    ]),
     {
       name: 'fs-node-implements-ports',
       comment: 'fs-node: Node built-ins, shared, and application port types',
@@ -55,10 +93,29 @@ module.exports = {
       name: 'no-node-outside-hosts-and-adapters',
       comment: 'Node built-ins only in fs-node and the Electron main process',
       severity: 'error',
-      from: { path: [pkg('shared'), pkg('domain'), pkg('application'), pkg('contracts'), pkg('presentation'), pkg('i18n'), pkg('ui-vue'), desktop('renderer'), desktop('preload')] },
+      from: {
+        path: [
+          pkg('shared'),
+          pkg('domain'),
+          pkg('application'),
+          pkg('contracts'),
+          pkg('markdown'),
+          pkg('storage'),
+          pkg('presentation'),
+          pkg('i18n'),
+          pkg('ui-vue'),
+          desktop('renderer'),
+          desktop('preload'),
+        ],
+      },
       to: { dependencyTypes: ['core'] },
     },
-    onlyMayImport('preload-is-narrow', 'preload: Electron and contract channel names only', desktop('preload'), [desktop('preload'), pkg('contracts'), npm('electron'), '^electron$']),
+    onlyMayImport('preload-is-narrow', 'preload: Electron and contract channel names only', desktop('preload'), [
+      desktop('preload'),
+      pkg('contracts'),
+      npm('electron'),
+      '^electron$',
+    ]),
     {
       name: 'main-does-not-load-ui',
       severity: 'error',
