@@ -24,7 +24,11 @@ export function createBackupStore(appData: string): BackupStore {
     async save(project, file, content, at) {
       try {
         const bytes = new TextEncoder().encode((content.hasBom ? BOM : '') + content.text)
-        await writeAtomically(join(folderOf(project, file), nameOf(at)), bytes)
+        // A backup never replaces another: two in the same millisecond get consecutive times.
+        const taken = new Set((await readdir(folderOf(project, file)).catch(() => [] as string[])).map(timeOf))
+        let time = at
+        while (taken.has(time)) time++
+        await writeAtomically(join(folderOf(project, file), nameOf(time)), bytes)
         return ok(undefined)
       } catch {
         return err('io')

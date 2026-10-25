@@ -1,7 +1,7 @@
 import { createOutlineSession, createRecentProjectsSession, createWritingSession, type SessionEvent } from '@plotdevice/application'
-import { channels, type CardLinksView, type OpenChapterResult, type ReferenceResult, type ReferenceSummaryView, type OpenProjectResult, type OutlineResult, type ProjectChangeResult, type ProjectView, type ResolveConflictResult } from '@plotdevice/contracts'
-import { createAppDataFile, createJournalStore, createProjectFolders, randomIdGenerator } from '@plotdevice/fs-node'
-import { createOutlineRepository, createProjectRepository, createReferenceRepository } from '@plotdevice/storage'
+import { channels, type CardLinksView, type CopyVersionResult, type VersionResult, type VersionsView, type OpenChapterResult, type ReferenceResult, type ReferenceSummaryView, type OpenProjectResult, type OutlineResult, type ProjectChangeResult, type ProjectView, type ResolveConflictResult } from '@plotdevice/contracts'
+import { createAppDataFile, createBackupStore, createJournalStore, createProjectFolders, randomIdGenerator } from '@plotdevice/fs-node'
+import { createOutlineRepository, createProjectRepository, createReferenceRepository, createVersionRepository, withBackups } from '@plotdevice/storage'
 import { access, cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -27,14 +27,18 @@ async function setup() {
   const root = join(base, 'The Salt Orchard')
   await cp(FIXTURE, root, { recursive: true })
   const appData = join(base, 'app-data')
-  const repository = createProjectRepository({ folders: createProjectFolders(), journals: createJournalStore(appData), ids: randomIdGenerator })
+  let clock = Date.UTC(2026, 9, 25, 18)
+  const now = () => clock
+  const backups = createBackupStore(appData)
+  const folders = withBackups(createProjectFolders(), { backups, now })
+  const repository = createProjectRepository({ folders, journals: createJournalStore(appData), ids: randomIdGenerator })
   const session = createWritingSession({ repository, copyLabel: () => 'my version' })
   const events: SessionEvent[] = []
   session.onEvent((event) => events.push(event))
   const dialogs = { folder: null as string | null, location: null as string | null }
   let flushed = 0
   const recent = await createRecentProjectsSession(createAppDataFile(appData, 'recent'))
-  const outlines = createOutlineSession({ repository: createOutlineRepository({ folders: createProjectFolders() }), root: () => session.project()?.root ?? null })
+  const outlines = createOutlineSession({ repository: createOutlineRepository({ folders }), root: () => session.project()?.root ?? null })
   const handlers = createIpcHandlers({
     appUrl,
     appInfo: { name: 'Plot Device', version: '0.1.0', platform: 'linux' },
@@ -51,7 +55,8 @@ async function setup() {
       onFlushed: () => flushed++,
     },
     outlines: { outlines, writing: session, recent },
-    references: { references: createReferenceRepository({ folders: createProjectFolders() }), writing: session, recent },
+    references: { references: createReferenceRepository({ folders }), writing: session, recent },
+    versions: { versions: createVersionRepository({ folders: createProjectFolders(), backups, now }), writing: session, outlines, repository, copyLabel: () => 'version 1' },
   })
   const call = (channel: string, payload?: unknown, sender: Sender = appPage): Promise<unknown> => {
     const handler = handlers[channel]
@@ -59,7 +64,8 @@ async function setup() {
     return handler(sender, payload)
   }
   const read = (path: string) => readFile(join(root, path), 'utf8')
-  return { base, root, appData, call, read, dialogs, session, events, flushed: () => flushed }
+  const advance = (ms: number) => (clock += ms)
+  return { base, root, appData, call, read, dialogs, session, events, flushed: () => flushed, advance }
 }
 
 async function openChosen(context: Awaited<ReturnType<typeof setup>>): Promise<ProjectView> {
@@ -270,5 +276,50 @@ describe('reference calls', () => {
     expect(await context.call(channels.getShelf)).toEqual(['notes/loose-ideas.md', 'characters/ilka.md'])
     await expect(context.call(channels.readReference, { file: 'manuscript/frost.md' })).rejects.toThrow('invalid-payload')
     await expect(context.call(channels.setShelf, { files: ['project.md'] })).rejects.toThrow('invalid-payload')
+  })
+})
+
+describe('version calls', () => {
+  const FROST = 'manuscript/frost.md'
+
+  it('restores an earlier version of an open chapter, which reloads in the editor, and undoes it', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const original = await context.read(FROST)
+    const chapter = (await context.call(channels.openChapter, { file: FROST })) as OpenChapterResult
+    if (!chapter.ok) throw new Error(chapter.error)
+    await context.call(channels.saveChapter, { file: FROST, text: 'Rewritten.\n', generation: chapter.value.generation })
+    await context.session.idle()
+    context.advance(60_000)
+
+    const listed = (await context.call(channels.listVersions, { file: FROST })) as VersionResult<VersionsView>
+    if (!listed.ok) throw new Error(listed.error)
+    expect(listed.value.versions).toHaveLength(1)
+    expect(await context.call(channels.readVersion, { file: FROST, at: listed.value.versions[0] })).toEqual({ ok: true, value: original })
+    expect(await context.call(channels.restoreVersion, { file: FROST, at: listed.value.versions[0], revision: listed.value.revision })).toEqual({ ok: true, value: undefined })
+    expect(await context.read(FROST)).toBe(original)
+    expect(context.events.filter((e) => e.kind === 'chapter-reloaded').at(-1)).toMatchObject({ file: FROST, text: expect.stringContaining('the frost came early') as string })
+
+    const again = (await context.call(channels.listVersions, { file: FROST })) as VersionResult<VersionsView>
+    if (!again.ok) throw new Error(again.error)
+    await context.call(channels.restoreVersion, { file: FROST, at: again.value.versions[0], revision: again.value.revision })
+    expect(await context.read(FROST)).toBe('---\ntitle: Frost\nid: ch-p0n1zz\n---\nRewritten.\n')
+  })
+
+  it('saves an earlier version as a copy, with a new id', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const chapter = (await context.call(channels.openChapter, { file: FROST })) as OpenChapterResult
+    if (!chapter.ok) throw new Error(chapter.error)
+    await context.call(channels.saveChapter, { file: FROST, text: 'Rewritten.\n', generation: chapter.value.generation })
+    await context.session.idle()
+    const listed = (await context.call(channels.listVersions, { file: FROST })) as VersionResult<VersionsView>
+    if (!listed.ok) throw new Error(listed.error)
+    const copied = (await context.call(channels.copyVersion, { file: FROST, at: listed.value.versions[0] })) as CopyVersionResult
+    expect(copied.ok && copied.value.copy).toBe('manuscript/frost-version-1.md')
+    const copy = await context.read('manuscript/frost-version-1.md')
+    expect(copy).toMatch(/^---\ntitle: Frost \(version 1\)\nid: ch-[0-9a-z]{6}\n---\n/)
+    expect(copy).not.toContain('ch-p0n1zz')
+    expect(copy).toContain('the frost came early')
   })
 })

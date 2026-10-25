@@ -63,7 +63,7 @@ export interface WritingSession {
    * file it runs between saves, and saving continues from the revision it leaves, so it never looks
    * like a change made elsewhere.
    */
-  updateFile<E>(file: ProjectPath, change: () => Promise<Result<void, E>>): Promise<Result<void, E | NoProject | 'unreadable'>>
+  updateFile<E>(file: ProjectPath, change: () => Promise<Result<void, E>>, options?: { reload?: boolean }): Promise<Result<void, E | NoProject | 'unreadable'>>
   /** Resolves once every change has been written. The app waits for this before quitting. */
   idle(): Promise<void>
 }
@@ -285,7 +285,8 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
         return renamed
       }),
 
-    updateFile<E>(file: ProjectPath, change: () => Promise<Result<void, E>>) {
+    // With `reload`, the change replaced the text too (restoring a version): the editor shows the new text.
+    updateFile<E>(file: ProjectPath, change: () => Promise<Result<void, E>>, options: { reload?: boolean } = {}) {
       return serially(async (): Promise<Result<void, E | NoProject | 'unreadable'>> => {
         if (!project) return err('no-project' as const)
         const { root } = project
@@ -296,7 +297,8 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
           if (!changed.ok) return { revision: null, value: changed }
           const disk = await repository.readChapter(root, file)
           if (!disk.ok) return { revision: null, value: err('unreadable' as const) }
-          rememberRevision(file, disk.value.revision)
+          if (options.reload) showReload(state, disk.value.text, disk.value.revision)
+          else rememberRevision(file, disk.value.revision)
           return { revision: disk.value.revision, value: ok(undefined) }
         })
       })

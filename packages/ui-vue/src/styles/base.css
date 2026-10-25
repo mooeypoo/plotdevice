@@ -260,6 +260,14 @@ button.inline-link { border: none; background: none; padding: 0; font: inherit; 
 .reference-page .paper { padding-inline: 0; }
 .page-editor { min-block-size: 20rem; border-radius: 10px; }
 
+/* Versions */
+.versions { inline-size: min(48rem, 100% - 2rem); max-inline-size: none; }
+.versions-body { display: grid; grid-template-columns: 13rem 1fr; gap: 1rem; min-block-size: 16rem; }
+.versions-list { overflow: auto; max-block-size: 22rem; }
+.versions-list [role='option'] { padding: 0.35rem 0.5rem; border-radius: 6px; cursor: pointer; }
+.versions-list [role='option'].selected { background: color-mix(in srgb, var(--color-accent) 14%, transparent); }
+.versions-preview { margin: 0; padding: 0.75rem; overflow: auto; max-block-size: 22rem; white-space: pre-wrap; background: var(--color-page); border-radius: 8px; font-size: 0.9rem; }
+
 /* Dialogs */
 .dialog {
   max-inline-size: min(32rem, 100% - 2rem);

@@ -215,6 +215,26 @@ describe('writing session', () => {
     expect(session.saveStatus(FROST)?.kind).toBe('saved')
   })
 
+  it('shows the new text in the editor after a change that replaced it, such as restoring a version', async () => {
+    const { session, disk, events } = await openSession()
+    const frost = await openChapter(session, FROST)
+    const restored = await session.updateFile(
+      FROST,
+      async () => {
+        const entry = disk.get(FROST)
+        if (entry) entry.text = 'An earlier version.\n'
+        return { ok: true, value: undefined }
+      },
+      { reload: true },
+    )
+    expect(restored.ok).toBe(true)
+    expect(events.filter((e) => e.kind === 'chapter-reloaded')).toEqual([{ kind: 'chapter-reloaded', file: FROST, text: 'An earlier version.\n', generation: frost.generation + 1 }])
+    // Text typed into the replaced version is never saved over the restored one.
+    session.saveChapter(FROST, 'Typed before the restore showed.\n', frost.generation)
+    await session.idle()
+    expect(disk.get(FROST)?.text).toBe('An earlier version.\n')
+  })
+
   it('keeps saving an open chapter after its file is renamed', async () => {
     const { session, disk } = await openSession()
     const frost = await openChapter(session, FROST)

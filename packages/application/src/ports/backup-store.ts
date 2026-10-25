@@ -11,6 +11,7 @@ export interface BackupEntry {
  * Milestone 6). A backup is the file exactly as it was: the same text, byte-order mark and line endings.
  */
 export interface BackupStore {
+  /** Keeps `content` as of `at`, or the next free millisecond: a backup never replaces another. */
   save(project: string, file: ProjectPath, content: TextToStore, at: number): Promise<Result<void, 'io'>>
   /** Newest first. */
   list(project: string, file: ProjectPath): Promise<BackupEntry[]>

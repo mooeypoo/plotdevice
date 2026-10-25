@@ -3,6 +3,7 @@ import type { HostEvent, LeftOffRequest, OpenChapterResult, ResolveConflictReque
 import type { OutlineEditRequest, OutlineResult, OutlineSummaryView, Place } from './outline'
 import type { Preferences, PreferencesPatch } from './preferences'
 import type { CardLinksView, ReferenceKind, ReferencePageView, ReferenceResult, ReferenceSummaryView } from './references'
+import type { CopyVersionResult, VersionResult, VersionsView } from './versions'
 import type {
   ContentsChangeRequest,
   CreateProjectResult,
@@ -60,6 +61,14 @@ export interface PlotDeviceApi {
   cardsAbout(chapter: ProjectPath): Promise<CardLinksView[]>
   getShelf(): Promise<ProjectPath[]>
   setShelf(files: ProjectPath[]): Promise<void>
+
+  /** Earlier versions of a chapter, page or outline, from the backups. */
+  listVersions(file: ProjectPath): Promise<VersionResult<VersionsView>>
+  readVersion(file: ProjectPath, at: number): Promise<VersionResult<string>>
+  /** Puts an earlier version back; what it replaces becomes a version itself. */
+  restoreVersion(file: ProjectPath, at: number, revision: string): Promise<VersionResult<void>>
+  /** Saves an earlier version as a new file next to it. */
+  copyVersion(file: ProjectPath, at: number): Promise<CopyVersionResult>
 
   onEvent(listener: (event: HostEvent) => void): () => void
 }

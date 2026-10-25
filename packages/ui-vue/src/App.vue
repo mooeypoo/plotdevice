@@ -5,6 +5,7 @@ import { ref } from 'vue'
 import { useApi } from './api'
 import ConfirmDialog from './components/ConfirmDialog.vue'
 import LinkPicker from './components/LinkPicker.vue'
+import VersionsDialog from './components/VersionsDialog.vue'
 import PromptDialog from './components/PromptDialog.vue'
 import SettingsMenu from './components/SettingsMenu.vue'
 import StoryView from './components/StoryView.vue'
@@ -49,5 +50,6 @@ void api.getAppInfo().then((info) => (appInfo.value = info))
     <PromptDialog />
     <ConfirmDialog />
     <LinkPicker />
+    <VersionsDialog />
   </div>
 </template>

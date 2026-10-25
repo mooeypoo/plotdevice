@@ -1,0 +1,74 @@
+import { expect, test, type Page } from '@playwright/test'
+import { cp, mkdtemp, readFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { launch, openSettings, type Launched } from './launch'
+
+const FIXTURE = join(import.meta.dirname, '../../../tests/fixtures/projects/salt-orchard')
+const FROST = 'manuscript/frost.md'
+
+let base = ''
+let root = ''
+let running: Launched | undefined
+let pageMessages: string[] = []
+
+test.beforeEach(async () => {
+  base = await mkdtemp(join(tmpdir(), 'plotdevice-versions-'))
+  root = join(base, 'The Salt Orchard')
+  await cp(FIXTURE, root, { recursive: true })
+  pageMessages = []
+})
+test.afterEach(async () => {
+  await running?.app.close()
+  running = undefined
+  await rm(base, { recursive: true, force: true })
+})
+
+async function start(): Promise<Page> {
+  running = await launch(join(base, 'user-data'), { PLOTDEVICE_TEST_CHOOSE_FOLDER: root })
+  running.page.on('console', (message) => pageMessages.push(message.text()))
+  const { page } = running
+  await page.getByTestId('open-project').click()
+  await page.locator('.project-title').waitFor()
+  return page
+}
+
+const read = (path: string): Promise<string> => readFile(join(root, path), 'utf8')
+const file = (path: string) => expect.poll(() => read(path).catch(() => ''))
+
+test('restore an earlier version of a chapter, then undo the restore', async () => {
+  const original = await read(FROST)
+  const page = await start()
+  await page.locator(`[data-chapter="${FROST}"]`).first().click()
+  await page.locator('.cm-line', { hasText: 'Ilka asked' }).click()
+  await page.keyboard.press('End')
+  await page.keyboard.type(' A new line of mine.')
+  await expect(page.getByTestId('save-status')).toHaveText('Saved')
+
+  await page.getByTestId('chapter-versions').click()
+  await expect(page.getByTestId('version')).toHaveCount(1)
+  await expect(page.getByTestId('version-preview')).toContainText('Ilka asked.')
+  await expect(page.getByTestId('version-preview')).not.toContainText('A new line of mine.')
+  await page.getByTestId('version-restore').click()
+  await file(FROST).toBe(original)
+  await expect(page.locator('.cm-content')).not.toContainText('A new line of mine.') // the editor shows it at once
+
+  await page.getByTestId('chapter-versions').click()
+  await expect(page.getByTestId('version')).toHaveCount(2)
+  await page.getByTestId('version-restore').click() // the newest: what the restore replaced
+  await file(FROST).toContain('A new line of mine.')
+  await expect(page.locator('.cm-content')).toContainText('A new line of mine.')
+})
+
+test('the Versions panel is named and usable by keyboard, in both languages', async () => {
+  const page = await start()
+  await openSettings(page)
+  await page.getByTestId('language').selectOption('he')
+  await page.locator('.settings-menu summary').click()
+  await page.getByTestId('chapter-versions').click()
+  await expect(page.getByTestId('versions')).toBeVisible()
+  await expect(page.getByTestId('versions').locator('#versions-title')).toContainText('גרסאות קודמות')
+  await page.keyboard.press('Escape')
+  await expect(page.getByTestId('versions')).toBeHidden()
+  expect(pageMessages.filter((message) => /Content.Security.Policy/i.test(message))).toEqual([])
+})

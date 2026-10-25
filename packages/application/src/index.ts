@@ -11,6 +11,7 @@ export type { PreferencesStore, PreferencesWriteFailure } from './preferences/pr
 export { createChapterAutosave, type ChapterAutosave, type SaveStatus, type WriteChapter } from './chapters/chapter-autosave'
 export type { AppDataFile, AppDataWriteFailure } from './ports/app-data-file'
 export type { BackupEntry, BackupStore } from './ports/backup-store'
+export type { VersionRepository, Versions } from './ports/version-repository'
 export {
   createRecentProjectsSession,
   MAX_RECENT_PROJECTS,

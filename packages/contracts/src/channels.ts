@@ -29,6 +29,10 @@ export const channels = {
   cardsAbout: 'plotdevice:cards-about',
   getShelf: 'plotdevice:get-shelf',
   setShelf: 'plotdevice:set-shelf',
+  listVersions: 'plotdevice:list-versions',
+  readVersion: 'plotdevice:read-version',
+  restoreVersion: 'plotdevice:restore-version',
+  copyVersion: 'plotdevice:copy-version',
 } as const
 
 /** The one channel the host uses to send events to the page. */

@@ -21,7 +21,7 @@ import {
   type ProjectWatcher,
 } from '@plotdevice/fs-node'
 import { catalogs, createTranslator } from '@plotdevice/i18n'
-import { createOutlineRepository, createProjectRepository, createReferenceRepository, withBackups } from '@plotdevice/storage'
+import { createOutlineRepository, createProjectRepository, createReferenceRepository, createVersionRepository, withBackups } from '@plotdevice/storage'
 import { app, BrowserWindow, dialog, ipcMain, session } from 'electron'
 import { access } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -72,7 +72,9 @@ void app.whenReady().then(async () => {
   const translate = (key: string): string => t(preferences.current().locale, key)
 
   // Every write goes through these folders, so every file is backed up before the app changes it (Milestone 6).
-  const folders = withBackups(createProjectFolders(), { backups: createBackupStore(userData), now: Date.now })
+  const backups = createBackupStore(userData)
+  const folders = withBackups(createProjectFolders(), { backups, now: Date.now })
+  const versions = createVersionRepository({ folders: createProjectFolders(), backups, now: Date.now })
   const repository = withSlowChapterSaves(createProjectRepository({ folders, journals: createJournalStore(userData), ids: randomIdGenerator }))
   const writing = createWritingSession({ repository, copyLabel: () => translate('conflict-copy-label') })
   const outlines = createOutlineSession({ repository: createOutlineRepository({ folders }), root: () => writing.project()?.root ?? null })
@@ -153,6 +155,13 @@ void app.whenReady().then(async () => {
     },
     outlines: { outlines, writing, recent },
     references: { references: createReferenceRepository({ folders }), writing, recent },
+    versions: {
+      versions,
+      writing,
+      outlines,
+      repository,
+      copyLabel: (at) => translate('version-copy-label').replace('$1', new Intl.DateTimeFormat(preferences.current().locale, { dateStyle: 'medium', timeStyle: 'short' }).format(at).replace(/[:/]/g, '.')),
+    },
   })
   for (const [channel, handle] of Object.entries(handlers)) {
     ipcMain.handle(channel, (event, payload: unknown) => handle({ url: event.senderFrame?.url, fromAppWindow: event.sender === window.webContents }, payload))

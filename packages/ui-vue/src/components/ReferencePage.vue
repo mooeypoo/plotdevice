@@ -3,6 +3,7 @@ import type { ProjectPath } from '@plotdevice/shared'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useChapterWriting } from '../composables/use-chapter-writing'
 import { usePrompt } from '../composables/use-prompt'
+import { useVersions } from '../composables/use-versions'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
 import ConflictDialog from './ConflictDialog.vue'
@@ -13,6 +14,7 @@ const props = defineProps<{ file: ProjectPath }>()
 const story = useStoryStore()
 const settings = useSettingsStore()
 const { ask } = usePrompt()
+const versions = useVersions()
 const t = settings.t
 const host = ref<HTMLElement | null>(null)
 const page = useChapterWriting(host, { remembersPosition: false })
@@ -35,6 +37,7 @@ watch(
     <div class="toolbar">
       <h1 class="outline-title" dir="auto">{{ summary?.title ?? file }}</h1>
       <button type="button" data-testid="rename-reference" @click="rename">{{ t('reference-rename') }}</button>
+      <button type="button" data-testid="page-versions" @click="versions.show(file, summary?.title ?? file)">{{ t('versions') }}</button>
     </div>
     <p v-if="summary && summary.aka.length > 0" class="secondary" dir="auto">{{ t('reference-aka', summary.aka.join(', ')) }}</p>
     <p class="secondary hint">{{ t('reference-hint') }}</p>

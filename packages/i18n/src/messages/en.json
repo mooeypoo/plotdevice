@@ -194,5 +194,17 @@
   "kind-place": "Place",
   "kind-note": "Note",
   "kind-outline": "Outline",
-  "kind-other": "File"
+  "kind-other": "File",
+  "version-copy-label": "version $1",
+  "versions": "Versions…",
+  "versions-title": "Earlier versions of “$1”",
+  "versions-none": "No earlier versions yet. They are kept as you write, at most every ten minutes.",
+  "versions-restore": "Restore this version",
+  "versions-restore-detail": "What you have now is kept as a version, so this can be undone.",
+  "versions-copy": "Save as a copy",
+  "versions-restored": "The earlier version is back. What you had is kept as a version.",
+  "versions-copied": "Saved as “$1”.",
+  "versions-stale": "This file changed in another app since you opened its versions. Nothing was restored.",
+  "versions-failed": "That didn't work. Nothing was changed.",
+  "versions-close": "Close"
 }

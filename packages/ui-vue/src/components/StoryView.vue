@@ -3,6 +3,7 @@ import type { OutlineViewKind, ProjectView, ReferenceKind } from '@plotdevice/co
 import { computed } from 'vue'
 import { useOutlineActions } from '../composables/use-outline-actions'
 import { usePrompt } from '../composables/use-prompt'
+import { useVersions } from '../composables/use-versions'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
@@ -21,6 +22,7 @@ const settings = useSettingsStore()
 const view = useViewStore()
 const actions = useOutlineActions()
 const { ask } = usePrompt()
+const versions = useVersions()
 const t = settings.t
 const views: OutlineViewKind[] = ['board', 'outline', 'cards']
 const kinds: ReferenceKind[] = ['character', 'place', 'note']
@@ -93,6 +95,7 @@ async function newPage(kind: ReferenceKind): Promise<void> {
             </button>
           </div>
           <button type="button" :disabled="!story.outline.canUndo" data-testid="outline-undo" @click="story.undo">{{ t('outline-undo') }}</button>
+          <button type="button" data-testid="outline-versions" @click="story.outline && versions.show(story.outline.file, story.outline.title ?? story.outline.file)">{{ t('versions') }}</button>
         </div>
         <div class="story-page">
           <p v-if="story.outline.invalidDetails" class="warning" role="status">{{ t('invalid-details') }}</p>

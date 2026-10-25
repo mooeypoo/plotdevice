@@ -82,3 +82,12 @@ export {
   type ReferenceResult,
   type ReferenceSummaryView,
 } from './references'
+export {
+  restoreVersionSchema,
+  versionSchema,
+  versionsSchema,
+  type CopyVersionResult,
+  type VersionProblem,
+  type VersionResult,
+  type VersionsView,
+} from './versions'

@@ -18,14 +18,10 @@ export function withBackups(folders: ProjectFolders, { backups, now }: BackupOpt
   const lastBackup = new Map<string, number>()
   const projectKeys = new Map<string, Promise<string>>()
 
-  /** Backups are kept per project id, so they follow a project folder that moves. */
   const projectKey = (root: string, store: FileStore): Promise<string> => {
     let key = projectKeys.get(root)
     if (!key) {
-      key = store.read(PROJECT_FILE as ProjectPath).then((read) => {
-        const id = read.ok ? readFrontmatter(read.value.text) : null
-        return id?.ok && typeof id.value.id === 'string' ? id.value.id : `folder-${root.replace(/[^\p{L}\p{N}]+/gu, '-')}`
-      })
+      key = backupKeyOf(root, store)
       projectKeys.set(root, key)
     }
     return key
@@ -64,4 +60,11 @@ export function withBackups(folders: ProjectFolders, { backups, now }: BackupOpt
       }
     },
   }
+}
+
+/** Backups are kept per project id, so they follow a project folder that moves. */
+export async function backupKeyOf(root: string, store: FileStore): Promise<string> {
+  const read = await store.read(PROJECT_FILE as ProjectPath)
+  const details = read.ok ? readFrontmatter(read.value.text) : null
+  return details?.ok && typeof details.value.id === 'string' ? details.value.id : `folder-${root.replace(/[^\p{L}\p{N}]+/gu, '-')}`
 }

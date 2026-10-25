@@ -194,5 +194,17 @@
   "kind-place": "מקום",
   "kind-note": "הערה",
   "kind-outline": "מתווה",
-  "kind-other": "קובץ"
+  "kind-other": "קובץ",
+  "version-copy-label": "גרסה $1",
+  "versions": "גרסאות…",
+  "versions-title": "גרסאות קודמות של „$1”",
+  "versions-none": "אין עדיין גרסאות קודמות. הן נשמרות בזמן הכתיבה, לכל היותר פעם בעשר דקות.",
+  "versions-restore": "שחזור הגרסה הזו",
+  "versions-restore-detail": "מה שיש עכשיו יישמר כגרסה, כך שאפשר לבטל את השחזור.",
+  "versions-copy": "שמירה כעותק",
+  "versions-restored": "הגרסה הקודמת שוחזרה. מה שהיה נשמר כגרסה.",
+  "versions-copied": "נשמר בשם „$1”.",
+  "versions-stale": "הקובץ השתנה ביישום אחר מאז שנפתחו הגרסאות שלו. דבר לא שוחזר.",
+  "versions-failed": "זה לא הצליח. דבר לא שונה.",
+  "versions-close": "סגירה"
 }

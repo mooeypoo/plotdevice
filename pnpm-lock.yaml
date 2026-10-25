@@ -211,6 +211,9 @@ importers:
       '@plotdevice/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@plotdevice/markdown':
+        specifier: workspace:*
+        version: link:../../packages/markdown
       '@plotdevice/presentation':
         specifier: workspace:*
         version: link:../../packages/presentation

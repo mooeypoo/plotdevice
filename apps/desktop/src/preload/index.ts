@@ -33,6 +33,10 @@ const api: PlotDeviceApi = {
   cardsAbout: (chapter) => ipcRenderer.invoke(channels.cardsAbout, { file: chapter }),
   getShelf: () => ipcRenderer.invoke(channels.getShelf),
   setShelf: (files) => ipcRenderer.invoke(channels.setShelf, { files }),
+  listVersions: (file) => ipcRenderer.invoke(channels.listVersions, { file }),
+  readVersion: (file, at) => ipcRenderer.invoke(channels.readVersion, { file, at }),
+  restoreVersion: (file, at, revision) => ipcRenderer.invoke(channels.restoreVersion, { file, at, revision }),
+  copyVersion: (file, at) => ipcRenderer.invoke(channels.copyVersion, { file, at }),
   onEvent: (listener) => {
     const forward = (_event: IpcRendererEvent, hostEvent: HostEvent): void => listener(hostEvent)
     ipcRenderer.on(eventChannel, forward)

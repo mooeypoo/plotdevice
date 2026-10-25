@@ -5,6 +5,7 @@ import type { ProjectPath } from '@plotdevice/shared'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useChapterWriting } from '../composables/use-chapter-writing'
 import { usePrompt } from '../composables/use-prompt'
+import { useVersions } from '../composables/use-versions'
 import { useProjectStore } from '../stores/project'
 import { useShelfStore } from '../stores/shelf'
 import { useSettingsStore } from '../stores/settings'
@@ -21,6 +22,7 @@ const settings = useSettingsStore()
 const view = useViewStore()
 const shelf = useShelfStore()
 const { ask } = usePrompt()
+const versions = useVersions()
 const t = settings.t
 const host = ref<HTMLElement | null>(null)
 const writing = useChapterWriting(host)
@@ -118,6 +120,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         <MenuButton :label="t('toolbar-format')" :text="t('toolbar-format')" :items="formatItems" testid="format-menu" />
         <MenuButton :label="t('toolbar-direction')" :text="t('toolbar-direction')" :items="directionItems" testid="direction-menu" />
         <button type="button" data-testid="focus-mode" @click="setFocusMode(true)">{{ t('focus-enter') }}</button>
+        <button type="button" data-testid="chapter-versions" :disabled="!writing.file.value" @click="writing.file.value && versions.show(writing.file.value, chapterName)">{{ t('versions') }}</button>
         <button type="button" class="toolbar-end" data-testid="toggle-shelf" :aria-pressed="shelf.visible" @click="shelf.visible = !shelf.visible">
           {{ shelf.visible ? t('shelf-hide') : t('shelf-show') }}
         </button>

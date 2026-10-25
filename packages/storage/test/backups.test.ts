@@ -4,7 +4,7 @@ import { cp, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { withBackups } from '../src/index'
+import { createVersionRepository, withBackups } from '../src/index'
 
 const FIXTURE = join(import.meta.dirname, '../../../tests/fixtures/projects/salt-orchard')
 const FROST = 'manuscript/frost.md' as ProjectPath
@@ -32,9 +32,10 @@ async function setup() {
     if (!written.ok) throw new Error(written.error.code)
   }
   const advance = (ms: number) => (clock += ms)
+  const versions = createVersionRepository({ folders: createProjectFolders(), backups, now: () => clock })
   // The fixture's project id: backups are kept under it, not under the folder's name.
   const folder = join(appData, 'backups', 'prj-7d2k9q', 'manuscript', 'frost.md')
-  return { root, store, save, advance, backups, folder }
+  return { root, store, save, advance, backups, folder, versions }
 }
 
 describe('backups before the app changes a file', () => {
@@ -94,5 +95,45 @@ describe('backups before the app changes a file', () => {
     const entries = await backups.list('prj-7d2k9q', FROST)
     expect(entries.length).toBeLessThan(10)
     expect(entries.length).toBeGreaterThanOrEqual(5)
+  })
+})
+
+function unwrap<T>(result: { ok: true; value: T } | { ok: false; error: unknown }): T {
+  if (!result.ok) throw new Error(`expected success, got ${JSON.stringify(result.error)}`)
+  return result.value
+}
+
+describe('earlier versions', () => {
+  it('lists versions newest first, reads them, and restores one byte for byte', async () => {
+    const { root, save, advance, versions } = await setup()
+    const original = await readFile(join(root, FROST))
+    await save(FROST, 'Second.\n')
+    advance(11 * MINUTE)
+    await save(FROST, 'Third.\n')
+    const listed = unwrap(await versions.list(root, FROST))
+    expect(listed.versions).toHaveLength(2)
+    expect(unwrap(await versions.read(root, FROST, listed.versions[0] ?? 0))).toBe('Second.\n')
+    unwrap(await versions.restore(root, FROST, listed.versions[1] ?? 0, listed.revision))
+    expect(await readFile(join(root, FROST))).toEqual(original)
+  })
+
+  it('keeps what a restore replaces, so the restore can be undone, even in the same millisecond as another backup', async () => {
+    const { root, save, versions } = await setup()
+    await save(FROST, 'What I have now.\n')
+    const before = unwrap(await versions.list(root, FROST))
+    unwrap(await versions.restore(root, FROST, before.versions[0] ?? 0, before.revision))
+    const after = unwrap(await versions.list(root, FROST))
+    expect(after.versions).toHaveLength(2)
+    unwrap(await versions.restore(root, FROST, after.versions[0] ?? 0, after.revision)) // undo
+    expect(await readFile(join(root, FROST), 'utf8')).toBe('What I have now.\n')
+  })
+
+  it('refuses to restore over a change made after the list was opened', async () => {
+    const { root, save, versions } = await setup()
+    await save(FROST, 'Mine.\n')
+    const listed = unwrap(await versions.list(root, FROST))
+    await writeFile(join(root, FROST), 'Changed elsewhere.\n')
+    expect(await versions.restore(root, FROST, listed.versions[0] ?? 0, listed.revision)).toEqual({ ok: false, error: 'stale' })
+    expect(await readFile(join(root, FROST), 'utf8')).toBe('Changed elsewhere.\n')
   })
 })
