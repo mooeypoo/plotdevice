@@ -199,6 +199,22 @@ describe('writing session', () => {
     expect(session.saveStatus(FROST)?.kind).toBe('saved')
   })
 
+  it('changes an open file between saves, so typing during the change raises no conflict', async () => {
+    const { session, disk } = await openSession()
+    const frost = await openChapter(session, FROST)
+    session.saveChapter(FROST, 'Typed before.\n', frost.generation)
+    const changed = session.updateFile(FROST, async () => {
+      const entry = disk.get(FROST)
+      if (entry) entry.title = 'Retitled elsewhere in the file'
+      return { ok: true, value: undefined }
+    })
+    session.saveChapter(FROST, 'Typed during.\n', frost.generation)
+    expect((await changed).ok).toBe(true)
+    await session.idle()
+    expect(disk.get(FROST)).toEqual({ text: 'Typed during.\n', title: 'Retitled elsewhere in the file' })
+    expect(session.saveStatus(FROST)?.kind).toBe('saved')
+  })
+
   it('keeps saving an open chapter after its file is renamed', async () => {
     const { session, disk } = await openSession()
     const frost = await openChapter(session, FROST)

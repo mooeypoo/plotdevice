@@ -36,5 +36,7 @@ export type HostEvent =
   | { kind: 'project-changed'; project: ProjectView }
   /** An open outline changed in another program and was read again. */
   | { kind: 'outline-changed'; outline: OutlineView }
+  /** Character, place or note pages were added, removed or changed. */
+  | { kind: 'references-changed' }
   /** The app is closing: send any text still waiting to be saved. */
   | { kind: 'flush' }

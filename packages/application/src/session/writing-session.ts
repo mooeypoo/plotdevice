@@ -58,6 +58,12 @@ export interface WritingSession {
   changeContents(change: ContentsChange): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   renameChapter(file: ProjectPath, title: string): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   renameChapterFile(file: ProjectPath, newName: string): Promise<Result<FileRenamed, RenameFileProblem | NoProject>>
+  /**
+   * Runs `change` on a file outside its text, such as a page's title in its frontmatter. For an open
+   * file it runs between saves, and saving continues from the revision it leaves, so it never looks
+   * like a change made elsewhere.
+   */
+  updateFile<E>(file: ProjectPath, change: () => Promise<Result<void, E>>): Promise<Result<void, E | NoProject | 'unreadable'>>
   /** Resolves once every change has been written. The app waits for this before quitting. */
   idle(): Promise<void>
 }
@@ -278,6 +284,23 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
         }
         return renamed
       }),
+
+    updateFile<E>(file: ProjectPath, change: () => Promise<Result<void, E>>) {
+      return serially(async (): Promise<Result<void, E | NoProject | 'unreadable'>> => {
+        if (!project) return err('no-project' as const)
+        const { root } = project
+        const state = chapters.get(file)
+        if (!state) return change()
+        return state.autosave.exclusive(async (): Promise<{ revision: Revision | null; value: Result<void, E | 'unreadable'> }> => {
+          const changed = await change()
+          if (!changed.ok) return { revision: null, value: changed }
+          const disk = await repository.readChapter(root, file)
+          if (!disk.ok) return { revision: null, value: err('unreadable' as const) }
+          rememberRevision(file, disk.value.revision)
+          return { revision: disk.value.revision, value: ok(undefined) }
+        })
+      })
+    },
 
     idle: async () => {
       await operations

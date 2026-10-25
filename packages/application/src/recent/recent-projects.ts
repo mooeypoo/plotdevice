@@ -25,6 +25,8 @@ export interface RecentProject {
   title: string
   leftOff?: LeftOff
   place?: Place
+  /** Pages pinned to the reference shelf, in the author's order. */
+  shelf?: ProjectPath[]
 }
 
 /** Kept in app data, never in a project folder. The first project is the one to reopen at startup. */
@@ -46,7 +48,8 @@ export function parseRecentProjects(text: string): Result<RecentProjects, 'unrea
     if (!isRecord(entry) || typeof entry.root !== 'string' || typeof entry.title !== 'string') return []
     const leftOff = parseLeftOff(entry.leftOff)
     const place = parsePlace(entry.place)
-    return [{ root: entry.root, title: entry.title, ...(leftOff ? { leftOff } : {}), ...(place ? { place } : {}) }]
+    const shelf = Array.isArray(entry.shelf) ? entry.shelf.flatMap((file) => (typeof file === 'string' ? [parseProjectPath(file)] : [])).flatMap((file) => (file.ok ? [file.value] : [])) : []
+    return [{ root: entry.root, title: entry.title, ...(leftOff ? { leftOff } : {}), ...(place ? { place } : {}), ...(shelf.length ? { shelf } : {}) }]
   })
   return ok({ projects: projects.slice(0, MAX_RECENT_PROJECTS) })
 }
@@ -74,6 +77,8 @@ export interface RecentProjectsSession {
   opened(project: { root: string; title: string }): Promise<Result<void, AppDataWriteFailure>>
   leftOff(root: string, position: LeftOff): Promise<Result<void, AppDataWriteFailure>>
   place(root: string, place: Place): Promise<Result<void, AppDataWriteFailure>>
+  /** The pages pinned to the reference shelf, in order. */
+  pin(root: string, shelf: readonly ProjectPath[]): Promise<Result<void, AppDataWriteFailure>>
   forget(root: string): Promise<Result<void, AppDataWriteFailure>>
   idle(): Promise<void>
 }
@@ -104,6 +109,7 @@ export async function createRecentProjectsSession(file: AppDataFile): Promise<Re
       }),
     leftOff: (root, position) => change((projects) => projects.map((project) => (project.root === root ? { ...project, leftOff: position } : project))),
     place: (root, place) => change((projects) => projects.map((project) => (project.root === root ? { ...project, place } : project))),
+    pin: (root, shelf) => change((projects) => projects.map((project) => (project.root === root ? { ...project, shelf: [...shelf] } : project))),
     forget: (root) => change((projects) => projects.filter((project) => project.root !== root)),
     idle: async () => {
       let seen: Promise<unknown> | undefined

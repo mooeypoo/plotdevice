@@ -22,6 +22,13 @@ export const channels = {
   editOutline: 'plotdevice:edit-outline',
   undoOutline: 'plotdevice:undo-outline',
   rememberPlace: 'plotdevice:remember-place',
+  listReferences: 'plotdevice:list-references',
+  readReference: 'plotdevice:read-reference',
+  createReference: 'plotdevice:create-reference',
+  renameReference: 'plotdevice:rename-reference',
+  cardsAbout: 'plotdevice:cards-about',
+  getShelf: 'plotdevice:get-shelf',
+  setShelf: 'plotdevice:set-shelf',
 } as const
 
 /** The one channel the host uses to send events to the page. */

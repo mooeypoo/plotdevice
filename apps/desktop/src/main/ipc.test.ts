@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { createIpcHandlers, isAppUrl, type Sender } from './ipc'
 import type { OutlineIpcContext } from './outline-ipc'
 import type { ProjectIpcContext } from './project-ipc'
+import type { ReferenceIpcContext } from './reference-ipc'
 
 const MEDIUM_PAGE = { writingSize: 'medium', pageWidth: 'medium' } as const
 
@@ -24,6 +25,7 @@ function setup(saveError?: string) {
     // Project calls are covered in project-ipc.test.ts.
     projects: {} as ProjectIpcContext,
     outlines: {} as OutlineIpcContext,
+    references: {} as ReferenceIpcContext,
   })
   const call = (channel: string, sender: Sender, payload?: unknown) => {
     const handler = handlers[channel]

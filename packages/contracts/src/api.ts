@@ -2,6 +2,7 @@ import type { AppInfo } from './app-info'
 import type { HostEvent, LeftOffRequest, OpenChapterResult, ResolveConflictRequest, ResolveConflictResult, SaveChapterRequest } from './chapter'
 import type { OutlineEditRequest, OutlineResult, OutlineSummaryView, Place } from './outline'
 import type { Preferences, PreferencesPatch } from './preferences'
+import type { CardLinksView, ReferenceKind, ReferencePageView, ReferenceResult, ReferenceSummaryView } from './references'
 import type {
   ContentsChangeRequest,
   CreateProjectResult,
@@ -50,6 +51,15 @@ export interface PlotDeviceApi {
   undoOutline(file: ProjectPath): Promise<OutlineResult>
   /** Remembers the workspace, outline and view, to return there next time. */
   rememberPlace(place: Place): Promise<void>
+
+  listReferences(): Promise<ReferenceSummaryView[]>
+  readReference(file: ProjectPath): Promise<ReferenceResult<ReferencePageView>>
+  createReference(kind: ReferenceKind, title: string): Promise<ReferenceResult<ReferenceSummaryView>>
+  renameReference(file: ProjectPath, title: string): Promise<ReferenceResult<ReferenceSummaryView>>
+  /** The outline cards that link to a chapter, with what else they link to. */
+  cardsAbout(chapter: ProjectPath): Promise<CardLinksView[]>
+  getShelf(): Promise<ProjectPath[]>
+  setShelf(files: ProjectPath[]): Promise<void>
 
   onEvent(listener: (event: HostEvent) => void): () => void
 }

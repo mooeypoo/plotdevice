@@ -26,6 +26,13 @@ const api: PlotDeviceApi = {
   editOutline: (file, edit) => ipcRenderer.invoke(channels.editOutline, { file, edit }),
   undoOutline: (file) => ipcRenderer.invoke(channels.undoOutline, { file }),
   rememberPlace: (place) => ipcRenderer.invoke(channels.rememberPlace, place),
+  listReferences: () => ipcRenderer.invoke(channels.listReferences),
+  readReference: (file) => ipcRenderer.invoke(channels.readReference, { file }),
+  createReference: (kind, title) => ipcRenderer.invoke(channels.createReference, { kind, title }),
+  renameReference: (file, title) => ipcRenderer.invoke(channels.renameReference, { file, title }),
+  cardsAbout: (chapter) => ipcRenderer.invoke(channels.cardsAbout, { file: chapter }),
+  getShelf: () => ipcRenderer.invoke(channels.getShelf),
+  setShelf: (files) => ipcRenderer.invoke(channels.setShelf, { files }),
   onEvent: (listener) => {
     const forward = (_event: IpcRendererEvent, hostEvent: HostEvent): void => listener(hostEvent)
     ipcRenderer.on(eventChannel, forward)

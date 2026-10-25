@@ -67,3 +67,18 @@ export {
   type Place,
   type Workspace,
 } from './outline'
+export {
+  chapterLinksSchema,
+  createReferenceSchema,
+  referenceFileSchema,
+  referenceKindSchema,
+  renameReferenceSchema,
+  shelfSchema,
+  type CardLinksView,
+  type LinkTargetView,
+  type ReferenceKind,
+  type ReferencePageView,
+  type ReferenceProblem,
+  type ReferenceResult,
+  type ReferenceSummaryView,
+} from './references'

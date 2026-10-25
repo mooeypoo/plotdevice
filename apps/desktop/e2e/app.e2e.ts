@@ -33,9 +33,11 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
   })
   // Listed in full, so widening the bridge is always a deliberate change.
   const bridge = [
+    'cardsAbout',
     'changeContents',
     'createOutline',
     'createProject',
+    'createReference',
     'editOutline',
     'flushed',
     'forgetRecentProject',
@@ -43,18 +45,23 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'getOpenProject',
     'getPreferences',
     'getRecentProjects',
+    'getShelf',
     'leftOff',
     'listOutlines',
+    'listReferences',
     'onEvent',
     'openChapter',
     'openOutline',
     'openProject',
+    'readReference',
     'rememberPlace',
     'renameChapter',
     'renameChapterFile',
+    'renameReference',
     'resolveConflict',
     'saveChapter',
     'setPreferences',
+    'setShelf',
     'undoOutline',
   ]
   expect(exposed).toEqual({ process: 'undefined', require: 'undefined', bridge })

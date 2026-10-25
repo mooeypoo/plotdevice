@@ -34,6 +34,8 @@ export {
 export type { FileStore, ReadProblem, RenameProblem, Revision, StoredText, TextToStore, WriteProblem } from './ports/file-store'
 export type { IdGenerator } from './ports/id-generator'
 export type { OutlineDocument, OutlineRepository, OutlineSummary, OutlineWriteProblem } from './ports/outline-repository'
+export type { CardLinks, ReferencePage, ReferenceRepository } from './ports/reference-repository'
+export { cardsLinkingTo } from './references/references'
 export {
   createOutlineSession,
   type OutlineEditFailure,

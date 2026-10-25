@@ -91,4 +91,13 @@ describe('recent projects', () => {
     const text = JSON.stringify({ projects: [{ root: '/b', title: 'B', place: { workspace: 'Story' } }, { root: '/c', title: 'C', place: { workspace: 'write', outline: '../x.md', view: 'grid' } }] })
     expect(parseRecentProjects(text)).toEqual({ ok: true, value: { projects: [{ root: '/b', title: 'B' }, { root: '/c', title: 'C', place: { workspace: 'write' } }] } })
   })
+
+  it('keeps the pinned shelf in order, and drops paths it can\'t read', async () => {
+    const { file } = memoryFile()
+    const recent = await createRecentProjectsSession(file)
+    await recent.opened({ root: '/a', title: 'A' })
+    await recent.pin('/a', [p('places/marrow.md'), p('characters/ilka.md')])
+    expect((await createRecentProjectsSession(file)).current().projects[0]?.shelf).toEqual(['places/marrow.md', 'characters/ilka.md'])
+    expect(parseRecentProjects(JSON.stringify({ projects: [{ root: '/b', title: 'B', shelf: ['ok.md', '../escape.md', 3] }] }))).toEqual({ ok: true, value: { projects: [{ root: '/b', title: 'B', shelf: ['ok.md'] }] } })
+  })
 })

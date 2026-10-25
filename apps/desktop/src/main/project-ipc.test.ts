@@ -1,7 +1,7 @@
 import { createOutlineSession, createRecentProjectsSession, createWritingSession, type SessionEvent } from '@plotdevice/application'
-import { channels, type OpenChapterResult, type OpenProjectResult, type OutlineResult, type ProjectChangeResult, type ProjectView, type ResolveConflictResult } from '@plotdevice/contracts'
+import { channels, type CardLinksView, type OpenChapterResult, type ReferenceResult, type ReferenceSummaryView, type OpenProjectResult, type OutlineResult, type ProjectChangeResult, type ProjectView, type ResolveConflictResult } from '@plotdevice/contracts'
 import { createAppDataFile, createJournalStore, createProjectFolders, randomIdGenerator } from '@plotdevice/fs-node'
-import { createOutlineRepository, createProjectRepository } from '@plotdevice/storage'
+import { createOutlineRepository, createProjectRepository, createReferenceRepository } from '@plotdevice/storage'
 import { access, cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -51,6 +51,7 @@ async function setup() {
       onFlushed: () => flushed++,
     },
     outlines: { outlines, writing: session, recent },
+    references: { references: createReferenceRepository({ folders: createProjectFolders() }), writing: session, recent },
   })
   const call = (channel: string, payload?: unknown, sender: Sender = appPage): Promise<unknown> => {
     const handler = handlers[channel]
@@ -226,5 +227,48 @@ describe('outline calls', () => {
     await context.call(channels.rememberPlace, { workspace: 'story', outline: MAIN, view: 'cards' })
     expect(await context.call(channels.getOpenProject)).toMatchObject({ place: { workspace: 'story', outline: MAIN, view: 'cards' } })
     await expect(context.call(channels.rememberPlace, { workspace: 'Story' })).rejects.toThrow('invalid-payload')
+  })
+})
+
+describe('reference calls', () => {
+  it('names the cards about a chapter and what they link to (scenario D, core half)', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const created = (await context.call(channels.createReference, { kind: 'character', title: 'Ilka Varga' })) as ReferenceResult<ReferenceSummaryView>
+    expect(created.ok && created.value.file).toBe('characters/ilka-varga.md')
+    await writeFile(join(context.root, 'outlines/arcs.md'), '## Ilka\n\n- She crosses, see [The Crossing](../manuscript/the-crossing.md) and [Ilka](../characters/ilka-varga.md)\n')
+    const cards = (await context.call(channels.cardsAbout, { file: 'manuscript/the-crossing.md' })) as CardLinksView[]
+    expect(cards.find((card) => card.outline === 'outlines/arcs.md')).toEqual({
+      outline: 'outlines/arcs.md',
+      outlineTitle: null,
+      section: 'Ilka',
+      card: 'She crosses, see [The Crossing](../manuscript/the-crossing.md) and [Ilka](../characters/ilka-varga.md)',
+      links: [{ file: 'characters/ilka-varga.md', kind: 'character', title: 'Ilka Varga' }],
+    })
+  })
+
+  it('renames a page that is open and being typed in, without a conflict', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const created = (await context.call(channels.createReference, { kind: 'place', title: 'Marrow' })) as ReferenceResult<ReferenceSummaryView>
+    if (!created.ok) throw new Error(created.error)
+    const page = (await context.call(channels.openChapter, { file: created.value.file })) as OpenChapterResult
+    if (!page.ok) throw new Error(page.error)
+    await context.call(channels.saveChapter, { file: created.value.file, text: 'Where the orchard is.\n', generation: page.value.generation })
+    const renamed = (await context.call(channels.renameReference, { file: created.value.file, title: 'Marrow, the town' })) as ReferenceResult<ReferenceSummaryView>
+    await context.call(channels.saveChapter, { file: created.value.file, text: 'Where the orchard is, by the river.\n', generation: page.value.generation })
+    await context.session.idle()
+    expect(renamed.ok && renamed.value.title).toBe('Marrow, the town')
+    expect(await context.read('places/marrow.md')).toBe('---\ntitle: Marrow, the town\n---\nWhere the orchard is, by the river.\n')
+    expect(context.session.saveStatus(created.value.file)?.kind).toBe('saved')
+  })
+
+  it('remembers the pinned shelf, and reads only pages', async () => {
+    const context = await setup()
+    await openChosen(context)
+    await context.call(channels.setShelf, { files: ['notes/loose-ideas.md', 'characters/ilka.md'] })
+    expect(await context.call(channels.getShelf)).toEqual(['notes/loose-ideas.md', 'characters/ilka.md'])
+    await expect(context.call(channels.readReference, { file: 'manuscript/frost.md' })).rejects.toThrow('invalid-payload')
+    await expect(context.call(channels.setShelf, { files: ['project.md'] })).rejects.toThrow('invalid-payload')
   })
 })

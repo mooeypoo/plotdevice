@@ -9,10 +9,10 @@ import {
   type ProjectRepository,
   type WritingSession,
 } from '@plotdevice/application'
-import { eventChannel, type AppInfo } from '@plotdevice/contracts'
+import { eventChannel, type AppInfo, type HostEvent } from '@plotdevice/contracts'
 import { createAppDataFile, createJournalStore, createPreferencesFileStore, createProjectFolders, randomIdGenerator, watchProject, type ProjectWatcher } from '@plotdevice/fs-node'
 import { catalogs, createTranslator } from '@plotdevice/i18n'
-import { createOutlineRepository, createProjectRepository } from '@plotdevice/storage'
+import { createOutlineRepository, createProjectRepository, createReferenceRepository } from '@plotdevice/storage'
 import { app, BrowserWindow, dialog, ipcMain, session } from 'electron'
 import { access } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -67,7 +67,9 @@ void app.whenReady().then(async () => {
   const outlines = createOutlineSession({ repository: createOutlineRepository({ folders: createProjectFolders() }), root: () => writing.project()?.root ?? null })
   const recent = await createRecentProjectsSession(createAppDataFile(userData, 'recent'))
   pendingWork.push(() => preferences.idle(), () => writing.idle(), () => recent.idle(), () => outlines.idle())
-  const stopWatching = watchOpenProject(writing, outlines)
+  // The watcher can start before the window exists (reopening the last project); events wait for it.
+  let tellPage: (event: HostEvent) => void = () => undefined
+  const stopWatching = watchOpenProject(writing, outlines, () => tellPage({ kind: 'references-changed' }))
   pendingWork.push(stopWatching)
   await reopenLastProject(writing, recent.current().projects[0]?.root)
 
@@ -85,6 +87,7 @@ void app.whenReady().then(async () => {
       spellcheck: true,
     },
   })
+  tellPage = (event) => window.webContents.send(eventChannel, event)
   writing.onEvent((event) => window.webContents.send(eventChannel, hostEvent(event)))
   outlines.onEvent((event) => window.webContents.send(eventChannel, outlineEvent(event)))
   enableSpellingMenu(window, translate)
@@ -138,6 +141,7 @@ void app.whenReady().then(async () => {
       onFlushed: () => flushWaiters.splice(0).forEach((resolve) => resolve()),
     },
     outlines: { outlines, writing, recent },
+    references: { references: createReferenceRepository({ folders: createProjectFolders() }), writing, recent },
   })
   for (const [channel, handle] of Object.entries(handlers)) {
     ipcMain.handle(channel, (event, payload: unknown) => handle({ url: event.senderFrame?.url, fromAppWindow: event.sender === window.webContents }, payload))
@@ -158,7 +162,7 @@ const REFRESH_DELAY_MS = 300
  * Watches the open project's folder for changes made by other programs. A changed chapter is checked
  * (and reloaded quietly if it has no unsaved edits); anything else refreshes the project shortly after.
  */
-function watchOpenProject(writing: WritingSession, outlines: OutlineSession): () => Promise<void> {
+function watchOpenProject(writing: WritingSession, outlines: OutlineSession, referencesChanged: () => void): () => Promise<void> {
   let watched: { root: string; watcher: ProjectWatcher } | null = null
   let refresh: ReturnType<typeof setTimeout> | undefined
   writing.onEvent((event) => {
@@ -170,6 +174,7 @@ function watchOpenProject(writing: WritingSession, outlines: OutlineSession): ()
       watcher: watchProject(event.project.root, (change) => {
         if (change.kind === 'changed' && change.path.startsWith('outlines/')) void outlines.fileChanged(change.path)
         else if (change.kind === 'changed') void writing.fileChanged(change.path)
+        if (/^(characters|places|notes)\//.test(change.path)) referencesChanged()
         clearTimeout(refresh)
         refresh = setTimeout(() => void writing.refreshProject(), REFRESH_DELAY_MS)
       }),
