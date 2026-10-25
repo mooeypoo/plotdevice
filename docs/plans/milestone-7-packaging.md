@@ -1,6 +1,6 @@
 # Milestone 7: Installers and the release identity (Gate 6, second half)
 
-Status: **Proposed, awaiting owner approval.** No code yet.
+Status: **Approved** (owner, 2026-10-25): the old app's identity (it was never released, so nothing is lost either way), the existing brand logo, version `0.2.0`, CI builds with draft releases on tags, and `electron-builder`.
 
 ## Goal
 
