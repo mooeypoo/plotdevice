@@ -45,6 +45,33 @@ export async function loadPreferences(store: PreferencesStore, systemLocale: str
   return { preferences: defaults, notice: 'reset-unreadable' }
 }
 
+export interface PreferencesSession {
+  current(): Preferences
+  /** Queued: each change applies to the settings left by the previous one, never to a stale copy. */
+  update(patch: PreferencesPatch): Promise<Result<Preferences, PreferencesWriteFailure>>
+}
+
+/**
+ * The settings in effect while the app runs. Updates are serialized: two quick changes (language,
+ * then theme) must not both start from the old settings, or the second save would undo the first.
+ */
+export function createPreferencesSession(store: PreferencesStore, initial: Preferences): PreferencesSession {
+  let current = initial
+  let queue: Promise<unknown> = Promise.resolve()
+  return {
+    current: () => current,
+    update(patch) {
+      const run = queue.then(async () => {
+        const saved = await updatePreferences(store, current, patch)
+        if (saved.ok) current = saved.value
+        return saved
+      })
+      queue = run.catch(() => undefined)
+      return run
+    },
+  }
+}
+
 /** Applies a change and saves it. On failure, the settings in effect stay as they were. */
 export async function updatePreferences(
   store: PreferencesStore,

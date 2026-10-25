@@ -29,12 +29,13 @@ describe('architecture rules', () => {
   })
 
   it('read .vue files (a component importing the core is caught)', async () => {
-    const found = await violatedRules([join('tooling', 'arch-fixtures', 'ui-stays-in-the-renderer', 'packages', 'ui-vue', 'src', 'Bad.vue')])
+    const found = await violatedRules(['tooling/arch-fixtures/ui-stays-in-the-renderer/packages/ui-vue/src/Bad.vue'])
     expect(found.map((v) => v.rule)).toContain('ui-stays-in-the-renderer')
   })
 
   it.each(ruleNames)('%s catches its fixture', async (rule) => {
-    const found = await violatedRules([join('tooling', 'arch-fixtures', rule)])
+    // Forward slashes on every OS: dependency-cruiser reports and matches POSIX-style paths.
+    const found = await violatedRules([`tooling/arch-fixtures/${rule}`])
     expect(found.map((v) => v.rule)).toContain(rule)
   })
 })

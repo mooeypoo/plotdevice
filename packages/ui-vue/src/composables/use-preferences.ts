@@ -11,12 +11,17 @@ export function usePreferences(api: PlotDeviceApi): {
   const saveFailed = ref(false)
   void api.getPreferences().then((loaded) => (preferences.value = loaded))
 
+  let latestRequest = 0
+
   async function update(patch: PreferencesPatch): Promise<void> {
     if (!preferences.value) return
     // Apply at once so the interface responds immediately; the host confirms what was saved.
     preferences.value = { ...preferences.value, ...patch } as Preferences
+    const request = ++latestRequest
     try {
-      preferences.value = await api.setPreferences(patch)
+      const saved = await api.setPreferences(patch)
+      // An older reply must not undo a newer change the author already sees.
+      if (request === latestRequest) preferences.value = saved
       saveFailed.value = false
     } catch {
       saveFailed.value = true

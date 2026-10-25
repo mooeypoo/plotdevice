@@ -1,0 +1,29 @@
+{
+  "name": "@plotdevice/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plot Device for Linux and Windows (Electron host).",
+  "license": "GPL-3.0-or-later",
+  "author": "Moriel Schottlender <mooeypoo@gmail.com>",
+  "type": "module",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && vue-tsc --noEmit -p tsconfig.web.json"
+  },
+  "devDependencies": {
+    "@plotdevice/application": "workspace:*",
+    "@plotdevice/contracts": "workspace:*",
+    "@plotdevice/fs-node": "workspace:*",
+    "@plotdevice/shared": "workspace:*",
+    "@plotdevice/ui-vue": "workspace:*",
+    "@types/node": "^24.19.2",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "electron": "^45.0.0",
+    "electron-vite": "^6.0.0",
+    "vite": "^8.3.5",
+    "vue-tsc": "^3.3.13"
+  }
+}

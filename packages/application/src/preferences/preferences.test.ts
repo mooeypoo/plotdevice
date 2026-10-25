@@ -1,6 +1,6 @@
 import { err, ok, type Result } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { defaultPreferences, loadPreferences, parsePreferences, updatePreferences } from './preferences'
+import { createPreferencesSession, defaultPreferences, loadPreferences, parsePreferences, updatePreferences } from './preferences'
 import type { PreferencesStore, PreferencesWriteFailure } from './preferences-store'
 
 function memoryStore(initial: string | null, failWith?: PreferencesWriteFailure) {
@@ -54,6 +54,33 @@ describe('loading', () => {
     const { store, state } = memoryStore('{{ broken')
     expect(await loadPreferences(store, 'en')).toEqual({ preferences: { theme: 'system', locale: 'en' }, notice: 'reset-unreadable' })
     expect(state.setAside).toEqual(['{{ broken'])
+  })
+})
+
+describe('a preferences session', () => {
+  it('regression: two quick changes both survive (language, then theme, before the first save ends)', async () => {
+    const { store, state } = memoryStore(null)
+    // Hold the first save open until both changes have been requested.
+    let release = (): void => undefined
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    const slowStore = { ...store, write: async (text: string) => (await gate, store.write(text)) }
+    const session = createPreferencesSession(slowStore, { theme: 'system', locale: 'en' })
+    const both = Promise.all([session.update({ locale: 'he' }), session.update({ theme: 'dark' })])
+    release()
+    const [first, second] = await both
+    expect(first).toEqual({ ok: true, value: { theme: 'system', locale: 'he' } })
+    expect(second).toEqual({ ok: true, value: { theme: 'dark', locale: 'he' } })
+    expect(session.current()).toEqual({ theme: 'dark', locale: 'he' })
+    expect(JSON.parse(state.text ?? '')).toEqual({ theme: 'dark', locale: 'he' })
+  })
+
+  it('keeps going after a failed save', async () => {
+    let fail = true
+    const { store } = memoryStore(null)
+    const flaky = { ...store, write: async (text: string) => (fail ? ((fail = false), err('locked' as const)) : store.write(text)) }
+    const session = createPreferencesSession(flaky, { theme: 'system', locale: 'en' })
+    expect(await session.update({ theme: 'dark' })).toEqual({ ok: false, error: 'locked' })
+    expect(await session.update({ locale: 'he' })).toEqual({ ok: true, value: { theme: 'system', locale: 'he' } })
   })
 })
 
