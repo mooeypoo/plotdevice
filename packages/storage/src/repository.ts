@@ -27,7 +27,7 @@ import {
   validateNewProject,
   type ManuscriptProblem,
 } from '@plotdevice/domain'
-import { editContents, newChapterFile, newContentsFile, newProjectFile, readFrontmatter, rewriteLinksTo, setFrontmatterValues, splitFrontmatter, type ContentsEdit } from '@plotdevice/markdown'
+import { editContents, formatScalar, newChapterFile, newContentsFile, newProjectFile, readFrontmatter, rewriteLinksTo, setFrontmatterValues, splitFrontmatter, type ContentsEdit } from '@plotdevice/markdown'
 import { collisionKey, dirnameOf, err, ok, parseProjectPath, stemOf, type ProjectPath, type Result } from '@plotdevice/shared'
 import { recoverJournals, runJournaled, type CrashAt } from './journal'
 import { CONTENTS_FILE, MANUSCRIPT_FOLDER, PROJECT_FILE, readDetails, readProject } from './read-project'
@@ -199,9 +199,12 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       const values = current.ok ? readFrontmatter(current.value.text) : null
       const title = values?.ok && typeof values.value.title === 'string' ? values.value.title : stemOf(file)
       const copyTitle = `${title} (${label})`
-      const id = ids.next('ch')
-      const withDetails = setFrontmatterValues(frontmatter, { title: copyTitle, id })
-      const content = { text: withDetails.ok ? withDetails.value + text : newChapterFile(copyTitle, id, text), hasBom: current.ok && current.value.hasBom }
+      // Only chapters have ids (ADR 0008); a copy of a character, place or note page gets none.
+      const isChapter = file.startsWith(`${MANUSCRIPT_FOLDER}/`)
+      const id = isChapter ? ids.next('ch') : null
+      const withDetails = setFrontmatterValues(frontmatter, id ? { title: copyTitle, id } : { title: copyTitle })
+      const fallback = id ? newChapterFile(copyTitle, id, text) : `---\ntitle: ${formatScalar(copyTitle)}\n---\n${text}`
+      const content = { text: withDetails.ok ? withDetails.value + text : fallback, hasBom: current.ok && current.value.hasBom }
       // A name taken between listing and writing is refused (`expected: null`), so look again.
       for (let attempt = 0; attempt < 3; attempt++) {
         const copy = chapterCopyFileFor(file, label, await store.listMarkdownFiles())

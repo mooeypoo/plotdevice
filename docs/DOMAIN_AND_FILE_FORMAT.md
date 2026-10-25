@@ -139,6 +139,26 @@ The letter was written in English, and it began without a greeting.
 - Unknown Markdown blocks: retain; if structural editing cannot round-trip safely, restrict operation with helpful explanation.
 - Cards link to chapters, characters and places with ordinary relative Markdown links. Cards themselves have no stored IDs in the MVP (ADR 0003).
 
+## Characters, places and notes
+```markdown
+---
+title: Ilka Varga
+aka: [Ilka, Ili]
+---
+Inherits the orchard; distrusts everyone in Marrow.
+
+## Family
+Daughter of Bea's sister. See [Bea](bea.md).
+```
+- One page per file in `characters/`, `places/` or `notes/`. The folder says what the page is; a `type` key is optional and informational.
+- `title` names the page. Without one, the first `#` heading names it, then the file name, so pages written in any app work unchanged. `aka` (a list, or a single name) holds other names, used by search.
+- The first paragraph is the description; everything after it is details. Pages are read leniently and never rewritten to fit; the app changes only `title`, when the author renames a page.
+- Pages have no ids (ADR 0008).
+
+## Links
+- The app writes ordinary relative Markdown links: `[Ilka](../characters/ilka.md)`. They work in Obsidian, on GitHub and in VS Code without the app. It reads Obsidian's `[[ilka]]` as well, resolved only when exactly one file has that name, but never writes it.
+- Links are explicit: the app never infers one from a name, and never adds or changes links in prose by itself.
+
 ## Advanced filename synchronization (deferred)
 - Stable chapter IDs independent of title, position and file path.
 - Explicit rename source file: validate/collision-check, update the `CONTENTS.md` link and other managed Markdown links, log the transaction in the recovery journal and provide recovery (ADR 0005).

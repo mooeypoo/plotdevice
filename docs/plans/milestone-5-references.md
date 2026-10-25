@@ -1,6 +1,6 @@
 # Milestone 5: Characters, places, notes and the reference shelf (Gate 5)
 
-Status: **Approved** (owner, 2026-10-25), with the recommended page format, link syntax and shelf placement.
+Status: **Complete** (2026-10-25), on branch `milestone-5/references`. Approved by the owner with the recommended page format, link syntax and shelf placement. Results are at the end of this document.
 
 ## Goal
 
@@ -95,3 +95,50 @@ These follow `AGENTS.md`. Reading pages and links, and search, are written test-
 3. Characters, places and notes in Story; the page view and editing.
 4. "Link to…" on cards; the reference shelf with search, pinning and rearranging.
 5. End-to-end scenario D, the accessibility pass, docs (ADR 0003 link-syntax note, DOMAIN_AND_FILE_FORMAT, package READMEs) and results.
+
+## Results
+
+| Check | Result |
+|---|---|
+| `pnpm lint` | OK |
+| `pnpm typecheck` | OK |
+| `pnpm test` | **745 tests pass** (704 before this milestone) |
+| `pnpm arch` | **86 checks pass**, including the working-name check on the new interface files |
+| `pnpm build` | OK |
+| `pnpm e2e` | **35 end-to-end tests pass** in the real app (30 before), with no CSP violations |
+
+**What the tests prove:**
+- **Pages are read leniently:**
+  - The title comes from frontmatter, a `#` heading or the file name.
+  - Other names can be a list or a single name.
+  - Invalid frontmatter is reported and the page still read.
+  - The sample novel's existing notes work unchanged.
+- **Links are found in every form,** never in code, images or web links. Outside paths are refused, and `[[name]]` resolves only when unambiguous.
+- **Search** ranks names before descriptions and ignores case, accents and niqqud, in English and Hebrew.
+- **Renaming an open page while typing raises no conflict.** The title is written between saves; a mutation check confirms the test catches its removal.
+- **Scenario D in the real app:**
+  1. A character is created and a card linked to it, which writes an ordinary relative link.
+  2. The card's chapter link opens the chapter in Write.
+  3. The shelf shows the card and opens the character.
+  4. The cursor and undo history in the chapter are intact, and consulting references changed no file.
+- **Also covered:**
+  - Pinned pages and their keyboard-set order survive a restart.
+  - A page changed in another app gets the same conflict choices as a chapter.
+  - Every shelf and page control is named in both languages.
+
+**Where the work differs from the plan:**
+- **Search lives in `presentation`, not `domain`.** It ranks a list the page already holds, on every keystroke, without a round trip to the host.
+- **A page's text is edited as a whole** in the chapter editor; the description is simply its first paragraph.
+- **Bugs found and fixed while building:**
+  - A "keep both" copy of a page got a chapter id, though only chapters have ids (ADR 0008). Regression test added.
+  - The watcher could report a page change before the window existed, while the last project reopened.
+  - A crash test was flaky under load: it assumed its child process starts writing within 150 ms. It now waits until the writer reports it is writing.
+
+**Not done, needs the owner:**
+- **Trying the shelf and "Link to…" with authors.**
+- **A screen-reader pass with Orca,** as in earlier milestones.
+
+**Later (noted, not in this milestone):**
+- Renaming a page's file, updating every link to it (the chapter rename and its recovery journal, generalised).
+- Full-text search inside pages.
+- **Keystrokes after the conflict dialog opens are not typed anywhere**, because the dialog blocks the page. Nothing saved is lost, but a word typed in that moment is. A gentler prompt could let typing continue.

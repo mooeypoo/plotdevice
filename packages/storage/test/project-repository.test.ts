@@ -1,7 +1,7 @@
 import type { IdGenerator, ProjectSnapshot } from '@plotdevice/application'
 import { createJournalStore, createProjectFolders } from '@plotdevice/fs-node'
 import type { ProjectPath } from '@plotdevice/shared'
-import { cp, mkdtemp, readdir, readFile, rm, unlink, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, unlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -329,6 +329,14 @@ describe('keeping both versions of a chapter changed elsewhere (PRD scenario G, 
     unwrap(await repository.saveChapterCopy(root, p('manuscript/frost.md'), 'First.\n', 'my version'))
     expect(unwrap(await repository.saveChapterCopy(root, p('manuscript/frost.md'), 'Second.\n', 'my version'))).toBe('manuscript/frost-my-version-2.md')
     expect(await read('manuscript/frost-my-version.md')).toMatch(/\nFirst\.\n$/)
+  })
+
+  it('regression: a copy of a character, place or note page gets no id; only chapters have ids', async () => {
+    const { root, repository, read } = await setup()
+    await mkdir(join(root, 'places'))
+    await writeFile(join(root, 'places/marrow.md'), '---\ntitle: Marrow\n---\nChanged elsewhere.\n')
+    unwrap(await repository.saveChapterCopy(root, p('places/marrow.md'), 'Mine.\n', 'my version'))
+    expect(await read('places/marrow-my-version.md')).toBe('---\ntitle: Marrow (my version)\n---\nMine.\n')
   })
 
   it("still saves the author's text when the chapter was deleted elsewhere", async () => {
