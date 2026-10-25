@@ -95,6 +95,28 @@ test('scenario D: link a card to a character and a chapter, and consult them whi
   expect(cspViolations()).toEqual([])
 })
 
+test('"Link to…" shows a few of each kind before anything is typed, and picks one by keyboard', async () => {
+  await mkdir(join(root, 'characters'))
+  await mkdir(join(root, 'places'))
+  for (const name of ['Zed', 'Ilka', 'Bea', 'Noël', 'Marta', 'Ada']) await writeFile(join(root, `characters/${name.toLowerCase()}.md`), `---\ntitle: ${name}\n---\n`)
+  await writeFile(join(root, 'places/marrow.md'), '---\ntitle: Marrow\n---\n')
+  const page = await start()
+  await page.getByTestId('workspace-story').click()
+  await page.locator('[data-outline="outlines/main-story.md"]').click()
+  await page.locator('.outline-card', { hasText: 'The gate' }).getByRole('button', { name: /^Actions for/ }).click()
+  await page.getByTestId('menu-link-to').click()
+
+  await expect(page.getByTestId('link-group-chapter').getByRole('option')).toHaveText(['Prologue', 'The Crossing', 'The Orchard Gate', 'Frost', 'Epilogue'])
+  await expect(page.getByTestId('link-group-character').getByRole('option')).toHaveText(['Ada', 'Bea', 'Ilka', 'Marta', 'Noël'])
+  await expect(page.getByTestId('link-group-place').getByRole('option')).toHaveText(['Marrow'])
+  await page.screenshot({ path: test.info().outputPath('link-picker.png') })
+
+  // Down through the five chapters to the first character, without typing.
+  for (let i = 0; i < 5; i++) await page.getByTestId('link-search').press('ArrowDown')
+  await page.getByTestId('link-search').press('Enter')
+  await file('outlines/main-story.md').toContain('- The gate, see [The Orchard Gate](../manuscript/the-orchard-gate.md) [Ada](../characters/ada.md)\n')
+})
+
 test('pinned pages keep their order, set by keyboard, after a restart', async () => {
   await mkdir(join(root, 'places'))
   await writeFile(join(root, 'places/marrow.md'), '---\ntitle: Marrow\n---\nWhere the orchard is.\n')

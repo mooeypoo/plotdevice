@@ -16,4 +16,4 @@ export {
   type ItemDestination,
   type OutlineRow,
 } from './outline-views'
-export { linkTargets, markdownLink, search, type LinkTarget } from './references'
+export { LINK_KINDS, linkTargets, markdownLink, search, suggestedLinkTargets, type LinkTarget } from './references'

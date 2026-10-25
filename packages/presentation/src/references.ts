@@ -41,12 +41,32 @@ export interface LinkTarget {
   description: string | null
 }
 
-/** Everything a card can link to: the book's chapters (in or out of the book) and every page. */
+/** Everything a card can link to: the book's chapters, in reading order then the rest, and every page. */
 export function linkTargets(project: ProjectView, references: readonly ReferenceSummaryView[]): LinkTarget[] {
+  const readingOrder = project.contents.flatMap((entry) => (entry.kind === 'chapter' ? [entry.file] : entry.chapters.map((chapter) => chapter.file)))
+  const position = (file: ProjectPath): number => {
+    const at = readingOrder.indexOf(file)
+    return at === -1 ? readingOrder.length : at
+  }
+  const chapters = [...project.chapters].sort((a, b) => position(a.file) - position(b.file))
   return [
-    ...project.chapters.map((chapter): LinkTarget => ({ file: chapter.file, kind: 'chapter', title: chapter.title ?? chapter.file, aka: [], description: null })),
+    ...chapters.map((chapter): LinkTarget => ({ file: chapter.file, kind: 'chapter', title: chapter.title ?? chapter.file, aka: [], description: null })),
     ...references.map((reference): LinkTarget => ({ ...reference })),
   ]
+}
+
+export const LINK_KINDS: readonly LinkTarget['kind'][] = ['chapter', 'character', 'place', 'note']
+
+/**
+ * What the link picker offers before anything is typed: a few of each kind, so the author sees what
+ * there is. Chapters stay in reading order; pages are alphabetical. Kinds with nothing are left out.
+ */
+export function suggestedLinkTargets(targets: readonly LinkTarget[], perKind = 5): { kind: LinkTarget['kind']; targets: LinkTarget[] }[] {
+  return LINK_KINDS.map((kind) => {
+    const ofKind = targets.filter((target) => target.kind === kind)
+    const ordered = kind === 'chapter' ? ofKind : [...ofKind].sort((a, b) => a.title.localeCompare(b.title))
+    return { kind, targets: ordered.slice(0, perKind) }
+  }).filter((group) => group.targets.length > 0)
 }
 
 /** A relative Markdown link from a file in `fromDir` (Milestone 5, decision 2): `[Ilka](../characters/ilka.md)`. */

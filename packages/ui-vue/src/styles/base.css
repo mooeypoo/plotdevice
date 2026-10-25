@@ -248,7 +248,8 @@ label { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--col
 .shelf-links li { display: flex; gap: 0.4rem; align-items: baseline; }
 .shelf-outline-card { cursor: default; }
 .link-picker { min-inline-size: min(28rem, 100% - 2rem); }
-.link-picker .results { max-block-size: 16rem; overflow: auto; }
+.link-picker .results { max-block-size: min(24rem, 60vh); overflow: auto; }
+.link-picker .group-label:first-child { margin-block-start: 0; }
 .link-picker [role='option'] { display: flex; justify-content: space-between; gap: 1rem; padding: 0.35rem 0.5rem; border-radius: 6px; cursor: pointer; }
 .link-picker [role='option'].selected { background: color-mix(in srgb, var(--color-accent) 14%, transparent); }
 button.inline-link { border: none; background: none; padding: 0; font: inherit; }

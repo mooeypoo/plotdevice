@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { linkTargets, search, type LinkTarget } from '@plotdevice/presentation'
+import { linkTargets, search, suggestedLinkTargets, type LinkTarget } from '@plotdevice/presentation'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useLinkPicker } from '../composables/use-link-picker'
 import { useProjectStore } from '../stores/project'
@@ -16,7 +16,12 @@ const input = ref<HTMLInputElement | null>(null)
 const query = ref('')
 const selected = ref(0)
 
-const results = computed<LinkTarget[]>(() => (project.project ? search(linkTargets(project.project, story.references), query.value).slice(0, 12) : []))
+const targets = computed<LinkTarget[]>(() => (project.project ? linkTargets(project.project, story.references) : []))
+const searching = computed(() => query.value.trim() !== '')
+/** Before anything is typed, a few of each kind, so the author sees what there is to link to. */
+const groups = computed(() => (searching.value ? [] : suggestedLinkTargets(targets.value)))
+const results = computed<LinkTarget[]>(() => (searching.value ? search(targets.value, query.value).slice(0, 12) : groups.value.flatMap((group) => group.targets)))
+const indexOf = (target: LinkTarget): number => results.value.indexOf(target)
 watch(results, () => (selected.value = 0))
 
 watch(current, async (request) => {
@@ -33,6 +38,7 @@ function onKey(event: KeyboardEvent): void {
   else if (event.key === 'Enter') current.value?.resolve(results.value[selected.value] ?? null)
   else return
   event.preventDefault()
+  void nextTick(() => document.getElementById(`link-result-${selected.value}`)?.scrollIntoView({ block: 'nearest' }))
 }
 </script>
 
@@ -54,20 +60,36 @@ function onKey(event: KeyboardEvent): void {
         @keydown="onKey"
       />
     </label>
-    <ul id="link-results" role="listbox" class="results">
-      <li
-        v-for="(target, index) in results"
-        :id="`link-result-${index}`"
-        :key="target.file"
-        role="option"
-        :aria-selected="index === selected"
-        :class="{ selected: index === selected }"
-        @click="current?.resolve(target)"
-      >
-        <span dir="auto">{{ target.title }}</span>
-        <span class="secondary">{{ t(`kind-${target.kind}`) }}</span>
-      </li>
-    </ul>
+    <div id="link-results" role="listbox" class="results" :aria-label="t('link-search')">
+      <template v-if="searching">
+        <div
+          v-for="target in results"
+          :id="`link-result-${indexOf(target)}`"
+          :key="target.file"
+          role="option"
+          :aria-selected="indexOf(target) === selected"
+          :class="{ selected: indexOf(target) === selected }"
+          @click="current?.resolve(target)"
+        >
+          <span dir="auto">{{ target.title }}</span>
+          <span class="secondary">{{ t(`kind-${target.kind}`) }}</span>
+        </div>
+      </template>
+      <div v-for="group in groups" v-else :key="group.kind" role="group" :aria-labelledby="`link-group-${group.kind}`" :data-testid="`link-group-${group.kind}`">
+        <h3 :id="`link-group-${group.kind}`" class="group-label">{{ t(group.kind === 'chapter' ? 'navigator-label' : `story-${group.kind}`) }}</h3>
+        <div
+          v-for="target in group.targets"
+          :id="`link-result-${indexOf(target)}`"
+          :key="target.file"
+          role="option"
+          :aria-selected="indexOf(target) === selected"
+          :class="{ selected: indexOf(target) === selected }"
+          @click="current?.resolve(target)"
+        >
+          <span dir="auto">{{ target.title }}</span>
+        </div>
+      </div>
+    </div>
     <p v-if="query.trim() !== '' && results.length === 0" class="secondary">{{ t('shelf-no-results') }}</p>
     <div class="actions">
       <button type="button" @click="current?.resolve(null)">{{ t('prompt-cancel') }}</button>
