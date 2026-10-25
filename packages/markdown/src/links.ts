@@ -85,3 +85,43 @@ function codeRanges(text: string): { start: number; end: number }[] {
   visit(fromMarkdown(text) as Root)
   return ranges
 }
+
+/** A link the author wrote: to a file in the project by path, or by name (`[[name]]`, as in Obsidian). */
+export type FoundLink = { kind: 'path'; target: string; text: string | null } | { kind: 'wiki'; name: string; text: string | null }
+
+const INLINE_LINK = /(!?)\[([^\]\n]*)\]\((<[^>\n]*>|[^\s)]+)(?:[ \t]+"[^"\n]*")?\)/g
+
+/**
+ * The links in `text` (a file in `fileDir`), in the order they appear: inline links, reference
+ * definitions and wikilinks. Web links, images, links in code and paths leading outside the project
+ * are left out. Paths come back resolved to project paths.
+ */
+export function findLinks(text: string, fileDir: string): FoundLink[] {
+  const protectedRanges = codeRanges(text)
+  const inCode = (offset: number): boolean => protectedRanges.some((range) => offset >= range.start && offset < range.end)
+  const found: { at: number; link: FoundLink }[] = []
+  const byPath = (at: number, destination: string, linkText: string | null): void => {
+    const target = projectTarget(destination, fileDir)
+    if (target !== null && !inCode(at)) found.push({ at, link: { kind: 'path', target, text: linkText } })
+  }
+  for (const match of text.matchAll(INLINE_LINK)) if (!match[1]) byPath(match.index, match[3] ?? '', match[2] ?? '')
+  for (const match of text.matchAll(DEFINITION)) byPath(match.index, match[1] ?? '', null)
+  for (const match of text.matchAll(WIKILINK)) {
+    if (inCode(match.index)) continue
+    found.push({ at: match.index, link: { kind: 'wiki', name: (match[1] ?? '').trim(), text: match[3] ? match[3].slice(1).trim() : null } })
+  }
+  return found.sort((a, b) => a.at - b.at).map(({ link }) => link)
+}
+
+/** The project path a link destination points at, or `null` for web links and paths outside the project. */
+function projectTarget(destination: string, fileDir: string): string | null {
+  const raw = destination.startsWith('<') ? destination.slice(1, -1) : destination
+  if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) return null
+  const path = raw.split('#')[0] ?? ''
+  if (path === '') return null
+  try {
+    return resolveRelative(fileDir, decodeURI(path))
+  } catch {
+    return null
+  }
+}

@@ -12,7 +12,7 @@ export {
   type ParsedContents,
 } from './contents'
 export { formatScalar, readFrontmatter, setFrontmatterValues, splitFrontmatter, type Frontmatter, type FrontmatterProblem } from './frontmatter'
-export { rewriteLinksTo, type RewriteOptions } from './links'
+export { findLinks, rewriteLinksTo, type FoundLink, type RewriteOptions } from './links'
 export { newChapterFile, newContentsFile, newOutlineFile, newProjectFile, type NewProjectDetails } from './new-files'
 export { lineEndingOf } from './text'
 export { htmlToMarkdown, pastedMarkdown } from './paste'
@@ -34,3 +34,4 @@ export type {
   TextRange,
 } from './outline-model'
 export { readOutline } from './read-outline'
+export { newReferencePage, readReferencePage, type ReferencePage } from './reference-page'

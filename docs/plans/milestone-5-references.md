@@ -1,6 +1,6 @@
 # Milestone 5: Characters, places, notes and the reference shelf (Gate 5)
 
-Status: **Proposed, awaiting owner approval.** No code yet.
+Status: **Approved** (owner, 2026-10-25), with the recommended page format, link syntax and shelf placement.
 
 ## Goal
 
