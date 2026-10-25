@@ -133,6 +133,14 @@ For developers; product readers can skip this section.
 - **Spec impact:** if accepted, `DOMAIN_AND_FILE_FORMAT.md` changes: the manifest moves from `project.md` frontmatter to `CONTENTS.md`, and `type:` in frontmatter becomes optional (files are found by folder). `schemaVersion` stays in `project.md` for future migrations.
 - **Risk:** hand edits that break the list (for example, deleting a link's closing parenthesis). Mitigation: warn and keep the file as written; don't reorder or rewrite until the author fixes it, or until the app offers a preview of a repair the author confirms.
 
+## Implementation note (Milestone 2)
+
+`CONTENTS.md` stores paths, not ids. When a listed file is missing, the app may therefore not know that chapter's id. It suggests a relink in two ways:
+- **By an id it remembers** for that path. The cache of known ids is later work.
+- **By an unlisted file whose title exactly equals the contents' link text.**
+
+Both are only suggestions: the author confirms before anything changes.
+
 ## Consequences
 
 - A person can understand the book from `CONTENTS.md` alone, in any Markdown app.

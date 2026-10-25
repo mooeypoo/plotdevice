@@ -1,6 +1,6 @@
 # Milestone 2: Projects and the reading order (Gate 2)
 
-Status: **Approved** (owner, 2026-10-25). Core only, no interface; dependencies approved; defaults approved; manual file renaming added.
+Status: **Complete** (2026-10-25), on branch `milestone-2/projects-and-contents`. Results are at the end of this document.
 
 ## Goal
 
@@ -107,3 +107,37 @@ Domain, markdown and storage are written test-first (`AGENTS.md`).
 4. `fs-node` `FileStore` and `JournalStore`.
 5. `storage`.
 6. Application use cases and scenario tests; results recorded here.
+
+## Results
+
+| Check | Result |
+|---|---|
+| `pnpm lint` | OK |
+| `pnpm typecheck` | OK |
+| `pnpm test` | **255 tests pass**: domain, markdown, fs-node, storage and the earlier packages |
+| `pnpm arch` | **20 checks pass**: the new `markdown` and `storage` rules catch their fixtures |
+| `pnpm build` | OK |
+| `pnpm e2e` | 10 end-to-end tests pass (Milestone 1's; unchanged) |
+
+**What the tests prove:**
+- **`CONTENTS.md`:** every chapter was moved to every possible position across 10 byte-exact fixtures (CRLF, a BOM, Hebrew, encoded paths, extra content). Each move matches the domain model and keeps every other line. Moving a chapter to where it already is changes nothing.
+- **Storage, on real folders:**
+  - Creating a project writes exactly the documented bytes.
+  - Moving a chapter touches no chapter file (PRD scenario E).
+  - A stale `CONTENTS.md` or chapter is refused, not overwritten (scenario G).
+  - Missing chapters are reported, and relinked only on request (scenario I).
+  - A chapter's text survives closing and reopening (scenario A, core half).
+- **File renames:** a rename updates the file, `CONTENTS.md` and 7 links in two other files, and nothing else. An interruption at each of the 5 points is finished on the next open, with byte-identical results. An interruption followed by an outside edit is reported, and nothing is overwritten.
+- **Mutation checks:** removing the stale-contents check, or disabling recovery, makes the corresponding tests fail.
+
+**Where the work differs from the plan:**
+- **No separate application use-case functions.** The `ProjectRepository` port is the application's boundary for persistence; wrapping each call in an identical function would add ceremony without logic. Use cases arrive in Milestone 3, with real orchestration: the open project, autosave, and conflict prompts.
+- **Relink suggestions use an exact title as well as ids.** `CONTENTS.md` holds no ids, so a missing chapter's id isn't known without a cache. This is recorded in ADR 0006, and the author still confirms every suggestion.
+- **The interrupted-rename tests stop the operation in-process**, at named checkpoints, instead of killing a real process. The same journal design survived real SIGKILLs in Spike C, and the in-process version keeps the test suite fast and runnable on Windows.
+- **Integration tests live in `packages/storage/test/`** with their own Node-typed config. The package source stays Node-free, which both the architecture rules and the compiler check.
+
+**Later (noted, not in this milestone):**
+- A cache of known chapter ids in app data, for id-based relinks after outside renames.
+- Live file watching, with the editor (Milestone 3).
+- Relinking reference-style links inside `CONTENTS.md` itself; it currently holds only inline links.
+- A first look at `ubuntu-latest` moving to Ubuntu 26 in CI (the AppArmor step may change).
