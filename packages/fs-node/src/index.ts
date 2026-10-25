@@ -1,2 +1,6 @@
 export { AtomicWriteError, removeStaleTempFiles, writeAtomically, type AtomicWriteErrorCode, type WriteHooks } from './atomic-write'
+export { createFileStore, type FileStoreOptions } from './file-store'
+export { createJournalStore } from './journal-store'
 export { createPreferencesFileStore } from './preferences-file-store'
+export { createProjectFolders } from './project-folders'
+export { randomIdGenerator } from './random-id'
