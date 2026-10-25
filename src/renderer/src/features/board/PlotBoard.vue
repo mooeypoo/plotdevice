@@ -612,7 +612,7 @@ header {
   max-height: 100%;
   padding: 10px;
   border-radius: 10px;
-  background: var(--raised);
+  background: var(--panel);
 }
 
 .column.inbox {
@@ -653,7 +653,7 @@ header {
   padding-inline: 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--panel);
+  background: var(--raised);
   font-size: 13px;
 }
 

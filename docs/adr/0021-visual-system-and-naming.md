@@ -37,6 +37,11 @@ reach but never cluttering", and for every element to be styled (U2).
   Checkbox, Switch and Range stay native inputs, styled, so forms, tests and screen readers keep
   working. Buttons and text fields are global styles (`primary`, `quiet`, `ghost`, `icon`,
   `small`) rather than components: a class carries everything a wrapper would.
+- **Themes (U2b).** Dark values sit on `:root`; a `prefers-color-scheme: light` block gives every
+  colour token its light value. The writer's choice (system, dark, light) is stored beside the
+  interface language in `userData` and applied through Electron's `nativeTheme`, so the page,
+  the native menus and the first paint all follow one setting. `tools/styles/contrast.test.ts`
+  keeps every text colour at 4.5:1 on every ground in both themes.
 - **Tiers.**
   - **Always visible:** what's needed every minute.
   - **One step away:** one labelled control, the ⋯ menu, or Go to… (Ctrl+K).

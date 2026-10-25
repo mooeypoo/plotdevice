@@ -1,7 +1,10 @@
 import { app } from 'electron'
-import { createJsonUiLanguageStore } from './infrastructure/window/json-ui-language-store'
+import { createJsonUiPreferences } from './infrastructure/window/json-ui-language-store'
 import { createUiLanguageService, type UiLanguageService } from './ui-language'
 import { registerUiLanguageIpc } from './ipc/ui-language-ipc'
+import { registerUiThemeIpc } from './ipc/ui-theme-ipc'
+import { createUiThemeService, type UiThemeService } from './ui-theme'
+import type { UiTheme } from '../contract/dtos'
 import { createCheckStoryDate } from './contexts/chronology/application/queries/check-story-date'
 import { createGetChronologySettings } from './contexts/chronology/application/queries/get-chronology-settings'
 import { createMarkdownChronologyRepository } from './contexts/chronology/infrastructure/markdown-chronology-repository'
@@ -121,17 +124,28 @@ export function composeWindowStateStore(): WindowStateStore {
   return createJsonWindowStateStore(app.getPath('userData'))
 }
 
-/** Restores app language and registers its trusted API before the window opens. */
-export async function composeUiLanguage(): Promise<UiLanguageService> {
-  const service = await createUiLanguageService(
-    createJsonUiLanguageStore(app.getPath('userData')),
+/**
+ * Restores the interface language and theme, and registers their trusted APIs, before the window
+ * opens. `applyTheme` hands the theme to Electron so the first paint is already right.
+ */
+export async function composeUiPreferences(applyTheme: (theme: UiTheme) => void): Promise<{
+  readonly language: UiLanguageService
+  readonly theme: UiThemeService
+}> {
+  const stores = createJsonUiPreferences(app.getPath('userData'))
+  const language = await createUiLanguageService(
+    stores.language,
     app.getPreferredSystemLanguages(),
     (error) => {
       console.error(`Interface language settings failed (${error.code}): ${error.message}`)
     }
   )
-  registerUiLanguageIpc(service)
-  return service
+  const theme = await createUiThemeService(stores.theme, applyTheme, (error) => {
+    console.error(`Theme settings failed (${error.code}): ${error.message}`)
+  })
+  registerUiLanguageIpc(language)
+  registerUiThemeIpc(theme)
+  return { language, theme }
 }
 
 /** The use cases built for each open project. */

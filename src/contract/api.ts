@@ -1,5 +1,6 @@
 import type {
   UiLanguageDto,
+  UiTheme,
   UiLocale,
   AppearanceDto,
   CodexChangesDto,
@@ -34,6 +35,12 @@ import type {
   RecentProjectDto,
   SavedEntryDto
 } from './dtos'
+
+/** The persistent app theme; the window follows it at once (no notification is needed). */
+export interface UiThemeApi {
+  get(): Promise<UiTheme>
+  set(theme: UiTheme): Promise<ApiResult<UiTheme>>
+}
 
 /** Persistent interface language and main-to-renderer synchronization. */
 export interface UiLanguageApi {
@@ -289,8 +296,9 @@ export interface RecoveryApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 31
+  readonly contractVersion: 32
   readonly uiLanguage: UiLanguageApi
+  readonly uiTheme: UiThemeApi
   readonly recovery: RecoveryApi
   readonly workspace: WorkspaceApi
   readonly manuscript: ManuscriptApi

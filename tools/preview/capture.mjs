@@ -1,4 +1,4 @@
-// Captures every preview scenario in English and Hebrew with the installed Chrome, for design
+// Captures every preview scenario in English and Hebrew, dark and light, with the installed Chrome, for design
 // reviews (U1 audit, U2 screenshot review): `npm run preview:capture [output folder]`.
 // One headless Chrome is driven over the DevTools protocol (Node's built-in WebSocket), and each
 // screen is captured once the page says its scenario is ready.
@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os'
 import { extname, join, resolve } from 'node:path'
 
 const root = resolve(import.meta.dirname, '../../out/preview')
-const out = resolve(process.cwd(), process.argv[2] ?? 'docs/plans/u1/screens')
+const out = resolve(process.cwd(), process.argv[2] ?? 'docs/plans/u2/screens')
 const chrome = process.env.CHROME ?? 'google-chrome'
 const width = 1440
 const height = 900
@@ -131,11 +131,18 @@ await page.send('Emulation.setDeviceMetricsOverride', {
 })
 mkdirSync(out, { recursive: true })
 try {
-  for (const lang of ['en', 'he']) {
-    for (const scenario of scenarios) {
-      const url = `http://127.0.0.1:${port}/preview.html?scenario=${scenario}&lang=${lang}`
-      await capture(page, url, join(out, `${scenario}.${lang}.png`))
-      console.log(`captured ${scenario}.${lang}`)
+  // The app follows prefers-color-scheme (Electron's nativeTheme drives it), so each theme is
+  // captured by emulating that media feature.
+  for (const theme of ['dark', 'light']) {
+    await page.send('Emulation.setEmulatedMedia', {
+      features: [{ name: 'prefers-color-scheme', value: theme }]
+    })
+    for (const lang of ['en', 'he']) {
+      for (const scenario of scenarios) {
+        const url = `http://127.0.0.1:${port}/preview.html?scenario=${scenario}&lang=${lang}`
+        await capture(page, url, join(out, `${scenario}.${lang}.${theme}.png`))
+        console.log(`captured ${scenario}.${lang}.${theme}`)
+      }
     }
   }
 } finally {
@@ -145,5 +152,6 @@ try {
   const exited = new Promise((done) => browser.once('exit', done))
   browser.kill()
   await exited
-  rmSync(profile, { recursive: true, force: true, maxRetries: 3 })
+  // Its helper processes can still be closing files; give them a moment rather than fail.
+  rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 })
 }
