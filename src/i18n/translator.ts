@@ -8,8 +8,9 @@ export type MessageKey = Exclude<keyof typeof en, '@metadata'>
 type ParameterizedMessages = {
   'chrome-binder-tooltip': [shortcut: string]
   'chrome-inspector-tooltip': [shortcut: string]
-  'chrome-focus-tooltip': [shortcut: string],
+  'chrome-focus-tooltip': [shortcut: string]
   'chrome-goto-tooltip': [shortcut: string]
+  'tabs-actions': [title: string]
   'chrome-leave-focus': [shortcut: string]
   'chrome-count-part': [count: number, formatted: string]
   'chrome-count-chapter': [count: number, formatted: string]
@@ -106,19 +107,9 @@ type ParameterizedMessages = {
   'timeline-cell-label': [row: string, chapter: string, state: string]
   'interactions-outside-order': [count: number, formatted: string]
   'interactions-cell-self': [name: string, count: number, formatted: string]
-  'interactions-cell-pair': [
-    row: string,
-    column: string,
-    count: number,
-    formatted: string
-  ]
+  'interactions-cell-pair': [row: string, column: string, count: number, formatted: string]
   'interactions-selected-self': [name: string, count: number, formatted: string]
-  'interactions-selected-pair': [
-    row: string,
-    column: string,
-    count: number,
-    formatted: string
-  ]
+  'interactions-selected-pair': [row: string, column: string, count: number, formatted: string]
   'interactions-never-together': [row: string, column: string]
   'interactions-pov': [name: string]
   'link-wiki-unresolved': [target: string]

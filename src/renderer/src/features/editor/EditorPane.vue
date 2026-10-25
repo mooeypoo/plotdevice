@@ -36,6 +36,8 @@ const linkTargets = computed(() => manuscript.manuscript?.linkTargets ?? [])
       </div>
       <h1 dir="auto">{{ formatEntryPlaceTitle(editor.entry, language.t) }}</h1>
     </header>
+    <!-- A quiet line about the page, such as who is in this chapter, placed by the stage. -->
+    <slot name="under-heading" />
 
     <p v-if="readOnly" class="notice" role="status">
       {{ language.t('editor-read-only-notice') }}

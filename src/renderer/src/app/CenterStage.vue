@@ -12,12 +12,14 @@ import {
 import { useDocumentTabsStore } from './document-tabs-store'
 import { useEditorStore } from './editor-store'
 import { useUiLanguageStore } from './ui-language-store'
+import { useWritingChapter } from './use-writing-chapter'
 import { useWorkbenchStore } from './workbench-store'
 
 const editor = useEditorStore()
 const tabs = useDocumentTabsStore()
 const workbench = useWorkbenchStore()
 const language = useUiLanguageStore()
+const writingChapter = useWritingChapter()
 
 const DocumentView = registeredView('document').component
 const WarningsView = registeredView('warnings').component
@@ -25,10 +27,14 @@ const projectView = computed(() =>
   workbench.centerView === 'write' ? undefined : registeredView(workbench.centerView).component
 )
 const writing = computed(() => workbench.centerView === 'write' && editor.entry !== null)
-/** The strip above the page (the chapter's cast), shown with the document in the workbench. */
+/**
+ * The line under the chapter's heading (who is in this chapter), shown only on the chapter it
+ * describes, so it never sits under another document's title (F6).
+ */
 const aboveView = computed(() => {
   const view = workbench.layout.center.above
   if (view === undefined || view === null || !writing.value || workbench.focusMode) return undefined
+  if (editor.entry?.path !== writingChapter.path.value) return undefined
   return VIEW_REGISTRY[view]?.component
 })
 
@@ -100,19 +106,21 @@ function commitShare(id: string, width: number): void {
         <p v-if="workbench.splitNotice" class="split-notice" role="status">
           {{ language.t(workbench.splitNotice) }}
         </p>
-        <div v-if="aboveView" class="above">
-          <component :is="aboveView" />
-          <button
-            type="button"
-            class="quiet hide"
-            :aria-label="language.t('cast-hide')"
-            :title="language.t('cast-hide')"
-            @click="workbench.apply((current) => setAboveView(current, null))"
-          >
-            <span aria-hidden="true">×</span>
-          </button>
-        </div>
         <DocumentView>
+          <template v-if="aboveView" #under-heading>
+            <div class="above">
+              <component :is="aboveView" />
+              <button
+                type="button"
+                class="quiet hide"
+                :aria-label="language.t('cast-hide')"
+                :title="language.t('cast-hide')"
+                @click="workbench.apply((current) => setAboveView(current, null))"
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+          </template>
           <component :is="PROJECT_HOME">
             <template #warnings><WarningsView /></template>
           </component>
@@ -163,12 +171,14 @@ function commitShare(id: string, width: number): void {
 }
 
 /* Sits on the prose column, so the strip lines up with the text it describes. */
+/* The measure is in the prose's characters, so the line lines up with the heading above it. */
 .above {
   display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  max-width: var(--measure);
-  margin: -32px auto 24px;
+  gap: var(--space-3);
+  align-items: baseline;
+  max-inline-size: var(--measure);
+  font-size: var(--prose-size);
+  margin: calc(-1 * var(--space-5)) auto var(--space-6);
 }
 
 .above > :first-child {
@@ -177,9 +187,15 @@ function commitShare(id: string, width: number): void {
 }
 
 .hide {
-  padding: 0 6px;
-  font-size: 14px;
+  padding: 0 var(--space-2);
+  font-size: var(--text-body);
   line-height: 1.4;
+  opacity: 0;
+}
+
+.above:hover .hide,
+.above:focus-within .hide {
+  opacity: 1;
 }
 
 .pane {

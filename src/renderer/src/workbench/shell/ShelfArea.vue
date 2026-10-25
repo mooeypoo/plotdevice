@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useUiLanguageStore } from '../../app/ui-language-store'
+import { useWarnings } from '../../app/use-warnings'
 import { useWorkbenchStore } from '../../app/workbench-store'
 import type { Section } from '../model/layout'
 import { resizeArea, selectSection, setAreaCollapsed } from '../model/operations'
@@ -25,6 +26,11 @@ const shown = computed(() =>
       )
     : sections.value
 )
+const warnings = useWarnings()
+/** A shelf that would only say "nothing needs attention" takes no room at all (F12). */
+const empty = computed(
+  () => warnings.count.value === 0 && sections.value.every((section) => section.view === 'warnings')
+)
 const title = (section: Section): string => language.t(registeredView(section.view).title)
 const titles = computed(() => sections.value.map(title).join(' · '))
 const preview = ref<number | null>(null)
@@ -41,7 +47,7 @@ function select(section: Section): void {
 
 <template>
   <section
-    v-if="sections.length > 0"
+    v-if="sections.length > 0 && !empty"
     id="workbench-bottom"
     class="shelf"
     :class="{ collapsed: area.collapsed }"

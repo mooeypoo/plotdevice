@@ -100,27 +100,31 @@ function drag(event: DragEvent, member: CastMember): void {
 </template>
 
 <style scoped>
+/* A quiet line under the chapter's heading: "In this chapter: Ilka · Marrow" (F6). */
 .cast {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 10px;
-  align-items: center;
-  font-size: 12px;
+  gap: var(--space-2);
+  align-items: baseline;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
 }
 
 .label {
   margin: 0;
-  color: var(--text-muted);
-  font-size: 11px;
+  font-size: inherit;
   font-weight: normal;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+}
+
+.label::after {
+  content: ':';
 }
 
 ul {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--space-1) var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -128,44 +132,58 @@ ul {
 
 .chip {
   display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--panel);
+  align-items: baseline;
 }
 
-/* Places read differently from people; names only in the text are dashed. */
-.chip.location {
-  border-radius: 4px;
-}
-
-.chip.mentioned {
-  border-style: dashed;
-}
-
-.chip.pov {
-  border-color: var(--accent);
+.chip + .chip::before {
+  content: '·';
+  margin-inline-end: var(--space-2);
+  color: var(--text-faint);
 }
 
 .chip button {
+  padding: 0;
   border: none;
   background: transparent;
-  color: var(--text);
-  font-size: 12px;
+  font-size: inherit;
 }
 
 .name {
   display: inline-flex;
-  gap: 4px;
-  align-items: center;
-  padding-block: 2px;
-  padding-inline: 10px 4px;
+  gap: var(--space-1);
+  align-items: baseline;
+  border-radius: 0;
+  color: var(--link-character);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
 }
 
+.chip.location .name {
+  color: var(--link-location);
+}
+
+/* Names only in the text, not in the chapter's details, read quieter. */
+.chip.mentioned .name {
+  color: var(--text-dim);
+  text-decoration-style: dashed;
+}
+
+.name:hover:not(:disabled) {
+  background: transparent;
+  color: var(--text-strong);
+}
+
+/* Pinning is one step away: it shows on hover or focus. */
 .pin {
-  padding-block: 2px;
-  padding-inline: 4px 8px;
+  margin-inline-start: var(--space-1);
   color: var(--text-muted);
+  opacity: 0;
+}
+
+.chip:hover .pin,
+.chip:focus-within .pin,
+.pin[aria-pressed='true'] {
+  opacity: 1;
 }
 
 .pin[aria-pressed='true'] {
@@ -178,6 +196,5 @@ ul {
 
 .empty {
   margin: 0;
-  color: var(--text-muted);
 }
 </style>

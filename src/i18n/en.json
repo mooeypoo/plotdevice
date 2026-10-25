@@ -701,5 +701,6 @@
   "board-status-set": "$1 is now $2",
   "app-menu-label": "More",
   "app-menu-appearance": "Appearance…",
-  "chrome-goto-tooltip": "Go to… ($1)"
+  "chrome-goto-tooltip": "Go to… ($1)",
+  "tabs-actions": "Actions for $1"
 }

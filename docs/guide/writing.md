@@ -53,7 +53,9 @@ page** still requires resolving any unsaved changes before leaving that draft.
 ### Keep your writing chapter close
 
 The first manuscript page you open becomes **Your chapter**, shown first in the
-tabs. While it is unpinned, actually editing another part or chapter makes
+tabs. Tabs appear once two or more documents are open; the open tab's actions
+(**Keep open**, **Pin**, **Write here**, **Open beside**, **Close other unpinned**)
+are in the **⋯** at the end of the tab row. While your chapter is unpinned, actually editing another part or chapter makes
 that one your chapter instead. Reading another page or editing a
 character does not change it.
 
@@ -62,8 +64,8 @@ chapters. **Write here** on another manuscript tab explicitly chooses and pins
 that document instead. **Unpin** releases the lock; it does not close the tab.
 Pinning another tab keeps it available without changing your chapter.
 
-**Back to your chapter** brings you back from another entry, Overview, Timeline,
-or Interactions. A document's undo history, selection and reading position survive
+**Back to your chapter** appears while the page shows something else, and brings
+you back from another entry or from Plot. A document's undo history, selection and reading position survive
 switching tabs during this project session. If its text changes outside the app,
 reopening it loads the disk version with fresh editor history.
 
