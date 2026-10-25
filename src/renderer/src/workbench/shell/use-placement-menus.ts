@@ -4,12 +4,7 @@ import { uiDirection } from '../../../../i18n/locales'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkbenchStore } from '../../app/workbench-store'
 import { physicalEdge } from '../model/direction'
-import {
-  areaActions,
-  missingViews,
-  sectionActions,
-  type SectionAction
-} from '../model/placement-actions'
+import { areaActions, sectionActions, type SectionAction } from '../model/placement-actions'
 import type { ViewId } from '../model/view-catalog'
 import type { AreaRegion } from '../model/vocabulary'
 import { registeredView, VIEW_REGISTRY } from '../views/view-registry'
@@ -75,16 +70,5 @@ export function usePlacementMenus() {
     }))
   }
 
-  /** Views the layout no longer shows, each returned to where it usually lives. */
-  function showMenu(): MenuItem[] {
-    return missingViews(workbench.layout, placeableViews()).map((missing) => ({
-      key: `show-${missing.view}`,
-      label: language.t('workbench-show-view', title(missing.view)),
-      run: () => {
-        workbench.apply(missing.apply)
-      }
-    }))
-  }
-
-  return { sectionMenu, areaMenu, showMenu }
+  return { sectionMenu, areaMenu }
 }

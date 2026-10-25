@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref, useTemplateRef } from 'vue'
+import { placeMenu } from './listbox-keys'
+import { screenRectOf } from './screen-rect'
 import { menuItemsOf, moveMenuFocus } from './use-menu-keys'
 import type { MenuItem } from './menu-item'
 
@@ -7,9 +9,13 @@ defineProps<{
   /** The button's accessible name. */
   label: string
   items: readonly MenuItem[]
+  /** Visible text for the button instead of ⋯, such as "More ▾". */
+  trigger?: string
 }>()
 
 const open = ref(false)
+/** Where the menu is drawn: over the page, so a scrolling panel or tab row never clips it. */
+const position = ref<Record<string, string>>({})
 /** The submenu that is open, by its item's key. */
 const openChild = ref<string | null>(null)
 const button = useTemplateRef<HTMLButtonElement>('button')
@@ -20,10 +26,34 @@ function closeOnOutside(event: PointerEvent): void {
   if (!(event.target instanceof Node) || root.value?.contains(event.target) !== true) close(false)
 }
 
+function place(): void {
+  if (button.value === null) return
+  const placed = placeMenu(
+    screenRectOf(button.value),
+    { width: window.innerWidth, height: window.innerHeight },
+    isRtl()
+  )
+  position.value = Object.fromEntries(
+    Object.entries(placed).map(([side, value]) => [side, `${String(value)}px`])
+  )
+}
+
+function isRtl(): boolean {
+  return root.value?.closest('[dir="rtl"], [dir="ltr"]')?.getAttribute('dir') === 'rtl'
+}
+
+/** The menu stays where it was drawn, so scrolling what is behind it closes it. */
+function closeOnScroll(event: Event): void {
+  if (event.target instanceof Node && menu.value?.contains(event.target) === true) return
+  close(false)
+}
+
 async function show(): Promise<void> {
+  place()
   open.value = true
   openChild.value = null
   document.addEventListener('pointerdown', closeOnOutside)
+  window.addEventListener('scroll', closeOnScroll, true)
   await nextTick()
   if (menu.value !== null) menuItemsOf(menu.value)[0]?.focus()
 }
@@ -32,6 +62,7 @@ function close(returnFocus: boolean): void {
   open.value = false
   openChild.value = null
   document.removeEventListener('pointerdown', closeOnOutside)
+  window.removeEventListener('scroll', closeOnScroll, true)
   if (returnFocus) button.value?.focus()
 }
 
@@ -84,6 +115,7 @@ function keydown(event: KeyboardEvent): void {
 
 onBeforeUnmount(() => {
   document.removeEventListener('pointerdown', closeOnOutside)
+  window.removeEventListener('scroll', closeOnScroll, true)
 })
 </script>
 
@@ -99,9 +131,18 @@ onBeforeUnmount(() => {
       :title="label"
       @click="open ? close(true) : show()"
     >
-      <span aria-hidden="true">⋯</span>
+      <span v-if="trigger" class="trigger-text">{{ trigger }}</span>
+      <span v-else aria-hidden="true">⋯</span>
     </button>
-    <div v-if="open" ref="menu" class="menu" role="menu" :aria-label="label" @keydown="keydown">
+    <div
+      v-if="open"
+      ref="menu"
+      class="menu"
+      role="menu"
+      :aria-label="label"
+      :style="position"
+      @keydown="keydown"
+    >
       <template v-for="item in items" :key="item.key">
         <hr v-if="item.separator" role="separator" />
         <div v-if="item.children" role="none" class="has-submenu">
@@ -181,10 +222,8 @@ onBeforeUnmount(() => {
 }
 
 .menu {
-  position: absolute;
-  z-index: 10;
-  top: 100%;
-  inset-inline-end: 0;
+  position: fixed;
+  z-index: 1000;
   display: flex;
   flex-direction: column;
   min-width: 13em;
@@ -223,6 +262,7 @@ onBeforeUnmount(() => {
 }
 
 .submenu {
+  position: absolute;
   top: calc(-1 * var(--space-2));
   inset-inline-end: calc(100% + var(--space-2));
 }

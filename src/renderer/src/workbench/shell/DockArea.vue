@@ -10,6 +10,7 @@ import { DOCK_SIZE } from '../model/sizes'
 import type { DockSide } from '../model/vocabulary'
 import { registeredView, VIEW_REGISTRY } from '../views/view-registry'
 import MenuButton from '../../shared/MenuButton.vue'
+import { menuGroup, type MenuItem } from '../../shared/menu-item'
 import Splitter from './Splitter.vue'
 import { usePlacementMenus } from './use-placement-menus'
 
@@ -53,6 +54,45 @@ const width = computed(() =>
   )
 )
 
+/** Tabs beyond three wait in More ▾, but the chosen one always shows (F5). */
+const MAX_TABS = 3
+const visibleTabs = computed(() => {
+  const all = sections.value
+  if (all.length <= MAX_TABS) return all
+  const first = all.slice(0, MAX_TABS)
+  const chosen = active.value
+  return chosen === undefined || first.includes(chosen)
+    ? first
+    : [...all.slice(0, MAX_TABS - 1), chosen]
+})
+const moreTabs = computed((): MenuItem[] =>
+  sections.value
+    .filter((section) => !visibleTabs.value.includes(section))
+    .map((section) => ({
+      key: section.id,
+      label: title(section),
+      run: () => {
+        select(section)
+      }
+    }))
+)
+
+/** The panel's one ⋯: this panel's moves, then the side's, then Expand (F5). */
+const panelMenu = computed((): MenuItem[] => [
+  ...(area.value.arrangement === 'tabs' && active.value !== undefined
+    ? menus.sectionMenu(active.value.id, active.value.view)
+    : []),
+  ...menuGroup(menus.areaMenu(props.side)),
+  {
+    key: 'expand',
+    label: language.t(expanded.value ? 'right-panel-restore' : 'right-panel-expand'),
+    separator: true,
+    run: () => {
+      expanded.value = !expanded.value
+    }
+  }
+])
+
 function commit(size: number): void {
   workbench.apply((layout) => resizeArea(layout, props.side, Math.max(DOCK_SIZE.min, size)))
   expanded.value = false
@@ -85,6 +125,7 @@ function toggle(section: Section): void {
       :controls="panelId"
       @preview="preview = $event"
       @commit="commit"
+      @expand="expanded = !expanded"
     />
     <div class="panel-header">
       <div
@@ -95,7 +136,7 @@ function toggle(section: Section): void {
         @keydown="navigateTabs"
       >
         <button
-          v-for="section in sections"
+          v-for="section in visibleTabs"
           :id="`workbench-tab-${section.id}`"
           :key="section.id"
           type="button"
@@ -111,24 +152,16 @@ function toggle(section: Section): void {
       </div>
       <span class="header-tools">
         <MenuButton
-          v-if="area.arrangement === 'tabs'"
-          :label="language.t('workbench-panel-options', title(active))"
-          :items="menus.sectionMenu(active.id, active.view)"
+          v-if="area.arrangement === 'tabs' && moreTabs.length > 0"
+          class="more-tabs"
+          :label="language.t('workbench-more-panels')"
+          :trigger="`${language.t('workbench-more-panels')} ▾`"
+          :items="moreTabs"
         />
         <MenuButton
-          v-if="menus.areaMenu(side).length > 0"
-          :label="language.t('workbench-area-options')"
-          :items="menus.areaMenu(side)"
+          :label="language.t('workbench-panel-options', title(active))"
+          :items="panelMenu"
         />
-        <button
-          type="button"
-          class="quiet expand"
-          :aria-expanded="expanded"
-          :aria-controls="panelId"
-          @click="expanded = !expanded"
-        >
-          {{ language.t(expanded ? 'right-panel-restore' : 'right-panel-expand') }}
-        </button>
       </span>
     </div>
 
@@ -248,9 +281,11 @@ function toggle(section: Section): void {
   margin-inline: auto 8px;
 }
 
-.expand {
-  padding: 4px 6px;
-  font-size: 11px;
+.more-tabs :deep(.options) {
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .section-header-row {

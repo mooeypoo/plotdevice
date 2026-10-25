@@ -18,13 +18,17 @@ export function useSidePanelNavigation() {
     await editor.open(path)
   }
 
-  async function editEntry(path: string): Promise<void> {
-    // Opening presents the document; an entry that is already open may be behind another view.
+  /**
+   * "Edit details" (D6): the entry on the page, with its Details panel in view, opening the side
+   * that holds it if it is closed. An entry already open may be behind another view.
+   */
+  async function editDetails(path: string): Promise<boolean> {
     const shown =
       editor.entry?.path === path
         ? await navigation.showCenterView('write')
         : await editor.open(path)
-    if (shown) navigation.choosePanel('properties')
+    if (shown) navigation.revealView('properties')
+    return shown
   }
 
   function consultEntry(path: string): void {
@@ -32,5 +36,5 @@ export function useSidePanelNavigation() {
     else void openEntry(path)
   }
 
-  return { openEntry, editEntry, consultEntry, selectedCodexPath }
+  return { openEntry, editDetails, consultEntry, selectedCodexPath }
 }

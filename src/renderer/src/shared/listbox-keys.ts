@@ -75,3 +75,24 @@ export function placeList(
     : { left: Math.max(MARGIN, trigger.left) }
   return { ...vertical, ...horizontal, minWidth: trigger.right - trigger.left }
 }
+
+/**
+ * Places a menu against the button that opens it, aligned to the button's inline end (where
+ * ⋯ buttons sit), below unless there is more room above.
+ */
+export function placeMenu(
+  trigger: ScreenRect,
+  viewport: { readonly width: number; readonly height: number },
+  rtl: boolean
+): Omit<ListPlacement, 'minWidth' | 'maxHeight'> {
+  const below = viewport.height - trigger.bottom - GAP - MARGIN
+  const above = trigger.top - GAP - MARGIN
+  const vertical =
+    below < Math.min(LIST_HEIGHT, above)
+      ? { bottom: viewport.height - trigger.top + GAP }
+      : { top: trigger.bottom + GAP }
+  const horizontal = rtl
+    ? { left: Math.max(MARGIN, trigger.left) }
+    : { right: Math.max(MARGIN, viewport.width - trigger.right) }
+  return { ...vertical, ...horizontal }
+}

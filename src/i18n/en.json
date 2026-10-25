@@ -702,5 +702,9 @@
   "app-menu-label": "More",
   "app-menu-appearance": "Appearance…",
   "chrome-goto-tooltip": "Go to… ($1)",
-  "tabs-actions": "Actions for $1"
+  "tabs-actions": "Actions for $1",
+  "workbench-more-panels": "More",
+  "card-open": "Open",
+  "inspector-story-when": "When in the story",
+  "inspector-add-cast": "+ Add characters or a place"
 }

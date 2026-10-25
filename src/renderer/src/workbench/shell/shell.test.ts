@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
 import { useUiLanguageStore } from '../../app/ui-language-store'
 import { useWorkbenchStore } from '../../app/workbench-store'
-import { removeSection, selectSection, setArrangement } from '../model/operations'
+import { addView, removeSection, selectSection, setArrangement } from '../model/operations'
 import type { ViewId } from '../model/view-catalog'
 import DockArea from './DockArea.vue'
 import AppMenu from '../../app/AppMenu.vue'
@@ -143,11 +143,38 @@ describe('DockArea', () => {
     expect(dock.findAll('.mirrored')).toHaveLength(0)
   })
 
-  it('expands for the session without changing the stored size', async () => {
-    const dock = mount(DockArea, { props: { side: 'end', size: 320, maximum: 720 } })
-    await dock.get('.expand').trigger('click')
+  it('expands for the session from its ⋯ or a double-click on its edge', async () => {
+    const dock = mount(DockArea, {
+      props: { side: 'end', size: 320, maximum: 720 },
+      attachTo: document.body
+    })
+    await dock.get('button[aria-haspopup=menu]').trigger('click')
+    await dock.get('[data-label="Expand"]').trigger('click')
     expect(dock.attributes('style')).toContain('inline-size: 560px')
     expect(useWorkbenchStore().layout.end.size).toBe(320)
+    await dock.get('[role=separator]').trigger('dblclick')
+    expect(dock.attributes('style')).toContain('inline-size: 320px')
+    dock.unmount()
+  })
+
+  it('keeps three tabs in view and the rest in More, never hiding the chosen one', async () => {
+    const workbench = useWorkbenchStore()
+    workbench.apply((layout) => addView(layout, 'warnings', 'end', 'warnings'))
+    workbench.apply((layout) => addView(layout, 'scene-card', 'end', 'scene-card'))
+    const dock = mount(DockArea, {
+      props: { side: 'end', size: 320, maximum: 720 },
+      attachTo: document.body
+    })
+    const tabs = (): string[] => dock.findAll('[role=tab]').map((tab) => tab.text())
+    // The last added panel is the chosen one, so it shows third; Reference waits in More.
+    expect(tabs()).toEqual(['Details', 'Outline', 'Chapter card'])
+    const more = dock.get('.more-tabs button')
+    expect(more.text()).toBe('More ▾')
+    await more.trigger('click')
+    await dock.get('[data-label="Reference"]').trigger('click')
+    expect(tabs()).toEqual(['Details', 'Outline', 'Reference'])
+    expect(dock.get('[role=tab][aria-selected=true]').text()).toBe('Reference')
+    dock.unmount()
   })
 })
 
@@ -210,7 +237,13 @@ describe('placement menus', () => {
     const button = wrapper
       .findAll('button[aria-haspopup=menu]')
       .find((candidate) => candidate.attributes('aria-label') === label)
-    if (button === undefined) throw new Error(`No menu ${label}`)
+    if (button === undefined)
+      throw new Error(
+        `No menu ${label} among ${wrapper
+          .findAll('button[aria-haspopup=menu]')
+          .map((candidate) => candidate.attributes('aria-label'))
+          .join(', ')}`
+      )
     await button.trigger('click')
     await flushPromises()
     return wrapper.findAll('[role=menuitem]')
@@ -250,10 +283,10 @@ describe('placement menus', () => {
       props: { side: 'start', size: 280, maximum: 720 },
       attachTo: document.body
     })
-    let items = await openMenu(dock, 'Panel options')
+    let items = await openMenu(dock, 'Options for Manuscript')
     await items.find((item) => item.text() === 'Add Needs attention')?.trigger('click')
     expect(workbench.layout.start.sections.map((section) => section.view)).toContain('warnings')
-    items = await openMenu(dock, 'Panel options')
+    items = await openMenu(dock, 'Options for Needs attention')
     await items.find((item) => item.text() === 'Stack panels')?.trigger('click')
     expect(workbench.layout.start.arrangement).toBe('stack')
     dock.unmount()
@@ -350,12 +383,10 @@ describe('the Layout submenu', () => {
     menu.unmount()
   })
 
-  it('resets a rearranged preset and shows closed views again', async () => {
+  it('resets a rearranged preset', async () => {
     const workbench = useWorkbenchStore()
     workbench.apply((layout) => removeSection(layout, 'reference'))
     const menu = mount(AppMenu, { attachTo: document.body })
-    await choose(menu, 'Show Reference')
-    expect(workbench.layout.end.sections.map((section) => section.view)).toContain('reference')
     await choose(menu, 'Reset to default')
     expect(workbench.settings.arrangements).toEqual({})
     menu.unmount()

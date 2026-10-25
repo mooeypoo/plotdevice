@@ -15,8 +15,8 @@ If you have several outlines, choose one from the dropdown. Its label comes from
 the file's frontmatter `title`, or its filename when no title is set. The selected
 path appears below it, so you can distinguish files with similar titles.
 
-Choose **Expand** for a wider reference view and **Restore** to return to your
-preferred width. You can also drag the panel's inner edge. With that edge focused,
+Choose **Expand** in the panel's **⋯** (or double-click its inner edge) for a wider
+reference view, and **Restore** to return to your preferred width. You can also drag the panel's inner edge. With that edge focused,
 Left/Right resize it and Home/End choose the smallest/largest available width.
 The width is remembered with your layout on this computer, and it is shared by
 the panels in the same dock; narrower windows constrain it to leave room for the

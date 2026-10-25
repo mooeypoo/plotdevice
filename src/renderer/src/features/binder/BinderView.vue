@@ -3,6 +3,7 @@ import { useEditorStore } from '../../app/editor-store'
 import { useManuscriptStore } from '../../app/manuscript-store'
 import { useReferenceStore } from '../../app/reference-store'
 import { useSidePanelNavigation } from '../../app/use-side-panel-navigation'
+import { useWorkbenchNavigation } from '../../app/use-workbench-navigation'
 import { useWorkspaceStore } from '../../app/workspace-store'
 import type { DropRequest } from './binder-drop'
 import BinderTree from './BinderTree.vue'
@@ -11,7 +12,8 @@ const workspace = useWorkspaceStore()
 const manuscript = useManuscriptStore()
 const editor = useEditorStore()
 const reference = useReferenceStore()
-const { openEntry } = useSidePanelNavigation()
+const { openEntry, editDetails } = useSidePanelNavigation()
+const navigation = useWorkbenchNavigation()
 
 function move(request: DropRequest): void {
   if (request.kind === 'move-part') void manuscript.movePart(request.path, request.index)
@@ -31,6 +33,8 @@ function move(request: DropRequest): void {
     :read-only="workspace.project.readOnly"
     @open="openEntry($event)"
     @reference="reference.open($event)"
+    @details="editDetails($event)"
+    @beside="navigation.openBeside($event)"
     @create-chapter="(part, title) => manuscript.createChapter(part, title)"
     @create-part="manuscript.createPart($event)"
     @move="move"

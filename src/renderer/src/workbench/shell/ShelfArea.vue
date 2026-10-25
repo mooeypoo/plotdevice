@@ -8,6 +8,7 @@ import { resizeArea, selectSection, setAreaCollapsed } from '../model/operations
 import { SHELF_SIZE } from '../model/sizes'
 import { registeredView, VIEW_REGISTRY } from '../views/view-registry'
 import MenuButton from '../../shared/MenuButton.vue'
+import { menuGroup, type MenuItem } from '../../shared/menu-item'
 import Splitter from './Splitter.vue'
 import { usePlacementMenus } from './use-placement-menus'
 
@@ -35,6 +36,23 @@ const title = (section: Section): string => language.t(registeredView(section.vi
 const titles = computed(() => sections.value.map(title).join(' · '))
 const preview = ref<number | null>(null)
 const height = computed(() => preview.value ?? area.value.size)
+
+/** With tabs, one ⋯ for the panel shown and the shelf; stacked panels keep one each. */
+const shownSection = computed(() =>
+  area.value.arrangement === 'tabs' ? shown.value[0] : undefined
+)
+const shelfMenu = computed((): MenuItem[] => {
+  const section = shownSection.value
+  const side = menus.areaMenu('bottom')
+  return section === undefined
+    ? side
+    : [...menus.sectionMenu(section.id, section.view), ...menuGroup(side)]
+})
+const shelfMenuLabel = computed(() =>
+  shownSection.value === undefined
+    ? language.t('workbench-area-options')
+    : language.t('workbench-panel-options', title(shownSection.value))
+)
 
 function setCollapsed(collapsed: boolean): void {
   workbench.apply((layout) => setAreaCollapsed(layout, 'bottom', collapsed))
@@ -94,16 +112,13 @@ function select(section: Section): void {
         </button>
         <span v-else class="title">{{ title(section) }}</span>
         <MenuButton
+          v-if="area.arrangement !== 'tabs'"
           :label="language.t('workbench-panel-options', title(section))"
           :items="menus.sectionMenu(section.id, section.view)"
         />
       </span>
       <span class="area-tools">
-        <MenuButton
-          v-if="menus.areaMenu('bottom').length > 0"
-          :label="language.t('workbench-area-options')"
-          :items="menus.areaMenu('bottom')"
-        />
+        <MenuButton v-if="shelfMenu.length > 0" :label="shelfMenuLabel" :items="shelfMenu" />
       </span>
     </header>
     <div v-if="!area.collapsed" id="workbench-bottom-content" class="shelf-content">
