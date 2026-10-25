@@ -38,3 +38,24 @@ export function blankRunBefore(text: string, lineStart: number): number {
   while (start > 0 && isBlankLineAt(text, lineStartAt(text, start - 1))) start = lineStartAt(text, start - 1)
   return start
 }
+
+/** End of the last non-blank line in `[start, end)`, including its line ending. */
+export function contentEndWithin(text: string, start: number, end: number): number {
+  let at = end
+  while (at > start && isBlankLineAt(text, lineStartAt(text, at - 1))) at = lineStartAt(text, at - 1)
+  return at
+}
+
+/** Lines with their own line endings, so CRLF and LF survive edits untouched. */
+export function splitKeepingEndings(text: string): string[] {
+  return text.match(/[^\n]*\n|[^\n]+$/g) ?? []
+}
+
+const TAB_STOP = 4
+
+/** The column a run of spaces and tabs reaches, with tab stops every four columns as in CommonMark. */
+export function indentColumns(whitespace: string): number {
+  let column = 0
+  for (const char of whitespace) column = char === '\t' ? column + TAB_STOP - (column % TAB_STOP) : column + 1
+  return column
+}

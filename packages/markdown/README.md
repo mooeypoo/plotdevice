@@ -1,7 +1,8 @@
 # markdown
 
 Pure text codecs for the project's Markdown files (ADR 0003): frontmatter, `CONTENTS.md`, link
-rewriting for file renames, the exact text of new files, and pasted HTML as clean Markdown (the one
+rewriting for file renames, outlines (read for structure, edited by splices: ADR 0003), the exact text
+of new files, and pasted HTML as clean Markdown (the one
 place text is generated rather than spliced).
 
 - Text in, text out: no file access, no Node, no domain types (its own source-mapped model).

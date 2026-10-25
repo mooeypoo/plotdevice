@@ -4,7 +4,8 @@ const pkg = (name) => `(^|/)packages/${name}/`
 const desktop = (part) => `(^|/)apps/desktop/src/${part}/`
 // An empty alternative instead of `(…)?`: dependency-cruiser rejects nested quantifiers as unsafe regexes.
 const npm = (name) => `(^|/)node_modules/(\\.pnpm/[^/]+/node_modules/|)${name}/`
-const notTests = '\\.test\\.ts$'
+// Tests and their support files (`*.test-support.ts`) may also import Vitest and fixtures.
+const notTests = '\\.test(-support)?\\.ts$'
 
 /** `from` may import only what `allowed` matches (tests may also import vitest). */
 const onlyMayImport = (name, comment, from, allowed) => ({
@@ -53,6 +54,8 @@ module.exports = {
         npm('micromark'),
         npm('mdast-util-from-markdown'),
         npm('mdast-util-to-markdown'),
+        npm('mdast-util-gfm'),
+        npm('micromark-extension-gfm'),
         npm('hast-util-from-html'),
         npm('hast-util-to-mdast'),
         npm('@types/mdast'),

@@ -16,3 +16,21 @@ export { rewriteLinksTo, type RewriteOptions } from './links'
 export { newChapterFile, newContentsFile, newProjectFile, type NewProjectDetails } from './new-files'
 export { lineEndingOf } from './text'
 export { htmlToMarkdown, pastedMarkdown } from './paste'
+export { editOutline, type OutlineEditOptions } from './edit-outline'
+export type {
+  ItemDestination,
+  ItemPath,
+  KeptBlock,
+  KeptReason,
+  ListMarker,
+  OutlineEdit,
+  OutlineHeadingSource,
+  OutlineItemSource,
+  OutlineRefusal,
+  OutlineSectionSource,
+  OutlineWarning,
+  OutlineWarningCode,
+  ParsedOutline,
+  TextRange,
+} from './outline-model'
+export { readOutline } from './read-outline'
