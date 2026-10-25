@@ -5,7 +5,7 @@
 1. **Node 24 LTS** (the version Electron 45 bundles): `nvm install 24 && nvm use` (reads `.nvmrc`).
 2. **pnpm 12**: `corepack enable` picks the version pinned in `package.json`. Use pnpm, never npm:
    npm cannot read pnpm's `node_modules` and fails with "Cannot read properties of null".
-3. `pnpm install`. Electron's binary downloads during install (allowed in `pnpm-workspace.yaml`).
+3. `pnpm install`. Electron 45 downloads its binary (about 100 MB) the first time it is launched, not during install.
 
 ## Commands
 
@@ -30,8 +30,9 @@
   (`sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`; resets at reboot), or run the app with
   `--no-sandbox` for local development only. The end-to-end tests detect the restriction and add
   `--no-sandbox`; CI lifts the restriction instead, so the sandbox stays on there.
-- **Electron's binary is missing after install** (`node_modules/electron/dist` is empty): run
-  `pnpm rebuild electron`, or `node node_modules/electron/install.js` from `apps/desktop`.
+- **Electron's binary is missing** (`node_modules/electron/dist` doesn't exist): that's normal until the
+  first launch, which downloads it. To download it ahead of time (for example, before going offline), run
+  `node -e "require('electron')"` in `apps/desktop`.
 
 ## Where things go
 

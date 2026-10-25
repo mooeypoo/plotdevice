@@ -1,7 +1,3 @@
 packages:
   - apps/*
   - packages/*
-# Electron downloads its binary in a postinstall script; esbuild installs a native binary.
-allowBuilds:
-  electron: true
-  esbuild: true

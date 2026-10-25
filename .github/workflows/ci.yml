@@ -30,6 +30,10 @@ jobs:
       - run: pnpm arch
       - run: pnpm build
 
+      # Electron 45 downloads its binary on first use; do it here, not inside the first test's timeout.
+      - name: Download Electron
+        working-directory: apps/desktop
+        run: node -e "require('electron')"
       # Ubuntu 24.04 restricts the user namespaces Chromium's sandbox needs. Lifting the restriction on
       # the runner keeps the sandbox ON during the end-to-end tests (locally they fall back to --no-sandbox).
       - name: Allow Chromium's sandbox
