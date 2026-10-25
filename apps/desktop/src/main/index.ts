@@ -10,9 +10,18 @@ import {
   type WritingSession,
 } from '@plotdevice/application'
 import { eventChannel, type AppInfo, type HostEvent } from '@plotdevice/contracts'
-import { createAppDataFile, createJournalStore, createPreferencesFileStore, createProjectFolders, randomIdGenerator, watchProject, type ProjectWatcher } from '@plotdevice/fs-node'
+import {
+  createAppDataFile,
+  createBackupStore,
+  createJournalStore,
+  createPreferencesFileStore,
+  createProjectFolders,
+  randomIdGenerator,
+  watchProject,
+  type ProjectWatcher,
+} from '@plotdevice/fs-node'
 import { catalogs, createTranslator } from '@plotdevice/i18n'
-import { createOutlineRepository, createProjectRepository, createReferenceRepository } from '@plotdevice/storage'
+import { createOutlineRepository, createProjectRepository, createReferenceRepository, withBackups } from '@plotdevice/storage'
 import { app, BrowserWindow, dialog, ipcMain, session } from 'electron'
 import { access } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -62,9 +71,11 @@ void app.whenReady().then(async () => {
   const t = createTranslator(catalogs)
   const translate = (key: string): string => t(preferences.current().locale, key)
 
-  const repository = withSlowChapterSaves(createProjectRepository({ folders: createProjectFolders(), journals: createJournalStore(userData), ids: randomIdGenerator }))
+  // Every write goes through these folders, so every file is backed up before the app changes it (Milestone 6).
+  const folders = withBackups(createProjectFolders(), { backups: createBackupStore(userData), now: Date.now })
+  const repository = withSlowChapterSaves(createProjectRepository({ folders, journals: createJournalStore(userData), ids: randomIdGenerator }))
   const writing = createWritingSession({ repository, copyLabel: () => translate('conflict-copy-label') })
-  const outlines = createOutlineSession({ repository: createOutlineRepository({ folders: createProjectFolders() }), root: () => writing.project()?.root ?? null })
+  const outlines = createOutlineSession({ repository: createOutlineRepository({ folders }), root: () => writing.project()?.root ?? null })
   const recent = await createRecentProjectsSession(createAppDataFile(userData, 'recent'))
   pendingWork.push(() => preferences.idle(), () => writing.idle(), () => recent.idle(), () => outlines.idle())
   // The watcher can start before the window exists (reopening the last project); events wait for it.
@@ -141,7 +152,7 @@ void app.whenReady().then(async () => {
       onFlushed: () => flushWaiters.splice(0).forEach((resolve) => resolve()),
     },
     outlines: { outlines, writing, recent },
-    references: { references: createReferenceRepository({ folders: createProjectFolders() }), writing, recent },
+    references: { references: createReferenceRepository({ folders }), writing, recent },
   })
   for (const [channel, handle] of Object.entries(handlers)) {
     ipcMain.handle(channel, (event, payload: unknown) => handle({ url: event.senderFrame?.url, fromAppWindow: event.sender === window.webContents }, payload))

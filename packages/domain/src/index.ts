@@ -1,3 +1,4 @@
+export * from './backups/index'
 export * from './manuscript/index'
 export * from './outline/index'
 export * from './project/index'

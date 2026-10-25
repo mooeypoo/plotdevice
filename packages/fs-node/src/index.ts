@@ -2,6 +2,7 @@ export { AtomicWriteError, removeStaleTempFiles, writeAtomically, type AtomicWri
 export { createFileStore, type FileStoreOptions } from './file-store'
 export { createJournalStore } from './journal-store'
 export { createAppDataFile, createPreferencesFileStore } from './app-data-file'
+export { createBackupStore } from './backup-store'
 export { createProjectFolders } from './project-folders'
 export { randomIdGenerator } from './random-id'
 export { watchProject, type FileChange, type ProjectWatcher } from './project-watcher'

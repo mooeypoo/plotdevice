@@ -8,5 +8,6 @@ character, place and note pages, and the links outline cards make.
 
 - Checks the domain rules before writing; writes splices (via `markdown`) with the revision it
   expects, so files changed outside the app are refused, never overwritten (ADR 0005).
+- `withBackups` wraps the project folders, so every file is backed up before the app overwrites it.
 - File renames run through the recovery journal; interrupted ones are finished when a project opens.
 - Never touches the disk directly, and imports no Node: integration tests in `test/` use `fs-node`.

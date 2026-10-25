@@ -1,6 +1,6 @@
 # Milestone 6: Backups, renaming pages, and the compiled book (Gate 6, first half)
 
-Status: **Proposed, awaiting owner approval.** No code yet.
+Status: **Approved** (owner, 2026-10-25), with the recommended backup timing, retention and compiled format.
 
 ## Goal
 

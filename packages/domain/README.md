@@ -2,6 +2,8 @@
 
 The story's concepts and rules, in pure TypeScript, one folder per context:
 
+- `backups`: when to back up a file, and which backups to keep.
+
 - `project`: project details and what a new project needs.
 - `manuscript`: the book's structure (chapters, optional parts, reading order), numbering, chapter
   file names from titles, and matching renamed files by id.
