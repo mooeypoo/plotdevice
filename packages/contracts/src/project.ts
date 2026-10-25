@@ -68,8 +68,10 @@ export interface RecentProjectView {
 
 export interface OpenedProject {
   project: ProjectView
-  /** Where the author stopped last time, to reopen there. */
+  /** Where the author stopped writing last time, to reopen there. */
   leftOff?: { file: ProjectPath; cursor: number }
+  /** The workspace, outline and view the author was in. */
+  place?: { workspace: 'write' | 'story'; outline?: ProjectPath; view?: 'board' | 'outline' | 'cards' }
 }
 
 /** `cancelled`: the author closed the folder dialog. */

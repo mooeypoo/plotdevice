@@ -1,5 +1,6 @@
 import type { ProjectPath, Result } from '@plotdevice/shared'
 import { z } from 'zod'
+import type { OutlineView } from './outline'
 import { projectPathSchema, type ProjectView } from './project'
 
 /** Chapters well beyond any novel's: a guard against runaway payloads, not a writing limit. */
@@ -33,5 +34,7 @@ export type HostEvent =
   | { kind: 'save-status'; file: ProjectPath; status: SaveStatusView }
   | { kind: 'chapter-reloaded'; file: ProjectPath; text: string; generation: number }
   | { kind: 'project-changed'; project: ProjectView }
+  /** An open outline changed in another program and was read again. */
+  | { kind: 'outline-changed'; outline: OutlineView }
   /** The app is closing: send any text still waiting to be saved. */
   | { kind: 'flush' }

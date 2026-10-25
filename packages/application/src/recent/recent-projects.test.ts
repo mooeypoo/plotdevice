@@ -80,4 +80,15 @@ describe('recent projects', () => {
     expect(await recent.opened({ root: '/a', title: 'A' })).toEqual({ ok: false, error: 'read-only' })
     expect(recent.current().projects).toEqual([{ root: '/a', title: 'A' }])
   })
+
+  it('remembers the workspace, outline and view, and drops what it can\'t read', async () => {
+    const { file } = memoryFile()
+    const recent = await createRecentProjectsSession(file)
+    await recent.opened({ root: '/a', title: 'A' })
+    await recent.place('/a', { workspace: 'story', outline: p('outlines/main-story.md'), view: 'cards' })
+    const restarted = await createRecentProjectsSession(file)
+    expect(restarted.current().projects[0]?.place).toEqual({ workspace: 'story', outline: 'outlines/main-story.md', view: 'cards' })
+    const text = JSON.stringify({ projects: [{ root: '/b', title: 'B', place: { workspace: 'Story' } }, { root: '/c', title: 'C', place: { workspace: 'write', outline: '../x.md', view: 'grid' } }] })
+    expect(parseRecentProjects(text)).toEqual({ ok: true, value: { projects: [{ root: '/b', title: 'B' }, { root: '/c', title: 'C', place: { workspace: 'write' } }] } })
+  })
 })

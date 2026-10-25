@@ -43,10 +43,15 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
   const recentProjects = async (): Promise<RecentProjectView[]> =>
     Promise.all(recent.current().projects.map(async ({ root, title }) => ({ root, title, available: await context.folderExists(root) })))
 
+  /** The project, with where the author was in it last time. */
+  const withPosition = (snapshot: ProjectSnapshot): OpenedProject => {
+    const remembered = recent.current().projects.find((project) => project.root === snapshot.root)
+    return { project: projectView(snapshot), ...(remembered?.leftOff ? { leftOff: remembered.leftOff } : {}), ...(remembered?.place ? { place: remembered.place } : {}) }
+  }
+
   const opened = async (snapshot: ProjectSnapshot): Promise<OpenedProject> => {
     await recent.opened({ root: snapshot.root, title: snapshot.details.title })
-    const leftOff = recent.current().projects.find((project) => project.root === snapshot.root)?.leftOff
-    return { project: projectView(snapshot), ...(leftOff ? { leftOff } : {}) }
+    return withPosition(snapshot)
   }
 
   const changed = (result: Result<ProjectSnapshot, Exclude<ProjectChangeResult, { ok: true }>['error']>): ProjectChangeResult =>
@@ -62,9 +67,7 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
 
     [channels.getOpenProject]: async (): Promise<OpenedProject | null> => {
       const project = session.project()
-      if (!project) return null
-      const leftOff = recent.current().projects.find((entry) => entry.root === project.root)?.leftOff
-      return { project: projectView(project), ...(leftOff ? { leftOff } : {}) }
+      return project ? withPosition(project) : null
     },
 
     [channels.openProject]: async (payload): Promise<OpenProjectResult> => {

@@ -16,6 +16,12 @@ export const channels = {
   resolveConflict: 'plotdevice:resolve-conflict',
   leftOff: 'plotdevice:left-off',
   flushed: 'plotdevice:flushed',
+  listOutlines: 'plotdevice:list-outlines',
+  createOutline: 'plotdevice:create-outline',
+  openOutline: 'plotdevice:open-outline',
+  editOutline: 'plotdevice:edit-outline',
+  undoOutline: 'plotdevice:undo-outline',
+  rememberPlace: 'plotdevice:remember-place',
 } as const
 
 /** The one channel the host uses to send events to the page. */

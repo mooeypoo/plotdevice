@@ -1,5 +1,6 @@
 import type { AppInfo } from './app-info'
 import type { HostEvent, LeftOffRequest, OpenChapterResult, ResolveConflictRequest, ResolveConflictResult, SaveChapterRequest } from './chapter'
+import type { OutlineEditRequest, OutlineResult, OutlineSummaryView, Place } from './outline'
 import type { Preferences, PreferencesPatch } from './preferences'
 import type {
   ContentsChangeRequest,
@@ -41,6 +42,14 @@ export interface PlotDeviceApi {
   leftOff(request: LeftOffRequest): Promise<void>
   /** Answers a `flush` event once pending text has been sent with `saveChapter`. */
   flushed(): Promise<void>
+
+  listOutlines(): Promise<OutlineSummaryView[]>
+  createOutline(title: string): Promise<OutlineResult>
+  openOutline(file: ProjectPath): Promise<OutlineResult>
+  editOutline(file: ProjectPath, edit: OutlineEditRequest): Promise<OutlineResult>
+  undoOutline(file: ProjectPath): Promise<OutlineResult>
+  /** Remembers the workspace, outline and view, to return there next time. */
+  rememberPlace(place: Place): Promise<void>
 
   onEvent(listener: (event: HostEvent) => void): () => void
 }

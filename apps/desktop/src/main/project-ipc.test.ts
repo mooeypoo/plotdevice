@@ -1,7 +1,7 @@
-import { createRecentProjectsSession, createWritingSession, type SessionEvent } from '@plotdevice/application'
-import { channels, type OpenChapterResult, type OpenProjectResult, type ProjectChangeResult, type ProjectView, type ResolveConflictResult } from '@plotdevice/contracts'
+import { createOutlineSession, createRecentProjectsSession, createWritingSession, type SessionEvent } from '@plotdevice/application'
+import { channels, type OpenChapterResult, type OpenProjectResult, type OutlineResult, type ProjectChangeResult, type ProjectView, type ResolveConflictResult } from '@plotdevice/contracts'
 import { createAppDataFile, createJournalStore, createProjectFolders, randomIdGenerator } from '@plotdevice/fs-node'
-import { createProjectRepository } from '@plotdevice/storage'
+import { createOutlineRepository, createProjectRepository } from '@plotdevice/storage'
 import { access, cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -33,6 +33,8 @@ async function setup() {
   session.onEvent((event) => events.push(event))
   const dialogs = { folder: null as string | null, location: null as string | null }
   let flushed = 0
+  const recent = await createRecentProjectsSession(createAppDataFile(appData, 'recent'))
+  const outlines = createOutlineSession({ repository: createOutlineRepository({ folders: createProjectFolders() }), root: () => session.project()?.root ?? null })
   const handlers = createIpcHandlers({
     appUrl,
     appInfo: { name: 'Plot Device', version: '0.1.0', platform: 'linux' },
@@ -42,12 +44,13 @@ async function setup() {
     },
     projects: {
       session,
-      recent: await createRecentProjectsSession(createAppDataFile(appData, 'recent')),
+      recent,
       chooseProjectFolder: async () => dialogs.folder,
       chooseNewProjectLocation: async () => dialogs.location,
       folderExists: (path) => access(path).then(() => true, () => false),
       onFlushed: () => flushed++,
     },
+    outlines: { outlines, writing: session, recent },
   })
   const call = (channel: string, payload?: unknown, sender: Sender = appPage): Promise<unknown> => {
     const handler = handlers[channel]
@@ -178,5 +181,50 @@ describe('project calls', () => {
     const context = await setup()
     await context.call(channels.flushed)
     expect(context.flushed()).toBe(1)
+  })
+})
+
+describe('outline calls', () => {
+  const MAIN = 'outlines/main-story.md'
+
+  it('edits an outline from the page; the file changes and no chapter does', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const chapter = await context.read('manuscript/the-orchard-gate.md')
+    const opened = (await context.call(channels.openOutline, { file: MAIN })) as OutlineResult
+    expect(opened.ok && opened.value.sections.map((s) => s.name)).toEqual(['Beginning', 'Ending'])
+    const moved = (await context.call(channels.editOutline, { file: MAIN, edit: { kind: 'move-item', from: { section: 0, path: [1] }, to: { section: 1, parentPath: [], index: 0 } } })) as OutlineResult
+    expect(moved.ok && moved.value.canUndo).toBe(true)
+    expect(await context.read(MAIN)).toContain('## Ending\n\n- The gate, see [The Orchard Gate]')
+    expect(await context.read('manuscript/the-orchard-gate.md')).toBe(chapter)
+    const undone = (await context.call(channels.undoOutline, { file: MAIN })) as OutlineResult
+    expect(undone.ok && undone.value.canUndo).toBe(false)
+    expect(await context.read(MAIN)).toBe(await readFile(join(FIXTURE, MAIN), 'utf8'))
+  })
+
+  it('refuses files outside the outlines folder before reading anything', async () => {
+    const context = await setup()
+    await openChosen(context)
+    await expect(context.call(channels.openOutline, { file: 'manuscript/frost.md' })).rejects.toThrow('invalid-payload')
+    await expect(context.call(channels.editOutline, { file: 'project.md', edit: { kind: 'set-title', text: 'x' } })).rejects.toThrow('invalid-payload')
+  })
+
+  it('creates and lists outlines in Hebrew', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const created = (await context.call(channels.createOutline, { title: 'קשתות דמויות' })) as OutlineResult
+    expect(created.ok && created.value.file).toBe('outlines/קשתות-דמויות.md')
+    expect(await context.call(channels.listOutlines)).toEqual([
+      { file: 'outlines/main-story.md', title: 'Main story' },
+      { file: 'outlines/קשתות-דמויות.md', title: 'קשתות דמויות' },
+    ])
+  })
+
+  it('remembers the workspace, outline and view for next time', async () => {
+    const context = await setup()
+    await openChosen(context)
+    await context.call(channels.rememberPlace, { workspace: 'story', outline: MAIN, view: 'cards' })
+    expect(await context.call(channels.getOpenProject)).toMatchObject({ place: { workspace: 'story', outline: MAIN, view: 'cards' } })
+    await expect(context.call(channels.rememberPlace, { workspace: 'Story' })).rejects.toThrow('invalid-payload')
   })
 })

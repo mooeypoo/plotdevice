@@ -20,6 +20,12 @@ const api: PlotDeviceApi = {
   resolveConflict: (request) => ipcRenderer.invoke(channels.resolveConflict, request),
   leftOff: (request) => ipcRenderer.invoke(channels.leftOff, request),
   flushed: () => ipcRenderer.invoke(channels.flushed),
+  listOutlines: () => ipcRenderer.invoke(channels.listOutlines),
+  createOutline: (title) => ipcRenderer.invoke(channels.createOutline, { title }),
+  openOutline: (file) => ipcRenderer.invoke(channels.openOutline, { file }),
+  editOutline: (file, edit) => ipcRenderer.invoke(channels.editOutline, { file, edit }),
+  undoOutline: (file) => ipcRenderer.invoke(channels.undoOutline, { file }),
+  rememberPlace: (place) => ipcRenderer.invoke(channels.rememberPlace, place),
   onEvent: (listener) => {
     const forward = (_event: IpcRendererEvent, hostEvent: HostEvent): void => listener(hostEvent)
     ipcRenderer.on(eventChannel, forward)

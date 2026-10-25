@@ -1,6 +1,7 @@
 import { channels, preferencesPatchSchema, type AppInfo, type Preferences, type PreferencesPatch } from '@plotdevice/contracts'
 import type { Result } from '@plotdevice/shared'
 import { IpcRefused, parsePayload } from './payload'
+import { createOutlineHandlers, type OutlineIpcContext } from './outline-ipc'
 import { createProjectHandlers, type PayloadHandler, type ProjectIpcContext } from './project-ipc'
 
 /** What the main process knows about who sent a request. */
@@ -17,6 +18,7 @@ export interface IpcContext {
   currentPreferences(): Preferences
   updatePreferences(patch: PreferencesPatch): Promise<Result<Preferences, string>>
   projects: ProjectIpcContext
+  outlines: OutlineIpcContext
 }
 
 export type IpcHandler = (sender: Sender, payload: unknown) => Promise<unknown>
@@ -35,6 +37,7 @@ export function createIpcHandlers(context: IpcContext): Record<string, IpcHandle
       return saved.value
     },
     ...createProjectHandlers(context.projects),
+    ...createOutlineHandlers(context.outlines),
   }
   return Object.fromEntries(
     Object.entries(handlers).map(([channel, handle]) => [

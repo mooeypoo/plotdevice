@@ -10,10 +10,21 @@ export interface LeftOff {
   cursor: number
 }
 
+/**
+ * The workspace, outline and view the author was in. `story` is a fixed internal ID, never a label,
+ * so renaming the workspace never touches saved settings.
+ */
+export interface Place {
+  workspace: 'write' | 'story'
+  outline?: ProjectPath
+  view?: 'board' | 'outline' | 'cards'
+}
+
 export interface RecentProject {
   root: string
   title: string
   leftOff?: LeftOff
+  place?: Place
 }
 
 /** Kept in app data, never in a project folder. The first project is the one to reopen at startup. */
@@ -34,7 +45,8 @@ export function parseRecentProjects(text: string): Result<RecentProjects, 'unrea
   const projects = entries.flatMap((entry): RecentProject[] => {
     if (!isRecord(entry) || typeof entry.root !== 'string' || typeof entry.title !== 'string') return []
     const leftOff = parseLeftOff(entry.leftOff)
-    return [{ root: entry.root, title: entry.title, ...(leftOff ? { leftOff } : {}) }]
+    const place = parsePlace(entry.place)
+    return [{ root: entry.root, title: entry.title, ...(leftOff ? { leftOff } : {}), ...(place ? { place } : {}) }]
   })
   return ok({ projects: projects.slice(0, MAX_RECENT_PROJECTS) })
 }
@@ -43,6 +55,13 @@ function parseLeftOff(value: unknown): LeftOff | null {
   if (!isRecord(value) || typeof value.file !== 'string' || !Number.isInteger(value.cursor) || (value.cursor as number) < 0) return null
   const file = parseProjectPath(value.file)
   return file.ok ? { file: file.value, cursor: value.cursor as number } : null
+}
+
+function parsePlace(value: unknown): Place | null {
+  if (!isRecord(value) || (value.workspace !== 'write' && value.workspace !== 'story')) return null
+  const outline = typeof value.outline === 'string' ? parseProjectPath(value.outline) : null
+  const view = value.view === 'board' || value.view === 'outline' || value.view === 'cards' ? value.view : undefined
+  return { workspace: value.workspace, ...(outline?.ok ? { outline: outline.value } : {}), ...(view ? { view } : {}) }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -54,6 +73,7 @@ export interface RecentProjectsSession {
   /** Moves the project to the top of the list, keeping where the author left off. */
   opened(project: { root: string; title: string }): Promise<Result<void, AppDataWriteFailure>>
   leftOff(root: string, position: LeftOff): Promise<Result<void, AppDataWriteFailure>>
+  place(root: string, place: Place): Promise<Result<void, AppDataWriteFailure>>
   forget(root: string): Promise<Result<void, AppDataWriteFailure>>
   idle(): Promise<void>
 }
@@ -83,6 +103,7 @@ export async function createRecentProjectsSession(file: AppDataFile): Promise<Re
         return [{ ...known, root, title }, ...projects.filter((project) => project.root !== root)]
       }),
     leftOff: (root, position) => change((projects) => projects.map((project) => (project.root === root ? { ...project, leftOff: position } : project))),
+    place: (root, place) => change((projects) => projects.map((project) => (project.root === root ? { ...project, place } : project))),
     forget: (root) => change((projects) => projects.filter((project) => project.root !== root)),
     idle: async () => {
       let seen: Promise<unknown> | undefined

@@ -1,5 +1,5 @@
-import type { ProjectSnapshot, SaveStatus, SessionEvent } from '@plotdevice/application'
-import type { HostEvent, ProjectView, SaveStatusView } from '@plotdevice/contracts'
+import type { OutlineEvent, OutlineState, ProjectSnapshot, SaveStatus, SessionEvent } from '@plotdevice/application'
+import type { HostEvent, OutlineView, ProjectView, SaveStatusView } from '@plotdevice/contracts'
 import { chapterNumbers, directionOfLanguage } from '@plotdevice/domain'
 import type { ProjectPath } from '@plotdevice/shared'
 
@@ -46,3 +46,10 @@ export function hostEvent(event: SessionEvent): HostEvent {
       return { kind: 'project-changed', project: projectView(event.project) }
   }
 }
+
+/** The page's view of an outline: what to show, without the revision. */
+export function outlineView(state: OutlineState): OutlineView {
+  return { file: state.file, ...state.outline, canUndo: state.canUndo, invalidDetails: state.invalidDetails }
+}
+
+export const outlineEvent = (event: OutlineEvent): HostEvent => ({ kind: 'outline-changed', outline: outlineView(event.document) })

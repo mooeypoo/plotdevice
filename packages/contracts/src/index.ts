@@ -48,3 +48,22 @@ export {
   type ProjectView,
   type RecentProjectView,
 } from './project'
+export {
+  createOutlineSchema,
+  editOutlineSchema,
+  outlineEditSchema,
+  outlineFileSchema,
+  outlineViewKindSchema,
+  placeSchema,
+  workspaceSchema,
+  type OutlineEditRequest,
+  type OutlineItemView,
+  type OutlineProblem,
+  type OutlineResult,
+  type OutlineSectionView,
+  type OutlineSummaryView,
+  type OutlineView,
+  type OutlineViewKind,
+  type Place,
+  type Workspace,
+} from './outline'

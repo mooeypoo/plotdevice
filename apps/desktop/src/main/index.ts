@@ -1,8 +1,18 @@
-import { createPreferencesSession, createRecentProjectsSession, createWritingSession, loadPreferences, type PreferencesStore, type ProjectRepository, type WritingSession } from '@plotdevice/application'
+import {
+  createOutlineSession,
+  createPreferencesSession,
+  createRecentProjectsSession,
+  createWritingSession,
+  loadPreferences,
+  type OutlineSession,
+  type PreferencesStore,
+  type ProjectRepository,
+  type WritingSession,
+} from '@plotdevice/application'
 import { eventChannel, type AppInfo } from '@plotdevice/contracts'
 import { createAppDataFile, createJournalStore, createPreferencesFileStore, createProjectFolders, randomIdGenerator, watchProject, type ProjectWatcher } from '@plotdevice/fs-node'
 import { catalogs, createTranslator } from '@plotdevice/i18n'
-import { createProjectRepository } from '@plotdevice/storage'
+import { createOutlineRepository, createProjectRepository } from '@plotdevice/storage'
 import { app, BrowserWindow, dialog, ipcMain, session } from 'electron'
 import { access } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -10,7 +20,7 @@ import { pathToFileURL } from 'node:url'
 import { createIpcHandlers } from './ipc'
 import { denyAllPermissions, hardenWebContents } from './security'
 import { enableSpellingMenu, spellcheckLanguages } from './spellcheck'
-import { hostEvent } from './views'
+import { hostEvent, outlineEvent } from './views'
 
 // Development builds keep their own settings, apart from any installed release (ADR 0001). Tests may
 // point unpackaged builds at a temporary folder.
@@ -54,9 +64,10 @@ void app.whenReady().then(async () => {
 
   const repository = withSlowChapterSaves(createProjectRepository({ folders: createProjectFolders(), journals: createJournalStore(userData), ids: randomIdGenerator }))
   const writing = createWritingSession({ repository, copyLabel: () => translate('conflict-copy-label') })
+  const outlines = createOutlineSession({ repository: createOutlineRepository({ folders: createProjectFolders() }), root: () => writing.project()?.root ?? null })
   const recent = await createRecentProjectsSession(createAppDataFile(userData, 'recent'))
-  pendingWork.push(() => preferences.idle(), () => writing.idle(), () => recent.idle())
-  const stopWatching = watchOpenProject(writing)
+  pendingWork.push(() => preferences.idle(), () => writing.idle(), () => recent.idle(), () => outlines.idle())
+  const stopWatching = watchOpenProject(writing, outlines)
   pendingWork.push(stopWatching)
   await reopenLastProject(writing, recent.current().projects[0]?.root)
 
@@ -75,6 +86,7 @@ void app.whenReady().then(async () => {
     },
   })
   writing.onEvent((event) => window.webContents.send(eventChannel, hostEvent(event)))
+  outlines.onEvent((event) => window.webContents.send(eventChannel, outlineEvent(event)))
   enableSpellingMenu(window, translate)
   // Linux and Windows check spelling with the dictionaries chosen here; macOS detects the language itself.
   const checkSpelling = (): void => {
@@ -125,6 +137,7 @@ void app.whenReady().then(async () => {
       folderExists: (path) => access(path).then(() => true, () => false),
       onFlushed: () => flushWaiters.splice(0).forEach((resolve) => resolve()),
     },
+    outlines: { outlines, writing, recent },
   })
   for (const [channel, handle] of Object.entries(handlers)) {
     ipcMain.handle(channel, (event, payload: unknown) => handle({ url: event.senderFrame?.url, fromAppWindow: event.sender === window.webContents }, payload))
@@ -145,16 +158,18 @@ const REFRESH_DELAY_MS = 300
  * Watches the open project's folder for changes made by other programs. A changed chapter is checked
  * (and reloaded quietly if it has no unsaved edits); anything else refreshes the project shortly after.
  */
-function watchOpenProject(writing: WritingSession): () => Promise<void> {
+function watchOpenProject(writing: WritingSession, outlines: OutlineSession): () => Promise<void> {
   let watched: { root: string; watcher: ProjectWatcher } | null = null
   let refresh: ReturnType<typeof setTimeout> | undefined
   writing.onEvent((event) => {
     if (event.kind !== 'project-changed' || watched?.root === event.project.root) return
     void watched?.watcher.close()
+    outlines.reset() // another project: its outlines and their undo history are gone
     watched = {
       root: event.project.root,
       watcher: watchProject(event.project.root, (change) => {
-        if (change.kind === 'changed') void writing.fileChanged(change.path)
+        if (change.kind === 'changed' && change.path.startsWith('outlines/')) void outlines.fileChanged(change.path)
+        else if (change.kind === 'changed') void writing.fileChanged(change.path)
         clearTimeout(refresh)
         refresh = setTimeout(() => void writing.refreshProject(), REFRESH_DELAY_MS)
       }),

@@ -15,6 +15,7 @@ export {
   MAX_RECENT_PROJECTS,
   parseRecentProjects,
   type LeftOff,
+  type Place,
   type RecentProject,
   type RecentProjects,
   type RecentProjectsSession,
