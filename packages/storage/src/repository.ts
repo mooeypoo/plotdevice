@@ -17,6 +17,7 @@ import {
   addPart,
   chapterCopyFileFor,
   chapterFileFor,
+  kindOfFile,
   CURRENT_SCHEMA_VERSION,
   moveChapter,
   projectFolderName,
@@ -130,9 +131,10 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       return reopen(snapshot.root)
     },
 
-    async renameChapterFile(snapshot, file, newName) {
+    async renameFile(snapshot, file, newName) {
       const store = folders.open(snapshot.root)
-      const chapter = snapshot.chapters.find((c) => c.file === file)
+      // A chapter, or a character, place or note page; pages aren't in the snapshot or the contents.
+      const chapter = snapshot.chapters.find((c) => c.file === file) ?? (kindOfFile(file) ? { revision: undefined, listed: false } : null)
       if (!chapter) return err('not-found')
       const target = targetPath(file, newName)
       if (!target.ok) return target
@@ -144,7 +146,7 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
 
       const source = await store.read(file)
       if (!source.ok) return err(source.error === 'missing' ? 'not-found' : 'unreadable')
-      if (source.value.revision !== chapter.revision) return err('stale')
+      if (chapter.revision !== undefined && source.value.revision !== chapter.revision) return err('stale')
       const contents = await freshContents(store, snapshot)
       if (!contents.ok) return contents
 

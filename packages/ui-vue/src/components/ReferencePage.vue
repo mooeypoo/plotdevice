@@ -20,6 +20,12 @@ const host = ref<HTMLElement | null>(null)
 const page = useChapterWriting(host, { remembersPosition: false })
 const summary = computed(() => story.references.find((reference) => reference.file === props.file) ?? null)
 
+async function renameFile(): Promise<void> {
+  const current = props.file.split('/').at(-1)?.replace(/\.md$/, '') ?? ''
+  const name = await ask(t('prompt-file-name-page'), current)
+  if (name && name !== current) await story.renameReferenceFile(props.file, name)
+}
+
 async function rename(): Promise<void> {
   const title = await ask(t('prompt-reference-title'), summary.value?.title ?? '')
   if (title) await story.renameReference(props.file, title)
@@ -37,6 +43,7 @@ watch(
     <div class="toolbar">
       <h1 class="outline-title" dir="auto">{{ summary?.title ?? file }}</h1>
       <button type="button" data-testid="rename-reference" @click="rename">{{ t('reference-rename') }}</button>
+      <button type="button" data-testid="rename-page-file" @click="renameFile">{{ t('reference-rename-file') }}</button>
       <button type="button" data-testid="page-versions" @click="versions.show(file, summary?.title ?? file)">{{ t('versions') }}</button>
     </div>
     <p v-if="summary && summary.aka.length > 0" class="secondary" dir="auto">{{ t('reference-aka', summary.aka.join(', ')) }}</p>

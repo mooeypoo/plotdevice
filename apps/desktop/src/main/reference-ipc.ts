@@ -4,6 +4,7 @@ import {
   channels,
   createReferenceSchema,
   referenceFileSchema,
+  renameReferenceFileSchema,
   renameReferenceSchema,
   shelfSchema,
   type CardLinksView,
@@ -55,6 +56,17 @@ export function createReferenceHandlers({ references, writing, recent }: Referen
       const renamed = await writing.updateFile(file, () => references.renameReference(projectRoot, file, title))
       if (!renamed.ok) return renamed
       const summary = await summaryOf(projectRoot, file)
+      return summary ? ok(summary) : err('missing')
+    },
+
+    [channels.renameReferenceFile]: async (payload): Promise<ReferenceResult<ReferenceSummaryView>> => {
+      const { file, newName } = parsePayload(renameReferenceFileSchema, payload)
+      const projectRoot = root()
+      if (!projectRoot) return err('no-project')
+      // Through the session: an open page follows its file, and links in open files reload.
+      const renamed = await writing.renameFile(file, newName)
+      if (!renamed.ok) return err(renamed.error === 'invalid-name' || renamed.error === 'name-taken' || renamed.error === 'no-project' ? renamed.error : 'write-failed')
+      const summary = await summaryOf(projectRoot, renamed.value.file)
       return summary ? ok(summary) : err('missing')
     },
 

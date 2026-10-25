@@ -164,6 +164,23 @@ test('a page changed in another app while being edited offers the same choices a
   await file('places/marrow-my-version.md').toBe('---\ntitle: Marrow (my version)\n---\nMine.')
 })
 
+test('renaming a page’s file keeps a card’s link to it working', async () => {
+  await mkdir(join(root, 'characters'))
+  await writeFile(join(root, 'characters/ilka.md'), '---\ntitle: Ilka Varga\n---\nInherits the orchard.\n')
+  await writeFile(join(root, 'outlines/main-story.md'), '# Main story\n\n## Beginning\n\n- Ilka arrives, see [Ilka](../characters/ilka.md)\n')
+  const page = await start()
+  await page.getByTestId('workspace-story').click()
+  await page.locator('[data-page="characters/ilka.md"]').click()
+  await page.getByTestId('rename-page-file').click()
+  await page.getByTestId('prompt-input').fill('ilka-varga')
+  await page.getByTestId('prompt-input').press('Enter')
+  await expect(page.locator('[data-page="characters/ilka-varga.md"]')).toBeVisible()
+  await file('outlines/main-story.md').toContain('[Ilka](../characters/ilka-varga.md)')
+  await page.locator('[data-outline="outlines/main-story.md"]').click()
+  await page.locator('.outline-card').getByRole('button', { name: 'Ilka', exact: true }).click()
+  await expect(page.getByTestId('reference-page').locator('.outline-title')).toHaveText('Ilka Varga')
+})
+
 /** Controls on the page without an accessible name. */
 async function unnamedControls(page: Page): Promise<string[]> {
   return page.evaluate(() =>

@@ -9,6 +9,7 @@ const title = z.string().max(500)
 export const referenceFileSchema = z.strictObject({ file: referenceFile })
 export const createReferenceSchema = z.strictObject({ kind: referenceKindSchema, title })
 export const renameReferenceSchema = z.strictObject({ file: referenceFile, title })
+export const renameReferenceFileSchema = z.strictObject({ file: referenceFile, newName: title })
 export const chapterLinksSchema = z.strictObject({ file: projectPathSchema })
 /** The pinned shelf, in the author's order. */
 export const shelfSchema = z.strictObject({ files: z.array(referenceFile).max(100) })
@@ -44,5 +45,5 @@ export interface CardLinksView {
   links: LinkTargetView[]
 }
 
-export type ReferenceProblem = 'no-project' | 'missing' | 'unreadable' | 'empty-text' | 'multiline-text' | 'stale' | 'write-failed'
+export type ReferenceProblem = 'no-project' | 'missing' | 'unreadable' | 'empty-text' | 'multiline-text' | 'stale' | 'write-failed' | 'invalid-name' | 'name-taken'
 export type ReferenceResult<T> = Result<T, ReferenceProblem>

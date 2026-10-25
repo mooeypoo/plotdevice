@@ -210,5 +210,7 @@
   "compile-book": "Compile book…",
   "compiled": "The book was saved as “$1”.",
   "compiled-missing": "The book was saved as “$1”, without these missing chapters: $2.",
-  "compile-failed": "The book couldn't be saved there. Nothing was changed."
+  "compile-failed": "The book couldn't be saved there. Nothing was changed.",
+  "reference-rename-file": "Rename file…",
+  "prompt-file-name-page": "File name"
 }

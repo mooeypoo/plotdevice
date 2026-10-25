@@ -27,6 +27,7 @@ export const channels = {
   readReference: 'plotdevice:read-reference',
   createReference: 'plotdevice:create-reference',
   renameReference: 'plotdevice:rename-reference',
+  renameReferenceFile: 'plotdevice:rename-reference-file',
   cardsAbout: 'plotdevice:cards-about',
   getShelf: 'plotdevice:get-shelf',
   setShelf: 'plotdevice:set-shelf',

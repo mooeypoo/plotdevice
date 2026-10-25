@@ -210,5 +210,7 @@
   "compile-book": "הפקת הספר…",
   "compiled": "הספר נשמר בשם „$1”.",
   "compiled-missing": "הספר נשמר בשם „$1”, בלי הפרקים החסרים האלה: $2.",
-  "compile-failed": "לא ניתן היה לשמור את הספר שם. דבר לא שונה."
+  "compile-failed": "לא ניתן היה לשמור את הספר שם. דבר לא שונה.",
+  "reference-rename-file": "שינוי שם הקובץ…",
+  "prompt-file-name-page": "שם הקובץ"
 }

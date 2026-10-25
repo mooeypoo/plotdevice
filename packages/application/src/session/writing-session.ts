@@ -57,7 +57,7 @@ export interface WritingSession {
   resolveConflict(file: ProjectPath, choice: ConflictChoice): Promise<Result<ConflictResolved, ResolveProblem>>
   changeContents(change: ContentsChange): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   renameChapter(file: ProjectPath, title: string): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
-  renameChapterFile(file: ProjectPath, newName: string): Promise<Result<FileRenamed, RenameFileProblem | NoProject>>
+  renameFile(file: ProjectPath, newName: string): Promise<Result<FileRenamed, RenameFileProblem | NoProject>>
   /**
    * Runs `change` on a file outside its text, such as a page's title in its frontmatter. For an open
    * file it runs between saves, and saving continues from the revision it leaves, so it never looks
@@ -263,12 +263,12 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
         })
       }),
 
-    renameChapterFile: (file, newName) =>
+    renameFile: (file, newName) =>
       serially(async () => {
         if (!project) return err('no-project')
         await idleChapters()
         const current = withOpenRevisions(project)
-        const renamed = await repository.renameChapterFile(current, file, newName)
+        const renamed = await repository.renameFile(current, file, newName)
         if (!renamed.ok) return renamed
         setProject(renamed.value.snapshot)
         const state = chapters.get(file)

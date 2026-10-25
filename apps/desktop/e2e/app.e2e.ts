@@ -62,6 +62,7 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'renameChapter',
     'renameChapterFile',
     'renameReference',
+    'renameReferenceFile',
     'resolveConflict',
     'restoreVersion',
     'saveChapter',

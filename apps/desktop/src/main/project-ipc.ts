@@ -106,7 +106,7 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
 
     [channels.renameChapterFile]: async (payload): Promise<ProjectChangeResult> => {
       const { file, newName } = parsePayload(renameChapterFileSchema, payload)
-      const renamed = await session.renameChapterFile(file, newName)
+      const renamed = await session.renameFile(file, newName)
       return renamed.ok ? ok(projectView(renamed.value.snapshot)) : renamed
     },
 

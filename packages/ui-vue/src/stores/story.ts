@@ -46,6 +46,18 @@ export const useStoryStore = defineStore('story', () => {
     showing.value = { kind: 'page', file: created.value.file }
   }
 
+  /** Renames a page's file; the page view follows it to its new name. */
+  async function renameReferenceFile(file: ProjectPath, newName: string): Promise<void> {
+    const renamed = await api.renameReferenceFile(file, newName)
+    if (!renamed.ok) {
+      if (renamed.error === 'name-taken' || renamed.error === 'invalid-name') project.tell(`change-failed-${renamed.error}`)
+      else if (renamed.error !== 'empty-text') project.tell('reference-failed')
+      return
+    }
+    await refresh()
+    if (showing.value.kind === 'page' && showing.value.file === file) showing.value = { kind: 'page', file: renamed.value.file }
+  }
+
   async function renameReference(file: ProjectPath, title: string): Promise<void> {
     const renamed = await api.renameReference(file, title)
     if (!renamed.ok && renamed.error !== 'empty-text') project.tell('reference-failed')
@@ -101,5 +113,5 @@ export const useStoryStore = defineStore('story', () => {
     else if (event.kind === 'references-changed') void refresh()
   })
 
-  return { outlines, outline, collapsed, editing, references, showing, refresh, open, create, edit, undo, toggle, createReference, renameReference }
+  return { outlines, outline, collapsed, editing, references, showing, refresh, open, create, edit, undo, toggle, createReference, renameReference, renameReferenceFile }
 })

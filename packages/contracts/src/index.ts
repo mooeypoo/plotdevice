@@ -73,6 +73,7 @@ export {
   createReferenceSchema,
   referenceFileSchema,
   referenceKindSchema,
+  renameReferenceFileSchema,
   renameReferenceSchema,
   shelfSchema,
   type CardLinksView,

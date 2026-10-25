@@ -60,6 +60,8 @@ export interface PlotDeviceApi {
   readReference(file: ProjectPath): Promise<ReferenceResult<ReferencePageView>>
   createReference(kind: ReferenceKind, title: string): Promise<ReferenceResult<ReferenceSummaryView>>
   renameReference(file: ProjectPath, title: string): Promise<ReferenceResult<ReferenceSummaryView>>
+  /** Renames a page's file, fixing every link to it (as chapters do). */
+  renameReferenceFile(file: ProjectPath, newName: string): Promise<ReferenceResult<ReferenceSummaryView>>
   /** The outline cards that link to a chapter, with what else they link to. */
   cardsAbout(chapter: ProjectPath): Promise<CardLinksView[]>
   getShelf(): Promise<ProjectPath[]>

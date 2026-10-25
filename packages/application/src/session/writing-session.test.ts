@@ -50,7 +50,7 @@ function memoryRepository(initial: Record<string, string>) {
       entry.title = title
       return ok(snapshot())
     },
-    async renameChapterFile(given, file, newName) {
+    async renameFile(given, file, newName) {
       const entry = disk.get(file)
       if (!entry) return err('not-found')
       if (given.chapters.find((c) => c.file === file)?.revision !== revisionOf(file)) return err('stale')
@@ -239,7 +239,7 @@ describe('writing session', () => {
     const { session, disk } = await openSession()
     const frost = await openChapter(session, FROST)
     session.saveChapter(FROST, 'Saved before.\n', frost.generation)
-    const renamed = await session.renameChapterFile(FROST, 'early-frost')
+    const renamed = await session.renameFile(FROST, 'early-frost')
     expect(renamed.ok && renamed.value.file).toBe('manuscript/early-frost.md')
     session.saveChapter(p('manuscript/early-frost.md'), 'Saved after.\n', frost.generation)
     await session.idle()

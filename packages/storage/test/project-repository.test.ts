@@ -245,11 +245,52 @@ describe('chapter text (PRD scenario A, core half)', () => {
   })
 })
 
+describe('renaming a page file (explicit, through the recovery journal)', () => {
+  async function withPage(options: Partial<RepositoryOptions> = {}) {
+    const context = await setup(options)
+    await mkdir(join(context.root, 'characters'))
+    await writeFile(join(context.root, 'characters/ilka.md'), '---\ntitle: Ilka Varga\n---\nSee [Bea](bea.md).\n')
+    await writeFile(join(context.root, 'characters/bea.md'), '---\ntitle: Bea\n---\nIlka’s aunt: [Ilka](ilka.md), also [[ilka]].\n')
+    await writeFile(join(context.root, 'outlines/main-story.md'), '## Beginning\n\n- Ilka arrives, see [Ilka](../characters/ilka.md)\n')
+    await writeFile(join(context.root, 'manuscript/frost.md'), '---\ntitle: Frost\nid: ch-p0n1zz\n---\nAbout [Ilka](../characters/ilka.md).\n')
+    const snapshot = unwrap(await context.repository.open(context.root))
+    return { ...context, snapshot }
+  }
+
+  it('renames the page and fixes every link to it, in outlines, chapters and other pages', async () => {
+    const { root, repository, snapshot, read } = await withPage()
+    const contents = await read('CONTENTS.md')
+    const result = unwrap(await repository.renameFile(snapshot, p('characters/ilka.md'), 'ilka-varga'))
+    expect(result.file).toBe('characters/ilka-varga.md')
+    expect(result.filesChanged).toEqual(['characters/bea.md', 'manuscript/frost.md', 'outlines/main-story.md'])
+    expect(await read('characters/bea.md')).toBe('---\ntitle: Bea\n---\nIlka’s aunt: [Ilka](ilka-varga.md), also [[ilka-varga]].\n')
+    expect(await read('outlines/main-story.md')).toContain('[Ilka](../characters/ilka-varga.md)')
+    expect(await read('manuscript/frost.md')).toContain('About [Ilka](../characters/ilka-varga.md).')
+    expect(await read('CONTENTS.md')).toBe(contents)
+    expect(await readdir(join(root, 'characters'))).toEqual(expect.arrayContaining(['ilka-varga.md', 'bea.md']))
+  })
+
+  it('refuses a name another page has', async () => {
+    const { repository, snapshot } = await withPage()
+    expect(await repository.renameFile(snapshot, p('characters/ilka.md'), 'Bea')).toEqual({ ok: false, error: 'name-taken' })
+  })
+
+  it.each(['journal-saved', 'step-0', 'step-1', 'step-2', 'step-3'])('is finished on the next open after an interruption at %s', async (point) => {
+    const reference = await withPage()
+    unwrap(await reference.repository.renameFile(reference.snapshot, p('characters/ilka.md'), 'ilka-varga'))
+    const expected = await snapshotFiles(reference.root)
+    const crashing = await withPage({ crashAt: (reached) => reached === point })
+    await expect(crashing.repository.renameFile(crashing.snapshot, p('characters/ilka.md'), 'ilka-varga')).rejects.toThrow('simulated crash')
+    expect(unwrap(await crashing.repository.open(crashing.root)).recovered).toEqual([{ journal: expect.any(String), outcome: 'completed' }])
+    expect(await snapshotFiles(crashing.root)).toEqual(expected)
+  })
+})
+
 describe('renaming a chapter file (explicit, through the recovery journal)', () => {
   it('renames the file and fixes the contents and every link to it, changing nothing else', async () => {
     const { root, repository, snapshot, read } = await setup()
     const before = await snapshotFiles(root)
-    const result = unwrap(await repository.renameChapterFile(snapshot, p('manuscript/the-crossing.md'), '01 crossing'))
+    const result = unwrap(await repository.renameFile(snapshot, p('manuscript/the-crossing.md'), '01 crossing'))
     const after = await snapshotFiles(root)
     expect(result.filesChanged).toEqual(['CONTENTS.md', 'notes/loose-ideas.md', 'outlines/main-story.md'])
     expect(result.linksUpdated).toBe(7)
@@ -265,15 +306,15 @@ describe('renaming a chapter file (explicit, through the recovery journal)', () 
   it('refuses unsafe or taken names, and changes nothing', async () => {
     const { root, repository, snapshot } = await setup()
     const before = await snapshotFiles(root)
-    expect(await repository.renameChapterFile(snapshot, p('manuscript/the-crossing.md'), 'con')).toEqual({ ok: false, error: 'invalid-name' })
-    expect(await repository.renameChapterFile(snapshot, p('manuscript/the-crossing.md'), 'what?')).toEqual({ ok: false, error: 'invalid-name' })
-    expect(await repository.renameChapterFile(snapshot, p('manuscript/the-crossing.md'), 'Frost')).toEqual({ ok: false, error: 'name-taken' })
+    expect(await repository.renameFile(snapshot, p('manuscript/the-crossing.md'), 'con')).toEqual({ ok: false, error: 'invalid-name' })
+    expect(await repository.renameFile(snapshot, p('manuscript/the-crossing.md'), 'what?')).toEqual({ ok: false, error: 'invalid-name' })
+    expect(await repository.renameFile(snapshot, p('manuscript/the-crossing.md'), 'Frost')).toEqual({ ok: false, error: 'name-taken' })
     expect(await snapshotFiles(root)).toEqual(before)
   })
 
   it('renames when only the case changes', async () => {
     const { root, repository, snapshot } = await setup()
-    unwrap(await repository.renameChapterFile(snapshot, p('manuscript/frost.md'), 'Frost'))
+    unwrap(await repository.renameFile(snapshot, p('manuscript/frost.md'), 'Frost'))
     expect(await readdir(join(root, 'manuscript'))).toContain('Frost.md')
   })
 
@@ -282,11 +323,11 @@ describe('renaming a chapter file (explicit, through the recovery journal)', () 
 
   it.each(crashPoints)('is finished on the next open after an interruption at %s', async (point) => {
     const reference = await setup()
-    unwrap(await reference.repository.renameChapterFile(reference.snapshot, p('manuscript/the-crossing.md'), 'crossing'))
+    unwrap(await reference.repository.renameFile(reference.snapshot, p('manuscript/the-crossing.md'), 'crossing'))
     const expected = await snapshotFiles(reference.root)
 
     const crashing = await setup({ crashAt: (reached) => reached === point })
-    await expect(crashing.repository.renameChapterFile(crashing.snapshot, p('manuscript/the-crossing.md'), 'crossing')).rejects.toThrow('simulated crash')
+    await expect(crashing.repository.renameFile(crashing.snapshot, p('manuscript/the-crossing.md'), 'crossing')).rejects.toThrow('simulated crash')
     const reopened = unwrap(await crashing.repository.open(crashing.root))
     expect(reopened.recovered).toEqual([{ journal: expect.any(String), outcome: 'completed' }])
     expect(await snapshotFiles(crashing.root)).toEqual(expected)
@@ -295,7 +336,7 @@ describe('renaming a chapter file (explicit, through the recovery journal)', () 
 
   it('stops and reports instead of overwriting a file edited after the interruption', async () => {
     const { root, repository: crashing, snapshot } = await setup({ crashAt: (reached) => reached === 'step-1' })
-    await expect(crashing.renameChapterFile(snapshot, p('manuscript/the-crossing.md'), 'crossing')).rejects.toThrow('simulated crash')
+    await expect(crashing.renameFile(snapshot, p('manuscript/the-crossing.md'), 'crossing')).rejects.toThrow('simulated crash')
     await writeFile(join(root, 'outlines/main-story.md'), '# Rewritten in another app\n')
     const reopened = unwrap(await crashing.open(root))
     expect(reopened.recovered).toEqual([{ journal: expect.any(String), outcome: 'needs-attention', files: ['outlines/main-story.md'] }])
