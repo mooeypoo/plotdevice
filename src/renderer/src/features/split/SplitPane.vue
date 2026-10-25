@@ -86,13 +86,13 @@ watch([() => codex.revision, () => manuscript.manuscript], () => void reader.rel
       class="body"
       @scroll="reader.rememberScroll(($event.target as HTMLElement).scrollTop)"
     >
-      <p v-if="!bound" class="note">{{ language.t('split-empty') }}</p>
+      <p v-if="!bound" class="empty">{{ language.t('split-empty') }}</p>
       <template v-else>
-        <p v-if="openInEditor" class="note" role="status">{{ language.t('cards-live-draft') }}</p>
-        <p v-if="reader.loading.value" class="note" role="status">
+        <p v-if="openInEditor" class="notice" role="status">{{ language.t('cards-live-draft') }}</p>
+        <p v-if="reader.loading.value" class="loading" role="status">
           {{ language.t('cards-loading') }}
         </p>
-        <p v-else-if="reader.error.value" class="note error" role="alert">
+        <p v-else-if="reader.error.value" class="notice error" role="alert">
           {{ reader.error.value }}
         </p>
         <RenderedMarkdown
@@ -162,15 +162,5 @@ h2 {
   min-height: 0;
   overflow-y: auto;
   padding: var(--space-6) var(--space-6) 40vh;
-}
-
-.note {
-  margin: 0 0 var(--space-4);
-  color: var(--text-muted);
-  font-size: var(--text-body);
-}
-
-.note.error {
-  color: var(--danger);
 }
 </style>

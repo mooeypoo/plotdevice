@@ -74,7 +74,7 @@ const outlineChoices = computed((): SelectOption[] =>
         @peek-end="peek.endHover()"
       />
     </template>
-    <p v-else-if="loading" class="empty" role="status">
+    <p v-else-if="loading" class="loading" role="status">
       {{ language.t('outline-panel-loading') }}
     </p>
     <p v-else-if="error" class="empty error" role="alert">{{ error }}</p>
@@ -129,7 +129,6 @@ header {
 
 .empty {
   margin: 0;
-  color: var(--text-muted);
   line-height: 1.5;
 }
 

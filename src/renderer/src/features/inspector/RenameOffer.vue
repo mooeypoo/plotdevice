@@ -47,7 +47,7 @@ async function accept(): Promise<void> {
 </script>
 
 <template>
-  <div v-if="plan" class="note" role="status">
+  <div v-if="plan" class="notice" role="status">
     <p dir="auto">{{ question }}</p>
     <div class="choices">
       <button type="button" class="primary" :disabled="disabled || busy" @click="accept">

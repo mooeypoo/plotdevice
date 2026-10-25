@@ -72,6 +72,7 @@ function focusout(event: FocusEvent): void {
 
 <style scoped>
 .peek {
+  animation: rise-in var(--duration-quick) var(--ease-out);
   position: fixed;
   z-index: 50;
   width: min(360px, calc(100vw - 16px));

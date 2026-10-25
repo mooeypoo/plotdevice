@@ -14,7 +14,7 @@ const { editDetails, consultEntry, selectedCodexPath } = useSidePanelNavigation(
 </script>
 
 <template>
-  <p v-if="codex.loadError" class="load-error" role="alert" dir="auto">
+  <p v-if="codex.loadError" class="notice error load-error" role="alert" dir="auto">
     {{ codex.loadError }}
   </p>
   <nav
@@ -47,8 +47,6 @@ const { editDetails, consultEntry, selectedCodexPath } = useSidePanelNavigation(
 
 .load-error {
   margin: var(--space-3);
-  color: var(--danger);
-  font-size: var(--text-small);
   overflow-wrap: anywhere;
 }
 </style>

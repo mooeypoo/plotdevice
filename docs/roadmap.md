@@ -398,10 +398,12 @@ is left as a bare native control.
   works by keyboard, in RTL and with screen readers), text fields and areas, buttons (primary,
   quiet, icon), checkboxes and toggles, menus, tabs and pills, cards, scrollbars, focus rings, and
   hover and active states.
-- [ ] Empty states, notices and loading states designed rather than plain text.
-- [ ] Typography and rhythm across the editor, panels, board, timeline and welcome screens; subtle
-  motion that respects reduced-motion. (U2b-2 done: every size comes from the type, space and
-  radius scales, and `tools/styles/scale.test.ts` keeps it so. Motion follows in U2b-3.)
+- [x] Empty states, notices and loading states designed rather than plain text (U2b-3: shared `.empty`, `.loading` and `.notice` / `.warn` / `.error` in `global.css`; components only place them).
+- [x] Typography and rhythm across the editor, panels, board, timeline and welcome screens; subtle
+  motion that respects reduced-motion. (U2b-2: every size comes from the type, space and radius
+  scales, and `tools/styles/scale.test.ts` keeps it so. U2b-3: menus, lists, popovers, the
+  palette, peeks and dialogs rise into place; panels ease on Expand; all motion uses the tokens
+  and stops under reduced motion.)
 - [x] Dark theme first, then the light theme with the same care; contrast checked in both (U2b-1: **Theme ▸** in the ⋯ menu, stored beside the interface language and applied through Electron's `nativeTheme`; a contrast test checks every text colour on every ground in both).
 - [ ] A screenshot review of every screen in English and Hebrew.
 

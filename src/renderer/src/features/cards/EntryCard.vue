@@ -114,11 +114,13 @@ function togglePin(): void {
           <dd dir="auto">{{ field.value }}</dd>
         </template>
       </dl>
-      <p v-if="card.openInEditor.value" class="note" role="status">
+      <p v-if="card.openInEditor.value" class="notice" role="status">
         {{ language.t('cards-live-draft') }}
       </p>
-      <p v-if="card.loading.value" class="note" role="status">{{ language.t('cards-loading') }}</p>
-      <p v-else-if="card.error.value" class="note error" role="alert">{{ card.error.value }}</p>
+      <p v-if="card.loading.value" class="loading" role="status">
+        {{ language.t('cards-loading') }}
+      </p>
+      <p v-else-if="card.error.value" class="notice error" role="alert">{{ card.error.value }}</p>
       <RenderedMarkdown
         v-else-if="summary !== ''"
         class="summary"
@@ -201,16 +203,6 @@ dt {
 dd {
   margin: 0;
   overflow-wrap: anywhere;
-}
-
-.note {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: var(--text-small);
-}
-
-.note.error {
-  color: var(--danger);
 }
 
 .summary {

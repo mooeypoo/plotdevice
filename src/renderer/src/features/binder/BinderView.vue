@@ -22,7 +22,7 @@ function move(request: DropRequest): void {
 </script>
 
 <template>
-  <p v-if="manuscript.loadError" class="load-error" role="alert" dir="auto">
+  <p v-if="manuscript.loadError" class="notice error load-error" role="alert" dir="auto">
     {{ manuscript.loadError }}
   </p>
   <BinderTree
@@ -44,8 +44,6 @@ function move(request: DropRequest): void {
 <style scoped>
 .load-error {
   margin: var(--space-3);
-  color: var(--danger);
-  font-size: var(--text-small);
   overflow-wrap: anywhere;
 }
 </style>

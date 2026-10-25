@@ -12,15 +12,10 @@ const language = useUiLanguageStore()
     <header>
       <span class="eyebrow">{{ language.t('entry-place-outline') }}</span>
     </header>
-    <div class="note">
+    <div class="notice">
       <p>{{ language.t('outline-inspector-description') }}</p>
       <p>
-        {{
-          language.t(
-            'outline-inspector-while-writing',
-            isolate('Ctrl+Shift+O')
-          )
-        }}
+        {{ language.t('outline-inspector-while-writing', isolate('Ctrl+Shift+O')) }}
       </p>
     </div>
     <p class="hint">

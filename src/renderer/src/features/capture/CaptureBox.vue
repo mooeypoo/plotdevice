@@ -69,6 +69,7 @@ async function keydown(event: KeyboardEvent): Promise<void> {
 }
 
 .box {
+  animation: rise-in var(--duration-quick) var(--ease-out);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);

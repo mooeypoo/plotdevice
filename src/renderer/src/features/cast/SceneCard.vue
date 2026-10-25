@@ -160,6 +160,5 @@ dd {
 
 .empty {
   margin: 0;
-  color: var(--text-muted);
 }
 </style>

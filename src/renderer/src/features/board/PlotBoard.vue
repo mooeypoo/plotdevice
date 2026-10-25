@@ -373,7 +373,7 @@ function overColumn(event: DragEvent, column: number): void {
       </details>
       <p v-if="linkNotice" class="muted" role="status">{{ linkNotice }}</p>
     </header>
-    <p v-if="plot.moveError.value" class="notice" role="alert">{{ plot.moveError.value }}</p>
+    <p v-if="plot.moveError.value" class="notice error" role="alert">{{ plot.moveError.value }}</p>
     <p class="announcement" role="status" aria-live="polite">{{ plot.announcement.value }}</p>
     <div v-if="partOffer !== null" class="offer" role="status">
       <span>{{ language.t('board-create-part-offer', isolate(partOffer)) }}</span>
@@ -397,7 +397,7 @@ function overColumn(event: DragEvent, column: number): void {
       </button>
     </div>
     <p v-else-if="error" class="empty error" role="alert">{{ error }}</p>
-    <p v-else-if="loading" class="empty" role="status">{{ language.t('board-loading') }}</p>
+    <p v-else-if="loading" class="loading" role="status">{{ language.t('board-loading') }}</p>
     <template v-else-if="board">
       <RenderedMarkdown
         v-if="board.preamble !== ''"
@@ -754,12 +754,6 @@ header {
   white-space: nowrap;
 }
 
-.notice {
-  margin: 0;
-  color: var(--text-dim);
-  font-size: var(--text-small);
-}
-
 .help {
   position: relative;
   margin-inline-start: auto;
@@ -783,6 +777,7 @@ header {
 }
 
 .help .hint {
+  animation: rise-in var(--duration-quick) var(--ease-out);
   position: absolute;
   z-index: 10;
   inset-block-start: calc(100% + var(--space-2));
@@ -811,7 +806,6 @@ header {
 .empty {
   max-width: var(--measure);
   margin: 0;
-  color: var(--text-muted);
 }
 
 .error {

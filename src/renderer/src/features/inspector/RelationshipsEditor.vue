@@ -90,10 +90,10 @@ const characterOptions = computed((): SelectOption[] => [
           </p>
         </li>
       </ul>
-      <p class="note">{{ language.t('codex-inspector-relationships-read-only') }}</p>
+      <p class="notice">{{ language.t('codex-inspector-relationships-read-only') }}</p>
     </template>
 
-    <p v-if="codex.relationshipsError" class="note warn" role="alert">
+    <p v-if="codex.relationshipsError" class="notice warn" role="alert">
       {{ codex.relationshipsError }}
     </p>
 

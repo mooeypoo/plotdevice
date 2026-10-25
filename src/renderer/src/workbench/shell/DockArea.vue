@@ -112,7 +112,7 @@ function toggle(section: Section): void {
     v-if="active"
     :id="panelId"
     class="dock"
-    :class="side"
+    :class="[side, { resizing: preview !== null }]"
     :aria-label="name"
     :style="{ inlineSize: `${width}px` }"
   >
@@ -225,11 +225,17 @@ function toggle(section: Section): void {
 <style scoped>
 .dock {
   position: relative;
+  transition: inline-size var(--duration-panel) var(--ease-out);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   min-height: 0;
   background: var(--panel);
+}
+
+/* A drag follows the pointer at once; only Expand and Restore ease. */
+.dock.resizing {
+  transition: none;
 }
 
 .dock.start {

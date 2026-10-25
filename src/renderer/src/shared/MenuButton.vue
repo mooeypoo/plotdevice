@@ -222,6 +222,7 @@ onBeforeUnmount(() => {
 }
 
 .menu {
+  animation: rise-in var(--duration-quick) var(--ease-out);
   position: fixed;
   z-index: 1000;
   display: flex;

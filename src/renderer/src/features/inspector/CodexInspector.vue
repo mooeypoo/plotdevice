@@ -84,7 +84,7 @@ const KEY_KEYS = {
 
 <template>
   <aside class="inspector" :aria-label="language.t('chrome-inspector')">
-    <p v-if="inspector.vocabularyError" class="hint bad" role="alert">
+    <p v-if="inspector.vocabularyError" class="notice error" role="alert">
       {{ inspector.vocabularyError }}
     </p>
     <template v-if="properties">
@@ -131,7 +131,7 @@ const KEY_KEYS = {
           :disabled="disabled || properties.groupsEditable === false"
           @change="save({ groups: characterGroupNames($event) })"
         />
-        <p v-if="properties.groupsEditable === false" class="hint bad" role="alert">
+        <p v-if="properties.groupsEditable === false" class="notice error" role="alert">
           {{ language.t('codex-inspector-groups-read-only') }}
         </p>
         <div class="field">
@@ -161,7 +161,7 @@ const KEY_KEYS = {
             :disabled="disabled"
             @change="saveText('born', born)"
           />
-          <p v-if="bornCheckError" class="hint bad" role="alert">{{ bornCheckError }}</p>
+          <p v-if="bornCheckError" class="notice error" role="alert">{{ bornCheckError }}</p>
           <p
             v-if="bornCheck && bornCheck.kind !== 'undated'"
             class="hint"
@@ -178,7 +178,7 @@ const KEY_KEYS = {
         <h3 class="eyebrow">{{ language.t('codex-inspector-appears-in') }}</h3>
         <p
           v-if="codex.appearsInError"
-          class="hint bad"
+          class="notice error"
           role="alert"
           data-testid="appearances-error"
         >
@@ -210,7 +210,7 @@ const KEY_KEYS = {
         <p class="muted small-text">{{ language.t('codex-inspector-other-note') }}</p>
       </section>
 
-      <p v-if="editor.actionError" class="note warn" role="alert">{{ editor.actionError }}</p>
+      <p v-if="editor.actionError" class="notice warn" role="alert">{{ editor.actionError }}</p>
     </template>
   </aside>
 </template>
