@@ -160,5 +160,18 @@
   "outline-undo-refused": "המתווה השתנה ביישום אחר מאז השינוי האחרון, ולכן ביטול הפעולה היה דורס את השינוי.",
   "outline-refused-unnamed-section": "אי אפשר לשנות כך כרטיסים שמעל המקטע הראשון. אפשר קודם להעביר אותם למקטע.",
   "outline-refused-multiline-heading": "הכותרת הזו כתובה על פני שתי שורות. אפשר לשנות את שמה בעורך טקסט.",
-  "outline-failed": "לא ניתן היה לבצע את השינוי. דבר לא שונה."
+  "outline-failed": "לא ניתן היה לבצע את השינוי. דבר לא שונה.",
+  "story-character": "דמויות",
+  "story-place": "מקומות",
+  "story-note": "הערות",
+  "new-character": "דמות חדשה",
+  "new-place": "מקום חדש",
+  "new-note": "הערה חדשה",
+  "prompt-reference-title": "שם",
+  "reference-rename": "שינוי שם…",
+  "reference-aka": "מוכר גם בשם: $1",
+  "reference-hint": "הפסקה הראשונה היא התיאור, וכל מה שאחריה הוא פרטים.",
+  "reference-invalid-details": "לא ניתן היה לקרוא את הפרטים בראש הדף. הדף עובד כרגיל, והם נשארים כמו שהם.",
+  "reference-failed": "לא ניתן היה לשנות את הדף. דבר לא שונה.",
+  "reference-none": "אין עדיין."
 }

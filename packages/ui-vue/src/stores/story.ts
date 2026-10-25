@@ -1,4 +1,4 @@
-import type { OutlineEditRequest, OutlineProblem, OutlineResult, OutlineSummaryView, OutlineView } from '@plotdevice/contracts'
+import type { OutlineEditRequest, OutlineProblem, OutlineResult, OutlineSummaryView, OutlineView, ReferenceKind, ReferenceSummaryView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -28,9 +28,28 @@ export const useStoryStore = defineStore('story', () => {
   const outline = ref<OutlineView | null>(null)
   const collapsed = ref(new Set<string>())
   const editing = ref<Editing>(null)
+  const references = ref<ReferenceSummaryView[]>([])
+  /** What the Story workspace shows: an outline, a character, place or note page, or the book's chapters. */
+  const showing = ref<{ kind: 'outline' } | { kind: 'page'; file: ProjectPath } | { kind: 'manuscript' }>({ kind: 'outline' })
 
   async function refresh(): Promise<void> {
-    outlines.value = await api.listOutlines()
+    ;[outlines.value, references.value] = await Promise.all([api.listOutlines(), api.listReferences()])
+  }
+
+  async function createReference(kind: ReferenceKind, title: string): Promise<void> {
+    const created = await api.createReference(kind, title)
+    if (!created.ok) {
+      if (created.error !== 'empty-text') project.tell('reference-failed')
+      return
+    }
+    await refresh()
+    showing.value = { kind: 'page', file: created.value.file }
+  }
+
+  async function renameReference(file: ProjectPath, title: string): Promise<void> {
+    const renamed = await api.renameReference(file, title)
+    if (!renamed.ok && renamed.error !== 'empty-text') project.tell('reference-failed')
+    await refresh()
   }
 
   /** Shows the outline, or tells the author why not. Returns whether it worked. */
@@ -45,11 +64,13 @@ export const useStoryStore = defineStore('story', () => {
   }
 
   async function open(file: ProjectPath): Promise<void> {
+    showing.value = { kind: 'outline' }
     if (outline.value?.file !== file) collapsed.value = new Set()
     settle(await api.openOutline(file))
   }
 
   async function create(title: string): Promise<void> {
+    showing.value = { kind: 'outline' }
     if (settle(await api.createOutline(title))) await refresh()
   }
 
@@ -77,7 +98,8 @@ export const useStoryStore = defineStore('story', () => {
 
   api.onEvent((event) => {
     if (event.kind === 'outline-changed' && event.outline.file === outline.value?.file) outline.value = event.outline
+    else if (event.kind === 'references-changed') void refresh()
   })
 
-  return { outlines, outline, collapsed, editing, refresh, open, create, edit, undo, toggle }
+  return { outlines, outline, collapsed, editing, references, showing, refresh, open, create, edit, undo, toggle, createReference, renameReference }
 })

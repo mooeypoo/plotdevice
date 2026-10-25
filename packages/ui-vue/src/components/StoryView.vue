@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { OutlineViewKind, ProjectView } from '@plotdevice/contracts'
-import { ref } from 'vue'
+import type { OutlineViewKind, ProjectView, ReferenceKind } from '@plotdevice/contracts'
+import { computed } from 'vue'
 import { useOutlineActions } from '../composables/use-outline-actions'
 import { usePrompt } from '../composables/use-prompt'
 import { useProjectStore } from '../stores/project'
@@ -12,6 +12,7 @@ import ManuscriptOutline from './ManuscriptOutline.vue'
 import OutlineBoard from './OutlineBoard.vue'
 import OutlineCards from './OutlineCards.vue'
 import OutlineList from './OutlineList.vue'
+import ReferencePage from './ReferencePage.vue'
 
 defineProps<{ project: ProjectView }>()
 const story = useStoryStore()
@@ -21,31 +22,30 @@ const view = useViewStore()
 const actions = useOutlineActions()
 const { ask } = usePrompt()
 const t = settings.t
-const showingManuscript = ref(false)
 const views: OutlineViewKind[] = ['board', 'outline', 'cards']
+const kinds: ReferenceKind[] = ['character', 'place', 'note']
+const pagesOf = (kind: ReferenceKind) => story.references.filter((reference) => reference.kind === kind)
+const showingOutline = computed(() => story.showing.kind === 'outline')
 
 async function newOutline(): Promise<void> {
   const title = await ask(t('prompt-outline-title'))
-  if (title) {
-    showingManuscript.value = false
-    await story.create(title)
-  }
+  if (title) await story.create(title)
 }
 
-function openOutline(file: Parameters<typeof story.open>[0]): void {
-  showingManuscript.value = false
-  void story.open(file)
+async function newPage(kind: ReferenceKind): Promise<void> {
+  const title = await ask(t('prompt-reference-title'))
+  if (title) await story.createReference(kind, title)
 }
 </script>
 
 <template>
   <div class="story" data-testid="story">
-    <nav class="navigator" :aria-label="t('story-outlines')">
+    <nav class="navigator" :aria-label="t('workspace-story')">
       <h2>{{ t('story-outlines') }}</h2>
-      <p v-if="story.outlines.length === 0" class="secondary">{{ t('story-no-outlines') }}</p>
+      <p v-if="story.outlines.length === 0" class="secondary">{{ t('reference-none') }}</p>
       <ul>
-        <li v-for="entry in story.outlines" :key="entry.file" class="row chapter-row" :class="{ current: !showingManuscript && story.outline?.file === entry.file }">
-          <button type="button" class="chapter" :data-outline="entry.file" :aria-current="!showingManuscript && story.outline?.file === entry.file ? 'page' : undefined" @click="openOutline(entry.file)">
+        <li v-for="entry in story.outlines" :key="entry.file" class="row chapter-row" :class="{ current: showingOutline && story.outline?.file === entry.file }">
+          <button type="button" class="chapter" :data-outline="entry.file" :aria-current="showingOutline && story.outline?.file === entry.file ? 'page' : undefined" @click="story.open(entry.file)">
             <span dir="auto">{{ entry.title ?? entry.file }}</span>
           </button>
         </li>
@@ -53,15 +53,36 @@ function openOutline(file: Parameters<typeof story.open>[0]): void {
       <div class="actions start">
         <button type="button" data-testid="new-outline" @click="newOutline">{{ t('story-new-outline') }}</button>
       </div>
+
+      <section v-for="kind in kinds" :key="kind" class="navigator-section" :data-testid="`pages-${kind}`">
+        <h2>{{ t(`story-${kind}`) }}</h2>
+        <ul>
+          <li
+            v-for="page in pagesOf(kind)"
+            :key="page.file"
+            class="row chapter-row"
+            :class="{ current: story.showing.kind === 'page' && story.showing.file === page.file }"
+          >
+            <button type="button" class="chapter" :data-page="page.file" @click="story.showing = { kind: 'page', file: page.file }">
+              <span dir="auto">{{ page.title }}</span>
+            </button>
+          </li>
+        </ul>
+        <div class="actions start">
+          <button type="button" :data-testid="`new-${kind}`" @click="newPage(kind)">{{ t(`new-${kind}`) }}</button>
+        </div>
+      </section>
+
       <ul class="navigator-section">
-        <li class="row chapter-row" :class="{ current: showingManuscript }">
-          <button type="button" class="chapter" data-testid="show-manuscript" @click="showingManuscript = true">{{ t('story-manuscript') }}</button>
+        <li class="row chapter-row" :class="{ current: story.showing.kind === 'manuscript' }">
+          <button type="button" class="chapter" data-testid="show-manuscript" @click="story.showing = { kind: 'manuscript' }">{{ t('story-manuscript') }}</button>
         </li>
       </ul>
     </nav>
 
     <section class="desk">
-      <ManuscriptOutline v-if="showingManuscript" class="story-page" :project="project" />
+      <ManuscriptOutline v-if="story.showing.kind === 'manuscript'" class="story-page" :project="project" />
+      <ReferencePage v-else-if="story.showing.kind === 'page'" :key="story.showing.file" class="story-page" :file="story.showing.file" />
       <template v-else-if="story.outline">
         <div class="toolbar">
           <h1 class="outline-title" dir="auto">{{ story.outline.title ?? story.outline.file }}</h1>

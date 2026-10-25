@@ -224,6 +224,12 @@ label { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--col
 .manuscript-outline { max-inline-size: 36rem; }
 .manuscript-outline .part > ol { padding-inline-start: 0.75rem; }
 
+/* Pages */
+.reference-page { display: flex; flex-direction: column; gap: 0.25rem; }
+.reference-page .hint { margin: 0; font-size: 0.85rem; }
+.reference-page .paper { padding-inline: 0; }
+.page-editor { min-block-size: 20rem; border-radius: 10px; }
+
 /* Dialogs */
 .dialog {
   max-inline-size: min(32rem, 100% - 2rem);

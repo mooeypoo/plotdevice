@@ -18,6 +18,7 @@ export function useRememberedPlace(): void {
     () => project.project?.root,
     async (root) => {
       story.outline = null
+      story.showing = { kind: 'outline' }
       if (!root) return
       const place = project.opened?.place
       view.workspace = place?.workspace ?? 'write'

@@ -160,5 +160,18 @@
   "outline-undo-refused": "This outline changed in another app since your last change, so undo would overwrite it.",
   "outline-refused-unnamed-section": "Cards above the first section can't be changed this way. Move them into a section first.",
   "outline-refused-multiline-heading": "This heading is written over two lines. Rename it in a text editor.",
-  "outline-failed": "That change couldn't be made. Nothing was changed."
+  "outline-failed": "That change couldn't be made. Nothing was changed.",
+  "story-character": "Characters",
+  "story-place": "Places",
+  "story-note": "Notes",
+  "new-character": "New character",
+  "new-place": "New place",
+  "new-note": "New note",
+  "prompt-reference-title": "Name",
+  "reference-rename": "Rename…",
+  "reference-aka": "Also known as: $1",
+  "reference-hint": "The first paragraph is the description; everything after it is details.",
+  "reference-invalid-details": "The details at the top of this page couldn't be read. The page still works, and they are left as they are.",
+  "reference-failed": "That page couldn't be changed. Nothing was changed.",
+  "reference-none": "None yet."
 }

@@ -19,7 +19,7 @@ export type ChapterState = 'none' | 'loading' | 'ready' | 'missing' | 'unreadabl
  * host after a pause in typing, and at once on a chapter switch, when the window loses focus, and
  * before the app closes. Each save carries the generation of the text it was typed into.
  */
-export function useChapterWriting(host: Ref<HTMLElement | null>) {
+export function useChapterWriting(host: Ref<HTMLElement | null>, options: { remembersPosition: boolean } = { remembersPosition: true }) {
   const api = useApi()
   const store = useProjectStore()
   const settings = useSettingsStore()
@@ -51,7 +51,9 @@ export function useChapterWriting(host: Ref<HTMLElement | null>) {
     void api.saveChapter({ file: file.value, text: editor.text(), generation })
   }
 
+  /** Where the author left off in Write. Pages edited in Story don't count: Write reopens on a chapter. */
   function rememberPosition(): void {
+    if (!options.remembersPosition) return
     if (file.value && editor && state.value === 'ready') void api.leftOff({ file: file.value, cursor: editor.cursor() })
   }
 
