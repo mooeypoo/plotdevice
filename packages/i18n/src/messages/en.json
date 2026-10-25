@@ -1,0 +1,13 @@
+{
+  "@metadata": { "comment": "English UI messages. Banana format: https://github.com/wikimedia/banana-i18n" },
+  "app-name": "Plot Device",
+  "app-version": "Version $1",
+  "shell-welcome": "A quiet place to write your novel.",
+  "shell-next": "Projects and chapters arrive in the next milestone.",
+  "settings-language": "Language",
+  "settings-theme": "Theme",
+  "theme-system": "Match the system",
+  "theme-light": "Light",
+  "theme-dark": "Dark",
+  "settings-save-failed": "Your settings couldn't be saved. They'll apply until you close Plot Device."
+}

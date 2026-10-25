@@ -1,0 +1,52 @@
+/* Colours come only from the --color-* variables set from theme/tokens.ts. Logical properties throughout,
+   so the layout mirrors correctly in right-to-left. */
+:root {
+  font-family: system-ui, 'Segoe UI', 'Noto Sans Hebrew', 'Noto Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-app);
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+.shell { display: grid; grid-template-rows: auto 1fr auto; min-block-size: 100vh; }
+.shell-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 0.75rem;
+  padding-inline: 1.25rem;
+  background: var(--color-card);
+  border-block-end: 1px solid color-mix(in srgb, var(--color-text-secondary) 25%, transparent);
+}
+.app-name { font: 600 1.05rem/1.2 Georgia, 'Noto Serif Hebrew', serif; color: var(--color-accent); }
+.settings { display: flex; gap: 1rem; }
+label { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--color-text-secondary); }
+select {
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-app);
+  border: 1px solid color-mix(in srgb, var(--color-text-secondary) 45%, transparent);
+  border-radius: 6px;
+  padding-block: 0.25rem;
+  padding-inline: 0.5rem;
+}
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.page {
+  justify-self: center;
+  inline-size: min(38rem, 100% - 2.5rem);
+  margin-block: 3rem;
+  padding: 2rem 2.5rem;
+  background: var(--color-page);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+.welcome { font: 1.35rem/1.6 Georgia, 'Noto Serif Hebrew', serif; margin-block: 0 0.75rem; }
+.secondary { color: var(--color-text-secondary); }
+.warning { color: var(--color-warning); }
+footer { padding: 0.75rem 1.25rem; font-size: 0.85rem; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

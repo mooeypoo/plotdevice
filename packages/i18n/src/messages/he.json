@@ -1,0 +1,13 @@
+{
+  "@metadata": { "comment": "Hebrew UI messages. Natural, gender-neutral wording (owner decision, 2026-10-25)." },
+  "app-name": "Plot Device",
+  "app-version": "גרסה $1",
+  "shell-welcome": "מקום שקט לכתוב בו את הרומן שלך.",
+  "shell-next": "פרויקטים ופרקים יגיעו בשלב הבא.",
+  "settings-language": "שפה",
+  "settings-theme": "ערכת צבעים",
+  "theme-system": "לפי המערכת",
+  "theme-light": "בהירה",
+  "theme-dark": "כהה",
+  "settings-save-failed": "לא ניתן היה לשמור את ההגדרות. הן יחולו עד לסגירת Plot Device."
+}

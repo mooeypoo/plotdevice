@@ -15,5 +15,5 @@ export default defineConfig(
       'no-restricted-syntax': ['error', { selector: 'ExportDefaultDeclaration', message: 'Use named exports (AGENTS.md); default exports only in Vue files and config files.' }],
     },
   },
-  { files: ['**/*.vue', '**/*.config.{js,ts,cjs,mjs}', 'eslint.config.js'], rules: { 'no-restricted-syntax': 'off' } },
+  { files: ['**/*.vue', '**/*.d.ts', '**/*.config.{js,ts,cjs,mjs}', 'eslint.config.js'], rules: { 'no-restricted-syntax': 'off' } },
 )

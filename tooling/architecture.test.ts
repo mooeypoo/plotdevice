@@ -28,6 +28,11 @@ describe('architecture rules', () => {
     expect(readdirSync(fixtures).sort()).toEqual([...ruleNames].sort())
   })
 
+  it('read .vue files (a component importing the core is caught)', async () => {
+    const found = await violatedRules([join('tooling', 'arch-fixtures', 'ui-stays-in-the-renderer', 'packages', 'ui-vue', 'src', 'Bad.vue')])
+    expect(found.map((v) => v.rule)).toContain('ui-stays-in-the-renderer')
+  })
+
   it.each(ruleNames)('%s catches its fixture', async (rule) => {
     const found = await violatedRules([join('tooling', 'arch-fixtures', rule)])
     expect(found.map((v) => v.rule)).toContain(rule)

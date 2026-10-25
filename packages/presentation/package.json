@@ -1,0 +1,14 @@
+{
+  "name": "@plotdevice/presentation",
+  "version": "0.0.0",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@plotdevice/shared": "workspace:*",
+    "@plotdevice/contracts": "workspace:*"
+  }
+}
