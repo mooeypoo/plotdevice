@@ -6,20 +6,27 @@ Modern literary studio: warm, clear, spacious, quietly creative. Do not emulate 
 ## Themes
 Offer `system` (default), `light`, and `dark`. Theme is a user preference stored in OS app data, not book Markdown. All component tokens must render under both themes and RTL layouts. Never derive essential meaning from color alone.
 
-### Proposed tokens (exploratory; test contrast)
-| Token | Light | Dark |
-| --- | --- | --- |
-| app background | `#F7F5F1` | `#191E27` |
-| surface/card | `#FFFFFF` | `#272D38` |
-| prose/page | `#FFFDF8` | `#222831` |
-| primary text | `#27313A` | `#EAE7E2` |
-| secondary text | `#677480` | `#A8B0BC` |
-| brand teal | `#288C89` | `#64C6BB` |
-| plot accent amber | `#C48D50` | `#E3B77E` |
-| optional plum | `#8C628C` | `#C4A0D2` |
-| optional terracotta | `#BA7158` | `#E4A186` |
+### Colour tokens
 
-These are starting colors, not accessibility-certified. Validate contrast for text, icons, boundaries, selected items and focus states and adjust accordingly. Define semantic tokens (`--color-surface`, `--color-focus`, etc.), never sprinkle hex values across components.
+These values are the authority (owner decision, 2026-10-25). Every pair below is checked by an automated WCAG contrast test: 4.5:1 for text, 3:1 for focus rings, icons and colour chips. Four light values were darkened slightly from the first proposal so they pass. The originals are in git history.
+
+| Token | Light | Dark | Used for |
+| --- | --- | --- | --- |
+| `app` | `#F7F5F1` | `#191E27` | App background |
+| `card` | `#FFFFFF` | `#272D38` | Panels, cards, dialogs |
+| `page` | `#FFFDF8` | `#222831` | The writing page |
+| `text` | `#27313A` | `#EAE7E2` | Primary text |
+| `textSecondary` | `#5E6A75` (was `#677480`) | `#A8B0BC` | Secondary text, labels |
+| `accent` | `#1F7A77` (was `#288C89`) | `#64C6BB` | Brand teal: links, selected states, primary buttons |
+| `warning` | `#9C6430` (was `#A26832`) | `#E0AB76` | Warnings (always with an icon or word, never colour alone) |
+| `focus` | `#246FC1` | `#9CBFF8` | Keyboard focus rings |
+| `plotAmber` | `#BB803F` (was `#C48D50`) | `#E3B77E` | Plot and card colour category |
+| `plotPlum` | `#8C628C` | `#C4A0D2` | Plot and card colour category |
+| `plotTerracotta` | `#BA7158` | `#E4A186` | Plot and card colour category |
+
+Light text on the light accent (white on `#1F7A77`) is 5.1:1. Dark text on the dark accent is 8.2:1.
+
+**One source of truth.** All colours are defined in a single constants file in the UI package. CSS custom properties (`--color-text`, `--color-accent`, …) are generated from it, and components use only those variables, never hex values. Changing a colour, adding a palette, or (later) letting authors choose or import their own theme means swapping that set of constants, not editing components. Any replacement set must pass the same contrast test.
 
 ## Components and interaction
 - Shared primitives: Button, IconButton, Dialog, Menu, Tabs, Field, Search, Status, Toast, Card, ResizablePanel, TreeItem, EmptyState, ReferenceCard.

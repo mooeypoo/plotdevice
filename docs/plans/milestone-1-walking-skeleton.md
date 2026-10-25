@@ -1,6 +1,6 @@
 # Milestone 1: Walking skeleton
 
-Status: **Proposed, awaiting owner approval.** No code yet.
+Status: **Approved** (owner, 2026-10-25). Decisions below are resolved.
 
 ## Goal
 
@@ -88,15 +88,14 @@ These are the checks that must pass, run on Linux and Windows CI:
 
 **Testing approach:** test-first for `fs-node` and the domain rules. Tests for the UI shell are written alongside it (`AGENTS.md`, "Testing and quality requirements"). Results are reported with the exact commands and output.
 
-## Decisions needed before starting
+## Decisions (resolved)
 
-1. **Playwright** as the end-to-end tool: approve the dependency?
-2. **Light-theme colours.** `DESIGN_SYSTEM.md` is the authority, but two of its light values fail contrast:
-   - teal `#288C89`: 4.04:1
-   - secondary text `#677480`: 4.40:1
-
-   Approve `#1F7A77` and `#5E6A75` (both pass), and I'll update `DESIGN_SYSTEM.md` to match?
-3. **Package scope:** `@plotdevice/*` for internal package names?
+1. **Playwright:** approved.
+2. **Colours:**
+   - Light teal `#1F7A77` and secondary text `#5E6A75` approved.
+   - Warning `#9C6430` and amber `#BB803F` were darkened on the same principle.
+   - All are in `DESIGN_SYSTEM.md`, and all colours live in **one constants file**, so palettes (and, later, author-chosen themes) can be swapped without touching components.
+3. **Package scope:** `@plotdevice/*`. npm scopes can't be nested, so `@mooeypoo/plotdevice/<package>` isn't possible. The packages are never published, so the scope only affects how imports read.
 
 ## Work order (one commit or small PR each)
 

@@ -1,6 +1,8 @@
 # ADR 0006: How a project is organized on disk
 
-Status: **Proposed**. Five questions need the owner's decision (marked **Decide**). Recommendations are marked **Recommended**.
+Status: **Accepted** (owner, 2026-10-25): every **Recommended** option below, which means option B for question 1. Applied to `DOMAIN_AND_FILE_FORMAT.md` (version 0.4).
+
+The questions keep their original **Decide** labels, so the reasoning stays readable. `project.md` also gained an `id`, so per-user state in app data (recent projects, backups, recovery journals, ADR 0005) can be tied to the project.
 
 ## In short
 

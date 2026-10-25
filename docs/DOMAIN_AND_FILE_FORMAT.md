@@ -1,76 +1,90 @@
 # Plot Device — Domain and Markdown File Format
-Version: 0.3 draft — versioned schema details are provisional until spike and ADR review.
+Version: 0.4 (2026-10-25). Project layout per ADR 0006; Markdown fidelity per ADR 0003; text direction per ADR 0004; safe writes per ADR 0005.
 
 ## Domain vocabulary
-- Project: identity, display metadata, language and manifest version.
+- Project: identity, display metadata, language, chapter numbering style and schema version.
 - Manuscript: ordered chapters, optionally grouped into parts.
 - Chapter: mandatory writing unit, one `.md` file; not inherently composed of named scenes.
-- Part: optional ordered chapter grouping, may have name and description.
+- Part: optional ordered chapter grouping with a name. No file of its own in the MVP.
 - Outline: named hierarchical document persisted as Markdown, independent from manuscript hierarchy.
 - OutlineSection: heading-derived section of an outline.
 - OutlineItem: hierarchical bullet item. Display as card/detail depending on view, not inherently a scene.
 - Character / Place / Note: human readable Markdown reference documents with optional metadata.
-- Links: explicit typed references by stable IDs where needed; never inferred from display title alone.
+- Links: explicit references written as ordinary relative Markdown links; never inferred from display title alone.
 
 ## Authoritative information
-- Manuscript order: `project.md` manifest; do not infer from file names.
+- Manuscript order and parts: the contents list in `CONTENTS.md`. Not file names, not folder order, not frontmatter numbers.
 - Chapter prose: `manuscript/*.md` body.
+- Chapter title: the chapter's frontmatter `title`; the contents link text mirrors it.
 - Outlines: `outlines/*.md` bodies.
-- Character/place/note text: dedicated Markdown files.
-- Personal theme and locale: OS app data, not project content.
-- Layout and pinned items: nonauthoritative app state (`.plot-device/` or OS app data).
+- Character/place/note text: dedicated Markdown files in their folders.
+- Project details (title, author, language, numbering style, schema version): `project.md` frontmatter.
+- Personal theme, locale, layout, pinned items, backups and recovery journals: OS app data, never the project folder.
 - Search indexes, caches and thumbnails: disposable, never authoritative.
 
-## Proposed files
+## Files
 ```
 Novel Title/
-  project.md
+  project.md          project details; optional notes by the author
+  CONTENTS.md         reading order and parts; also the human table of contents
   manuscript/
-    the-invitation.md
-    the-letter.md
+    prologue.md
+    the-crossing.md
   outlines/
     main-story.md
-    mayas-arc.md
   characters/
-    maya.md
+    ilka.md
   places/
-    family-house.md
+    marrow.md
   notes/
     loose-ideas.md
   assets/
-  .plot-device/
-    workspace.json
 ```
+- Files are recognised by folder. A frontmatter `type` key is optional and informational.
+- No hidden app folder is created. If one is ever needed, it is `.plotdevice/` (ADR 0001).
 
-## Provisional `project.md`
-```
+## `project.md`
+```markdown
 ---
-type: project
+title: The Salt Orchard
+author: Ines Varga
+language: he
+chapterNumbering: continuous
+id: prj-7d2k9q
 schemaVersion: 1
-id: prj-unique-id
-title: The Glass Orchard
-language: en
-manuscript:
-  - id: chapter-a
-  - id: chapter-b
 ---
-# The Glass Orchard
-
-## Manuscript
-
-1. [The Invitation](manuscript/the-invitation.md)
-2. [The Letter](manuscript/the-letter.md)
+Anything the author wants to note about the project.
 ```
-- A chapter's `id` and path must be resolvable; choose one canonical mapping (manifest records path, or index derives path from frontmatter) and document it before implementation. **The example above intentionally omits a finalized path mapping.**
-- Use explicit `kind: part` / `kind: chapter` nodes if optional part nesting is needed; avoid ambiguous ad-hoc YAML shapes.
-- Human-readable TOC may be generated under a guarded/managed region, or in a separate `CONTENTS.md`; choose via ADR, never rewrite author's prose outside managed region.
+- `language` sets the project's default text direction (Hebrew: right to left).
+- `chapterNumbering`: `continuous` (default), `per-part` or `none`. Chapter numbers are shown by the app and in compiled output, never written into files.
+- `id` identifies the project for per-user state kept in OS app data (recent projects, backups, recovery journals).
+- `schemaVersion` drives explicit, backed-up migrations.
+- The body belongs to the author; the app never rewrites it.
 
-## Provisional chapter
+## `CONTENTS.md`: reading order and parts
+```markdown
+# The Salt Orchard
+
+- [Prologue](manuscript/prologue.md)
+- Part One: Arrival
+  - [The Crossing](manuscript/the-crossing.md)
+  - [The Orchard Gate](manuscript/the-orchard-gate.md)
+- Part Two: Salt
+  - [Frost](manuscript/frost.md)
+- [Epilogue](manuscript/epilogue.md)
 ```
+- A list item containing exactly one link to a `.md` file is a chapter. Its position in the list is its position in the book.
+- A list item without a link, with nested items, is a part; its text is the part's name. Chapters outside any part are top-level items.
+- Links are relative to `CONTENTS.md`. Paths with spaces use angle brackets: `[The Crossing](<manuscript/the crossing.md>)`.
+- The link text mirrors the chapter's `title`. When a title changes in the app, the app updates that one line. Reordering lines here, in any app, reorders the book.
+- Anything else in the file (paragraphs, other headings, list items with extra text) is preserved, ignored for ordering, and reported as a warning. If the list itself can't be read safely, the app shows a warning and doesn't reorder or rewrite until the author fixes it, or confirms a previewed repair.
+- Chapter files in `manuscript/` that the contents doesn't mention appear in a "Not in the book yet" tray; the app never adds them automatically. A contents link whose file is missing appears as a missing chapter, with "find it" and "remove from contents" actions; nothing is deleted automatically.
+
+## Chapters
+```markdown
 ---
-type: chapter
-id: chapter-a
-title: The Invitation
+title: The Crossing
+id: ch-k3f9
 ---
 The letter arrived on a Tuesday.
 
@@ -78,12 +92,34 @@ The letter arrived on a Tuesday.
 
 Three hours later, Daniel called.
 ```
-- `* * *` is thematic break, **not** a semantic scene identity.
-- Don't rewrite files merely to sync chapter display titles except through an intentional rename/title edit.
-- Author-owned unknown frontmatter keys and unsupported Markdown segments must be preserved or flagged as not safely editable.
+- `title` is the chapter's name. File names never change automatically when it changes.
+- `id` is written by the app and optional. Its only job is to recognise a chapter after its file was renamed outside the app, so the app can suggest updating the contents. The app always asks; it never relinks silently.
+- `* * *` is a thematic break (a scene break), **not** a semantic scene identity. It is always preceded by a blank line, because `---` directly under a paragraph would turn that paragraph into a heading.
+- Supported prose formatting: paragraphs, headings, bold (`**…**`), italic (`*…*`), block quotes, links, bullet and numbered lists, scene breaks, and line breaks (a trailing `\`). Existing `_…_` and `__…__` are kept as written.
+- Author-owned unknown frontmatter keys and unsupported Markdown are preserved, and shown as "kept as written" in the editor.
 
-## Provisional outline
+## Text direction
+A paragraph's direction comes from the project language, or from its own first strong character, depending on the author's setting. When that is wrong, the author can set it, and the app writes Pandoc's standard notation, **only when needed**:
+
+| What | Markup |
+| --- | --- |
+| A paragraph | `::: {dir=ltr}` on the line before and `:::` on the line after |
+| A list item or quote | its whole text as `[…]{dir=ltr}` |
+| A phrase inside a paragraph | `[text]{dir=ltr}` |
+
+```markdown
+::: {dir=ltr}
+The letter was written in English, and it began without a greeting.
+:::
+
+נואל ענה: ["It was *never* anyone's orchard",]{dir=ltr} ושתק.
 ```
+- A marker is written only when the wanted direction differs from what the text shows without one. Setting the direction the text already has removes the marker.
+- Pandoc applies these when publishing. Other Markdown apps show them as plain text; nothing is lost.
+- Invisible direction characters (RLM/LRM) and HTML comments are not used.
+
+## Outlines
+```markdown
 # Main Story
 
 ## Beginning
@@ -98,16 +134,16 @@ Three hours later, Daniel called.
 
 - The family secret is revealed
 ```
-- In default Board: H2 -> columns, first-level list item -> card, descendants -> details.
+- In default Board: H2 -> columns, first-level list item -> card, descendants -> details. Mapping and supported Markdown are defined in ADR 0003.
 - Do not conflate board card with manuscript chapter/scene.
 - Unknown Markdown blocks: retain; if structural editing cannot round-trip safely, restrict operation with helpful explanation.
-- Stable outline item identity is **open**. Position-only IDs are unacceptable for long-lived external links. Evaluate embedded comments, extended attributes or minimally invasive ID encoding with fixtures and Markdown parsers; do not invent a fragile solution mid-feature.
+- Cards link to chapters, characters and places with ordinary relative Markdown links. Cards themselves have no stored IDs in the MVP (ADR 0003).
 
 ## Advanced filename synchronization (deferred)
-- Stable entity IDs independent of title, position and file path.
-- Explicit rename source file: validate/collision-check, update canonical path registry, affected managed Markdown links and manifest, log transaction and provide recovery.
+- Stable chapter IDs independent of title, position and file path.
+- Explicit rename source file: validate/collision-check, update the `CONTENTS.md` link and other managed Markdown links, log the transaction in the recovery journal and provide recovery (ADR 0005).
 - Optional numbered filename sync: preview all renamed files and references, then perform recoverable batch operation. Not on every drag.
-- No implicit renames on title change unless user opts in.
+- No implicit renames on title change.
 
 ## External editing policy
 - Normal use is within app; closed-project external edits reread on next open.
@@ -117,8 +153,8 @@ Three hours later, Daniel called.
 - No concurrent live merging or automatic detection of semantic file edits in v1.
 
 ## Parse/serialize contract
-- Parse Markdown with source spans and preserve unrelated blocks, whitespace and unrecognized metadata wherever possible.
-- Board operations mutate only supported outline constructs; nonrepresentable Markdown requires a warning and non-destructive fallback.
-- UTF-8; deterministic line ending policy avoiding irrelevant churn; stable serialization fixture tests.
+- Parse Markdown with source spans and preserve unrelated blocks, whitespace and unrecognized metadata wherever possible. Never re-serialize a whole document (ADR 0003).
+- Board and contents operations mutate only supported list constructs; nonrepresentable Markdown requires a warning and non-destructive fallback.
+- UTF-8; existing line endings and BOM preserved; new files use LF.
 - Avoid unsafe HTML rendering; sanitize project content for display.
 - Every schema change requires migration, backup and fixtures.

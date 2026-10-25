@@ -9,6 +9,6 @@ Significant decisions and their reasons; minor tooling preferences are not recor
 | [0003](0003-markdown-fidelity-and-outline-mapping.md) | Markdown fidelity and outline mapping | Accepted |
 | [0004](0004-chapter-editor.md) | Chapter editor, prose formatting and text direction | Accepted |
 | [0005](0005-persistence-safety.md) | Persistence safety | Accepted (Windows verification deferred) |
-| [0006](0006-project-format.md) | How a project is organized on disk | Proposed (five questions for the owner) |
+| [0006](0006-project-format.md) | How a project is organized on disk | Accepted |
 | 0007 | Localization and theming | Planned (before Gate 3) |
 | 0008 | Domain IDs | Planned (before Gate 2, may fold into 0006) |

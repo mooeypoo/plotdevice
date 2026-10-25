@@ -31,29 +31,8 @@ Version: 0.3 draft
 - Unsupported Markdown blocks: preserve and show a visible warning; never discard silently.
 - Drag/drop in RTL: logical beginning/end based on UI direction; equivalent explicit Move menu for access needs.
 
-## Color system — preliminary design tokens
-All proposed values require contrast checking on real components and both themes.
-```
-light:
-  canvas:    #F7F5F1
-  paper:     #FFFFFF
-  surface:   #EFEEE9
-  text:      #27313A
-  secondary: #677480
-  accent:    #288C89
-  warning:   #A26832
-  focus:     #246FC1
-
-dark:
-  canvas:    #191E27
-  paper:     #242A34
-  surface:   #303744
-  text:      #EAE7E2
-  secondary: #A8B0BC
-  accent:    #64C6BB
-  warning:   #E0AB76
-  focus:     #9CBFF8
-```
+## Color system
+The colour tokens, their contrast requirements and the single source of truth are defined in `DESIGN_SYSTEM.md`, which is authoritative (owner decision, 2026-10-25). This document does not repeat the values.
 - Default accent candidate: Literary Teal; alternative palettes may be user-selectable later.
 - Plotline/card colors must include labels, icons or patterns as redundant signals.
 - No color-only status, no low contrast decorative text for essential controls.
