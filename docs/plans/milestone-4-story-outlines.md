@@ -1,6 +1,6 @@
 # Milestone 4: Story outlines (Gate 4)
 
-Status: **Approved** (owner, 2026-10-25), with the recommended decisions. "Story" is a test label that may be replaced (decision 1).
+Status: **Complete** (2026-10-25), on branch `milestone-4/story-outlines`. Approved by the owner with the recommended decisions; "Story" is a test label that may be replaced (decision 1). Results are at the end of this document.
 
 ## Goal
 
@@ -124,3 +124,58 @@ These follow `AGENTS.md`. The markdown editor and the domain rules are written t
 3. Contracts, IPC and the watcher; the Story/Write switch and remembered position.
 4. The interface: outline list, Board, Outline and Cards, inline editing, drag and drop, menus and keyboard moves, kept-as-written tiles, the manuscript outline.
 5. End-to-end scenarios, the accessibility pass, docs (ADR 0003 implementation note, package READMEs) and results.
+
+## Results
+
+| Check | Result |
+|---|---|
+| `pnpm lint` | OK |
+| `pnpm typecheck` | OK |
+| `pnpm test` | **704 tests pass** (398 before this milestone) |
+| `pnpm arch` | **78 checks pass**: the architecture rules, plus a check of each interface file for the working name "Story" |
+| `pnpm build` | OK |
+| `pnpm e2e` | **30 end-to-end tests pass** in the real app (22 before), twice in a row, with no CSP violations |
+
+**What the tests prove:**
+- **The outline editor** (`markdown`, on all 20 outline fixtures):
+  - **No-op edits write nothing.**
+  - **Every move of every card to every destination** matches the model, changes only its own lines, and keeps what is kept as written.
+  - **Every add, rename and delete,** and **every section edit,** matches the model.
+  - **Seeded random walks** of 300 moves and their reversals restore the 12 uniform fixtures byte for byte, and the other 8 to the same structure.
+  - **Refusals** have reasons and write nothing; splices are safe for Unicode and NFD text.
+  - **Mutation checks:** removing frontmatter masking, the numbered-list fix or the HTML-block fallback each makes a test fail.
+- **The file and the domain agree:** on every fixture, every card moved to the end of every section reads back exactly as the domain predicts (more than 100 cases, on real files).
+- **Safety on real files:**
+  - An edit on an outline changed elsewhere is refused and writes nothing.
+  - Undo restores the exact bytes, and is refused over another program's change.
+  - BOM and CRLF are kept; invalid UTF-8 is unreadable and never written.
+- **Scenarios in the real app:**
+  - **B:** an outline built visually appears in all three views and in the file, line for line.
+  - **C:** moving cards by keyboard and by dragging changes only those lines, and every chapter stays byte-identical. Undo restores the original file.
+- **Also covered:**
+  - Content kept as written moves with its card.
+  - An outline changed elsewhere reloads.
+  - Switching between Story and Write keeps the same editor, cursor and undo history, and the app reopens in the last workspace, outline and view.
+  - A chapter chosen in the manuscript outline opens in Write.
+  - In Hebrew, Alt+Left moves a card to the next column.
+  - Every control is named in both languages, and adding a card works by keyboard alone.
+
+**Where the work differs from the plan:**
+- **The List view is named "List"** (Hebrew **רשימה**), not "Outline", so "outline" keeps one meaning: the document. It is one catalog line to change back.
+- **A section is "מקטע" in Hebrew,** because "פרק" already means chapter.
+- **Three outline operations were added:** set the title, move a section, delete a section (ADR 0003 note).
+- **An edit planned on an outdated outline is refused and the outline reloaded;** the author then redoes it. Replaying it automatically could apply it to the wrong card, since positions may have changed.
+- **Adding a detail asks in a small dialog;** card and section names are edited in place.
+- **Two bugs found and fixed while building:**
+  - Edits from the board carried Vue's reactive wrappers, which can't cross to the host. Scenario C fails without the fix.
+  - Undo assumed restoring a file gives back its earlier revision. True on disk, where a revision is a hash, but the session no longer relies on it.
+
+**Not done, needs the owner:**
+- **Trying the Story workspace with authors,** including whether "Story" is the right name. Renaming it is a two-line change.
+- **A screen-reader pass with Orca,** as in Milestone 3.
+
+**Later (noted, not in this milestone):**
+- Links from cards to chapters, characters and places, and consulting them while writing (scenario D, Gate 5).
+- A multi-line card editor for content kept as written (decision 3).
+- Dropping a card *inside* another card by dragging (the keyboard and menu can nest only through "Add detail").
+- Undo history is lost when the app closes; it lives in memory only.

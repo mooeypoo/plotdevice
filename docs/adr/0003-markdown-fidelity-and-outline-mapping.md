@@ -36,3 +36,11 @@ Authors own their Markdown. Loading and saving without changes must produce iden
 - **Performance:** parsing is superlinear on long nested lists, so it runs per `##` section, never splitting inside fences or HTML comments. Parse once per revision; a 100-card outline takes about 20 ms.
 - **Indentation style:** the app must remember a file's nesting unit while the file is open.
 - **Board design (Gate 4):** `###` groups inside a column and "kept as written" tiles. The board UI must explain unsupported content instead of hiding it.
+
+## Implementation note (Milestone 4)
+
+- **Built as decided.** Spike A's reader and editor are now production code in `markdown`, with all seven of its fixes and their regression tests. The `storage` package maps the source model to the domain's `Outline` (point 7).
+- **Three operations added:** setting the outline's title, moving a whole section, and deleting a section. They follow the same rules: splices only, the unnamed section can't be moved, renamed or deleted, and nothing can be placed above it.
+- **Spike A's open limit is closed.** A multi-line HTML block could hide a `##` line from the per-section parser. A file containing one is now parsed whole; a regression test covers it.
+- **Undo** restores the file's previous text only if the file is unchanged since the app's own edit (Milestone 4, decision 2).
+- **Card IDs are still not stored** (point 8): nothing in Milestone 4 needed them.
