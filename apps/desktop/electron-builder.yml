@@ -1,0 +1,60 @@
+# Release identity (ADR 0001; Milestone 7, decision 1): the old app's, so installing upgrades it.
+# These values must never change: Windows upgrades and the settings folder depend on them.
+appId: tech.moriel.plotdevice
+productName: Plot Device
+extraMetadata:
+  name: plotdevice
+directories:
+  output: dist
+  buildResources: build
+# electron-vite bundles every workspace package into out/, so the app needs nothing else.
+files:
+  - out/**
+  - package.json
+extraResources:
+  - from: ../../LICENSE
+    to: LICENSE
+  - from: build/third-party-licenses.json
+    to: third-party-licenses.json
+npmRebuild: false
+publish: null
+win:
+  target: nsis
+  executableName: plotdevice
+  icon: ../../assets/brand/icons/512x512.png
+nsis:
+  artifactName: plotdevice-${version}-setup.${ext}
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  shortcutName: Plot Device
+  uninstallDisplayName: Plot Device
+  createDesktopShortcut: always
+  license: ../../LICENSE
+linux:
+  target:
+    - AppImage
+    - deb
+  executableName: plotdevice
+  # One PNG per size, from the brand masters (assets/brand).
+  icon: ../../assets/brand/icons
+  # Window association on Wayland and X11: the window's app id must match the desktop file.
+  syncDesktopName: true
+  maintainer: Moriel Schottlender <mooeypoo@gmail.com>
+  vendor: Moriel Schottlender
+  category: Office
+  synopsis: Write a novel in plain Markdown files
+  description: >-
+    A writing studio for novelists. Write chapters, plan the story in outlines, and keep characters,
+    places and notes beside the page, all as ordinary Markdown files you own. English and Hebrew,
+    including mixed-direction prose.
+  # "Open with Plot Device" on folders in file managers.
+  mimeTypes:
+    - inode/directory
+  desktop:
+    entry:
+      StartupWMClass: plotdevice
+appImage:
+  artifactName: plotdevice-${version}.${ext}
+deb:
+  artifactName: plotdevice_${version}_${arch}.${ext}
+  packageCategory: editors

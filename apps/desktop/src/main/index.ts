@@ -32,10 +32,14 @@ import { denyAllPermissions, hardenWebContents } from './security'
 import { enableSpellingMenu, spellcheckLanguages } from './spellcheck'
 import { hostEvent, outlineEvent } from './views'
 
-// Development builds keep their own settings, apart from any installed release (ADR 0001). Tests may
-// point unpackaged builds at a temporary folder.
+// Tests may point unpackaged builds at a temporary folder.
 const testUserData = app.isPackaged ? undefined : process.env.PLOTDEVICE_USER_DATA
-app.setPath('userData', testUserData ?? join(app.getPath('appData'), 'plotdevice-dev'))
+// Release builds keep settings in `plotdevice` (ADR 0001, Milestone 7); development builds in
+// `plotdevice-dev`, so testing never touches them. Electron's own `--user-data-dir` switch wins, which
+// lets tests run an installed build against a temporary folder.
+if (!app.commandLine.hasSwitch('user-data-dir')) {
+  app.setPath('userData', testUserData ?? join(app.getPath('appData'), app.isPackaged ? 'plotdevice' : 'plotdevice-dev'))
+}
 
 const devServerUrl = process.env.ELECTRON_RENDERER_URL
 const indexFile = join(import.meta.dirname, '../renderer/index.html')

@@ -7,3 +7,4 @@ test-results/
 playwright-report/
 # Leftovers from spike branches when switching branches locally.
 spikes/
+apps/desktop/build/third-party-licenses.json
