@@ -1,6 +1,6 @@
 import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { chapterFileFor, matchRenamedChapters, projectFolderName } from './chapter-files'
+import { chapterFileFor, findDuplicateIds, projectFolderName, suggestRelinks } from './chapter-files'
 
 const existing = (...paths: string[]) => paths as ProjectPath[]
 
@@ -41,25 +41,37 @@ describe('projectFolderName: keeps the title readable', () => {
   })
 })
 
-describe('matchRenamedChapters: suggest which unlisted file a missing chapter became', () => {
-  it('matches by id only, never by name', () => {
-    const missing = [
-      { file: 'manuscript/the-crossing.md' as ProjectPath, id: 'ch-k3f9q2' },
-      { file: 'manuscript/frost.md' as ProjectPath, id: undefined },
-    ]
-    const unlisted = [
-      { file: 'manuscript/crossing.md' as ProjectPath, id: 'ch-k3f9q2' },
-      { file: 'manuscript/frost-old.md' as ProjectPath, id: 'ch-other' },
-    ]
-    expect(matchRenamedChapters(missing, unlisted)).toEqual([{ missing: 'manuscript/the-crossing.md', found: 'manuscript/crossing.md' }])
-  })
+describe('suggestRelinks: which unlisted file a missing chapter might have become', () => {
+  const p = (path: string) => path as ProjectPath
 
-  it('suggests nothing when two unlisted files claim the same id', () => {
-    const missing = [{ file: 'manuscript/a.md' as ProjectPath, id: 'ch-1' }]
-    const unlisted = [
-      { file: 'manuscript/b.md' as ProjectPath, id: 'ch-1' },
-      { file: 'manuscript/c.md' as ProjectPath, id: 'ch-1' },
+  it('matches by a known id first, then by an exact title, and never guesses between two', () => {
+    const missing = [
+      { file: p('manuscript/the-crossing.md'), linkText: 'The Crossing' },
+      { file: p('manuscript/frost.md'), linkText: 'Frost' },
+      { file: p('manuscript/gate.md'), linkText: 'The Gate' },
     ]
-    expect(matchRenamedChapters(missing, unlisted)).toEqual([])
+    const unlisted = [
+      { file: p('manuscript/crossing.md'), title: 'Renamed title', id: 'ch-k3f9q2' },
+      { file: p('manuscript/frost-renamed.md'), title: 'Frost', id: 'ch-other' },
+      { file: p('manuscript/gate-a.md'), title: 'The Gate', id: undefined },
+      { file: p('manuscript/gate-b.md'), title: 'The Gate', id: undefined },
+    ]
+    const knownIds = new Map([[p('manuscript/the-crossing.md'), 'ch-k3f9q2']])
+    expect(suggestRelinks(missing, unlisted, knownIds)).toEqual([
+      { missing: 'manuscript/the-crossing.md', found: 'manuscript/crossing.md', reason: 'same-id' },
+      { missing: 'manuscript/frost.md', found: 'manuscript/frost-renamed.md', reason: 'same-title' },
+    ])
+  })
+})
+
+describe('findDuplicateIds', () => {
+  it('reports chapters sharing an id (for example a copied file), and nothing else', () => {
+    const chapters = [
+      { file: 'manuscript/a.md' as ProjectPath, id: 'ch-1' },
+      { file: 'manuscript/b.md' as ProjectPath, id: 'ch-1' },
+      { file: 'manuscript/c.md' as ProjectPath, id: 'ch-2' },
+      { file: 'manuscript/d.md' as ProjectPath, id: undefined },
+    ]
+    expect(findDuplicateIds(chapters)).toEqual([{ id: 'ch-1', files: ['manuscript/a.md', 'manuscript/b.md'] }])
   })
 })

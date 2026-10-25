@@ -1,4 +1,4 @@
-/** Creates short random IDs such as `ch-k3f9q2` (ADR 0008). Random, so the domain stays pure. */
+/** Creates short random IDs such as `ch-k3f9q2` (ADR 0008): chapters, projects and recovery journals. */
 export interface IdGenerator {
-  next(prefix: 'ch' | 'prj'): string
+  next(prefix: 'ch' | 'prj' | 'jrn'): string
 }

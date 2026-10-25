@@ -12,3 +12,16 @@ export type { FileStore, ReadProblem, RenameProblem, Revision, StoredText, TextT
 export type { IdGenerator } from './ports/id-generator'
 export type { JournalEntry, JournalStep, JournalStore } from './ports/journal-store'
 export type { CreateFolderProblem, ProjectFolders } from './ports/project-folders'
+export type {
+  ChangeProblem,
+  ChapterFile,
+  ChapterText,
+  ContentsChange,
+  CreateProblem,
+  OpenProblem,
+  ProjectRepository,
+  ProjectSnapshot,
+  ProjectWarning,
+  RecoveryOutcome,
+  RenameFileProblem,
+} from './ports/project-repository'

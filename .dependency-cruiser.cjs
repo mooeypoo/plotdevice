@@ -92,9 +92,10 @@ module.exports = {
     },
     {
       name: 'no-node-outside-hosts-and-adapters',
-      comment: 'Node built-ins only in fs-node and the Electron main process',
+      comment: 'Node built-ins only in fs-node and the Electron main process (integration tests in test/ folders use real files)',
       severity: 'error',
       from: {
+        pathNot: '(^|/)packages/[^/]+/test/',
         path: [
           pkg('shared'),
           pkg('domain'),

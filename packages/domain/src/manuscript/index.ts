@@ -1,4 +1,13 @@
-export { chapterFileFor, matchRenamedChapters, projectFolderName, type ChapterFileWithId, type RenameSuggestion } from './chapter-files'
+export {
+  chapterFileFor,
+  findDuplicateIds,
+  projectFolderName,
+  suggestRelinks,
+  type ChapterFileWithId,
+  type MissingChapter,
+  type RelinkSuggestion,
+  type UnlistedChapter,
+} from './chapter-files'
 export {
   addChapter,
   addPart,

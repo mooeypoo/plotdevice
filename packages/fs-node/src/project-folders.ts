@@ -7,11 +7,12 @@ import { createFileStore } from './file-store'
 /** Project folders on the local disk. */
 export function createProjectFolders(): ProjectFolders {
   return {
-    async create(location, name): Promise<Result<string, CreateFolderProblem>> {
+    async create(location, name, subfolders): Promise<Result<string, CreateFolderProblem>> {
       if (await isInsideProject(resolve(location))) return err('inside-project')
       const root = join(location, name)
       try {
         await mkdir(root)
+        for (const subfolder of subfolders) await mkdir(join(root, ...subfolder.split('/')), { recursive: true })
         return ok(root)
       } catch (cause) {
         return err((cause as NodeJS.ErrnoException).code === 'EEXIST' ? 'exists' : 'io')

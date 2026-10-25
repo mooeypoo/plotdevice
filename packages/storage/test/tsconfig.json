@@ -1,0 +1,6 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  // Integration tests use real folders through fs-node, so they need Node types; the package itself does not.
+  "compilerOptions": { "composite": false, "declaration": false, "emitDeclarationOnly": false, "noEmit": true, "types": ["node"] },
+  "include": ["."]
+}

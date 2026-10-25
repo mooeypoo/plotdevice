@@ -156,13 +156,14 @@ describe('ProjectFolders', () => {
   it('creates a project folder, refusing an existing one or one inside another project', async () => {
     const location = await tempDir()
     const folders = createProjectFolders()
-    const created = await folders.create(location, 'The Salt Orchard')
+    const created = await folders.create(location, 'The Salt Orchard', ['manuscript'])
     expect(created).toEqual({ ok: true, value: join(location, 'The Salt Orchard') })
-    expect(await folders.create(location, 'The Salt Orchard')).toEqual({ ok: false, error: 'exists' })
+    expect(await readdir(join(location, 'The Salt Orchard'))).toEqual(['manuscript'])
+    expect(await folders.create(location, 'The Salt Orchard', [])).toEqual({ ok: false, error: 'exists' })
     await writeFile(join(location, 'The Salt Orchard', 'project.md'), '')
     await writeFile(join(location, 'The Salt Orchard', 'CONTENTS.md'), '')
     await mkdir(join(location, 'The Salt Orchard', 'notes'))
-    expect(await folders.create(join(location, 'The Salt Orchard', 'notes'), 'Nested')).toEqual({ ok: false, error: 'inside-project' })
+    expect(await folders.create(join(location, 'The Salt Orchard', 'notes'), 'Nested', [])).toEqual({ ok: false, error: 'inside-project' })
   })
 })
 

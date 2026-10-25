@@ -216,16 +216,16 @@ importers:
         version: 24.19.2
       '@vitejs/plugin-vue':
         specifier: ^6.0.10
-        version: 6.0.10(vite@8.3.5(@types/node@24.19.2))(vue@3.5.44(typescript@6.0.3))
+        version: 6.0.10(vite@8.3.5(@types/node@24.19.2)(yaml@2.9.1))(vue@3.5.44(typescript@6.0.3))
       electron:
         specifier: ^45.0.0
         version: 45.0.0(supports-color@7.2.0)
       electron-vite:
         specifier: ^6.0.0
-        version: 6.0.0(supports-color@7.2.0)(vite@8.3.5(@types/node@24.19.2))
+        version: 6.0.0(supports-color@7.2.0)(vite@8.3.5(@types/node@24.19.2)(yaml@2.9.1))
       vite:
         specifier: ^8.3.5
-        version: 8.3.5(@types/node@24.19.2)
+        version: 8.3.5(@types/node@24.19.2)(yaml@2.9.1)
       vue-tsc:
         specifier: ^3.3.13
         version: 3.3.13(typescript@6.0.3)
@@ -301,6 +301,25 @@ importers:
         version: link:../shared
 
   packages/shared: {}
+
+  packages/storage:
+    dependencies:
+      '@plotdevice/application':
+        specifier: workspace:*
+        version: link:../application
+      '@plotdevice/domain':
+        specifier: workspace:*
+        version: link:../domain
+      '@plotdevice/markdown':
+        specifier: workspace:*
+        version: link:../markdown
+      '@plotdevice/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@plotdevice/fs-node':
+        specifier: workspace:*
+        version: link:../fs-node
 
   packages/ui-vue:
     dependencies:
@@ -2078,10 +2097,10 @@ snapshots:
       '@typescript-eslint/types': 8.72.0
       eslint-visitor-keys: 5.0.1
 
-  '@vitejs/plugin-vue@6.0.10(vite@8.3.5(@types/node@24.19.2))(vue@3.5.44(typescript@6.0.3))':
+  '@vitejs/plugin-vue@6.0.10(vite@8.3.5(@types/node@24.19.2)(yaml@2.9.1))(vue@3.5.44(typescript@6.0.3))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
-      vite: 8.3.5(@types/node@24.19.2)
+      vite: 8.3.5(@types/node@24.19.2)(yaml@2.9.1)
       vue: 3.5.44(typescript@6.0.3)
 
   '@vitest/mocker@5.0.5(vite@8.3.5(@types/node@24.19.2)(yaml@2.9.1))':
@@ -2308,7 +2327,7 @@ snapshots:
 
   electron-to-chromium@1.5.464: {}
 
-  electron-vite@6.0.0(supports-color@7.2.0)(vite@8.3.5(@types/node@24.19.2)):
+  electron-vite@6.0.0(supports-color@7.2.0)(vite@8.3.5(@types/node@24.19.2)(yaml@2.9.1)):
     dependencies:
       '@babel/core': 7.29.7(supports-color@7.2.0)
       '@babel/plugin-transform-arrow-functions': 7.29.7(@babel/core@7.29.7(supports-color@7.2.0))
@@ -2316,7 +2335,7 @@ snapshots:
       magic-string: 1.4.3
       picocolors: 1.1.1
       rolldown: 1.2.15
-      vite: 8.3.5(@types/node@24.19.2)
+      vite: 8.3.5(@types/node@24.19.2)(yaml@2.9.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -2983,17 +3002,6 @@ snapshots:
       punycode: 2.3.1
 
   util-deprecate@1.0.2: {}
-
-  vite@8.3.5(@types/node@24.19.2):
-    dependencies:
-      lightningcss: 1.33.0
-      picomatch: 4.0.7
-      postcss: 8.5.31
-      rolldown: 1.2.15
-      tinyglobby: 0.2.17
-    optionalDependencies:
-      '@types/node': 24.19.2
-      fsevents: 2.3.3
 
   vite@8.3.5(@types/node@24.19.2)(yaml@2.9.1):
     dependencies:

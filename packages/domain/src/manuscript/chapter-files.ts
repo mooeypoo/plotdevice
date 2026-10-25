@@ -51,20 +51,51 @@ export interface ChapterFileWithId {
   id: string | undefined
 }
 
-export interface RenameSuggestion {
+export interface MissingChapter {
+  file: ProjectPath
+  linkText: string
+}
+
+export interface UnlistedChapter {
+  file: ProjectPath
+  title: string | undefined
+  id: string | undefined
+}
+
+export interface RelinkSuggestion {
   missing: ProjectPath
   found: ProjectPath
+  reason: 'same-id' | 'same-title'
 }
 
 /**
- * Suggests which unlisted file a missing chapter became after a rename outside the app, by matching
- * ids only (never names). Ambiguous ids suggest nothing; the author always confirms.
+ * Suggests which unlisted file a missing chapter became after a rename outside the app: first by an
+ * id the app knew for that path, then by a title equal to the contents' link text. Only unambiguous
+ * matches are suggested, and the author always confirms (DOMAIN_AND_FILE_FORMAT.md: no guessing).
  */
-export function matchRenamedChapters(missing: readonly ChapterFileWithId[], unlisted: readonly ChapterFileWithId[]): RenameSuggestion[] {
-  const count = (list: readonly ChapterFileWithId[], id: string): number => list.filter((c) => c.id === id).length
-  return missing.flatMap(({ file, id }) => {
-    if (!id || count(missing, id) !== 1 || count(unlisted, id) !== 1) return []
-    const found = unlisted.find((c) => c.id === id)
-    return found ? [{ missing: file, found: found.file }] : []
-  })
+export function suggestRelinks(
+  missing: readonly MissingChapter[],
+  unlisted: readonly UnlistedChapter[],
+  knownIds: ReadonlyMap<ProjectPath, string> = new Map(),
+): RelinkSuggestion[] {
+  const suggestions: RelinkSuggestion[] = []
+  const taken = new Set<ProjectPath>()
+  const only = <T>(list: T[]): T | undefined => (list.length === 1 ? list[0] : undefined)
+  for (const chapter of missing) {
+    const id = knownIds.get(chapter.file)
+    const byId = id ? only(unlisted.filter((u) => u.id === id)) : undefined
+    const byTitle = only(unlisted.filter((u) => u.title?.trim() === chapter.linkText.trim()))
+    const found = byId ?? byTitle
+    if (!found || taken.has(found.file)) continue
+    taken.add(found.file)
+    suggestions.push({ missing: chapter.file, found: found.file, reason: byId ? 'same-id' : 'same-title' })
+  }
+  return suggestions
+}
+
+/** Chapters that share an id, for example a copied file. Reported, never fixed silently (ADR 0008). */
+export function findDuplicateIds(chapters: readonly ChapterFileWithId[]): { id: string; files: ProjectPath[] }[] {
+  const byId = new Map<string, ProjectPath[]>()
+  for (const { file, id } of chapters) if (id) byId.set(id, [...(byId.get(id) ?? []), file])
+  return [...byId].filter(([, files]) => files.length > 1).map(([id, files]) => ({ id, files }))
 }
