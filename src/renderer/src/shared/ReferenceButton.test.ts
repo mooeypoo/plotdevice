@@ -25,7 +25,7 @@ describe('ReferenceButton localization', () => {
     expect(wrapper.get('button').attributes('aria-label')).toContain(
       '\u2068יעל <img src=x> / Ilka\u2069'
     )
-    expect(wrapper.get('button').attributes('title')).toBe('פתיחה לעיון')
+    expect(wrapper.get('button').attributes('title')).toBe('פתיחה בעיון')
     expect(wrapper.get('button').element).toBe(button.element)
     wrapper.unmount()
   })

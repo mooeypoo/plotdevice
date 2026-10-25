@@ -55,11 +55,6 @@ const PRESET_NAMES: Readonly<Record<PresetId, MessageKey>> = {
   plot: 'workbench-layout-plot'
 }
 const CODEX_KINDS = new Set(['character', 'location', 'note'])
-/** Other names the interface uses for a view, so typing either finds it. */
-const VIEW_ALIASES: Partial<Readonly<Record<ViewId, readonly MessageKey[]>>> = {
-  binder: ['chrome-binder'],
-  properties: ['chrome-inspector']
-}
 
 /**
  * Everything the palette offers: the project's entries, views, layouts and the menu's commands.
@@ -125,7 +120,6 @@ export function usePaletteCommands() {
             'workbench-show-view',
             descriptor ? language.t(descriptor.title) : view
           ),
-          aliases: (VIEW_ALIASES[view] ?? []).map((key) => language.t(key)),
           detail: kind,
           run: () => {
             navigation.revealView(view)

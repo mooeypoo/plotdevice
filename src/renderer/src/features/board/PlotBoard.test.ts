@@ -344,7 +344,7 @@ describe('editing on the board', () => {
   it('labels the editing controls in Hebrew', async () => {
     const board = await mountBoard()
     await useUiLanguageStore().change('he')
-    expect(board.get('.add-card').text()).toBe('+ הוספת כרטיס')
+    expect(board.get('.add-card').text()).toBe('+ הוספת נקודת עלילה')
     board.unmount()
   })
 })

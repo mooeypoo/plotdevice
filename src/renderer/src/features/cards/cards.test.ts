@@ -53,7 +53,7 @@ describe('EntryCard', () => {
     editor.edit('Ilka mends the fence.')
     await flushPromises()
     expect(card.text()).toContain('Ilka mends the fence.')
-    expect(card.get('[role=status]').text()).toContain('current draft')
+    expect(card.get('[role=status]').text()).toContain('draft open on the page')
     await editor.flush()
   })
 

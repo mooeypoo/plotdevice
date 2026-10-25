@@ -14,7 +14,7 @@ FUSE and the extraction-based launch option.
 
 Check the unordered tray and the Codex's untyped entries. Frontmatter `type`,
 `part`, and `order` decide classification and placement, not the folder name.
-Open the warnings panel for invalid YAML, ambiguous links, or unusable properties.
+Open **Needs attention** for invalid YAML, ambiguous links, or unusable keys.
 
 An unparseable file is not repaired automatically. Make a backup before editing
 its YAML manually. The [file format](../file-format.md) includes valid examples.

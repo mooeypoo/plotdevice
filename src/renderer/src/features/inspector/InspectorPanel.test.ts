@@ -75,7 +75,7 @@ describe('InspectorPanel', () => {
     useUiLanguageStore().locale = 'he'
     await flushPromises()
 
-    expect(panel.get('aside').attributes('aria-label')).toBe('מאפיינים')
+    expect(panel.get('aside').attributes('aria-label')).toBe('פרטים')
     expect(panel.get('.position').attributes('aria-label')).toBe('מיקום')
     expect(panel.get('header .eyebrow').text()).toBe('פרק')
     expect(panel.get('label[for="inspector-order"]').text()).toBe('סדר')

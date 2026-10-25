@@ -49,7 +49,7 @@ describe('CommandPalette', () => {
     const input = palette.get('input')
     expect(document.activeElement).toBe(input.element)
     expect(titles(palette)).toContain('Timeline')
-    expect(titles(palette)).toContain('Use the Revise layout')
+    expect(titles(palette)).toContain('Use the Side by side layout')
     palette.unmount()
   })
 
@@ -72,7 +72,7 @@ describe('CommandPalette', () => {
     usePaletteStore().show()
     await flushPromises()
     await palette.get('input').setValue('ferry')
-    expect(palette.text()).toContain('opens it beside the editor')
+    expect(palette.text()).toContain('opens it beside the page')
     await palette.get('input').trigger('keydown', { key: 'Enter', shiftKey: true })
     await flushPromises()
     const workbench = useWorkbenchStore()
@@ -96,14 +96,14 @@ describe('CommandPalette', () => {
 
   it('runs menu commands and switches layouts through navigation', async () => {
     const palette = await openPalette()
-    await palette.get('input').setValue('revise')
+    await palette.get('input').setValue('side by side')
     await palette.get('input').trigger('keydown', { key: 'Enter' })
     await flushPromises()
     expect(useWorkbenchStore().activeLayoutId).toBe('revise')
     usePaletteStore().show()
     await flushPromises()
     const before = useWorkbenchNavigation().isAreaOpen('binder')
-    await palette.get('input').setValue('binder')
+    await palette.get('input').setValue('toggle manuscript')
     await palette
       .findAll('[role=option]')
       .find((option) => option.attributes('id')?.includes('command'))
@@ -166,10 +166,10 @@ describe('CommandPalette', () => {
     elsewhere.remove()
   })
 
-  it('finds the binder by either of its names', async () => {
+  it('finds Details by the name the side toggle uses', async () => {
     const palette = await openPalette()
-    await palette.get('input').setValue('binder')
-    expect(titles(palette)).toContain('Show Manuscript')
+    await palette.get('input').setValue('details')
+    expect(titles(palette)).toContain('Show Details')
     palette.unmount()
   })
 })

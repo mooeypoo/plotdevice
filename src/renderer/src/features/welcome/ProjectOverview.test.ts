@@ -48,7 +48,7 @@ describe('ProjectOverview localization', () => {
     const page = mount(ProjectOverview)
 
     expect(page.find('.eyebrow').text()).toBe('Project')
-    expect(page.get('.hint').text()).toBe('Choose a chapter in the binder to start writing.')
+    expect(page.get('.hint').text()).toBe('Choose a chapter in the Manuscript to start writing.')
     expect(page.get('.banner').text()).toBe(
       'This project is open read-only, so Plot Device won’t change its files.'
     )
@@ -58,7 +58,7 @@ describe('ProjectOverview localization', () => {
     await flushPromises()
     expect(document.documentElement.dir).toBe('rtl')
     expect(page.find('.eyebrow').text()).toBe('פרויקט')
-    expect(page.get('.hint').text()).toBe('יש לבחור פרק בקלסר כדי להתחיל לכתוב.')
+    expect(page.get('.hint').text()).toBe('יש לבחור פרק בכתב היד כדי להתחיל לכתוב.')
     expect(page.get('.banner').text()).toBe(
       'הפרויקט פתוח לקריאה בלבד, ולכן Plot Device לא ישנה את הקבצים שלו.'
     )

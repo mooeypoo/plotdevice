@@ -86,7 +86,7 @@ describe('BinderTree', () => {
     scroller.scrollTop = 80
     const writes = vi.spyOn(Storage.prototype, 'setItem')
 
-    expect(wrapper.get('nav').attributes('aria-label')).toBe('Binder')
+    expect(wrapper.get('nav').attributes('aria-label')).toBe('Manuscript')
     expect(wrapper.get('.status').attributes('title')).toBe('No status')
     expect(wrapper.get('.total').text()).toContain('Manuscript')
     expect(wrapper.get('.total .value').text()).toBe('3,456 words')
@@ -99,13 +99,13 @@ describe('BinderTree', () => {
     useUiLanguageStore().locale = 'he'
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.get('nav').attributes('aria-label')).toBe('קלסר כתב היד')
+    expect(wrapper.get('nav').attributes('aria-label')).toBe('כתב יד')
     expect(wrapper.get('.status').attributes('title')).toBe('ללא סטטוס')
     expect(wrapper.get('.total').text()).toContain('כתב יד')
     expect(wrapper.get('.total .value').text()).toBe('3,456 מילים')
     expect(wrapper.text()).toContain('לא ברצף הממוספר')
     expect(wrapper.text()).toContain('ללא סדר')
-    expect(wrapper.text()).toContain('2 פריטים דורשים תשומת לב')
+    expect(wrapper.text()).toContain('2 דורשים טיפול')
     expect(wrapper.get('.header .open .words').text()).toBe('2,345')
     expect(wrapper.get('.row .meta').text()).toBe('1,234')
     expect(wrapper.get('.row').element).toBe(row)

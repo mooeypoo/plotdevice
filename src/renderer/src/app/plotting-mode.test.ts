@@ -100,18 +100,18 @@ describe('switching modes', () => {
 })
 
 describe('the top bar', () => {
-  it('offers Board and Text while plotting, and Write while writing', async () => {
+  it('offers Board and Text in Plot, and Page in Write', async () => {
     const bar = mount(TopBar)
     const tabs = (): string[] => bar.findAll('[role="tab"]').map((tab) => tab.text())
-    expect(tabs()).toEqual(['Write', 'Overview', 'Timeline', 'Interactions'])
+    expect(tabs()).toEqual(['Page', 'Overview', 'Timeline', 'Interactions'])
     const modes = bar.findAll('.mode-switch button')
-    expect(modes.map((button) => button.text())).toEqual(['Writing', 'Plotting'])
+    expect(modes.map((button) => button.text())).toEqual(['Write', 'Plot'])
     await modes[1]?.trigger('click')
     await flushPromises()
     expect(tabs()).toEqual(['Board', 'Text', 'Overview', 'Timeline', 'Interactions'])
-    expect(bar.get('.mode-switch button[aria-pressed="true"]').text()).toBe('Plotting')
+    expect(bar.get('.mode-switch button[aria-pressed="true"]').text()).toBe('Plot')
     await useUiLanguageStore().change('he')
-    expect(tabs().slice(0, 2)).toEqual(['לוח', 'טקסט'])
+    expect(tabs().slice(0, 2)).toEqual(['לוח העלילה', 'טקסט'])
     bar.unmount()
   })
 })

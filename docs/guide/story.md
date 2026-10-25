@@ -30,29 +30,29 @@ An outline does not change chapter order simply because you rearrange its paragr
 
 ## Plot on the board
 
-Switch the top bar from **Writing** to **Plotting** to see your outline as a board.
-Each `##` heading is a column and each bullet under it a card. A card that links to a
+Switch the top bar from **Write** to **Plot** to see your outline as a board.
+Each `##` heading is a column and each bullet under it a beat. A beat that links to a
 chapter shows that chapter's status, point of view and word count; a `#tag` that
-matches one of your threads in `novel.md` marks the card with that thread. Text the
+matches one of your threads in `novel.md` marks the beat with that thread. Text the
 board doesn't recognize stays exactly where it is.
 
 Choose **Text** to edit the outline itself, and **Board** to look again. The board
 reads the file each time; it stores nothing of its own. Use the arrow keys to move
-between cards, and Enter to go and write a card's chapter.
+between beats, and Enter to go and write a beat's chapter.
 
-Drag a card to another place or column, or drag a column by its heading. With a
-card or a column heading focused, **Alt+arrow keys** move it, and its **⋯** menu offers
+Drag a beat to another place or column, or drag a column by its heading. With a
+beat or a column heading focused, **Alt+arrow keys** move it, and its **⋯** menu offers
 the same moves. Only the moved lines change in the file; if the outline changed
 since the board read it, nothing is written and the board reads it again. The Inbox
-column always stays last; drag its cards out to sort them into the story.
+column always stays last; drag its beats out to sort them into the story.
 
-Write on the board, too. **+ Add card** at the foot of a column adds cards one after
-another: type a line, press Enter, and type the next. **F2** renames a focused card,
-and its **⋯** menu edits its notes. When a card links to a chapter, the same menu sets
-that chapter's synopsis and status, exactly as the inspector would.
+Write on the board, too. **+ Add beat** at the foot of a column adds beats one after
+another: type a line, press Enter, and type the next. **F2** renames a focused beat,
+and its **⋯** menu edits its notes. When a beat links to a chapter, the same menu sets
+that chapter's synopsis and status, exactly as Details would.
 
-**Capture a beat** is an experimental setting in Writing appearance. When it's on, the
-command palette (Ctrl+K) offers **Capture a beat…**: type one line and press Enter,
+**Capture a beat** is an experimental setting in Appearance. When it's on,
+**Go to…** (Ctrl+K) offers **Capture a beat…**: type one line and press Enter,
 and it is added to the end of the outline's Inbox section, which is created if
 missing. Nothing else in the outline changes.
 

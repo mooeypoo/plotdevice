@@ -35,7 +35,7 @@ describe('OutlineInspector', () => {
     await useUiLanguageStore().change('he')
     await flushPromises()
 
-    expect(panel.get('aside').attributes('aria-label')).toBe('מאפיינים')
+    expect(panel.get('aside').attributes('aria-label')).toBe('פרטים')
     expect(panel.get('header .eyebrow').text()).toBe('מתווה')
     expect(panel.text()).toContain('התוכנית שלך, במילים שלך.')
     expect(panel.text()).toContain('[[their names]]')

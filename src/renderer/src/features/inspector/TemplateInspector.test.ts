@@ -36,7 +36,7 @@ describe('TemplateInspector', () => {
     await useUiLanguageStore().change('he')
     await flushPromises()
 
-    expect(panel.get('aside').attributes('aria-label')).toBe('מאפיינים')
+    expect(panel.get('aside').attributes('aria-label')).toBe('פרטים')
     expect(panel.get('header .eyebrow').text()).toBe('תבנית')
     expect(panel.text()).toContain('רשומת דמות חדשה מתחילה כהעתק')
     expect(panel.text()).toContain('מטא־נתונים')

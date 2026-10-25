@@ -191,13 +191,19 @@ describe('ShelfArea', () => {
 describe('LayoutSwitcher', () => {
   it('offers the Writing layouts that can be shown, and switches between them', async () => {
     const switcher = mount(LayoutSwitcher)
-    expect(switcher.findAll('option').map((option) => option.text())).toEqual(['Write', 'Revise'])
+    expect(switcher.findAll('option').map((option) => option.text())).toEqual([
+      'Standard',
+      'Side by side'
+    ])
     await switcher.get('select').setValue('revise')
     await flushPromises()
     expect(useWorkbenchStore().activeLayoutId).toBe('revise')
     useUiLanguageStore().locale = 'he'
     await flushPromises()
-    expect(switcher.findAll('option').map((option) => option.text())).toEqual(['כתיבה', 'עריכה'])
+    expect(switcher.findAll('option').map((option) => option.text())).toEqual([
+      'רגילה',
+      'זה לצד זה'
+    ])
   })
 })
 
@@ -218,7 +224,7 @@ describe('placement menus', () => {
       props: { side: 'end', size: 320, maximum: 720 },
       attachTo: document.body
     })
-    const items = await openMenu(dock, 'אפשרויות עבור מאפיינים')
+    const items = await openMenu(dock, 'אפשרויות עבור פרטים')
     expect(items.map((item) => item.text())).toContain('העברה לצד ימין')
     dock.unmount()
   })
@@ -250,7 +256,7 @@ describe('placement menus', () => {
     await items.find((item) => item.text() === 'Add Needs attention')?.trigger('click')
     expect(workbench.layout.start.sections.map((section) => section.view)).toContain('warnings')
     items = await openMenu(dock, 'Panel options')
-    await items.find((item) => item.text() === 'Show stacked')?.trigger('click')
+    await items.find((item) => item.text() === 'Stack panels')?.trigger('click')
     expect(workbench.layout.start.arrangement).toBe('stack')
     dock.unmount()
   })
@@ -260,13 +266,13 @@ describe('placement menus', () => {
       props: { side: 'end', size: 320, maximum: 720 },
       attachTo: document.body
     })
-    const items = await openMenu(dock, 'Options for Properties')
+    const items = await openMenu(dock, 'Options for Details')
     expect(document.activeElement).toBe(items[0]?.element)
     await dock.get('[role=menu]').trigger('keydown', { key: 'ArrowDown' })
     expect(document.activeElement).toBe(items[1]?.element)
     await dock.get('[role=menu]').trigger('keydown', { key: 'Escape' })
     expect(dock.find('[role=menu]').exists()).toBe(false)
-    expect(document.activeElement?.getAttribute('aria-label')).toBe('Options for Properties')
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('Options for Details')
     dock.unmount()
   })
 })
