@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { OutlineItemView } from '@plotdevice/contracts'
 import { keyOf, type ItemAt } from '@plotdevice/presentation'
+import { dirnameOf } from '@plotdevice/shared'
 import { computed } from 'vue'
+import { useFollowLink } from '../composables/use-follow-link'
 import { useOutlineActions } from '../composables/use-outline-actions'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
@@ -15,6 +17,8 @@ const story = useStoryStore()
 const settings = useSettingsStore()
 const actions = useOutlineActions()
 const t = settings.t
+const follow = useFollowLink()
+const fromDir = computed(() => dirnameOf(story.outline?.file ?? 'outlines/x.md'))
 const key = computed(() => keyOf(props.at))
 const editing = computed(() => story.editing?.kind === 'item' && story.editing.key === key.value)
 const detailCount = computed(() => {
@@ -41,12 +45,12 @@ const detailCount = computed(() => {
     <div class="card-head">
       <span v-if="item.checked !== null" class="checkbox" aria-hidden="true">{{ item.checked ? '☑' : '☐' }}</span>
       <EditableText v-if="editing" :value="item.text" :label="t('prompt-card-text')" @commit="actions.commitItem(at, item, $event)" />
-      <InlineText v-else class="card-text" :text="item.text" />
+      <InlineText v-else class="card-text" :text="item.text" follow-links @follow="follow(fromDir, $event)" />
       <span v-if="!item.movable" class="lock" role="img" :aria-label="t('locked-item')" :title="t('locked-item')">🔒</span>
       <MenuButton :label="t('item-actions', item.text)" :items="actions.itemMenu(at, item)" />
     </div>
     <ul v-if="item.children.length > 0" class="card-details">
-      <li v-for="(child, index) in item.children.slice(0, 3)" :key="index"><InlineText :text="child.text" /></li>
+      <li v-for="(child, index) in item.children.slice(0, 3)" :key="index"><InlineText :text="child.text" follow-links @follow="follow(fromDir, $event)" /></li>
       <li v-if="detailCount > 3" class="secondary">{{ t('details-count', detailCount) }}</li>
     </ul>
     <KeptAsWritten v-for="(block, index) in item.keptAsWritten" :key="`kept-${index}`" :text="block" />

@@ -6,17 +6,20 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useChapterWriting } from '../composables/use-chapter-writing'
 import { usePrompt } from '../composables/use-prompt'
 import { useProjectStore } from '../stores/project'
+import { useShelfStore } from '../stores/shelf'
 import { useSettingsStore } from '../stores/settings'
 import { useViewStore } from '../stores/view'
 import ChapterNavigator from './ChapterNavigator.vue'
 import ConflictDialog from './ConflictDialog.vue'
 import MenuButton from './MenuButton.vue'
+import ReferenceShelf from './ReferenceShelf.vue'
 import type { MenuItem } from './menu'
 
 const props = defineProps<{ project: ProjectView }>()
 const store = useProjectStore()
 const settings = useSettingsStore()
 const view = useViewStore()
+const shelf = useShelfStore()
 const { ask } = usePrompt()
 const t = settings.t
 const host = ref<HTMLElement | null>(null)
@@ -71,6 +74,7 @@ function onKey(event: KeyboardEvent): void {
   if (view.workspace !== 'write') return
   if (event.key === 'Escape' && view.focusMode) setFocusMode(false)
   else if (event.key.toLowerCase() === 'f' && event.shiftKey && (event.ctrlKey || event.metaKey)) setFocusMode(!view.focusMode)
+  else if (event.key.toLowerCase() === 'r' && event.shiftKey && (event.ctrlKey || event.metaKey)) shelf.visible = !shelf.visible
   else return
   event.preventDefault()
 }
@@ -94,6 +98,7 @@ watch(
 )
 
 onMounted(() => {
+  void shelf.reset() // this view is recreated for each project
   window.addEventListener('keydown', onKey)
   const start = firstChapter()
   if (start) void writing.open(start.file, start.cursor)
@@ -102,7 +107,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>
 
 <template>
-  <div class="writing" :class="{ 'focus-mode': view.focusMode, 'navigator-hidden': view.navigatorHidden }">
+  <div class="writing" :class="{ 'focus-mode': view.focusMode, 'navigator-hidden': view.navigatorHidden, 'with-shelf': shelf.visible && !view.focusMode }">
     <ChapterNavigator v-if="!view.focusMode && !view.navigatorHidden" :project="project" :open-file="writing.file.value" @open="writing.open" />
 
     <section class="desk">
@@ -113,6 +118,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         <MenuButton :label="t('toolbar-format')" :text="t('toolbar-format')" :items="formatItems" testid="format-menu" />
         <MenuButton :label="t('toolbar-direction')" :text="t('toolbar-direction')" :items="directionItems" testid="direction-menu" />
         <button type="button" data-testid="focus-mode" @click="setFocusMode(true)">{{ t('focus-enter') }}</button>
+        <button type="button" class="toolbar-end" data-testid="toggle-shelf" :aria-pressed="shelf.visible" @click="shelf.visible = !shelf.visible">
+          {{ shelf.visible ? t('shelf-hide') : t('shelf-show') }}
+        </button>
       </div>
       <button v-else type="button" class="leave-focus" data-testid="leave-focus" @click="setFocusMode(false)">{{ t('focus-exit') }}</button>
 
@@ -130,6 +138,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         </span>
       </footer>
     </section>
+
+    <ReferenceShelf v-if="shelf.visible && !view.focusMode" :chapter="writing.file.value" />
 
     <ConflictDialog v-if="writing.status.value === 'conflict'" :chapter-name="chapterName" :busy="writing.resolving.value" @choose="writing.resolveConflict" />
   </div>

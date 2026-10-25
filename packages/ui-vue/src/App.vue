@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
 import { useApi } from './api'
 import ConfirmDialog from './components/ConfirmDialog.vue'
+import LinkPicker from './components/LinkPicker.vue'
 import PromptDialog from './components/PromptDialog.vue'
 import SettingsMenu from './components/SettingsMenu.vue'
 import StoryView from './components/StoryView.vue'
@@ -47,5 +48,6 @@ void api.getAppInfo().then((info) => (appInfo.value = info))
     <footer v-if="appInfo && !store.project" class="secondary app-footer">{{ settings.t('app-version', appInfo.version) }}</footer>
     <PromptDialog />
     <ConfirmDialog />
+    <LinkPicker />
   </div>
 </template>

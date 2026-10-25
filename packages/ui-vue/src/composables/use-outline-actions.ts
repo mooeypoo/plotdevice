@@ -1,11 +1,13 @@
 import type { OutlineItemView } from '@plotdevice/contracts'
 import { uiDirection } from '@plotdevice/i18n'
-import { cardMoves, keyOf, type ItemAt, type ItemDestination } from '@plotdevice/presentation'
+import { cardMoves, keyOf, markdownLink, type ItemAt, type ItemDestination } from '@plotdevice/presentation'
+import { dirnameOf } from '@plotdevice/shared'
 import { nextTick, ref } from 'vue'
 import type { MenuItem } from '../components/menu'
 import { useStoryStore } from '../stores/story'
 import { useSettingsStore } from '../stores/settings'
 import { useConfirm } from './use-confirm'
+import { useLinkPicker } from './use-link-picker'
 import { usePrompt } from './use-prompt'
 
 /** The card being dragged, shared by every view. */
@@ -27,7 +29,17 @@ export function useOutlineActions() {
   const settings = useSettingsStore()
   const { ask } = usePrompt()
   const { confirm } = useConfirm()
+  const { pick } = useLinkPicker()
   const t = settings.t
+
+  /** "Link to…": the link goes at the end of the item's text, as ordinary Markdown (Milestone 5, decision 5). */
+  async function linkTo(at: ItemAt, item: OutlineItemView): Promise<void> {
+    const outline = story.outline
+    const target = await pick()
+    if (!outline || !target) return
+    await story.edit({ kind: 'rename-item', at, text: `${item.text} ${markdownLink(dirnameOf(outline.file), target.file, target.title)}` })
+    await focusItem(keyOf(at))
+  }
 
   async function move(from: ItemAt, to: ItemDestination | null): Promise<void> {
     if (!to) return
@@ -58,6 +70,7 @@ export function useOutlineActions() {
     return [
       { key: 'edit', label: t('item-edit'), run: () => (story.editing = { kind: 'item', key: keyOf(at) }) },
       { key: 'add-detail', label: t('outline-add-detail'), run: () => void addDetail(at, item) },
+      { key: 'link-to', label: t('link-to'), run: () => void linkTo(at, item) },
       { key: 'move-earlier', label: t('item-move-earlier'), group: 'move', disabled: !moves.earlier, run: () => void move(at, moves.earlier) },
       { key: 'move-later', label: t('item-move-later'), disabled: !moves.later, run: () => void move(at, moves.later) },
       ...otherSections.map((entry) => ({ ...entry, disabled: !item.movable })),
