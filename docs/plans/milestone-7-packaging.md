@@ -1,6 +1,6 @@
 # Milestone 7: Installers and the release identity (Gate 6, second half)
 
-Status: **Approved** (owner, 2026-10-25): the old app's identity (it was never released, so nothing is lost either way), the existing brand logo, version `0.2.0`, CI builds with draft releases on tags, and `electron-builder`.
+Status: **Complete** (2026-10-25), on branch `milestone-7/packaging`; Windows installation is verified by CI once pushed. Approved by the owner: the old app's identity (it was never released, so nothing is lost either way), the existing brand logo, version `0.2.0`, CI builds with draft releases on tags, and `electron-builder`.
 
 ## Goal
 
@@ -82,3 +82,53 @@ The licence list uses `pnpm licenses list`, which pnpm already includes, so no p
 3. The About window and the generated licence list.
 4. CI: installers on Linux and Windows, install and uninstall tests, draft releases on tags.
 5. Packaged end-to-end tests, the upgrade check, docs (ADR 0001 identity note, development and release instructions) and results.
+
+## Results
+
+| Check | Result |
+|---|---|
+| `pnpm lint` | OK |
+| `pnpm typecheck` | OK |
+| `pnpm test` | **794 tests pass** |
+| `pnpm arch` | **91 checks pass** |
+| `pnpm perf` | **4 limits pass** |
+| `pnpm build` | OK |
+| `pnpm e2e` | **44 end-to-end tests pass** (40 before), with no CSP violations |
+| `pnpm e2e:packaged` | **3 pass on the packaged Linux app;** the fourth (the settings folder's name) runs only in CI |
+| Linux installers, locally | AppImage (121 MB) and `.deb` (97 MB) built. The `.deb` holds the app in `/opt/Plot Device`, the licence and the AppStream metadata. `desktop-file-validate` and `appstreamcli validate` pass. The AppImage starts and opens a folder handed to it |
+
+**What the tests prove:**
+- **The packaged app:**
+  - It opens a novel given on its command line, and saves what the author writes.
+  - It reports version 0.2.0 under the title Plot Device.
+  - It shows the licence and the credits from its own resources.
+- **Upgrading over the old app:**
+  - The old settings files (`ui-preferences.json`, `window-state.json`, `recent-projects.json`) are left byte for byte; their names never clash with the new ones.
+  - The new app adds its own files beside them.
+- **Opening a folder at launch:**
+  - A `file://` address from a file manager works, Hebrew and spaces included.
+  - A folder that isn't a project is explained, not opened.
+  - A second launch hands its folder to the running app and exits.
+- **The About window:** the version, the licence, "your writing is yours", and the generated credits (153 packages, including Electron, Vue and CodeMirror).
+
+**In CI (verified once this branch is pushed):**
+- On Linux, the `.deb` is installed, its desktop entry and metadata are validated, and it is removed.
+- On Windows, the installer installs silently, the app is found, and it uninstalls.
+- Both platforms run the packaged end-to-end tests, including the settings folder's name, and keep the installers as artifacts for 14 days.
+- A `v*` tag creates a draft release with the installers attached.
+
+**Where the work differs from the plan:**
+- **No separate `.ico` step:** electron-builder makes the Windows icon from the 512 px brand PNG.
+- **Electron's own app name is `plotdevice`,** the package name, which matches the Linux desktop entry. Authors see "Plot Device" everywhere: the window title, menus, the installer and the About window.
+- **Bug found and fixed while building:** test tools put their own switches before the app folder, so the app folder was taken for the author's folder. Launch arguments are now skipped by what they are, not by position.
+
+**Not done, needs the owner:**
+- **Pushing,** so CI verifies the Windows installer and the packaged tests on Windows.
+- **Code signing for Windows,** if wanted (a certificate is needed).
+- **Publishing a first release:** tag `v0.2.0`, check the draft, publish.
+- **Trying the installers by hand,** especially on Windows.
+
+**Later (noted, not in this milestone):**
+- macOS builds.
+- A converter for the old app's projects, if any exist and if wanted.
+- Remembering the window's size and position between runs.

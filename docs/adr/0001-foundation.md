@@ -21,7 +21,7 @@ The previous version grew around assumptions the product no longer holds: separa
 | Technical name | `plotdevice` (lowercase, no space or hyphen) | Folder names, package names, the executable |
 | Project-local folder, if one is ever needed | `.plotdevice/` | Matches the technical name. Nothing currently needs it: backups and journals live in the operating system's app-data folder (ADR 0005) |
 | Development builds | A separate app id and settings folder (`plotdevice-dev`) | So testing never touches settings of the old installed app |
-| Release app id and upgrade path from the old app | Decided at the packaging milestone | It affects Windows installer upgrades and existing settings |
+| Release identity | `tech.moriel.plotdevice`, executable and Linux package `plotdevice`, settings folder `plotdevice` (decided at Milestone 7) | The old app's, so installing upgrades it. The old app was never released; its settings files (`ui-preferences.json`, `window-state.json`, `recent-projects.json`) are left alone, and its projects are not converted |
 
 ## License
 

@@ -19,7 +19,19 @@
 | `pnpm arch` | Architecture rules: the real code must pass, every deliberate violation must be caught |
 | `pnpm perf` | Performance limits on a generated 150-chapter book, run alone so other tests don't skew the timings |
 | `pnpm e2e` | Build, then drive the real app with Playwright |
+| `pnpm e2e:packaged` | Drive the packaged app (run `pnpm --filter @plotdevice/desktop package:dir` first) |
 | `pnpm check` | lint, typecheck, test, arch, perf and build: run before saying a task is done |
+
+## Installers and releases
+
+- `pnpm --filter @plotdevice/desktop package` builds the installers into `apps/desktop/dist/`: an AppImage and a
+  `.deb` on Linux, an NSIS installer on Windows (build each on its own system). `package:dir` builds only the
+  unpacked app, which is quicker and is what `pnpm e2e:packaged` tests.
+- The release identity is fixed (ADR 0001): app id `tech.moriel.plotdevice`, executable `plotdevice`, settings
+  folder `plotdevice`. Never change it: Windows upgrades and authors' settings depend on it.
+- **To release:** set the version in `apps/desktop/package.json`, commit, and push a tag such as `v0.2.0`. CI builds
+  the installers and attaches them to a **draft** release. Check the draft, then publish it yourself.
+- Windows installers aren't signed yet, so Windows shows an "unknown publisher" warning when installing.
 
 ## Troubleshooting
 

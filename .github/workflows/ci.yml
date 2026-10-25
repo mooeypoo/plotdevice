@@ -52,6 +52,12 @@ jobs:
       - name: Build the installers
         working-directory: apps/desktop
         run: pnpm exec electron-builder --publish never
+      - name: End-to-end tests on the packaged app (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run --auto-servernum pnpm e2e:packaged
+      - name: End-to-end tests on the packaged app (Windows)
+        if: runner.os == 'Windows'
+        run: pnpm e2e:packaged
       - name: Install, check and remove the .deb
         if: runner.os == 'Linux'
         working-directory: apps/desktop/dist
