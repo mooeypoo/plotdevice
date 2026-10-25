@@ -1,0 +1,21 @@
+export { chapterFileFor, matchRenamedChapters, projectFolderName, type ChapterFileWithId, type RenameSuggestion } from './chapter-files'
+export {
+  addChapter,
+  addPart,
+  chapterNumbers,
+  chaptersInOrder,
+  findOutdatedLinkText,
+  moveChapter,
+  removeChapter,
+  renameChapterLink,
+  renamePart,
+  replaceChapterFile,
+  type ChapterNumbering,
+  type Contents,
+  type ContentsChapter,
+  type ContentsEntry,
+  type ContentsPart,
+  type ManuscriptProblem,
+  type OutdatedLinkText,
+  type Placement,
+} from './manuscript'
