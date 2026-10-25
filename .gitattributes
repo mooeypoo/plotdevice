@@ -1,0 +1,2 @@
+# Fixtures are byte-exact test data (CRLF, BOM, no final newline). Git must never rewrite them.
+tests/fixtures/** -text

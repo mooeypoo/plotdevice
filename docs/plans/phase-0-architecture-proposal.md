@@ -1,6 +1,6 @@
 # Phase 0 Architecture Proposal
 
-Status: **Architecture approved in principle (2026-10-25).** Revision 2 records the owner's decisions after the independent review. No code has been scaffolded or installed. Spike A starts only after the owner approves §13.
+Status: **Phase 0 complete (2026-10-25).** All three spikes are done and their decisions are accepted ADRs 0003–0005; results and remaining checks are in `docs/spikes/README.md`. The architecture was approved in principle; revision 2 records the owner's decisions after the independent review. Later decisions (CodeMirror 6, Pandoc direction markers, dropping `write-file-atomic`) are in the ADRs, not in this document.
 Date: 2026-10-25 (rev. 2)
 Inputs: `AGENTS.md`, `CLAUDE.md`, `README.md`, `docs/PRD.md`, `docs/UX_SPEC.md`, `docs/DOMAIN_AND_FILE_FORMAT.md`, `docs/ARCHITECTURE.md`, `docs/DESIGN_SYSTEM.md`, `docs/IMPLEMENTATION_PLAN.md`, `docs/LEGACY_REPOSITORY_AUDIT.md`, `docs/COPY_FROM_LEGACY.md`, `assets/brand/`.
 
