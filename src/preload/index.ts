@@ -46,7 +46,7 @@ function invoke<T>(channel: string, ...args: readonly unknown[]): Promise<T> {
 }
 
 const plotDevice: PlotDeviceApi = {
-  contractVersion: 30,
+  contractVersion: 31,
   uiLanguage: {
     get: () => invoke<UiLanguageDto>(UI_LANGUAGE_CHANNELS.get),
     set: (locale) => invoke<ApiResult<UiLanguageDto>>(UI_LANGUAGE_CHANNELS.set, locale),
@@ -220,6 +220,8 @@ const plotDevice: PlotDeviceApi = {
         title,
         placement
       ),
+    addColumn: (path, version, title, placement) =>
+      invoke<ApiResult<PlotBoardDto>>(OUTLINE_CHANNELS.addColumn, path, version, title, placement),
     retitleBeat: (path, version, beat, title) =>
       invoke<ApiResult<PlotBoardDto>>(OUTLINE_CHANNELS.retitleBeat, path, version, beat, title),
     editNotes: (path, version, beat, notes) =>

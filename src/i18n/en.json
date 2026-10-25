@@ -706,5 +706,17 @@
   "workbench-more-panels": "More",
   "card-open": "Open",
   "inspector-story-when": "When in the story",
-  "inspector-add-cast": "+ Add characters or a place"
+  "inspector-add-cast": "+ Add characters or a place",
+  "error-outline-invalid-column": "A column name is one line of text, and can’t be only # marks.",
+  "error-outline-column-exists": "The board already has a column with that name.",
+  "board-add-column": "+ Add column",
+  "board-add-column-label": "New column’s name",
+  "board-added-column": "Column $1 added",
+  "board-create-part-offer": "No part is called $1 yet. Create one?",
+  "board-create-part": "Create part",
+  "board-no-thanks": "No thanks",
+  "board-keys-help": "Keyboard",
+  "palette-group-recent": "Recent",
+  "palette-group-suggested": "Suggested",
+  "palette-group-rest": "Everything else"
 }

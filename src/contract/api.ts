@@ -214,6 +214,13 @@ export interface OutlineApi {
     title: string,
     placement: OutlinePlacementDto
   ): Promise<ApiResult<PlotBoardDto>>
+  /** Adds a `##` column, before another column or at the end; returns the board as the file now reads. */
+  addColumn(
+    path: string,
+    version: string,
+    title: string,
+    placement: OutlinePlacementDto
+  ): Promise<ApiResult<PlotBoardDto>>
   /** Replaces a beat's title, as Markdown on one line. */
   retitleBeat(
     path: string,
@@ -282,7 +289,7 @@ export interface RecoveryApi {
  */
 export interface PlotDeviceApi {
   /** Incremented whenever this interface changes incompatibly. */
-  readonly contractVersion: 30
+  readonly contractVersion: 31
   readonly uiLanguage: UiLanguageApi
   readonly recovery: RecoveryApi
   readonly workspace: WorkspaceApi

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { addBeat } from './add-beat'
+import { addColumn } from './add-column'
 import { captureBeat } from './capture-beat'
 import { editNotes } from './edit-notes'
 import { moveBeat } from './move-beat'
@@ -166,5 +167,78 @@ describe('captureBeat', () => {
       value: '## One\n- A\n\n## רעיונות\n- רעיון\n'
     })
     expect(captureBeat('', inbox, 'First')).toEqual({ ok: true, value: '## רעיונות\n- First\n' })
+  })
+})
+
+describe('addColumn', () => {
+  it('adds a heading before another column, with a blank line after it, changing no other line', () => {
+    expect(addColumn(plan, 'Interlude', { before: ref(7, 'Two') })).toEqual({
+      ok: true,
+      value: body(
+        'Premise.',
+        '',
+        '## One',
+        '- Ferry #main',
+        '  - open on the water',
+        '- Ledger',
+        '',
+        '## Interlude',
+        '',
+        '## Two',
+        '- Cannery',
+        '- Foreman'
+      )
+    })
+  })
+
+  it('adds a heading after the last line, separated by a blank line', () => {
+    expect(addColumn(plan, 'Part Three', 'end')).toEqual({
+      ok: true,
+      value: body(
+        'Premise.',
+        '',
+        '## One',
+        '- Ferry #main',
+        '  - open on the water',
+        '- Ledger',
+        '',
+        '## Two',
+        '- Cannery',
+        '- Foreman',
+        '',
+        '## Part Three'
+      )
+    })
+  })
+
+  it('keeps Windows line endings and a file without a final line break', () => {
+    expect(addColumn('## One\r\n- Ferry', 'Two', 'end')).toEqual({
+      ok: true,
+      value: '## One\r\n- Ferry\r\n\r\n## Two'
+    })
+    expect(addColumn('', 'First', 'end')).toEqual({ ok: true, value: '## First\n' })
+  })
+
+  it('refuses a name another column has, in any case', () => {
+    expect(addColumn(plan, 'two', 'end')).toMatchObject({
+      ok: false,
+      error: { code: 'invalid-column', diagnostic: { reason: 'outline-column-exists' } }
+    })
+  })
+
+  it('refuses an empty name, several lines, or one that reads back as something else', () => {
+    for (const title of ['  ', 'a\nb', '#']) {
+      expect(addColumn(plan, title, 'end')).toMatchObject({
+        ok: false,
+        error: { diagnostic: { reason: 'outline-invalid-column' } }
+      })
+    }
+  })
+
+  it('refuses when the column it goes before is no longer there', () => {
+    expect(addColumn(plan, 'Interlude', { before: ref(8, 'Two') })).toMatchObject({
+      ok: false,
+      error: { code: 'outline-shape-changed' }
+    })
   })
 })

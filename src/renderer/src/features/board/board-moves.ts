@@ -73,6 +73,16 @@ export function columnDrop(
   }
 }
 
+/**
+ * Where a new column goes so the board shows it after the last column and before the Inbox,
+ * wherever the Inbox sits in the file (D5).
+ */
+export function newColumnPlacement(inFile: readonly BoardColumnDto[]): OutlinePlacementDto {
+  const lastColumn = inFile.findLastIndex((column) => !column.inbox)
+  const following = inFile[lastColumn + 1]
+  return following === undefined ? 'end' : { before: refOf(following) }
+}
+
 /** Which way a horizontal arrow goes in the board's visual order. */
 function step(key: string, direction: 'ltr' | 'rtl'): 1 | -1 {
   return (key === 'ArrowRight') === (direction === 'ltr') ? 1 : -1

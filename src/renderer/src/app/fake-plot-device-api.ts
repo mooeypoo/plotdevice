@@ -368,7 +368,7 @@ export function createFakePlotDeviceApi(): {
   >()
 
   const api: PlotDeviceApi = {
-    contractVersion: 30,
+    contractVersion: 31,
     uiLanguage: {
       get: () => Promise.resolve(language),
       set: (locale) => {
@@ -925,6 +925,8 @@ export function createFakePlotDeviceApi(): {
         moveBoard(path, version, `column ${column.title} → ${placementText(placement)}`),
       addBeat: (path, version, column, title, placement) =>
         moveBoard(path, version, `add ${title} → ${column.title} ${placementText(placement)}`),
+      addColumn: (path, version, title, placement) =>
+        moveBoard(path, version, `add column ${title} ${placementText(placement)}`),
       retitleBeat: (path, version, beat, title) =>
         moveBoard(path, version, `retitle ${beat.title} → ${title}`),
       editNotes: (path, version, beat, notes) =>

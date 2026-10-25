@@ -5,6 +5,7 @@ import { createCaptureBeat } from '../contexts/outline/application/commands/capt
 import { createCreateOutline } from '../contexts/outline/application/commands/create-outline'
 import { createMoveBeat } from '../contexts/outline/application/commands/move-beat'
 import { createAddBeat } from '../contexts/outline/application/commands/add-beat'
+import { createAddColumn } from '../contexts/outline/application/commands/add-column'
 import { createEditNotes } from '../contexts/outline/application/commands/edit-notes'
 import { createRetitleBeat } from '../contexts/outline/application/commands/retitle-beat'
 import { createMoveColumn } from '../contexts/outline/application/commands/move-column'
@@ -47,6 +48,7 @@ beforeEach(() => {
     moveBeat: createMoveBeat(ports),
     moveColumn: createMoveColumn(ports),
     addBeat: createAddBeat(ports),
+    addColumn: createAddColumn(ports),
     retitleBeat: createRetitleBeat(ports),
     editNotes: createEditNotes(ports)
   }
@@ -131,6 +133,24 @@ describe('outline handlers', () => {
     expect(await handlers.addBeat(['Plan.md', at(), one, 'x'.repeat(2001), 'end'])).toMatchObject({
       ok: false,
       error: { code: 'invalid-request' }
+    })
+  })
+
+  it('adds a column, refusing a name the board has and an oversized request', async () => {
+    await handlers.list()
+    const at = (): string => repository.get('Plan.md')?.version ?? ''
+    expect(await handlers.addColumn(['Plan.md', at(), 'Two', 'end'])).toMatchObject({ ok: true })
+    expect(repository.get('Plan.md')?.text).toBe('## One\n- Beat\n\n## Two\n')
+    expect(await handlers.addColumn(['Plan.md', at(), 'one', 'end'])).toMatchObject({
+      ok: false,
+      error: { diagnostic: { reason: 'outline-column-exists' } }
+    })
+    expect(await handlers.addColumn(['Plan.md', at(), 'x'.repeat(2001), 'end'])).toMatchObject({
+      ok: false,
+      error: { code: 'invalid-request' }
+    })
+    expect(await handlers.addColumn(['Plan.md', 'stale', 'Three', 'end'])).toMatchObject({
+      ok: false
     })
   })
 

@@ -6,6 +6,7 @@ import {
   splitMarkdownFile
 } from '../../../infrastructure/markdown/markdown-file'
 import { addBeat } from '../domain/add-beat'
+import { addColumn } from '../domain/add-column'
 import { captureBeat } from '../domain/capture-beat'
 import { editNotes } from '../domain/edit-notes'
 import { moveBeat } from '../domain/move-beat'
@@ -249,6 +250,19 @@ describe.each(FIXTURE_OUTLINES)('planners on %s', (path) => {
       expect(splitOutlineLines(noted)).toHaveLength(
         lines.length - (beat.notes.end - beat.notes.start) + 2
       )
+    }
+  })
+
+  it('adds a column before every column and at the end, without touching another line', () => {
+    for (const placement of [
+      'end' as const,
+      ...structure.columns.map((column) => ({ before: refOf(column) }))
+    ]) {
+      const added = value(addColumn(body, 'A new column \u05e2', placement))
+      expectOthersKept(body, added, [], ['## A new column \u05e2'])
+      const columns = readOutlineStructure(added).columns
+      expect(columns).toHaveLength(structure.columns.length + 1)
+      expect(columns.flatMap((c) => c.beats)).toHaveLength(beatCount)
     }
   })
 

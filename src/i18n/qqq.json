@@ -706,5 +706,17 @@
   "workbench-more-panels": "A tab in a side panel listing the panels that don't fit after the first three (F5). Short: it shows with a ▾.",
   "card-open": "Button on a card or peek that shows the entry on the page (glossary: Open). Its accessible name is codex-open-editor-label.",
   "inspector-story-when": "Heading of the collapsible Details group with the chapter's story date and story time; a short summary follows it.",
-  "inspector-add-cast": "Quiet button in Details for a chapter with no characters and no location yet; it shows both pickers (F7)."
+  "inspector-add-cast": "Quiet button in Details for a chapter with no characters and no location yet; it shows both pickers (F7).",
+  "error-outline-invalid-column": "Error when a new board column's name is empty, has several lines, or would not read back as the same ## heading. Keep ## and # as they are.",
+  "error-outline-column-exists": "Error when a new board column would have the same name as an existing column (case and Unicode form ignored).",
+  "board-add-column": "Quiet tile after the board's last column, before the Inbox: adds a ## heading to the outline (D5).",
+  "board-add-column-label": "Accessible name and placeholder of the field naming a new board column.",
+  "board-added-column": "Announcement after adding a board column. $1 is the isolated column name the writer typed.",
+  "board-create-part-offer": "Offer after adding a board column whose name no manuscript part has. $1 is the isolated column name. Nothing is created unless the writer chooses Create part.",
+  "board-create-part": "Button in the offer: creates a manuscript part with the new column's name.",
+  "board-no-thanks": "Button that dismisses the offer to create a part; nothing changes.",
+  "board-keys-help": "Accessible name of the ? button on the board that shows the keyboard hint.",
+  "palette-group-recent": "Go to… heading over the documents open in tabs, the one on the page first, shown before anything is typed.",
+  "palette-group-suggested": "Go to… heading over a few likely commands (the other mode, Focus, capture, the outline), shown before anything is typed.",
+  "palette-group-rest": "Go to… heading over the remaining views, layouts and commands, shown before anything is typed."
 }

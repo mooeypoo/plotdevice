@@ -15,6 +15,7 @@ export const SCENARIOS = [
   'board',
   'board-card-menu',
   'board-add-card',
+  'board-add-column',
   'capture',
   'appearance',
   'select-open',

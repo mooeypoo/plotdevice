@@ -4,7 +4,7 @@ import type { LineRange, OutlineBeat, OutlineColumn, OutlineStructure } from './
 
 /** Why an outline edit was refused. The text is unchanged. */
 export type OutlineEditError = DomainError<
-  'outline-shape-changed' | 'invalid-title' | 'invalid-notes'
+  'outline-shape-changed' | 'invalid-title' | 'invalid-notes' | 'invalid-column'
 >
 
 /**
@@ -26,6 +26,16 @@ export const shapeChanged = (): OutlineEditError =>
 
 export const invalidTitle = (): OutlineEditError =>
   domainError('invalid-title', 'A beat is one line of text.', { reason: 'outline-invalid-beat' })
+
+export const invalidColumn = (): OutlineEditError =>
+  domainError('invalid-column', 'A column is one line of text, written as a ## heading.', {
+    reason: 'outline-invalid-column'
+  })
+
+export const columnExists = (title: string): OutlineEditError =>
+  domainError('invalid-column', `The outline already has a column named ${title}.`, {
+    reason: 'outline-column-exists'
+  })
 
 export function findColumn(
   structure: OutlineStructure,
