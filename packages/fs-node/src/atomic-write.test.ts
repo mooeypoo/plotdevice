@@ -110,8 +110,10 @@ describe('writeAtomically', () => {
     const target = join(dir, 'chapter.md')
     await writeFile(target, 'ORIGINAL\n')
     const versionsSeen = new Set<string>()
-    for (const delay of [150, 230, 310, 190, 270, 350, 170, 290]) {
-      const child = spawn(process.execPath, [join(import.meta.dirname, 'write-loop.fixture.ts'), target], { stdio: 'ignore' })
+    for (const delay of [15, 45, 30, 60, 20, 50, 35, 25]) {
+      const child = spawn(process.execPath, [join(import.meta.dirname, 'write-loop.fixture.ts'), target], { stdio: ['ignore', 'pipe', 'ignore'] })
+      // Wait until it is writing: a busy machine can take longer than `delay` just to start Node.
+      await new Promise((resolve) => child.stdout.once('data', resolve))
       await new Promise((resolve) => setTimeout(resolve, delay))
       child.kill('SIGKILL')
       await new Promise((resolve) => child.on('exit', resolve))
