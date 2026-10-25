@@ -98,7 +98,13 @@ export const useProjectStore = defineStore('project', () => {
   const renameChapterFile = (file: ProjectPath, newName: string) => change(() => api.renameChapterFile(file, newName))
 
   api.onEvent((event) => {
-    if (event.kind === 'project-changed') setProject(event.project)
+    if (event.kind === 'project-opened') {
+      statuses.value = {}
+      opened.value = event.opened
+      notice.value = null
+      void refreshRecent()
+    } else if (event.kind === 'open-failed') tell(`open-failed-${event.error}`)
+    else if (event.kind === 'project-changed') setProject(event.project)
     else if (event.kind === 'save-status') statuses.value = { ...statuses.value, [event.file]: event.status }
   })
   void api.getOpenProject().then((current) => {

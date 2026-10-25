@@ -24,10 +24,12 @@ import {
 import { catalogs, createTranslator } from '@plotdevice/i18n'
 import { compileManuscript, createOutlineRepository, createProjectRepository, createReferenceRepository, createVersionRepository, withBackups } from '@plotdevice/storage'
 import { app, BrowserWindow, dialog, ipcMain, session } from 'electron'
-import { access } from 'node:fs/promises'
+import { access, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { createIpcHandlers } from './ipc'
+import { folderFromArgs } from './launch-folder'
+import { openedProject, openProblem } from './project-ipc'
 import { denyAllPermissions, hardenWebContents } from './security'
 import { enableSpellingMenu, spellcheckLanguages } from './spellcheck'
 import { hostEvent, outlineEvent } from './views'
@@ -40,6 +42,9 @@ const testUserData = app.isPackaged ? undefined : process.env.PLOTDEVICE_USER_DA
 if (!app.commandLine.hasSwitch('user-data-dir')) {
   app.setPath('userData', testUserData ?? join(app.getPath('appData'), app.isPackaged ? 'plotdevice' : 'plotdevice-dev'))
 }
+
+// One Plot Device at a time per settings folder: a second launch hands its folder to the running app.
+if (!app.requestSingleInstanceLock()) app.quit()
 
 const devServerUrl = process.env.ELECTRON_RENDERER_URL
 const indexFile = join(import.meta.dirname, '../renderer/index.html')
@@ -89,7 +94,22 @@ void app.whenReady().then(async () => {
   let tellPage: (event: HostEvent) => void = () => undefined
   const stopWatching = watchOpenProject(writing, outlines, () => tellPage({ kind: 'references-changed' }))
   pendingWork.push(stopWatching)
-  await reopenLastProject(writing, recent.current().projects[0]?.root)
+  /** Opens a folder given at launch ("Open with", or the command line), and remembers it. */
+  const openFolder = async (folder: string): Promise<HostEvent> => {
+    const isFolder = await stat(folder).then(
+      (info) => info.isDirectory(),
+      () => false,
+    )
+    if (!isFolder) return { kind: 'open-failed', error: 'not-a-project' }
+    const opened = await writing.openProject(folder)
+    if (!opened.ok) return { kind: 'open-failed', error: openProblem(opened.error) }
+    await recent.opened({ root: opened.value.root, title: opened.value.details.title })
+    return { kind: 'project-opened', opened: openedProject(opened.value, recent) }
+  }
+  const launchFolder = folderFromArgs(process.argv, app.getAppPath())
+  // A folder that fails to open is reported once the page is there to show it.
+  const launchProblem = launchFolder ? await openFolder(launchFolder) : null
+  if (!launchFolder) await reopenLastProject(writing, recent.current().projects[0]?.root)
 
   const window = new BrowserWindow({
     width: 1100,
@@ -181,6 +201,16 @@ void app.whenReady().then(async () => {
   for (const [channel, handle] of Object.entries(handlers)) {
     ipcMain.handle(channel, (event, payload: unknown) => handle({ url: event.senderFrame?.url, fromAppWindow: event.sender === window.webContents }, payload))
   }
+
+  window.webContents.once('did-finish-load', () => {
+    if (launchProblem?.kind === 'open-failed') tellPage(launchProblem)
+  })
+  app.on('second-instance', (_event, argv) => {
+    if (window.isMinimized()) window.restore()
+    window.focus()
+    const folder = folderFromArgs(argv, app.getAppPath())
+    if (folder) void openFolder(folder).then(tellPage)
+  })
 
   window.once('ready-to-show', () => window.show())
   await (devServerUrl ? window.loadURL(devServerUrl) : window.loadFile(indexFile))

@@ -1,7 +1,7 @@
 import type { ProjectPath, Result } from '@plotdevice/shared'
 import { z } from 'zod'
 import type { OutlineView } from './outline'
-import { projectPathSchema, type ProjectView } from './project'
+import { projectPathSchema, type OpenedProject, type ProjectView } from './project'
 
 /** Chapters well beyond any novel's: a guard against runaway payloads, not a writing limit. */
 const MAX_CHAPTER_CHARACTERS = 20_000_000
@@ -38,5 +38,8 @@ export type HostEvent =
   | { kind: 'outline-changed'; outline: OutlineView }
   /** Character, place or note pages were added, removed or changed. */
   | { kind: 'references-changed' }
+  /** A folder given at launch, or to a second launch, was opened. */
+  | { kind: 'project-opened'; opened: OpenedProject }
+  | { kind: 'open-failed'; error: 'not-a-project' | 'unreadable' | 'newer-format' }
   /** The app is closing: send any text still waiting to be saved. */
   | { kind: 'flush' }

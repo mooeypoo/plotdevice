@@ -52,11 +52,7 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
   const recentProjects = async (): Promise<RecentProjectView[]> =>
     Promise.all(recent.current().projects.map(async ({ root, title }) => ({ root, title, available: await context.folderExists(root) })))
 
-  /** The project, with where the author was in it last time. */
-  const withPosition = (snapshot: ProjectSnapshot): OpenedProject => {
-    const remembered = recent.current().projects.find((project) => project.root === snapshot.root)
-    return { project: projectView(snapshot), ...(remembered?.leftOff ? { leftOff: remembered.leftOff } : {}), ...(remembered?.place ? { place: remembered.place } : {}) }
-  }
+  const withPosition = (snapshot: ProjectSnapshot): OpenedProject => openedProject(snapshot, recent)
 
   const opened = async (snapshot: ProjectSnapshot): Promise<OpenedProject> => {
     await recent.opened({ root: snapshot.root, title: snapshot.details.title })
@@ -151,7 +147,13 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
   }
 }
 
-function openProblem(problem: OpenProblem): Exclude<OpenProjectResult, { ok: true }>['error'] {
+/** The project, with where the author was in it last time. */
+export function openedProject(snapshot: ProjectSnapshot, recent: RecentProjectsSession): OpenedProject {
+  const remembered = recent.current().projects.find((project) => project.root === snapshot.root)
+  return { project: projectView(snapshot), ...(remembered?.leftOff ? { leftOff: remembered.leftOff } : {}), ...(remembered?.place ? { place: remembered.place } : {}) }
+}
+
+export function openProblem(problem: OpenProblem): 'not-a-project' | 'newer-format' | 'unreadable' {
   switch (problem) {
     case 'not-a-project':
     case 'newer-format':
