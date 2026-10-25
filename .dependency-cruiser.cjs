@@ -45,7 +45,8 @@ module.exports = {
       'markdown-is-pure',
       'markdown: text in, text out. Its own source-mapped model, not domain types (ADR 0003); no file access',
       pkg('markdown'),
-      [pkg('markdown'), pkg('shared'), npm('yaml'), npm('micromark'), npm('mdast-util-from-markdown'), npm('@types/mdast')],
+      // `mdast` is the type-only @types/mdast package, reported by its bare name.
+      [pkg('markdown'), pkg('shared'), npm('yaml'), npm('micromark'), npm('mdast-util-from-markdown'), npm('@types/mdast'), '^mdast$'],
     ),
     onlyMayImport(
       'storage-reaches-files-through-ports',
