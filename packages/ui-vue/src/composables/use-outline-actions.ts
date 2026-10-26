@@ -52,9 +52,16 @@ export function useOutlineActions() {
     await focusItem(keyOf(at))
   }
 
+  /**
+   * The keyboard follows the moved card, unless the author went elsewhere while it was being saved
+   * (opened a menu, say): that focus is theirs, and moving it would close nothing they meant to close.
+   */
   async function move(from: ItemAt, to: ItemDestination | null): Promise<void> {
     if (!to) return
-    if (await story.edit({ kind: 'move-item', from, to }))
+    const before = document.activeElement
+    if (!(await story.edit({ kind: 'move-item', from, to }))) return
+    const now = document.activeElement
+    if (now === before || now === null || now === document.body)
       await focusItem(keyOf({ section: to.section, path: [...to.parentPath, to.index] }))
   }
 

@@ -142,8 +142,11 @@ test('an outline changed in another app reloads, and undo never overwrites that 
   await openStory(page)
   await card(page, 'The gate').focus()
   await page.keyboard.press('Alt+ArrowUp')
+  // The menu opens at once, while the move may still be saving: the move mustn't take the keyboard back.
   await page.getByTestId('outline-menu').click()
   await expect(page.getByTestId('menu-outline-undo')).toBeEnabled()
+  await file(MAIN).toContain('## Beginning\n\n- The gate, see [The Orchard Gate](../manuscript/the-orchard-gate.md)\n- Ilka crosses')
+  await expect(page.getByTestId('menu-outline-undo')).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('menu')).toHaveCount(0)
 
