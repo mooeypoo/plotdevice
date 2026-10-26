@@ -17,6 +17,10 @@ interface Language {
   /** A phrase in that chapter to select, and a character to look up on the shelf. */
   phrase: string
   character: string
+  /** That character's page, for the World screens. */
+  characterPage: string
+  /** A new item being typed, linking a character with @. */
+  linkTyping: string
   /** A book in another language, for "the interface in your language, the book in its own". */
   otherBook: string
   otherCrossing: string
@@ -28,6 +32,8 @@ const LANGUAGES: Record<string, Language> = {
     crossing: 'manuscript/the-crossing.md',
     phrase: 'a woman in a green coat',
     character: 'Bea',
+    characterPage: 'characters/bea.md',
+    linkTyping: 'Must meet @be',
     otherBook: 'מטע-המלח',
     otherCrossing: 'manuscript/המעבר.md',
   },
@@ -36,6 +42,8 @@ const LANGUAGES: Record<string, Language> = {
     crossing: 'manuscript/המעבר.md',
     phrase: 'אישה במעיל ירוק',
     character: 'בּיה',
+    characterPage: 'characters/ביה.md',
+    linkTyping: 'פוגשת את @בּ',
     otherBook: 'the-salt-orchard',
     otherCrossing: 'manuscript/the-crossing.md',
   },
@@ -174,6 +182,27 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await page.getByTestId('menu-link-to').click()
       await snapAround(page, lang, 'link-picker', theme, [page.locator('.link-picker')], 0)
       await page.keyboard.press('Escape')
+
+      await page.getByTestId('view-outline').click()
+      await page.locator('[data-item="0/0"]').hover()
+      await snap(page, lang, 'story-list', theme)
+      await page.getByTestId('add-card').first().click()
+      await page.getByTestId('editable-text').waitFor()
+      await page.keyboard.type(language.linkTyping)
+      await page.getByTestId('item-suggestions').waitFor()
+      await snapAround(page, lang, 'item-link', theme, [page.locator('.item-field'), page.getByTestId('item-suggestions')])
+      await page.keyboard.press('Escape')
+      await page.keyboard.press('Escape')
+      await page.getByTestId('view-board').click()
+
+      await page.locator('[data-gallery="character"]').click()
+      await snap(page, lang, 'world-gallery', theme)
+      await page.locator(`[data-page="${language.characterPage}"]`).click()
+      await page.getByTestId('linked-from').locator('.linked-entry').first().waitFor()
+      await snap(page, lang, 'page-connections', theme)
+      await page.getByTestId('show-on-board').first().click()
+      await page.getByTestId('showing-about').waitFor()
+      await snap(page, lang, 'show-on-board', theme)
       await app.close()
 
       const welcome = await open(lang, theme)

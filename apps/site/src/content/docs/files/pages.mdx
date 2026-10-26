@@ -1,6 +1,6 @@
 ---
 title: Character, place and note pages
-description: How a character, place or note is written, and how other names are found.
+description: How a character, place or note is written, how other names are found, and how relationships are kept.
 ---
 
 A page is a file in `characters/`, `places/` or `notes/`. The folder says what it is.
@@ -12,6 +12,11 @@ aka: [Aunt Bea, Bea]
 ---
 Ilka's aunt, who stayed in Marrow when everyone else left.
 
+## Relationships
+
+- Aunt of [Ilka](ilka.md)
+- Waits at [the Ferry Landing](../places/ferry-landing.md)
+
 ## Habits
 Counts the trees aloud. Never sits with her back to the river.
 ```
@@ -21,4 +26,10 @@ Counts the trees aloud. Never sits with her back to the river.
 - The first paragraph is the **description**. Everything after it is the **details**.
 - Links to other pages are ordinary Markdown links. Plot Device also reads Obsidian's `[[Bea]]` links, but never writes them.
 
-Plot Device never rewrites a page to fit; renaming it changes only its `title`.
+## Relationships
+
+A heading called `Relationships` (or `קשרים`, at any level) holds a list. Each item with a link is one relationship: the words say what it is, the link says with whom. The words can go anywhere: `[Noël](noel.md)'s rival` works too. Items without a link are kept as written, and nested items are details of the item above.
+
+A relationship goes one way. Plot Device shows it on the other page under "Linked from", and never writes it into that page.
+
+Plot Device never rewrites a page to fit. Renaming it changes only its `title`; adding, rewording or removing a relationship changes only that item, and the first one adds the heading after the description.

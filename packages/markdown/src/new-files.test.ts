@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { readFrontmatter } from './frontmatter'
-import { newChapterFile, newContentsFile, newProjectFile } from './new-files'
+import { newChapterFile, newContentsFile, newOutlineFile, newProjectFile } from './new-files'
 
 describe('new files, exactly as DOMAIN_AND_FILE_FORMAT.md shows them', () => {
   it('project.md', () => {
@@ -32,5 +32,17 @@ describe('new files, exactly as DOMAIN_AND_FILE_FORMAT.md shows them', () => {
   it('a chapter, with an optional first text', () => {
     expect(newChapterFile('The Crossing', 'ch-k3f9q2')).toBe('---\ntitle: The Crossing\nid: ch-k3f9q2\n---\n')
     expect(newChapterFile('Frost', 'ch-1', 'It began.\n')).toBe('---\ntitle: Frost\nid: ch-1\n---\nIt began.\n')
+  })
+})
+
+describe('a new outline', () => {
+  it('is just its title, or starts with a link to the page it is about', () => {
+    expect(newOutlineFile('Main story')).toBe('# Main story\n')
+    expect(newOutlineFile('Bea’s arc', { path: '../characters/bea-halmi.md', title: 'Bea Halmi' })).toBe(
+      '# Bea’s arc\n\n[Bea Halmi](../characters/bea-halmi.md)\n',
+    )
+    expect(newOutlineFile('הקשת של יעל', { path: '../characters/my yael.md', title: 'יעל [צעירה]' })).toBe(
+      '# הקשת של יעל\n\n[יעל \\[צעירה\\]](<../characters/my yael.md>)\n',
+    )
   })
 })

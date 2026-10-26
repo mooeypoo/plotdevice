@@ -51,8 +51,16 @@ const demos = [
     chapters: 7,
     notInBook: ['manuscript/a-scene-for-later.md'],
     pages: { character: 3, place: 3, note: 3 },
+    outlines: ['outlines/main-story.md', 'outlines/the-arc-of-ilka.md'],
   },
-  { name: 'מטע-המלח', language: 'he', chapters: 5, notInBook: [], pages: { character: 3, place: 2, note: 2 } },
+  {
+    name: 'מטע-המלח',
+    language: 'he',
+    chapters: 5,
+    notInBook: [],
+    pages: { character: 3, place: 2, note: 2 },
+    outlines: ['outlines/העלילה.md', 'outlines/הקשת של אילקה.md'],
+  },
 ]
 
 describe.each(demos)('the demo novel $name', (demo) => {
@@ -69,7 +77,7 @@ describe.each(demos)('the demo novel $name', (demo) => {
     expect(snapshot.contents.entries.some((entry) => entry.kind === 'part')).toBe(true)
   })
 
-  it('has characters, places and notes, and an outline whose cards link to them', async () => {
+  it('has characters with relationships, places and notes, and outlines whose cards link to them', async () => {
     const { root, references, outlines } = await open(demo.name)
     const pages = await references.listReferences(root)
     for (const [kind, count] of Object.entries(demo.pages))
@@ -78,7 +86,9 @@ describe.each(demos)('the demo novel $name', (demo) => {
         kind,
       ).toHaveLength(count)
     expect(pages.filter((page) => !page.description)).toEqual([])
-    expect(await outlines.listOutlines(root)).toHaveLength(1)
+    // The main story opens first; a character's arc outline comes after it.
+    expect((await outlines.listOutlines(root)).map((outline) => outline.file)).toEqual(demo.outlines)
+    expect(pages.filter((page) => page.kind === 'character' && page.relationships.length === 0)).toEqual([])
     const linked = (await references.cardLinks(root)).flatMap((card) => card.links)
     expect(linked.some((file) => file.startsWith('characters/'))).toBe(true)
     expect(linked.some((file) => file.startsWith('places/'))).toBe(true)

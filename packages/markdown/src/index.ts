@@ -42,3 +42,11 @@ export type {
 } from './outline-model'
 export { readOutline } from './read-outline'
 export { newReferencePage, readReferencePage, type ReferencePage } from './reference-page'
+export {
+  editRelationships,
+  readRelationships,
+  type PageRelationships,
+  type RelationshipEdit,
+  type RelationshipEditProblem,
+  type RelationshipSource,
+} from './relationships'

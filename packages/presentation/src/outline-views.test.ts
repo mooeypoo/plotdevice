@@ -1,7 +1,17 @@
 import type { OutlineItemView, OutlineView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { boardColumns, boardDrop, cardMoves, cardsInOrder, inlineSpans, outlineRows } from './outline-views'
+import {
+  boardColumns,
+  boardDrop,
+  cardMoves,
+  indentedLine,
+  inlineSpans,
+  lineContext,
+  newLineAfter,
+  outdentedLine,
+  outlineRows,
+} from './outline-views'
 
 const item = (text: string, children: OutlineItemView[] = [], options: Partial<OutlineItemView> = {}): OutlineItemView => ({
   text,
@@ -65,14 +75,43 @@ describe('the outline view', () => {
   })
 })
 
-describe('the cards view', () => {
-  it('shows every card in reading order, labelled with its section', () => {
-    expect(cardsInOrder(outline).map((card) => [card.section, card.item.text])).toEqual([
-      ['Beginning', 'Ilka arrives'],
-      ['Beginning', 'The frost'],
-      ['Middle', 'Stuck'],
-      ['Middle', 'The ledger'],
-    ])
+describe('typing new lines in the list', () => {
+  const rows = outlineRows(outline, new Set())
+  const to = (section: number, parentPath: number[], index: number) => ({ section, parentPath, index })
+
+  it('shows a new line after everything inside the item above it, under its parent, or at the section start', () => {
+    expect(newLineAfter(rows, to(0, [], 1))).toBe('0/0/0/0') // after "Ilka arrives" and all its details
+    expect(newLineAfter(rows, to(0, [], 2))).toBe('0/1')
+    expect(newLineAfter(rows, to(0, [0], 0))).toBe('0/0') // the first detail: right under its card
+    expect(newLineAfter(rows, to(0, [], 0))).toBeNull()
+    expect(newLineAfter(rows, to(2, [], 0))).toBeNull() // an empty section
+    // A collapsed card hides its details, so the line follows the card itself.
+    expect(newLineAfter(outlineRows(outline, new Set(['0/0'])), to(0, [], 1))).toBe('0/0')
+  })
+
+  it('Tab makes the line the last detail of the item above; not for the first line', () => {
+    expect(indentedLine(outline, to(0, [], 1))).toEqual(to(0, [0], 1)) // "Ilka arrives" already has one detail
+    expect(indentedLine(outline, to(0, [], 2))).toEqual(to(0, [1], 0))
+    expect(indentedLine(outline, to(0, [0], 1))).toEqual(to(0, [0, 0], 1))
+    expect(indentedLine(outline, to(0, [], 0))).toBeNull()
+  })
+
+  it('Shift+Tab moves the line out one level, right after its parent; not for a card', () => {
+    expect(outdentedLine(to(0, [0], 1))).toEqual(to(0, [], 1))
+    expect(outdentedLine(to(0, [0, 0], 0))).toEqual(to(0, [0], 1))
+    expect(outdentedLine(to(0, [], 3))).toBeNull()
+  })
+
+  it('knows what the line belongs to: its parent, and the item above that Tab would nest it under', () => {
+    expect(lineContext(outline, to(0, [], 2))).toEqual({ parent: null, above: 'The frost' })
+    expect(lineContext(outline, to(0, [0], 1))).toEqual({ parent: 'Ilka arrives', above: 'With one suitcase' })
+    expect(lineContext(outline, to(2, [], 0))).toEqual({ parent: null, above: null })
+  })
+
+  it('Tab then Shift+Tab puts the line back where it was', () => {
+    const start = to(1, [], 2)
+    const indented = indentedLine(outline, start)
+    expect(indented && outdentedLine(indented)).toEqual(start)
   })
 })
 
@@ -123,6 +162,13 @@ describe('card text, shown formatted but never as HTML', () => {
 
   it('keeps markup it does not know, and HTML, as plain text', () => {
     expect(inlineSpans('<b>not bold</b> and \\*not italic\\*')).toEqual([{ kind: 'text', text: '<b>not bold</b> and *not italic*' }])
+  })
+
+  it('reads a link whose path has spaces, written in angle brackets', () => {
+    expect(inlineSpans('השער נעול, ראו [שער המטע](<../manuscript/שער המטע.md>)')).toEqual([
+      { kind: 'text', text: 'השער נעול, ראו ' },
+      { kind: 'link', text: 'שער המטע', target: '<../manuscript/שער המטע.md>' },
+    ])
   })
 
   it('handles Hebrew and wikilinks as text', () => {

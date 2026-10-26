@@ -1,20 +1,28 @@
 <script setup lang="ts">
 import type { OutlineItemView } from '@plotdevice/contracts'
-import { keyOf, type ItemAt } from '@plotdevice/presentation'
+import { keyOf, linkTextOnly, type ItemAt } from '@plotdevice/presentation'
 import { dirnameOf } from '@plotdevice/shared'
 import { computed } from 'vue'
 import { useFollowLink } from '../composables/use-follow-link'
 import { useOutlineActions } from '../composables/use-outline-actions'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
-import EditableText from './EditableText.vue'
+import ItemTextField from './ItemTextField.vue'
 import InlineText from './InlineText.vue'
 import KeptAsWritten from './KeptAsWritten.vue'
 import MenuButton from './MenuButton.vue'
 
 // On the board, the column takes drops and `drop` shows where one would land; elsewhere, a card
 // dropped on a card goes before it.
-const props = defineProps<{ item: OutlineItemView; at: ItemAt; label?: string | null; board?: boolean; drop?: 'before' | 'after' | null }>()
+const props = defineProps<{
+  item: OutlineItemView
+  at: ItemAt
+  label?: string | null
+  board?: boolean
+  drop?: 'before' | 'after' | null
+  /** "Show on the board": this card links to the page (`out`), or doesn't (`faded`). */
+  picked?: 'out' | 'faded' | null
+}>()
 const story = useStoryStore()
 const settings = useSettingsStore()
 const actions = useOutlineActions()
@@ -31,6 +39,19 @@ function onDrop(event: DragEvent): void {
   actions.dropBefore(props.at)
 }
 const editing = computed(() => story.editing?.kind === 'item' && story.editing.key === key.value)
+/** A detail being added to this card, typed in place under its details. */
+const addingDetail = computed(() => {
+  const line = story.editing
+  return (
+    line?.kind === 'new-line' &&
+    line.to.section === props.at.section &&
+    keyOf({ section: 0, path: line.to.parentPath }) === keyOf({ section: 0, path: props.at.path })
+  )
+})
+const cardName = computed(() => {
+  const text = linkTextOnly(props.item.text)
+  return text.length > 28 ? `${text.slice(0, 27).trimEnd()}…` : text
+})
 const detailCount = computed(() => {
   const count = (item: OutlineItemView): number => item.children.reduce((sum, child) => sum + 1 + count(child), 0)
   return count(props.item)
@@ -40,10 +61,10 @@ const detailCount = computed(() => {
 <template>
   <article
     class="outline-card"
-    :class="[{ locked: !item.movable, lifted }, drop ? `drop-${drop}` : '']"
+    :class="[{ locked: !item.movable, lifted }, drop ? `drop-${drop}` : '', picked ? `picked-${picked}` : '']"
     tabindex="0"
     :data-item="key"
-    :draggable="item.movable && !editing"
+    :draggable="item.movable && !editing && !addingDetail"
     :aria-label="item.text"
     @keydown.self="actions.onItemKey($event, at, item)"
     @dblclick="story.editing = { kind: 'item', key }"
@@ -55,7 +76,7 @@ const detailCount = computed(() => {
     <p v-if="label !== undefined" class="card-section secondary" dir="auto">{{ label ?? t('outline-unnamed-section') }}</p>
     <div class="card-head">
       <span v-if="item.checked !== null" class="checkbox" aria-hidden="true">{{ item.checked ? '☑' : '☐' }}</span>
-      <EditableText v-if="editing" :value="item.text" :label="t('prompt-card-text')" @commit="actions.commitItem(at, item, $event)" />
+      <ItemTextField v-if="editing" :value="item.text" :label="t('prompt-card-text')" @commit="actions.commitItem(at, item, $event)" />
       <InlineText v-else class="card-text" :text="item.text" follow-links @follow="follow(fromDir, $event)" />
       <span v-if="!item.movable" class="lock" role="img" :aria-label="t('locked-item')" :title="t('locked-item')">🔒</span>
       <MenuButton :label="t('item-actions', item.text)" :items="actions.itemMenu(at, item)" />
@@ -66,6 +87,15 @@ const detailCount = computed(() => {
       </li>
       <li v-if="detailCount > 3" class="secondary">{{ t('details-count', detailCount) }}</li>
     </ul>
+    <ItemTextField
+      v-if="addingDetail"
+      class="card-new-detail"
+      value=""
+      :label="t('line-new-detail', cardName)"
+      :placeholder="t('line-new-detail', cardName)"
+      bare
+      @commit="actions.commitLine"
+    />
     <KeptAsWritten v-for="(block, index) in item.keptAsWritten" :key="`kept-${index}`" :text="block" />
   </article>
 </template>

@@ -6,20 +6,29 @@ import type {
   OutlineView,
   ReferenceKind,
   ReferenceSummaryView,
+  RelationshipChangeRequest,
 } from '@plotdevice/contracts'
+import { cardKey, type ItemDestination } from '@plotdevice/presentation'
 import type { ProjectPath } from '@plotdevice/shared'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useApi } from '../api'
 import { useProjectStore } from './project'
 
-/** What is being typed in place: an item's text, a section's name, or a new card or section. */
+/**
+ * What is being typed in place: an item's text, a section's name, a new card on the board, a new line
+ * in the list (with what was typed so far, kept when Tab moves it), or a new section.
+ */
 export type Editing =
   | { kind: 'item'; key: string }
   | { kind: 'section'; section: number }
   | { kind: 'new-card'; section: number }
+  | { kind: 'new-line'; to: ItemDestination; draft: string }
   | { kind: 'new-section' }
   | null
+
+export type Showing =
+  { kind: 'outline' } | { kind: 'gallery'; of: ReferenceKind } | { kind: 'page'; file: ProjectPath } | { kind: 'manuscript' }
 
 const MESSAGE: Partial<Record<OutlineProblem, string>> = {
   'changed-elsewhere': 'outline-changed-elsewhere',
@@ -37,8 +46,10 @@ export const useStoryStore = defineStore('story', () => {
   const collapsed = ref(new Set<string>())
   const editing = ref<Editing>(null)
   const references = ref<ReferenceSummaryView[]>([])
-  /** What the Story workspace shows: an outline, a character, place or note page, or the book's chapters. */
-  const showing = ref<{ kind: 'outline' } | { kind: 'page'; file: ProjectPath } | { kind: 'manuscript' }>({ kind: 'outline' })
+  /** What the Story workspace shows: an outline, one kind of page as a gallery, one page, or the book's chapters. */
+  const showing = ref<Showing>({ kind: 'outline' })
+  /** "Show on the board": the open outline's cards that link to a page stand out, and the rest fade. */
+  const about = ref<{ file: ProjectPath; title: string; cards: Set<string> } | null>(null)
 
   async function refresh(): Promise<void> {
     ;[outlines.value, references.value] = await Promise.all([api.listOutlines(), api.listReferences()])
@@ -85,13 +96,36 @@ export const useStoryStore = defineStore('story', () => {
 
   async function open(file: ProjectPath): Promise<void> {
     showing.value = { kind: 'outline' }
-    if (outline.value?.file !== file) collapsed.value = new Set()
+    if (outline.value?.file !== file) {
+      collapsed.value = new Set()
+      about.value = null
+    }
     settle(await api.openOutline(file))
   }
 
-  async function create(title: string): Promise<void> {
+  /** A new outline; `about` a page (a character's arc), which the outline starts by linking to. */
+  async function create(title: string, aboutPage?: ProjectPath): Promise<void> {
     showing.value = { kind: 'outline' }
-    if (settle(await api.createOutline(title))) await refresh()
+    about.value = null
+    if (settle(await api.createOutline(title, aboutPage))) await refresh()
+  }
+
+  /** Opens `file` on the board with the cards that link to `page` picked out. */
+  async function showOnBoard(file: ProjectPath, page: { file: ProjectPath; title: string }): Promise<void> {
+    const linked = await api.linkedFrom(page.file)
+    await open(file)
+    if (outline.value?.file !== file) return
+    const cards = linked.cards.filter((card) => card.outline === file).map((card) => cardKey(card.section, card.card))
+    about.value = { file: page.file, title: page.title, cards: new Set(cards) }
+  }
+
+  /** Adds, rewords or removes one relationship on a page; tells the author when it couldn't be done. */
+  async function editRelationship(file: ProjectPath, change: RelationshipChangeRequest): Promise<boolean> {
+    const result = await api.editRelationship(file, change)
+    await refresh()
+    if (!result.ok && result.error !== 'empty-text')
+      project.tell(result.error === 'stale' ? 'relationship-changed-elsewhere' : 'reference-failed')
+    return result.ok
   }
 
   async function edit(request: OutlineEditRequest): Promise<boolean> {
@@ -108,6 +142,14 @@ export const useStoryStore = defineStore('story', () => {
     // When another app changed the file, the outline has already been reloaded (`outline-changed`).
     if (result.ok) outline.value = result.value
     else project.tell(result.error === 'changed-elsewhere' ? 'outline-undo-refused' : 'outline-failed')
+  }
+
+  /** Shows what is inside an item, if it was folded. */
+  function expand(key: string): void {
+    if (!collapsed.value.has(key)) return
+    const next = new Set(collapsed.value)
+    next.delete(key)
+    collapsed.value = next
   }
 
   function toggle(key: string): void {
@@ -128,12 +170,16 @@ export const useStoryStore = defineStore('story', () => {
     editing,
     references,
     showing,
+    about,
     refresh,
+    showOnBoard,
+    editRelationship,
     open,
     create,
     edit,
     undo,
     toggle,
+    expand,
     createReference,
     renameReference,
     renameReferenceFile,

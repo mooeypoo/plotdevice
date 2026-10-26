@@ -3,6 +3,7 @@ import {
   createChapterEditor,
   type ChapterEditor,
   type EditorSettings,
+  type FoldedSection,
   type FormatCommand,
   type SelectionPlace,
 } from '@plotdevice/editor-codemirror'
@@ -25,7 +26,10 @@ export type ChapterState = 'none' | 'loading' | 'ready' | 'missing' | 'unreadabl
  * host after a pause in typing, and at once on a chapter switch, when the window loses focus, and
  * before the app closes. Each save carries the generation of the text it was typed into.
  */
-export function useChapterWriting(host: Ref<HTMLElement | null>, options: { remembersPosition: boolean } = { remembersPosition: true }) {
+export function useChapterWriting(
+  host: Ref<HTMLElement | null>,
+  options: { remembersPosition: boolean; foldedSection?: FoldedSection } = { remembersPosition: true },
+) {
   const api = useApi()
   const store = useProjectStore()
   const settings = useSettingsStore()
@@ -152,6 +156,7 @@ export function useChapterWriting(host: Ref<HTMLElement | null>, options: { reme
       onSelection: (place) => {
         selection.value = place
       },
+      ...(options.foldedSection ? { foldedSection: options.foldedSection } : {}),
     })
     stopEvents = api.onEvent(onHostEvent)
     window.addEventListener('blur', onBlur)

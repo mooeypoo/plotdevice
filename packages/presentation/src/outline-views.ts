@@ -76,11 +76,48 @@ export function outlineRows(outline: OutlineView, collapsed: ReadonlySet<string>
   return rows
 }
 
-/** Cards: every card in reading order, labelled with its section. */
-export function cardsInOrder(outline: OutlineView): { section: string | null; item: OutlineItemView; path: ItemAt }[] {
-  return outline.sections.flatMap((section, sectionIndex) =>
-    section.items.map((item, index) => ({ section: section.name, item, path: { section: sectionIndex, path: [index] } })),
-  )
+/**
+ * List: the row a new line being typed at `to` follows, or `null` at the start of its section. It sits
+ * after everything shown inside the sibling before it, or right under its parent.
+ */
+export function newLineAfter(rows: readonly OutlineRow[], to: ItemDestination): string | null {
+  const before = to.index > 0 ? keyOf({ section: to.section, path: [...to.parentPath, to.index - 1] }) : null
+  if (before === null) return to.parentPath.length === 0 ? null : keyOf({ section: to.section, path: to.parentPath })
+  const inside = rows.filter((row) => row.key === before || row.key.startsWith(`${before}/`))
+  return inside.at(-1)?.key ?? before
+}
+
+/** Tab on a new line: it becomes the last detail of the item above it. `null` when nothing is above. */
+export function indentedLine(outline: OutlineView, to: ItemDestination): ItemDestination | null {
+  if (to.index === 0) return null
+  const parentPath = [...to.parentPath, to.index - 1]
+  const above = itemAt(outline, { section: to.section, path: parentPath })
+  return above ? { section: to.section, parentPath, index: above.children.length } : null
+}
+
+/**
+ * What a new line in the list belongs to, to name it while it's typed: its parent (a detail of it),
+ * and the item above it, which Tab would make it a detail of. Texts as they read, links as names.
+ */
+export function lineContext(outline: OutlineView, to: ItemDestination): { parent: string | null; above: string | null } {
+  const textAt = (path: number[]): string | null => {
+    const item = itemAt(outline, { section: to.section, path })
+    return item
+      ? inlineSpans(item.text)
+          .map((span) => span.text)
+          .join('')
+      : null
+  }
+  return {
+    parent: to.parentPath.length > 0 ? textAt(to.parentPath) : null,
+    above: to.index > 0 ? textAt([...to.parentPath, to.index - 1]) : null,
+  }
+}
+
+/** Shift+Tab on a new line: it moves out one level, right after its parent. `null` for a card. */
+export function outdentedLine(to: ItemDestination): ItemDestination | null {
+  const parent = to.parentPath.at(-1)
+  return parent === undefined ? null : { section: to.section, parentPath: to.parentPath.slice(0, -1), index: parent + 1 }
 }
 
 export interface CardMoves {
@@ -144,7 +181,7 @@ export type InlineSpan = { kind: 'text' | 'em' | 'strong' | 'code'; text: string
 
 // One alternative per kind; the first that matches at a position wins. Wikilinks (`[[…]]`) stay text.
 const INLINE =
-  /\\([\\`*_[\]()#+\-.!>])|`([^`\n]+)`|(?<!\[)\[([^[\]\n]+)\]\(([^()\s]+)(?:\s+"[^"]*")?\)|\*\*(?=\S)([^*\n]+?)(?<=\S)\*\*|__(?=\S)([^_\n]+?)(?<=\S)__|\*(?=\S)([^*\n]+?)(?<=\S)\*|(?<![\p{L}\p{N}])_(?=\S)([^_\n]+?)(?<=\S)_(?![\p{L}\p{N}])/gu
+  /\\([\\`*_[\]()#+\-.!>])|`([^`\n]+)`|(?<!\[)\[([^[\]\n]+)\]\((<[^<>\n]+>|[^()\s<]+)(?:\s+"[^"]*")?\)|\*\*(?=\S)([^*\n]+?)(?<=\S)\*\*|__(?=\S)([^_\n]+?)(?<=\S)__|\*(?=\S)([^*\n]+?)(?<=\S)\*|(?<![\p{L}\p{N}])_(?=\S)([^_\n]+?)(?<=\S)_(?![\p{L}\p{N}])/gu
 
 /**
  * A card's text as spans to show formatted: bold, italic, links and code. Everything else, HTML

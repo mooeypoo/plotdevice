@@ -363,9 +363,16 @@ label {
   inset-inline-start: auto;
   inset-inline-end: 0;
 }
-.menu-list.above {
-  inset-block-start: auto;
-  inset-block-end: calc(100% + 0.35rem);
+/* Menus are fixed to the window, placed by MenuButton beside their button; hidden until measured. */
+.menu-list {
+  position: fixed;
+  inset: auto;
+  z-index: 60;
+  overflow-y: auto;
+  visibility: hidden;
+}
+.menu-list.placed {
+  visibility: visible;
 }
 .menu-list [role='menuitem'] {
   display: flex;
@@ -633,10 +640,6 @@ label {
 .navigator .row:focus-within .menu-button,
 .navigator .menu-button[aria-expanded='true'] {
   opacity: 1;
-}
-.navigator .menu-list {
-  inset-inline-start: auto;
-  inset-inline-end: 0;
 }
 .navigator-section {
   margin-block-start: 1rem;
@@ -1141,27 +1144,263 @@ button.outline-title:hover:not(:disabled) {
 .card-details li::marker {
   color: var(--color-mark);
 }
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-  gap: 1rem;
-  padding-block: 0.25rem;
-}
-.cards-grid .outline-card {
-  min-block-size: 7rem;
-}
 .list-section {
   margin-block-end: 1.25rem;
   max-inline-size: 48rem;
 }
+/*
+ * The list: each row is gutter (fold arrow), bullet, text. A row's level is where its bullet is:
+ * items ● in one column, details ○ one step in, with a thin line down from their item.
+ */
+.outline-list {
+  --step: 1.5rem;
+  --gutter: 1.2rem;
+  --bullet: 1rem;
+}
 .list-row {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.3rem;
-  padding-block: 0.2rem;
-  padding-inline-start: calc(var(--depth, 0) * 1.4rem);
+  padding-block: 0.15rem;
+  padding-inline-start: calc(var(--depth, 0) * var(--step));
   border-radius: 8px;
+}
+.list-row > .inline-text,
+.list-row > .item-field {
+  flex: 1;
+  min-inline-size: 0;
+  padding-block: 0.1rem;
+}
+.list-row.level-detail {
+  --item-font: var(--font-ui);
+  --item-font-size: 0.95rem;
+}
+.row-gutter {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  inline-size: var(--gutter);
+  margin-inline-end: -0.3rem;
+}
+.row-gutter .toggle {
+  padding: 0;
+  inline-size: var(--gutter);
+  block-size: 1.6rem;
+  opacity: 0;
+}
+.list-row:hover .toggle,
+.list-row:focus-within .toggle,
+.list-row.collapsed .toggle {
+  opacity: 1;
+}
+.bullet {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--bullet);
+  block-size: 1.6rem;
+}
+.level-detail .bullet {
+  block-size: 1.45rem;
+}
+.bullet::before {
+  content: '';
+  inline-size: 0.42rem;
+  block-size: 0.42rem;
+  border-radius: 50%;
+  background: var(--color-mark);
+}
+.level-detail .bullet::before {
+  inline-size: 0.38rem;
+  block-size: 0.38rem;
+  background: none;
+  border: 1.5px solid var(--color-mark);
+}
+/* A folded item's bullet has a halo: there is more inside it. */
+.list-row.collapsed .bullet::before {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-mark) 30%, transparent);
+}
+/* The thin line down from an item, beside its details, under its bullet. */
+.list-row.level-detail::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc((var(--depth) - 1) * var(--step) + var(--gutter) - 0.3rem + var(--bullet) / 2 + 0.3rem);
+  inline-size: 1px;
+  background: var(--hair-strong);
+}
+/* The row under the pointer (or the keyboard) is lightly shaded, so "+ Detail" at its far end clearly belongs to it. */
+.list-row[data-item]:hover,
+.list-row[data-item]:focus-within {
+  background: color-mix(in srgb, var(--color-text) 4%, transparent);
+}
+/* Controls on a row show on hover or keyboard focus, as in the sidebar. */
+.list-row > .menu .menu-button {
+  opacity: 0;
+}
+.list-row:hover > .menu .menu-button,
+.list-row:focus-within > .menu .menu-button,
+.list-row > .menu .menu-button[aria-expanded='true'] {
+  opacity: 1;
+}
+/* A card's or item's text being edited: its links show as names, and @ offers pages to link. */
+.item-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-inline-size: 12rem;
+}
+.item-field-box {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding-block: 0.35rem;
+  padding-inline: 0.6rem 0.3rem;
+  background: var(--color-card);
+  border: 1.5px solid var(--color-focus);
+  border-radius: 9px;
+}
+.item-editor {
+  flex: 1;
+  min-inline-size: 0;
+}
+.item-link-button {
+  flex: none;
+  border: none;
+  background: none;
+  padding: 0.2rem;
+  border-radius: 6px;
+  color: var(--color-text-secondary);
+}
+.item-link-button:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--color-text);
+}
+.item-suggestions {
+  position: fixed;
+  z-index: 50;
+  min-inline-size: 16rem;
+  max-block-size: 18rem;
+  overflow: auto;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  background: var(--color-card);
+  border-radius: 10px;
+  box-shadow: var(--shadow-pop);
+}
+.item-suggestions li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.item-suggestions li.selected,
+.item-suggestions li:hover {
+  background: var(--color-well);
+}
+
+/* A detail being added inside a board card, under its details. */
+.card-new-detail {
+  margin-block-start: 0.45rem;
+  --item-font: var(--font-ui);
+  --item-font-size: 0.9rem;
+}
+/* "+ Detail" on a row, on hover or keyboard focus. */
+.list-row .add-detail {
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  opacity: 0;
+}
+.list-row .add-detail::before {
+  content: '+ ';
+  color: var(--color-mark);
+  font-weight: 600;
+}
+.list-row:hover > .add-detail,
+.list-row:focus-within > .add-detail {
+  opacity: 1;
+}
+.list-row .add-detail:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--color-text);
+}
+.line-keys {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+/* A line being typed in the list: a row like the others, with a soft underline instead of a box. */
+.item-field.bare .item-field-box {
+  padding: 0 0 0.1rem;
+  background: none;
+  border: none;
+  border-block-end: 1.5px solid var(--color-focus);
+  border-radius: 0;
+}
+/* "+ Add item": a faint row, its + in the item bullets' column. "+ Add section" likewise, at the end. */
+.add-line {
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  margin-block-start: 0.15rem;
+  padding-block: 0.25rem;
+  padding-inline: var(--gutter, 1.2rem) 0.5rem;
+  gap: 0.3rem;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text-secondary);
+  text-align: start;
+}
+.add-line::before {
+  content: '+';
+  display: inline-block;
+  inline-size: var(--bullet, 1rem);
+  text-align: center;
+  color: var(--color-mark);
+  font-weight: 600;
+}
+.add-line:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--color-text);
+}
+.add-line.add-section {
+  margin-block-start: 0.5rem;
+  padding-inline-start: 0;
+  max-inline-size: 48rem;
+}
+/* In the list, a section's quiet + sits right after its name; its ⋯ stays at the end. */
+.list-section .column-head h3 {
+  flex: none;
+}
+.list-section .column-head > .menu {
+  margin-inline-start: auto;
+}
+/* The quiet + beside a section's name adds an item at its end, like "+ Add item" below it. */
+.add-item-top {
+  border: none;
+  background: none;
+  padding: 0.05rem 0.45rem;
+  border-radius: 6px;
+  color: var(--color-mark);
+  font-weight: 600;
+  opacity: 0.55;
+}
+.add-item-top:hover:not(:disabled),
+.add-item-top:focus-visible {
+  opacity: 1;
+  background: var(--hover);
 }
 .list-row .is-card {
   font-family: var(--font-prose);
@@ -1172,9 +1411,6 @@ button.outline-title:hover:not(:disabled) {
   background: none;
   padding: 0 0.25rem;
   color: var(--color-text-secondary);
-}
-.toggle-space {
-  inline-size: 1.3rem;
 }
 .lock {
   font-size: 0.8rem;
@@ -1237,6 +1473,310 @@ button.inline-link {
 }
 .link-picker [role='option'].selected {
   background: var(--color-well);
+}
+
+/* The Story sidebar's two groups: Plot and World. */
+.story-group + .story-group {
+  margin-block-start: 1.5rem;
+}
+.group-heading {
+  margin: 0.6rem 0 0.35rem;
+  padding-inline: 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.story-group .chapter .count {
+  margin-inline-start: auto;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+/* The views belong to the outline, so they sit right after its title. */
+.outline-head .outline-title {
+  margin-inline-end: 0.5rem;
+}
+
+/* "Show on the board": the page's cards stand out in gold, the others fade. */
+.outline-card.picked-out {
+  box-shadow:
+    0 0 0 2px var(--color-mark),
+    var(--shadow-soft);
+}
+.outline-card.picked-faded {
+  opacity: 0.35;
+}
+.outline-card.picked-faded:focus-visible,
+.outline-card.picked-faded:hover {
+  opacity: 0.8;
+}
+.about-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-block: 0.25rem;
+  padding-inline: 0.85rem 0.3rem;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 0.88rem;
+}
+.about-clear {
+  border: none;
+  border-radius: 50%;
+  inline-size: 1.6rem;
+  block-size: 1.6rem;
+  padding: 0;
+  background: color-mix(in srgb, var(--color-on-accent) 15%, transparent);
+  color: var(--color-on-accent);
+}
+.about-clear:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-on-accent) 30%, transparent);
+}
+
+/* World: one kind of page as cards. */
+.world-gallery {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  flex: 1;
+}
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
+  max-inline-size: 64rem;
+  margin: 0;
+  padding: 0.25rem 0 0;
+  list-style: none;
+}
+.gallery > li {
+  display: flex;
+}
+.page-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
+  min-block-size: 9rem;
+  padding: 1rem 1.1rem;
+  border: none;
+  border-radius: 14px;
+  background: var(--color-card);
+  box-shadow: var(--shadow-soft);
+  color: var(--color-text);
+  text-align: start;
+}
+.page-card:hover:not(:disabled) {
+  background: var(--color-card);
+  box-shadow:
+    0 0 0 2px var(--color-mark),
+    var(--shadow-soft);
+}
+.page-card-title {
+  font:
+    600 1.15rem/1.3 var(--font-prose),
+    serif;
+}
+.page-card-aka {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+.page-card-description {
+  font-size: 0.9rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.page-card-relationships {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-block-start: auto;
+  padding-block-start: 0.55rem;
+  border-block-start: 1px solid var(--hair);
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+}
+.page-card.new-page {
+  align-items: center;
+  justify-content: center;
+  background: none;
+  box-shadow: none;
+  border: 1.5px dashed var(--hair-strong);
+  color: var(--color-text-secondary);
+}
+.page-card.new-page::before {
+  content: '+';
+  color: var(--color-mark);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+.page-card.new-page:hover:not(:disabled) {
+  background: none;
+  border-color: var(--color-mark);
+  box-shadow: none;
+  color: var(--color-text);
+}
+/* "‹ Characters", back from a page to its gallery. */
+.crumb {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  padding: 0.2rem 0.4rem;
+  margin-inline-start: -0.4rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+.crumb::before {
+  content: '‹ ';
+}
+[dir='rtl'] .crumb::before {
+  content: '› ';
+}
+.crumb:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--color-text);
+}
+
+/* A page: its text, and beside it the Connections panel. */
+.reference-page .toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.reference-page .toolbar .outline-title {
+  margin-inline-end: 0;
+}
+.page-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+.page-main {
+  flex: 999 1 26rem;
+  min-inline-size: 0;
+}
+.connections {
+  flex: 1 1 16rem;
+  max-inline-size: 22rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-block-start: 1.6rem;
+}
+.connection-box {
+  padding: 0.85rem 1rem;
+  background: var(--color-card);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+}
+.connection-box h2 {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.connection-box ul {
+  margin: 0 0 0.25rem;
+  padding: 0;
+  list-style: none;
+}
+.connection-box li.row {
+  justify-content: space-between;
+  padding-block: 0.25rem;
+  border-block-end: 1px solid var(--hair);
+}
+.connection-box li.row:last-child {
+  border-block-end: none;
+}
+.connection-box .menu-button {
+  border-color: transparent;
+  background: none;
+  color: var(--color-text-secondary);
+  padding: 0.1rem 0.4rem;
+}
+.connection-box .add-link {
+  padding-inline: 0;
+}
+.linked-group + .linked-group {
+  margin-block-start: 0.75rem;
+}
+.linked-group h3 {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+.linked-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  inline-size: calc(100% + 1rem);
+  margin-inline: -0.5rem;
+  padding: 0.35rem 0.5rem;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text);
+  text-align: start;
+}
+.linked-entry small {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+.linked-entry:hover:not(:disabled) {
+  background: var(--hover);
+}
+.show-on-board {
+  border: none;
+  background: none;
+  padding: 0.2rem 0;
+  color: var(--color-accent);
+  font-size: 0.88rem;
+}
+.show-on-board::before {
+  content: '› ';
+  color: var(--color-mark);
+}
+[dir='rtl'] .show-on-board::before {
+  content: '‹ ';
+}
+.show-on-board:hover:not(:disabled) {
+  background: none;
+  text-decoration: underline;
+}
+.start-arc {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.7rem 1rem;
+  border: 1.5px dashed var(--hair-strong);
+  border-radius: 12px;
+  background: none;
+  color: var(--color-text-secondary);
+  text-align: start;
+}
+.start-arc > span::before {
+  content: '+ ';
+  color: var(--color-mark);
+  font-weight: 600;
+}
+.start-arc small {
+  font-size: 0.8rem;
+}
+.start-arc:hover:not(:disabled) {
+  background: none;
+  border-color: var(--color-mark);
+  color: var(--color-text);
 }
 
 /* Pages */

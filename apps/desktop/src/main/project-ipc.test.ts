@@ -7,6 +7,7 @@ import {
   type VersionsView,
   type OpenChapterResult,
   type ReferenceResult,
+  type ReferencePageView,
   type ReferenceSummaryView,
   type OpenProjectResult,
   type OutlineResult,
@@ -301,8 +302,8 @@ describe('outline calls', () => {
   it('remembers the workspace, outline and view for next time', async () => {
     const context = await setup()
     await openChosen(context)
-    await context.call(channels.rememberPlace, { workspace: 'story', outline: MAIN, view: 'cards' })
-    expect(await context.call(channels.getOpenProject)).toMatchObject({ place: { workspace: 'story', outline: MAIN, view: 'cards' } })
+    await context.call(channels.rememberPlace, { workspace: 'story', outline: MAIN, view: 'outline' })
+    expect(await context.call(channels.getOpenProject)).toMatchObject({ place: { workspace: 'story', outline: MAIN, view: 'outline' } })
     await expect(context.call(channels.rememberPlace, { workspace: 'Story' })).rejects.toThrow('invalid-payload')
   })
 })
@@ -358,6 +359,83 @@ describe('reference calls', () => {
     expect(renamed.ok && renamed.value.title).toBe('Marrow, the town')
     expect(await context.read('places/marrow.md')).toBe('---\ntitle: Marrow, the town\n---\nWhere the orchard is, by the river.\n')
     expect(context.session.saveStatus(created.value.file)?.kind).toBe('saved')
+  })
+
+  it('adds a relationship to a page open in the editor: the editor shows it, and saving carries on', async () => {
+    const context = await setup()
+    await openChosen(context)
+    for (const title of ['Bea Halmi', 'Ilka Varga']) await context.call(channels.createReference, { kind: 'character', title })
+    const BEA = 'characters/bea-halmi.md' as ProjectPath
+    const page = (await context.call(channels.openChapter, { file: BEA })) as OpenChapterResult
+    if (!page.ok) throw new Error(page.error)
+    await context.call(channels.saveChapter, {
+      file: BEA,
+      text: 'Ilka’s aunt.\n\n## Habits\nCounts the trees.\n',
+      generation: page.value.generation,
+    })
+
+    const added = (await context.call(channels.editRelationship, {
+      file: BEA,
+      change: { kind: 'add', text: 'Aunt of [Ilka Varga](ilka-varga.md)' },
+    })) as ReferenceResult<ReferencePageView>
+    expect(added.ok && added.value.relationships).toEqual([
+      { text: 'Aunt of [Ilka Varga](ilka-varga.md)', links: ['characters/ilka-varga.md'] },
+    ])
+    const reloaded = context.events.filter((e) => e.kind === 'chapter-reloaded').at(-1)
+    expect(reloaded).toMatchObject({
+      file: BEA,
+      text: expect.stringContaining('## Relationships\n\n- Aunt of [Ilka Varga](ilka-varga.md)\n\n## Habits') as string,
+    })
+    // The author keeps typing in the page: no conflict, and the relationship stays.
+    await context.call(channels.saveChapter, {
+      file: BEA,
+      text: 'Ilka’s aunt, who stayed.\n\n## Relationships\n\n- Aunt of [Ilka Varga](ilka-varga.md)\n\n## Habits\nCounts the trees.\n',
+      // The editor carries on from the text it was handed.
+      generation: reloaded?.kind === 'chapter-reloaded' ? reloaded.generation : -1,
+    })
+    await context.session.idle()
+    expect(context.session.saveStatus(BEA)?.kind).toBe('saved')
+    expect(await context.read(BEA)).toContain('who stayed.\n\n## Relationships\n\n- Aunt of [Ilka Varga](ilka-varga.md)\n')
+
+    await expect(
+      context.call(channels.editRelationship, { file: 'manuscript/frost.md', change: { kind: 'remove', index: 0 } }),
+    ).rejects.toThrow('invalid-payload')
+    expect(await context.call(channels.editRelationship, { file: BEA, change: { kind: 'remove', index: 3 } })).toEqual({
+      ok: false,
+      error: 'missing',
+    })
+  })
+
+  it('lists what links to a page: cards, pages with their relationships to it, and chapters; never by name alone', async () => {
+    const context = await setup()
+    await openChosen(context)
+    for (const title of ['Bea Halmi', 'Ilka Varga']) await context.call(channels.createReference, { kind: 'character', title })
+    await context.call(channels.editRelationship, {
+      file: 'characters/bea-halmi.md',
+      change: { kind: 'add', text: 'Aunt of [Ilka](ilka-varga.md)' },
+    })
+    await writeFile(
+      join(context.root, 'outlines/arcs.md'),
+      '## Ilka\n\n- Ilka Varga arrives\n- She crosses\n  - With [Ilka](../characters/ilka-varga.md)\n',
+    )
+    await writeFile(
+      join(context.root, 'manuscript/frost.md'),
+      '---\ntitle: Frost\n---\nThe frost, and [Ilka](../characters/ilka-varga.md).\n',
+    )
+
+    expect(await context.call(channels.linkedFrom, { file: 'characters/ilka-varga.md' })).toEqual({
+      cards: [
+        {
+          outline: 'outlines/arcs.md',
+          outlineTitle: null,
+          section: 'Ilka',
+          card: 'She crosses',
+          links: [],
+        },
+      ],
+      pages: [{ file: 'characters/bea-halmi.md', kind: 'character', title: 'Bea Halmi', relationships: ['Aunt of [Ilka](ilka-varga.md)'] }],
+      chapters: [{ file: 'manuscript/frost.md', title: 'Frost' }],
+    })
   })
 
   it('remembers the pinned shelf, and reads only pages', async () => {

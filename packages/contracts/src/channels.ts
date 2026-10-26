@@ -30,6 +30,8 @@ export const channels = {
   renameReference: 'plotdevice:rename-reference',
   renameReferenceFile: 'plotdevice:rename-reference-file',
   cardsAbout: 'plotdevice:cards-about',
+  editRelationship: 'plotdevice:edit-relationship',
+  linkedFrom: 'plotdevice:linked-from',
   getShelf: 'plotdevice:get-shelf',
   setShelf: 'plotdevice:set-shelf',
   listVersions: 'plotdevice:list-versions',

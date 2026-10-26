@@ -18,5 +18,5 @@
 
 ## End
 
-- Bea's secret: who wrote in the ledger
+- [Bea](../characters/bea.md)'s secret: who wrote in the ledger
 - The orchard is sold, but not for money, see [Epilogue](../manuscript/epilogue.md)

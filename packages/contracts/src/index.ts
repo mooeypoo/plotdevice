@@ -72,18 +72,22 @@ export {
 export {
   chapterLinksSchema,
   createReferenceSchema,
+  editRelationshipSchema,
   referenceFileSchema,
   referenceKindSchema,
   renameReferenceFileSchema,
   renameReferenceSchema,
   shelfSchema,
   type CardLinksView,
+  type LinkedFromView,
   type LinkTargetView,
   type ReferenceKind,
   type ReferencePageView,
   type ReferenceProblem,
   type ReferenceResult,
   type ReferenceSummaryView,
+  type RelationshipChangeRequest,
+  type RelationshipView,
 } from './references'
 export {
   restoreVersionSchema,

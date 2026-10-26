@@ -25,14 +25,18 @@ export const outlineFileSchema = z.strictObject({
   file: projectPathSchema.refine((file) => file.startsWith('outlines/') && file.endsWith('.md')),
 })
 export const editOutlineSchema = z.strictObject({ file: outlineFileSchema.shape.file, edit: outlineEditSchema })
-export const createOutlineSchema = z.strictObject({ title: line })
+/** `about`: a character, place or note the outline is about; it starts with a link to that page. */
+export const createOutlineSchema = z.strictObject({
+  title: line,
+  about: projectPathSchema.refine((file) => /^(characters|places|notes)\/.+\.md$/.test(file)).optional(),
+})
 
 /**
  * The workspace the author is in. `story` is a fixed internal ID, never shown: the workspace's name
  * comes only from the message catalogs, so it can be renamed without touching code or saved settings.
  */
 export const workspaceSchema = z.enum(['write', 'story'])
-export const outlineViewKindSchema = z.enum(['board', 'outline', 'cards'])
+export const outlineViewKindSchema = z.enum(['board', 'outline'])
 export const placeSchema = z.strictObject({
   workspace: workspaceSchema,
   outline: outlineFileSchema.shape.file.optional(),

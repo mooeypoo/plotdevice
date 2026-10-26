@@ -1,12 +1,12 @@
 ---
-title: 'Outlines: board, list and cards'
-description: Plan the story in outlines, and see each one as a board, a list or a set of cards.
+title: 'Outlines: board and list'
+description: Plan the story in outlines, and see each one as a board or a list.
 ---
 
 import Ui from '~/components/Ui.astro'
 import Shot from '~/components/Shot.astro'
 
-An outline is a plan you can rearrange: the main plot, one character's arc, a list of loose ideas. A book can have as many as you like, and none at all is fine.
+An outline is a plan you can rearrange: the main plot, one character's arc, a list of loose ideas. A book can have as many as you like, and none at all is fine. Outlines are under **<Ui k="story-plot" />**, the first half of **<Ui k="workspace-story" />**; characters, places and notes are under **<Ui k="story-world" />** (see [Characters, places and notes](/plotdevice/planning/pages/)).
 
 <Shot name="story" alt="An outline on a board: Beginning, Middle and End" />
 
@@ -14,13 +14,23 @@ An outline is a plan you can rearrange: the main plot, one character's arc, a li
 
 In **<Ui k="workspace-story" />**, choose **+ <Ui k="story-new-outline" />** and give it a title. Click the title at any time to rename it.
 
-## Three ways to see it
+## Two ways to see it
 
 - **<Ui k="view-board" />**: each section is a column of cards.
 - **<Ui k="view-outline" />**: everything as one indented list, with details folded in and out.
-- **<Ui k="view-cards" />**: every card side by side, labelled with its section.
 
-They are three views of the same outline. A change in one is a change in all.
+They are two views of the same outline. A change in one is a change in both. The switch is beside the outline's title, because it belongs to the outline.
+
+## Add in the list
+
+<Shot name="story-list" alt="The outline as a list, with + Add item under each section" />
+
+- Every row has a bullet, and where the bullet is says what it is: items **●**, and their details **○**, one step in, with a thin line down from their item. A folded item's bullet has a halo; its arrow opens it.
+- **+ <Ui k="outline-add-item" />**, under a section, starts a new item at its end. The quiet **+** beside the section's name does the same. **+ <Ui k="outline-add-section" />** is at the bottom.
+- Hover an item (or reach it with the keyboard) for **+ <Ui k="outline-detail" />**, which adds a detail to it.
+- A new line shows its bullet where it will land, and says what it is: "New item", or "New detail of …". The line under it says what **Tab** would make it.
+- While typing a new line: **Enter** keeps it and starts the next one, **Tab** makes it a detail of the line above, **Shift+Tab** brings it back out, and **Esc** stops.
+- To link a character, place, note or chapter while typing, type **@** and the start of its name, then choose it. See [Linking](/plotdevice/planning/linking/).
 
 ## Undo, rename and versions
 

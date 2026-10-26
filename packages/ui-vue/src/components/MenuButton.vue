@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref } from 'vue'
+import { menuPlacement } from '@plotdevice/presentation'
 import AppIcon from './AppIcon.vue'
 import type { MenuItem } from './menu'
 
@@ -15,35 +16,50 @@ const props = defineProps<{
   heading?: string
 }>()
 const open = ref(false)
-/** Set when the list would run past the window's edge: it then opens the other way. */
-const flipped = ref(false)
-const above = ref(false)
+/** Where the list is, fixed to the window so no scrolling area or bar hides it; `null` until measured. */
+const place = ref<{ top: number; left: number; maxHeight: number } | null>(null)
 const button = ref<HTMLButtonElement | null>(null)
 const menu = ref<HTMLElement | null>(null)
 
 const entries = (): HTMLButtonElement[] => [...(menu.value?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])') ?? [])]
 
 async function show(): Promise<void> {
-  flipped.value = false
-  above.value = false
+  place.value = null
   open.value = true
   await nextTick()
   keepInWindow()
+  await nextTick() // shown once placed; only then can it take focus
   entries()[0]?.focus()
   document.addEventListener('pointerdown', onOutside, true)
+  window.addEventListener('resize', onMoved)
+  document.addEventListener('scroll', onMoved, true)
 }
 
-/** Opens the list towards the inside of the window, so no edge of the screen hides it. */
+/** Opens the list below the button, or above it when there's more room there, inside the window. */
 function keepInWindow(): void {
-  const box = menu.value?.getBoundingClientRect()
-  if (!box) return
-  flipped.value = box.right > window.innerWidth - 8 || box.left < 8
-  above.value = box.bottom > window.innerHeight - 8 && box.height < (button.value?.getBoundingClientRect().top ?? 0)
+  const list = menu.value
+  const at = button.value?.getBoundingClientRect()
+  if (!list || !at) return
+  const rtl = getComputedStyle(list).direction === 'rtl'
+  const { top, left, maxHeight } = menuPlacement(
+    at,
+    { width: list.offsetWidth, height: list.scrollHeight },
+    { width: window.innerWidth, height: window.innerHeight },
+    { align: props.align ?? 'start', rtl },
+  )
+  place.value = { top, left, maxHeight }
+}
+
+/** The page moved under an open list (scrolling, a resized window): the list follows its button. */
+function onMoved(): void {
+  if (open.value) keepInWindow()
 }
 
 function close(returnFocus = true): void {
   open.value = false
   document.removeEventListener('pointerdown', onOutside, true)
+  window.removeEventListener('resize', onMoved)
+  document.removeEventListener('scroll', onMoved, true)
   if (returnFocus) button.value?.focus()
 }
 
@@ -70,7 +86,11 @@ function onKey(event: KeyboardEvent): void {
   event.stopPropagation()
 }
 
-onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside, true))
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', onOutside, true)
+  window.removeEventListener('resize', onMoved)
+  document.removeEventListener('scroll', onMoved, true)
+})
 defineExpose({ show })
 </script>
 
@@ -96,7 +116,8 @@ defineExpose({ show })
       v-if="open"
       ref="menu"
       class="menu-list"
-      :class="{ 'align-end': (props.align === 'end') !== flipped, above }"
+      :class="{ placed: place !== null }"
+      :style="place ? { top: `${place.top}px`, left: `${place.left}px`, maxHeight: `${place.maxHeight}px` } : undefined"
       role="menu"
       :aria-label="props.label"
       @keydown="onKey"

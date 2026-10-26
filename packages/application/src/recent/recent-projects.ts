@@ -24,7 +24,7 @@ export interface LeftOff extends ChapterPosition {
 export interface Place {
   workspace: 'write' | 'story'
   outline?: ProjectPath
-  view?: 'board' | 'outline' | 'cards'
+  view?: 'board' | 'outline'
 }
 
 export interface RecentProject {
@@ -116,7 +116,8 @@ function withPosition(
 function parsePlace(value: unknown): Place | null {
   if (!isRecord(value) || (value.workspace !== 'write' && value.workspace !== 'story')) return null
   const outline = typeof value.outline === 'string' ? parseProjectPath(value.outline) : null
-  const view = value.view === 'board' || value.view === 'outline' || value.view === 'cards' ? value.view : undefined
+  // Cards was a third view until Milestone 11; a project left in it reopens on the Board.
+  const view = value.view === 'board' || value.view === 'cards' ? 'board' : value.view === 'outline' ? 'outline' : undefined
   return { workspace: value.workspace, ...(outline?.ok ? { outline: outline.value } : {}), ...(view ? { view } : {}) }
 }
 

@@ -83,3 +83,37 @@ export function markdownLink(fromDir: string, target: ProjectPath, title: string
   const destination = /[\s()<>]/.test(path) ? `<${path}>` : path
   return `[${title.replace(/([[\]\\])/g, '\\$1')}](${destination})`
 }
+
+/** One kind of page for its gallery, A to Z in the interface's language (Milestone 11, decision 6). */
+export function galleryPages(
+  references: readonly ReferenceSummaryView[],
+  kind: ReferenceSummaryView['kind'],
+  locale: string,
+): ReferenceSummaryView[] {
+  const collator = new Intl.Collator(locale, { sensitivity: 'base', numeric: true })
+  return references.filter((reference) => reference.kind === kind).sort((a, b) => collator.compare(a.title, b.title))
+}
+
+const WIKI = /\[\[([^\]|#\n]+)(?:#[^\]|\n]*)?(?:\|([^\]\n]*))?\]\]/g
+const LINK = /!?\[((?:\\.|[^\]\\\n])*)\]\((?:<[^>\n]*>|[^\s)]+)(?:[ \t]+"[^"\n]*")?\)/g
+
+/** "Sister of [Bea](bea.md)" as it reads: "Sister of Bea". Links become their text; other marks stay. */
+export function linkTextOnly(text: string): string {
+  return text
+    .replace(LINK, (_match, label: string) => label.replace(/\\([[\]\\])/g, '$1'))
+    .replace(WIKI, (_match, name: string, alias: string | undefined) => (alias ?? name).trim())
+}
+
+/**
+ * A relationship the app can reword: words, then one link at the end, as the app writes them
+ * ("Sister of [Bea](bea.md)"). Anything else is `null`, and is changed in the page's text instead.
+ */
+export function relationshipWords(text: string): { words: string; link: string } | null {
+  const links = [...text.matchAll(LINK), ...text.matchAll(WIKI)]
+  const only = links.length === 1 ? links[0] : undefined
+  if (!only || only.index + only[0].length !== text.trimEnd().length) return null
+  return { words: text.slice(0, only.index).trim(), link: only[0] }
+}
+
+/** Picks out an outline's cards on the board: the same card by its section and text. */
+export const cardKey = (section: string | null, card: string): string => `${section ?? ''}\n${card}`

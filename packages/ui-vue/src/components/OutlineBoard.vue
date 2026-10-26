@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { OutlineView } from '@plotdevice/contracts'
-import { boardColumns, boardDrop } from '@plotdevice/presentation'
+import { boardColumns, boardDrop, cardKey } from '@plotdevice/presentation'
 import { computed, ref } from 'vue'
 import { useOutlineActions } from '../composables/use-outline-actions'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
 import EditableText from './EditableText.vue'
+import ItemTextField from './ItemTextField.vue'
 import KeptAsWritten from './KeptAsWritten.vue'
 import MenuButton from './MenuButton.vue'
 import OutlineCard from './OutlineCard.vue'
@@ -44,6 +45,13 @@ function onDrop(): void {
   target.value = null
   if (at) actions.dropAt(at.section, at.before)
   else actions.dragging.value = null
+}
+
+/** With "Show on the board", a card linking to the page stands out and the others fade. */
+function picked(section: string | null, text: string): 'out' | 'faded' | null {
+  const about = story.about
+  if (!about) return null
+  return about.cards.has(cardKey(section, text)) ? 'out' : 'faded'
 }
 
 /** Which side of this card shows the line: above it for its own gap, below the last card for the end. */
@@ -89,11 +97,12 @@ function dropSide(section: number, index: number): 'before' | 'after' | null {
           board
           :data-index="entry.path.path[0]"
           :drop="dropSide(index, entry.path.path[0] ?? 0)"
+          :picked="picked(column.name, entry.item.text)"
         />
         <p v-else-if="entry.kind === 'group'" class="group-label" dir="auto">{{ entry.text }}</p>
         <KeptAsWritten v-else :text="entry.text" />
       </template>
-      <EditableText
+      <ItemTextField
         v-if="story.editing?.kind === 'new-card' && story.editing.section === index"
         value=""
         :label="t('prompt-card-text')"
