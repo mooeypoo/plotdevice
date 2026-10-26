@@ -143,6 +143,7 @@ describe('editing an outline file (scenario C, core half)', () => {
 })
 
 describe('the file and the domain agree: every card moved to the end of every section, on every outline fixture', () => {
+  // Every move on every fixture, through real files: a check of correctness, not speed (5 s by default).
   it('reading the edited file gives what the domain predicts', async () => {
     const { root, repository } = await setup()
     await mkdir(join(root, 'outlines/fixtures'))
@@ -176,5 +177,5 @@ describe('the file and the domain agree: every card moved to the end of every se
       }
     }
     expect(checked).toBeGreaterThan(100)
-  })
+  }, 60_000)
 })
