@@ -52,6 +52,7 @@ defineExpose({ close })
       :aria-expanded="open"
       :data-testid="props.testid"
       @click="open ? close() : show()"
+      @keydown.esc="open && close()"
     >
       <slot name="button" />
     </button>

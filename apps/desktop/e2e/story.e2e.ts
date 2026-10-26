@@ -142,6 +142,7 @@ test('an outline changed in another app reloads, and undo never overwrites that 
   await page.getByTestId('outline-menu').click()
   await expect(page.getByTestId('menu-outline-undo')).toBeEnabled()
   await page.keyboard.press('Escape')
+  await expect(page.getByRole('menu')).toHaveCount(0)
 
   const theirs = '# Main story\n\n## Rewritten elsewhere\n\n- A new card from another app\n'
   await writeFile(join(root, MAIN), theirs)

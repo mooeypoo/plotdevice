@@ -88,6 +88,7 @@ defineExpose({ show })
       :data-testid="props.testid"
       @click="open ? close() : show()"
       @keydown.down.prevent="show()"
+      @keydown.esc="open && close()"
     >
       <slot>{{ props.text }}<AppIcon v-if="props.text === undefined" name="more" /></slot>
     </button>

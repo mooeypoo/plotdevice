@@ -54,6 +54,12 @@ test('the book menu and the app menu work by keyboard, and close on Escape or a 
   await expect(page.getByTestId('menu-settings')).toBeVisible()
   await page.locator('.cm-content').click()
   await expect(page.getByRole('menu')).toHaveCount(0)
+
+  // Escape closes a menu even before the keyboard has moved into it (still on its button).
+  await page.getByTestId('app-menu').click()
+  await page.getByTestId('app-menu').focus()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('menu')).toHaveCount(0)
 })
 
 test('selecting text offers formatting beside it, and Bold bolds the selection', async () => {
