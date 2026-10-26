@@ -120,11 +120,11 @@ Plot Device looks corporate and square, and shows about fifteen bordered buttons
 | Icons in the formatting menu | Every format and direction command has an icon (bold, lists, scene break, paragraph and selection direction). |
 | About: the author, the documentation, the logo | About shows the logo, "Made by Moriel Schottlender" linking to https://moriel.tech, and "Help and documentation" linking to https://mooeypoo.github.io/plotdevice/ (also in the app menu). Only these two sites open, in the person's browser; every other link stays refused (`external-links.ts`, unit-tested). |
 | Board: dragging seemed not to work | It worked, but a card dropped on another card went *before* it, so dropping on the card below changed nothing. Now each card's top half means "before it" and its bottom half "after it", a gold line shows the gap while dragging, and the dragged card fades. |
-| Drag and drop in the chapter list | The same, with the same line. Below a part's last chapter is inside the part; above the next entry is outside it. A chapter dragged from "Not in the book yet" goes into the book where it's dropped. |
+| Drag and drop in the chapter list | The same, with the same line. Below a part's last chapter is inside the part; above the next entry is outside it. A chapter dragged from "On the side" goes into the book where it's dropped. |
 | References search: something to start from | Focusing the empty search lists up to eight pages, characters first, then places and notes, leaving out what's already on the shelf. |
 | A dedicated pin button | Each reference card has a pin toggle (gold when pinned); pinning left the `⋯` menu. |
 | Menus cut off at the window's edge | Every menu and panel measures itself on opening and opens the other way, or upwards, when it would run past the window's edge. |
-| "Remove from book" sounds final | Now "Set aside" ("הנחה בצד"). One name for the action and the section is the owner's next choice. |
+| "Remove from book" sounds final | Now "Move for later" ("שמירה להמשך"), and the section it goes to is "On the side" ("בצד"), owner's choice. |
 | Reference details showed raw Markdown | Details now show as formatted text: headings, paragraphs, lists, quotes and code (`detailBlocks`, unit-tested), with links underlined; never as HTML. |
 
 **Tests:** 824 unit tests (17 new: where a dropped chapter or card lands, and which links may open); 56 end-to-end tests (6 new: reference details shown formatted, a card and a chapter dragged with the line showing, the search's starting list, a menu kept inside the window, About's links and the formatting icons). Turning off the menu's flip makes its test fail. One older test now drops on a card's top half, as the new rule asks.
