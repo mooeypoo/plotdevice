@@ -2,12 +2,19 @@ import { err, ok, parseProjectPath, type ProjectPath, type Result } from '@plotd
 import type { AppDataFile, AppDataWriteFailure } from '../ports/app-data-file'
 
 export const MAX_RECENT_PROJECTS = 8
+/** Chapters whose position is kept, per project; the least recently visited go first. */
+export const MAX_CHAPTER_POSITIONS = 200
+
+/** Where the author was in a chapter. Offsets in the chapter's text, in UTF-16 code units (ADR 0003), never pixels. */
+export interface ChapterPosition {
+  cursor: number
+  /** The start of the paragraph at the top of the page. */
+  top?: number
+}
 
 /** Where the author stopped writing, so reopening the project returns there (PRD G2). */
-export interface LeftOff {
+export interface LeftOff extends ChapterPosition {
   file: ProjectPath
-  /** Offset in the chapter's text, in UTF-16 code units (ADR 0003). */
-  cursor: number
 }
 
 /**
@@ -24,6 +31,8 @@ export interface RecentProject {
   root: string
   title: string
   leftOff?: LeftOff
+  /** Each chapter's position, by file, the most recently visited last. */
+  positions?: Record<ProjectPath, ChapterPosition>
   place?: Place
   /** Pages pinned to the reference shelf, in the author's order. */
   shelf?: ProjectPath[]
@@ -47,6 +56,7 @@ export function parseRecentProjects(text: string): Result<RecentProjects, 'unrea
   const projects = entries.flatMap((entry): RecentProject[] => {
     if (!isRecord(entry) || typeof entry.root !== 'string' || typeof entry.title !== 'string') return []
     const leftOff = parseLeftOff(entry.leftOff)
+    const positions = parsePositions(entry.positions)
     const place = parsePlace(entry.place)
     const shelf = Array.isArray(entry.shelf)
       ? entry.shelf
@@ -58,6 +68,7 @@ export function parseRecentProjects(text: string): Result<RecentProjects, 'unrea
         root: entry.root,
         title: entry.title,
         ...(leftOff ? { leftOff } : {}),
+        ...(positions ? { positions } : {}),
         ...(place ? { place } : {}),
         ...(shelf.length ? { shelf } : {}),
       },
@@ -67,9 +78,39 @@ export function parseRecentProjects(text: string): Result<RecentProjects, 'unrea
 }
 
 function parseLeftOff(value: unknown): LeftOff | null {
-  if (!isRecord(value) || typeof value.file !== 'string' || !Number.isInteger(value.cursor) || (value.cursor as number) < 0) return null
+  if (!isRecord(value) || typeof value.file !== 'string') return null
   const file = parseProjectPath(value.file)
-  return file.ok ? { file: file.value, cursor: value.cursor as number } : null
+  const position = parsePosition(value)
+  return file.ok && position ? { file: file.value, ...position } : null
+}
+
+/** A position without a valid cursor is dropped; one with an invalid `top` keeps its cursor. */
+function parsePosition(value: unknown): ChapterPosition | null {
+  if (!isRecord(value) || !isOffset(value.cursor)) return null
+  return { cursor: value.cursor, ...(isOffset(value.top) ? { top: value.top } : {}) }
+}
+
+function parsePositions(value: unknown): Record<ProjectPath, ChapterPosition> | null {
+  if (!isRecord(value)) return null
+  const positions = Object.entries(value).flatMap(([file, position]) => {
+    const path = parseProjectPath(file)
+    const parsed = parsePosition(position)
+    return path.ok && parsed ? [[path.value, parsed] as const] : []
+  })
+  return positions.length ? (Object.fromEntries(positions.slice(-MAX_CHAPTER_POSITIONS)) as Record<ProjectPath, ChapterPosition>) : null
+}
+
+function isOffset(value: unknown): value is number {
+  return Number.isInteger(value) && (value as number) >= 0
+}
+
+/** Records `position` as the most recent, keeping at most `MAX_CHAPTER_POSITIONS`. */
+function withPosition(
+  positions: Record<ProjectPath, ChapterPosition> | undefined,
+  { file, ...position }: LeftOff,
+): Record<ProjectPath, ChapterPosition> {
+  const others = Object.entries(positions ?? {}).filter(([known]) => known !== file)
+  return Object.fromEntries([...others, [file, position] as const].slice(-MAX_CHAPTER_POSITIONS)) as Record<ProjectPath, ChapterPosition>
 }
 
 function parsePlace(value: unknown): Place | null {
@@ -120,7 +161,11 @@ export async function createRecentProjectsSession(file: AppDataFile): Promise<Re
         return [{ ...known, root, title }, ...projects.filter((project) => project.root !== root)]
       }),
     leftOff: (root, position) =>
-      change((projects) => projects.map((project) => (project.root === root ? { ...project, leftOff: position } : project))),
+      change((projects) =>
+        projects.map((project) =>
+          project.root === root ? { ...project, leftOff: position, positions: withPosition(project.positions, position) } : project,
+        ),
+      ),
     place: (root, place) => change((projects) => projects.map((project) => (project.root === root ? { ...project, place } : project))),
     pin: (root, shelf) =>
       change((projects) => projects.map((project) => (project.root === root ? { ...project, shelf: [...shelf] } : project))),

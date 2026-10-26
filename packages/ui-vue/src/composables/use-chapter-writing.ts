@@ -1,4 +1,4 @@
-import type { HostEvent, Preferences, ProjectView, SaveStatusView } from '@plotdevice/contracts'
+import type { ChapterPosition, HostEvent, Preferences, ProjectView, SaveStatusView } from '@plotdevice/contracts'
 import { createChapterEditor, type ChapterEditor, type EditorSettings, type FormatCommand } from '@plotdevice/editor-codemirror'
 import { pastedMarkdown } from '@plotdevice/markdown'
 import type { ProjectPath } from '@plotdevice/shared'
@@ -51,16 +51,31 @@ export function useChapterWriting(host: Ref<HTMLElement | null>, options: { reme
     void api.saveChapter({ file: file.value, text: editor.text(), generation })
   }
 
+  /** Where the author was in each chapter, from last time and from this session. */
+  const positions = new Map<ProjectPath, ChapterPosition>(
+    Object.entries(options.remembersPosition ? (store.opened?.positions ?? {}) : {}) as [ProjectPath, ChapterPosition][],
+  )
+  /**
+   * The paragraph at the top of the page as last known, for while the editor is hidden (Write hides
+   * while Story shows) and can't be measured: set on opening a chapter and on hiding.
+   */
+  let lastTop: number | undefined
+
   /** Where the author left off in Write. Pages edited in Story don't count: Write reopens on a chapter. */
   function rememberPosition(): void {
-    if (!options.remembersPosition) return
-    if (file.value && editor && state.value === 'ready') void api.leftOff({ file: file.value, cursor: editor.cursor() })
+    if (!options.remembersPosition || !file.value || !editor || state.value !== 'ready') return
+    const top = editor.top() ?? lastTop
+    const position = { cursor: editor.cursor(), ...(top === undefined ? {} : { top }) }
+    positions.set(file.value, position)
+    void api.leftOff({ file: file.value, ...position })
   }
 
-  async function open(next: ProjectPath, cursor = 0): Promise<void> {
+  /** Opens a chapter where the author was in it, unless `position` says otherwise. */
+  async function open(next: ProjectPath, position?: ChapterPosition): Promise<void> {
     if (next === file.value && state.value === 'ready') return editor?.focus()
     flush()
     rememberPosition()
+    const { cursor, top } = position ?? positions.get(next) ?? { cursor: 0 }
     file.value = next
     state.value = 'loading'
     const chapter = await api.openChapter(next)
@@ -71,7 +86,8 @@ export function useChapterWriting(host: Ref<HTMLElement | null>, options: { reme
     }
     generation = chapter.value.generation
     store.statuses = { ...store.statuses, [next]: chapter.value.status }
-    editor?.load(chapter.value.text, cursor)
+    lastTop = top ?? 0
+    editor?.load(chapter.value.text, cursor, top)
     state.value = 'ready'
     editor?.focus()
   }
@@ -82,7 +98,7 @@ export function useChapterWriting(host: Ref<HTMLElement | null>, options: { reme
       if (pending.value) flush()
       else {
         generation = event.generation
-        editor.load(event.text, editor.cursor())
+        editor.load(event.text, editor.cursor(), editor.top() ?? lastTop)
       }
     }
   }
@@ -103,7 +119,7 @@ export function useChapterWriting(host: Ref<HTMLElement | null>, options: { reme
     store.setProject(project)
     if (copy) store.tell('conflict-kept', project.chapters.find((chapter) => chapter.file === copy)?.title ?? copy)
     if (text === null) state.value = 'missing'
-    else if (result.value.generation !== generation) editor?.load(text, editor.cursor())
+    else if (result.value.generation !== generation) editor?.load(text, editor.cursor(), editor.top() ?? lastTop)
     generation = result.value.generation
   }
 
@@ -158,5 +174,9 @@ export function useChapterWriting(host: Ref<HTMLElement | null>, options: { reme
     setParagraphDirection: (direction: 'ltr' | 'rtl' | null) => editor?.setParagraphDirection(direction),
     setPhraseDirection: (direction: 'ltr' | 'rtl' | null) => editor?.setPhraseDirection(direction),
     focus: () => editor?.focus(),
+    /** The view is about to be hidden: note the paragraph at the top of the page while it can be measured. */
+    hiding: () => {
+      lastTop = editor?.top() ?? lastTop
+    },
   }
 }

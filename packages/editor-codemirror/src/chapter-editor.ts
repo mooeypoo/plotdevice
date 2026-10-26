@@ -49,8 +49,13 @@ export interface ChapterEditorOptions {
 /** The chapter editor as the interface uses it. The text in and out is the chapter's Markdown body, byte for byte. */
 export interface ChapterEditor {
   text(): string
-  /** Replaces the whole text (another chapter, or a reload). Undo history starts over. */
-  load(text: string, cursor?: number): void
+  /**
+   * Replaces the whole text (another chapter, or a reload). Undo history starts over. With `top`, the
+   * paragraph starting there is shown at the top of the page; otherwise the cursor is scrolled into view.
+   */
+  load(text: string, cursor?: number, top?: number): void
+  /** The start of the paragraph at the top of the page, or `null` while the editor isn't on screen. */
+  top(): number | null
   /** Applies new settings in place: the editor, cursor and undo history stay. */
   updateSettings(settings: EditorSettings): void
   format(command: FormatCommand): void
@@ -60,6 +65,25 @@ export interface ChapterEditor {
   cursor(): number
   focus(): void
   destroy(): void
+}
+
+/**
+ * Room above the paragraph shown at the top of the page, in pixels. Reading the position back looks
+ * the same distance down, so showing a paragraph and reading it back lands on the same paragraph.
+ */
+const TOP_MARGIN = 32
+
+const scrollToTop = (view: EditorView, top: number) =>
+  EditorView.scrollIntoView(view.state.doc.lineAt(Math.min(top, view.state.doc.length)).from, { y: 'start', yMargin: TOP_MARGIN })
+
+/** Where the visible page starts on screen: the editor scrolls inside a container of the page, not by itself. */
+function visibleTop(view: EditorView): number {
+  const top = view.scrollDOM.getBoundingClientRect().top
+  for (let element = view.root instanceof ShadowRoot ? view.root.host : view.dom.parentElement; element; element = element.parentElement) {
+    const { overflowY } = getComputedStyle(element)
+    if (overflowY === 'auto' || overflowY === 'scroll') return Math.max(top, element.getBoundingClientRect().top)
+  }
+  return Math.max(top, 0)
 }
 
 /**
@@ -113,9 +137,14 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
   return {
     // `sliceDoc` joins lines with the file's own line ending; `doc.toString()` would always use `\n`.
     text: () => view.state.sliceDoc(),
-    load(text, cursor = 0) {
+    load(text, cursor = 0, top) {
       view.setState(stateFor(text))
-      view.dispatch({ selection: EditorSelection.cursor(Math.min(cursor, view.state.doc.length)), scrollIntoView: true })
+      const selection = EditorSelection.cursor(Math.min(cursor, view.state.doc.length))
+      view.dispatch(top === undefined ? { selection, scrollIntoView: true } : { selection, effects: scrollToTop(view, top) })
+    },
+    top() {
+      if (!view.dom.getClientRects().length) return null
+      return view.lineBlockAtHeight(Math.max(0, visibleTop(view) + TOP_MARGIN - view.documentTop)).from
     },
     updateSettings(next) {
       current = next

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProjectView } from '@plotdevice/contracts'
+import type { ChapterPosition, ProjectView } from '@plotdevice/contracts'
 import type { FormatCommand } from '@plotdevice/editor-codemirror'
 import type { ProjectPath } from '@plotdevice/shared'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -59,12 +59,12 @@ const pageClasses = computed(() => [
 ])
 
 /** Where to start: where the author left off, or else the first chapter of the book. The view is recreated for each project. */
-function firstChapter(): { file: ProjectPath; cursor: number } | null {
+function firstChapter(): { file: ProjectPath; position?: ChapterPosition } | null {
   const leftOff = store.opened?.leftOff
-  if (leftOff && props.project.chapters.some((chapter) => chapter.file === leftOff.file)) return leftOff
+  if (leftOff && props.project.chapters.some((chapter) => chapter.file === leftOff.file)) return { file: leftOff.file, position: leftOff }
   for (const entry of props.project.contents) {
-    if (entry.kind === 'chapter') return { file: entry.file, cursor: 0 }
-    if (entry.chapters[0]) return { file: entry.chapters[0].file, cursor: 0 }
+    if (entry.kind === 'chapter') return { file: entry.file }
+    if (entry.chapters[0]) return { file: entry.chapters[0].file }
   }
   return null
 }
@@ -94,11 +94,12 @@ watch(
   },
 )
 
-// Back in Write, the cursor is where it was.
+// Back in Write, the cursor is where it was. Leaving it, the page's position is noted while it can be measured.
 watch(
   () => view.workspace,
   (workspace) => {
     if (workspace === 'write') void nextTick(() => writing.focus())
+    else writing.hiding()
   },
 )
 
@@ -106,7 +107,7 @@ onMounted(() => {
   void shelf.reset() // this view is recreated for each project
   window.addEventListener('keydown', onKey)
   const start = firstChapter()
-  if (start) void writing.open(start.file, start.cursor)
+  if (start) void writing.open(start.file, start.position)
 })
 onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>

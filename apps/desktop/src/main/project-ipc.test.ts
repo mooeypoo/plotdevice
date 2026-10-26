@@ -167,6 +167,18 @@ describe('project calls', () => {
     expect(await context.call(channels.getOpenProject)).toMatchObject({ leftOff: { file: 'manuscript/frost.md', cursor: 12 } })
   })
 
+  it('remembers where the author was in each chapter, and gives it back with the project', async () => {
+    const context = await setup()
+    await openChosen(context)
+    await context.call(channels.leftOff, { file: 'manuscript/frost.md', cursor: 12, top: 4 })
+    await context.call(channels.leftOff, { file: 'manuscript/prologue.md', cursor: 0 })
+    expect(await context.call(channels.getOpenProject)).toMatchObject({
+      leftOff: { file: 'manuscript/prologue.md', cursor: 0 },
+      positions: { 'manuscript/frost.md': { cursor: 12, top: 4 }, 'manuscript/prologue.md': { cursor: 0 } },
+    })
+    await expect(context.call(channels.leftOff, { file: 'manuscript/frost.md', cursor: 1, top: -1 })).rejects.toThrow()
+  })
+
   it('keeps both texts when a chapter changed elsewhere (scenario G, core half)', async () => {
     const context = await setup()
     await openChosen(context)

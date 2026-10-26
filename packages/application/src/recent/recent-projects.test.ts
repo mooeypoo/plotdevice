@@ -1,7 +1,7 @@
 import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
 import type { AppDataFile, AppDataWriteFailure } from '../ports/app-data-file'
-import { createRecentProjectsSession, MAX_RECENT_PROJECTS, parseRecentProjects } from './recent-projects'
+import { createRecentProjectsSession, MAX_CHAPTER_POSITIONS, MAX_RECENT_PROJECTS, parseRecentProjects } from './recent-projects'
 
 const p = (path: string) => path as ProjectPath
 
@@ -45,7 +45,63 @@ describe('recent projects', () => {
       root: '/books/orchard',
       title: 'The Salt Orchard',
       leftOff: { file: 'manuscript/frost.md', cursor: 120 },
+      positions: { 'manuscript/frost.md': { cursor: 120 } },
     })
+  })
+
+  it("remembers each chapter's cursor and the paragraph at the top of the page, separately", async () => {
+    const { file } = memoryFile()
+    const recent = await createRecentProjectsSession(file)
+    await recent.opened({ root: '/books/orchard', title: 'The Salt Orchard' })
+    await recent.leftOff('/books/orchard', { file: p('manuscript/frost.md'), cursor: 120, top: 80 })
+    await recent.leftOff('/books/orchard', { file: p('manuscript/epilogue.md'), cursor: 3, top: 0 })
+    await recent.leftOff('/books/orchard', { file: p('manuscript/frost.md'), cursor: 140, top: 100 })
+    const restarted = await createRecentProjectsSession(file)
+    const project = restarted.current().projects[0]
+    expect(project?.leftOff).toEqual({ file: 'manuscript/frost.md', cursor: 140, top: 100 })
+    expect(project?.positions).toEqual({
+      'manuscript/epilogue.md': { cursor: 3, top: 0 },
+      'manuscript/frost.md': { cursor: 140, top: 100 },
+    })
+  })
+
+  it(`keeps the positions of the ${MAX_CHAPTER_POSITIONS} chapters visited most recently`, async () => {
+    const { file } = memoryFile()
+    const recent = await createRecentProjectsSession(file)
+    await recent.opened({ root: '/a', title: 'A' })
+    for (let i = 0; i <= MAX_CHAPTER_POSITIONS; i++) await recent.leftOff('/a', { file: p(`manuscript/${i}.md`), cursor: i })
+    await recent.leftOff('/a', { file: p('manuscript/1.md'), cursor: 7 })
+    await recent.leftOff('/a', { file: p('manuscript/new.md'), cursor: 0 })
+    const positions = Object.keys(recent.current().projects[0]?.positions ?? {})
+    expect(positions).toHaveLength(MAX_CHAPTER_POSITIONS)
+    expect(positions).not.toContain('manuscript/0.md')
+    expect(positions).not.toContain('manuscript/2.md')
+    expect(positions).toContain('manuscript/1.md')
+    expect(positions.at(-1)).toBe('manuscript/new.md')
+  })
+
+  it("drops chapter positions it can't read", () => {
+    const text = JSON.stringify({
+      projects: [
+        {
+          root: '/a',
+          title: 'A',
+          leftOff: { file: 'x.md', cursor: 1, top: -4 },
+          positions: {
+            'x.md': { cursor: 1, top: 0 },
+            '../escape.md': { cursor: 1 },
+            'y.md': { cursor: 'far' },
+            'z.md': { cursor: 2, top: 1.5 },
+          },
+        },
+        { root: '/b', title: 'B', positions: ['x.md'] },
+      ],
+    })
+    const parsed = parseRecentProjects(text)
+    expect(parsed.ok && parsed.value.projects).toEqual([
+      { root: '/a', title: 'A', leftOff: { file: 'x.md', cursor: 1 }, positions: { 'x.md': { cursor: 1, top: 0 }, 'z.md': { cursor: 2 } } },
+      { root: '/b', title: 'B' },
+    ])
   })
 
   it('forgets a project on request', async () => {
@@ -97,7 +153,7 @@ describe('recent projects', () => {
       value: {
         projects: [
           { root: '/b', title: 'B' },
-          { root: '/a', title: 'A', leftOff: { file: 'x.md', cursor: 1 } },
+          { root: '/a', title: 'A', leftOff: { file: 'x.md', cursor: 1 }, positions: { 'x.md': { cursor: 1 } } },
         ],
       },
     })

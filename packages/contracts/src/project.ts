@@ -66,10 +66,19 @@ export interface RecentProjectView {
   available: boolean
 }
 
+/** Where the author was in a chapter: offsets in its text, never pixels. */
+export interface ChapterPosition {
+  cursor: number
+  /** The start of the paragraph at the top of the page. */
+  top?: number
+}
+
 export interface OpenedProject {
   project: ProjectView
   /** Where the author stopped writing last time, to reopen there. */
-  leftOff?: { file: ProjectPath; cursor: number }
+  leftOff?: { file: ProjectPath } & ChapterPosition
+  /** Where the author was in each chapter. */
+  positions?: Record<ProjectPath, ChapterPosition>
   /** The workspace, outline and view the author was in. */
   place?: { workspace: 'write' | 'story'; outline?: ProjectPath; view?: 'board' | 'outline' | 'cards' }
 }

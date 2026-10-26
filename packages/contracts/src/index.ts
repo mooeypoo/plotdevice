@@ -42,6 +42,7 @@ export {
   type ContentsChangeRequest,
   type CreateProjectResult,
   type NewProjectRequest,
+  type ChapterPosition,
   type OpenedProject,
   type OpenProjectRequest,
   type OpenProjectResult,

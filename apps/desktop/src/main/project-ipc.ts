@@ -127,9 +127,9 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
     },
 
     [channels.leftOff]: async (payload) => {
-      const position = parsePayload(leftOffSchema, payload)
+      const { file, cursor, top } = parsePayload(leftOffSchema, payload)
       const project = session.project()
-      if (project) await recent.leftOff(project.root, position)
+      if (project) await recent.leftOff(project.root, { file, cursor, ...(top === undefined ? {} : { top }) })
     },
 
     [channels.flushed]: async () => context.onFlushed(),
@@ -158,6 +158,7 @@ export function openedProject(snapshot: ProjectSnapshot, recent: RecentProjectsS
   return {
     project: projectView(snapshot),
     ...(remembered?.leftOff ? { leftOff: remembered.leftOff } : {}),
+    ...(remembered?.positions ? { positions: remembered.positions } : {}),
     ...(remembered?.place ? { place: remembered.place } : {}),
   }
 }

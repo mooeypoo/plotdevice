@@ -16,6 +16,8 @@ export {
   createRecentProjectsSession,
   MAX_RECENT_PROJECTS,
   parseRecentProjects,
+  MAX_CHAPTER_POSITIONS,
+  type ChapterPosition,
   type LeftOff,
   type Place,
   type RecentProject,

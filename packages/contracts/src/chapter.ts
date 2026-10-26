@@ -13,7 +13,12 @@ export const saveChapterSchema = z.strictObject({
   generation: z.number().int().positive(),
 })
 export const resolveConflictSchema = z.strictObject({ file: projectPathSchema, choice: z.enum(['keep-both', 'use-mine']) })
-export const leftOffSchema = z.strictObject({ file: projectPathSchema, cursor: z.number().int().nonnegative() })
+/** Where the author is in a chapter: the cursor, and the start of the paragraph at the top of the page. */
+export const leftOffSchema = z.strictObject({
+  file: projectPathSchema,
+  cursor: z.number().int().nonnegative(),
+  top: z.number().int().nonnegative().optional(),
+})
 
 export type SaveChapterRequest = z.infer<typeof saveChapterSchema>
 export type ResolveConflictRequest = z.infer<typeof resolveConflictSchema>

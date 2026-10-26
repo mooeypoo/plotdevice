@@ -1,6 +1,6 @@
 # Milestone 8: A demo novel, one code format, and Write remembers where you were
 
-Status: **In progress**, on branch `milestone-8/demo-formatting-scroll`. Approved by the owner on 2026-10-26.
+Status: **Complete** (2026-10-26), on branch `milestone-8/demo-formatting-scroll`. Approved by the owner on 2026-10-26. Results are at the end of this document.
 
 ## Goal
 
@@ -25,3 +25,34 @@ Three small things before the look-and-feel rethink:
 2. The demo novels, with their test.
 3. Scroll memory, with unit tests and an end-to-end test.
 4. Docs and results.
+
+## Results
+
+| Check | Result |
+|---|---|
+| `pnpm lint` | OK, now including Prettier's check |
+| `pnpm typecheck` | OK |
+| `pnpm test` | **804 tests pass** (794 before) |
+| `pnpm arch` | **91 checks pass** |
+| `pnpm perf` | **4 limits pass** |
+| `pnpm build` | OK |
+| `pnpm e2e` | **46 end-to-end tests pass** (44 before) |
+
+**What the tests prove:**
+- **The demo novels** open with no warnings, missing chapters or mismatched titles. Every page has a description, the outline's cards link to chapters, characters and places, and no link in any file is broken. Breaking one link fails the test.
+- **Scroll memory**, in the real app:
+  - Each chapter returns to the paragraph that was at the top, after switching chapters, after visiting Story, and after quitting and reopening.
+  - Reopening the app in Story, then going to Write, finds the page where it was.
+  - Turning off either piece (each chapter's memory, or noting the position when Write is hidden) makes a test fail.
+- **Saved positions** are kept per chapter, the 200 most recently visited, and anything unreadable in the settings file is dropped rather than trusted.
+
+**Where the work differs from the plan:**
+- **`pnpm demo`**, not in the plan: it runs the app on a fresh temporary copy of a demo, so trying the app never changes the repository.
+- **Nothing is needed to restore the page when Write is shown again:** the browser keeps its scroll while Write is hidden, and the editor waits until it is visible to scroll. Only *reading* the position needs care, because a hidden page can't be measured, so it is noted as Write is hidden.
+- **A reloaded chapter** (changed in another app) now keeps the paragraph at the top, instead of jumping to the cursor.
+
+**Not done, needs the owner:**
+- **Pushing:** this branch, and the CI fix commit before it.
+- **Trying the demo** with `pnpm demo` and `pnpm demo he`.
+
+**Next:** the look-and-feel rethink, starting with a conversation.
