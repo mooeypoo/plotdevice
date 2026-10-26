@@ -1,7 +1,7 @@
 import type { ProjectView, ReferenceSummaryView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { galleryPages, linkTargets, markdownLink, search, suggestedLinkTargets } from './references'
+import { galleryPages, linkTargets, linkTextOnly, markdownLink, relationshipWords, search, suggestedLinkTargets } from './references'
 
 const p = (path: string) => path as ProjectPath
 const page = (
@@ -10,7 +10,7 @@ const page = (
   title: string,
   aka: string[] = [],
   description: string | null = null,
-): ReferenceSummaryView => ({ file: p(file), kind, title, aka, description })
+): ReferenceSummaryView => ({ file: p(file), kind, title, aka, description, relationships: [], links: [] })
 
 const library = [
   page('characters/ilka.md', 'character', 'Ilka Varga', ['Ili'], 'Inherits the orchard.'),
@@ -104,5 +104,22 @@ describe('a gallery', () => {
     ])
     expect(galleryPages(pages, 'place', 'en').map((entry) => entry.title)).toEqual(['Marrow'])
     expect(galleryPages(pages, 'note', 'he')).toEqual([])
+  })
+})
+
+describe('relationships as they read', () => {
+  it('show links as their text', () => {
+    expect(linkTextOnly('Sister of [Bea](bea.md)')).toBe('Sister of Bea')
+    expect(linkTextOnly('[Noël](noel.md)’s rival, with [[ilka|Ili]] and [[marrow]]')).toBe('Noël’s rival, with Ili and marrow')
+    expect(linkTextOnly('אחות של [בּאה](<my bea.md> "aunt") 🍐')).toBe('אחות של בּאה 🍐')
+    expect(linkTextOnly('Rival of [Bea \\[the elder\\]](bea.md)')).toBe('Rival of Bea [the elder]')
+  })
+
+  it('can be reworded when written as words, then one link', () => {
+    expect(relationshipWords('Sister of [Bea](bea.md)')).toEqual({ words: 'Sister of', link: '[Bea](bea.md)' })
+    expect(relationshipWords('אחות של [[bea]] ')).toEqual({ words: 'אחות של', link: '[[bea]]' })
+    expect(relationshipWords('[Bea](bea.md)')).toEqual({ words: '', link: '[Bea](bea.md)' })
+    expect(relationshipWords('[Noël](noel.md)’s rival')).toBeNull()
+    expect(relationshipWords('Between [Bea](bea.md) and [Ilka](ilka.md)')).toBeNull()
   })
 })

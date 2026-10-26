@@ -1,7 +1,14 @@
 import type { OutlineDocument, OutlineRepository, ProjectFolders, Revision } from '@plotdevice/application'
 import { OUTLINES_FOLDER, outlineFileFor, type Outline, type OutlineItem, type OutlineNote } from '@plotdevice/domain'
-import { editOutline, newOutlineFile, readOutline, type OutlineItemSource, type ParsedOutline } from '@plotdevice/markdown'
-import { err, ok, type ProjectPath } from '@plotdevice/shared'
+import {
+  editOutline,
+  newOutlineFile,
+  readOutline,
+  readReferencePage,
+  type OutlineItemSource,
+  type ParsedOutline,
+} from '@plotdevice/markdown'
+import { err, ok, relativePath, stemOf, type ProjectPath } from '@plotdevice/shared'
 
 /**
  * Outlines in `outlines/` (ADR 0003): read for structure, edited by splices so untouched text keeps
@@ -34,12 +41,18 @@ export function createOutlineRepository({ folders }: { folders: ProjectFolders }
       )
     },
 
-    async createOutline(root, title) {
+    async createOutline(root, title, about) {
       const name = title.trim()
       if (name === '') return err('empty-text')
       if (/[\r\n]/.test(name)) return err('multiline-text')
       const store = folders.open(root)
-      const content = { text: newOutlineFile(name), hasBom: false }
+      const page = about ? await store.read(about) : null
+      // The link is named with the page's title; a page that can't be read is linked by its file name.
+      const link = about && {
+        path: relativePath(OUTLINES_FOLDER, about),
+        title: page?.ok ? readReferencePage(page.value.text, stemOf(about)).title : stemOf(about),
+      }
+      const content = { text: newOutlineFile(name, link ?? undefined), hasBom: false }
       // A name taken between listing and writing is refused (`expected: null`), so look again.
       for (let attempt = 0; attempt < 3; attempt++) {
         const file = outlineFileFor(name, await store.listMarkdownFiles())

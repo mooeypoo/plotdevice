@@ -26,8 +26,10 @@ const view = <E extends string>(result: Result<OutlineState, E>): Result<Outline
 export function createOutlineHandlers({ outlines, writing, recent }: OutlineIpcContext): Record<string, PayloadHandler> {
   return {
     [channels.listOutlines]: () => outlines.list(),
-    [channels.createOutline]: async (payload): Promise<OutlineResult> =>
-      view(await outlines.create(parsePayload(createOutlineSchema, payload).title)),
+    [channels.createOutline]: async (payload): Promise<OutlineResult> => {
+      const { title, about } = parsePayload(createOutlineSchema, payload)
+      return view(await outlines.create(title, about))
+    },
     [channels.openOutline]: async (payload): Promise<OutlineResult> =>
       view(await outlines.open(parsePayload(outlineFileSchema, payload).file)),
     [channels.editOutline]: async (payload): Promise<OutlineResult> => {

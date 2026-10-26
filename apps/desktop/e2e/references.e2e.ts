@@ -193,7 +193,8 @@ test('renaming a page’s file keeps a card’s link to it working', async () =>
   await page.getByTestId('workspace-story').click()
   await page.locator('[data-gallery="character"]').click()
   await page.locator('[data-page="characters/ilka.md"]').click()
-  await page.getByTestId('rename-page-file').click()
+  await page.getByTestId('page-menu').click()
+  await page.getByTestId('menu-rename-page-file').click()
   await page.getByTestId('prompt-input').fill('ilka-varga')
   await page.getByTestId('prompt-input').press('Enter')
   await page.getByTestId('back-to-gallery').click()
@@ -202,6 +203,76 @@ test('renaming a page’s file keeps a card’s link to it working', async () =>
   await page.locator('[data-outline="outlines/main-story.md"]').click()
   await page.locator('.outline-card').getByRole('button', { name: 'Ilka', exact: true }).click()
   await expect(page.getByTestId('reference-page').locator('.outline-title')).toHaveText('Ilka Varga')
+})
+
+test('relationships and connections: added on one page, seen on the other, in the gallery and on the board', async () => {
+  await mkdir(join(root, 'characters'))
+  await writeFile(join(root, 'characters/bea.md'), '---\ntitle: Bea Halmi\n---\nIlka’s aunt.\n\n## Habits\nCounts the trees aloud.\n')
+  await writeFile(join(root, 'characters/ilka.md'), '---\ntitle: Ilka Varga\n---\nInherits the orchard.\n')
+  await writeFile(
+    join(root, 'outlines/main-story.md'),
+    '# Main story\n\n## Beginning\n\n- Ilka crosses the river\n  - [Bea](../characters/bea.md) at the landing\n- The gate\n',
+  )
+  const page = await start()
+  await page.getByTestId('workspace-story').click()
+  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-page="characters/bea.md"]').click()
+
+  // Add a relationship: pick who, then say how.
+  await page.getByTestId('add-relationship').click()
+  await page.getByTestId('link-search').fill('ilka')
+  await page.getByTestId('link-search').press('Enter')
+  await page.getByTestId('prompt-input').fill('Aunt of')
+  await page.getByTestId('prompt-input').press('Enter')
+  await file('characters/bea.md').toBe(
+    '---\ntitle: Bea Halmi\n---\nIlka’s aunt.\n\n## Relationships\n\n- Aunt of [Ilka Varga](ilka.md)\n\n## Habits\nCounts the trees aloud.\n',
+  )
+  await expect(page.getByTestId('relationships')).toContainText('Aunt of Ilka Varga')
+  // In the page's text, the section is one quiet line; clicking it shows the text.
+  const folded = page.getByTestId('page-editor').locator('.cm-folded-section')
+  await expect(folded).toHaveText('Relationships: listed beside the page')
+  await expect(page.getByTestId('page-editor').locator('.cm-content')).not.toContainText('Aunt of')
+  await folded.click()
+  await expect(page.getByTestId('page-editor').locator('.cm-content')).toContainText('- Aunt of [Ilka Varga](ilka.md)')
+
+  // Linked from: the card in the outline; "Show on the board" picks it out.
+  await expect(page.getByTestId('linked-from')).toContainText('Ilka crosses the river')
+  await page.getByTestId('show-on-board').click()
+  await expect(page.getByTestId('showing-about')).toContainText('Bea Halmi')
+  await expect(page.locator('.outline-card', { hasText: 'Ilka crosses the river' })).toHaveClass(/picked-out/)
+  await expect(page.locator('.outline-card', { hasText: 'The gate' })).toHaveClass(/picked-faded/)
+  await page.keyboard.press('Escape')
+  await expect(page.getByTestId('showing-about')).toHaveCount(0)
+  await expect(page.locator('.outline-card', { hasText: 'The gate' })).not.toHaveClass(/picked/)
+
+  // The gallery card shows it; Ilka's page lists Bea under "Linked from", with the words.
+  await page.locator('[data-gallery="character"]').click()
+  await expect(page.locator('[data-page="characters/bea.md"]')).toContainText('Aunt of Ilka Varga')
+  await page.locator('[data-page="characters/ilka.md"]').click()
+  await expect(page.locator('[data-linked-page="characters/bea.md"]')).toContainText('Aunt of Ilka Varga')
+  await expect(page.locator('[data-linked-page="characters/bea.md"]')).toContainText('Bea Halmi')
+
+  // An arc outline for Ilka starts with a link back to her page, and shows under "Linked from".
+  await page.getByTestId('start-arc').click()
+  await expect(page.getByTestId('prompt-input')).toHaveValue('Ilka Varga’s arc')
+  await page.getByTestId('prompt-input').press('Enter')
+  await expect(page.locator('.outline-title')).toHaveText('Ilka Varga’s arc')
+  const arc = (await readdir(join(root, 'outlines'))).find((name) => name !== 'main-story.md')
+  await file(`outlines/${arc}`).toBe('# Ilka Varga’s arc\n\n[Ilka Varga](../characters/ilka.md)\n')
+
+  // Removing it asks first, and changes only that line.
+  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-page="characters/bea.md"]').click()
+  await page
+    .getByTestId('relationships')
+    .getByRole('button', { name: /^Actions for/ })
+    .click()
+  await page.getByTestId('menu-remove').click()
+  await page.getByTestId('confirm-yes').click()
+  await file('characters/bea.md').toBe(
+    '---\ntitle: Bea Halmi\n---\nIlka’s aunt.\n\n## Relationships\n\n## Habits\nCounts the trees aloud.\n',
+  )
+  expect(cspViolations()).toEqual([])
 })
 
 /** Controls on the page without an accessible name. */
@@ -226,6 +297,8 @@ test('accessibility: the shelf and pages are named in both languages and work by
   await page.locator('[data-gallery="note"]').click()
   expect(await unnamedControls(page)).toEqual([])
   await page.locator('[data-page="notes/loose-ideas.md"]').click()
+  await expect(page.getByTestId('linked-from')).toBeVisible()
+  expect(await unnamedControls(page)).toEqual([])
   await openSettings(page)
   await page.getByTestId('language').selectOption('he')
   expect(await unnamedControls(page)).toEqual([])

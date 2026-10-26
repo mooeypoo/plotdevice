@@ -1310,6 +1310,43 @@ button.inline-link {
   margin-inline-end: 0.5rem;
 }
 
+/* "Show on the board": the page's cards stand out in gold, the others fade. */
+.outline-card.picked-out {
+  box-shadow:
+    0 0 0 2px var(--color-mark),
+    var(--shadow-soft);
+}
+.outline-card.picked-faded {
+  opacity: 0.35;
+}
+.outline-card.picked-faded:focus-visible,
+.outline-card.picked-faded:hover {
+  opacity: 0.8;
+}
+.about-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-block: 0.25rem;
+  padding-inline: 0.85rem 0.3rem;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 0.88rem;
+}
+.about-clear {
+  border: none;
+  border-radius: 50%;
+  inline-size: 1.6rem;
+  block-size: 1.6rem;
+  padding: 0;
+  background: color-mix(in srgb, var(--color-on-accent) 15%, transparent);
+  color: var(--color-on-accent);
+}
+.about-clear:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-on-accent) 30%, transparent);
+}
+
 /* World: one kind of page as cards. */
 .world-gallery {
   display: flex;
@@ -1366,6 +1403,16 @@ button.inline-link {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.page-card-relationships {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-block-start: auto;
+  padding-block-start: 0.55rem;
+  border-block-start: 1px solid var(--hair);
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+}
 .page-card.new-page {
   align-items: center;
   justify-content: center;
@@ -1404,6 +1451,142 @@ button.inline-link {
 }
 .crumb:hover:not(:disabled) {
   background: var(--hover);
+  color: var(--color-text);
+}
+
+/* A page: its text, and beside it the Connections panel. */
+.reference-page .toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.reference-page .toolbar .outline-title {
+  margin-inline-end: 0;
+}
+.page-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+.page-main {
+  flex: 999 1 26rem;
+  min-inline-size: 0;
+}
+.connections {
+  flex: 1 1 16rem;
+  max-inline-size: 22rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-block-start: 1.6rem;
+}
+.connection-box {
+  padding: 0.85rem 1rem;
+  background: var(--color-card);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+}
+.connection-box h2 {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.connection-box ul {
+  margin: 0 0 0.25rem;
+  padding: 0;
+  list-style: none;
+}
+.connection-box li.row {
+  justify-content: space-between;
+  padding-block: 0.25rem;
+  border-block-end: 1px solid var(--hair);
+}
+.connection-box li.row:last-child {
+  border-block-end: none;
+}
+.connection-box .menu-button {
+  border-color: transparent;
+  background: none;
+  color: var(--color-text-secondary);
+  padding: 0.1rem 0.4rem;
+}
+.connection-box .add-link {
+  padding-inline: 0;
+}
+.linked-group + .linked-group {
+  margin-block-start: 0.75rem;
+}
+.linked-group h3 {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+.linked-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  inline-size: calc(100% + 1rem);
+  margin-inline: -0.5rem;
+  padding: 0.35rem 0.5rem;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text);
+  text-align: start;
+}
+.linked-entry small {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+.linked-entry:hover:not(:disabled) {
+  background: var(--hover);
+}
+.show-on-board {
+  border: none;
+  background: none;
+  padding: 0.2rem 0;
+  color: var(--color-accent);
+  font-size: 0.88rem;
+}
+.show-on-board::before {
+  content: '› ';
+  color: var(--color-mark);
+}
+[dir='rtl'] .show-on-board::before {
+  content: '‹ ';
+}
+.show-on-board:hover:not(:disabled) {
+  background: none;
+  text-decoration: underline;
+}
+.start-arc {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.7rem 1rem;
+  border: 1.5px dashed var(--hair-strong);
+  border-radius: 12px;
+  background: none;
+  color: var(--color-text-secondary);
+  text-align: start;
+}
+.start-arc > span::before {
+  content: '+ ';
+  color: var(--color-mark);
+  font-weight: 600;
+}
+.start-arc small {
+  font-size: 0.8rem;
+}
+.start-arc:hover:not(:disabled) {
+  background: none;
+  border-color: var(--color-mark);
   color: var(--color-text);
 }
 

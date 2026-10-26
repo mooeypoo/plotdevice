@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ReferenceKind } from '@plotdevice/contracts'
-import { galleryPages } from '@plotdevice/presentation'
+import { galleryPages, linkTextOnly } from '@plotdevice/presentation'
 import { computed } from 'vue'
 import { usePrompt } from '../composables/use-prompt'
 import { useSettingsStore } from '../stores/settings'
@@ -32,6 +32,11 @@ async function newPage(): Promise<void> {
             <span class="page-card-title" dir="auto">{{ page.title }}</span>
             <span v-if="page.aka.length > 0" class="page-card-aka" dir="auto">{{ t('reference-aka', page.aka.join(', ')) }}</span>
             <span v-if="page.description" class="page-card-description" dir="auto">{{ page.description }}</span>
+            <span v-if="page.relationships.length > 0" class="page-card-relationships">
+              <span v-for="(relationship, index) in page.relationships.slice(0, 3)" :key="index" dir="auto">
+                {{ linkTextOnly(relationship.text) }}
+              </span>
+            </span>
           </button>
         </li>
         <li>

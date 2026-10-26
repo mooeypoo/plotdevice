@@ -31,4 +31,15 @@ export {
   type ItemDestination,
   type OutlineRow,
 } from './outline-views'
-export { galleryPages, LINK_KINDS, linkTargets, markdownLink, search, suggestedLinkTargets, type LinkTarget } from './references'
+export {
+  cardKey,
+  galleryPages,
+  LINK_KINDS,
+  linkTargets,
+  linkTextOnly,
+  markdownLink,
+  relationshipWords,
+  search,
+  suggestedLinkTargets,
+  type LinkTarget,
+} from './references'

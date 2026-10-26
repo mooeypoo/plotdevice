@@ -11,10 +11,28 @@ export const createReferenceSchema = z.strictObject({ kind: referenceKindSchema,
 export const renameReferenceSchema = z.strictObject({ file: referenceFile, title })
 export const renameReferenceFileSchema = z.strictObject({ file: referenceFile, newName: title })
 export const chapterLinksSchema = z.strictObject({ file: projectPathSchema })
+/** A relationship's words: one line, its link written as ordinary Markdown (ADR 0009). */
+const relationshipText = z.string().max(2000)
+const relationshipIndex = z.number().int().min(0).max(10_000)
+export const editRelationshipSchema = z.strictObject({
+  file: referenceFile,
+  change: z.discriminatedUnion('kind', [
+    z.strictObject({ kind: z.literal('add'), text: relationshipText }),
+    z.strictObject({ kind: z.literal('change'), index: relationshipIndex, text: relationshipText }),
+    z.strictObject({ kind: z.literal('remove'), index: relationshipIndex }),
+  ]),
+})
 /** The pinned shelf, in the author's order. */
 export const shelfSchema = z.strictObject({ files: z.array(referenceFile).max(100) })
 
 export type ReferenceKind = z.infer<typeof referenceKindSchema>
+export type RelationshipChangeRequest = z.infer<typeof editRelationshipSchema>['change']
+
+/** "Sister of [Bea](bea.md)": the words as written, and the files the links point at. */
+export interface RelationshipView {
+  text: string
+  links: ProjectPath[]
+}
 
 export interface ReferenceSummaryView {
   file: ProjectPath
@@ -22,6 +40,9 @@ export interface ReferenceSummaryView {
   title: string
   aka: string[]
   description: string | null
+  relationships: RelationshipView[]
+  /** Every file the page links to. */
+  links: ProjectPath[]
 }
 
 export interface ReferencePageView extends ReferenceSummaryView {
@@ -43,6 +64,13 @@ export interface CardLinksView {
   section: string | null
   card: string
   links: LinkTargetView[]
+}
+
+/** Everything that links to a page: outline cards, other pages (with their relationships to it) and chapters. */
+export interface LinkedFromView {
+  cards: CardLinksView[]
+  pages: { file: ProjectPath; kind: ReferenceKind; title: string; relationships: string[] }[]
+  chapters: { file: ProjectPath; title: string }[]
 }
 
 export type ReferenceProblem =

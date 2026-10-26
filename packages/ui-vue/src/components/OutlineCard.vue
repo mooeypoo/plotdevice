@@ -14,7 +14,15 @@ import MenuButton from './MenuButton.vue'
 
 // On the board, the column takes drops and `drop` shows where one would land; elsewhere, a card
 // dropped on a card goes before it.
-const props = defineProps<{ item: OutlineItemView; at: ItemAt; label?: string | null; board?: boolean; drop?: 'before' | 'after' | null }>()
+const props = defineProps<{
+  item: OutlineItemView
+  at: ItemAt
+  label?: string | null
+  board?: boolean
+  drop?: 'before' | 'after' | null
+  /** "Show on the board": this card links to the page (`out`), or doesn't (`faded`). */
+  picked?: 'out' | 'faded' | null
+}>()
 const story = useStoryStore()
 const settings = useSettingsStore()
 const actions = useOutlineActions()
@@ -40,7 +48,7 @@ const detailCount = computed(() => {
 <template>
   <article
     class="outline-card"
-    :class="[{ locked: !item.movable, lifted }, drop ? `drop-${drop}` : '']"
+    :class="[{ locked: !item.movable, lifted }, drop ? `drop-${drop}` : '', picked ? `picked-${picked}` : '']"
     tabindex="0"
     :data-item="key"
     :draggable="item.movable && !editing"

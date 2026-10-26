@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { OutlineView } from '@plotdevice/contracts'
-import { boardColumns, boardDrop } from '@plotdevice/presentation'
+import { boardColumns, boardDrop, cardKey } from '@plotdevice/presentation'
 import { computed, ref } from 'vue'
 import { useOutlineActions } from '../composables/use-outline-actions'
 import { useSettingsStore } from '../stores/settings'
@@ -46,6 +46,13 @@ function onDrop(): void {
   else actions.dragging.value = null
 }
 
+/** With "Show on the board", a card linking to the page stands out and the others fade. */
+function picked(section: string | null, text: string): 'out' | 'faded' | null {
+  const about = story.about
+  if (!about) return null
+  return about.cards.has(cardKey(section, text)) ? 'out' : 'faded'
+}
+
 /** Which side of this card shows the line: above it for its own gap, below the last card for the end. */
 function dropSide(section: number, index: number): 'before' | 'after' | null {
   const at = target.value
@@ -89,6 +96,7 @@ function dropSide(section: number, index: number): 'before' | 'after' | null {
           board
           :data-index="entry.path.path[0]"
           :drop="dropSide(index, entry.path.path[0] ?? 0)"
+          :picked="picked(column.name, entry.item.text)"
         />
         <p v-else-if="entry.kind === 'group'" class="group-label" dir="auto">{{ entry.text }}</p>
         <KeptAsWritten v-else :text="entry.text" />

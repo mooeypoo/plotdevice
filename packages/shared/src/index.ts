@@ -13,3 +13,4 @@ export {
   type ProjectPath,
 } from './project-path'
 export { err, mapResult, ok, type Result } from './result'
+export { RELATIONSHIP_HEADINGS } from './relationships'

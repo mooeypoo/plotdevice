@@ -58,8 +58,12 @@ async function newOutline(): Promise<void> {
   if (title) await story.create(title)
 }
 
-/** Ctrl+Z (⌘Z) undoes the last outline change, unless the keyboard is in a text field or page editor. */
+/** Ctrl+Z (⌘Z) undoes the last outline change, unless the keyboard is in a text field or page editor. Escape shows every card again. */
 function onKey(event: KeyboardEvent): void {
+  if (event.key === 'Escape' && story.about && !document.querySelector('[role="menu"], dialog[open]')) {
+    story.about = null
+    return
+  }
   if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || event.key.toLowerCase() !== 'z') return
   const target = event.target as HTMLElement | null
   if (target?.closest('input, textarea, select, [contenteditable="true"], .page-editor')) return
@@ -160,6 +164,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
             </button>
           </div>
           <MenuButton :label="t('outline-actions')" :items="outlineItems" button-class="icon-button" align="end" testid="outline-menu" />
+          <span v-if="story.about && view.outlineView === 'board'" class="about-chip" role="status" data-testid="showing-about">
+            <span dir="auto">{{ t('board-showing-about', story.about.title) }}</span>
+            <button
+              type="button"
+              class="about-clear"
+              :aria-label="t('board-show-all')"
+              :title="t('board-show-all')"
+              @click="story.about = null"
+            >
+              ✕
+            </button>
+          </span>
         </div>
         <div class="story-page">
           <p v-if="story.outline.invalidDetails" class="warning" role="status">{{ t('invalid-details') }}</p>
