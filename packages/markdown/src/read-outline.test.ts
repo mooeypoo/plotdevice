@@ -159,3 +159,15 @@ describe('no-op edits write nothing', () => {
     }
   })
 })
+
+describe('remembered sections', () => {
+  const source = '# Plan\n\n## Beginning\n\n- Ilka arrives\n  - With one suitcase\n\n## Middle\n\n- The frost\n'
+
+  // Were a remembered tree shifted in place, the second reading would have every offset moved twice.
+  it('give the same reading, with offsets for where each section now is', () => {
+    const moved = source.replace('# Plan\n\n', '# Plan\n\nA new first line.\n\n')
+    readOutline(source)
+    expect(readOutline(moved)).toEqual(readOutline(moved, { fresh: true }))
+    expect(readOutline(moved).sections[1]?.items[0]?.text).toBe('The frost')
+  })
+})
