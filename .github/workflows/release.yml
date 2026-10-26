@@ -16,7 +16,8 @@ jobs:
       - name: Create the draft release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft --title "Plot Device ${GITHUB_REF_NAME#v}" --notes "Draft: review, then publish."
+        run: |
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft --title "Plot Device ${GITHUB_REF_NAME#v}" --notes "Draft: review, then publish."
 
   installers:
     needs: draft

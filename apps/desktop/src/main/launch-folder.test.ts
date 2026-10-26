@@ -1,3 +1,4 @@
+import { pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { folderFromArgs } from './launch-folder'
 
@@ -15,7 +16,11 @@ describe('the folder to open at launch', () => {
   })
 
   it('reads the file:// address a file manager sends, Hebrew and spaces included', () => {
-    expect(folderFromArgs(['plotdevice', 'file:///home/ines/%D7%9E%D7%98%D7%A2%20%D7%94%D7%9E%D7%9C%D7%97'], '/opt/x/app.asar')).toBe('/home/ines/מטע המלח')
+    // A path native to the system the test runs on: on Windows a file address carries a drive letter.
+    const folder = process.platform === 'win32' ? 'C:\\Users\\ines\\מטע המלח' : '/home/ines/מטע המלח'
+    const address = pathToFileURL(folder).href
+    expect(address).toContain('%D7%9E%D7%98%D7%A2%20') // encoded, as a file manager sends it
+    expect(folderFromArgs(['plotdevice', address], '/opt/x/app.asar')).toBe(folder)
   })
 
   it('ignores relative paths and anything else', () => {
