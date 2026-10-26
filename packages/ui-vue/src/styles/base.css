@@ -1232,6 +1232,11 @@ button.outline-title:hover:not(:disabled) {
   inline-size: 1px;
   background: var(--hair-strong);
 }
+/* The row under the pointer (or the keyboard) is lightly shaded, so "+ Detail" at its far end clearly belongs to it. */
+.list-row[data-item]:hover,
+.list-row[data-item]:focus-within {
+  background: color-mix(in srgb, var(--color-text) 4%, transparent);
+}
 /* Controls on a row show on hover or keyboard focus, as in the sidebar. */
 .list-row > .menu .menu-button {
   opacity: 0;

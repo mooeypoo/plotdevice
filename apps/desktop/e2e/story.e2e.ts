@@ -259,7 +259,10 @@ test('the list: + on a row adds a detail to it, and + Add section adds a section
   await openStory(page)
   await page.getByTestId('view-outline').click()
   const row = page.locator('[data-item="0/0"]')
+  await expect(row).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
   await row.hover()
+  // The row is shaded while hovered, so "+ Detail" at its far end clearly belongs to it.
+  await expect(row).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
   await row.getByTestId('add-detail').click()
   await page.getByTestId('editable-text').fill('Carrying one suitcase')
   await page.getByTestId('editable-text').press('Enter')
