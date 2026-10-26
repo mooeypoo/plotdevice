@@ -194,7 +194,7 @@ test('a reference card’s details show as formatted text, not Markdown', async 
   const card = page.locator('.shelf-card', { hasText: 'Bea Halmi' })
   await card.getByText('Details').click()
   await expect(card.locator('.page-details h3', { hasText: 'Habits' })).toBeVisible()
-  await expect(card.locator('.page-details .inline-link', { hasText: 'Ilka' })).toBeVisible()
+  await expect(card.locator('.page-details .inline-link', { hasText: 'Ilka' }).first()).toBeVisible()
   await expect(card.locator('.page-details')).not.toContainText('##')
   await expect(card.locator('.page-details')).not.toContainText('](')
 })

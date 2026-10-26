@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { cp, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { closeSettings, launch, openSettings, type Launched } from './launch'
@@ -60,7 +60,7 @@ async function typeInPlace(page: Page, text: string): Promise<void> {
   await input.press('Enter')
 }
 
-test('scenario B: build an outline visually, see it three ways, and find it all in the file', async () => {
+test('scenario B: build an outline visually, see it both ways, and find it all in the file', async () => {
   const page = await start()
   await page.getByTestId('workspace-story').click()
   await page.getByTestId('new-outline').click()
@@ -77,8 +77,13 @@ test('scenario B: build an outline visually, see it three ways, and find it all 
     .getByRole('button', { name: /Actions for/ })
     .click()
   await page.getByTestId('menu-add-detail').click()
-  await page.getByTestId('prompt-input').fill('Because of her mother')
-  await page.getByTestId('prompt-input').press('Enter')
+  // Typed in place inside the card, like everywhere else, with @ to link.
+  await expect(card(page, 'Wants to keep the orchard').locator('.card-new-detail .cm-placeholder')).toHaveText(
+    'New detail of “Wants to keep the orchard”',
+  )
+  await page.keyboard.type('Because of her mother')
+  await page.keyboard.press('Enter')
+  await page.keyboard.press('Escape')
   await page.getByTestId('add-section').click()
   await typeInPlace(page, 'Bea')
 
@@ -87,8 +92,6 @@ test('scenario B: build an outline visually, see it three ways, and find it all 
   )
   await page.getByTestId('view-outline').click()
   await expect(page.getByTestId('list')).toContainText('Because of her mother')
-  await page.getByTestId('view-cards').click()
-  await expect(card(page, 'Wants to keep the orchard')).toContainText('Ilka')
   expect(cspViolations()).toEqual([])
 })
 
@@ -162,7 +165,7 @@ test('switching between Story and Write keeps the editor, the cursor and undo; t
       document.querySelector('[data-testid="editor"]')?.shadowRoot?.querySelector('.cm-editor') ?? null
   })
   await openStory(page)
-  await page.getByTestId('view-cards').click()
+  await page.getByTestId('view-outline').click()
   await page.getByTestId('workspace-write').click()
   await page.keyboard.type(' Two')
   await expect(page.locator('.cm-content')).toContainText('river. One Two')
@@ -178,7 +181,7 @@ test('switching between Story and Write keeps the editor, the cursor and undo; t
   await page.getByTestId('workspace-story').click()
   await running?.app.close()
   page = await start()
-  await expect(page.getByTestId('cards')).toBeVisible()
+  await expect(page.getByTestId('list')).toBeVisible()
   await expect(page.locator('[data-outline][aria-current="page"]')).toHaveAttribute('data-outline', MAIN)
 })
 
@@ -203,6 +206,189 @@ test('in Hebrew, columns run right to left and the arrow keys follow them', asyn
   await expect(page.getByTestId('workspace-story')).toHaveText('סיפור')
 })
 
+test('the list: + Add card, Enter for the next line, Tab to make it a detail, Shift+Tab to bring it back', async () => {
+  const page = await start()
+  await openStory(page)
+  await page.getByTestId('view-outline').click()
+  const line = page.getByTestId('editable-text')
+
+  await page.getByTestId('add-card').first().click()
+  await line.fill('Noël waits')
+  await line.press('Enter')
+  await line.fill('With the bolt cutters')
+  await line.press('Tab') // a detail of "Noël waits"
+  await expect(page.locator('.new-line')).toHaveCSS('--depth', '1')
+  await line.press('Enter')
+  await line.fill('The first frost')
+  await line.press('Shift+Tab') // back to a card
+  await expect(page.locator('.new-line')).toHaveCSS('--depth', '0')
+  await line.press('Enter')
+  await line.press('Escape')
+  await expect(line).toHaveCount(0)
+
+  await file(MAIN).toContain(
+    '- The gate, see [The Orchard Gate](../manuscript/the-orchard-gate.md)\n- Noël waits\n  - With the bolt cutters\n- The first frost\n\n## Ending',
+  )
+  // The same outline on the board.
+  await page.getByTestId('view-board').click()
+  await expect(card(page, 'Noël waits')).toContainText('With the bolt cutters')
+})
+
+test('the list says what level a new line is: its bullet, its name, and what Tab would do', async () => {
+  const page = await start()
+  await openStory(page)
+  await page.getByTestId('view-outline').click()
+  const line = page.locator('.new-line')
+
+  // The quiet + beside a section's name adds an item at its end, like "+ Add item" below.
+  await page.getByTestId('add-item-top').first().click()
+  await expect(line).toHaveClass(/level-item/)
+  await expect(line.locator('.cm-placeholder')).toHaveText('New item')
+  await expect(line.locator('.line-keys')).toContainText('Enter: next item')
+  await expect(line.locator('.line-keys')).toContainText('Tab: make it a detail of “The gate, see The Orchard G…”')
+  await page.keyboard.press('Tab')
+  await expect(line).toHaveClass(/level-detail/)
+  await expect(line.locator('.cm-placeholder')).toHaveText('New detail of “The gate, see The Orchard G…”')
+  await expect(line.locator('.line-keys')).toContainText('Shift+Tab: make it an item')
+  await page.keyboard.type('Rusted shut')
+  await page.keyboard.press('Enter')
+  await page.keyboard.press('Escape')
+  await file(MAIN).toContain('- The gate, see [The Orchard Gate](../manuscript/the-orchard-gate.md)\n  - Rusted shut\n')
+  // Items and details have their own bullets.
+  await expect(page.locator('[data-item="0/1"]')).toHaveClass(/level-item/)
+  await expect(page.locator('[data-item="0/1/0"]')).toHaveClass(/level-detail/)
+})
+
+test('the list: + on a row adds a detail to it, and + Add section adds a section', async () => {
+  const page = await start()
+  await openStory(page)
+  await page.getByTestId('view-outline').click()
+  const row = page.locator('[data-item="0/0"]')
+  await expect(row).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+  await row.hover()
+  // The row is shaded while hovered, so "+ Detail" at its far end clearly belongs to it.
+  await expect(row).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+  await row.getByTestId('add-detail').click()
+  await page.getByTestId('editable-text').fill('Carrying one suitcase')
+  await page.getByTestId('editable-text').press('Enter')
+  await page.getByTestId('editable-text').press('Escape')
+  await file(MAIN).toContain('  - Bea at the landing\n  - Carrying one suitcase\n- The gate')
+
+  await page.getByTestId('add-section').click()
+  await typeInPlace(page, 'Middle')
+  await file(MAIN).toContain('## Middle')
+  await expect(page.getByTestId('list').locator('h3', { hasText: 'Middle' })).toBeVisible()
+})
+
+test('Story has two groups: Plot holds the outlines, World shows each kind of page as cards, A to Z', async () => {
+  await mkdir(join(root, 'characters'))
+  // File names in the opposite order to the titles, so the order shown must come from the titles.
+  await writeFile(join(root, 'characters/a.md'), '---\ntitle: Noël Arany\naka: [Noël]\n---\nKeeps the keys.\n')
+  await writeFile(join(root, 'characters/b.md'), '---\ntitle: Ilka Varga\n---\nInherits the orchard.\n')
+  await writeFile(join(root, 'characters/c.md'), '---\ntitle: Bea Halmi\n---\nWaits at the landing.\n')
+  const page = await start()
+  await openStory(page)
+  await expect(page.getByTestId('plot')).toContainText('Main story')
+  await expect(page.getByTestId('view-board')).toBeVisible()
+  await expect(page.locator('[data-testid^="view-"]')).toHaveCount(2) // Board and List; Cards is gone
+
+  await expect(page.locator('[data-gallery="character"] .count')).toHaveText('3')
+  await page.locator('[data-gallery="character"]').click()
+  await expect(page.getByTestId('view-board')).toHaveCount(0) // the views belong to outlines only
+  await expect(page.locator('.page-card-title')).toHaveText(['Bea Halmi', 'Ilka Varga', 'Noël Arany'])
+  await expect(page.locator('[data-page="characters/a.md"]')).toContainText('Keeps the keys.')
+
+  await page.locator('[data-page="characters/c.md"]').click()
+  await expect(page.getByTestId('reference-page').locator('.outline-title')).toHaveText('Bea Halmi')
+  await expect(page.locator('[data-gallery="character"]').locator('..')).toHaveClass(/current/)
+  await page.getByTestId('back-to-gallery').click()
+  await expect(page.getByTestId('gallery-character')).toBeVisible()
+})
+
+test('editing a card: links show as names, and @ or the link button adds one without writing Markdown', async () => {
+  await mkdir(join(root, 'characters'))
+  await writeFile(join(root, 'characters/bea.md'), '---\ntitle: Bea Halmi\naka: [Bea]\n---\nIlka’s aunt.\n')
+  const page = await start()
+  await openStory(page)
+  await page.getByTestId('view-outline').click()
+  await expect(page.getByTestId('add-card').first()).toHaveText('Add item')
+
+  // Editing an item that has a link: the link is a name, not Markdown.
+  await page.locator('[data-item="0/0"] .inline-text').dblclick()
+  const field = page.getByTestId('editable-text')
+  await expect(field.locator('.cm-link-chip')).toHaveText('The Crossing')
+  await expect(field).not.toContainText('](')
+  await page.keyboard.press('Escape')
+
+  // A new item: type @ and part of a name, pick it with Enter, go on typing.
+  await page.getByTestId('add-card').first().click()
+  await expect(field).toBeFocused()
+  await page.keyboard.type('Must meet @bea')
+  await expect(page.getByTestId('item-suggestions').getByRole('option').first()).toContainText('Bea Halmi')
+  await page.keyboard.press('Enter')
+  await page.keyboard.type('at the landing')
+  await expect(field.locator('.cm-link-chip')).toHaveText('Bea Halmi')
+  await page.keyboard.press('Enter')
+  await file(MAIN).toContain('- Must meet [Bea Halmi](../characters/bea.md) at the landing\n')
+
+  // The link button does the same, for anyone who doesn't know @.
+  await page.keyboard.type('Frost comes for ')
+  await page.getByTestId('item-link').click()
+  await page.getByTestId('link-search').fill('frost')
+  await page.getByTestId('link-search').press('Enter')
+  await expect(field).toBeFocused()
+  await page.keyboard.press('Enter')
+  await page.keyboard.press('Escape') // at once, while the line is still being kept: no next line opens
+  await file(MAIN).toContain('- Frost comes for [Frost](../manuscript/frost.md)\n')
+  await expect(field).toHaveCount(0)
+
+  // An email address is not a link.
+  await page.getByTestId('add-card').first().click()
+  await expect(field).toBeFocused()
+  await page.keyboard.type('Write to ilka@marrow')
+  await expect(page.getByTestId('item-suggestions')).toHaveCount(0)
+  await page.keyboard.press('Enter')
+  await file(MAIN).toContain('- Write to ilka@marrow\n')
+})
+
+test('a row’s menu opens in full and on top, wherever the row is: under the title bar, or low in the window', async () => {
+  const page = await start()
+  await page.setViewportSize({ width: 1100, height: 560 })
+  await openStory(page)
+  await page.getByTestId('view-outline').click()
+  /** The whole menu is in the window, and on top: near its corners is the menu itself, not the bar or the page. */
+  const inWindow = async (): Promise<boolean> =>
+    page.evaluate(() => {
+      const menu = document.querySelector('[role="menu"]')
+      const box = menu?.getBoundingClientRect()
+      if (!menu || !box || box.top < 0 || box.bottom > window.innerHeight) return false
+      // Inside the rounded corners.
+      const corners = [
+        [box.left + 20, box.top + 20],
+        [box.right - 20, box.bottom - 20],
+      ] as const
+      return corners.every(([x, y]) => menu.contains(document.elementFromPoint(x, y)))
+    })
+
+  // The first row, just under the outline's title and views: the menu opens below it, in full.
+  const first = page.locator('[data-item="0/0"]')
+  await first.hover()
+  await first.getByRole('button', { name: /^Actions for/ }).click()
+  await expect(page.getByRole('menu')).toBeVisible()
+  expect(await inWindow()).toBe(true)
+  await page.keyboard.press('Escape')
+
+  // The last row, low in the window: the menu opens above it, over the bar if need be, never behind it.
+  const last = page.locator('.list-row[data-item]').last()
+  await last.scrollIntoViewIfNeeded()
+  await last.hover()
+  await last.getByRole('button', { name: /^Actions for/ }).click()
+  const menu = await page.getByRole('menu').boundingBox()
+  const row = await last.boundingBox()
+  expect(await inWindow()).toBe(true)
+  expect(menu && row && menu.y + menu.height <= row.y + row.height).toBe(true)
+})
+
 /** Undo, from the ⋯ menu beside the outline's views. */
 async function undo(page: Page): Promise<void> {
   await page.getByTestId('outline-menu').click()
@@ -222,7 +408,7 @@ async function unnamedControls(page: Page): Promise<string[]> {
 test('accessibility: every Story control is named in both languages, and cards can be added by keyboard alone', async () => {
   const page = await start()
   await openStory(page)
-  for (const view of ['board', 'outline', 'cards']) {
+  for (const view of ['board', 'outline']) {
     await page.getByTestId(`view-${view}`).click()
     expect(await unnamedControls(page), view).toEqual([])
   }

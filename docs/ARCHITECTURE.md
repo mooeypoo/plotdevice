@@ -6,7 +6,7 @@ Hexagonal architecture + DDD-inspired bounded contexts; **domain must not depend
 - Domain: invariants, entities/value objects and commands over story concepts; pure TypeScript.
 - Application: use cases/command and query handlers, transaction boundaries, abstract ports; framework-neutral TypeScript.
 - Infrastructure: Markdown parser/serializer, filesystem repositories, OS storage, version/checksum checks, backups.
-- Presentation: view models/projections for Board, Outline, Cards, manuscript and references; framework-neutral where possible.
+- Presentation: view models/projections for Board, List (Outline), manuscript, galleries and references; framework-neutral where possible.
 - UI: Vue components and editor integration only; invoke application-facing transport contracts and present view models.
 - Platform: Electron main and restricted preload typed IPC; replaceable by HTTP/mobile hosts.
 

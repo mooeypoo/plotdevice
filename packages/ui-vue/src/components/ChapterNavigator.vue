@@ -38,6 +38,7 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
             <MenuButton
               :label="t('part-actions', entry.name)"
               :items="[{ key: 'rename-part', label: t('part-rename'), run: () => nav.renamePart(index, entry.name) }]"
+              align="end"
             />
           </div>
           <ol>
@@ -64,7 +65,7 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
                   <span v-if="chapter.number !== null" class="number">{{ chapter.number }}</span>
                   <span dir="auto">{{ chapter.linkText }}</span>
                 </button>
-                <MenuButton :label="t('chapter-actions', chapter.linkText)" :items="nav.chapterMenu(chapter)" />
+                <MenuButton :label="t('chapter-actions', chapter.linkText)" :items="nav.chapterMenu(chapter)" align="end" />
               </div>
               <button v-if="nav.outdatedTitle(chapter.file)" type="button" class="link-button" @click="nav.updateTitle(chapter.file)">
                 {{ t('navigator-update-title', nav.outdatedTitle(chapter.file) ?? '') }}
@@ -95,7 +96,7 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
               <span v-if="entry.number !== null" class="number">{{ entry.number }}</span>
               <span dir="auto">{{ entry.linkText }}</span>
             </button>
-            <MenuButton :label="t('chapter-actions', entry.linkText)" :items="nav.chapterMenu(entry)" />
+            <MenuButton :label="t('chapter-actions', entry.linkText)" :items="nav.chapterMenu(entry)" align="end" />
           </div>
           <button v-if="nav.outdatedTitle(entry.file)" type="button" class="link-button" @click="nav.updateTitle(entry.file)">
             {{ t('navigator-update-title', nav.outdatedTitle(entry.file) ?? '') }}

@@ -1,6 +1,15 @@
 import type { OutlineItemView } from '@plotdevice/contracts'
 import { uiDirection } from '@plotdevice/i18n'
-import { boardDrop, cardMoves, keyOf, markdownLink, type ItemAt, type ItemDestination } from '@plotdevice/presentation'
+import {
+  boardDrop,
+  cardMoves,
+  indentedLine,
+  keyOf,
+  markdownLink,
+  outdentedLine,
+  type ItemAt,
+  type ItemDestination,
+} from '@plotdevice/presentation'
 import { dirnameOf } from '@plotdevice/shared'
 import { nextTick, ref } from 'vue'
 import type { MenuItem } from '../components/menu'
@@ -12,6 +21,8 @@ import { usePrompt } from './use-prompt'
 
 /** The card being dragged, shared by every view. */
 const dragging = ref<ItemAt | null>(null)
+/** Counts list lines kept or cancelled, so a late Escape stops the next line from opening. */
+let lineTicket = 0
 
 /** Moves the keyboard focus to an item once the outline has been redrawn. */
 async function focusItem(key: string): Promise<void> {
@@ -51,9 +62,9 @@ export function useOutlineActions() {
     if (await confirm(t('confirm-delete-item', item.text), t('confirm-delete'))) await story.edit({ kind: 'delete-item', at })
   }
 
-  async function addDetail(at: ItemAt, item: OutlineItemView): Promise<void> {
-    const text = await ask(t('prompt-detail-text'))
-    if (text) await story.edit({ kind: 'add-item', to: { section: at.section, parentPath: at.path, index: item.children.length }, text })
+  /** A new detail, typed in place at the end of the item's details (on the board, inside its card). */
+  function addDetail(at: ItemAt, item: OutlineItemView): void {
+    startLine({ section: at.section, parentPath: at.path, index: item.children.length })
   }
 
   function itemMenu(at: ItemAt, item: OutlineItemView): MenuItem[] {
@@ -76,7 +87,7 @@ export function useOutlineActions() {
       : []
     return [
       { key: 'edit', label: t('item-edit'), run: () => (story.editing = { kind: 'item', key: keyOf(at) }) },
-      { key: 'add-detail', label: t('outline-add-detail'), run: () => void addDetail(at, item) },
+      { key: 'add-detail', label: t('outline-add-detail'), run: () => addDetail(at, item) },
       { key: 'link-to', label: t('link-to'), run: () => void linkTo(at, item) },
       {
         key: 'move-earlier',
@@ -163,6 +174,51 @@ export function useOutlineActions() {
     }
   }
 
+  /** List: start typing a new line at `to`, opening its parent if it was folded. */
+  function startLine(to: ItemDestination, draft = ''): void {
+    if (to.parentPath.length > 0) story.expand(keyOf({ section: to.section, path: to.parentPath }))
+    story.editing = { kind: 'new-line', to, draft }
+  }
+
+  /**
+   * Enter adds the line and starts the next one below it, once it's saved; leaving the field adds it
+   * and stops. Escape pressed while it's being saved cancels the next line before it opens.
+   */
+  async function commitLine(text: string | null, byEnter: boolean): Promise<void> {
+    const ticket = ++lineTicket
+    const editing = story.editing
+    if (editing?.kind !== 'new-line') return
+    story.editing = null
+    if (text === null || text.trim() === '') return
+    const { to } = editing
+    // The field has closed by now, so Escape reaches the window, not the field.
+    const stop = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') lineTicket++
+    }
+    if (byEnter) window.addEventListener('keydown', stop)
+    try {
+      if ((await story.edit({ kind: 'add-item', to, text })) && byEnter && ticket === lineTicket) startLine({ ...to, index: to.index + 1 })
+    } finally {
+      window.removeEventListener('keydown', stop)
+    }
+  }
+
+  /** Tab: the line becomes a detail of the item above it. Shift+Tab: back out a level. */
+  function indentLine(draft: string): void {
+    const editing = story.editing
+    const outline = story.outline
+    if (editing?.kind !== 'new-line' || !outline) return
+    const to = indentedLine(outline, editing.to)
+    if (to) startLine(to, draft)
+  }
+
+  function outdentLine(draft: string): void {
+    const editing = story.editing
+    if (editing?.kind !== 'new-line') return
+    const to = outdentedLine(editing.to)
+    if (to) startLine(to, draft)
+  }
+
   async function commitNewSection(text: string | null): Promise<void> {
     story.editing = null
     const index = story.outline?.sections.length ?? 0
@@ -213,6 +269,10 @@ export function useOutlineActions() {
     commitSection,
     commitNewCard,
     commitNewSection,
+    startLine,
+    commitLine,
+    indentLine,
+    outdentLine,
     renameOutline,
     dragStart,
     dropBefore,

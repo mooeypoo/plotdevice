@@ -16,6 +16,16 @@ export interface CardLinks {
   links: ProjectPath[]
 }
 
+/** A file and the files it links to, resolved to project paths. */
+export interface FileLinks {
+  file: ProjectPath
+  links: ProjectPath[]
+}
+
+/** Adds, changes or removes one relationship on a page (ADR 0009); `index` counts its relationships. */
+export type RelationshipChange =
+  { kind: 'add'; text: string } | { kind: 'change'; index: number; text: string } | { kind: 'remove'; index: number }
+
 /**
  * Characters, places and notes as Markdown pages (Milestone 5), and the links outline cards make.
  * Implemented by `storage`; pages are read leniently and never rewritten to fit.
@@ -34,5 +44,17 @@ export interface ReferenceRepository {
     file: ProjectPath,
     title: string,
   ): Promise<Result<void, 'empty-text' | 'multiline-text' | 'missing' | 'unreadable' | 'stale' | 'write-failed'>>
+  /**
+   * Changes the page's relationships section, touching only that bullet; refused if the file changed
+   * since it was read. A new section is named in `language`, the project's.
+   */
+  editRelationship(
+    root: string,
+    file: ProjectPath,
+    change: RelationshipChange,
+    language: string,
+  ): Promise<Result<void, 'empty-text' | 'multiline-text' | 'missing' | 'unreadable' | 'stale' | 'write-failed'>>
   cardLinks(root: string): Promise<CardLinks[]>
+  /** The links in each of `files` (chapters, say); files without links are left out. */
+  fileLinks(root: string, files: readonly ProjectPath[]): Promise<FileLinks[]>
 }

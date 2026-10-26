@@ -32,7 +32,13 @@ export function newChapterFile(title: string, id: string, body = ''): string {
   return `---\ntitle: ${formatScalar(title)}\nid: ${formatScalar(id)}\n---\n${body}`
 }
 
-/** A new outline: just its title (Milestone 4, decision 4). */
-export function newOutlineFile(title: string): string {
-  return `# ${title.replace(/^#/, '\\#')}\n`
+/**
+ * A new outline: just its title (Milestone 4, decision 4). An outline started from a page, such as a
+ * character's arc, begins with a link to that page (Milestone 11): `path` is relative to the outline.
+ */
+export function newOutlineFile(title: string, about?: { path: string; title: string }): string {
+  const heading = `# ${title.replace(/^#/, '\\#')}\n`
+  if (!about) return heading
+  const destination = /[\s()<>]/.test(about.path) ? `<${about.path}>` : about.path
+  return `${heading}\n[${about.title.replace(/([[\]\\])/g, '\\$1')}](${destination})\n`
 }

@@ -1,6 +1,6 @@
 import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { kindOfFile, referenceFileFor, resolveWikiLink } from './references'
+import { kindOfFile, referenceFileFor, relationshipHeadingFor, resolveWikiLink } from './references'
 
 const p = (path: string) => path as ProjectPath
 describe('reference kinds', () => {
@@ -28,5 +28,11 @@ describe('wikilinks', () => {
     expect(resolveWikiLink('Marrow', files)).toBe('places/marrow.md')
     expect(resolveWikiLink('ilka', files)).toBeNull()
     expect(resolveWikiLink('characters/ilka', files)).toBe('characters/ilka.md')
+  })
+})
+
+describe('the relationships heading', () => {
+  it('is named in the project’s language, falling back to English', () => {
+    expect(['he', 'he-IL', 'en-GB', 'fr'].map(relationshipHeadingFor)).toEqual(['קשרים', 'קשרים', 'Relationships', 'Relationships'])
   })
 })

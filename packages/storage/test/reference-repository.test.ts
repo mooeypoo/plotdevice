@@ -39,13 +39,23 @@ describe('reference pages', () => {
   it('lists characters, places and notes, including pages written in other apps', async () => {
     const { root, repository } = await setup()
     expect(await repository.listReferences(root)).toEqual([
-      { file: 'characters/ilka.md', kind: 'character', title: 'Ilka Varga', aka: ['Ilka'], description: 'Inherits the orchard.' },
+      {
+        file: 'characters/ilka.md',
+        kind: 'character',
+        title: 'Ilka Varga',
+        aka: ['Ilka'],
+        description: 'Inherits the orchard.',
+        relationships: [],
+        links: [],
+      },
       {
         file: 'notes/crossing-notes.md',
         kind: 'note',
         title: expect.any(String) as string,
         aka: [],
         description: expect.anything() as string,
+        relationships: [],
+        links: expect.any(Array) as ProjectPath[],
       },
       {
         file: 'notes/loose-ideas.md',
@@ -53,8 +63,53 @@ describe('reference pages', () => {
         title: 'Loose ideas',
         aka: [],
         description: expect.stringMatching(/^Maybe open/) as string,
+        relationships: [],
+        links: expect.any(Array) as ProjectPath[],
       },
-      { file: 'places/marrow.md', kind: 'place', title: 'Marrow', aka: [], description: 'Where the orchard is.' },
+      {
+        file: 'places/marrow.md',
+        kind: 'place',
+        title: 'Marrow',
+        aka: [],
+        description: 'Where the orchard is.',
+        relationships: [],
+        links: [],
+      },
+    ])
+  })
+
+  it('adds a relationship under a heading in the project’s language, and lists it with the links it resolves', async () => {
+    const { root, repository, text } = await setup()
+    await writeFile(join(root, 'characters/yael.md'), '---\ntitle: יעל\n---\nאחותה של אילקה.\n')
+    unwrap(await repository.editRelationship(root, p('characters/yael.md'), { kind: 'add', text: 'אחות של [[ilka]]' }, 'he-IL'))
+    unwrap(
+      await repository.editRelationship(
+        root,
+        p('characters/ilka.md'),
+        { kind: 'add', text: 'Lives in [Marrow](../places/marrow.md)' },
+        'en',
+      ),
+    )
+    expect(await text('characters/yael.md')).toBe('---\ntitle: יעל\n---\nאחותה של אילקה.\n\n## קשרים\n\n- אחות של [[ilka]]\n')
+    const pages = await repository.listReferences(root)
+    expect(pages.find((page) => page.file === 'characters/yael.md')).toMatchObject({
+      relationships: [{ text: 'אחות של [[ilka]]', links: ['characters/ilka.md'] }],
+      links: ['characters/ilka.md'],
+    })
+    expect(pages.find((page) => page.file === 'characters/ilka.md')?.relationships).toEqual([
+      { text: 'Lives in [Marrow](../places/marrow.md)', links: ['places/marrow.md'] },
+    ])
+    expect(await repository.editRelationship(root, p('characters/ilka.md'), { kind: 'remove', index: 4 }, 'en')).toEqual({
+      ok: false,
+      error: 'missing',
+    })
+  })
+
+  it('lists the links in chapters, leaving out chapters without any', async () => {
+    const { root, repository } = await setup()
+    await writeFile(join(root, 'manuscript/frost.md'), '---\ntitle: Frost\n---\nWith [Ilka](../characters/ilka.md) and [[marrow]].\n')
+    expect(await repository.fileLinks(root, [p('manuscript/frost.md'), p('manuscript/epilogue.md')])).toEqual([
+      { file: 'manuscript/frost.md', links: ['characters/ilka.md', 'places/marrow.md'] },
     ])
   })
 
@@ -75,6 +130,8 @@ describe('reference pages', () => {
       title: 'יעל',
       aka: [],
       description: null,
+      relationships: [],
+      links: [],
     })
     expect(await text('characters/יעל.md')).toBe('---\ntitle: יעל\n---\n')
     expect(unwrap(await repository.createReference(root, 'place', 'Marrow')).file).toBe('places/marrow-2.md')

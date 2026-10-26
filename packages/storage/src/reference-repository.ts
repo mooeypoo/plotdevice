@@ -1,23 +1,55 @@
-import type { CardLinks, ProjectFolders, ReferenceRepository } from '@plotdevice/application'
+import type { CardLinks, FileLinks, ProjectFolders, ReferenceRepository } from '@plotdevice/application'
 import {
   kindOfFile,
   OUTLINES_FOLDER,
   REFERENCE_FOLDERS,
   referenceFileFor,
+  relationshipHeadingFor,
   resolveWikiLink,
   type ReferenceSummary,
 } from '@plotdevice/domain'
 import {
+  editRelationships,
   findLinks,
   newReferencePage,
   readOutline,
   readReferencePage,
+  readRelationships,
   setFrontmatterValues,
+  type FoundLink,
   type OutlineItemSource,
 } from '@plotdevice/markdown'
-import { dirnameOf, err, ok, stemOf, type ProjectPath } from '@plotdevice/shared'
+import { dirnameOf, err, ok, RELATIONSHIP_HEADINGS, stemOf, type ProjectPath } from '@plotdevice/shared'
 
 const REFERENCE_PREFIXES = Object.values(REFERENCE_FOLDERS).map((folder) => `${folder}/`)
+const HEADINGS = Object.values(RELATIONSHIP_HEADINGS)
+
+/** The project file a link points at, if it exists; `[[name]]` only when exactly one file has that name. */
+function resolve(link: FoundLink, files: readonly ProjectPath[]): ProjectPath | null {
+  return link.kind === 'path' ? (files.find((file) => file === link.target) ?? null) : resolveWikiLink(link.name, files)
+}
+
+const resolveAll = (links: readonly FoundLink[], files: readonly ProjectPath[]): ProjectPath[] => [
+  ...new Set(links.flatMap((link) => resolve(link, files) ?? [])),
+]
+
+/** A page as lists show it, with its relationships and every file it links to. */
+function summarize(file: ProjectPath, text: string, files: readonly ProjectPath[]): ReferenceSummary {
+  const page = readReferencePage(text, stemOf(file))
+  const dir = dirnameOf(file)
+  return {
+    file,
+    kind: kindOfFile(file) ?? 'note',
+    title: page.title,
+    aka: page.aka,
+    description: page.description,
+    relationships: readRelationships(text, dir, HEADINGS).relationships.map((relationship) => ({
+      text: relationship.text,
+      links: resolveAll(relationship.links, files),
+    })),
+    links: resolveAll(findLinks(text, dir), files),
+  }
+}
 
 /**
  * Characters, places and notes as Markdown pages, read leniently (Milestone 5), and the links outline
@@ -27,22 +59,27 @@ export function createReferenceRepository({ folders }: { folders: ProjectFolders
   return {
     async listReferences(root) {
       const store = folders.open(root)
-      const files = (await store.listMarkdownFiles()).filter((file) => REFERENCE_PREFIXES.some((prefix) => file.startsWith(prefix))).sort()
+      const all = await store.listMarkdownFiles()
+      const files = all.filter((file) => REFERENCE_PREFIXES.some((prefix) => file.startsWith(prefix))).sort()
       return Promise.all(
         files.map(async (file): Promise<ReferenceSummary> => {
           const read = await store.read(file)
           // An unreadable page is still listed, under its file name, so nothing silently disappears.
-          const page = read.ok ? readReferencePage(read.value.text, stemOf(file)) : { title: stemOf(file), aka: [], description: null }
-          return { file, kind: kindOfFile(file) ?? 'note', title: page.title, aka: page.aka, description: page.description }
+          return read.ok ? summarize(file, read.value.text, all) : summarize(file, '', all)
         }),
       )
     },
 
     async readReference(root, file) {
-      const read = await folders.open(root).read(file)
+      const store = folders.open(root)
+      const read = await store.read(file)
       if (!read.ok) return err(read.error === 'missing' ? 'missing' : 'unreadable')
       const page = readReferencePage(read.value.text, stemOf(file))
-      return ok({ file, kind: kindOfFile(file) ?? 'note', ...page })
+      return ok({
+        ...summarize(file, read.value.text, await store.listMarkdownFiles()),
+        details: page.details,
+        invalidDetails: page.invalidDetails,
+      })
     },
 
     async createReference(root, kind, title) {
@@ -55,7 +92,7 @@ export function createReferenceRepository({ folders }: { folders: ProjectFolders
       for (let attempt = 0; attempt < 3; attempt++) {
         const file = referenceFileFor(kind, name, await store.listMarkdownFiles())
         const written = await store.write(file, content, null)
-        if (written.ok) return ok({ file, kind, title: name, aka: [], description: null })
+        if (written.ok) return ok({ file, kind, title: name, aka: [], description: null, relationships: [], links: [] })
         if (written.error.code !== 'stale') break
       }
       return err('write-failed')
@@ -75,6 +112,31 @@ export function createReferenceRepository({ folders }: { folders: ProjectFolders
       return ok(undefined)
     },
 
+    async editRelationship(root, file, edit, language) {
+      const store = folders.open(root)
+      const current = await store.read(file)
+      if (!current.ok) return err(current.error === 'missing' ? 'missing' : 'unreadable')
+      const change = edit.kind === 'add' ? { ...edit, heading: relationshipHeadingFor(language) } : edit
+      const updated = editRelationships(current.value.text, dirnameOf(file), HEADINGS, change)
+      if (!updated.ok) return updated
+      const written = await store.write(file, { text: updated.value, hasBom: current.value.hasBom }, current.value.revision)
+      if (!written.ok) return err(written.error.code === 'stale' ? 'stale' : 'write-failed')
+      return ok(undefined)
+    },
+
+    async fileLinks(root, files) {
+      const store = folders.open(root)
+      const all = await store.listMarkdownFiles()
+      const result: FileLinks[] = []
+      for (const file of files) {
+        const read = await store.read(file)
+        if (!read.ok) continue
+        const links = resolveAll(findLinks(read.value.text, dirnameOf(file)), all)
+        if (links.length > 0) result.push({ file, links })
+      }
+      return result
+    },
+
     async cardLinks(root) {
       const store = folders.open(root)
       const files = await store.listMarkdownFiles()
@@ -87,10 +149,7 @@ export function createReferenceRepository({ folders }: { folders: ProjectFolders
         const textOf = (item: OutlineItemSource): string => [item.text, ...item.children.map(textOf)].join('\n')
         for (const section of outline.sections) {
           for (const card of section.items) {
-            const links = findLinks(textOf(card), dirnameOf(outlineFile)).flatMap((link): ProjectPath[] => {
-              const target = link.kind === 'path' ? (files.find((file) => file === link.target) ?? null) : resolveWikiLink(link.name, files)
-              return target ? [target] : []
-            })
+            const links = findLinks(textOf(card), dirnameOf(outlineFile)).flatMap((link) => resolve(link, files) ?? [])
             if (links.length > 0)
               result.push({
                 outline: outlineFile,

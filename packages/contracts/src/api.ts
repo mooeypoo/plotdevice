@@ -9,7 +9,15 @@ import type {
 } from './chapter'
 import type { OutlineEditRequest, OutlineResult, OutlineSummaryView, Place } from './outline'
 import type { Preferences, PreferencesPatch } from './preferences'
-import type { CardLinksView, ReferenceKind, ReferencePageView, ReferenceResult, ReferenceSummaryView } from './references'
+import type {
+  CardLinksView,
+  LinkedFromView,
+  ReferenceKind,
+  ReferencePageView,
+  ReferenceResult,
+  ReferenceSummaryView,
+  RelationshipChangeRequest,
+} from './references'
 import type { CopyVersionResult, VersionResult, VersionsView } from './versions'
 import type {
   CompileResult,
@@ -58,7 +66,7 @@ export interface PlotDeviceApi {
   flushed(): Promise<void>
 
   listOutlines(): Promise<OutlineSummaryView[]>
-  createOutline(title: string): Promise<OutlineResult>
+  createOutline(title: string, about?: ProjectPath): Promise<OutlineResult>
   openOutline(file: ProjectPath): Promise<OutlineResult>
   editOutline(file: ProjectPath, edit: OutlineEditRequest): Promise<OutlineResult>
   undoOutline(file: ProjectPath): Promise<OutlineResult>
@@ -73,6 +81,10 @@ export interface PlotDeviceApi {
   renameReferenceFile(file: ProjectPath, newName: string): Promise<ReferenceResult<ReferenceSummaryView>>
   /** The outline cards that link to a chapter, with what else they link to. */
   cardsAbout(chapter: ProjectPath): Promise<CardLinksView[]>
+  /** Adds, changes or removes one relationship on a page (ADR 0009), and returns the page as it is now. */
+  editRelationship(file: ProjectPath, change: RelationshipChangeRequest): Promise<ReferenceResult<ReferencePageView>>
+  /** The outline cards, pages and chapters that link to a page. */
+  linkedFrom(file: ProjectPath): Promise<LinkedFromView>
   getShelf(): Promise<ProjectPath[]>
   setShelf(files: ProjectPath[]): Promise<void>
 

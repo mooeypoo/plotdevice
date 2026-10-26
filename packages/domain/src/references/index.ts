@@ -1,1 +1,10 @@
-export { kindOfFile, REFERENCE_FOLDERS, referenceFileFor, resolveWikiLink, type ReferenceKind, type ReferenceSummary } from './references'
+export {
+  kindOfFile,
+  REFERENCE_FOLDERS,
+  referenceFileFor,
+  relationshipHeadingFor,
+  resolveWikiLink,
+  type ReferenceKind,
+  type ReferenceSummary,
+  type Relationship,
+} from './references'

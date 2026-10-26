@@ -16,12 +16,15 @@ Version: 0.3 draft
 - Primary writing shortcuts discoverable from menu/help; keyboard-only complete.
 
 ## Story layout
-- An author can create multiple named outlines; each opens in Board, Outline or Cards view, with last selection preserved.
+- Story has two groups (Milestone 11): **Plot**, the outlines and the book's chapters, and **World**, characters, places and notes. The groups are named in the sidebar.
+- An author can create multiple named outlines; each opens as a Board or a List (the Outline view), with last selection preserved. The view switch sits beside the outline's title, because it belongs to the outline. (A third Cards view was removed in Milestone 11: it showed the board without its columns.)
 - Outline mapping: `#` optional document title; `##` headings -> sections/columns; first-level `-` bullets -> cards; nested bullets -> details. Depth may be collapsed and is not fixed at exactly two levels.
 - Board drag to reorder a card and descendants; moving between columns only changes the outline document.
-- Inline rename section/card/detail; clear affordance for Add section, Add card, Add detail; undo for structural edits.
+- Inline rename section/card/detail; clear affordance for Add section, Add card, Add detail; undo for structural edits. In the List, the add controls are visible ("+ Add card" per section, "+ Add section", a "+" per row for a detail); while typing a new line, Enter starts the next, Tab makes it a detail of the line above and Shift+Tab brings it back out.
 - Derived Manuscript Outline is a distinct read-only projection of manuscript order, with explicit navigation/rename/reorder actions invoking manuscript commands.
 - Character/place/notes views initially use a short title, description and expandable details, not developer-like forms.
+- World: each kind opens as a gallery of cards, A to Z (title, other names, description, first relationships), with a dashed card to add one.
+- A page shows, beside its text, its relationships (ADR 0009) and everything that links to it ("Linked from": outline cards, pages, chapters). From there the author can show the page's cards on the board, or start an arc outline linked to the page. Nothing is inferred from names.
 
 ## Outline UX edge cases
 - Empty outline: guided first card or blank start, without forcing templates.

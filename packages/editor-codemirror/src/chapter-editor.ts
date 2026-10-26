@@ -5,6 +5,7 @@ import { EditorView } from '@codemirror/view'
 import { tags } from '@lezer/highlight'
 import { chapterState } from './chapter-state'
 import { formatCommands, insertLink, type FormatCommand } from './format'
+import { foldedSection, type FoldedSection } from './folded-section'
 import { livePreview } from './live-preview'
 import { pasteText } from './paste'
 import { setParagraphDirection, setPhraseDirection } from './paragraph-direction'
@@ -46,6 +47,8 @@ export interface ChapterEditorOptions {
   convertPaste: (html: string, plain: string) => string
   /** Told where selected text is on screen, so formatting can be offered beside it; `null` when nothing is selected. */
   onSelection?: (place: SelectionPlace | null) => void
+  /** A section shown elsewhere, folded into one line (a page's relationships). */
+  foldedSection?: FoldedSection
 }
 
 /**
@@ -154,6 +157,7 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
         options.onSelection(selectionPlace(update.view))
     }),
   ]
+  if (options.foldedSection) viewExtensions.push(foldedSection(options.foldedSection))
   const stateFor = (text: string) => chapterState(text, settings, current, viewExtensions)
   const view = new EditorView({ parent: root, root, state: stateFor(options.text) })
 

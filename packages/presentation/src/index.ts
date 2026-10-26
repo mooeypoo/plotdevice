@@ -16,10 +16,13 @@ export {
   boardColumns,
   boardDrop,
   cardMoves,
-  cardsInOrder,
+  indentedLine,
   inlineSpans,
   itemAt,
   keyOf,
+  lineContext,
+  newLineAfter,
+  outdentedLine,
   outlineRows,
   type BoardColumn,
   type BoardEntry,
@@ -29,4 +32,16 @@ export {
   type ItemDestination,
   type OutlineRow,
 } from './outline-views'
-export { LINK_KINDS, linkTargets, markdownLink, search, suggestedLinkTargets, type LinkTarget } from './references'
+export {
+  cardKey,
+  galleryPages,
+  LINK_KINDS,
+  linkTargets,
+  linkTextOnly,
+  markdownLink,
+  relationshipWords,
+  search,
+  suggestedLinkTargets,
+  type LinkTarget,
+} from './references'
+export { menuPlacement, type Box } from './menu-placement'

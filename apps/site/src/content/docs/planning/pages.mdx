@@ -1,25 +1,57 @@
 ---
 title: Characters, places and notes
-description: Keep a page for each character, place and idea, and find it again while you write.
+description: Keep a page for each character, place and idea, see how they connect, and find them again while you write.
 ---
 
 import Ui from '~/components/Ui.astro'
+import Shot from '~/components/Shot.astro'
 
-In **<Ui k="workspace-story" />**, the side list has three groups: **<Ui k="story-character" />**, **<Ui k="story-place" />** and **<Ui k="story-note" />**. Each page is a Markdown file in its own folder.
+**<Ui k="workspace-story" />** has two halves. **<Ui k="story-plot" />** is the story's events: its outlines. **<Ui k="story-world" />** is who and where: **<Ui k="story-character" />**, **<Ui k="story-place" />** and **<Ui k="story-note" />**. Each page is a Markdown file in its own folder.
+
+## See them all
+
+Under **<Ui k="story-world" />**, choose **<Ui k="story-character" />**, **<Ui k="story-place" />** or **<Ui k="story-note" />**. They open as cards, A to Z: each with its name, other names, description and first relationships.
+
+<Shot name="world-gallery" alt="The characters as cards: Bea Halmi, Ilka Varga and Noël Arany" />
 
 ## Add a page
 
-Choose **+ <Ui k="new-character" />**, **+ <Ui k="new-place" />** or **+ <Ui k="new-note" />**, and give it a name.
+The last card, **+ <Ui k="new-character" />** (or **+ <Ui k="new-place" />**, **+ <Ui k="new-note" />**), adds one. Give it a name.
 
 ## Write it
 
-Click a page to open it. <Ui k="reference-hint" />
+Click a card to open the page. <Ui k="reference-hint" />
 
-The description is what the references shelf shows first; the details open under it. Use headings and lists in the details as you like.
+The description is what the references shelf shows first; the details open under it. Use headings and lists in the details as you like. **‹** above the name goes back to the cards.
+
+## Relationships
+
+Beside the page, **<Ui k="relationships" />** lists how it connects to other pages: "Aunt of Ilka", "Waits at the Ferry Landing".
+
+<Shot name="page-connections" alt="Bea's page, with her relationships and what links to her beside it" />
+
+- **+ <Ui k="relationship-add" />**: pick a page, then say how they're related, such as "Sister of".
+- A relationship's **⋯** changes its words or removes it.
+
+A relationship goes one way: Bea is Ilka's aunt. Ilka's page shows it under **<Ui k="linked-from" />**, and her file isn't changed. In the page's text, the relationships are one quiet line, so they aren't shown twice; click it to see them as written. See [Character, place and note pages](/plotdevice/files/pages/) for how they look in the file.
+
+## What links here
+
+**<Ui k="linked-from" />** lists every card, page and chapter with a link to this page. Click one to open it. Only links you made count: Plot Device never guesses them from names.
+
+## See a character on the board
+
+Under an outline in **<Ui k="linked-from" />**, **<Ui k="show-on-board" />** opens it as a board with this page's cards outlined in gold and the rest faded. **✕**, or **Esc**, shows every card again.
+
+<Shot name="show-on-board" alt="The board, with the cards about Bea outlined and the others faded" />
+
+## Start an arc
+
+**+ <Ui k="arc-start" />** makes a new outline for this character's story (or this place's, or this idea's), under **<Ui k="story-plot" />**. It starts with a link back to the page, so it shows under **<Ui k="linked-from" />** too.
 
 ## Rename
 
-**<Ui k="reference-rename" />** changes the page's name; **<Ui k="reference-rename-file" />** changes its file's name. A page also has **<Ui k="versions" />**.
+The page's **⋯** has **<Ui k="reference-rename" />** for its name, **<Ui k="reference-rename-file" />** for its file's name, and **<Ui k="versions" />**.
 
 ## Other names
 

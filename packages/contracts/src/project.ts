@@ -80,7 +80,7 @@ export interface OpenedProject {
   /** Where the author was in each chapter. */
   positions?: Record<ProjectPath, ChapterPosition>
   /** The workspace, outline and view the author was in. */
-  place?: { workspace: 'write' | 'story'; outline?: ProjectPath; view?: 'board' | 'outline' | 'cards' }
+  place?: { workspace: 'write' | 'story'; outline?: ProjectPath; view?: 'board' | 'outline' }
 }
 
 /** `cancelled`: the author closed the folder dialog. */

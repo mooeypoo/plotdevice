@@ -1,13 +1,22 @@
-import { cardsLinkingTo, type RecentProjectsSession, type ReferenceRepository, type WritingSession } from '@plotdevice/application'
+import {
+  cardsLinkingTo,
+  linkedFrom,
+  type ProjectSnapshot,
+  type RecentProjectsSession,
+  type ReferenceRepository,
+  type WritingSession,
+} from '@plotdevice/application'
 import {
   chapterLinksSchema,
   channels,
   createReferenceSchema,
+  editRelationshipSchema,
   referenceFileSchema,
   renameReferenceFileSchema,
   renameReferenceSchema,
   shelfSchema,
   type CardLinksView,
+  type LinkedFromView,
   type LinkTargetView,
   type ReferencePageView,
   type ReferenceResult,
@@ -27,6 +36,17 @@ export interface ReferenceIpcContext {
 /** Character, place and note calls; the pinned shelf. Paths outside the page folders are refused by the schemas. */
 export function createReferenceHandlers({ references, writing, recent }: ReferenceIpcContext): Record<string, PayloadHandler> {
   const root = (): string | null => writing.project()?.root ?? null
+  /** Names a linked file for display: a page by its title, a chapter by its name, anything else by its file name. */
+  const namer = async (project: ProjectSnapshot) => {
+    const pages = new Map((await references.listReferences(project.root)).map((page) => [page.file, page]))
+    const chapters = new Map(project.chapters.map((chapter) => [chapter.file, chapter.title]))
+    return (link: ProjectPath): LinkTargetView => {
+      const page = pages.get(link)
+      if (page) return { file: link, kind: page.kind, title: page.title }
+      if (chapters.has(link)) return { file: link, kind: 'chapter', title: chapters.get(link) ?? stemOf(link) }
+      return { file: link, kind: link.startsWith('outlines/') ? 'outline' : (kindOfFile(link) ?? 'other'), title: stemOf(link) }
+    }
+  }
   const summaryOf = async (projectRoot: string, file: ProjectPath): Promise<ReferenceSummaryView | null> =>
     (await references.listReferences(projectRoot)).find((reference) => reference.file === file) ?? null
 
@@ -79,15 +99,45 @@ export function createReferenceHandlers({ references, writing, recent }: Referen
       const { file } = parsePayload(chapterLinksSchema, payload)
       const project = writing.project()
       if (!project) return []
-      const pages = new Map((await references.listReferences(project.root)).map((page) => [page.file, page]))
-      const chapters = new Map(project.chapters.map((chapter) => [chapter.file, chapter.title]))
-      const target = (link: ProjectPath): LinkTargetView => {
-        const page = pages.get(link)
-        if (page) return { file: link, kind: page.kind, title: page.title }
-        if (chapters.has(link)) return { file: link, kind: 'chapter', title: chapters.get(link) ?? stemOf(link) }
-        return { file: link, kind: link.startsWith('outlines/') ? 'outline' : (kindOfFile(link) ?? 'other'), title: stemOf(link) }
-      }
+      const target = await namer(project)
       return cardsLinkingTo(await references.cardLinks(project.root), file).map((card) => ({ ...card, links: card.links.map(target) }))
+    },
+
+    [channels.editRelationship]: async (payload): Promise<ReferenceResult<ReferencePageView>> => {
+      const { file, change } = parsePayload(editRelationshipSchema, payload)
+      const project = writing.project()
+      if (!project) return err('no-project')
+      // The page may be open: its editor shows the new text, and saving carries on from it.
+      const edited = await writing.updateFile(
+        file,
+        () => references.editRelationship(project.root, file, change, project.details.language),
+        {
+          reload: true,
+        },
+      )
+      if (!edited.ok) return edited
+      return references.readReference(project.root, file)
+    },
+
+    [channels.linkedFrom]: async (payload): Promise<LinkedFromView> => {
+      const { file } = parsePayload(referenceFileSchema, payload)
+      const project = writing.project()
+      if (!project) return { cards: [], pages: [], chapters: [] }
+      const [cards, pages, chapters, target] = await Promise.all([
+        references.cardLinks(project.root),
+        references.listReferences(project.root),
+        references.fileLinks(
+          project.root,
+          project.chapters.map((chapter) => chapter.file),
+        ),
+        namer(project),
+      ])
+      const found = linkedFrom(file, { cards, pages, chapters })
+      return {
+        cards: found.cards.map((card) => ({ ...card, links: card.links.map(target) })),
+        pages: found.pages,
+        chapters: found.chapters.map((chapter) => ({ file: chapter, title: target(chapter).title })),
+      }
     },
 
     [channels.getShelf]: async () => {
