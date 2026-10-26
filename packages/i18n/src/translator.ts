@@ -31,5 +31,7 @@ export function uiDirection(locale: string): 'ltr' | 'rtl' {
 }
 
 function withoutMetadata(messages: Record<string, unknown>): Messages {
-  return Object.fromEntries(Object.entries(messages).filter((entry): entry is [string, string] => entry[0] !== '@metadata' && typeof entry[1] === 'string'))
+  return Object.fromEntries(
+    Object.entries(messages).filter((entry): entry is [string, string] => entry[0] !== '@metadata' && typeof entry[1] === 'string'),
+  )
 }

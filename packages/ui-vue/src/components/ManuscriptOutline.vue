@@ -20,14 +20,16 @@ const view = useViewStore()
           <ol>
             <li v-for="chapter in entry.chapters" :key="chapter.file">
               <button type="button" class="chapter" @click="view.writeChapter(chapter.file)">
-                <span v-if="chapter.number !== null" class="number">{{ chapter.number }}</span><span dir="auto">{{ chapter.linkText }}</span>
+                <span v-if="chapter.number !== null" class="number">{{ chapter.number }}</span
+                ><span dir="auto">{{ chapter.linkText }}</span>
               </button>
             </li>
           </ol>
         </li>
         <li v-else>
           <button type="button" class="chapter" @click="view.writeChapter(entry.file)">
-            <span v-if="entry.number !== null" class="number">{{ entry.number }}</span><span dir="auto">{{ entry.linkText }}</span>
+            <span v-if="entry.number !== null" class="number">{{ entry.number }}</span
+            ><span dir="auto">{{ entry.linkText }}</span>
           </button>
         </li>
       </template>

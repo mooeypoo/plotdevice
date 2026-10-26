@@ -4,7 +4,17 @@ import tseslint from 'typescript-eslint'
 
 export default defineConfig(
   {
-    ignores: ['**/node_modules/**', '**/dist/**', '**/out/**', '**/.tsbuild/**', 'tests/fixtures/**', 'spikes/**', 'tooling/arch-fixtures/**', 'test-results/**', 'playwright-report/**'],
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/out/**',
+      '**/.tsbuild/**',
+      'tests/fixtures/**',
+      'spikes/**',
+      'tooling/arch-fixtures/**',
+      'test-results/**',
+      'playwright-report/**',
+    ],
   },
   tseslint.configs.strict,
   vue.configs['flat/essential'],
@@ -12,7 +22,13 @@ export default defineConfig(
   {
     rules: {
       '@typescript-eslint/consistent-type-imports': 'error',
-      'no-restricted-syntax': ['error', { selector: 'ExportDefaultDeclaration', message: 'Use named exports (AGENTS.md); default exports only in Vue files and config files.' }],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'ExportDefaultDeclaration',
+          message: 'Use named exports (AGENTS.md); default exports only in Vue files and config files.',
+        },
+      ],
     },
   },
   { files: ['**/*.vue', '**/*.d.ts', '**/*.config.{js,ts,cjs,mjs}', 'eslint.config.js'], rules: { 'no-restricted-syntax': 'off' } },

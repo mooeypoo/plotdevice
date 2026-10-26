@@ -43,7 +43,13 @@ async function apply(store: FileStore, step: JournalStep): Promise<boolean> {
  * point), then each step runs in order, then the journal is removed. An interruption anywhere is finished
  * by `recoverJournals` on the next open.
  */
-export async function runJournaled(store: FileStore, journals: JournalStore, projectKey: string, entry: JournalEntry, crashAt?: CrashAt): Promise<'done' | 'step-failed'> {
+export async function runJournaled(
+  store: FileStore,
+  journals: JournalStore,
+  projectKey: string,
+  entry: JournalEntry,
+  crashAt?: CrashAt,
+): Promise<'done' | 'step-failed'> {
   await journals.save(projectKey, entry)
   checkpoint(crashAt, 'journal-saved')
   for (const [index, step] of entry.steps.entries()) {

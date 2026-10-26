@@ -6,7 +6,15 @@ import { backupKeyOf } from './backing-up'
  * Earlier versions from the backups. `folders` must be the plain folders, not `withBackups`: a restore
  * keeps what it replaces explicitly, every time, rather than when a backup happens to be due.
  */
-export function createVersionRepository({ folders, backups, now }: { folders: ProjectFolders; backups: BackupStore; now: () => number }): VersionRepository {
+export function createVersionRepository({
+  folders,
+  backups,
+  now,
+}: {
+  folders: ProjectFolders
+  backups: BackupStore
+  now: () => number
+}): VersionRepository {
   return {
     async list(root, file) {
       const store = folders.open(root)

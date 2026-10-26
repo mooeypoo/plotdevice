@@ -20,7 +20,8 @@ export interface ProjectWarning {
   detail?: string
 }
 
-export type RecoveryOutcome = { journal: string; outcome: 'completed' } | { journal: string; outcome: 'needs-attention'; files: ProjectPath[] }
+export type RecoveryOutcome =
+  { journal: string; outcome: 'completed' } | { journal: string; outcome: 'needs-attention'; files: ProjectPath[] }
 
 /** Everything known about an open project at one moment. Changes start from a snapshot and return a new one. */
 export interface ProjectSnapshot {
@@ -88,7 +89,12 @@ export interface ProjectRepository {
   renameFile(snapshot: ProjectSnapshot, file: ProjectPath, newName: string): Promise<Result<FileRenamed, RenameFileProblem>>
   readChapter(root: string, file: ProjectPath): Promise<Result<ChapterText, 'missing' | 'unreadable'>>
   /** Saves the text, keeping the frontmatter as it is; refused if the file changed since `expected`. */
-  saveChapter(root: string, file: ProjectPath, text: string, expected: Revision): Promise<Result<Revision, 'stale' | 'missing' | 'unreadable' | 'write-failed'>>
+  saveChapter(
+    root: string,
+    file: ProjectPath,
+    text: string,
+    expected: Revision,
+  ): Promise<Result<Revision, 'stale' | 'missing' | 'unreadable' | 'write-failed'>>
   /**
    * "Keep both": writes `text` as a new chapter next to `file`, named and titled with `label`, keeping the
    * chapter's other details but with a new id. Never overwrites; works even if `file` is gone.

@@ -64,7 +64,9 @@ function checkName(name: string): Result<string, ManuscriptProblem> {
 function withoutChapterAt(contents: Contents, at: Location): Contents {
   if (at.part === null) return { entries: contents.entries.filter((_, i) => i !== at.index) }
   return {
-    entries: contents.entries.map((entry, i) => (i === at.part && entry.kind === 'part' ? { ...entry, chapters: entry.chapters.filter((_, j) => j !== at.index) } : entry)),
+    entries: contents.entries.map((entry, i) =>
+      i === at.part && entry.kind === 'part' ? { ...entry, chapters: entry.chapters.filter((_, j) => j !== at.index) } : entry,
+    ),
   }
 }
 
@@ -118,7 +120,11 @@ export function replaceChapterFile(contents: Contents, from: ProjectPath, to: Pr
   return mapChapter(contents, from, (chapter) => ({ ...chapter, file: to }))
 }
 
-function mapChapter(contents: Contents, file: ProjectPath, change: (chapter: ContentsChapter) => ContentsChapter): Result<Contents, ManuscriptProblem> {
+function mapChapter(
+  contents: Contents,
+  file: ProjectPath,
+  change: (chapter: ContentsChapter) => ContentsChapter,
+): Result<Contents, ManuscriptProblem> {
   const at = locate(contents, file)
   if (!at) return err('not-in-book')
   return ok({
@@ -143,7 +149,9 @@ export function renamePart(contents: Contents, part: number, name: string): Resu
   const checked = checkName(name)
   if (!checked.ok) return checked
   if (contents.entries[part]?.kind !== 'part') return err('not-a-part')
-  return ok({ entries: contents.entries.map((entry, i) => (i === part && entry.kind === 'part' ? { ...entry, name: checked.value } : entry)) })
+  return ok({
+    entries: contents.entries.map((entry, i) => (i === part && entry.kind === 'part' ? { ...entry, name: checked.value } : entry)),
+  })
 }
 
 /** Every chapter in reading order. */
@@ -178,6 +186,8 @@ export interface OutdatedLinkText {
 export function findOutdatedLinkText(contents: Contents, titles: ReadonlyMap<ProjectPath, string>): OutdatedLinkText[] {
   return chaptersInOrder(contents).flatMap((chapter) => {
     const title = titles.get(chapter.file)
-    return title !== undefined && title.trim() !== chapter.linkText.trim() ? [{ file: chapter.file, linkText: chapter.linkText, title: title.trim() }] : []
+    return title !== undefined && title.trim() !== chapter.linkText.trim()
+      ? [{ file: chapter.file, linkText: chapter.linkText, title: title.trim() }]
+      : []
   })
 }

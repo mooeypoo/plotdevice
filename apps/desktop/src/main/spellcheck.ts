@@ -9,9 +9,14 @@ export function spellcheckLanguages(projectLanguage: string, interfaceLocale: st
   const pick = (tag: string): string | undefined => {
     const lower = tag.toLowerCase()
     const base = lower.split('-')[0] ?? lower
-    return available.find((language) => language.toLowerCase() === lower) ?? available.find((language) => language.toLowerCase().split('-')[0] === base)
+    return (
+      available.find((language) => language.toLowerCase() === lower) ??
+      available.find((language) => language.toLowerCase().split('-')[0] === base)
+    )
   }
-  const chosen = [pick(projectLanguage), pick(interfaceLocale), pick('en-US')].filter((language): language is string => language !== undefined)
+  const chosen = [pick(projectLanguage), pick(interfaceLocale), pick('en-US')].filter(
+    (language): language is string => language !== undefined,
+  )
   return [...new Set(chosen)]
 }
 
@@ -23,9 +28,20 @@ export function enableSpellingMenu(window: BrowserWindow, translate: (key: strin
       click: () => window.webContents.replaceMisspelling(suggestion),
     }))
     if (params.misspelledWord) {
-      items.push({ label: translate('spelling-add'), click: () => window.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord) }, { type: 'separator' })
+      items.push(
+        {
+          label: translate('spelling-add'),
+          click: () => window.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord),
+        },
+        { type: 'separator' },
+      )
     }
-    if (params.isEditable) items.push({ role: 'cut', label: translate('edit-cut') }, { role: 'copy', label: translate('edit-copy') }, { role: 'paste', label: translate('edit-paste') })
+    if (params.isEditable)
+      items.push(
+        { role: 'cut', label: translate('edit-cut') },
+        { role: 'copy', label: translate('edit-copy') },
+        { role: 'paste', label: translate('edit-paste') },
+      )
     else if (params.selectionText) items.push({ role: 'copy', label: translate('edit-copy') })
     if (items.length > 0) Menu.buildFromTemplate(items).popup({ window })
   })

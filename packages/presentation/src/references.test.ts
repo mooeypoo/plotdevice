@@ -4,7 +4,13 @@ import { describe, expect, it } from 'vitest'
 import { linkTargets, markdownLink, search, suggestedLinkTargets } from './references'
 
 const p = (path: string) => path as ProjectPath
-const page = (file: string, kind: ReferenceSummaryView['kind'], title: string, aka: string[] = [], description: string | null = null): ReferenceSummaryView => ({ file: p(file), kind, title, aka, description })
+const page = (
+  file: string,
+  kind: ReferenceSummaryView['kind'],
+  title: string,
+  aka: string[] = [],
+  description: string | null = null,
+): ReferenceSummaryView => ({ file: p(file), kind, title, aka, description })
 
 const library = [
   page('characters/ilka.md', 'character', 'Ilka Varga', ['Ili'], 'Inherits the orchard.'),
@@ -37,7 +43,10 @@ describe('searching', () => {
 
 describe('linking a card', () => {
   it('can link to chapters and pages alike', () => {
-    const project = { contents: [], chapters: [{ file: p('manuscript/frost.md'), title: 'Frost', status: 'ok', listed: true }] } as unknown as ProjectView
+    const project = {
+      contents: [],
+      chapters: [{ file: p('manuscript/frost.md'), title: 'Frost', status: 'ok', listed: true }],
+    } as unknown as ProjectView
     expect(search(linkTargets(project, library), 'fro').map((t) => [t.kind, t.title])).toEqual([['chapter', 'Frost']])
   })
 

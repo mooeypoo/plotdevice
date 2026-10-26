@@ -6,7 +6,8 @@ import { join } from 'node:path'
 
 const FIXTURE = join(import.meta.dirname, '../../../tests/fixtures/projects/salt-orchard')
 const executable =
-  process.env.PLOTDEVICE_PACKAGED ?? join(import.meta.dirname, '..', 'dist', process.platform === 'win32' ? 'win-unpacked/plotdevice.exe' : 'linux-unpacked/plotdevice')
+  process.env.PLOTDEVICE_PACKAGED ??
+  join(import.meta.dirname, '..', 'dist', process.platform === 'win32' ? 'win-unpacked/plotdevice.exe' : 'linux-unpacked/plotdevice')
 
 function sandboxBlocked(): boolean {
   if (process.platform !== 'linux') return false
@@ -33,8 +34,14 @@ test.afterEach(async () => {
 
 /** Starts the installed app as an author would, with its settings in `userData` unless told otherwise. */
 async function start(args: string[], userData: string | null = join(base, 'user-data')): Promise<Page> {
-  const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[0] !== 'ELECTRON_RUN_AS_NODE' && entry[1] !== undefined))
-  app = await electron.launch({ executablePath: executable, args: [...(userData ? [`--user-data-dir=${userData}`] : []), ...(sandboxBlocked() ? ['--no-sandbox'] : []), ...args], env })
+  const env = Object.fromEntries(
+    Object.entries(process.env).filter((entry): entry is [string, string] => entry[0] !== 'ELECTRON_RUN_AS_NODE' && entry[1] !== undefined),
+  )
+  app = await electron.launch({
+    executablePath: executable,
+    args: [...(userData ? [`--user-data-dir=${userData}`] : []), ...(sandboxBlocked() ? ['--no-sandbox'] : []), ...args],
+    env,
+  })
   const page = await app.firstWindow()
   page.on('console', (message) => messages.push(message.text()))
   await page.locator('.shell').waitFor()

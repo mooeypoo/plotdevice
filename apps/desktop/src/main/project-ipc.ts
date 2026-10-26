@@ -93,7 +93,8 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
       return result.ok ? ok(await opened(result.value)) : result
     },
 
-    [channels.changeContents]: async (payload) => changed(await session.changeContents(parsePayload(contentsChangeSchema, payload) satisfies ContentsChange)),
+    [channels.changeContents]: async (payload) =>
+      changed(await session.changeContents(parsePayload(contentsChangeSchema, payload) satisfies ContentsChange)),
 
     [channels.renameChapter]: async (payload) => {
       const { file, title } = parsePayload(renameChapterSchema, payload)
@@ -141,7 +142,11 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
       if (path === null) return err('cancelled')
       const { text, missing } = await context.compile(project)
       if (!(await context.writeOutside(path, text))) return err('write-failed')
-      const titles = new Map(project.contents.entries.flatMap((entry) => (entry.kind === 'chapter' ? [entry] : entry.chapters)).map((chapter) => [chapter.file, chapter.linkText]))
+      const titles = new Map(
+        project.contents.entries
+          .flatMap((entry) => (entry.kind === 'chapter' ? [entry] : entry.chapters))
+          .map((chapter) => [chapter.file, chapter.linkText]),
+      )
       return ok({ path, missing: missing.map((file) => ({ file, title: titles.get(file) ?? file })) })
     },
   }
@@ -150,7 +155,11 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
 /** The project, with where the author was in it last time. */
 export function openedProject(snapshot: ProjectSnapshot, recent: RecentProjectsSession): OpenedProject {
   const remembered = recent.current().projects.find((project) => project.root === snapshot.root)
-  return { project: projectView(snapshot), ...(remembered?.leftOff ? { leftOff: remembered.leftOff } : {}), ...(remembered?.place ? { place: remembered.place } : {}) }
+  return {
+    project: projectView(snapshot),
+    ...(remembered?.leftOff ? { leftOff: remembered.leftOff } : {}),
+    ...(remembered?.place ? { place: remembered.place } : {}),
+  }
 }
 
 export function openProblem(problem: OpenProblem): 'not-a-project' | 'newer-format' | 'unreadable' {

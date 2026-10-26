@@ -65,7 +65,12 @@ export function createReferenceHandlers({ references, writing, recent }: Referen
       if (!projectRoot) return err('no-project')
       // Through the session: an open page follows its file, and links in open files reload.
       const renamed = await writing.renameFile(file, newName)
-      if (!renamed.ok) return err(renamed.error === 'invalid-name' || renamed.error === 'name-taken' || renamed.error === 'no-project' ? renamed.error : 'write-failed')
+      if (!renamed.ok)
+        return err(
+          renamed.error === 'invalid-name' || renamed.error === 'name-taken' || renamed.error === 'no-project'
+            ? renamed.error
+            : 'write-failed',
+        )
       const summary = await summaryOf(projectRoot, renamed.value.file)
       return summary ? ok(summary) : err('missing')
     },

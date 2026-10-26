@@ -63,7 +63,12 @@ const sections = computed(() => {
             :label="t('prompt-card-text')"
             @commit="actions.commitItem(row.path, row.item, $event)"
           />
-          <InlineText v-else :text="row.item.text" :class="{ 'is-card': row.depth === 0 }" @dblclick="story.editing = { kind: 'item', key: row.key }" />
+          <InlineText
+            v-else
+            :text="row.item.text"
+            :class="{ 'is-card': row.depth === 0 }"
+            @dblclick="story.editing = { kind: 'item', key: row.key }"
+          />
           <span v-if="!row.item.movable" class="lock" role="img" :aria-label="t('locked-item')" :title="t('locked-item')">🔒</span>
           <MenuButton :label="t('item-actions', row.item.text)" :items="actions.itemMenu(row.path, row.item)" />
           <KeptAsWritten v-for="(block, i) in row.item.keptAsWritten" :key="`kept-${i}`" :text="block" />

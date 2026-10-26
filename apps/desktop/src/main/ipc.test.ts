@@ -55,11 +55,14 @@ describe('IPC handlers', () => {
     await expect(call(channels.getPreferences, sender)).rejects.toThrow('untrusted-sender')
   })
 
-  it.each([[{ theme: 'neon' }], [{ fontSize: 30 }], ['dark'], [null]])('refuse an invalid payload, changing nothing: %j', async (payload) => {
-    const { call, current } = setup()
-    await expect(call(channels.setPreferences, appPage, payload)).rejects.toThrow('invalid-payload')
-    expect(current()).toEqual({ theme: 'system', locale: 'en', ...MEDIUM_PAGE })
-  })
+  it.each([[{ theme: 'neon' }], [{ fontSize: 30 }], ['dark'], [null]])(
+    'refuse an invalid payload, changing nothing: %j',
+    async (payload) => {
+      const { call, current } = setup()
+      await expect(call(channels.setPreferences, appPage, payload)).rejects.toThrow('invalid-payload')
+      expect(current()).toEqual({ theme: 'system', locale: 'en', ...MEDIUM_PAGE })
+    },
+  )
 
   it('report a failed save instead of pretending it worked', async () => {
     const { call } = setup('read-only')

@@ -38,10 +38,13 @@ describe('preferences file store', () => {
     expect(await readFile(join(dir, kept[0] ?? ''), 'utf8')).toBe('{{ broken')
   })
 
-  it.runIf(process.platform !== 'win32' && process.getuid?.() !== 0)('reports a read-only settings file as a failure, not a crash', async () => {
-    const dir = await tempDir()
-    await writeFile(join(dir, 'preferences.json'), '{}')
-    await chmod(join(dir, 'preferences.json'), 0o444)
-    expect(await createPreferencesFileStore(dir).write('{"theme":"dark"}')).toEqual({ ok: false, error: 'read-only' })
-  })
+  it.runIf(process.platform !== 'win32' && process.getuid?.() !== 0)(
+    'reports a read-only settings file as a failure, not a crash',
+    async () => {
+      const dir = await tempDir()
+      await writeFile(join(dir, 'preferences.json'), '{}')
+      await chmod(join(dir, 'preferences.json'), 0o444)
+      expect(await createPreferencesFileStore(dir).write('{"theme":"dark"}')).toEqual({ ok: false, error: 'read-only' })
+    },
+  )
 })

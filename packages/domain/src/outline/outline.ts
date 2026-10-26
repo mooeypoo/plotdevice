@@ -106,7 +106,8 @@ function applyInPlace(outline: Outline, edit: OutlineEdit): OutlineProblem | nul
       if (typeof destination === 'string') return destination
       if (destination.parent && contains(from.item, destination.parent)) return 'into-own-subtree'
       if (destination.parent && !destination.parent.movable) return 'unmovable-item'
-      if (edit.to.index < 0 || edit.to.index > destination.items.length - (destination.items.includes(from.item) ? 1 : 0)) return 'index-out-of-range'
+      if (edit.to.index < 0 || edit.to.index > destination.items.length - (destination.items.includes(from.item) ? 1 : 0))
+        return 'index-out-of-range'
       from.siblings.splice(from.index, 1)
       destination.items.splice(edit.to.index, 0, from.item)
       return null
@@ -189,7 +190,11 @@ function locate(outline: Outline, at: ItemPath): Located | OutlineProblem {
   return located ?? 'no-such-item'
 }
 
-function containerAt(outline: Outline, section: number, parentPath: readonly number[]): { items: OutlineItem[]; parent: OutlineItem | null } | OutlineProblem {
+function containerAt(
+  outline: Outline,
+  section: number,
+  parentPath: readonly number[],
+): { items: OutlineItem[]; parent: OutlineItem | null } | OutlineProblem {
   const target = outline.sections[section]
   if (!target) return 'no-such-section'
   if (parentPath.length === 0) return { items: target.items, parent: null }
@@ -197,14 +202,24 @@ function containerAt(outline: Outline, section: number, parentPath: readonly num
   return typeof parent === 'string' ? parent : { items: parent.item.children, parent: parent.item }
 }
 
-const contains = (ancestor: OutlineItem, candidate: OutlineItem): boolean => ancestor === candidate || ancestor.children.some((child) => contains(child, candidate))
+const contains = (ancestor: OutlineItem, candidate: OutlineItem): boolean =>
+  ancestor === candidate || ancestor.children.some((child) => contains(child, candidate))
 
 function structuredCopy(outline: Outline): Outline {
-  const copyItem = (item: OutlineItem): OutlineItem => ({ ...item, keptAsWritten: [...item.keptAsWritten], children: item.children.map(copyItem) })
+  const copyItem = (item: OutlineItem): OutlineItem => ({
+    ...item,
+    keptAsWritten: [...item.keptAsWritten],
+    children: item.children.map(copyItem),
+  })
   return {
     title: outline.title,
     preamble: [...outline.preamble],
-    sections: outline.sections.map((section) => ({ ...section, intro: [...section.intro], notes: section.notes.map((note) => ({ ...note })), items: section.items.map(copyItem) })),
+    sections: outline.sections.map((section) => ({
+      ...section,
+      intro: [...section.intro],
+      notes: section.notes.map((note) => ({ ...note })),
+      items: section.items.map(copyItem),
+    })),
   }
 }
 

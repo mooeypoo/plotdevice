@@ -33,7 +33,10 @@ export function createFileStore(root: string, options: FileStoreOptions = {}): F
   function serialized<T>(path: string, task: () => Promise<T>): Promise<T> {
     const key = collisionKey(path)
     const run = (queues.get(key) ?? Promise.resolve()).then(task, task)
-    queues.set(key, run.catch(() => undefined))
+    queues.set(
+      key,
+      run.catch(() => undefined),
+    )
     return run
   }
 

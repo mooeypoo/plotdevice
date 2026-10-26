@@ -13,7 +13,13 @@ export function createOutlineRepository({ folders }: { folders: ProjectFolders }
   const documentOf = (root: string, file: ProjectPath, text: string, revision: Revision): OutlineDocument => {
     const parsed = readOutline(text)
     lastRead.set(`${root}\u0000${file}`, parsed)
-    return { file, outline: outlineOf(parsed), revision, nestingUnit: parsed.nestingUnit, invalidDetails: parsed.frontmatter?.valid === false }
+    return {
+      file,
+      outline: outlineOf(parsed),
+      revision,
+      nestingUnit: parsed.nestingUnit,
+      invalidDetails: parsed.frontmatter?.valid === false,
+    }
   }
 
   return {
@@ -92,13 +98,11 @@ export function outlineOf(parsed: ParsedOutline): Outline {
       name: section.heading?.text ?? null,
       intro: section.intro.map(slice),
       items: section.items.map(item),
-      notes: section.kept.map(
-        (block): OutlineNote => ({
-          kind: block.reason === 'subheading' ? 'group' : 'kept',
-          text: block.reason === 'subheading' ? slice(block.range).replace(/^ {0,3}#{1,6}[ \t]*|[ \t]+#+[ \t]*$/g, '') : slice(block.range),
-          before: section.items.filter((card) => card.lineRange.start < block.range.start).length,
-        }),
-      ),
+      notes: section.kept.map((block): OutlineNote => ({
+        kind: block.reason === 'subheading' ? 'group' : 'kept',
+        text: block.reason === 'subheading' ? slice(block.range).replace(/^ {0,3}#{1,6}[ \t]*|[ \t]+#+[ \t]*$/g, '') : slice(block.range),
+        before: section.items.filter((card) => card.lineRange.start < block.range.start).length,
+      })),
     })),
   }
 }

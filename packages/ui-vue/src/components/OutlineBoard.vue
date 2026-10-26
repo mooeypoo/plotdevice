@@ -36,7 +36,9 @@ const columns = computed(() => boardColumns(props.outline))
           :label="t('prompt-section-name')"
           @commit="actions.commitSection(index, $event)"
         />
-        <h3 v-else dir="auto" @dblclick="column.name !== null && (story.editing = { kind: 'section', section: index })">{{ column.name ?? t('outline-unnamed-section') }}</h3>
+        <h3 v-else dir="auto" @dblclick="column.name !== null && (story.editing = { kind: 'section', section: index })">
+          {{ column.name ?? t('outline-unnamed-section') }}
+        </h3>
         <MenuButton v-if="column.name !== null" :label="t('section-actions', column.name)" :items="actions.sectionMenu(index)" />
       </header>
       <p v-for="(intro, i) in column.intro" :key="`intro-${i}`" class="column-intro secondary" dir="auto">{{ intro }}</p>
@@ -51,11 +53,20 @@ const columns = computed(() => boardColumns(props.outline))
         :label="t('prompt-card-text')"
         @commit="actions.commitNewCard(index, $event)"
       />
-      <button v-else type="button" class="add" data-testid="add-card" @click="story.editing = { kind: 'new-card', section: index }">+ {{ t('outline-add-card') }}</button>
+      <button v-else type="button" class="add" data-testid="add-card" @click="story.editing = { kind: 'new-card', section: index }">
+        + {{ t('outline-add-card') }}
+      </button>
     </section>
     <div class="column new-column">
-      <EditableText v-if="story.editing?.kind === 'new-section'" value="" :label="t('prompt-section-name')" @commit="actions.commitNewSection" />
-      <button v-else type="button" class="add" data-testid="add-section" @click="story.editing = { kind: 'new-section' }">+ {{ t('outline-add-section') }}</button>
+      <EditableText
+        v-if="story.editing?.kind === 'new-section'"
+        value=""
+        :label="t('prompt-section-name')"
+        @commit="actions.commitNewSection"
+      />
+      <button v-else type="button" class="add" data-testid="add-section" @click="story.editing = { kind: 'new-section' }">
+        + {{ t('outline-add-section') }}
+      </button>
     </div>
   </div>
 </template>

@@ -45,5 +45,6 @@ export interface CardLinksView {
   links: LinkTargetView[]
 }
 
-export type ReferenceProblem = 'no-project' | 'missing' | 'unreadable' | 'empty-text' | 'multiline-text' | 'stale' | 'write-failed' | 'invalid-name' | 'name-taken'
+export type ReferenceProblem =
+  'no-project' | 'missing' | 'unreadable' | 'empty-text' | 'multiline-text' | 'stale' | 'write-failed' | 'invalid-name' | 'name-taken'
 export type ReferenceResult<T> = Result<T, ReferenceProblem>

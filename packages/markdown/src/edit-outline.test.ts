@@ -45,21 +45,35 @@ describe('examples, exact output', () => {
 
   it('moves a card to the end of its own section', () => {
     const after = apply(basic, { kind: 'move-item', from: { section: 1, path: [0] }, to: { section: 1, parentPath: [], index: 1 } })
-    expect(after).toContain('## Middle\n\n- Ilka finds the ledger\n- The trees bear salt instead of fruit\n  - Nobody in Marrow will say why\n\n## Ending')
+    expect(after).toContain(
+      '## Middle\n\n- Ilka finds the ledger\n- The trees bear salt instead of fruit\n  - Nobody in Marrow will say why\n\n## Ending',
+    )
   })
 
   it('moves the only card into an empty section, leaving its old section empty', () => {
-    const after = apply(fixture('empty-sections.md'), { kind: 'move-item', from: { section: 1, path: [0] }, to: { section: 0, parentPath: [], index: 0 } })
+    const after = apply(fixture('empty-sections.md'), {
+      kind: 'move-item',
+      from: { section: 1, path: [0] },
+      to: { section: 0, parentPath: [], index: 0 },
+    })
     expect(after).toBe('# Outline\n\n## Beginning\n\n- The only card\n\n## Middle\n\n## Ending\n')
   })
 
   it('moves a card into the last, empty section at the end of the file', () => {
-    const after = apply(fixture('empty-sections.md'), { kind: 'move-item', from: { section: 1, path: [0] }, to: { section: 2, parentPath: [], index: 0 } })
+    const after = apply(fixture('empty-sections.md'), {
+      kind: 'move-item',
+      from: { section: 1, path: [0] },
+      to: { section: 2, parentPath: [], index: 0 },
+    })
     expect(after).toBe('# Outline\n\n## Beginning\n\n## Middle\n\n## Ending\n\n- The only card\n')
   })
 
   it('turns a detail into a card and re-indents its own details, keeping tabs', () => {
-    const after = apply(fixture('indent-tabs.md'), { kind: 'move-item', from: { section: 0, path: [0, 0] }, to: { section: 1, parentPath: [], index: 1 } })
+    const after = apply(fixture('indent-tabs.md'), {
+      kind: 'move-item',
+      from: { section: 0, path: [0, 0] },
+      to: { section: 1, parentPath: [], index: 1 },
+    })
     expect(after).toContain('- The orchard is sold\n\t- Noël signs as witness\n- With one suitcase\n\t- It belonged to her mother\n')
   })
 
@@ -70,7 +84,9 @@ describe('examples, exact output', () => {
   })
 
   it('keeps a task checkbox when renaming', () => {
-    expect(apply(fixture('ordered-and-task-lists.md'), { kind: 'rename-item', at: { section: 1, path: [1] }, text: 'Name every living tree' })).toContain('- [x] Name every living tree\n')
+    expect(
+      apply(fixture('ordered-and-task-lists.md'), { kind: 'rename-item', at: { section: 1, path: [1] }, text: 'Name every living tree' }),
+    ).toContain('- [x] Name every living tree\n')
   })
 
   it('escapes text that would otherwise become Markdown structure', () => {
@@ -82,7 +98,9 @@ describe('examples, exact output', () => {
     after = apply(after, { kind: 'add-item', to: { section: 1, parentPath: [1], index: 0 }, text: 'Under the loose floorboard' })
     after = apply(after, { kind: 'add-section', index: 3, text: 'Epilogue' })
     expect(after).toBe(
-      basic.replace('- Ilka finds the ledger\n', '- Ilka finds the ledger\n  - Under the loose floorboard\n- Bea burns the ledger\n').concat('\n## Epilogue\n'),
+      basic
+        .replace('- Ilka finds the ledger\n', '- Ilka finds the ledger\n  - Under the loose floorboard\n- Bea burns the ledger\n')
+        .concat('\n## Epilogue\n'),
     )
   })
 
@@ -92,15 +110,22 @@ describe('examples, exact output', () => {
 
   it('deletes a card with its details', () => {
     const after = apply(basic, { kind: 'delete-item', at: { section: 0, path: [0] } })
-    expect(after).toBe(basic.replace('- Ilka inherits the orchard\n  - The will names Marrow, not her brother\n  - Aunt Bea refuses to sign\n', ''))
+    expect(after).toBe(
+      basic.replace('- Ilka inherits the orchard\n  - The will names Marrow, not her brother\n  - Aunt Bea refuses to sign\n', ''),
+    )
   })
 
   it('removes a card from a loose list together with one blank-line separator', () => {
-    expect(apply(fixture('loose-lists.md'), { kind: 'delete-item', at: { section: 0, path: [1] } })).toContain('- Ilka arrives in Marrow\n\n- Noël brings bolt cutters\n')
+    expect(apply(fixture('loose-lists.md'), { kind: 'delete-item', at: { section: 0, path: [1] } })).toContain(
+      '- Ilka arrives in Marrow\n\n- Noël brings bolt cutters\n',
+    )
   })
 
   it('regression: removing a nested item numbered 1 renumbers the next, so it stays a list (finding 6)', () => {
-    const after = apply('## Plan\n\n- Bea objects\n  1. First reason\n  2. Second reason\n', { kind: 'delete-item', at: { section: 0, path: [0, 0] } })
+    const after = apply('## Plan\n\n- Bea objects\n  1. First reason\n  2. Second reason\n', {
+      kind: 'delete-item',
+      at: { section: 0, path: [0, 0] },
+    })
     expect(after).toBe('## Plan\n\n- Bea objects\n  1. Second reason\n')
     expect(readOutline(after).sections[0]?.items[0]?.children.map((c) => c.text)).toEqual(['Second reason'])
   })
@@ -113,9 +138,13 @@ describe('examples, exact output', () => {
   })
 
   it('keeps a numbered list numbered when a bullet card moves into it', () => {
-    expect(apply(fixture('ordered-and-task-lists.md'), { kind: 'move-item', from: { section: 1, path: [0] }, to: { section: 0, parentPath: [], index: 3 } })).toContain(
-      '3. The sale\n4. [ ] Map the orchard rows\n',
-    )
+    expect(
+      apply(fixture('ordered-and-task-lists.md'), {
+        kind: 'move-item',
+        from: { section: 1, path: [0] },
+        to: { section: 0, parentPath: [], index: 3 },
+      }),
+    ).toContain('3. The sale\n4. [ ] Map the orchard rows\n')
   })
 
   it('keeps Windows line endings in every line it writes', () => {
@@ -141,7 +170,9 @@ describe('the outline title', () => {
   })
 
   it('adds a title after the frontmatter when there is none', () => {
-    expect(apply('---\nauthor: Ines\n---\n## Beginning\n\n- card\n', { kind: 'set-title', text: 'Main story' })).toBe('---\nauthor: Ines\n---\n# Main story\n\n## Beginning\n\n- card\n')
+    expect(apply('---\nauthor: Ines\n---\n## Beginning\n\n- card\n', { kind: 'set-title', text: 'Main story' })).toBe(
+      '---\nauthor: Ines\n---\n# Main story\n\n## Beginning\n\n- card\n',
+    )
     expect(apply('', { kind: 'set-title', text: 'Main story' })).toBe('# Main story\n')
   })
 })
@@ -167,7 +198,7 @@ describe('sections: moving and deleting', () => {
     expect(after.endsWith('- Ilka finds the ledger\n')).toBe(true)
   })
 
-  it("moves kept-as-written content with its section, never losing it", () => {
+  it('moves kept-as-written content with its section, never losing it', () => {
     const source = fixture('embedded-blocks.md')
     const after = apply(apply(source, { kind: 'add-section', index: 0, text: 'First' }), { kind: 'move-section', section: 1, index: 0 })
     expect(keptTexts(readOutline(after))).toEqual(keptTexts(readOutline(source)))
@@ -265,12 +296,16 @@ describe.each(fixtureNames)('every edit on %s', (name) => {
 describe('edits that cannot be applied safely are refused, and write nothing', () => {
   it('an item that shares its line with other syntax', () => {
     const source = '## S\n\n- - nested on one line\n'
-    expect(refusal(source, { kind: 'move-item', from: { section: 0, path: [0, 0] }, to: { section: 0, parentPath: [], index: 0 } })).toBe('unmovable-item')
+    expect(refusal(source, { kind: 'move-item', from: { section: 0, path: [0, 0] }, to: { section: 0, parentPath: [], index: 0 } })).toBe(
+      'unmovable-item',
+    )
     expect(readOutline(source).warnings.map((w) => w.code)).toContain('unmovable-item')
   })
 
   it('moving an item inside itself', () => {
-    expect(refusal(basic, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 0, parentPath: [0], index: 0 } })).toBe('into-own-subtree')
+    expect(refusal(basic, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 0, parentPath: [0], index: 0 } })).toBe(
+      'into-own-subtree',
+    )
   })
 
   it('naming, moving or deleting the unnamed section, or putting a section above it', () => {
@@ -286,7 +321,9 @@ describe('edits that cannot be applied safely are refused, and write nothing', (
     expect(refusal(basic, { kind: 'rename-item', at: { section: 0, path: [0] }, text: 'two\nlines' })).toBe('multiline-text')
     expect(refusal(basic, { kind: 'set-title', text: 'two\nlines' })).toBe('multiline-text')
     expect(refusal(basic, { kind: 'rename-item', at: { section: 0, path: [9] }, text: 'x' })).toBe('no-such-item')
-    expect(refusal(basic, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 0, parentPath: [], index: 5 } })).toBe('index-out-of-range')
+    expect(refusal(basic, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 0, parentPath: [], index: 5 } })).toBe(
+      'index-out-of-range',
+    )
     expect(refusal(basic, { kind: 'add-item', to: { section: 7, parentPath: [], index: 0 }, text: 'x' })).toBe('no-such-section')
     expect(refusal(basic, { kind: 'move-section', section: 0, index: 3 })).toBe('index-out-of-range')
   })
@@ -307,24 +344,33 @@ describe('frontmatter is never touched by outline edits', () => {
 })
 
 describe('links and Unicode in cards', () => {
-  it.each(['[The Crossing](../manuscript/the-crossing.md)', '[[the-crossing]]', '[The Crossing](plotdevice:ch-k3f9)'])('%s survives moves and neighbouring renames', (link) => {
-    const source = `## Beginning\n\n- Ilka arrives, see ${link}\n- Bea waits\n\n## Ending\n\n- The sale\n`
-    let after = apply(source, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 1, parentPath: [], index: 1 } })
-    after = apply(after, { kind: 'rename-item', at: { section: 1, path: [0] }, text: 'The quiet sale' })
-    expect(after).toContain(`- Ilka arrives, see ${link}\n`)
-  })
+  it.each(['[The Crossing](../manuscript/the-crossing.md)', '[[the-crossing]]', '[The Crossing](plotdevice:ch-k3f9)'])(
+    '%s survives moves and neighbouring renames',
+    (link) => {
+      const source = `## Beginning\n\n- Ilka arrives, see ${link}\n- Bea waits\n\n## Ending\n\n- The sale\n`
+      let after = apply(source, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 1, parentPath: [], index: 1 } })
+      after = apply(after, { kind: 'rename-item', at: { section: 1, path: [0] }, text: 'The quiet sale' })
+      expect(after).toContain(`- Ilka arrives, see ${link}\n`)
+    },
+  )
 
   it('slices emoji, joined emoji, flags and niqqud exactly (UTF-16 offsets)', () => {
     const unicode = fixture('unicode-niqqud-emoji.md')
     const writtenTexts = unicode.split('\n').flatMap((line) => /^[ \t]*- (.*?)\r?$/.exec(line)?.slice(1) ?? [])
     expect(allItems(readOutline(unicode)).map(({ item }) => unicode.slice(item.textRange.start, item.textRange.end))).toEqual(writtenTexts)
-    expect(writtenTexts.some((text) => /\p{Extended_Pictographic}/u.test(text)) && writtenTexts.some((text) => /\p{M}/u.test(text))).toBe(true)
+    expect(writtenTexts.some((text) => /\p{Extended_Pictographic}/u.test(text)) && writtenTexts.some((text) => /\p{M}/u.test(text))).toBe(
+      true,
+    )
   })
 
   it('keeps a decomposed (NFD) line decomposed through unrelated edits', () => {
     const decomposed = 'Noe\u0308l tastes it'
     expect(fixture('unicode-niqqud-emoji.md')).toContain(decomposed)
-    const after = apply(fixture('unicode-niqqud-emoji.md'), { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 1, parentPath: [], index: 1 } })
+    const after = apply(fixture('unicode-niqqud-emoji.md'), {
+      kind: 'move-item',
+      from: { section: 0, path: [0] },
+      to: { section: 1, parentPath: [], index: 1 },
+    })
     expect(after).toContain(decomposed)
     expect(after).not.toContain('No\u00ebl tastes it')
   })

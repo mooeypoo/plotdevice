@@ -17,11 +17,15 @@ onMounted(() => dialog.value?.showModal())
     <h2 id="conflict-title">{{ t('conflict-title') }}</h2>
     <p>{{ t('conflict-body', props.chapterName) }}</p>
     <div class="choice">
-      <button type="button" class="primary" :disabled="props.busy" data-testid="conflict-keep-both" @click="emit('choose', 'keep-both')">{{ t('conflict-keep-both') }}</button>
+      <button type="button" class="primary" :disabled="props.busy" data-testid="conflict-keep-both" @click="emit('choose', 'keep-both')">
+        {{ t('conflict-keep-both') }}
+      </button>
       <p class="secondary">{{ t('conflict-keep-both-detail') }}</p>
     </div>
     <div class="choice">
-      <button type="button" class="danger" :disabled="props.busy" data-testid="conflict-use-mine" @click="emit('choose', 'use-mine')">{{ t('conflict-use-mine') }}</button>
+      <button type="button" class="danger" :disabled="props.busy" data-testid="conflict-use-mine" @click="emit('choose', 'use-mine')">
+        {{ t('conflict-use-mine') }}
+      </button>
       <p class="warning">{{ t('conflict-use-mine-detail') }}</p>
     </div>
   </dialog>

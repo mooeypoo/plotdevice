@@ -18,19 +18,23 @@ describe('pasting formatted text as Markdown (ADR 0004)', () => {
   })
 
   it('keeps headings, links, lists, quotes, scene breaks and line breaks', () => {
-    const html = '<h2>Pear trees</h2><p>Salt <a href="https://example.com/salt">damages</a> roots.<br>Always.</p><ul><li>north rows</li><li>south rows</li></ul><blockquote><p>Do not sell.</p></blockquote><hr><ol><li>first</li></ol>'
+    const html =
+      '<h2>Pear trees</h2><p>Salt <a href="https://example.com/salt">damages</a> roots.<br>Always.</p><ul><li>north rows</li><li>south rows</li></ul><blockquote><p>Do not sell.</p></blockquote><hr><ol><li>first</li></ol>'
     expect(htmlToMarkdown(html)).toBe(
       '## Pear trees\n\nSalt [damages](https://example.com/salt) roots.\\\nAlways.\n\n- north rows\n- south rows\n\n> Do not sell.\n\n* * *\n\n1. first\n',
     )
   })
 
   it('drops scripts, styles and images, and keeps the text of tables and code', () => {
-    const html = '<style>p{color:red}</style><p>Salt<img src="https://example.com/x.png" alt="x"><script>alert(1)</script></p><table><tr><td>north</td><td>south</td></tr></table><pre><code>plain words</code></pre>'
+    const html =
+      '<style>p{color:red}</style><p>Salt<img src="https://example.com/x.png" alt="x"><script>alert(1)</script></p><table><tr><td>north</td><td>south</td></tr></table><pre><code>plain words</code></pre>'
     expect(htmlToMarkdown(html)).toBe('Salt\n\nnorth south\n\nplain words\n')
   })
 
   it('keeps the text of links that are not web, mail or project links', () => {
-    expect(htmlToMarkdown('<p><a href="javascript:alert(1)">click</a> and <a href="notes/ideas.md">notes</a></p>')).toBe('click and [notes](notes/ideas.md)\n')
+    expect(htmlToMarkdown('<p><a href="javascript:alert(1)">click</a> and <a href="notes/ideas.md">notes</a></p>')).toBe(
+      'click and [notes](notes/ideas.md)\n',
+    )
   })
 
   it('escapes text that would otherwise become markup', () => {
@@ -49,8 +53,9 @@ describe('choosing between the HTML and the plain text on the clipboard', () => 
     expect(pastedMarkdown('<p>The frost came <i>early</i>.</p>', 'The frost came early.')).toBe('The frost came *early*.\n')
   })
 
-  it("uses the plain text when the HTML is only styling, as when copying Markdown from a code editor", () => {
-    const vscode = '<div style="color:#d4d4d4"><div><span style="color:#569cd6">## Frost</span></div><div><span>Some *stars* here.</span></div></div>'
+  it('uses the plain text when the HTML is only styling, as when copying Markdown from a code editor', () => {
+    const vscode =
+      '<div style="color:#d4d4d4"><div><span style="color:#569cd6">## Frost</span></div><div><span>Some *stars* here.</span></div></div>'
     expect(pastedMarkdown(vscode, '## Frost\nSome *stars* here.')).toBe('## Frost\nSome *stars* here.')
   })
 

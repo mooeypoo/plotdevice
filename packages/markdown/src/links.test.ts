@@ -13,7 +13,10 @@ describe('rewriteLinksTo: every link to a renamed file, and nothing else', () =>
     expect(text).toBe(
       looseIdeas
         .replace('[The Crossing](../manuscript/the-crossing.md#the-ferry)', '[The Crossing](<../manuscript/01 crossing.md#the-ferry>)')
-        .replace('[[the-crossing]], [[the-crossing|the first chapter]] and [[the-crossing#The ferry]]', '[[01 crossing]], [[01 crossing|the first chapter]] and [[01 crossing#The ferry]]')
+        .replace(
+          '[[the-crossing]], [[the-crossing|the first chapter]] and [[the-crossing#The ferry]]',
+          '[[01 crossing]], [[01 crossing|the first chapter]] and [[01 crossing#The ferry]]',
+        )
         .replace('[c]: ../manuscript/the-crossing.md', '[c]: <../manuscript/01 crossing.md>'),
     )
   })
@@ -31,7 +34,9 @@ describe('rewriteLinksTo: every link to a renamed file, and nothing else', () =>
   })
 
   it('rewrites a full-path wikilink whatever the names elsewhere', () => {
-    expect(rewriteLinksTo('See [[manuscript/the-crossing]].\n', '', FROM, 'manuscript/crossing.md', { wikilinkNameIsUnique: false }).text).toBe('See [[manuscript/crossing]].\n')
+    expect(
+      rewriteLinksTo('See [[manuscript/the-crossing]].\n', '', FROM, 'manuscript/crossing.md', { wikilinkNameIsUnique: false }).text,
+    ).toBe('See [[manuscript/crossing]].\n')
   })
 
   it('keeps link titles and relative paths from other folders', () => {
@@ -41,17 +46,24 @@ describe('rewriteLinksTo: every link to a renamed file, and nothing else', () =>
   })
 
   it('fixes links between chapters in the same folder', () => {
-    const { text } = rewriteLinksTo(theCrossing, 'manuscript', 'manuscript/the-orchard-gate.md', 'manuscript/gate.md', { wikilinkNameIsUnique: true })
+    const { text } = rewriteLinksTo(theCrossing, 'manuscript', 'manuscript/the-orchard-gate.md', 'manuscript/gate.md', {
+      wikilinkNameIsUnique: true,
+    })
     expect(text).toContain('See also [the gate](gate.md).')
   })
 
   it('keeps percent-encoding when the original link used it', () => {
-    expect(rewriteLinksTo('[x](../manuscript/the%20crossing.md)\n', 'notes', 'manuscript/the crossing.md', 'manuscript/new name.md', { wikilinkNameIsUnique: true }).text).toBe(
-      '[x](../manuscript/new%20name.md)\n',
-    )
+    expect(
+      rewriteLinksTo('[x](../manuscript/the%20crossing.md)\n', 'notes', 'manuscript/the crossing.md', 'manuscript/new name.md', {
+        wikilinkNameIsUnique: true,
+      }).text,
+    ).toBe('[x](../manuscript/new%20name.md)\n')
   })
 
   it('changes nothing in a file without links to it', () => {
-    expect(rewriteLinksTo('# Nothing here\n', '', FROM, 'manuscript/x.md', { wikilinkNameIsUnique: true })).toEqual({ text: '# Nothing here\n', count: 0 })
+    expect(rewriteLinksTo('# Nothing here\n', '', FROM, 'manuscript/x.md', { wikilinkNameIsUnique: true })).toEqual({
+      text: '# Nothing here\n',
+      count: 0,
+    })
   })
 })

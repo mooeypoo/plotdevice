@@ -1,6 +1,20 @@
 import type { CardLinks, ProjectFolders, ReferenceRepository } from '@plotdevice/application'
-import { kindOfFile, OUTLINES_FOLDER, REFERENCE_FOLDERS, referenceFileFor, resolveWikiLink, type ReferenceSummary } from '@plotdevice/domain'
-import { findLinks, newReferencePage, readOutline, readReferencePage, setFrontmatterValues, type OutlineItemSource } from '@plotdevice/markdown'
+import {
+  kindOfFile,
+  OUTLINES_FOLDER,
+  REFERENCE_FOLDERS,
+  referenceFileFor,
+  resolveWikiLink,
+  type ReferenceSummary,
+} from '@plotdevice/domain'
+import {
+  findLinks,
+  newReferencePage,
+  readOutline,
+  readReferencePage,
+  setFrontmatterValues,
+  type OutlineItemSource,
+} from '@plotdevice/markdown'
 import { dirnameOf, err, ok, stemOf, type ProjectPath } from '@plotdevice/shared'
 
 const REFERENCE_PREFIXES = Object.values(REFERENCE_FOLDERS).map((folder) => `${folder}/`)
@@ -77,7 +91,14 @@ export function createReferenceRepository({ folders }: { folders: ProjectFolders
               const target = link.kind === 'path' ? (files.find((file) => file === link.target) ?? null) : resolveWikiLink(link.name, files)
               return target ? [target] : []
             })
-            if (links.length > 0) result.push({ outline: outlineFile, outlineTitle: outline.title?.text ?? null, section: section.heading?.text ?? null, card: card.text, links })
+            if (links.length > 0)
+              result.push({
+                outline: outlineFile,
+                outlineTitle: outline.title?.text ?? null,
+                section: section.heading?.text ?? null,
+                card: card.text,
+                links,
+              })
           }
         }
       }

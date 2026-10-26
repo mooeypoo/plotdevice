@@ -1,7 +1,28 @@
 import { createOutlineSession, createRecentProjectsSession, createWritingSession, type SessionEvent } from '@plotdevice/application'
-import { channels, type CardLinksView, type CopyVersionResult, type VersionResult, type VersionsView, type OpenChapterResult, type ReferenceResult, type ReferenceSummaryView, type OpenProjectResult, type OutlineResult, type ProjectChangeResult, type ProjectView, type ResolveConflictResult } from '@plotdevice/contracts'
+import {
+  channels,
+  type CardLinksView,
+  type CopyVersionResult,
+  type VersionResult,
+  type VersionsView,
+  type OpenChapterResult,
+  type ReferenceResult,
+  type ReferenceSummaryView,
+  type OpenProjectResult,
+  type OutlineResult,
+  type ProjectChangeResult,
+  type ProjectView,
+  type ResolveConflictResult,
+} from '@plotdevice/contracts'
 import { createAppDataFile, createBackupStore, createJournalStore, createProjectFolders, randomIdGenerator } from '@plotdevice/fs-node'
-import { compileManuscript, createOutlineRepository, createProjectRepository, createReferenceRepository, createVersionRepository, withBackups } from '@plotdevice/storage'
+import {
+  compileManuscript,
+  createOutlineRepository,
+  createProjectRepository,
+  createReferenceRepository,
+  createVersionRepository,
+  withBackups,
+} from '@plotdevice/storage'
 import { access, cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -52,18 +73,29 @@ async function setup() {
       recent,
       chooseProjectFolder: async () => dialogs.folder,
       chooseNewProjectLocation: async () => dialogs.location,
-      folderExists: (path) => access(path).then(() => true, () => false),
+      folderExists: (path) =>
+        access(path).then(
+          () => true,
+          () => false,
+        ),
       onFlushed: () => flushed++,
       chooseSaveLocation: async (suggested) => ((dialogs.suggested = suggested), dialogs.saveAs),
       compile: (snapshot) => compileManuscript(createProjectFolders(), snapshot),
-      writeOutside: (path, text) => writeFile(path, text).then(
-        () => true,
-        () => false,
-      ),
+      writeOutside: (path, text) =>
+        writeFile(path, text).then(
+          () => true,
+          () => false,
+        ),
     },
     outlines: { outlines, writing: session, recent },
     references: { references: createReferenceRepository({ folders }), writing: session, recent },
-    versions: { versions: createVersionRepository({ folders: createProjectFolders(), backups, now }), writing: session, outlines, repository, copyLabel: () => 'version 1' },
+    versions: {
+      versions: createVersionRepository({ folders: createProjectFolders(), backups, now }),
+      writing: session,
+      outlines,
+      repository,
+      copyLabel: () => 'version 1',
+    },
   })
   const call = (channel: string, payload?: unknown, sender: Sender = appPage): Promise<unknown> => {
     const handler = handlers[channel]
@@ -123,7 +155,11 @@ describe('project calls', () => {
     await openChosen(context)
     const chapter = (await context.call(channels.openChapter, { file: 'manuscript/frost.md' })) as OpenChapterResult
     if (!chapter.ok) throw new Error(chapter.error)
-    await context.call(channels.saveChapter, { file: 'manuscript/frost.md', text: 'יעל wrote in the app. Ilka read it.\n', generation: chapter.value.generation })
+    await context.call(channels.saveChapter, {
+      file: 'manuscript/frost.md',
+      text: 'יעל wrote in the app. Ilka read it.\n',
+      generation: chapter.value.generation,
+    })
     await context.session.idle()
     expect(await context.read('manuscript/frost.md')).toBe('---\ntitle: Frost\nid: ch-p0n1zz\n---\nיעל wrote in the app. Ilka read it.\n')
     expect(context.events.filter((e) => e.kind === 'save-status').at(-1)).toMatchObject({ status: { kind: 'saved' } })
@@ -141,18 +177,29 @@ describe('project calls', () => {
     await context.call(channels.saveChapter, { file: 'manuscript/frost.md', text: 'Mine.\n', generation: chapter.value.generation })
     await context.session.idle()
     expect(context.session.saveStatus(chapter.value.file)?.kind).toBe('conflict')
-    const resolved = (await context.call(channels.resolveConflict, { file: 'manuscript/frost.md', choice: 'keep-both' })) as ResolveConflictResult
+    const resolved = (await context.call(channels.resolveConflict, {
+      file: 'manuscript/frost.md',
+      choice: 'keep-both',
+    })) as ResolveConflictResult
     if (!resolved.ok) throw new Error(resolved.error)
     expect(resolved.value).toMatchObject({ copy: 'manuscript/frost-my-version.md', text: 'Changed in another app.\n' })
-    expect(resolved.value.project.chapters).toContainEqual({ file: 'manuscript/frost-my-version.md', title: 'Frost (my version)', status: 'ok', listed: false })
+    expect(resolved.value.project.chapters).toContainEqual({
+      file: 'manuscript/frost-my-version.md',
+      title: 'Frost (my version)',
+      status: 'ok',
+      listed: false,
+    })
     expect(await context.read('manuscript/frost.md')).toBe(theirs)
     expect(await context.read('manuscript/frost-my-version.md')).toMatch(/\nMine\.\n$/)
   })
 
-  it('moves each chapter one step in reading order, and back, with the navigator\'s placements', async () => {
+  it("moves each chapter one step in reading order, and back, with the navigator's placements", async () => {
     const context = await setup()
     let current = await openChosen(context)
-    const order = (view: ProjectView): string[] => view.contents.flatMap((entry) => (entry.kind === 'chapter' ? [entry.file] : [`[${entry.name}]`, ...entry.chapters.map((c) => c.file)]))
+    const order = (view: ProjectView): string[] =>
+      view.contents.flatMap((entry) =>
+        entry.kind === 'chapter' ? [entry.file] : [`[${entry.name}]`, ...entry.chapters.map((c) => c.file)],
+      )
     const partOf = (view: ProjectView, file: string): string | null => {
       for (const entry of view.contents) if (entry.kind === 'part' && entry.chapters.some((c) => c.file === file)) return entry.name
       return null
@@ -207,7 +254,10 @@ describe('outline calls', () => {
     const chapter = await context.read('manuscript/the-orchard-gate.md')
     const opened = (await context.call(channels.openOutline, { file: MAIN })) as OutlineResult
     expect(opened.ok && opened.value.sections.map((s) => s.name)).toEqual(['Beginning', 'Ending'])
-    const moved = (await context.call(channels.editOutline, { file: MAIN, edit: { kind: 'move-item', from: { section: 0, path: [1] }, to: { section: 1, parentPath: [], index: 0 } } })) as OutlineResult
+    const moved = (await context.call(channels.editOutline, {
+      file: MAIN,
+      edit: { kind: 'move-item', from: { section: 0, path: [1] }, to: { section: 1, parentPath: [], index: 0 } },
+    })) as OutlineResult
     expect(moved.ok && moved.value.canUndo).toBe(true)
     expect(await context.read(MAIN)).toContain('## Ending\n\n- The gate, see [The Orchard Gate]')
     expect(await context.read('manuscript/the-orchard-gate.md')).toBe(chapter)
@@ -220,7 +270,9 @@ describe('outline calls', () => {
     const context = await setup()
     await openChosen(context)
     await expect(context.call(channels.openOutline, { file: 'manuscript/frost.md' })).rejects.toThrow('invalid-payload')
-    await expect(context.call(channels.editOutline, { file: 'project.md', edit: { kind: 'set-title', text: 'x' } })).rejects.toThrow('invalid-payload')
+    await expect(context.call(channels.editOutline, { file: 'project.md', edit: { kind: 'set-title', text: 'x' } })).rejects.toThrow(
+      'invalid-payload',
+    )
   })
 
   it('creates and lists outlines in Hebrew', async () => {
@@ -247,9 +299,15 @@ describe('reference calls', () => {
   it('names the cards about a chapter and what they link to (scenario D, core half)', async () => {
     const context = await setup()
     await openChosen(context)
-    const created = (await context.call(channels.createReference, { kind: 'character', title: 'Ilka Varga' })) as ReferenceResult<ReferenceSummaryView>
+    const created = (await context.call(channels.createReference, {
+      kind: 'character',
+      title: 'Ilka Varga',
+    })) as ReferenceResult<ReferenceSummaryView>
     expect(created.ok && created.value.file).toBe('characters/ilka-varga.md')
-    await writeFile(join(context.root, 'outlines/arcs.md'), '## Ilka\n\n- She crosses, see [The Crossing](../manuscript/the-crossing.md) and [Ilka](../characters/ilka-varga.md)\n')
+    await writeFile(
+      join(context.root, 'outlines/arcs.md'),
+      '## Ilka\n\n- She crosses, see [The Crossing](../manuscript/the-crossing.md) and [Ilka](../characters/ilka-varga.md)\n',
+    )
     const cards = (await context.call(channels.cardsAbout, { file: 'manuscript/the-crossing.md' })) as CardLinksView[]
     expect(cards.find((card) => card.outline === 'outlines/arcs.md')).toEqual({
       outline: 'outlines/arcs.md',
@@ -263,13 +321,27 @@ describe('reference calls', () => {
   it('renames a page that is open and being typed in, without a conflict', async () => {
     const context = await setup()
     await openChosen(context)
-    const created = (await context.call(channels.createReference, { kind: 'place', title: 'Marrow' })) as ReferenceResult<ReferenceSummaryView>
+    const created = (await context.call(channels.createReference, {
+      kind: 'place',
+      title: 'Marrow',
+    })) as ReferenceResult<ReferenceSummaryView>
     if (!created.ok) throw new Error(created.error)
     const page = (await context.call(channels.openChapter, { file: created.value.file })) as OpenChapterResult
     if (!page.ok) throw new Error(page.error)
-    await context.call(channels.saveChapter, { file: created.value.file, text: 'Where the orchard is.\n', generation: page.value.generation })
-    const renamed = (await context.call(channels.renameReference, { file: created.value.file, title: 'Marrow, the town' })) as ReferenceResult<ReferenceSummaryView>
-    await context.call(channels.saveChapter, { file: created.value.file, text: 'Where the orchard is, by the river.\n', generation: page.value.generation })
+    await context.call(channels.saveChapter, {
+      file: created.value.file,
+      text: 'Where the orchard is.\n',
+      generation: page.value.generation,
+    })
+    const renamed = (await context.call(channels.renameReference, {
+      file: created.value.file,
+      title: 'Marrow, the town',
+    })) as ReferenceResult<ReferenceSummaryView>
+    await context.call(channels.saveChapter, {
+      file: created.value.file,
+      text: 'Where the orchard is, by the river.\n',
+      generation: page.value.generation,
+    })
     await context.session.idle()
     expect(renamed.ok && renamed.value.title).toBe('Marrow, the town')
     expect(await context.read('places/marrow.md')).toBe('---\ntitle: Marrow, the town\n---\nWhere the orchard is, by the river.\n')
@@ -303,9 +375,14 @@ describe('version calls', () => {
     if (!listed.ok) throw new Error(listed.error)
     expect(listed.value.versions).toHaveLength(1)
     expect(await context.call(channels.readVersion, { file: FROST, at: listed.value.versions[0] })).toEqual({ ok: true, value: original })
-    expect(await context.call(channels.restoreVersion, { file: FROST, at: listed.value.versions[0], revision: listed.value.revision })).toEqual({ ok: true, value: undefined })
+    expect(
+      await context.call(channels.restoreVersion, { file: FROST, at: listed.value.versions[0], revision: listed.value.revision }),
+    ).toEqual({ ok: true, value: undefined })
     expect(await context.read(FROST)).toBe(original)
-    expect(context.events.filter((e) => e.kind === 'chapter-reloaded').at(-1)).toMatchObject({ file: FROST, text: expect.stringContaining('the frost came early') as string })
+    expect(context.events.filter((e) => e.kind === 'chapter-reloaded').at(-1)).toMatchObject({
+      file: FROST,
+      text: expect.stringContaining('the frost came early') as string,
+    })
 
     const again = (await context.call(channels.listVersions, { file: FROST })) as VersionResult<VersionsView>
     if (!again.ok) throw new Error(again.error)

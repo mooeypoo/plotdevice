@@ -1,5 +1,13 @@
 import type { OutlineSession, OutlineState, RecentProjectsSession, WritingSession } from '@plotdevice/application'
-import { channels, createOutlineSchema, editOutlineSchema, outlineFileSchema, placeSchema, type OutlineResult, type OutlineView } from '@plotdevice/contracts'
+import {
+  channels,
+  createOutlineSchema,
+  editOutlineSchema,
+  outlineFileSchema,
+  placeSchema,
+  type OutlineResult,
+  type OutlineView,
+} from '@plotdevice/contracts'
 import { ok, type Result } from '@plotdevice/shared'
 import { parsePayload } from './payload'
 import type { PayloadHandler } from './project-ipc'
@@ -11,19 +19,23 @@ export interface OutlineIpcContext {
   recent: RecentProjectsSession
 }
 
-const view = <E extends string>(result: Result<OutlineState, E>): Result<OutlineView, E> => (result.ok ? ok(outlineView(result.value)) : result)
+const view = <E extends string>(result: Result<OutlineState, E>): Result<OutlineView, E> =>
+  result.ok ? ok(outlineView(result.value)) : result
 
 /** Outline calls. Files outside `outlines/` are refused by the schemas before anything is read. */
 export function createOutlineHandlers({ outlines, writing, recent }: OutlineIpcContext): Record<string, PayloadHandler> {
   return {
     [channels.listOutlines]: () => outlines.list(),
-    [channels.createOutline]: async (payload): Promise<OutlineResult> => view(await outlines.create(parsePayload(createOutlineSchema, payload).title)),
-    [channels.openOutline]: async (payload): Promise<OutlineResult> => view(await outlines.open(parsePayload(outlineFileSchema, payload).file)),
+    [channels.createOutline]: async (payload): Promise<OutlineResult> =>
+      view(await outlines.create(parsePayload(createOutlineSchema, payload).title)),
+    [channels.openOutline]: async (payload): Promise<OutlineResult> =>
+      view(await outlines.open(parsePayload(outlineFileSchema, payload).file)),
     [channels.editOutline]: async (payload): Promise<OutlineResult> => {
       const { file, edit } = parsePayload(editOutlineSchema, payload)
       return view(await outlines.edit(file, edit))
     },
-    [channels.undoOutline]: async (payload): Promise<OutlineResult> => view(await outlines.undo(parsePayload(outlineFileSchema, payload).file)),
+    [channels.undoOutline]: async (payload): Promise<OutlineResult> =>
+      view(await outlines.undo(parsePayload(outlineFileSchema, payload).file)),
     [channels.rememberPlace]: async (payload) => {
       const { workspace, outline, view: kind } = parsePayload(placeSchema, payload)
       const project = writing.project()

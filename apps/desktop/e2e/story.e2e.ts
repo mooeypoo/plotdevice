@@ -73,14 +73,18 @@ test('scenario B: build an outline visually, see it three ways, and find it all 
   await page.getByTestId('add-card').click()
   await typeInPlace(page, 'Wants to keep the orchard')
   await page.getByTestId('editable-text').press('Escape') // adding continues, as in a list, until Escape
-  await card(page, 'Wants to keep the orchard').getByRole('button', { name: /Actions for/ }).click()
+  await card(page, 'Wants to keep the orchard')
+    .getByRole('button', { name: /Actions for/ })
+    .click()
   await page.getByTestId('menu-add-detail').click()
   await page.getByTestId('prompt-input').fill('Because of her mother')
   await page.getByTestId('prompt-input').press('Enter')
   await page.getByTestId('add-section').click()
   await typeInPlace(page, 'Bea')
 
-  await file('outlines/character-arcs.md').toBe('# Character arcs\n\n## Ilka\n\n- Wants to keep the orchard\n  - Because of her mother\n\n## Bea\n')
+  await file('outlines/character-arcs.md').toBe(
+    '# Character arcs\n\n## Ilka\n\n- Wants to keep the orchard\n  - Because of her mother\n\n## Bea\n',
+  )
   await page.getByTestId('view-outline').click()
   await expect(page.getByTestId('list')).toContainText('Because of her mother')
   await page.getByTestId('view-cards').click()
@@ -103,7 +107,9 @@ test('scenario C: moving a card changes only those lines of the outline, and no 
 
   await card(page, 'Ilka crosses').dragTo(card(page, 'Back to'))
   await expect(page.locator('[data-testid="column"]').nth(1).locator('.outline-card').first()).toContainText('Ilka crosses')
-  await file(MAIN).toContain('## Ending\n\n- Ilka crosses the river, see [The Crossing](../manuscript/the-crossing.md)\n  - Bea at the landing\n- Back to')
+  await file(MAIN).toContain(
+    '## Ending\n\n- Ilka crosses the river, see [The Crossing](../manuscript/the-crossing.md)\n  - Bea at the landing\n- Back to',
+  )
   expect(await chapterBytes()).toEqual(chapters)
 
   await page.getByTestId('outline-undo').click()
@@ -118,10 +124,12 @@ test('what the board can’t show is kept as written, and moves with its card', 
   await expect(page.getByTestId('kept-as-written')).toHaveCount(5)
   await card(page, 'Salt tolerance').focus()
   await page.keyboard.press('Alt+ArrowDown')
-  await expect.poll(async () => {
-    const text = await read('outlines/research.md')
-    return text.indexOf('- Census of Marrow') < text.indexOf('- Salt tolerance')
-  }).toBe(true)
+  await expect
+    .poll(async () => {
+      const text = await read('outlines/research.md')
+      return text.indexOf('- Census of Marrow') < text.indexOf('- Salt tolerance')
+    })
+    .toBe(true)
   await file('outlines/research.md').toContain('- Salt tolerance of pear trees\n  ```\n  NaCl 4 g/L: leaf burn\n  ```\n')
 })
 
@@ -146,7 +154,8 @@ test('switching between Story and Write keeps the editor, the cursor and undo; t
   await page.keyboard.press('End')
   await page.keyboard.type(' One')
   await page.evaluate(() => {
-    ;(window as unknown as { editorElement: Element | null }).editorElement = document.querySelector('[data-testid="editor"]')?.shadowRoot?.querySelector('.cm-editor') ?? null
+    ;(window as unknown as { editorElement: Element | null }).editorElement =
+      document.querySelector('[data-testid="editor"]')?.shadowRoot?.querySelector('.cm-editor') ?? null
   })
   await openStory(page)
   await page.getByTestId('view-cards').click()
@@ -154,7 +163,9 @@ test('switching between Story and Write keeps the editor, the cursor and undo; t
   await page.keyboard.type(' Two')
   await expect(page.locator('.cm-content')).toContainText('river. One Two')
   const sameEditor = await page.evaluate(
-    () => (window as unknown as { editorElement: Element | null }).editorElement === document.querySelector('[data-testid="editor"]')?.shadowRoot?.querySelector('.cm-editor'),
+    () =>
+      (window as unknown as { editorElement: Element | null }).editorElement ===
+      document.querySelector('[data-testid="editor"]')?.shadowRoot?.querySelector('.cm-editor'),
   )
   expect(sameEditor).toBe(true)
   await page.keyboard.press('Control+z')

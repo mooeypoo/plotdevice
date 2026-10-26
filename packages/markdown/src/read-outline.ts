@@ -26,7 +26,9 @@ export function readOutline(source: string, options: { wholeDocument?: boolean }
   const frontmatter = fm ? { range: { start: 0, end: fm.text.length }, valid: readFrontmatter(source).ok } : null
   // Unmasked, `---\ntitle: x\n---` reads as a thematic break and a setext heading, inventing a
   // section. Blanking it with spaces keeps every offset the same.
-  const masked = frontmatter ? source.slice(0, frontmatter.range.end).replace(/[^\r\n]/g, ' ') + source.slice(frontmatter.range.end) : source
+  const masked = frontmatter
+    ? source.slice(0, frontmatter.range.end).replace(/[^\r\n]/g, ' ') + source.slice(frontmatter.range.end)
+    : source
   const root = options.wholeDocument || hasHtmlBlock(masked) ? parseMarkdown(masked) : parseBySection(masked)
 
   const warnings: OutlineWarning[] = []
@@ -62,7 +64,8 @@ export function readOutline(source: string, options: { wholeDocument?: boolean }
     } else if (node.type === 'paragraph' && !current) {
       preamble.push({ type: node.type, range: rangeOf(node), reason: 'unsupported-block' })
     } else {
-      const reason: KeptReason = node.type === 'heading' ? 'subheading' : node.type === 'paragraph' ? 'paragraph-after-cards' : 'unsupported-block'
+      const reason: KeptReason =
+        node.type === 'heading' ? 'subheading' : node.type === 'paragraph' ? 'paragraph-after-cards' : 'unsupported-block'
       ;(current ? current.kept : preamble).push(keep(node, reason))
     }
   }
@@ -130,7 +133,10 @@ function sectionStarts(text: string): number[] {
   return offsets
 }
 
-type Positioned = { position?: { start: { offset?: number | undefined }; end: { offset?: number | undefined } } | undefined; children?: unknown[] }
+type Positioned = {
+  position?: { start: { offset?: number | undefined }; end: { offset?: number | undefined } } | undefined
+  children?: unknown[]
+}
 
 function shifted<T extends RootContent>(node: T, base: number): T {
   const visit = (n: Positioned): void => {
@@ -154,7 +160,13 @@ function readList(source: string, list: List, warnings: OutlineWarning[], nestin
 // Sticky, so reading a marker never copies the rest of the document (which made parsing quadratic).
 const MARKER = /(?:([-+*])|(\d{1,9})([.)]))([ \t]*)/y
 
-function readItem(source: string, node: ListItem, listIsLoose: boolean, warnings: OutlineWarning[], nestingSamples: string[]): OutlineItemSource {
+function readItem(
+  source: string,
+  node: ListItem,
+  listIsLoose: boolean,
+  warnings: OutlineWarning[],
+  nestingSamples: string[],
+): OutlineItemSource {
   const range = rangeOf(node)
   const lineStart = lineStartAt(source, range.start)
   const indent = source.slice(lineStart, range.start)
@@ -165,7 +177,9 @@ function readItem(source: string, node: ListItem, listIsLoose: boolean, warnings
   const match = MARKER.exec(source)
   if (!match) throw new Error(`list item without a marker at ${range.start}`)
   const [whole, bullet, number, delimiter, gap = ''] = match
-  const marker: ListMarker = bullet ? { kind: 'bullet', char: bullet as '-' | '*' | '+' } : { kind: 'ordered', number: Number(number), delimiter: delimiter as '.' | ')' }
+  const marker: ListMarker = bullet
+    ? { kind: 'bullet', char: bullet as '-' | '*' | '+' }
+    : { kind: 'ordered', number: Number(number), delimiter: delimiter as '.' | ')' }
 
   const children: OutlineItemSource[] = []
   const kept: KeptBlock[] = []
@@ -230,7 +244,9 @@ function rangeOf(node: Positioned): TextRange {
 }
 
 function relativeIndent(parentIndent: string, childIndent: string): string {
-  return childIndent.startsWith(parentIndent) ? childIndent.slice(parentIndent.length) : ' '.repeat(indentColumns(childIndent) - indentColumns(parentIndent))
+  return childIndent.startsWith(parentIndent)
+    ? childIndent.slice(parentIndent.length)
+    : ' '.repeat(indentColumns(childIndent) - indentColumns(parentIndent))
 }
 
 function mostCommon(values: string[]): string | undefined {

@@ -16,10 +16,14 @@ export function useNavigator(project: Ref<ProjectView>, openFile: Ref<ProjectPat
 
   const unlisted = computed(() => project.value.chapters.filter((chapter) => !chapter.listed))
   const missing = computed(() =>
-    project.value.missing.map((file) => ({ file, suggestion: project.value.relinkSuggestions.find((suggestion) => suggestion.missing === file)?.found ?? null })),
+    project.value.missing.map((file) => ({
+      file,
+      suggestion: project.value.relinkSuggestions.find((suggestion) => suggestion.missing === file)?.found ?? null,
+    })),
   )
   const isMissing = (file: ProjectPath): boolean => project.value.missing.includes(file)
-  const outdatedTitle = (file: ProjectPath): string | null => project.value.outdatedLinkText.find((entry) => entry.file === file)?.title ?? null
+  const outdatedTitle = (file: ProjectPath): string | null =>
+    project.value.outdatedLinkText.find((entry) => entry.file === file)?.title ?? null
 
   const move = (file: ProjectPath, placement: Placement | null): Promise<boolean> =>
     placement ? store.changeContents({ kind: 'move-chapter', file, placement }) : Promise.resolve(false)
@@ -28,7 +32,11 @@ export function useNavigator(project: Ref<ProjectView>, openFile: Ref<ProjectPat
     const title = await ask(t('prompt-chapter-title'))
     if (!title) return
     const before = new Set(project.value.chapters.map((chapter) => chapter.file))
-    const added = await store.changeContents({ kind: 'add-chapter', title, placement: placementAfter(project.value.contents, openFile.value) })
+    const added = await store.changeContents({
+      kind: 'add-chapter',
+      title,
+      placement: placementAfter(project.value.contents, openFile.value),
+    })
     const created = added ? project.value.chapters.find((chapter) => !before.has(chapter.file)) : undefined
     if (created) openChapter(created.file)
   }
@@ -73,7 +81,12 @@ export function useNavigator(project: Ref<ProjectView>, openFile: Ref<ProjectPat
         label: `${t('chapter-move-to')}: ${target.kind === 'part' ? t('move-to-part', target.name) : t(`move-to-${target.kind}`)}`,
         run: () => void move(chapter.file, target.placement),
       })),
-      { key: 'remove', label: t('chapter-remove'), group: 'remove', run: () => void store.changeContents({ kind: 'remove-from-book', file: chapter.file }) },
+      {
+        key: 'remove',
+        label: t('chapter-remove'),
+        group: 'remove',
+        run: () => void store.changeContents({ kind: 'remove-from-book', file: chapter.file }),
+      },
     ]
   }
 
@@ -94,7 +107,8 @@ export function useNavigator(project: Ref<ProjectView>, openFile: Ref<ProjectPat
     renamePart,
     chapterMenu,
     moveWithKeyboard,
-    addToBook: (file: ProjectPath) => store.changeContents({ kind: 'add-to-book', file, placement: { part: null, index: project.value.contents.length } }),
+    addToBook: (file: ProjectPath) =>
+      store.changeContents({ kind: 'add-to-book', file, placement: { part: null, index: project.value.contents.length } }),
     relink: (missingFile: ProjectPath, found: ProjectPath) => store.changeContents({ kind: 'relink', missing: missingFile, found }),
     updateTitle: (file: ProjectPath) => store.changeContents({ kind: 'update-link-text', file }),
   }

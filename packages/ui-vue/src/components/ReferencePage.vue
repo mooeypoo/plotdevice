@@ -51,9 +51,21 @@ watch(
     <p v-if="page.state.value === 'unreadable'" class="warning" role="alert">{{ t('chapter-unreadable') }}</p>
     <p v-else-if="page.state.value === 'missing'" class="warning" role="alert">{{ t('chapter-missing') }}</p>
     <div class="paper size-medium width-medium">
-      <div v-show="page.state.value === 'ready' || page.state.value === 'loading'" ref="host" class="editor-host page-editor" data-testid="page-editor"></div>
+      <div
+        v-show="page.state.value === 'ready' || page.state.value === 'loading'"
+        ref="host"
+        class="editor-host page-editor"
+        data-testid="page-editor"
+      ></div>
     </div>
-    <p class="status-line"><span role="status" data-testid="page-save-status">{{ page.status.value ? t(`save-${page.status.value}`) : '' }}</span></p>
-    <ConflictDialog v-if="page.status.value === 'conflict'" :chapter-name="summary?.title ?? file" :busy="page.resolving.value" @choose="page.resolveConflict" />
+    <p class="status-line">
+      <span role="status" data-testid="page-save-status">{{ page.status.value ? t(`save-${page.status.value}`) : '' }}</span>
+    </p>
+    <ConflictDialog
+      v-if="page.status.value === 'conflict'"
+      :chapter-name="summary?.title ?? file"
+      :busy="page.resolving.value"
+      @choose="page.resolveConflict"
+    />
   </article>
 </template>

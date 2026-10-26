@@ -29,7 +29,9 @@ export interface Launched {
 /** Starts the built app with its settings in `userData`, and waits for the interface. */
 export async function launch(userData: string, extraEnv: Record<string, string> = {}, extraArgs: string[] = []): Promise<Launched> {
   // VS Code's extension host sets ELECTRON_RUN_AS_NODE, which would turn Electron into plain Node.
-  const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[0] !== 'ELECTRON_RUN_AS_NODE' && entry[1] !== undefined))
+  const env = Object.fromEntries(
+    Object.entries(process.env).filter((entry): entry is [string, string] => entry[0] !== 'ELECTRON_RUN_AS_NODE' && entry[1] !== undefined),
+  )
   const app = await electron.launch({
     executablePath: electronPath,
     args: [appFolder, ...(chromiumSandboxBlocked() ? ['--no-sandbox'] : []), ...extraArgs],
@@ -49,7 +51,12 @@ export async function openSettings(page: Page): Promise<void> {
 
 /** Runs the app once more, as a file manager's "Open with" would, and waits for that launch to exit. */
 export function launchAgain(userData: string, args: string[]): Promise<number | null> {
-  const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[0] !== 'ELECTRON_RUN_AS_NODE' && entry[1] !== undefined))
-  const child = spawn(electronPath, [appFolder, ...(chromiumSandboxBlocked() ? ['--no-sandbox'] : []), ...args], { env: { ...env, PLOTDEVICE_USER_DATA: userData }, stdio: 'ignore' })
+  const env = Object.fromEntries(
+    Object.entries(process.env).filter((entry): entry is [string, string] => entry[0] !== 'ELECTRON_RUN_AS_NODE' && entry[1] !== undefined),
+  )
+  const child = spawn(electronPath, [appFolder, ...(chromiumSandboxBlocked() ? ['--no-sandbox'] : []), ...args], {
+    env: { ...env, PLOTDEVICE_USER_DATA: userData },
+    stdio: 'ignore',
+  })
   return new Promise((resolve) => child.on('exit', resolve))
 }

@@ -16,7 +16,9 @@ export function compiledBook(contents: Contents, numbering: ChapterNumbering, ti
     return { kind: 'chapter', file, heading: `## ${number === null ? '' : `${number}. `}${name}` }
   }
   return contents.entries.flatMap((entry): CompiledEntry[] =>
-    entry.kind === 'chapter' ? [chapter(entry.file, entry.linkText)] : [{ kind: 'part', heading: `# ${escapeHeading(entry.name)}` }, ...entry.chapters.map((c) => chapter(c.file, c.linkText))],
+    entry.kind === 'chapter'
+      ? [chapter(entry.file, entry.linkText)]
+      : [{ kind: 'part', heading: `# ${escapeHeading(entry.name)}` }, ...entry.chapters.map((c) => chapter(c.file, c.linkText))],
   )
 }
 

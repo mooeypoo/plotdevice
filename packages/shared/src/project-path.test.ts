@@ -7,9 +7,12 @@ const problems = (path: string): string[] => {
 }
 
 describe('parseProjectPath', () => {
-  it.each(['manuscript/the-crossing.md', 'manuscript/המעבר.md', 'The Salt Orchard/CONTENTS.md', "manuscript/ilka's-will.md"])('accepts %s', (path) => {
-    expect(problems(path)).toEqual([])
-  })
+  it.each(['manuscript/the-crossing.md', 'manuscript/המעבר.md', 'The Salt Orchard/CONTENTS.md', "manuscript/ilka's-will.md"])(
+    'accepts %s',
+    (path) => {
+      expect(problems(path)).toEqual([])
+    },
+  )
 
   it.each([
     ['', 'empty'],

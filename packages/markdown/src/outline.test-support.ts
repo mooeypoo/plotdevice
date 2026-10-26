@@ -26,26 +26,26 @@ import { readOutline } from './read-outline'
 /** The outline fixtures as decoded text: a byte-order mark is dropped, as the file store does (ADR 0003). */
 export const outlineFixtures: Record<string, string> = Object.fromEntries(
   Object.entries({
-  'basic-en.md': basicEn,
-  'basic-he.md': basicHe,
-  'bom.md': bom,
-  'crlf.md': crlf,
-  'deep-nesting.md': deepNesting,
-  'embedded-blocks.md': embeddedBlocks,
-  'empty-sections.md': emptySections,
-  'frontmatter-invalid.md': frontmatterInvalid,
-  'frontmatter.md': frontmatter,
-  'indent-four-spaces.md': indentFourSpaces,
-  'indent-tabs.md': indentTabs,
-  'loose-lists.md': looseLists,
-  'mixed-direction.md': mixedDirection,
-  'mixed-markers.md': mixedMarkers,
-  'no-final-newline.md': noFinalNewline,
-  'no-h2.md': noH2,
-  'ordered-and-task-lists.md': orderedAndTaskLists,
-  'preamble-and-h3.md': preambleAndH3,
-  'section-intro-paragraphs.md': sectionIntroParagraphs,
-  'unicode-niqqud-emoji.md': unicodeNiqqudEmoji,
+    'basic-en.md': basicEn,
+    'basic-he.md': basicHe,
+    'bom.md': bom,
+    'crlf.md': crlf,
+    'deep-nesting.md': deepNesting,
+    'embedded-blocks.md': embeddedBlocks,
+    'empty-sections.md': emptySections,
+    'frontmatter-invalid.md': frontmatterInvalid,
+    'frontmatter.md': frontmatter,
+    'indent-four-spaces.md': indentFourSpaces,
+    'indent-tabs.md': indentTabs,
+    'loose-lists.md': looseLists,
+    'mixed-direction.md': mixedDirection,
+    'mixed-markers.md': mixedMarkers,
+    'no-final-newline.md': noFinalNewline,
+    'no-h2.md': noH2,
+    'ordered-and-task-lists.md': orderedAndTaskLists,
+    'preamble-and-h3.md': preambleAndH3,
+    'section-intro-paragraphs.md': sectionIntroParagraphs,
+    'unicode-niqqud-emoji.md': unicodeNiqqudEmoji,
   }).map(([name, text]) => [name, text.replace(/^\uFEFF/, '')]),
 )
 
@@ -97,10 +97,17 @@ export const normalizeText = (raw: string): string =>
 
 export function shapeOf(outline: ParsedOutline, withIds = false): OutlineShape {
   let nextId = 0
-  const item = (parsed: OutlineItemSource): ItemShape => ({ ...(withIds ? { id: nextId++ } : {}), text: normalizeText(parsed.text), children: parsed.children.map(item) })
+  const item = (parsed: OutlineItemSource): ItemShape => ({
+    ...(withIds ? { id: nextId++ } : {}),
+    text: normalizeText(parsed.text),
+    children: parsed.children.map(item),
+  })
   return {
     title: outline.title ? normalizeText(outline.title.text) : null,
-    sections: outline.sections.map((section) => ({ heading: section.heading ? normalizeText(section.heading.text) : null, items: section.items.map(item) })),
+    sections: outline.sections.map((section) => ({
+      heading: section.heading ? normalizeText(section.heading.text) : null,
+      items: section.items.map(item),
+    })),
   }
 }
 
@@ -215,14 +222,18 @@ export function keptTexts(outline: ParsedOutline): string[] {
   if (outline.frontmatter) add(outline.frontmatter.range.start, outline.frontmatter.range.end)
   if (outline.title) add(outline.title.lineRange.start, outline.title.lineRange.end)
   for (const block of outline.preamble) add(block.range.start, block.range.end)
-  for (const section of outline.sections) for (const range of [...section.intro, ...section.kept.map((b) => b.range)]) add(range.start, range.end)
+  for (const section of outline.sections)
+    for (const range of [...section.intro, ...section.kept.map((b) => b.range)]) add(range.start, range.end)
   for (const { item } of allItems(outline)) for (const block of item.kept) add(block.range.start, block.range.end)
   return texts.sort()
 }
 
 /** The kept text inside an item and its details: what deleting it removes, by definition. */
 export function keptTextsInside(source: string, item: OutlineItemSource): string[] {
-  return [...item.kept.map((block) => normalizeText(source.slice(block.range.start, block.range.end))), ...item.children.flatMap((child) => keptTextsInside(source, child))]
+  return [
+    ...item.kept.map((block) => normalizeText(source.slice(block.range.start, block.range.end))),
+    ...item.children.flatMap((child) => keptTextsInside(source, child)),
+  ]
 }
 
 const nonBlank = (lines: string[]): string[] => lines.filter((line) => line.trim() !== '')

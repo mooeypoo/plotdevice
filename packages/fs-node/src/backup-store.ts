@@ -18,7 +18,8 @@ const timeOf = (name: string): number | null => {
  * file per backup, written atomically, byte for byte as the original was.
  */
 export function createBackupStore(appData: string): BackupStore {
-  const folderOf = (project: string, file: string): string => join(appData, 'backups', project.replace(/[^\p{L}\p{N}-]/gu, '_'), ...file.split('/'))
+  const folderOf = (project: string, file: string): string =>
+    join(appData, 'backups', project.replace(/[^\p{L}\p{N}-]/gu, '_'), ...file.split('/'))
 
   return {
     async save(project, file, content, at) {

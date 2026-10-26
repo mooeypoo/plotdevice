@@ -30,7 +30,12 @@ async function setup(options: Partial<RepositoryOptions> = {}) {
   const base = await tempDir()
   const root = join(base, 'The Salt Orchard')
   await cp(FIXTURE, root, { recursive: true })
-  const repository = createProjectRepository({ folders: createProjectFolders(), journals: createJournalStore(join(base, 'app-data')), ids: sequentialIds(), ...options })
+  const repository = createProjectRepository({
+    folders: createProjectFolders(),
+    journals: createJournalStore(join(base, 'app-data')),
+    ids: sequentialIds(),
+    ...options,
+  })
   const opened = await repository.open(root)
   if (!opened.ok) throw new Error(`open failed: ${opened.error}`)
   const read = (path: string) => readFile(join(root, path), 'utf8')
@@ -46,7 +51,12 @@ function unwrap<T>(result: { ok: true; value: T } | { ok: false; error: unknown 
 async function snapshotFiles(root: string): Promise<Record<string, string>> {
   const files: Record<string, string> = {}
   for (const entry of await readdir(root, { recursive: true, withFileTypes: true })) {
-    if (entry.isFile()) files[join(entry.parentPath, entry.name).slice(root.length + 1).replaceAll('\\', '/')] = await readFile(join(entry.parentPath, entry.name), 'utf8')
+    if (entry.isFile())
+      files[
+        join(entry.parentPath, entry.name)
+          .slice(root.length + 1)
+          .replaceAll('\\', '/')
+      ] = await readFile(join(entry.parentPath, entry.name), 'utf8')
   }
   return files
 }
@@ -57,12 +67,17 @@ const titles = (snapshot: ProjectSnapshot) =>
 describe('creating a project', () => {
   it('writes exactly the documented files, in a folder named after the title', async () => {
     const location = await tempDir()
-    const repository = createProjectRepository({ folders: createProjectFolders(), journals: createJournalStore(join(location, 'app-data')), ids: sequentialIds() })
+    const repository = createProjectRepository({
+      folders: createProjectFolders(),
+      journals: createJournalStore(join(location, 'app-data')),
+      ids: sequentialIds(),
+    })
     const snapshot = unwrap(await repository.create(location, { title: 'The Salt Orchard', language: 'he', author: 'Ines Varga' }))
     const root = join(location, 'The Salt Orchard')
     expect(snapshot.root).toBe(root)
     expect(await snapshotFiles(root)).toEqual({
-      'project.md': '---\ntitle: The Salt Orchard\nauthor: Ines Varga\nlanguage: he\nchapterNumbering: continuous\nid: prj-t00001\nschemaVersion: 1\n---\n',
+      'project.md':
+        '---\ntitle: The Salt Orchard\nauthor: Ines Varga\nlanguage: he\nchapterNumbering: continuous\nid: prj-t00001\nschemaVersion: 1\n---\n',
       'CONTENTS.md': '# The Salt Orchard\n',
     })
     expect(await readdir(join(root, 'manuscript'))).toEqual([])
@@ -74,17 +89,34 @@ describe('creating a project', () => {
     const { base, root, repository } = await setup()
     expect(await repository.create(base, { title: '', language: 'en' })).toEqual({ ok: false, error: 'invalid-details' })
     expect(await repository.create(base, { title: 'The Salt Orchard', language: 'en' })).toEqual({ ok: false, error: 'folder-exists' })
-    expect(await repository.create(join(root, 'notes'), { title: 'Nested', language: 'en' })).toEqual({ ok: false, error: 'inside-project' })
+    expect(await repository.create(join(root, 'notes'), { title: 'Nested', language: 'en' })).toEqual({
+      ok: false,
+      error: 'inside-project',
+    })
   })
 })
 
 describe('opening a project', () => {
   it('reads details, contents, and chapters that are not in the book yet', async () => {
     const { snapshot } = await setup()
-    expect(snapshot.details).toMatchObject({ title: 'The Salt Orchard', author: 'Ines Varga', language: 'en', chapterNumbering: 'continuous', id: 'prj-7d2k9q', schemaVersion: 1 })
+    expect(snapshot.details).toMatchObject({
+      title: 'The Salt Orchard',
+      author: 'Ines Varga',
+      language: 'en',
+      chapterNumbering: 'continuous',
+      id: 'prj-7d2k9q',
+      schemaVersion: 1,
+    })
     expect(titles(snapshot)).toEqual(['Prologue', 'Part One: Arrival: The Crossing, The Orchard Gate', 'Part Two: Salt: Frost', 'Epilogue'])
     expect(snapshot.chapters.filter((c) => !c.listed).map((c) => c.file)).toEqual(['manuscript/draft-ideas.md'])
-    expect(snapshot).toMatchObject({ missing: [], outdatedLinkText: [], relinkSuggestions: [], duplicateIds: [], warnings: [], recovered: [] })
+    expect(snapshot).toMatchObject({
+      missing: [],
+      outdatedLinkText: [],
+      relinkSuggestions: [],
+      duplicateIds: [],
+      warnings: [],
+      recovered: [],
+    })
   })
 
   it('refuses a folder that is not a project, and a project from a newer version of the app', async () => {
@@ -113,7 +145,14 @@ describe('opening a project', () => {
 describe('changing the book', () => {
   it('adds a chapter: a new file named from its title, and one line in the contents', async () => {
     const { repository, snapshot, read } = await setup()
-    const after = unwrap(await repository.changeContents(snapshot, { kind: 'add-chapter', title: 'Thaw', placement: { part: 2, index: 1 }, text: 'It began to thaw.\n' }))
+    const after = unwrap(
+      await repository.changeContents(snapshot, {
+        kind: 'add-chapter',
+        title: 'Thaw',
+        placement: { part: 2, index: 1 },
+        text: 'It began to thaw.\n',
+      }),
+    )
     expect(await read('manuscript/thaw.md')).toBe('---\ntitle: Thaw\nid: ch-t00001\n---\nIt began to thaw.\n')
     expect(await read('CONTENTS.md')).toContain('  - [Frost](manuscript/frost.md)\n  - [Thaw](manuscript/thaw.md)\n- [Epilogue]')
     expect(titles(after)[2]).toBe('Part Two: Salt: Frost, Thaw')
@@ -121,16 +160,28 @@ describe('changing the book', () => {
 
   it('gives a new chapter a free file name when its title is taken', async () => {
     const { repository, snapshot } = await setup()
-    const after = unwrap(await repository.changeContents(snapshot, { kind: 'add-chapter', title: 'Frost', placement: { part: null, index: 0 } }))
+    const after = unwrap(
+      await repository.changeContents(snapshot, { kind: 'add-chapter', title: 'Frost', placement: { part: null, index: 0 } }),
+    )
     expect(after.contents.entries[0]).toMatchObject({ file: 'manuscript/frost-2.md', linkText: 'Frost' })
   })
 
   it('moves a chapter without renaming or touching any chapter file (PRD scenario E)', async () => {
     const { root, repository, snapshot, read } = await setup()
     const before = await snapshotFiles(root)
-    unwrap(await repository.changeContents(snapshot, { kind: 'move-chapter', file: p('manuscript/epilogue.md'), placement: { part: null, index: 0 } }))
+    unwrap(
+      await repository.changeContents(snapshot, {
+        kind: 'move-chapter',
+        file: p('manuscript/epilogue.md'),
+        placement: { part: null, index: 0 },
+      }),
+    )
     const after = await snapshotFiles(root)
-    expect(await read('CONTENTS.md')).toBe(before['CONTENTS.md']?.replace('- [Epilogue](manuscript/epilogue.md)\n', '').replace('- [Prologue]', '- [Epilogue](manuscript/epilogue.md)\n- [Prologue]'))
+    expect(await read('CONTENTS.md')).toBe(
+      before['CONTENTS.md']
+        ?.replace('- [Epilogue](manuscript/epilogue.md)\n', '')
+        .replace('- [Prologue]', '- [Epilogue](manuscript/epilogue.md)\n- [Prologue]'),
+    )
     expect({ ...after, 'CONTENTS.md': '' }).toEqual({ ...before, 'CONTENTS.md': '' })
   })
 
@@ -144,7 +195,13 @@ describe('changing the book', () => {
 
   it('adds an unlisted chapter to the book, using its title', async () => {
     const { repository, snapshot, read } = await setup()
-    unwrap(await repository.changeContents(snapshot, { kind: 'add-to-book', file: p('manuscript/draft-ideas.md'), placement: { part: null, index: 4 } }))
+    unwrap(
+      await repository.changeContents(snapshot, {
+        kind: 'add-to-book',
+        file: p('manuscript/draft-ideas.md'),
+        placement: { part: null, index: 4 },
+      }),
+    )
     expect(await read('CONTENTS.md')).toContain('- [Epilogue](manuscript/epilogue.md)\n- [Draft ideas](manuscript/draft-ideas.md)\n')
   })
 
@@ -159,7 +216,9 @@ describe('changing the book', () => {
   it('checks domain rules before writing anything', async () => {
     const { root, repository, snapshot } = await setup()
     const before = await snapshotFiles(root)
-    expect(await repository.changeContents(snapshot, { kind: 'move-chapter', file: p('manuscript/frost.md'), placement: { part: 0, index: 0 } })).toEqual({ ok: false, error: 'invalid' })
+    expect(
+      await repository.changeContents(snapshot, { kind: 'move-chapter', file: p('manuscript/frost.md'), placement: { part: 0, index: 0 } }),
+    ).toEqual({ ok: false, error: 'invalid' })
     expect(await repository.changeContents(snapshot, { kind: 'add-part', name: '   ', index: 0 })).toEqual({ ok: false, error: 'invalid' })
     expect(await snapshotFiles(root)).toEqual(before)
   })
@@ -180,9 +239,17 @@ describe('missing and renamed chapters (PRD scenario I)', () => {
     await writeFile(join(root, 'manuscript/hard-frost.md'), frost)
     const snapshot = unwrap(await repository.open(root))
     expect(snapshot.missing).toEqual(['manuscript/frost.md'])
-    expect(snapshot.relinkSuggestions).toEqual([{ missing: 'manuscript/frost.md', found: 'manuscript/hard-frost.md', reason: 'same-title' }])
+    expect(snapshot.relinkSuggestions).toEqual([
+      { missing: 'manuscript/frost.md', found: 'manuscript/hard-frost.md', reason: 'same-title' },
+    ])
     expect(await read('CONTENTS.md')).toContain('(manuscript/frost.md)') // nothing changed by opening
-    const relinked = unwrap(await repository.changeContents(snapshot, { kind: 'relink', missing: p('manuscript/frost.md'), found: p('manuscript/hard-frost.md') }))
+    const relinked = unwrap(
+      await repository.changeContents(snapshot, {
+        kind: 'relink',
+        missing: p('manuscript/frost.md'),
+        found: p('manuscript/hard-frost.md'),
+      }),
+    )
     expect(relinked.missing).toEqual([])
     expect(await read('CONTENTS.md')).toContain('  - [Frost](manuscript/hard-frost.md)\n')
   })
@@ -209,7 +276,9 @@ describe('renaming a chapter title', () => {
   it('changes the title in the chapter and its contents line, and never the file name', async () => {
     const { root, repository, snapshot, read } = await setup()
     const after = unwrap(await repository.renameChapter(snapshot, p('manuscript/frost.md'), 'Hard Frost'))
-    expect(await read('manuscript/frost.md')).toBe((await readFile(join(FIXTURE, 'manuscript/frost.md'), 'utf8')).replace('title: Frost', 'title: Hard Frost'))
+    expect(await read('manuscript/frost.md')).toBe(
+      (await readFile(join(FIXTURE, 'manuscript/frost.md'), 'utf8')).replace('title: Frost', 'title: Hard Frost'),
+    )
     expect(await read('CONTENTS.md')).toContain('  - [Hard Frost](manuscript/frost.md)\n')
     expect(await readdir(join(root, 'manuscript'))).toContain('frost.md')
     expect(after.outdatedLinkText).toEqual([])
@@ -230,18 +299,34 @@ describe('chapter text (PRD scenario A, core half)', () => {
     const { root, repository, read } = await setup()
     const chapter = unwrap(await repository.readChapter(root, p('manuscript/frost.md')))
     await writeFile(join(root, 'manuscript/frost.md'), 'Edited in another app.\n')
-    expect(await repository.saveChapter(root, p('manuscript/frost.md'), 'Stale text.\n', chapter.revision)).toEqual({ ok: false, error: 'stale' })
+    expect(await repository.saveChapter(root, p('manuscript/frost.md'), 'Stale text.\n', chapter.revision)).toEqual({
+      ok: false,
+      error: 'stale',
+    })
     expect(await read('manuscript/frost.md')).toBe('Edited in another app.\n')
   })
 
   it('creates a project, writes a first chapter, and finds it intact after reopening', async () => {
     const location = await tempDir()
-    const repository = createProjectRepository({ folders: createProjectFolders(), journals: createJournalStore(join(location, 'app-data')), ids: sequentialIds() })
+    const repository = createProjectRepository({
+      folders: createProjectFolders(),
+      journals: createJournalStore(join(location, 'app-data')),
+      ids: sequentialIds(),
+    })
     const created = unwrap(await repository.create(location, { title: 'מטע המלח', language: 'he' }))
-    const withChapter = unwrap(await repository.changeContents(created, { kind: 'add-chapter', title: 'פרק ראשון', placement: { part: null, index: 0 }, text: 'יעל קראה את המכתב. Ilka listened.\n' }))
+    const withChapter = unwrap(
+      await repository.changeContents(created, {
+        kind: 'add-chapter',
+        title: 'פרק ראשון',
+        placement: { part: null, index: 0 },
+        text: 'יעל קראה את המכתב. Ilka listened.\n',
+      }),
+    )
     const reopened = unwrap(await repository.open(withChapter.root))
     expect(reopened.contents.entries).toEqual([{ kind: 'chapter', file: 'manuscript/פרק-ראשון.md', linkText: 'פרק ראשון' }])
-    expect(unwrap(await repository.readChapter(reopened.root, p('manuscript/פרק-ראשון.md'))).text).toBe('יעל קראה את המכתב. Ilka listened.\n')
+    expect(unwrap(await repository.readChapter(reopened.root, p('manuscript/פרק-ראשון.md'))).text).toBe(
+      'יעל קראה את המכתב. Ilka listened.\n',
+    )
   })
 })
 
@@ -252,7 +337,10 @@ describe('renaming a page file (explicit, through the recovery journal)', () => 
     await writeFile(join(context.root, 'characters/ilka.md'), '---\ntitle: Ilka Varga\n---\nSee [Bea](bea.md).\n')
     await writeFile(join(context.root, 'characters/bea.md'), '---\ntitle: Bea\n---\nIlka’s aunt: [Ilka](ilka.md), also [[ilka]].\n')
     await writeFile(join(context.root, 'outlines/main-story.md'), '## Beginning\n\n- Ilka arrives, see [Ilka](../characters/ilka.md)\n')
-    await writeFile(join(context.root, 'manuscript/frost.md'), '---\ntitle: Frost\nid: ch-p0n1zz\n---\nAbout [Ilka](../characters/ilka.md).\n')
+    await writeFile(
+      join(context.root, 'manuscript/frost.md'),
+      '---\ntitle: Frost\nid: ch-p0n1zz\n---\nAbout [Ilka](../characters/ilka.md).\n',
+    )
     const snapshot = unwrap(await context.repository.open(context.root))
     return { ...context, snapshot }
   }
@@ -275,15 +363,22 @@ describe('renaming a page file (explicit, through the recovery journal)', () => 
     expect(await repository.renameFile(snapshot, p('characters/ilka.md'), 'Bea')).toEqual({ ok: false, error: 'name-taken' })
   })
 
-  it.each(['journal-saved', 'step-0', 'step-1', 'step-2', 'step-3'])('is finished on the next open after an interruption at %s', async (point) => {
-    const reference = await withPage()
-    unwrap(await reference.repository.renameFile(reference.snapshot, p('characters/ilka.md'), 'ilka-varga'))
-    const expected = await snapshotFiles(reference.root)
-    const crashing = await withPage({ crashAt: (reached) => reached === point })
-    await expect(crashing.repository.renameFile(crashing.snapshot, p('characters/ilka.md'), 'ilka-varga')).rejects.toThrow('simulated crash')
-    expect(unwrap(await crashing.repository.open(crashing.root)).recovered).toEqual([{ journal: expect.any(String), outcome: 'completed' }])
-    expect(await snapshotFiles(crashing.root)).toEqual(expected)
-  })
+  it.each(['journal-saved', 'step-0', 'step-1', 'step-2', 'step-3'])(
+    'is finished on the next open after an interruption at %s',
+    async (point) => {
+      const reference = await withPage()
+      unwrap(await reference.repository.renameFile(reference.snapshot, p('characters/ilka.md'), 'ilka-varga'))
+      const expected = await snapshotFiles(reference.root)
+      const crashing = await withPage({ crashAt: (reached) => reached === point })
+      await expect(crashing.repository.renameFile(crashing.snapshot, p('characters/ilka.md'), 'ilka-varga')).rejects.toThrow(
+        'simulated crash',
+      )
+      expect(unwrap(await crashing.repository.open(crashing.root)).recovered).toEqual([
+        { journal: expect.any(String), outcome: 'completed' },
+      ])
+      expect(await snapshotFiles(crashing.root)).toEqual(expected)
+    },
+  )
 })
 
 describe('renaming a chapter file (explicit, through the recovery journal)', () => {
@@ -299,7 +394,8 @@ describe('renaming a chapter file (explicit, through the recovery journal)', () 
     expect(await read('CONTENTS.md')).toContain('  - [The Crossing](<manuscript/01 crossing.md>)\n')
     expect(await read('outlines/main-story.md')).toContain('[The Crossing](<../manuscript/01 crossing.md>)')
     expect(await read('notes/loose-ideas.md')).toContain('[[01 crossing|the first chapter]]')
-    for (const path of ['project.md', 'manuscript/frost.md', 'manuscript/prologue.md', 'notes/crossing-notes.md']) expect(after[path]).toBe(before[path])
+    for (const path of ['project.md', 'manuscript/frost.md', 'manuscript/prologue.md', 'notes/crossing-notes.md'])
+      expect(after[path]).toBe(before[path])
     expect(result.snapshot.missing).toEqual([])
   })
 
@@ -327,7 +423,9 @@ describe('renaming a chapter file (explicit, through the recovery journal)', () 
     const expected = await snapshotFiles(reference.root)
 
     const crashing = await setup({ crashAt: (reached) => reached === point })
-    await expect(crashing.repository.renameFile(crashing.snapshot, p('manuscript/the-crossing.md'), 'crossing')).rejects.toThrow('simulated crash')
+    await expect(crashing.repository.renameFile(crashing.snapshot, p('manuscript/the-crossing.md'), 'crossing')).rejects.toThrow(
+      'simulated crash',
+    )
     const reopened = unwrap(await crashing.repository.open(crashing.root))
     expect(reopened.recovered).toEqual([{ journal: expect.any(String), outcome: 'completed' }])
     expect(await snapshotFiles(crashing.root)).toEqual(expected)
@@ -352,7 +450,9 @@ describe('keeping both versions of a chapter changed elsewhere (PRD scenario G, 
     await writeFile(join(root, 'manuscript/frost.md'), elsewhere)
     const copy = unwrap(await repository.saveChapterCopy(root, p('manuscript/frost.md'), 'יעל wrote this in the app.\n', 'my version'))
     expect(copy).toBe('manuscript/frost-my-version.md')
-    expect(await read('manuscript/frost-my-version.md')).toBe('---\ntitle: Frost (my version)\nid: ch-t00001\npov: Ilka # who tells it\n---\nיעל wrote this in the app.\n')
+    expect(await read('manuscript/frost-my-version.md')).toBe(
+      '---\ntitle: Frost (my version)\nid: ch-t00001\npov: Ilka # who tells it\n---\nיעל wrote this in the app.\n',
+    )
     expect(await read('manuscript/frost.md')).toBe(elsewhere)
   })
 
@@ -361,14 +461,19 @@ describe('keeping both versions of a chapter changed elsewhere (PRD scenario G, 
     await writeFile(join(root, 'manuscript/frost.md'), elsewhere)
     unwrap(await repository.saveChapterCopy(root, p('manuscript/frost.md'), 'Mine.\n', 'my version'))
     const reopened = unwrap(await repository.open(root))
-    expect(reopened.chapters.find((c) => c.file === 'manuscript/frost-my-version.md')).toMatchObject({ title: 'Frost (my version)', listed: false })
+    expect(reopened.chapters.find((c) => c.file === 'manuscript/frost-my-version.md')).toMatchObject({
+      title: 'Frost (my version)',
+      listed: false,
+    })
     expect(reopened.duplicateIds).toEqual([])
   })
 
   it('never overwrites an earlier copy', async () => {
     const { root, repository, read } = await setup()
     unwrap(await repository.saveChapterCopy(root, p('manuscript/frost.md'), 'First.\n', 'my version'))
-    expect(unwrap(await repository.saveChapterCopy(root, p('manuscript/frost.md'), 'Second.\n', 'my version'))).toBe('manuscript/frost-my-version-2.md')
+    expect(unwrap(await repository.saveChapterCopy(root, p('manuscript/frost.md'), 'Second.\n', 'my version'))).toBe(
+      'manuscript/frost-my-version-2.md',
+    )
     expect(await read('manuscript/frost-my-version.md')).toMatch(/\nFirst\.\n$/)
   })
 

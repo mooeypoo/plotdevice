@@ -80,7 +80,10 @@ describe('outline session', () => {
     await session.open(MAIN)
     await session.edit(MAIN, { kind: 'move-item', from: { section: 0, path: [1] }, to: { section: 1, parentPath: [], index: 0 } })
     const second = await session.edit(MAIN, { kind: 'add-item', to: { section: 0, parentPath: [], index: 1 }, text: 'Bea waits' })
-    expect(second.ok && cards(second.value.outline)).toEqual([['Ilka arrives', 'Bea waits'], ['The first frost', 'The sale']])
+    expect(second.ok && cards(second.value.outline)).toEqual([
+      ['Ilka arrives', 'Bea waits'],
+      ['The first frost', 'The sale'],
+    ])
   })
 
   it('runs quick edits one at a time, so none starts from an outdated outline', async () => {
@@ -93,13 +96,20 @@ describe('outline session', () => {
     ])
     expect(results.every((result) => result.ok)).toBe(true)
     expect(writes()).toBe(3)
-    expect(session.current(MAIN)?.outline.sections[0]?.items.map((i) => i.text).slice(0, 3)).toEqual(['three', 'two', 'one'])
+    expect(
+      session
+        .current(MAIN)
+        ?.outline.sections[0]?.items.map((i) => i.text)
+        .slice(0, 3),
+    ).toEqual(['three', 'two', 'one'])
   })
 
   it('checks the outline rules before writing anything', async () => {
     const { session, writes } = setup()
     await session.open(MAIN)
-    expect(await session.edit(MAIN, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 0, parentPath: [0], index: 0 } })).toEqual({
+    expect(
+      await session.edit(MAIN, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 0, parentPath: [0], index: 0 } }),
+    ).toEqual({
       ok: false,
       error: 'into-own-subtree',
     })
@@ -109,10 +119,21 @@ describe('outline session', () => {
   it('refuses an edit planned on an outline changed elsewhere, and shows the new version', async () => {
     const { session, elsewhere, events, files } = setup()
     await session.open(MAIN)
-    elsewhere(MAIN, { title: 'Main story', preamble: [], sections: [{ name: 'Rewritten', intro: [], notes: [], items: [card('Only this')] }] })
-    expect(await session.edit(MAIN, { kind: 'delete-item', at: { section: 0, path: [0] } })).toEqual({ ok: false, error: 'changed-elsewhere' })
+    elsewhere(MAIN, {
+      title: 'Main story',
+      preamble: [],
+      sections: [{ name: 'Rewritten', intro: [], notes: [], items: [card('Only this')] }],
+    })
+    expect(await session.edit(MAIN, { kind: 'delete-item', at: { section: 0, path: [0] } })).toEqual({
+      ok: false,
+      error: 'changed-elsewhere',
+    })
     expect(cards(files.get(MAIN)?.outline)).toEqual([['Only this']])
-    expect(events.at(-1)).toMatchObject({ kind: 'outline-changed', file: MAIN, document: { outline: { sections: [{ name: 'Rewritten' }] } } })
+    expect(events.at(-1)).toMatchObject({
+      kind: 'outline-changed',
+      file: MAIN,
+      document: { outline: { sections: [{ name: 'Rewritten' }] } },
+    })
   })
 
   it('undoes edits in reverse order, back to the opened outline', async () => {

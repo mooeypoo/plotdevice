@@ -1,7 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import { editOutline } from './edit-outline'
 import type { OutlineEdit, OutlineItemSource } from './outline-model'
-import { applyToShape, fixture, fixtureNames, pathOfId, seededRandom, shapeOf, uniformFixtures, withoutIds, type ItemShape, type OutlineShape } from './outline.test-support'
+import {
+  applyToShape,
+  fixture,
+  fixtureNames,
+  pathOfId,
+  seededRandom,
+  shapeOf,
+  uniformFixtures,
+  withoutIds,
+  type ItemShape,
+  type OutlineShape,
+} from './outline.test-support'
 import { readOutline } from './read-outline'
 
 const MOVES = 300
@@ -59,7 +70,8 @@ describe.each(fixtureNames)('%s: seeded random moves, then their reversals', (na
       if (!from || from.items.length === 0) continue
       const index = random(from.items.length)
       const moving = from.items[index]
-      if (!moving || moving.id === undefined || !sourceAt(parsed.sections[from.section]?.items ?? [], [...from.parentPath, index])?.movable) continue
+      if (!moving || moving.id === undefined || !sourceAt(parsed.sections[from.section]?.items ?? [], [...from.parentPath, index])?.movable)
+        continue
       // Emptying the unnamed section removes it, and no move can bring it back: keep the walk reversible.
       if (oracle.sections[from.section]?.heading === null && from.parentPath.length === 0 && from.items.length === 1) continue
 

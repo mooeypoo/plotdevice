@@ -93,7 +93,9 @@ function onKey(event: KeyboardEvent, index: number): void {
     <div class="actions">
       <button type="button" @click="close">{{ t('versions-close') }}</button>
       <button type="button" :disabled="selected === null || busy" data-testid="version-copy" @click="copy">{{ t('versions-copy') }}</button>
-      <button type="button" class="primary" :disabled="selected === null || busy" data-testid="version-restore" @click="restore">{{ t('versions-restore') }}</button>
+      <button type="button" class="primary" :disabled="selected === null || busy" data-testid="version-restore" @click="restore">
+        {{ t('versions-restore') }}
+      </button>
     </div>
   </dialog>
 </template>

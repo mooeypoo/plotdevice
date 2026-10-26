@@ -16,5 +16,10 @@ export interface VersionRepository {
    * Puts the version from `at` back, byte for byte, if the file is still at `expected`. What it
    * replaces is kept as a version first, so a restore can itself be undone.
    */
-  restore(root: string, file: ProjectPath, at: number, expected: Revision): Promise<Result<void, 'stale' | 'missing' | 'unreadable' | 'write-failed'>>
+  restore(
+    root: string,
+    file: ProjectPath,
+    at: number,
+    expected: Revision,
+  ): Promise<Result<void, 'stale' | 'missing' | 'unreadable' | 'write-failed'>>
 }

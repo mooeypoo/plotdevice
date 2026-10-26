@@ -7,15 +7,25 @@ describe('project requests on the wire', () => {
     expect(projectPathSchema.safeParse(path).success).toBe(true)
   })
 
-  it.each(['../outside.md', '/etc/passwd', 'C:/Windows/win.ini', 'manuscript\\frost.md', 'manuscript/con.md', ''])('rejects the path %s', (path) => {
-    expect(projectPathSchema.safeParse(path).success).toBe(false)
-  })
+  it.each(['../outside.md', '/etc/passwd', 'C:/Windows/win.ini', 'manuscript\\frost.md', 'manuscript/con.md', ''])(
+    'rejects the path %s',
+    (path) => {
+      expect(projectPathSchema.safeParse(path).success).toBe(false)
+    },
+  )
 
   it('accepts each kind of contents change, and nothing extra', () => {
-    expect(contentsChangeSchema.safeParse({ kind: 'move-chapter', file: 'manuscript/frost.md', placement: { part: 0, index: 2 } }).success).toBe(true)
+    expect(
+      contentsChangeSchema.safeParse({ kind: 'move-chapter', file: 'manuscript/frost.md', placement: { part: 0, index: 2 } }).success,
+    ).toBe(true)
     expect(contentsChangeSchema.safeParse({ kind: 'add-chapter', title: 'Frost', placement: { part: null, index: 0 } }).success).toBe(true)
-    expect(contentsChangeSchema.safeParse({ kind: 'move-chapter', file: 'manuscript/frost.md', placement: { part: -1, index: 0 } }).success).toBe(false)
-    expect(contentsChangeSchema.safeParse({ kind: 'add-chapter', title: 'Frost', placement: { part: null, index: 0 }, text: 'smuggled' }).success).toBe(false)
+    expect(
+      contentsChangeSchema.safeParse({ kind: 'move-chapter', file: 'manuscript/frost.md', placement: { part: -1, index: 0 } }).success,
+    ).toBe(false)
+    expect(
+      contentsChangeSchema.safeParse({ kind: 'add-chapter', title: 'Frost', placement: { part: null, index: 0 }, text: 'smuggled' })
+        .success,
+    ).toBe(false)
     expect(contentsChangeSchema.safeParse({ kind: 'delete-everything' }).success).toBe(false)
   })
 

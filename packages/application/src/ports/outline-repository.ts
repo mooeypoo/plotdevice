@@ -38,5 +38,10 @@ export interface OutlineRepository {
     nestingUnit: string | null,
   ): Promise<Result<{ document: OutlineDocument; previous: string }, OutlineWriteProblem>>
   /** Undo: writes `text` back, only if the file is still at `expected` (the app's own last edit). */
-  restoreOutline(root: string, file: ProjectPath, text: string, expected: Revision): Promise<Result<OutlineDocument, 'stale' | 'missing' | 'unreadable' | 'write-failed'>>
+  restoreOutline(
+    root: string,
+    file: ProjectPath,
+    text: string,
+    expected: Revision,
+  ): Promise<Result<OutlineDocument, 'stale' | 'missing' | 'unreadable' | 'write-failed'>>
 }

@@ -28,7 +28,18 @@ import {
   validateNewProject,
   type ManuscriptProblem,
 } from '@plotdevice/domain'
-import { editContents, formatScalar, newChapterFile, newContentsFile, newProjectFile, readFrontmatter, rewriteLinksTo, setFrontmatterValues, splitFrontmatter, type ContentsEdit } from '@plotdevice/markdown'
+import {
+  editContents,
+  formatScalar,
+  newChapterFile,
+  newContentsFile,
+  newProjectFile,
+  readFrontmatter,
+  rewriteLinksTo,
+  setFrontmatterValues,
+  splitFrontmatter,
+  type ContentsEdit,
+} from '@plotdevice/markdown'
 import { collisionKey, dirnameOf, err, ok, parseProjectPath, stemOf, type ProjectPath, type Result } from '@plotdevice/shared'
 import { recoverJournals, runJournaled, type CrashAt } from './journal'
 import { CONTENTS_FILE, MANUSCRIPT_FOLDER, PROJECT_FILE, readDetails, readProject } from './read-project'
@@ -80,8 +91,16 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       const folder = await folders.create(location, projectFolderName(valid.value.title), [MANUSCRIPT_FOLDER])
       if (!folder.ok) return err(folder.error === 'exists' ? 'folder-exists' : folder.error)
       const store = folders.open(folder.value)
-      const projectFile = newProjectFile({ ...valid.value, chapterNumbering: 'continuous', id: ids.next('prj'), schemaVersion: CURRENT_SCHEMA_VERSION })
-      const written = [await store.write(PROJECT_FILE, { text: projectFile, hasBom: false }, null), await store.write(CONTENTS_FILE, { text: newContentsFile(valid.value.title), hasBom: false }, null)]
+      const projectFile = newProjectFile({
+        ...valid.value,
+        chapterNumbering: 'continuous',
+        id: ids.next('prj'),
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+      })
+      const written = [
+        await store.write(PROJECT_FILE, { text: projectFile, hasBom: false }, null),
+        await store.write(CONTENTS_FILE, { text: newContentsFile(valid.value.title), hasBom: false }, null),
+      ]
       if (written.some((w) => !w.ok)) return err('io')
       const opened = await open(folder.value)
       return opened.ok ? opened : err('io')
@@ -108,7 +127,11 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       const chapter = snapshot.chapters.find((c) => c.file === file)
       if (!chapter) return err('not-found')
       if (chapter.status !== 'ok') return err('unreadable')
-      const renamed = chapter.listed ? renameChapterLink(snapshot.contents, file, title) : title.trim() ? ok(snapshot.contents) : err('empty-name' as const)
+      const renamed = chapter.listed
+        ? renameChapterLink(snapshot.contents, file, title)
+        : title.trim()
+          ? ok(snapshot.contents)
+          : err('empty-name' as const)
       if (!renamed.ok) return err('invalid')
       const store = folders.open(snapshot.root)
       const contents = chapter.listed ? await freshContents(store, snapshot) : null
@@ -169,7 +192,13 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
         steps.push(writeStep(store, path, read.value, rewritten.text))
       }
 
-      const outcome = await runJournaled(store, journals, projectKey(snapshot), { id: ids.next('jrn'), operation: 'rename-chapter-file', steps }, crashAt)
+      const outcome = await runJournaled(
+        store,
+        journals,
+        projectKey(snapshot),
+        { id: ids.next('jrn'), operation: 'rename-chapter-file', steps },
+        crashAt,
+      )
       if (outcome !== 'done') return err('write-failed')
       const reopened = await reopen(snapshot.root)
       if (!reopened.ok) return reopened
@@ -225,7 +254,12 @@ interface PlannedChange {
 }
 
 /** Checks a change against the domain rules and turns it into a `CONTENTS.md` edit. Nothing is written here. */
-async function planContentsChange(store: FileStore, snapshot: ProjectSnapshot, change: ContentsChange, ids: IdGenerator): Promise<Result<PlannedChange, ChangeProblem>> {
+async function planContentsChange(
+  store: FileStore,
+  snapshot: ProjectSnapshot,
+  change: ContentsChange,
+  ids: IdGenerator,
+): Promise<Result<PlannedChange, ChangeProblem>> {
   const { contents } = snapshot
   const check = (result: Result<unknown, ManuscriptProblem>): ChangeProblem | null =>
     result.ok ? null : result.error === 'not-in-book' ? 'not-found' : 'invalid'
@@ -235,7 +269,10 @@ async function planContentsChange(store: FileStore, snapshot: ProjectSnapshot, c
       const problem = check(addChapter(contents, { kind: 'chapter', file, linkText: change.title }, change.placement))
       if (problem) return err(problem)
       const title = change.title.trim()
-      return ok({ edit: { kind: 'add-chapter', file, linkText: title, placement: change.placement }, newChapter: { file, text: newChapterFile(title, ids.next('ch'), change.text ?? '') } })
+      return ok({
+        edit: { kind: 'add-chapter', file, linkText: title, placement: change.placement },
+        newChapter: { file, text: newChapterFile(title, ids.next('ch'), change.text ?? '') },
+      })
     }
     case 'add-to-book': {
       const chapter = snapshot.chapters.find((c) => c.file === change.file && !c.listed)
@@ -261,7 +298,8 @@ async function planContentsChange(store: FileStore, snapshot: ProjectSnapshot, c
       return problem ? err(problem) : ok({ edit: { kind: 'rename-part', part: change.part, name: change.name } })
     }
     case 'relink': {
-      if (!snapshot.missing.includes(change.missing) || !snapshot.chapters.some((c) => c.file === change.found && !c.listed)) return err('not-found')
+      if (!snapshot.missing.includes(change.missing) || !snapshot.chapters.some((c) => c.file === change.found && !c.listed))
+        return err('not-found')
       const problem = check(replaceChapterFile(contents, change.missing, change.found))
       return problem ? err(problem) : ok({ edit: { kind: 'set-target', file: change.missing, newFile: change.found } })
     }
@@ -285,7 +323,14 @@ function targetPath(file: ProjectPath, newName: string): Result<ProjectPath, Ren
 
 /** A journal step that replaces `current` with `text`, recording both revisions so recovery can tell what happened. */
 function writeStep(store: FileStore, path: ProjectPath, current: StoredText, text: string): JournalStep {
-  return { kind: 'write', path, before: current.revision, after: store.revisionOf({ text, hasBom: current.hasBom }), text, hasBom: current.hasBom }
+  return {
+    kind: 'write',
+    path,
+    before: current.revision,
+    after: store.revisionOf({ text, hasBom: current.hasBom }),
+    text,
+    hasBom: current.hasBom,
+  }
 }
 
 function writeProblem(problem: WriteProblem): ChangeProblem {

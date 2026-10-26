@@ -25,7 +25,14 @@ export function createProjectFolders(): ProjectFolders {
 /** A folder is a project if it has both `project.md` and `CONTENTS.md` (ADR 0006). */
 async function isInsideProject(folder: string): Promise<boolean> {
   for (let dir = folder; ; dir = dirname(dir)) {
-    const project = await Promise.all(['project.md', 'CONTENTS.md'].map((file) => access(join(dir, file)).then(() => true, () => false)))
+    const project = await Promise.all(
+      ['project.md', 'CONTENTS.md'].map((file) =>
+        access(join(dir, file)).then(
+          () => true,
+          () => false,
+        ),
+      ),
+    )
     if (project.every(Boolean)) return true
     if (dirname(dir) === dir) return false
   }

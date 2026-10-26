@@ -5,7 +5,12 @@ import { kindOfFile, referenceFileFor, resolveWikiLink } from './references'
 const p = (path: string) => path as ProjectPath
 describe('reference kinds', () => {
   it('come from the folder', () => {
-    expect([kindOfFile(p('characters/ilka.md')), kindOfFile(p('places/a/b.md')), kindOfFile(p('notes/x.md')), kindOfFile(p('manuscript/x.md'))]).toEqual(['character', 'place', 'note', null])
+    expect([
+      kindOfFile(p('characters/ilka.md')),
+      kindOfFile(p('places/a/b.md')),
+      kindOfFile(p('notes/x.md')),
+      kindOfFile(p('manuscript/x.md')),
+    ]).toEqual(['character', 'place', 'note', null])
   })
 
   it('name new pages from their titles, in their folder', () => {

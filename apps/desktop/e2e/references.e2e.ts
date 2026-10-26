@@ -41,7 +41,8 @@ const cspViolations = (): string[] => pageMessages.filter((message) => /Content.
 async function snapshot(): Promise<Record<string, string>> {
   const files: Record<string, string> = {}
   for (const entry of await readdir(root, { recursive: true, withFileTypes: true })) {
-    if (entry.isFile()) files[join(entry.parentPath, entry.name).slice(root.length + 1)] = await readFile(join(entry.parentPath, entry.name), 'utf8')
+    if (entry.isFile())
+      files[join(entry.parentPath, entry.name).slice(root.length + 1)] = await readFile(join(entry.parentPath, entry.name), 'utf8')
   }
   return files
 }
@@ -67,7 +68,9 @@ test('scenario D: link a card to a character and a chapter, and consult them whi
   await page.getByTestId('menu-link-to').click()
   await page.getByTestId('link-search').fill('ilka')
   await page.getByTestId('link-search').press('Enter')
-  await file('outlines/main-story.md').toContain('- Ilka crosses the river, see [The Crossing](../manuscript/the-crossing.md) [Ilka Varga](../characters/ilka-varga.md)\n')
+  await file('outlines/main-story.md').toContain(
+    '- Ilka crosses the river, see [The Crossing](../manuscript/the-crossing.md) [Ilka Varga](../characters/ilka-varga.md)\n',
+  )
 
   // The card's chapter link opens it in Write.
   await card.getByRole('button', { name: 'The Crossing', exact: true }).click()
@@ -98,15 +101,25 @@ test('scenario D: link a card to a character and a chapter, and consult them whi
 test('"Link to…" shows a few of each kind before anything is typed, and picks one by keyboard', async () => {
   await mkdir(join(root, 'characters'))
   await mkdir(join(root, 'places'))
-  for (const name of ['Zed', 'Ilka', 'Bea', 'Noël', 'Marta', 'Ada']) await writeFile(join(root, `characters/${name.toLowerCase()}.md`), `---\ntitle: ${name}\n---\n`)
+  for (const name of ['Zed', 'Ilka', 'Bea', 'Noël', 'Marta', 'Ada'])
+    await writeFile(join(root, `characters/${name.toLowerCase()}.md`), `---\ntitle: ${name}\n---\n`)
   await writeFile(join(root, 'places/marrow.md'), '---\ntitle: Marrow\n---\n')
   const page = await start()
   await page.getByTestId('workspace-story').click()
   await page.locator('[data-outline="outlines/main-story.md"]').click()
-  await page.locator('.outline-card', { hasText: 'The gate' }).getByRole('button', { name: /^Actions for/ }).click()
+  await page
+    .locator('.outline-card', { hasText: 'The gate' })
+    .getByRole('button', { name: /^Actions for/ })
+    .click()
   await page.getByTestId('menu-link-to').click()
 
-  await expect(page.getByTestId('link-group-chapter').getByRole('option')).toHaveText(['Prologue', 'The Crossing', 'The Orchard Gate', 'Frost', 'Epilogue'])
+  await expect(page.getByTestId('link-group-chapter').getByRole('option')).toHaveText([
+    'Prologue',
+    'The Crossing',
+    'The Orchard Gate',
+    'Frost',
+    'Epilogue',
+  ])
   await expect(page.getByTestId('link-group-character').getByRole('option')).toHaveText(['Ada', 'Bea', 'Ilka', 'Marta', 'Noël'])
   await expect(page.getByTestId('link-group-place').getByRole('option')).toHaveText(['Marrow'])
   await page.screenshot({ path: test.info().outputPath('link-picker.png') })
@@ -114,7 +127,9 @@ test('"Link to…" shows a few of each kind before anything is typed, and picks 
   // Down through the five chapters to the first character, without typing.
   for (let i = 0; i < 5; i++) await page.getByTestId('link-search').press('ArrowDown')
   await page.getByTestId('link-search').press('Enter')
-  await file('outlines/main-story.md').toContain('- The gate, see [The Orchard Gate](../manuscript/the-orchard-gate.md) [Ada](../characters/ada.md)\n')
+  await file('outlines/main-story.md').toContain(
+    '- The gate, see [The Orchard Gate](../manuscript/the-orchard-gate.md) [Ada](../characters/ada.md)\n',
+  )
 })
 
 test('pinned pages keep their order, set by keyboard, after a restart', async () => {
@@ -127,7 +142,10 @@ test('pinned pages keep their order, set by keyboard, after a restart', async ()
     await page.getByTestId('shelf-search').press('Enter')
   }
   for (const title of ['Loose ideas', 'Marrow']) {
-    await page.locator('.shelf-card', { hasText: title }).getByRole('button', { name: /^Actions for/ }).click()
+    await page
+      .locator('.shelf-card', { hasText: title })
+      .getByRole('button', { name: /^Actions for/ })
+      .click()
     await page.getByTestId('menu-pin').click()
   }
   await page.locator('[data-shelf-card="places/marrow.md"]').focus()
@@ -167,7 +185,10 @@ test('a page changed in another app while being edited offers the same choices a
 test('renaming a page’s file keeps a card’s link to it working', async () => {
   await mkdir(join(root, 'characters'))
   await writeFile(join(root, 'characters/ilka.md'), '---\ntitle: Ilka Varga\n---\nInherits the orchard.\n')
-  await writeFile(join(root, 'outlines/main-story.md'), '# Main story\n\n## Beginning\n\n- Ilka arrives, see [Ilka](../characters/ilka.md)\n')
+  await writeFile(
+    join(root, 'outlines/main-story.md'),
+    '# Main story\n\n## Beginning\n\n- Ilka arrives, see [Ilka](../characters/ilka.md)\n',
+  )
   const page = await start()
   await page.getByTestId('workspace-story').click()
   await page.locator('[data-page="characters/ilka.md"]').click()

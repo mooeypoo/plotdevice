@@ -3,10 +3,24 @@ import { editOutlineSchema, placeSchema } from './outline'
 
 describe('outline requests on the wire', () => {
   it('accepts each edit, and nothing extra', () => {
-    expect(editOutlineSchema.safeParse({ file: 'outlines/main-story.md', edit: { kind: 'move-item', from: { section: 0, path: [1, 0] }, to: { section: 1, parentPath: [], index: 0 } } }).success).toBe(true)
-    expect(editOutlineSchema.safeParse({ file: 'outlines/main-story.md', edit: { kind: 'rename-item', at: { section: 0, path: [0] }, text: 'יעל 🍐' } }).success).toBe(true)
-    expect(editOutlineSchema.safeParse({ file: 'outlines/main-story.md', edit: { kind: 'delete-item', at: { section: 0, path: [] } } }).success).toBe(false)
-    expect(editOutlineSchema.safeParse({ file: 'outlines/main-story.md', edit: { kind: 'set-title', text: 'x', extra: 1 } }).success).toBe(false)
+    expect(
+      editOutlineSchema.safeParse({
+        file: 'outlines/main-story.md',
+        edit: { kind: 'move-item', from: { section: 0, path: [1, 0] }, to: { section: 1, parentPath: [], index: 0 } },
+      }).success,
+    ).toBe(true)
+    expect(
+      editOutlineSchema.safeParse({
+        file: 'outlines/main-story.md',
+        edit: { kind: 'rename-item', at: { section: 0, path: [0] }, text: 'יעל 🍐' },
+      }).success,
+    ).toBe(true)
+    expect(
+      editOutlineSchema.safeParse({ file: 'outlines/main-story.md', edit: { kind: 'delete-item', at: { section: 0, path: [] } } }).success,
+    ).toBe(false)
+    expect(editOutlineSchema.safeParse({ file: 'outlines/main-story.md', edit: { kind: 'set-title', text: 'x', extra: 1 } }).success).toBe(
+      false,
+    )
   })
 
   it('edits only files in the outlines folder', () => {

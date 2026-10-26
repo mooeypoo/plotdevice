@@ -14,7 +14,9 @@ const SALT = p('manuscript/salt.md')
  * as on disk (same bytes, same revision). `elsewhere` edits a file the way another app would.
  */
 function memoryRepository(initial: Record<string, string>) {
-  const disk = new Map<string, { text: string; title: string }>(Object.entries(initial).map(([file, text]) => [file, { text, title: file }]))
+  const disk = new Map<string, { text: string; title: string }>(
+    Object.entries(initial).map(([file, text]) => [file, { text, title: file }]),
+  )
   const revisionOf = (file: string): Revision | undefined => {
     const entry = disk.get(file)
     return entry ? (`r:${entry.title}:${entry.text}` as Revision) : undefined
@@ -111,7 +113,11 @@ describe('writing session', () => {
     session.saveChapter(FROST, 'Frost came early.\n', frost.generation)
     await session.idle()
     expect(disk.get(FROST)?.text).toBe('Frost came early.\n')
-    expect(events.filter((e) => e.kind === 'save-status').map((e) => e.kind === 'save-status' && e.status.kind)).toEqual(['unsaved', 'saving', 'saved'])
+    expect(events.filter((e) => e.kind === 'save-status').map((e) => e.kind === 'save-status' && e.status.kind)).toEqual([
+      'unsaved',
+      'saving',
+      'saved',
+    ])
   })
 
   it('shows the newest text when the author returns to a chapter that is still saving', async () => {
@@ -127,7 +133,12 @@ describe('writing session', () => {
     const frost = await openChapter(session, FROST)
     elsewhere(FROST, 'Changed in another app.\n')
     await session.fileChanged(FROST)
-    expect(events.at(-1)).toEqual({ kind: 'chapter-reloaded', file: FROST, text: 'Changed in another app.\n', generation: frost.generation + 1 })
+    expect(events.at(-1)).toEqual({
+      kind: 'chapter-reloaded',
+      file: FROST,
+      text: 'Changed in another app.\n',
+      generation: frost.generation + 1,
+    })
   })
 
   it("does not reload after the app's own save", async () => {
@@ -165,7 +176,10 @@ describe('writing session', () => {
     it('"keep both" saves mine as a copy and shows theirs, then saving resumes', async () => {
       const { session, disk, frost } = await inConflict()
       const resolved = await session.resolveConflict(FROST, 'keep-both')
-      expect(resolved).toEqual({ ok: true, value: { copy: 'manuscript/frost-my-version.md', text: 'Theirs.\n', generation: frost.generation + 1 } })
+      expect(resolved).toEqual({
+        ok: true,
+        value: { copy: 'manuscript/frost-my-version.md', text: 'Theirs.\n', generation: frost.generation + 1 },
+      })
       expect(disk.get('manuscript/frost-my-version.md')?.text).toBe('Mine.\n')
       expect(session.project()?.chapters.map((c) => c.file)).toContain('manuscript/frost-my-version.md')
       session.saveChapter(FROST, 'Theirs, continued.\n', frost.generation + 1)
@@ -175,7 +189,10 @@ describe('writing session', () => {
 
     it('"use my version" replaces the file only once chosen', async () => {
       const { session, disk, frost } = await inConflict()
-      expect(await session.resolveConflict(FROST, 'use-mine')).toEqual({ ok: true, value: { copy: null, text: 'Mine.\n', generation: frost.generation } })
+      expect(await session.resolveConflict(FROST, 'use-mine')).toEqual({
+        ok: true,
+        value: { copy: null, text: 'Mine.\n', generation: frost.generation },
+      })
       expect(disk.get(FROST)?.text).toBe('Mine.\n')
       expect(session.saveStatus(FROST)?.kind).toBe('saved')
     })
@@ -228,7 +245,9 @@ describe('writing session', () => {
       { reload: true },
     )
     expect(restored.ok).toBe(true)
-    expect(events.filter((e) => e.kind === 'chapter-reloaded')).toEqual([{ kind: 'chapter-reloaded', file: FROST, text: 'An earlier version.\n', generation: frost.generation + 1 }])
+    expect(events.filter((e) => e.kind === 'chapter-reloaded')).toEqual([
+      { kind: 'chapter-reloaded', file: FROST, text: 'An earlier version.\n', generation: frost.generation + 1 },
+    ])
     // Text typed into the replaced version is never saved over the restored one.
     session.saveChapter(FROST, 'Typed before the restore showed.\n', frost.generation)
     await session.idle()

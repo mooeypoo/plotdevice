@@ -14,10 +14,14 @@ import { editContents, parseContents, type ContentsEdit, type ContentsPlacement,
 const withoutBom = (text: string): string => text.replace(/^﻿/, '')
 
 /** The structure an edit must produce, independent of bytes. */
-type Shape = ({ kind: 'chapter'; target: string; linkText: string } | { kind: 'part'; name: string; chapters: { target: string; linkText: string }[] })[]
+type Shape = (
+  { kind: 'chapter'; target: string; linkText: string } | { kind: 'part'; name: string; chapters: { target: string; linkText: string }[] }
+)[]
 const shape = (parsed: ParsedContents): Shape =>
   parsed.entries.map((e) =>
-    e.kind === 'chapter' ? { kind: 'chapter', target: e.target, linkText: e.linkText } : { kind: 'part', name: e.name, chapters: e.chapters.map((c) => ({ target: c.target, linkText: c.linkText })) },
+    e.kind === 'chapter'
+      ? { kind: 'chapter', target: e.target, linkText: e.linkText }
+      : { kind: 'part', name: e.name, chapters: e.chapters.map((c) => ({ target: c.target, linkText: c.linkText })) },
   )
 
 const fixtures: [string, string][] = [
@@ -70,7 +74,10 @@ describe('parseContents', () => {
   })
 
   it('decodes paths with spaces, written either way', () => {
-    expect(parseContents(spaces).entries.map((e) => (e.kind === 'chapter' ? e.target : ''))).toEqual(['manuscript/the crossing.md', 'manuscript/the orchard gate.md'])
+    expect(parseContents(spaces).entries.map((e) => (e.kind === 'chapter' ? e.target : ''))).toEqual([
+      'manuscript/the crossing.md',
+      'manuscript/the orchard gate.md',
+    ])
   })
 
   it('reads any bullet style and indentation', () => {
@@ -120,13 +127,18 @@ const unwrap = (result: { ok: true; value: string } | { ok: false; error: string
 describe('editContents: examples (exact output)', () => {
   it('moves a chapter within a part', () => {
     expect(unwrap(editContents(parts, { kind: 'move-chapter', file: 'manuscript/the-orchard-gate.md', placement: p(1, 0) }))).toBe(
-      parts.replace('  - [The Crossing](manuscript/the-crossing.md)\n  - [The Orchard Gate](manuscript/the-orchard-gate.md)\n', '  - [The Orchard Gate](manuscript/the-orchard-gate.md)\n  - [The Crossing](manuscript/the-crossing.md)\n'),
+      parts.replace(
+        '  - [The Crossing](manuscript/the-crossing.md)\n  - [The Orchard Gate](manuscript/the-orchard-gate.md)\n',
+        '  - [The Orchard Gate](manuscript/the-orchard-gate.md)\n  - [The Crossing](manuscript/the-crossing.md)\n',
+      ),
     )
   })
 
   it('moves a chapter out of a part to the end of the book, re-indenting it', () => {
     expect(unwrap(editContents(parts, { kind: 'move-chapter', file: 'manuscript/frost.md', placement: p(null, 4) }))).toBe(
-      parts.replace('  - [Frost](manuscript/frost.md)\n', '').replace('- [Epilogue](manuscript/epilogue.md)\n', '- [Epilogue](manuscript/epilogue.md)\n- [Frost](manuscript/frost.md)\n'),
+      parts
+        .replace('  - [Frost](manuscript/frost.md)\n', '')
+        .replace('- [Epilogue](manuscript/epilogue.md)\n', '- [Epilogue](manuscript/epilogue.md)\n- [Frost](manuscript/frost.md)\n'),
     )
   })
 
@@ -137,11 +149,17 @@ describe('editContents: examples (exact output)', () => {
   })
 
   it('adds a chapter, a part, and a chapter into an empty book', () => {
-    expect(unwrap(editContents(basic, { kind: 'add-chapter', file: 'manuscript/thaw.md', linkText: 'Thaw', placement: p(null, 3) }))).toBe(`${basic}- [Thaw](manuscript/thaw.md)\n`)
-    expect(unwrap(editContents(parts, { kind: 'add-part', name: 'Part Three: Sale', index: 3 }))).toContain('  - [Frost](manuscript/frost.md)\n- Part Three: Sale\n- [Epilogue]')
-    expect(unwrap(editContents(empty, { kind: 'add-chapter', file: 'manuscript/the-crossing.md', linkText: 'The Crossing', placement: p(null, 0) }))).toBe(
-      '# The Salt Orchard\n\n- [The Crossing](manuscript/the-crossing.md)\n',
+    expect(unwrap(editContents(basic, { kind: 'add-chapter', file: 'manuscript/thaw.md', linkText: 'Thaw', placement: p(null, 3) }))).toBe(
+      `${basic}- [Thaw](manuscript/thaw.md)\n`,
     )
+    expect(unwrap(editContents(parts, { kind: 'add-part', name: 'Part Three: Sale', index: 3 }))).toContain(
+      '  - [Frost](manuscript/frost.md)\n- Part Three: Sale\n- [Epilogue]',
+    )
+    expect(
+      unwrap(
+        editContents(empty, { kind: 'add-chapter', file: 'manuscript/the-crossing.md', linkText: 'The Crossing', placement: p(null, 0) }),
+      ),
+    ).toBe('# The Salt Orchard\n\n- [The Crossing](manuscript/the-crossing.md)\n')
   })
 
   it('writes link text and paths safely', () => {
@@ -150,7 +168,9 @@ describe('editContents: examples (exact output)', () => {
     expect(shape(parseContents(renamed))[2]).toEqual({ kind: 'chapter', target: 'manuscript/frost.md', linkText: 'Frost [and] *Salt*' })
     const moved = unwrap(editContents(basic, { kind: 'set-target', file: 'manuscript/frost.md', newFile: 'manuscript/hard frost.md' }))
     expect(moved).toContain('- [Frost](<manuscript/hard frost.md>)\n')
-    expect(unwrap(editContents(hebrew, { kind: 'set-target', file: 'manuscript/שער המטע.md', newFile: 'manuscript/השער.md' }))).toContain('  - [השער](<manuscript/השער.md>)\n')
+    expect(unwrap(editContents(hebrew, { kind: 'set-target', file: 'manuscript/שער המטע.md', newFile: 'manuscript/השער.md' }))).toContain(
+      '  - [השער](<manuscript/השער.md>)\n',
+    )
   })
 
   it('escapes a part name that would otherwise become Markdown structure', () => {
@@ -158,21 +178,39 @@ describe('editContents: examples (exact output)', () => {
   })
 
   it('removes a chapter line and nothing else', () => {
-    expect(unwrap(editContents(basic, { kind: 'remove-chapter', file: 'manuscript/the-orchard-gate.md' }))).toBe(basic.replace('- [The Orchard Gate](manuscript/the-orchard-gate.md)\n', ''))
+    expect(unwrap(editContents(basic, { kind: 'remove-chapter', file: 'manuscript/the-orchard-gate.md' }))).toBe(
+      basic.replace('- [The Orchard Gate](manuscript/the-orchard-gate.md)\n', ''),
+    )
   })
 
   it('keeps CRLF, and the missing final newline', () => {
     const crlf = unwrap(editContents(partsCrlf, { kind: 'move-chapter', file: 'manuscript/epilogue.md', placement: p(null, 0) }))
     expect(crlf.split('\n').length - 1).toBe(crlf.split('\r\n').length - 1)
     const noFinal = withoutBom(bom)
-    expect(unwrap(editContents(noFinal, { kind: 'move-chapter', file: 'manuscript/frost.md', placement: p(null, 0) })).endsWith('the-crossing.md)')).toBe(true)
+    expect(
+      unwrap(editContents(noFinal, { kind: 'move-chapter', file: 'manuscript/frost.md', placement: p(null, 0) })).endsWith(
+        'the-crossing.md)',
+      ),
+    ).toBe(true)
   })
 
   it('refuses edits that do not make sense', () => {
-    expect(editContents(basic, { kind: 'move-chapter', file: 'manuscript/nope.md', placement: p(null, 0) })).toEqual({ ok: false, error: 'not-in-contents' })
-    expect(editContents(basic, { kind: 'add-chapter', file: 'manuscript/Frost.md', linkText: 'x', placement: p(null, 0) })).toEqual({ ok: false, error: 'already-in-contents' })
-    expect(editContents(parts, { kind: 'move-chapter', file: 'manuscript/frost.md', placement: p(0, 0) })).toEqual({ ok: false, error: 'not-a-part' })
-    expect(editContents(basic, { kind: 'move-chapter', file: 'manuscript/frost.md', placement: p(null, 7) })).toEqual({ ok: false, error: 'no-such-position' })
+    expect(editContents(basic, { kind: 'move-chapter', file: 'manuscript/nope.md', placement: p(null, 0) })).toEqual({
+      ok: false,
+      error: 'not-in-contents',
+    })
+    expect(editContents(basic, { kind: 'add-chapter', file: 'manuscript/Frost.md', linkText: 'x', placement: p(null, 0) })).toEqual({
+      ok: false,
+      error: 'already-in-contents',
+    })
+    expect(editContents(parts, { kind: 'move-chapter', file: 'manuscript/frost.md', placement: p(0, 0) })).toEqual({
+      ok: false,
+      error: 'not-a-part',
+    })
+    expect(editContents(basic, { kind: 'move-chapter', file: 'manuscript/frost.md', placement: p(null, 7) })).toEqual({
+      ok: false,
+      error: 'no-such-position',
+    })
   })
 })
 
@@ -190,7 +228,8 @@ function moveInShape(before: Shape, target: string, placement: ContentsPlacement
   }
   if (!moved) throw new Error('not found')
   const chapter = { kind: 'chapter' as const, ...moved }
-  if (destination && destination.kind === 'part') destination.chapters.splice(placement.index, 0, { target: chapter.target, linkText: chapter.linkText })
+  if (destination && destination.kind === 'part')
+    destination.chapters.splice(placement.index, 0, { target: chapter.target, linkText: chapter.linkText })
   else copy.splice(placement.index, 0, chapter)
   return copy
 }
@@ -207,13 +246,24 @@ describe.each(fixtures)('every move in %s', (_name, text) => {
     for (const target of chapters) {
       for (const part of containers) {
         const size = part === null ? before.entries.length : (before.entries[part] as { chapters: unknown[] }).chapters.length
-        const fromHere = part === null ? before.entries.some((e) => e.kind === 'chapter' && e.target === target) : (before.entries[part] as { chapters: { target: string }[] }).chapters.some((c) => c.target === target)
+        const fromHere =
+          part === null
+            ? before.entries.some((e) => e.kind === 'chapter' && e.target === target)
+            : (before.entries[part] as { chapters: { target: string }[] }).chapters.some((c) => c.target === target)
         for (let index = 0; index <= size - (fromHere ? 1 : 0); index++) {
           const edit: ContentsEdit = { kind: 'move-chapter', file: target, placement: p(part, index) }
           const after = unwrap(editContents(text, edit))
           expect(shape(parseContents(after))).toEqual(moveInShape(shape(before), target, p(part, index)))
           // Locality: the same lines remain, ignoring indentation (the moved line may change depth).
-          expect(nonBlankLines(after).map((l) => l.trim()).sort()).toEqual(nonBlankLines(text).map((l) => l.trim()).sort())
+          expect(
+            nonBlankLines(after)
+              .map((l) => l.trim())
+              .sort(),
+          ).toEqual(
+            nonBlankLines(text)
+              .map((l) => l.trim())
+              .sort(),
+          )
           moves++
         }
       }
@@ -227,6 +277,9 @@ describe.each(fixtures)('every move in %s', (_name, text) => {
     if (!first) return
     const target = first.kind === 'chapter' ? first.target : first.chapters[0]?.target
     if (!target) return
-    expect(editContents(text, { kind: 'move-chapter', file: target, placement: first.kind === 'chapter' ? p(null, 0) : p(0, 0) })).toEqual({ ok: true, value: text })
+    expect(editContents(text, { kind: 'move-chapter', file: target, placement: first.kind === 'chapter' ? p(null, 0) : p(0, 0) })).toEqual({
+      ok: true,
+      value: text,
+    })
   })
 })

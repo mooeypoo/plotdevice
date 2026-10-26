@@ -82,9 +82,6 @@ export function formatScalar(value: string | number, existing?: Scalar): string 
   if (existing?.type === 'QUOTE_SINGLE') return `'${value.replace(/'/g, "''")}'`
   if (existing?.type === 'QUOTE_DOUBLE') return JSON.stringify(value)
   const plainIsSafe =
-    value !== '' &&
-    !/^[\s\-?:,[\]{}#&*!|>'"%@`]/.test(value) &&
-    !/[\r\n]|: |\s#|:$|\s$/.test(value) &&
-    !YAML_SPECIAL.test(value)
+    value !== '' && !/^[\s\-?:,[\]{}#&*!|>'"%@`]/.test(value) && !/[\r\n]|: |\s#|:$|\s$/.test(value) && !YAML_SPECIAL.test(value)
   return plainIsSafe ? value : JSON.stringify(value)
 }

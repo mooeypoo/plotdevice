@@ -27,7 +27,10 @@ describe('translate', () => {
 })
 
 describe('the real catalogs', () => {
-  const keys = (messages: Record<string, unknown>): string[] => Object.keys(messages).filter((k) => k !== '@metadata').sort()
+  const keys = (messages: Record<string, unknown>): string[] =>
+    Object.keys(messages)
+      .filter((k) => k !== '@metadata')
+      .sort()
 
   it('have the same keys in English and Hebrew', () => {
     expect(keys(he)).toEqual(keys(en))

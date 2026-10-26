@@ -80,7 +80,8 @@ function build(view: EditorView): DecorationSet {
 
   const builder = new RangeSetBuilder<Decoration>()
   const all = [...marks, ...[...lineClasses].map(([pos, classes]) => Decoration.line({ class: [...classes].join(' ') }).range(pos))]
-  for (const range of all.sort((a, b) => a.from - b.from || a.value.startSide - b.value.startSide)) builder.add(range.from, range.to, range.value)
+  for (const range of all.sort((a, b) => a.from - b.from || a.value.startSide - b.value.startSide))
+    builder.add(range.from, range.to, range.value)
   return builder.finish()
 }
 
@@ -92,7 +93,13 @@ export const livePreview = ViewPlugin.fromClass(
     }
     update(update: ViewUpdate): void {
       const settingsChanged = update.startState.facet(editorSettings) !== update.state.facet(editorSettings)
-      if (update.docChanged || update.viewportChanged || update.selectionSet || settingsChanged || syntaxTree(update.startState) !== syntaxTree(update.state)) {
+      if (
+        update.docChanged ||
+        update.viewportChanged ||
+        update.selectionSet ||
+        settingsChanged ||
+        syntaxTree(update.startState) !== syntaxTree(update.state)
+      ) {
         this.decorations = build(update.view)
       }
     }

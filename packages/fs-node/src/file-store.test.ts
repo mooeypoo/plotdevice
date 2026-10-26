@@ -76,7 +76,10 @@ describe('FileStore: writing', () => {
     const store = createFileStore(root)
     const created = await store.write(p('a.md'), text('v1'), null)
     if (!created.ok) throw new Error('setup')
-    const results = await Promise.all([store.write(p('a.md'), text('first'), created.value), store.write(p('a.md'), text('second'), created.value)])
+    const results = await Promise.all([
+      store.write(p('a.md'), text('first'), created.value),
+      store.write(p('a.md'), text('second'), created.value),
+    ])
     expect(results.map((r) => r.ok)).toEqual([true, false])
   })
 
@@ -94,7 +97,10 @@ describe('FileStore: writing', () => {
     await symlink(join(outside, 'secret.md'), join(root, 'innocent.md'))
     const store = createFileStore(root)
     expect(await store.read(p('innocent.md'))).toEqual({ ok: false, error: 'outside-project' })
-    expect(await store.write(p('innocent.md'), text('x'), 'anything' as Revision)).toMatchObject({ ok: false, error: { code: 'outside-project' } })
+    expect(await store.write(p('innocent.md'), text('x'), 'anything' as Revision)).toMatchObject({
+      ok: false,
+      error: { code: 'outside-project' },
+    })
     expect(await readFile(join(outside, 'secret.md'), 'utf8')).toBe('not yours')
   })
 })
@@ -105,7 +111,10 @@ describe('FileStore: renaming', () => {
     const store = createFileStore(root)
     const created = await store.write(p('manuscript/the-crossing.md'), text('x'), null)
     if (!created.ok) throw new Error('setup')
-    expect(await store.rename(p('manuscript/the-crossing.md'), p('manuscript/crossing.md'), created.value)).toEqual({ ok: true, value: undefined })
+    expect(await store.rename(p('manuscript/the-crossing.md'), p('manuscript/crossing.md'), created.value)).toEqual({
+      ok: true,
+      value: undefined,
+    })
     expect(await readdir(join(root, 'manuscript'))).toEqual(['crossing.md'])
   })
 
@@ -133,11 +142,25 @@ describe('FileStore: renaming', () => {
 describe('FileStore: listing and tidying', () => {
   it('lists Markdown files in reading-friendly order, skipping hidden folders and other files', async () => {
     const root = await tempDir()
-    for (const path of ['project.md', 'CONTENTS.md', 'manuscript/b.md', 'manuscript/a.md', 'notes/deep/x.md', '.obsidian/workspace.md', 'assets/photo.jpg']) {
+    for (const path of [
+      'project.md',
+      'CONTENTS.md',
+      'manuscript/b.md',
+      'manuscript/a.md',
+      'notes/deep/x.md',
+      '.obsidian/workspace.md',
+      'assets/photo.jpg',
+    ]) {
       await mkdir(join(root, path, '..'), { recursive: true })
       await writeFile(join(root, path), '')
     }
-    expect(await createFileStore(root).listMarkdownFiles()).toEqual(['CONTENTS.md', 'manuscript/a.md', 'manuscript/b.md', 'notes/deep/x.md', 'project.md'])
+    expect(await createFileStore(root).listMarkdownFiles()).toEqual([
+      'CONTENTS.md',
+      'manuscript/a.md',
+      'manuscript/b.md',
+      'notes/deep/x.md',
+      'project.md',
+    ])
   })
 
   it('removes old temp files left by an interrupted write', async () => {
@@ -171,7 +194,11 @@ describe('JournalStore', () => {
   it('saves, lists and removes entries per project', async () => {
     const appData = await tempDir()
     const journals = createJournalStore(appData)
-    const entry = { id: 'j1', operation: 'rename-chapter-file' as const, steps: [{ kind: 'rename' as const, from: p('a.md'), to: p('b.md'), revision: 'r' as Revision }] }
+    const entry = {
+      id: 'j1',
+      operation: 'rename-chapter-file' as const,
+      steps: [{ kind: 'rename' as const, from: p('a.md'), to: p('b.md'), revision: 'r' as Revision }],
+    }
     await journals.save('prj-1', entry)
     expect(await journals.list('prj-1')).toEqual([entry])
     expect(await journals.list('prj-2')).toEqual([])

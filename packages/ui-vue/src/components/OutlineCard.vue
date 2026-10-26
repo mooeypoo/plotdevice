@@ -50,7 +50,9 @@ const detailCount = computed(() => {
       <MenuButton :label="t('item-actions', item.text)" :items="actions.itemMenu(at, item)" />
     </div>
     <ul v-if="item.children.length > 0" class="card-details">
-      <li v-for="(child, index) in item.children.slice(0, 3)" :key="index"><InlineText :text="child.text" follow-links @follow="follow(fromDir, $event)" /></li>
+      <li v-for="(child, index) in item.children.slice(0, 3)" :key="index">
+        <InlineText :text="child.text" follow-links @follow="follow(fromDir, $event)" />
+      </li>
       <li v-if="detailCount > 3" class="secondary">{{ t('details-count', detailCount) }}</li>
     </ul>
     <KeptAsWritten v-for="(block, index) in item.keptAsWritten" :key="`kept-${index}`" :text="block" />

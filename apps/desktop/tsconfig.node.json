@@ -5,13 +5,7 @@
     "declaration": false,
     "emitDeclarationOnly": false,
     "noEmit": true,
-    "types": [
-      "node"
-    ]
+    "types": ["node"]
   },
-  "include": [
-    "src/main",
-    "src/preload",
-    "electron.vite.config.ts"
-  ]
+  "include": ["src/main", "src/preload", "electron.vite.config.ts"]
 }

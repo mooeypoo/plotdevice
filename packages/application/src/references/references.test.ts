@@ -31,6 +31,8 @@ describe('"From the outline": the cards about a chapter', () => {
   })
 
   it('lists a link a card repeats once', () => {
-    expect(cardsLinkingTo([card('x', ['manuscript/a.md', 'characters/b.md', 'characters/b.md'])], p('manuscript/a.md'))[0]?.links).toEqual(['characters/b.md'])
+    expect(cardsLinkingTo([card('x', ['manuscript/a.md', 'characters/b.md', 'characters/b.md'])], p('manuscript/a.md'))[0]?.links).toEqual([
+      'characters/b.md',
+    ])
   })
 })

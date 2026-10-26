@@ -54,9 +54,11 @@ export function moveTargets(contents: Contents, file: ProjectPath): MoveTarget[]
   const targets: MoveTarget[] = []
   if (!(at.part === null && at.index === 0)) targets.push({ kind: 'start', placement: { part: null, index: 0 } })
   for (const [i, entry] of contents.entries()) {
-    if (entry.kind === 'part' && i !== at.part) targets.push({ kind: 'part', name: entry.name, placement: { part: i, index: entry.chapters.length } })
+    if (entry.kind === 'part' && i !== at.part)
+      targets.push({ kind: 'part', name: entry.name, placement: { part: i, index: entry.chapters.length } })
   }
-  if (!(at.part === null && at.index === contents.length - 1)) targets.push({ kind: 'end', placement: { part: null, index: topLevelOthers } })
+  if (!(at.part === null && at.index === contents.length - 1))
+    targets.push({ kind: 'end', placement: { part: null, index: topLevelOthers } })
   return targets
 }
 

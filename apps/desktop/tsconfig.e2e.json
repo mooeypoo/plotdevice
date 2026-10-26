@@ -1,6 +1,13 @@
 {
   "extends": "../../tsconfig.base.json",
   // End-to-end tests run in Node but pass callbacks to page.evaluate(), which run in the page: both apply.
-  "compilerOptions": { "composite": false, "declaration": false, "emitDeclarationOnly": false, "noEmit": true, "types": ["node"], "lib": ["ES2023", "DOM"] },
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "emitDeclarationOnly": false,
+    "noEmit": true,
+    "types": ["node"],
+    "lib": ["ES2023", "DOM"]
+  },
   "include": ["e2e", "e2e-packaged"]
 }

@@ -35,9 +35,12 @@ function unwrap<T>(result: { ok: true; value: T } | { ok: false; error: unknown 
 /** What every view shows: the title, section names, and the card tree's text. */
 const structure = (outline: Outline) => ({
   title: outline.title,
-  sections: outline.sections.map((section) => ({ name: section.name, items: section.items.map(function tree(item: OutlineItem): unknown {
-    return { text: item.text.trim(), children: item.children.map(tree) }
-  }) })),
+  sections: outline.sections.map((section) => ({
+    name: section.name,
+    items: section.items.map(function tree(item: OutlineItem): unknown {
+      return { text: item.text.trim(), children: item.children.map(tree) }
+    }),
+  })),
 })
 
 describe('outline files', () => {
@@ -65,13 +68,23 @@ describe('outline files', () => {
 describe('editing an outline file (scenario C, core half)', () => {
   it('moves a card to another section: only those lines change, and no chapter is touched', async () => {
     const { root, repository, bytes, text } = await setup()
-    const chaptersBefore = await Promise.all((await readdir(join(root, 'manuscript'))).map(async (name) => [name, await bytes(`manuscript/${name}`)] as const))
+    const chaptersBefore = await Promise.all(
+      (await readdir(join(root, 'manuscript'))).map(async (name) => [name, await bytes(`manuscript/${name}`)] as const),
+    )
     const before = unwrap(await repository.readOutline(root, MAIN))
-    const edited = unwrap(await repository.editOutline(root, MAIN, { kind: 'move-item', from: { section: 0, path: [1] }, to: { section: 1, parentPath: [], index: 0 } }, before.revision, null))
+    const edited = unwrap(
+      await repository.editOutline(
+        root,
+        MAIN,
+        { kind: 'move-item', from: { section: 0, path: [1] }, to: { section: 1, parentPath: [], index: 0 } },
+        before.revision,
+        null,
+      ),
+    )
     expect(await text(MAIN)).toBe(
       '# Main story\n\n## Beginning\n\n- Ilka crosses the river, see [The Crossing](../manuscript/the-crossing.md)\n  - Bea at the landing\n\n## Ending\n\n- The gate, see [The Orchard Gate](../manuscript/the-orchard-gate.md)\n- Back to [the crossing](../manuscript/the-crossing.md "first chapter") for the last image\n',
     )
-    expect(edited.previous).toBe((await readFile(join(PROJECT, MAIN), 'utf8')))
+    expect(edited.previous).toBe(await readFile(join(PROJECT, MAIN), 'utf8'))
     for (const [name, content] of chaptersBefore) expect(await bytes(`manuscript/${name}`)).toEqual(content)
   })
 
@@ -79,7 +92,10 @@ describe('editing an outline file (scenario C, core half)', () => {
     const { root, repository, text } = await setup()
     const before = unwrap(await repository.readOutline(root, MAIN))
     await writeFile(join(root, MAIN), '# Main story\n\n## Rewritten elsewhere\n')
-    expect(await repository.editOutline(root, MAIN, { kind: 'delete-section', section: 0 }, before.revision, null)).toEqual({ ok: false, error: 'stale' })
+    expect(await repository.editOutline(root, MAIN, { kind: 'delete-section', section: 0 }, before.revision, null)).toEqual({
+      ok: false,
+      error: 'stale',
+    })
     expect(await text(MAIN)).toBe('# Main story\n\n## Rewritten elsewhere\n')
   })
 
@@ -97,7 +113,15 @@ describe('editing an outline file (scenario C, core half)', () => {
     const { root, repository, bytes } = await setup()
     await writeFile(join(root, 'outlines/windows.md'), '﻿# Plan\r\n\r\n## One\r\n\r\n- a\r\n- b\r\n')
     const before = unwrap(await repository.readOutline(root, p('outlines/windows.md')))
-    unwrap(await repository.editOutline(root, p('outlines/windows.md'), { kind: 'add-item', to: { section: 0, parentPath: [0], index: 0 }, text: 'detail' }, before.revision, null))
+    unwrap(
+      await repository.editOutline(
+        root,
+        p('outlines/windows.md'),
+        { kind: 'add-item', to: { section: 0, parentPath: [0], index: 0 }, text: 'detail' },
+        before.revision,
+        null,
+      ),
+    )
     expect((await bytes('outlines/windows.md')).toString('utf8')).toBe('﻿# Plan\r\n\r\n## One\r\n\r\n- a\r\n  - detail\r\n- b\r\n')
   })
 
@@ -112,7 +136,9 @@ describe('editing an outline file (scenario C, core half)', () => {
     const { root, repository } = await setup()
     await writeFile(join(root, 'outlines/setext.md'), 'Two line\nheading\n---\n\n- card\n')
     const before = unwrap(await repository.readOutline(root, p('outlines/setext.md')))
-    expect(await repository.editOutline(root, p('outlines/setext.md'), { kind: 'rename-section', section: 0, text: 'x' }, before.revision, null)).toEqual({ ok: false, error: 'multiline-heading' })
+    expect(
+      await repository.editOutline(root, p('outlines/setext.md'), { kind: 'rename-section', section: 0, text: 'x' }, before.revision, null),
+    ).toEqual({ ok: false, error: 'multiline-heading' })
   })
 })
 
@@ -130,7 +156,13 @@ describe('the file and the domain agree: every card moved to the end of every se
       start.outline.sections.forEach((section, from) =>
         section.items.forEach((item, index) => {
           if (!item.movable) return
-          start.outline.sections.forEach((target, to) => moves.push({ kind: 'move-item', from: { section: from, path: [index] }, to: { section: to, parentPath: [], index: target.items.length - (to === from ? 1 : 0) } }))
+          start.outline.sections.forEach((target, to) =>
+            moves.push({
+              kind: 'move-item',
+              from: { section: from, path: [index] },
+              to: { section: to, parentPath: [], index: target.items.length - (to === from ? 1 : 0) },
+            }),
+          )
         }),
       )
       for (const edit of moves) {

@@ -4,7 +4,10 @@ import { findLinks, newReferencePage, readReferencePage } from './index'
 
 describe('reading a character, place or note page', () => {
   it('reads the title and other names from frontmatter, the first paragraph as the description, and the rest as details', () => {
-    const page = readReferencePage('---\ntitle: Ilka Varga\naka: [Ilka, Ili]\n---\nInherits the orchard;\ndistrusts everyone.\n\n## Family\nDaughter of Bea\'s sister.\n', 'ilka')
+    const page = readReferencePage(
+      "---\ntitle: Ilka Varga\naka: [Ilka, Ili]\n---\nInherits the orchard;\ndistrusts everyone.\n\n## Family\nDaughter of Bea's sister.\n",
+      'ilka',
+    )
     expect(page).toEqual({
       title: 'Ilka Varga',
       aka: ['Ilka', 'Ili'],
@@ -21,7 +24,13 @@ describe('reading a character, place or note page', () => {
   })
 
   it('falls back to the file name, and reads a single other name', () => {
-    expect(readReferencePage('---\naka: Marrow town\n---\n', 'marrow')).toEqual({ title: 'marrow', aka: ['Marrow town'], description: null, details: '', invalidDetails: false })
+    expect(readReferencePage('---\naka: Marrow town\n---\n', 'marrow')).toEqual({
+      title: 'marrow',
+      aka: ['Marrow town'],
+      description: null,
+      details: '',
+      invalidDetails: false,
+    })
   })
 
   it('reads a Hebrew page', () => {

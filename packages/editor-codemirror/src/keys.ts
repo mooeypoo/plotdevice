@@ -26,7 +26,10 @@ export const newParagraph: StateCommand = (target) => {
 export const lineBreak: StateCommand = ({ state, dispatch }) => {
   dispatch(
     state.update(
-      state.changeByRange((range) => ({ changes: { from: range.from, to: range.to, insert: `\\${state.lineBreak}` }, range: EditorSelection.cursor(range.from + 2) })),
+      state.changeByRange((range) => ({
+        changes: { from: range.from, to: range.to, insert: `\\${state.lineBreak}` },
+        range: EditorSelection.cursor(range.from + 2),
+      })),
       { scrollIntoView: true, userEvent: 'input' },
     ),
   )

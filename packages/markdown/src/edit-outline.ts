@@ -1,5 +1,14 @@
 import { err, ok, type Result } from '@plotdevice/shared'
-import type { ItemDestination, ItemPath, ListMarker, OutlineEdit, OutlineItemSource, OutlineRefusal, ParsedOutline, TextRange } from './outline-model'
+import type {
+  ItemDestination,
+  ItemPath,
+  ListMarker,
+  OutlineEdit,
+  OutlineItemSource,
+  OutlineRefusal,
+  ParsedOutline,
+  TextRange,
+} from './outline-model'
 import { readOutline } from './read-outline'
 import { blankRunBefore, indentColumns, isBlankLineAt, lineEndingOf, lineStartAt, splitKeepingEndings, type Splice } from './text'
 
@@ -111,8 +120,18 @@ function planSplices(outline: Outline, edit: OutlineEdit, eol: string): Result<S
   }
 }
 
-function renameHeading(text: string, heading: { textRange: TextRange; lineRange: TextRange }, name: string): Result<Splice[], OutlineRefusal> {
-  if (text.slice(heading.lineRange.start, heading.lineRange.end).replace(/\r?\n$/, '').includes('\n')) return err('multiline-heading')
+function renameHeading(
+  text: string,
+  heading: { textRange: TextRange; lineRange: TextRange },
+  name: string,
+): Result<Splice[], OutlineRefusal> {
+  if (
+    text
+      .slice(heading.lineRange.start, heading.lineRange.end)
+      .replace(/\r?\n$/, '')
+      .includes('\n')
+  )
+    return err('multiline-heading')
   return ok([{ ...heading.textRange, text: name }])
 }
 
@@ -153,7 +172,12 @@ interface Insertion {
   after: string
 }
 
-function planInsertion(outline: Outline, to: ItemDestination, moving: OutlineItemSource | null, eol: string): Result<Insertion, OutlineRefusal> {
+function planInsertion(
+  outline: Outline,
+  to: ItemDestination,
+  moving: OutlineItemSource | null,
+  eol: string,
+): Result<Insertion, OutlineRefusal> {
   const section = outline.sections[to.section]
   if (!section) return err('no-such-section')
 
@@ -173,11 +197,19 @@ function planInsertion(outline: Outline, to: ItemDestination, moving: OutlineIte
   const next = siblings[to.index]
   if (next) {
     // Copy the spacing actually used before `next`: one list can mix tight and loose items.
-    const spaced = to.index > 0 && next.lineRange.start > 0 && isBlankLineAt(outline.source, lineStartAt(outline.source, next.lineRange.start - 1))
+    const spaced =
+      to.index > 0 && next.lineRange.start > 0 && isBlankLineAt(outline.source, lineStartAt(outline.source, next.lineRange.start - 1))
     return ok({ at: next.lineRange.start, indent: next.indent, marker: markerLike(next.marker, 0), before: '', after: spaced ? eol : '' })
   }
   const previous = siblings.at(-1)
-  if (previous) return ok({ at: previous.lineRange.end, indent: previous.indent, marker: markerLike(previous.marker, 1), before: previous.listIsLoose ? eol : '', after: '' })
+  if (previous)
+    return ok({
+      at: previous.lineRange.end,
+      indent: previous.indent,
+      marker: markerLike(previous.marker, 1),
+      before: previous.listIsLoose ? eol : '',
+      after: '',
+    })
   if (parent) return ok({ at: parent.lineRange.end, indent: childIndent(outline, parent), marker: fallbackMarker, before: '', after: '' })
   return ok({ at: section.contentEnd, indent: '', marker: fallbackMarker, before: eol, after: '' })
 }
@@ -238,7 +270,8 @@ function childIndent(outline: Outline, parent: OutlineItemSource): string {
 const markerText = (marker: ListMarker): string => (marker.kind === 'bullet' ? marker.char : `${marker.number}${marker.delimiter}`)
 
 /** A marker that keeps the destination list whole: a different bullet character would start a new list. */
-const markerLike = (neighbor: ListMarker, numberOffset: number): ListMarker => (neighbor.kind === 'bullet' ? neighbor : { ...neighbor, number: neighbor.number + numberOffset })
+const markerLike = (neighbor: ListMarker, numberOffset: number): ListMarker =>
+  neighbor.kind === 'bullet' ? neighbor : { ...neighbor, number: neighbor.number + numberOffset }
 
 const freshMarker = (marker: ListMarker): ListMarker => (marker.kind === 'bullet' ? marker : { ...marker, number: 1 })
 
@@ -249,7 +282,12 @@ function escapeLineStart(text: string): string {
 
 function isSamePosition(from: ItemPath, to: ItemDestination): boolean {
   const parentPath = from.path.slice(0, -1)
-  return from.section === to.section && parentPath.length === to.parentPath.length && parentPath.every((index, i) => index === to.parentPath[i]) && from.path.at(-1) === to.index
+  return (
+    from.section === to.section &&
+    parentPath.length === to.parentPath.length &&
+    parentPath.every((index, i) => index === to.parentPath[i]) &&
+    from.path.at(-1) === to.index
+  )
 }
 
 function findItem(outline: ParsedOutline, at: ItemPath): Result<OutlineItemSource, OutlineRefusal> {
@@ -262,7 +300,8 @@ function findItem(outline: ParsedOutline, at: ItemPath): Result<OutlineItemSourc
   return item ? ok(item) : err('no-such-item')
 }
 
-const contains = (ancestor: OutlineItemSource, candidate: OutlineItemSource): boolean => ancestor === candidate || ancestor.children.some((child) => contains(child, candidate))
+const contains = (ancestor: OutlineItemSource, candidate: OutlineItemSource): boolean =>
+  ancestor === candidate || ancestor.children.some((child) => contains(child, candidate))
 
 /** Applies splices from the end, refusing (as a bug) any that would split an emoji or detach a combining mark. */
 function applySafely(text: string, splices: Splice[]): string {
@@ -278,6 +317,8 @@ function applySafely(text: string, splices: Splice[]): string {
 export function assertSafeBoundary(text: string, offset: number): void {
   const before = text.charCodeAt(offset - 1)
   const after = text.charCodeAt(offset)
-  if (before >= 0xd800 && before <= 0xdbff && after >= 0xdc00 && after <= 0xdfff) throw new Error(`a splice at ${offset} would split a surrogate pair`)
-  if (offset > 0 && offset < text.length && /^\p{M}/u.test(text.slice(offset, offset + 2))) throw new Error(`a splice at ${offset} would detach a combining mark`)
+  if (before >= 0xd800 && before <= 0xdbff && after >= 0xdc00 && after <= 0xdfff)
+    throw new Error(`a splice at ${offset} would split a surrogate pair`)
+  if (offset > 0 && offset < text.length && /^\p{M}/u.test(text.slice(offset, offset + 2)))
+    throw new Error(`a splice at ${offset} would detach a combining mark`)
 }

@@ -1,4 +1,12 @@
-import type { OutlineEditRequest, OutlineProblem, OutlineResult, OutlineSummaryView, OutlineView, ReferenceKind, ReferenceSummaryView } from '@plotdevice/contracts'
+import type {
+  OutlineEditRequest,
+  OutlineProblem,
+  OutlineResult,
+  OutlineSummaryView,
+  OutlineView,
+  ReferenceKind,
+  ReferenceSummaryView,
+} from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -113,5 +121,21 @@ export const useStoryStore = defineStore('story', () => {
     else if (event.kind === 'references-changed') void refresh()
   })
 
-  return { outlines, outline, collapsed, editing, references, showing, refresh, open, create, edit, undo, toggle, createReference, renameReference, renameReferenceFile }
+  return {
+    outlines,
+    outline,
+    collapsed,
+    editing,
+    references,
+    showing,
+    refresh,
+    open,
+    create,
+    edit,
+    undo,
+    toggle,
+    createReference,
+    renameReference,
+    renameReferenceFile,
+  }
 })

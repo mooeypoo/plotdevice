@@ -46,8 +46,19 @@ async function newPage(kind: ReferenceKind): Promise<void> {
       <h2>{{ t('story-outlines') }}</h2>
       <p v-if="story.outlines.length === 0" class="secondary">{{ t('reference-none') }}</p>
       <ul>
-        <li v-for="entry in story.outlines" :key="entry.file" class="row chapter-row" :class="{ current: showingOutline && story.outline?.file === entry.file }">
-          <button type="button" class="chapter" :data-outline="entry.file" :aria-current="showingOutline && story.outline?.file === entry.file ? 'page' : undefined" @click="story.open(entry.file)">
+        <li
+          v-for="entry in story.outlines"
+          :key="entry.file"
+          class="row chapter-row"
+          :class="{ current: showingOutline && story.outline?.file === entry.file }"
+        >
+          <button
+            type="button"
+            class="chapter"
+            :data-outline="entry.file"
+            :aria-current="showingOutline && story.outline?.file === entry.file ? 'page' : undefined"
+            @click="story.open(entry.file)"
+          >
             <span dir="auto">{{ entry.title ?? entry.file }}</span>
           </button>
         </li>
@@ -77,7 +88,9 @@ async function newPage(kind: ReferenceKind): Promise<void> {
 
       <ul class="navigator-section">
         <li class="row chapter-row" :class="{ current: story.showing.kind === 'manuscript' }">
-          <button type="button" class="chapter" data-testid="show-manuscript" @click="story.showing = { kind: 'manuscript' }">{{ t('story-manuscript') }}</button>
+          <button type="button" class="chapter" data-testid="show-manuscript" @click="story.showing = { kind: 'manuscript' }">
+            {{ t('story-manuscript') }}
+          </button>
         </li>
       </ul>
     </nav>
@@ -90,12 +103,27 @@ async function newPage(kind: ReferenceKind): Promise<void> {
           <h1 class="outline-title" dir="auto">{{ story.outline.title ?? story.outline.file }}</h1>
           <button type="button" @click="actions.renameOutline">{{ t('outline-rename-title') }}</button>
           <div class="segmented" role="group" :aria-label="t('view-switch')">
-            <button v-for="kind in views" :key="kind" type="button" :aria-pressed="view.outlineView === kind" :data-testid="`view-${kind}`" @click="view.outlineView = kind">
+            <button
+              v-for="kind in views"
+              :key="kind"
+              type="button"
+              :aria-pressed="view.outlineView === kind"
+              :data-testid="`view-${kind}`"
+              @click="view.outlineView = kind"
+            >
               {{ t(`view-${kind}`) }}
             </button>
           </div>
-          <button type="button" :disabled="!story.outline.canUndo" data-testid="outline-undo" @click="story.undo">{{ t('outline-undo') }}</button>
-          <button type="button" data-testid="outline-versions" @click="story.outline && versions.show(story.outline.file, story.outline.title ?? story.outline.file)">{{ t('versions') }}</button>
+          <button type="button" :disabled="!story.outline.canUndo" data-testid="outline-undo" @click="story.undo">
+            {{ t('outline-undo') }}
+          </button>
+          <button
+            type="button"
+            data-testid="outline-versions"
+            @click="story.outline && versions.show(story.outline.file, story.outline.title ?? story.outline.file)"
+          >
+            {{ t('versions') }}
+          </button>
         </div>
         <div class="story-page">
           <p v-if="story.outline.invalidDetails" class="warning" role="status">{{ t('invalid-details') }}</p>

@@ -34,7 +34,10 @@ describe('reading saved settings', () => {
   const defaults = defaultPreferences('en')
 
   it('keeps valid values', () => {
-    expect(parsePreferences('{"theme":"dark","locale":"he"}', defaults)).toEqual({ ok: true, value: { theme: 'dark', locale: 'he', ...MEDIUM_PAGE } })
+    expect(parsePreferences('{"theme":"dark","locale":"he"}', defaults)).toEqual({
+      ok: true,
+      value: { theme: 'dark', locale: 'he', ...MEDIUM_PAGE },
+    })
   })
 
   it('keeps a valid page width when the writing size is unknown', () => {
@@ -45,7 +48,10 @@ describe('reading saved settings', () => {
   })
 
   it('replaces only the invalid value with its default', () => {
-    expect(parsePreferences('{"theme":"neon","locale":"he"}', defaults)).toEqual({ ok: true, value: { theme: 'system', locale: 'he', ...MEDIUM_PAGE } })
+    expect(parsePreferences('{"theme":"neon","locale":"he"}', defaults)).toEqual({
+      ok: true,
+      value: { theme: 'system', locale: 'he', ...MEDIUM_PAGE },
+    })
   })
 
   it.each(['not json', '[]', '"dark"', 'null', '{"theme":'])('treats %j as unreadable', (text) => {
@@ -61,7 +67,10 @@ describe('loading', () => {
 
   it('sets an unreadable file aside instead of losing it, and says so', async () => {
     const { store, state } = memoryStore('{{ broken')
-    expect(await loadPreferences(store, 'en')).toEqual({ preferences: { theme: 'system', locale: 'en', ...MEDIUM_PAGE }, notice: 'reset-unreadable' })
+    expect(await loadPreferences(store, 'en')).toEqual({
+      preferences: { theme: 'system', locale: 'en', ...MEDIUM_PAGE },
+      notice: 'reset-unreadable',
+    })
     expect(state.setAside).toEqual(['{{ broken'])
   })
 })
@@ -87,7 +96,10 @@ describe('a preferences session', () => {
     const { store, state } = memoryStore(null)
     let release = (): void => undefined
     const gate = new Promise<void>((resolve) => (release = resolve))
-    const session = createPreferencesSession({ ...store, write: async (text: string) => (await gate, store.write(text)) }, { theme: 'system', locale: 'en', ...MEDIUM_PAGE })
+    const session = createPreferencesSession(
+      { ...store, write: async (text: string) => (await gate, store.write(text)) },
+      { theme: 'system', locale: 'en', ...MEDIUM_PAGE },
+    )
     void session.update({ locale: 'he' })
     const idle = session.idle()
     void session.update({ theme: 'dark' })
@@ -122,6 +134,9 @@ describe('updating', () => {
 
   it('reports a failed save without pretending it worked', async () => {
     const { store } = memoryStore(null, 'read-only')
-    expect(await updatePreferences(store, { theme: 'system', locale: 'en', ...MEDIUM_PAGE }, { theme: 'dark' })).toEqual({ ok: false, error: 'read-only' })
+    expect(await updatePreferences(store, { theme: 'system', locale: 'en', ...MEDIUM_PAGE }, { theme: 'dark' })).toEqual({
+      ok: false,
+      error: 'read-only',
+    })
   })
 })

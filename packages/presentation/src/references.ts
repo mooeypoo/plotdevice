@@ -43,14 +43,22 @@ export interface LinkTarget {
 
 /** Everything a card can link to: the book's chapters, in reading order then the rest, and every page. */
 export function linkTargets(project: ProjectView, references: readonly ReferenceSummaryView[]): LinkTarget[] {
-  const readingOrder = project.contents.flatMap((entry) => (entry.kind === 'chapter' ? [entry.file] : entry.chapters.map((chapter) => chapter.file)))
+  const readingOrder = project.contents.flatMap((entry) =>
+    entry.kind === 'chapter' ? [entry.file] : entry.chapters.map((chapter) => chapter.file),
+  )
   const position = (file: ProjectPath): number => {
     const at = readingOrder.indexOf(file)
     return at === -1 ? readingOrder.length : at
   }
   const chapters = [...project.chapters].sort((a, b) => position(a.file) - position(b.file))
   return [
-    ...chapters.map((chapter): LinkTarget => ({ file: chapter.file, kind: 'chapter', title: chapter.title ?? chapter.file, aka: [], description: null })),
+    ...chapters.map((chapter): LinkTarget => ({
+      file: chapter.file,
+      kind: 'chapter',
+      title: chapter.title ?? chapter.file,
+      aka: [],
+      description: null,
+    })),
     ...references.map((reference): LinkTarget => ({ ...reference })),
   ]
 }

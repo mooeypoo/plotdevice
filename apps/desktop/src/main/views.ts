@@ -7,7 +7,11 @@ import type { ProjectPath } from '@plotdevice/shared'
 export function projectView(snapshot: ProjectSnapshot): ProjectView {
   const { details } = snapshot
   const numbers = chapterNumbers(snapshot.contents, details.chapterNumbering)
-  const ref = (chapter: { file: ProjectPath; linkText: string }) => ({ file: chapter.file, linkText: chapter.linkText, number: numbers.get(chapter.file) ?? null })
+  const ref = (chapter: { file: ProjectPath; linkText: string }) => ({
+    file: chapter.file,
+    linkText: chapter.linkText,
+    number: numbers.get(chapter.file) ?? null,
+  })
   return {
     root: snapshot.root,
     title: details.title,
@@ -16,9 +20,7 @@ export function projectView(snapshot: ProjectSnapshot): ProjectView {
     direction: directionOfLanguage(details.language),
     chapterNumbering: details.chapterNumbering,
     contents: snapshot.contents.entries.map((entry) =>
-      entry.kind === 'chapter'
-        ? { kind: 'chapter', ...ref(entry) }
-        : { kind: 'part', name: entry.name, chapters: entry.chapters.map(ref) },
+      entry.kind === 'chapter' ? { kind: 'chapter', ...ref(entry) } : { kind: 'part', name: entry.name, chapters: entry.chapters.map(ref) },
     ),
     chapters: snapshot.chapters.map((chapter) => ({
       file: chapter.file,

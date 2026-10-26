@@ -16,7 +16,10 @@ const STRICT_CSP = [
   // No frame-ancestors: Chromium ignores it in a <meta> policy, and the app already refuses embedding.
 ].join('; ')
 // The dev server injects styles and talks to its client over a websocket for hot reload.
-const DEV_CSP = STRICT_CSP.replace("style-src 'self'", "style-src 'self' 'unsafe-inline'").replace("connect-src 'self'", "connect-src 'self' ws:")
+const DEV_CSP = STRICT_CSP.replace("style-src 'self'", "style-src 'self' 'unsafe-inline'").replace(
+  "connect-src 'self'",
+  "connect-src 'self' ws:",
+)
 
 function contentSecurityPolicy(): Plugin {
   let serving = false

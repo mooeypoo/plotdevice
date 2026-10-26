@@ -48,8 +48,20 @@ export function parseRecentProjects(text: string): Result<RecentProjects, 'unrea
     if (!isRecord(entry) || typeof entry.root !== 'string' || typeof entry.title !== 'string') return []
     const leftOff = parseLeftOff(entry.leftOff)
     const place = parsePlace(entry.place)
-    const shelf = Array.isArray(entry.shelf) ? entry.shelf.flatMap((file) => (typeof file === 'string' ? [parseProjectPath(file)] : [])).flatMap((file) => (file.ok ? [file.value] : [])) : []
-    return [{ root: entry.root, title: entry.title, ...(leftOff ? { leftOff } : {}), ...(place ? { place } : {}), ...(shelf.length ? { shelf } : {}) }]
+    const shelf = Array.isArray(entry.shelf)
+      ? entry.shelf
+          .flatMap((file) => (typeof file === 'string' ? [parseProjectPath(file)] : []))
+          .flatMap((file) => (file.ok ? [file.value] : []))
+      : []
+    return [
+      {
+        root: entry.root,
+        title: entry.title,
+        ...(leftOff ? { leftOff } : {}),
+        ...(place ? { place } : {}),
+        ...(shelf.length ? { shelf } : {}),
+      },
+    ]
   })
   return ok({ projects: projects.slice(0, MAX_RECENT_PROJECTS) })
 }
@@ -107,9 +119,11 @@ export async function createRecentProjectsSession(file: AppDataFile): Promise<Re
         const known = projects.find((project) => project.root === root)
         return [{ ...known, root, title }, ...projects.filter((project) => project.root !== root)]
       }),
-    leftOff: (root, position) => change((projects) => projects.map((project) => (project.root === root ? { ...project, leftOff: position } : project))),
+    leftOff: (root, position) =>
+      change((projects) => projects.map((project) => (project.root === root ? { ...project, leftOff: position } : project))),
     place: (root, place) => change((projects) => projects.map((project) => (project.root === root ? { ...project, place } : project))),
-    pin: (root, shelf) => change((projects) => projects.map((project) => (project.root === root ? { ...project, shelf: [...shelf] } : project))),
+    pin: (root, shelf) =>
+      change((projects) => projects.map((project) => (project.root === root ? { ...project, shelf: [...shelf] } : project))),
     forget: (root) => change((projects) => projects.filter((project) => project.root !== root)),
     idle: async () => {
       let seen: Promise<unknown> | undefined

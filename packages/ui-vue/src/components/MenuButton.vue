@@ -67,7 +67,9 @@ defineExpose({ show })
     <div v-if="open" ref="menu" class="menu-list" role="menu" :aria-label="props.label" @keydown="onKey">
       <template v-for="(item, index) in props.items" :key="item.key">
         <div v-if="item.group && index > 0" class="menu-divider" role="separator"></div>
-        <button type="button" role="menuitem" :disabled="item.disabled" :data-testid="`menu-${item.key}`" @click="choose(item)">{{ item.label }}</button>
+        <button type="button" role="menuitem" :disabled="item.disabled" :data-testid="`menu-${item.key}`" @click="choose(item)">
+          {{ item.label }}
+        </button>
       </template>
     </div>
   </span>

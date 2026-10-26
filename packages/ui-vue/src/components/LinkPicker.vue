@@ -20,7 +20,9 @@ const targets = computed<LinkTarget[]>(() => (project.project ? linkTargets(proj
 const searching = computed(() => query.value.trim() !== '')
 /** Before anything is typed, a few of each kind, so the author sees what there is to link to. */
 const groups = computed(() => (searching.value ? [] : suggestedLinkTargets(targets.value)))
-const results = computed<LinkTarget[]>(() => (searching.value ? search(targets.value, query.value).slice(0, 12) : groups.value.flatMap((group) => group.targets)))
+const results = computed<LinkTarget[]>(() =>
+  searching.value ? search(targets.value, query.value).slice(0, 12) : groups.value.flatMap((group) => group.targets),
+)
 const indexOf = (target: LinkTarget): number => results.value.indexOf(target)
 watch(results, () => (selected.value = 0))
 
@@ -75,8 +77,17 @@ function onKey(event: KeyboardEvent): void {
           <span class="secondary">{{ t(`kind-${target.kind}`) }}</span>
         </div>
       </template>
-      <div v-for="group in groups" v-else :key="group.kind" role="group" :aria-labelledby="`link-group-${group.kind}`" :data-testid="`link-group-${group.kind}`">
-        <h3 :id="`link-group-${group.kind}`" class="group-label">{{ t(group.kind === 'chapter' ? 'navigator-label' : `story-${group.kind}`) }}</h3>
+      <div
+        v-for="group in groups"
+        v-else
+        :key="group.kind"
+        role="group"
+        :aria-labelledby="`link-group-${group.kind}`"
+        :data-testid="`link-group-${group.kind}`"
+      >
+        <h3 :id="`link-group-${group.kind}`" class="group-label">
+          {{ t(group.kind === 'chapter' ? 'navigator-label' : `story-${group.kind}`) }}
+        </h3>
         <div
           v-for="target in group.targets"
           :id="`link-result-${indexOf(target)}`"

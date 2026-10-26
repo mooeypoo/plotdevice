@@ -14,7 +14,12 @@ import { directionLayout, setParagraphDirection, setPhraseDirection } from './pa
 import { pasteText } from './paste'
 import type { EditorSettings } from './settings'
 
-const english: EditorSettings = { projectDirection: 'ltr', directionMode: 'project', language: 'en', labels: { chapterText: 'Chapter text', sceneBreak: 'Scene break' } }
+const english: EditorSettings = {
+  projectDirection: 'ltr',
+  directionMode: 'project',
+  language: 'en',
+  labels: { chapterText: 'Chapter text', sceneBreak: 'Scene break' },
+}
 const hebrew: EditorSettings = { ...english, projectDirection: 'rtl', language: 'he' }
 
 const bodyOf = (file: string): string => file.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '')
@@ -33,7 +38,8 @@ function at(state: EditorState, snippet: string, caret?: 'before' | 'after'): Ed
   const from = state.doc.toString().indexOf(snippet)
   if (from < 0) throw new Error(`"${snippet}" not found`)
   const to = from + snippet.length
-  const selection = caret === 'after' ? EditorSelection.cursor(to) : caret === 'before' ? EditorSelection.cursor(from) : EditorSelection.range(from, to)
+  const selection =
+    caret === 'after' ? EditorSelection.cursor(to) : caret === 'before' ? EditorSelection.cursor(from) : EditorSelection.range(from, to)
   return state.update({ selection }).state
 }
 
@@ -130,8 +136,12 @@ describe('formatting writes plain Markdown', () => {
   })
 
   it('links the selection, wrapping addresses with spaces', () => {
-    expect(run(at(stateOf('See the orchard.\n'), 'the orchard'), insertLink('https://example.com/orchard')).sliceDoc()).toBe('See [the orchard](https://example.com/orchard).\n')
-    expect(run(at(stateOf('See notes.\n'), 'notes'), insertLink('notes/loose ideas.md')).sliceDoc()).toBe('See [notes](<notes/loose ideas.md>).\n')
+    expect(run(at(stateOf('See the orchard.\n'), 'the orchard'), insertLink('https://example.com/orchard')).sliceDoc()).toBe(
+      'See [the orchard](https://example.com/orchard).\n',
+    )
+    expect(run(at(stateOf('See notes.\n'), 'notes'), insertLink('notes/loose ideas.md')).sliceDoc()).toBe(
+      'See [notes](<notes/loose ideas.md>).\n',
+    )
   })
 
   it('formats Hebrew text the same way', () => {
@@ -160,17 +170,19 @@ describe('direction markers, only when needed (ADR 0004)', () => {
   })
 
   it('marks a list item with a span, since a list cannot hold a fenced block', () => {
-    expect(run(at(stateOf('- אגסים\n- Row two\n', hebrew), 'Row', 'after'), setParagraphDirection('ltr')).sliceDoc()).toBe('- אגסים\n- [Row two]{dir=ltr}\n')
+    expect(run(at(stateOf('- אגסים\n- Row two\n', hebrew), 'Row', 'after'), setParagraphDirection('ltr')).sliceDoc()).toBe(
+      '- אגסים\n- [Row two]{dir=ltr}\n',
+    )
   })
 
   it('marks an English phrase in Hebrew text, and unmarks it', () => {
-    const body = 'נואל ענה: It was never anyone\'s orchard ושתק.\n'
+    const body = "נואל ענה: It was never anyone's orchard ושתק.\n"
     const marked = run(at(stateOf(body, hebrew), "It was never anyone's orchard"), setPhraseDirection('ltr'))
-    expect(marked.sliceDoc()).toBe('נואל ענה: [It was never anyone\'s orchard]{dir=ltr} ושתק.\n')
+    expect(marked.sliceDoc()).toBe("נואל ענה: [It was never anyone's orchard]{dir=ltr} ושתק.\n")
     expect(run(at(marked, 'never'), setPhraseDirection(null)).sliceDoc()).toBe(body)
   })
 
-  it('uses the file\'s own line ending for the markers it writes', () => {
+  it("uses the file's own line ending for the markers it writes", () => {
     const marked = run(at(stateOf('יעל.\r\n\r\nThe letter.\r\n', hebrew), 'letter', 'after'), setParagraphDirection('ltr'))
     expect(marked.sliceDoc()).toBe('יעל.\r\n\r\n::: {dir=ltr}\r\nThe letter.\r\n:::\r\n')
   })

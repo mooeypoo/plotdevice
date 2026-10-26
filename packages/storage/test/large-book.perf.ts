@@ -40,7 +40,8 @@ function unwrap<T>(result: { ok: true; value: T } | { ok: false; error: unknown 
 
 describe('a large book (150 chapters, 2,000 outline cards) stays fast', () => {
   const folders = createProjectFolders()
-  const repository = () => createProjectRepository({ folders, journals: createJournalStore(join(base, 'app-data')), ids: randomIdGenerator })
+  const repository = () =>
+    createProjectRepository({ folders, journals: createJournalStore(join(base, 'app-data')), ids: randomIdGenerator })
 
   it(`opens in under ${LIMITS.open * SLACK} ms`, async () => {
     const time = await median(async () => unwrap(await repository().open(root)))
@@ -50,7 +51,9 @@ describe('a large book (150 chapters, 2,000 outline cards) stays fast', () => {
 
   it(`switches chapters in under ${LIMITS.switchChapter * SLACK} ms`, async () => {
     let n = 0
-    const time = await median(async () => unwrap(await repository().readChapter(root, `manuscript/chapter-${String(++n * 20).padStart(3, '0')}.md` as ProjectPath)))
+    const time = await median(async () =>
+      unwrap(await repository().readChapter(root, `manuscript/chapter-${String(++n * 20).padStart(3, '0')}.md` as ProjectPath)),
+    )
     console.log(`switch chapter: ${time.toFixed(0)} ms`)
     expect(time).toBeLessThan(LIMITS.switchChapter * SLACK)
   })
@@ -62,7 +65,9 @@ describe('a large book (150 chapters, 2,000 outline cards) stays fast', () => {
     const time = await median(async () => {
       const placement = toEnd ? { part: 14, index: 9 } : { part: 0, index: 0 }
       toEnd = !toEnd
-      snapshot = unwrap(await projects.changeContents(snapshot, { kind: 'move-chapter', file: 'manuscript/chapter-001.md' as ProjectPath, placement }))
+      snapshot = unwrap(
+        await projects.changeContents(snapshot, { kind: 'move-chapter', file: 'manuscript/chapter-001.md' as ProjectPath, placement }),
+      )
     })
     console.log(`move chapter: ${time.toFixed(0)} ms`)
     expect(time).toBeLessThan(LIMITS.moveChapter * SLACK)
@@ -73,7 +78,15 @@ describe('a large book (150 chapters, 2,000 outline cards) stays fast', () => {
     const file = 'outlines/everything.md' as ProjectPath
     let current = unwrap(await outlines.readOutline(root, file))
     const time = await median(async () => {
-      const edited = unwrap(await outlines.editOutline(root, file, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 19, parentPath: [], index: 50 } }, current.revision, current.nestingUnit))
+      const edited = unwrap(
+        await outlines.editOutline(
+          root,
+          file,
+          { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 19, parentPath: [], index: 50 } },
+          current.revision,
+          current.nestingUnit,
+        ),
+      )
       current = edited.document
     })
     console.log(`move card: ${time.toFixed(0)} ms`)

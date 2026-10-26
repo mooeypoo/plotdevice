@@ -21,7 +21,9 @@ export const outlineEditSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('set-title'), text: line }),
 ])
 
-export const outlineFileSchema = z.strictObject({ file: projectPathSchema.refine((file) => file.startsWith('outlines/') && file.endsWith('.md')) })
+export const outlineFileSchema = z.strictObject({
+  file: projectPathSchema.refine((file) => file.startsWith('outlines/') && file.endsWith('.md')),
+})
 export const editOutlineSchema = z.strictObject({ file: outlineFileSchema.shape.file, edit: outlineEditSchema })
 export const createOutlineSchema = z.strictObject({ title: line })
 
@@ -31,7 +33,11 @@ export const createOutlineSchema = z.strictObject({ title: line })
  */
 export const workspaceSchema = z.enum(['write', 'story'])
 export const outlineViewKindSchema = z.enum(['board', 'outline', 'cards'])
-export const placeSchema = z.strictObject({ workspace: workspaceSchema, outline: outlineFileSchema.shape.file.optional(), view: outlineViewKindSchema.optional() })
+export const placeSchema = z.strictObject({
+  workspace: workspaceSchema,
+  outline: outlineFileSchema.shape.file.optional(),
+  view: outlineViewKindSchema.optional(),
+})
 
 export type OutlineEditRequest = z.infer<typeof outlineEditSchema>
 export type Workspace = z.infer<typeof workspaceSchema>

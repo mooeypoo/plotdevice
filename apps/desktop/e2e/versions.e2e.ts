@@ -82,10 +82,20 @@ test('scenario E: move a chapter, compile the book, and the order changed with n
   const files = await readdir(join(root, 'manuscript'))
   await page.locator('[data-chapter="manuscript/frost.md"]').focus()
   await page.keyboard.press('Alt+ArrowUp') // out of Part Two, to just before it
-  await expect.poll(async () => (await read('CONTENTS.md')).indexOf('frost.md') < (await read('CONTENTS.md')).indexOf('Part Two')).toBe(true)
+  await expect
+    .poll(async () => (await read('CONTENTS.md')).indexOf('frost.md') < (await read('CONTENTS.md')).indexOf('Part Two'))
+    .toBe(true)
   await page.getByTestId('compile-book').click()
   await expect(page.getByRole('alert')).toContainText('compiled.md')
   const book = await readFile(savedAs, 'utf8')
-  expect(book.split('\n').filter((line) => line.startsWith('#'))).toEqual(['## 1. Prologue', '# Part One: Arrival', '## 2. The Crossing', '## 3. The Orchard Gate', '## 4. Frost', '# Part Two: Salt', '## 5. Epilogue'])
+  expect(book.split('\n').filter((line) => line.startsWith('#'))).toEqual([
+    '## 1. Prologue',
+    '# Part One: Arrival',
+    '## 2. The Crossing',
+    '## 3. The Orchard Gate',
+    '## 4. Frost',
+    '# Part Two: Salt',
+    '## 5. Epilogue',
+  ])
   expect(await readdir(join(root, 'manuscript'))).toEqual(files)
 })

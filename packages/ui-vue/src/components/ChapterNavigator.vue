@@ -30,7 +30,10 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
         <li v-if="entry.kind === 'part'" class="part">
           <div class="row part-row">
             <span class="part-name" dir="auto">{{ entry.name }}</span>
-            <MenuButton :label="t('part-actions', entry.name)" :items="[{ key: 'rename-part', label: t('part-rename'), run: () => nav.renamePart(index, entry.name) }]" />
+            <MenuButton
+              :label="t('part-actions', entry.name)"
+              :items="[{ key: 'rename-part', label: t('part-rename'), run: () => nav.renamePart(index, entry.name) }]"
+            />
           </div>
           <ol>
             <li v-for="chapter in entry.chapters" :key="chapter.file">
@@ -87,7 +90,9 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
       <ul>
         <li v-for="item in nav.missing.value" :key="item.file" class="row">
           <span dir="ltr" class="secondary">{{ item.file }}</span>
-          <button v-if="item.suggestion" type="button" class="link-button" @click="nav.relink(item.file, item.suggestion)">{{ t('navigator-relink', item.suggestion) }}</button>
+          <button v-if="item.suggestion" type="button" class="link-button" @click="nav.relink(item.file, item.suggestion)">
+            {{ t('navigator-relink', item.suggestion) }}
+          </button>
         </li>
       </ul>
     </section>
@@ -95,7 +100,12 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
     <section v-if="nav.unlisted.value.length > 0" class="navigator-section" data-testid="not-in-book">
       <h2>{{ t('navigator-not-in-book') }}</h2>
       <ul>
-        <li v-for="chapter in nav.unlisted.value" :key="chapter.file" class="row chapter-row" :class="{ current: chapter.file === openFile }">
+        <li
+          v-for="chapter in nav.unlisted.value"
+          :key="chapter.file"
+          class="row chapter-row"
+          :class="{ current: chapter.file === openFile }"
+        >
           <button type="button" class="chapter" :data-chapter="chapter.file" @click="emit('open', chapter.file)">
             <span dir="auto">{{ chapter.title ?? chapter.file }}</span>
           </button>

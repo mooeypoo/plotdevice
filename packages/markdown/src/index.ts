@@ -11,7 +11,14 @@ export {
   type ContentsWarningCode,
   type ParsedContents,
 } from './contents'
-export { formatScalar, readFrontmatter, setFrontmatterValues, splitFrontmatter, type Frontmatter, type FrontmatterProblem } from './frontmatter'
+export {
+  formatScalar,
+  readFrontmatter,
+  setFrontmatterValues,
+  splitFrontmatter,
+  type Frontmatter,
+  type FrontmatterProblem,
+} from './frontmatter'
 export { findLinks, rewriteLinksTo, type FoundLink, type RewriteOptions } from './links'
 export { newChapterFile, newContentsFile, newOutlineFile, newProjectFile, type NewProjectDetails } from './new-files'
 export { lineEndingOf } from './text'

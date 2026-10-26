@@ -3,11 +3,17 @@ import { validateNewProject } from './project-details'
 
 describe('validateNewProject', () => {
   it('accepts a title and a language, trimming the title', () => {
-    expect(validateNewProject({ title: '  The Salt Orchard ', language: 'he' })).toEqual({ ok: true, value: { title: 'The Salt Orchard', language: 'he' } })
+    expect(validateNewProject({ title: '  The Salt Orchard ', language: 'he' })).toEqual({
+      ok: true,
+      value: { title: 'The Salt Orchard', language: 'he' },
+    })
   })
 
   it('keeps an optional author', () => {
-    expect(validateNewProject({ title: 'T', language: 'en-GB', author: 'Ines Varga' })).toEqual({ ok: true, value: { title: 'T', language: 'en-GB', author: 'Ines Varga' } })
+    expect(validateNewProject({ title: 'T', language: 'en-GB', author: 'Ines Varga' })).toEqual({
+      ok: true,
+      value: { title: 'T', language: 'en-GB', author: 'Ines Varga' },
+    })
   })
 
   it.each([

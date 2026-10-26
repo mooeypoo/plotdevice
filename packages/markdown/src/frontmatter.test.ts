@@ -26,7 +26,15 @@ describe('readFrontmatter', () => {
   it('reads values, including unknown keys', () => {
     expect(readFrontmatter(project)).toEqual({
       ok: true,
-      value: { title: 'The Salt Orchard', author: 'Ines Varga', language: 'en', chapterNumbering: 'continuous', id: 'prj-7d2k9q', schemaVersion: 1, series: 'Orchard Books' },
+      value: {
+        title: 'The Salt Orchard',
+        author: 'Ines Varga',
+        language: 'en',
+        chapterNumbering: 'continuous',
+        id: 'prj-7d2k9q',
+        schemaVersion: 1,
+        series: 'Orchard Books',
+      },
     })
   })
 
@@ -47,19 +55,28 @@ describe('setFrontmatterValues: splices, never re-serializes (ADR 0005)', () => 
 
   it('keeps the quoting style a value already had', () => {
     const quoted = "---\ntitle: 'Old'\nid: ch-1\n---\nBody\n"
-    expect(setFrontmatterValues(quoted, { title: "Ilka's Will" })).toEqual({ ok: true, value: "---\ntitle: 'Ilka''s Will'\nid: ch-1\n---\nBody\n" })
+    expect(setFrontmatterValues(quoted, { title: "Ilka's Will" })).toEqual({
+      ok: true,
+      value: "---\ntitle: 'Ilka''s Will'\nid: ch-1\n---\nBody\n",
+    })
   })
 
   it('writes Hebrew titles plainly', () => {
     expect(setFrontmatterValues('---\ntitle: Old\n---\n', { title: 'המעבר' })).toEqual({ ok: true, value: '---\ntitle: המעבר\n---\n' })
   })
 
-  it('adds a missing key at the end of the frontmatter, in the file\'s line endings', () => {
-    expect(setFrontmatterValues('---\r\ntitle: X\r\n---\r\nBody\r\n', { id: 'ch-k3f9q2' })).toEqual({ ok: true, value: '---\r\ntitle: X\r\nid: ch-k3f9q2\r\n---\r\nBody\r\n' })
+  it("adds a missing key at the end of the frontmatter, in the file's line endings", () => {
+    expect(setFrontmatterValues('---\r\ntitle: X\r\n---\r\nBody\r\n', { id: 'ch-k3f9q2' })).toEqual({
+      ok: true,
+      value: '---\r\ntitle: X\r\nid: ch-k3f9q2\r\n---\r\nBody\r\n',
+    })
   })
 
   it('creates frontmatter when a file has none', () => {
-    expect(setFrontmatterValues('Prose.\n', { title: 'Frost', id: 'ch-1' })).toEqual({ ok: true, value: '---\ntitle: Frost\nid: ch-1\n---\nProse.\n' })
+    expect(setFrontmatterValues('Prose.\n', { title: 'Frost', id: 'ch-1' })).toEqual({
+      ok: true,
+      value: '---\ntitle: Frost\nid: ch-1\n---\nProse.\n',
+    })
   })
 
   it('refuses invalid YAML rather than repairing it without asking', () => {

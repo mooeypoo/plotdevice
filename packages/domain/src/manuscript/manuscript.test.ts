@@ -82,7 +82,9 @@ describe('removing, renaming, parts', () => {
   })
 
   it('renames a chapter link and a part, refusing empty names', () => {
-    expect(unwrap(renameChapterLink(book, p('manuscript/frost.md'), 'Hard Frost')).entries[2]).toMatchObject({ chapters: [{ linkText: 'Hard Frost' }] })
+    expect(unwrap(renameChapterLink(book, p('manuscript/frost.md'), 'Hard Frost')).entries[2]).toMatchObject({
+      chapters: [{ linkText: 'Hard Frost' }],
+    })
     expect(renameChapterLink(book, p('manuscript/frost.md'), '  ')).toEqual({ ok: false, error: 'empty-name' })
     expect(unwrap(renamePart(book, 1, 'Arrival')).entries[1]).toMatchObject({ name: 'Arrival' })
     expect(renamePart(book, 0, 'Not a part')).toEqual({ ok: false, error: 'not-a-part' })

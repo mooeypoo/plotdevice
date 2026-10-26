@@ -30,7 +30,10 @@ export function readReferencePage(text: string, fileStem: string): ReferencePage
   let headingTitle: string | null = null
   const first = blocks[0]
   if (first?.type === 'heading' && first.depth === 1) {
-    headingTitle = body.slice(first.position?.start.offset ?? 0, end(0)).replace(/^ {0,3}#[ \t]*|[ \t]+#+[ \t]*$/g, '').trim()
+    headingTitle = body
+      .slice(first.position?.start.offset ?? 0, end(0))
+      .replace(/^ {0,3}#[ \t]*|[ \t]+#+[ \t]*$/g, '')
+      .trim()
     next = 1
   }
   const paragraph = blocks[next]

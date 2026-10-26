@@ -23,8 +23,16 @@ export interface CardLinks {
 export interface ReferenceRepository {
   listReferences(root: string): Promise<ReferenceSummary[]>
   readReference(root: string, file: ProjectPath): Promise<Result<ReferencePage, 'missing' | 'unreadable'>>
-  createReference(root: string, kind: ReferenceKind, title: string): Promise<Result<ReferenceSummary, 'empty-text' | 'multiline-text' | 'write-failed'>>
+  createReference(
+    root: string,
+    kind: ReferenceKind,
+    title: string,
+  ): Promise<Result<ReferenceSummary, 'empty-text' | 'multiline-text' | 'write-failed'>>
   /** Sets the page's `title`, keeping everything else; refused if the file changed since it was read. */
-  renameReference(root: string, file: ProjectPath, title: string): Promise<Result<void, 'empty-text' | 'multiline-text' | 'missing' | 'unreadable' | 'stale' | 'write-failed'>>
+  renameReference(
+    root: string,
+    file: ProjectPath,
+    title: string,
+  ): Promise<Result<void, 'empty-text' | 'multiline-text' | 'missing' | 'unreadable' | 'stale' | 'write-failed'>>
   cardLinks(root: string): Promise<CardLinks[]>
 }

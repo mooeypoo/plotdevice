@@ -7,7 +7,11 @@ import { projectPathSchema, type OpenedProject, type ProjectView } from './proje
 const MAX_CHAPTER_CHARACTERS = 20_000_000
 
 export const openChapterSchema = z.strictObject({ file: projectPathSchema })
-export const saveChapterSchema = z.strictObject({ file: projectPathSchema, text: z.string().max(MAX_CHAPTER_CHARACTERS), generation: z.number().int().positive() })
+export const saveChapterSchema = z.strictObject({
+  file: projectPathSchema,
+  text: z.string().max(MAX_CHAPTER_CHARACTERS),
+  generation: z.number().int().positive(),
+})
 export const resolveConflictSchema = z.strictObject({ file: projectPathSchema, choice: z.enum(['keep-both', 'use-mine']) })
 export const leftOffSchema = z.strictObject({ file: projectPathSchema, cursor: z.number().int().nonnegative() })
 
@@ -27,7 +31,10 @@ export interface ChapterView {
 }
 
 export type OpenChapterResult = Result<ChapterView, 'no-project' | 'missing' | 'unreadable'>
-export type ResolveConflictResult = Result<{ copy: ProjectPath | null; text: string | null; generation: number; project: ProjectView }, 'no-conflict' | 'missing' | 'changed-again' | 'write-failed'>
+export type ResolveConflictResult = Result<
+  { copy: ProjectPath | null; text: string | null; generation: number; project: ProjectView },
+  'no-conflict' | 'missing' | 'changed-again' | 'write-failed'
+>
 
 /** Sent from the host as things happen. */
 export type HostEvent =

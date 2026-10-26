@@ -123,7 +123,7 @@ test('regression: closing the app right after a change still saves it (Windows s
   await expect(running.page.getByTestId('language')).toHaveValue('he')
 })
 
-test('regression: the footer shows the app version, not Electron\'s', async () => {
+test("regression: the footer shows the app version, not Electron's", async () => {
   running = await launch(userData)
   await openSettings(running.page)
   const { version } = JSON.parse(await readFile(join(import.meta.dirname, '..', 'package.json'), 'utf8')) as { version: string }
@@ -165,10 +165,12 @@ test('the host refuses invalid settings from the page and keeps the current ones
   running = await launch(userData)
   await openSettings(running.page)
   const outcome = await running.page.evaluate(() =>
-    (window as unknown as { plotDevice: { setPreferences(p: unknown): Promise<unknown> } }).plotDevice.setPreferences({ theme: 'neon' }).then(
-      () => 'accepted',
-      (error: Error) => error.message,
-    ),
+    (window as unknown as { plotDevice: { setPreferences(p: unknown): Promise<unknown> } }).plotDevice
+      .setPreferences({ theme: 'neon' })
+      .then(
+        () => 'accepted',
+        (error: Error) => error.message,
+      ),
   )
   expect(outcome).toContain('invalid-payload')
   await expect(running.page.getByTestId('theme')).toHaveValue('system')

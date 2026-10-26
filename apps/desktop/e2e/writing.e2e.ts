@@ -99,7 +99,9 @@ test('scenario A: create a project, write the first chapter, quit, and find it a
   await running?.app.close()
 
   const root = join(base, 'The Salt Orchard')
-  expect(await read(root, 'manuscript/chapter-one.md')).toMatch(/^---\ntitle: Chapter One\nid: ch-[0-9a-z]{6}\n---\nBefore the orchard, there was the river\.$/)
+  expect(await read(root, 'manuscript/chapter-one.md')).toMatch(
+    /^---\ntitle: Chapter One\nid: ch-[0-9a-z]{6}\n---\nBefore the orchard, there was the river\.$/,
+  )
   expect(await read(root, 'CONTENTS.md')).toContain('[Chapter One](manuscript/chapter-one.md)')
 
   // Reopening returns to the same project and chapter (PRD G2).
@@ -116,7 +118,7 @@ test('scenario F: Hebrew prose with an English phrase, in a Hebrew interface, sa
   await page.locator('.settings-menu summary').click()
   await createProject(page, 'מטע המלח', 'he')
   await newChapter(page, 'פרק ראשון')
-  await typeAtEnd(page, 'נואל ענה: It was never anyone\'s orchard ושתק.')
+  await typeAtEnd(page, "נואל ענה: It was never anyone's orchard ושתק.")
   await selectInEditor(page, "It was never anyone's orchard")
   await page.getByTestId('direction-menu').click()
   await page.getByTestId('menu-phrase-ltr').click()
@@ -174,7 +176,8 @@ test('scenario H: theme, language and focus mode keep the same editor, the curso
   const { page } = await openSampleNovel()
   await openChapter(page, 'manuscript/frost.md')
   await page.evaluate(() => {
-    ;(window as unknown as { editorElement: Element | null }).editorElement = document.querySelector('[data-testid="editor"]')?.shadowRoot?.querySelector('.cm-editor') ?? null
+    ;(window as unknown as { editorElement: Element | null }).editorElement =
+      document.querySelector('[data-testid="editor"]')?.shadowRoot?.querySelector('.cm-editor') ?? null
   })
   await typeAtEnd(page, ' One')
 
@@ -187,7 +190,9 @@ test('scenario H: theme, language and focus mode keep the same editor, the curso
   await page.getByTestId('leave-focus').click()
 
   const sameEditor = await page.evaluate(
-    () => (window as unknown as { editorElement: Element | null }).editorElement === document.querySelector('[data-testid="editor"]')?.shadowRoot?.querySelector('.cm-editor'),
+    () =>
+      (window as unknown as { editorElement: Element | null }).editorElement ===
+      document.querySelector('[data-testid="editor"]')?.shadowRoot?.querySelector('.cm-editor'),
   )
   expect(sameEditor).toBe(true)
   await page.keyboard.type(' Two') // the cursor is where it was
@@ -247,7 +252,11 @@ async function unnamedControls(page: Page): Promise<string[]> {
       .filter((element) => element.offsetParent !== null)
       .filter((element) => {
         const labelled = element.getAttribute('aria-labelledby')
-        const name = element.getAttribute('aria-label') ?? (labelled ? document.getElementById(labelled)?.textContent : null) ?? element.closest('label')?.textContent ?? element.textContent
+        const name =
+          element.getAttribute('aria-label') ??
+          (labelled ? document.getElementById(labelled)?.textContent : null) ??
+          element.closest('label')?.textContent ??
+          element.textContent
         return !name?.trim()
       })
       .map((element) => element.outerHTML.slice(0, 80)),

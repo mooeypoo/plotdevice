@@ -1,5 +1,13 @@
 import type { OutlineSession, ProjectRepository, Revision, VersionRepository, WritingSession } from '@plotdevice/application'
-import { channels, restoreVersionSchema, versionSchema, versionsSchema, type CopyVersionResult, type VersionResult, type VersionsView } from '@plotdevice/contracts'
+import {
+  channels,
+  restoreVersionSchema,
+  versionSchema,
+  versionsSchema,
+  type CopyVersionResult,
+  type VersionResult,
+  type VersionsView,
+} from '@plotdevice/contracts'
 import { splitFrontmatter } from '@plotdevice/markdown'
 import { err, ok } from '@plotdevice/shared'
 import { parsePayload } from './payload'
@@ -15,7 +23,13 @@ export interface VersionIpcContext {
 }
 
 /** Versions of chapters, pages and outlines (Milestone 6). */
-export function createVersionHandlers({ versions, writing, outlines, repository, copyLabel }: VersionIpcContext): Record<string, PayloadHandler> {
+export function createVersionHandlers({
+  versions,
+  writing,
+  outlines,
+  repository,
+  copyLabel,
+}: VersionIpcContext): Record<string, PayloadHandler> {
   const root = (): string | null => writing.project()?.root ?? null
 
   return {

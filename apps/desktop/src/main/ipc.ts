@@ -1,4 +1,11 @@
-import { channels, preferencesPatchSchema, type AboutView, type AppInfo, type Preferences, type PreferencesPatch } from '@plotdevice/contracts'
+import {
+  channels,
+  preferencesPatchSchema,
+  type AboutView,
+  type AppInfo,
+  type Preferences,
+  type PreferencesPatch,
+} from '@plotdevice/contracts'
 import type { Result } from '@plotdevice/shared'
 import { IpcRefused, parsePayload } from './payload'
 import { createOutlineHandlers, type OutlineIpcContext } from './outline-ipc'
@@ -64,7 +71,9 @@ export function isAppUrl(url: string | undefined, appUrl: string): boolean {
   try {
     const actual = new URL(url)
     const expected = new URL(appUrl)
-    return expected.protocol === 'file:' ? actual.protocol === 'file:' && actual.pathname === expected.pathname : actual.origin === expected.origin
+    return expected.protocol === 'file:'
+      ? actual.protocol === 'file:' && actual.pathname === expected.pathname
+      : actual.origin === expected.origin
   } catch {
     return false
   }

@@ -43,7 +43,8 @@ export function useOutlineActions() {
 
   async function move(from: ItemAt, to: ItemDestination | null): Promise<void> {
     if (!to) return
-    if (await story.edit({ kind: 'move-item', from, to })) await focusItem(keyOf({ section: to.section, path: [...to.parentPath, to.index] }))
+    if (await story.edit({ kind: 'move-item', from, to }))
+      await focusItem(keyOf({ section: to.section, path: [...to.parentPath, to.index] }))
   }
 
   async function remove(at: ItemAt, item: OutlineItemView): Promise<void> {
@@ -64,14 +65,26 @@ export function useOutlineActions() {
       ? outline.sections.flatMap((section, index) =>
           index === at.section || section.name === null
             ? []
-            : [{ key: `move-to-${index}`, label: t('move-to-section', section.name), run: () => void move(at, { section: index, parentPath: [], index: section.items.length }) }],
+            : [
+                {
+                  key: `move-to-${index}`,
+                  label: t('move-to-section', section.name),
+                  run: () => void move(at, { section: index, parentPath: [], index: section.items.length }),
+                },
+              ],
         )
       : []
     return [
       { key: 'edit', label: t('item-edit'), run: () => (story.editing = { kind: 'item', key: keyOf(at) }) },
       { key: 'add-detail', label: t('outline-add-detail'), run: () => void addDetail(at, item) },
       { key: 'link-to', label: t('link-to'), run: () => void linkTo(at, item) },
-      { key: 'move-earlier', label: t('item-move-earlier'), group: 'move', disabled: !moves.earlier, run: () => void move(at, moves.earlier) },
+      {
+        key: 'move-earlier',
+        label: t('item-move-earlier'),
+        group: 'move',
+        disabled: !moves.earlier,
+        run: () => void move(at, moves.earlier),
+      },
       { key: 'move-later', label: t('item-move-later'), disabled: !moves.later, run: () => void move(at, moves.later) },
       ...otherSections.map((entry) => ({ ...entry, disabled: !item.movable })),
       { key: 'delete', label: t('item-delete'), group: 'delete', disabled: !item.movable, run: () => void remove(at, item) },
@@ -87,14 +100,26 @@ export function useOutlineActions() {
     return [
       { key: 'rename-section', label: t('section-rename'), run: () => (story.editing = { kind: 'section', section: index }) },
       { key: 'add-card', label: t('outline-add-card'), run: () => (story.editing = { kind: 'new-card', section: index }) },
-      { key: 'section-earlier', label: t('section-move-earlier'), group: 'move', disabled: index <= firstNamed, run: () => void story.edit({ kind: 'move-section', section: index, index: index - 1 }) },
-      { key: 'section-later', label: t('section-move-later'), disabled: index >= outline.sections.length - 1, run: () => void story.edit({ kind: 'move-section', section: index, index: index + 1 }) },
+      {
+        key: 'section-earlier',
+        label: t('section-move-earlier'),
+        group: 'move',
+        disabled: index <= firstNamed,
+        run: () => void story.edit({ kind: 'move-section', section: index, index: index - 1 }),
+      },
+      {
+        key: 'section-later',
+        label: t('section-move-later'),
+        disabled: index >= outline.sections.length - 1,
+        run: () => void story.edit({ kind: 'move-section', section: index, index: index + 1 }),
+      },
       {
         key: 'delete-section',
         label: t('section-delete'),
         group: 'delete',
         run: async () => {
-          if (await confirm(t('confirm-delete-section', name), t('confirm-delete'))) await story.edit({ kind: 'delete-section', section: index })
+          if (await confirm(t('confirm-delete-section', name), t('confirm-delete')))
+            await story.edit({ kind: 'delete-section', section: index })
         },
       },
     ]
@@ -173,5 +198,18 @@ export function useOutlineActions() {
     void move(from, { section, parentPath: [], index: count - (from.path.length === 1 && from.section === section ? 1 : 0) })
   }
 
-  return { itemMenu, sectionMenu, onItemKey, commitItem, commitSection, commitNewCard, commitNewSection, renameOutline, dragStart, dropBefore, dropAtEnd, dragging }
+  return {
+    itemMenu,
+    sectionMenu,
+    onItemKey,
+    commitItem,
+    commitSection,
+    commitNewCard,
+    commitNewSection,
+    renameOutline,
+    dragStart,
+    dropBefore,
+    dropAtEnd,
+    dragging,
+  }
 }

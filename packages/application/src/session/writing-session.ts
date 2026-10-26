@@ -2,7 +2,16 @@ import type { NewProject } from '@plotdevice/domain'
 import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
 import { createChapterAutosave, type ChapterAutosave, type SaveStatus } from '../chapters/chapter-autosave'
 import type { Revision } from '../ports/file-store'
-import type { ChangeProblem, ContentsChange, CreateProblem, FileRenamed, OpenProblem, ProjectRepository, ProjectSnapshot, RenameFileProblem } from '../ports/project-repository'
+import type {
+  ChangeProblem,
+  ContentsChange,
+  CreateProblem,
+  FileRenamed,
+  OpenProblem,
+  ProjectRepository,
+  ProjectSnapshot,
+  RenameFileProblem,
+} from '../ports/project-repository'
 
 export type SessionEvent =
   | { kind: 'save-status'; file: ProjectPath; status: SaveStatus }
@@ -63,7 +72,11 @@ export interface WritingSession {
    * file it runs between saves, and saving continues from the revision it leaves, so it never looks
    * like a change made elsewhere.
    */
-  updateFile<E>(file: ProjectPath, change: () => Promise<Result<void, E>>, options?: { reload?: boolean }): Promise<Result<void, E | NoProject | 'unreadable'>>
+  updateFile<E>(
+    file: ProjectPath,
+    change: () => Promise<Result<void, E>>,
+    options?: { reload?: boolean },
+  ): Promise<Result<void, E | NoProject | 'unreadable'>>
   /** Resolves once every change has been written. The app waits for this before quitting. */
   idle(): Promise<void>
 }
@@ -255,12 +268,14 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
           return renamed
         }
         // The title is in the chapter's frontmatter, so it is written between saves of its text.
-        return state.autosave.exclusive(async (revision): Promise<{ revision: Revision | null; value: Result<ProjectSnapshot, ChangeProblem> }> => {
-          const renamed = await repository.renameChapter(withRevision(current, file, revision), file, title)
-          if (!renamed.ok) return { revision: null, value: renamed }
-          setProject(renamed.value)
-          return { revision: renamed.value.chapters.find((c) => c.file === file)?.revision ?? null, value: renamed }
-        })
+        return state.autosave.exclusive(
+          async (revision): Promise<{ revision: Revision | null; value: Result<ProjectSnapshot, ChangeProblem> }> => {
+            const renamed = await repository.renameChapter(withRevision(current, file, revision), file, title)
+            if (!renamed.ok) return { revision: null, value: renamed }
+            setProject(renamed.value)
+            return { revision: renamed.value.chapters.find((c) => c.file === file)?.revision ?? null, value: renamed }
+          },
+        )
       }),
 
     renameFile: (file, newName) =>
@@ -317,5 +332,9 @@ function withRevision(snapshot: ProjectSnapshot, file: ProjectPath, revision: Re
 
 /** Everything about a snapshot that the author can see. */
 function withoutRevisions(snapshot: ProjectSnapshot): string {
-  return JSON.stringify({ ...snapshot, contentsRevision: null, chapters: snapshot.chapters.map((chapter) => ({ ...chapter, revision: null })) })
+  return JSON.stringify({
+    ...snapshot,
+    contentsRevision: null,
+    chapters: snapshot.chapters.map((chapter) => ({ ...chapter, revision: null })),
+  })
 }

@@ -48,7 +48,10 @@ function safeStem(title: string, fallback = 'chapter'): string {
     .replace(/\s+/g, '-')
     .replace(/-{2,}/g, '-')
     .replace(/^[-.]+|[-.]+$/g, '')
-  const short = Array.from(slug).slice(0, MAX_STEM_CHARACTERS).join('').replace(/[-.]+$/, '')
+  const short = Array.from(slug)
+    .slice(0, MAX_STEM_CHARACTERS)
+    .join('')
+    .replace(/[-.]+$/, '')
   if (short === '') return fallback
   return isReservedName(short) ? `${short}-${fallback}` : short
 }

@@ -17,7 +17,11 @@ const bookLanguages = [
 
 async function create(): Promise<void> {
   if (title.value.trim() === '') return
-  const created = await store.create({ title: title.value.trim(), language: language.value, ...(author.value.trim() ? { author: author.value.trim() } : {}) })
+  const created = await store.create({
+    title: title.value.trim(),
+    language: language.value,
+    ...(author.value.trim() ? { author: author.value.trim() } : {}),
+  })
   if (created) creating.value = false
 }
 </script>
@@ -40,7 +44,9 @@ async function create(): Promise<void> {
         <label class="field">
           <span>{{ settings.t('new-project-language-label') }}</span>
           <select v-model="language" data-testid="new-project-language">
-            <option v-for="option in bookLanguages" :key="option.value" :value="option.value" :lang="option.value">{{ option.label }}</option>
+            <option v-for="option in bookLanguages" :key="option.value" :value="option.value" :lang="option.value">
+              {{ option.label }}
+            </option>
           </select>
         </label>
         <p class="secondary">{{ settings.t('new-project-hint') }}</p>
@@ -51,7 +57,9 @@ async function create(): Promise<void> {
       </form>
 
       <div v-else class="actions start">
-        <button type="button" class="primary" data-testid="new-project" @click="creating = true">{{ settings.t('welcome-new-project') }}</button>
+        <button type="button" class="primary" data-testid="new-project" @click="creating = true">
+          {{ settings.t('welcome-new-project') }}
+        </button>
         <button type="button" data-testid="open-project" @click="store.open('choose')">{{ settings.t('welcome-open-project') }}</button>
       </div>
 
@@ -61,7 +69,13 @@ async function create(): Promise<void> {
         <h2>{{ settings.t('welcome-recent') }}</h2>
         <ul>
           <li v-for="project in store.recent" :key="project.root" :class="{ unavailable: !project.available }">
-            <button v-if="project.available" type="button" class="recent-project" data-testid="recent-project" @click="store.open({ recent: project.root })">
+            <button
+              v-if="project.available"
+              type="button"
+              class="recent-project"
+              data-testid="recent-project"
+              @click="store.open({ recent: project.root })"
+            >
               <span class="recent-title" dir="auto">{{ project.title }}</span>
               <span class="secondary recent-folder" dir="ltr">{{ project.root }}</span>
             </button>

@@ -4,13 +4,22 @@ import { folderFromArgs } from './launch-folder'
 
 describe('the folder to open at launch', () => {
   it('takes an absolute path after the executable, in a packaged app', () => {
-    expect(folderFromArgs(['/opt/Plot Device/plotdevice', '/home/ines/The Salt Orchard'], '/opt/Plot Device/resources/app.asar')).toBe('/home/ines/The Salt Orchard')
+    expect(folderFromArgs(['/opt/Plot Device/plotdevice', '/home/ines/The Salt Orchard'], '/opt/Plot Device/resources/app.asar')).toBe(
+      '/home/ines/The Salt Orchard',
+    )
   })
 
   it('skips the app’s own folder in development, and switches anywhere, however they are ordered', () => {
-    expect(folderFromArgs(['/usr/bin/electron', '/repo/apps/desktop', '--no-sandbox', '/home/ines/novel'], '/repo/apps/desktop')).toBe('/home/ines/novel')
+    expect(folderFromArgs(['/usr/bin/electron', '/repo/apps/desktop', '--no-sandbox', '/home/ines/novel'], '/repo/apps/desktop')).toBe(
+      '/home/ines/novel',
+    )
     // Test tools put their own switches before the app folder.
-    expect(folderFromArgs(['/usr/bin/electron', '--inspect=0', '--remote-debugging-port=0', '/repo/apps/desktop', '/home/ines/novel'], '/repo/apps/desktop')).toBe('/home/ines/novel')
+    expect(
+      folderFromArgs(
+        ['/usr/bin/electron', '--inspect=0', '--remote-debugging-port=0', '/repo/apps/desktop', '/home/ines/novel'],
+        '/repo/apps/desktop',
+      ),
+    ).toBe('/home/ines/novel')
     expect(folderFromArgs(['/usr/bin/electron', '--inspect=0', '/repo/apps/desktop'], '/repo/apps/desktop')).toBeNull()
     expect(folderFromArgs(['plotdevice', '--user-data-dir=/tmp/x', '/home/ines/novel'], '/opt/x/app.asar')).toBe('/home/ines/novel')
   })

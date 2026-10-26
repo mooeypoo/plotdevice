@@ -2,13 +2,25 @@ import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
 import { applyOutlineEdit, outlineFileFor, type Outline, type OutlineItem } from './outline'
 
-const item = (text: string, children: OutlineItem[] = [], options: Partial<OutlineItem> = {}): OutlineItem => ({ text, checked: null, children, keptAsWritten: [], movable: true, ...options })
+const item = (text: string, children: OutlineItem[] = [], options: Partial<OutlineItem> = {}): OutlineItem => ({
+  text,
+  checked: null,
+  children,
+  keptAsWritten: [],
+  movable: true,
+  ...options,
+})
 
 const story: Outline = {
   title: 'Main story',
   preamble: [],
   sections: [
-    { name: 'Beginning', intro: [], notes: [], items: [item('Ilka inherits the orchard', [item('The will names Marrow')]), item('The first frost')] },
+    {
+      name: 'Beginning',
+      intro: [],
+      notes: [],
+      items: [item('Ilka inherits the orchard', [item('The will names Marrow')]), item('The first frost')],
+    },
     { name: 'Ending', intro: [], notes: [], items: [item('The orchard is sold')] },
   ],
 }
@@ -66,7 +78,11 @@ describe('editing an outline', () => {
   })
 
   it('removes the unnamed section once its last card moves out', () => {
-    const loose: Outline = { title: null, preamble: [], sections: [{ name: null, intro: [], notes: [], items: [item('A loose idea')] }, ...story.sections] }
+    const loose: Outline = {
+      title: null,
+      preamble: [],
+      sections: [{ name: null, intro: [], notes: [], items: [item('A loose idea')] }, ...story.sections],
+    }
     const after = apply(loose, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 1, parentPath: [], index: 0 } })
     expect(names(after).map(([name]) => name)).toEqual(['Beginning', 'Ending'])
   })
@@ -79,17 +95,29 @@ describe('edits the outline refuses', () => {
   }
 
   it('moving a card inside itself', () => {
-    expect(refusal(story, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 0, parentPath: [0, 0], index: 0 } })).toBe('into-own-subtree')
+    expect(refusal(story, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 0, parentPath: [0, 0], index: 0 } })).toBe(
+      'into-own-subtree',
+    )
   })
 
   it('moving an item that shares its line with other Markdown', () => {
-    const locked: Outline = { title: null, preamble: [], sections: [{ name: 'S', intro: [], notes: [], items: [item('stuck', [], { movable: false }), item('free')] }] }
-    expect(refusal(locked, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 0, parentPath: [], index: 1 } })).toBe('unmovable-item')
+    const locked: Outline = {
+      title: null,
+      preamble: [],
+      sections: [{ name: 'S', intro: [], notes: [], items: [item('stuck', [], { movable: false }), item('free')] }],
+    }
+    expect(refusal(locked, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 0, parentPath: [], index: 1 } })).toBe(
+      'unmovable-item',
+    )
     expect(refusal(locked, { kind: 'delete-item', at: { section: 0, path: [0] } })).toBe('unmovable-item')
   })
 
   it('naming, moving or deleting the unnamed section, or putting a section above it', () => {
-    const loose: Outline = { title: null, preamble: [], sections: [{ name: null, intro: [], notes: [], items: [item('A loose idea')] }, ...story.sections] }
+    const loose: Outline = {
+      title: null,
+      preamble: [],
+      sections: [{ name: null, intro: [], notes: [], items: [item('A loose idea')] }, ...story.sections],
+    }
     expect(refusal(loose, { kind: 'rename-section', section: 0, text: 'x' })).toBe('unnamed-section')
     expect(refusal(loose, { kind: 'add-section', index: 0, text: 'x' })).toBe('unnamed-section')
     expect(refusal(loose, { kind: 'move-section', section: 0, index: 1 })).toBe('unnamed-section')
@@ -106,7 +134,9 @@ describe('edits the outline refuses', () => {
   it('missing items and positions', () => {
     expect(refusal(story, { kind: 'rename-item', at: { section: 0, path: [5] }, text: 'x' })).toBe('no-such-item')
     expect(refusal(story, { kind: 'add-item', to: { section: 4, parentPath: [], index: 0 }, text: 'x' })).toBe('no-such-section')
-    expect(refusal(story, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 1, parentPath: [], index: 3 } })).toBe('index-out-of-range')
+    expect(refusal(story, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 1, parentPath: [], index: 3 } })).toBe(
+      'index-out-of-range',
+    )
   })
 })
 

@@ -6,7 +6,12 @@ export const writingSizeSchema = z.enum(['small', 'medium', 'large'])
 export const pageWidthSchema = z.enum(['narrow', 'medium', 'wide'])
 
 /** The author's personal settings. Stored in OS app data, never in a project folder. */
-export const preferencesSchema = z.strictObject({ theme: themePreferenceSchema, locale: localeSchema, writingSize: writingSizeSchema, pageWidth: pageWidthSchema })
+export const preferencesSchema = z.strictObject({
+  theme: themePreferenceSchema,
+  locale: localeSchema,
+  writingSize: writingSizeSchema,
+  pageWidth: pageWidthSchema,
+})
 
 /** A change to some settings; unknown keys are rejected rather than ignored. */
 export const preferencesPatchSchema = preferencesSchema.partial()

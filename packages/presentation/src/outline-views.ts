@@ -14,8 +14,7 @@ export interface ItemDestination {
 }
 
 export type BoardEntry =
-  | { kind: 'card'; item: OutlineItemView; path: ItemAt; detailCount: number }
-  | { kind: 'group' | 'kept'; text: string }
+  { kind: 'card'; item: OutlineItemView; path: ItemAt; detailCount: number } | { kind: 'group' | 'kept'; text: string }
 
 export interface BoardColumn {
   /** `null` for cards before the first section. */
@@ -30,11 +29,21 @@ const countDetails = (item: OutlineItemView): number => item.children.reduce((su
 export function boardColumns(outline: OutlineView): BoardColumn[] {
   return outline.sections.map((section, sectionIndex) => {
     const entries: BoardEntry[] = []
-    const notesBefore = (index: number) => section.notes.filter((note) => note.before === index).map((note): BoardEntry => ({ kind: note.kind, text: note.text }))
+    const notesBefore = (index: number) =>
+      section.notes.filter((note) => note.before === index).map((note): BoardEntry => ({ kind: note.kind, text: note.text }))
     section.items.forEach((item, index) => {
-      entries.push(...notesBefore(index), { kind: 'card', item, path: { section: sectionIndex, path: [index] }, detailCount: countDetails(item) })
+      entries.push(...notesBefore(index), {
+        kind: 'card',
+        item,
+        path: { section: sectionIndex, path: [index] },
+        detailCount: countDetails(item),
+      })
     })
-    entries.push(...section.notes.filter((note) => note.before >= section.items.length).map((note): BoardEntry => ({ kind: note.kind, text: note.text })))
+    entries.push(
+      ...section.notes
+        .filter((note) => note.before >= section.items.length)
+        .map((note): BoardEntry => ({ kind: note.kind, text: note.text })),
+    )
     return { name: section.name, intro: section.intro, entries }
   })
 }
@@ -69,7 +78,9 @@ export function outlineRows(outline: OutlineView, collapsed: ReadonlySet<string>
 
 /** Cards: every card in reading order, labelled with its section. */
 export function cardsInOrder(outline: OutlineView): { section: string | null; item: OutlineItemView; path: ItemAt }[] {
-  return outline.sections.flatMap((section, sectionIndex) => section.items.map((item, index) => ({ section: section.name, item, path: { section: sectionIndex, path: [index] } })))
+  return outline.sections.flatMap((section, sectionIndex) =>
+    section.items.map((item, index) => ({ section: section.name, item, path: { section: sectionIndex, path: [index] } })),
+  )
 }
 
 export interface CardMoves {
@@ -108,7 +119,12 @@ export function cardMoves(outline: OutlineView, at: ItemAt): CardMoves {
   const end = (target: number) => ({ section: target, parentPath: [], index: outline.sections[target]?.items.length ?? 0 })
   return {
     earlier: index > 0 ? { section: at.section, parentPath: [], index: index - 1 } : before ? end(at.section - 1) : null,
-    later: index < section.items.length - 1 ? { section: at.section, parentPath: [], index: index + 1 } : after ? { section: at.section + 1, parentPath: [], index: 0 } : null,
+    later:
+      index < section.items.length - 1
+        ? { section: at.section, parentPath: [], index: index + 1 }
+        : after
+          ? { section: at.section + 1, parentPath: [], index: 0 }
+          : null,
     previousSection: before ? end(at.section - 1) : null,
     nextSection: after ? end(at.section + 1) : null,
   }
@@ -127,7 +143,8 @@ export function itemAt(outline: OutlineView, at: ItemAt): OutlineItemView | null
 export type InlineSpan = { kind: 'text' | 'em' | 'strong' | 'code'; text: string } | { kind: 'link'; text: string; target: string }
 
 // One alternative per kind; the first that matches at a position wins. Wikilinks (`[[…]]`) stay text.
-const INLINE = /\\([\\`*_[\]()#+\-.!>])|`([^`\n]+)`|(?<!\[)\[([^[\]\n]+)\]\(([^()\s]+)(?:\s+"[^"]*")?\)|\*\*(?=\S)([^*\n]+?)(?<=\S)\*\*|__(?=\S)([^_\n]+?)(?<=\S)__|\*(?=\S)([^*\n]+?)(?<=\S)\*|(?<![\p{L}\p{N}])_(?=\S)([^_\n]+?)(?<=\S)_(?![\p{L}\p{N}])/gu
+const INLINE =
+  /\\([\\`*_[\]()#+\-.!>])|`([^`\n]+)`|(?<!\[)\[([^[\]\n]+)\]\(([^()\s]+)(?:\s+"[^"]*")?\)|\*\*(?=\S)([^*\n]+?)(?<=\S)\*\*|__(?=\S)([^_\n]+?)(?<=\S)__|\*(?=\S)([^*\n]+?)(?<=\S)\*|(?<![\p{L}\p{N}])_(?=\S)([^_\n]+?)(?<=\S)_(?![\p{L}\p{N}])/gu
 
 /**
  * A card's text as spans to show formatted: bold, italic, links and code. Everything else, HTML

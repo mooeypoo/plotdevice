@@ -22,10 +22,15 @@ const outline: OutlineView = {
     {
       name: 'Beginning',
       intro: ['Before anyone speaks.'],
-      items: [item('Ilka arrives', [item('With one suitcase', [item('Her mother\'s')])]), item('The frost')],
+      items: [item('Ilka arrives', [item('With one suitcase', [item("Her mother's")])]), item('The frost')],
       notes: [{ kind: 'group', text: 'Act two', before: 1 }],
     },
-    { name: 'Middle', intro: [], items: [item('Stuck', [], { movable: false }), item('The ledger')], notes: [{ kind: 'kept', text: '| a | b |', before: 2 }] },
+    {
+      name: 'Middle',
+      intro: [],
+      items: [item('Stuck', [], { movable: false }), item('The ledger')],
+      notes: [{ kind: 'kept', text: '| a | b |', before: 2 }],
+    },
     { name: 'Ending', intro: [], items: [], notes: [] },
   ],
 }
@@ -34,7 +39,11 @@ describe('the board', () => {
   it('shows a column per section, with group labels and kept tiles where they sit among the cards', () => {
     const columns = boardColumns(outline)
     expect(columns.map((column) => column.name)).toEqual(['Beginning', 'Middle', 'Ending'])
-    expect(columns[0]?.entries.map((entry) => (entry.kind === 'card' ? entry.item.text : `[${entry.kind}] ${entry.text}`))).toEqual(['Ilka arrives', '[group] Act two', 'The frost'])
+    expect(columns[0]?.entries.map((entry) => (entry.kind === 'card' ? entry.item.text : `[${entry.kind}] ${entry.text}`))).toEqual([
+      'Ilka arrives',
+      '[group] Act two',
+      'The frost',
+    ])
     expect(columns[1]?.entries.map((entry) => entry.kind)).toEqual(['card', 'card', 'kept'])
     expect(columns[0]?.entries[0]).toMatchObject({ kind: 'card', path: { section: 0, path: [0] }, detailCount: 2 })
   })
@@ -84,7 +93,10 @@ describe('moving a card with the keyboard', () => {
   })
 
   it('moves a detail only among its siblings', () => {
-    const outlineWithSiblings: OutlineView = { ...outline, sections: [{ name: 'Beginning', intro: [], notes: [], items: [item('Card', [item('one'), item('two')])] }] }
+    const outlineWithSiblings: OutlineView = {
+      ...outline,
+      sections: [{ name: 'Beginning', intro: [], notes: [], items: [item('Card', [item('one'), item('two')])] }],
+    }
     expect(cardMoves(outlineWithSiblings, at(0, 0, 1)).earlier).toEqual({ section: 0, parentPath: [0], index: 0 })
     expect(cardMoves(outlineWithSiblings, at(0, 0, 1)).later).toBeNull()
     expect(cardMoves(outlineWithSiblings, at(0, 0, 1)).nextSection).toBeNull()

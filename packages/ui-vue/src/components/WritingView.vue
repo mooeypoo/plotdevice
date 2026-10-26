@@ -53,7 +53,10 @@ const chapterName = computed(() => {
   const file = writing.file.value
   return props.project.chapters.find((chapter) => chapter.file === file)?.title ?? file ?? ''
 })
-const pageClasses = computed(() => [`size-${settings.preferences?.writingSize ?? 'medium'}`, `width-${settings.preferences?.pageWidth ?? 'medium'}`])
+const pageClasses = computed(() => [
+  `size-${settings.preferences?.writingSize ?? 'medium'}`,
+  `width-${settings.preferences?.pageWidth ?? 'medium'}`,
+])
 
 /** Where to start: where the author left off, or else the first chapter of the book. The view is recreated for each project. */
 function firstChapter(): { file: ProjectPath; cursor: number } | null {
@@ -109,8 +112,16 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>
 
 <template>
-  <div class="writing" :class="{ 'focus-mode': view.focusMode, 'navigator-hidden': view.navigatorHidden, 'with-shelf': shelf.visible && !view.focusMode }">
-    <ChapterNavigator v-if="!view.focusMode && !view.navigatorHidden" :project="project" :open-file="writing.file.value" @open="writing.open" />
+  <div
+    class="writing"
+    :class="{ 'focus-mode': view.focusMode, 'navigator-hidden': view.navigatorHidden, 'with-shelf': shelf.visible && !view.focusMode }"
+  >
+    <ChapterNavigator
+      v-if="!view.focusMode && !view.navigatorHidden"
+      :project="project"
+      :open-file="writing.file.value"
+      @open="writing.open"
+    />
 
     <section class="desk">
       <div v-if="!view.focusMode" class="toolbar" role="toolbar" :aria-label="t('toolbar-format')">
@@ -120,8 +131,21 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         <MenuButton :label="t('toolbar-format')" :text="t('toolbar-format')" :items="formatItems" testid="format-menu" />
         <MenuButton :label="t('toolbar-direction')" :text="t('toolbar-direction')" :items="directionItems" testid="direction-menu" />
         <button type="button" data-testid="focus-mode" @click="setFocusMode(true)">{{ t('focus-enter') }}</button>
-        <button type="button" data-testid="chapter-versions" :disabled="!writing.file.value" @click="writing.file.value && versions.show(writing.file.value, chapterName)">{{ t('versions') }}</button>
-        <button type="button" class="toolbar-end" data-testid="toggle-shelf" :aria-pressed="shelf.visible" @click="shelf.visible = !shelf.visible">
+        <button
+          type="button"
+          data-testid="chapter-versions"
+          :disabled="!writing.file.value"
+          @click="writing.file.value && versions.show(writing.file.value, chapterName)"
+        >
+          {{ t('versions') }}
+        </button>
+        <button
+          type="button"
+          class="toolbar-end"
+          data-testid="toggle-shelf"
+          :aria-pressed="shelf.visible"
+          @click="shelf.visible = !shelf.visible"
+        >
           {{ shelf.visible ? t('shelf-hide') : t('shelf-show') }}
         </button>
       </div>
@@ -130,7 +154,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
       <div class="paper" :class="pageClasses">
         <p v-if="writing.state.value === 'unreadable'" class="warning" role="alert">{{ t('chapter-unreadable') }}</p>
         <p v-else-if="writing.state.value === 'missing'" class="warning" role="alert">{{ t('chapter-missing') }}</p>
-        <div v-show="writing.state.value === 'ready' || writing.state.value === 'loading'" ref="host" class="editor-host" :lang="project.language" data-testid="editor"></div>
+        <div
+          v-show="writing.state.value === 'ready' || writing.state.value === 'loading'"
+          ref="host"
+          class="editor-host"
+          :lang="project.language"
+          data-testid="editor"
+        ></div>
       </div>
 
       <footer v-if="!view.focusMode" class="status-line">
@@ -144,6 +174,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 
     <ReferenceShelf v-if="shelf.visible && !view.focusMode" :chapter="writing.file.value" />
 
-    <ConflictDialog v-if="writing.status.value === 'conflict'" :chapter-name="chapterName" :busy="writing.resolving.value" @choose="writing.resolveConflict" />
+    <ConflictDialog
+      v-if="writing.status.value === 'conflict'"
+      :chapter-name="chapterName"
+      :busy="writing.resolving.value"
+      @choose="writing.resolveConflict"
+    />
   </div>
 </template>

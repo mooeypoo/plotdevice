@@ -88,7 +88,12 @@ export function parseContents(text: string): ParsedContents {
   return { entries, warnings, listEnd: lineEndAt(text, endOf(list)) }
 }
 
-function readItem(text: string, item: ListItem, warn: (code: ContentsWarningCode, offset: number) => void, topLevel: boolean): ContentsItem | null {
+function readItem(
+  text: string,
+  item: ListItem,
+  warn: (code: ContentsWarningCode, offset: number) => void,
+  topLevel: boolean,
+): ContentsItem | null {
   const start = startOf(item)
   const lineStart = lineStartAt(text, start)
   const indent = text.slice(lineStart, start)
@@ -183,7 +188,8 @@ export type ContentsEdit =
   | { kind: 'add-part'; name: string; index: number }
   | { kind: 'rename-part'; part: number; name: string }
 
-export type ContentsEditProblem = 'not-in-contents' | 'already-in-contents' | 'not-a-part' | 'no-such-position' | 'empty-name' | 'multiline-name'
+export type ContentsEditProblem =
+  'not-in-contents' | 'already-in-contents' | 'not-a-part' | 'no-such-position' | 'empty-name' | 'multiline-name'
 
 /**
  * Applies one change to `CONTENTS.md` as splices: the author's bullets, indentation, spacing and
@@ -255,7 +261,13 @@ function plan(text: string, parsed: ParsedContents, edit: ContentsEdit, eol: str
       const at = locate(parsed, edit.file)
       if (!at) return err('not-in-contents')
       if (collisionKey(edit.newFile) !== collisionKey(edit.file) && locate(parsed, edit.newFile)) return err('already-in-contents')
-      return ok([{ start: at.item.destination.start, end: at.item.destination.end, text: formatDestination(edit.newFile, at.item.destination.angle) }])
+      return ok([
+        {
+          start: at.item.destination.start,
+          end: at.item.destination.end,
+          text: formatDestination(edit.newFile, at.item.destination.angle),
+        },
+      ])
     }
     case 'add-part': {
       const name = checkName(edit.name)
@@ -283,7 +295,13 @@ interface Insertion {
   after: string
 }
 
-function insertionFor(text: string, parsed: ParsedContents, placement: ContentsPlacement, moving: ContentsChapterItem | null, eol: string): Result<Insertion, ContentsEditProblem> {
+function insertionFor(
+  text: string,
+  parsed: ParsedContents,
+  placement: ContentsPlacement,
+  moving: ContentsChapterItem | null,
+  eol: string,
+): Result<Insertion, ContentsEditProblem> {
   const part = placement.part === null ? null : parsed.entries[placement.part]
   if (placement.part !== null && part?.kind !== 'part') return err('not-a-part')
   const siblings = (part?.kind === 'part' ? part.chapters : parsed.entries).filter((entry) => entry !== moving)
@@ -292,7 +310,14 @@ function insertionFor(text: string, parsed: ParsedContents, placement: ContentsP
 }
 
 /** Where a new line goes among `siblings`, copying their indentation, bullet style and spacing. */
-function insertionAmong(text: string, parsed: ParsedContents, siblings: readonly ContentsItem[], index: number, part: ContentsPartItem | null, eol: string): Insertion {
+function insertionAmong(
+  text: string,
+  parsed: ParsedContents,
+  siblings: readonly ContentsItem[],
+  index: number,
+  part: ContentsPartItem | null,
+  eol: string,
+): Insertion {
   const next = siblings[index]
   if (next) {
     const spaced = index > 0 && next.lineStart > 0 && isBlankLineAt(text, lineStartAt(text, next.lineStart - 1))
@@ -303,7 +328,14 @@ function insertionAmong(text: string, parsed: ParsedContents, siblings: readonly
     const spaced = siblings.length > 1 && previous.lineStart > 0 && isBlankLineAt(text, lineStartAt(text, previous.lineStart - 1))
     return { at: previous.blockEnd, indent: previous.indent, marker: nextMarker(previous.marker), before: spaced ? eol : '', after: '' }
   }
-  if (part) return { at: part.firstLineEnd, indent: part.indent + childIndent(parsed, part), marker: /^[-+*]$/.test(part.marker) ? part.marker : '-', before: '', after: '' }
+  if (part)
+    return {
+      at: part.firstLineEnd,
+      indent: part.indent + childIndent(parsed, part),
+      marker: /^[-+*]$/.test(part.marker) ? part.marker : '-',
+      before: '',
+      after: '',
+    }
   if (parsed.listEnd !== null) return { at: parsed.listEnd, indent: '', marker: '-', before: '', after: '' }
   const lastLineBlank = text.length === 0 || isBlankLineAt(text, lineStartAt(text, text.length - 1))
   return { at: text.length, indent: '', marker: '-', before: text.length === 0 || lastLineBlank ? '' : eol, after: '' }
@@ -334,7 +366,10 @@ function removal(text: string, item: ItemSource): Splice {
 function rebase(block: string, item: ItemSource, indent: string, marker: string): string {
   const [first = '', ...rest] = block.match(/[^\n]*\n|[^\n]+$/g) ?? []
   const head = indent + marker + first.slice(item.indent.length + item.marker.length)
-  return head + rest.map((line) => (line.trim() !== '' && line.startsWith(item.indent) ? indent + line.slice(item.indent.length) : line)).join('')
+  return (
+    head +
+    rest.map((line) => (line.trim() !== '' && line.startsWith(item.indent) ? indent + line.slice(item.indent.length) : line)).join('')
+  )
 }
 
 function checkName(name: string): Result<string, ContentsEditProblem> {

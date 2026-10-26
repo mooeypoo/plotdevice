@@ -1,4 +1,12 @@
-import type { ChapterFile, FileStore, OpenProblem, ProjectSnapshot, ProjectWarning, RecoveryOutcome, Revision } from '@plotdevice/application'
+import type {
+  ChapterFile,
+  FileStore,
+  OpenProblem,
+  ProjectSnapshot,
+  ProjectWarning,
+  RecoveryOutcome,
+  Revision,
+} from '@plotdevice/application'
 import {
   CURRENT_SCHEMA_VERSION,
   findDuplicateIds,
@@ -31,7 +39,8 @@ export async function readDetails(store: FileStore, warnings: ProjectWarning[]):
   const version = typeof schemaVersion === 'number' ? schemaVersion : 1
   if (version > CURRENT_SCHEMA_VERSION) return err('newer-format')
   const numbering = NUMBERING.find((n) => n === chapterNumbering)
-  if (chapterNumbering !== undefined && !numbering) warnings.push({ file: PROJECT_FILE, code: 'unknown-chapter-numbering', detail: String(chapterNumbering) })
+  if (chapterNumbering !== undefined && !numbering)
+    warnings.push({ file: PROJECT_FILE, code: 'unknown-chapter-numbering', detail: String(chapterNumbering) })
   return ok({
     title: title.trim(),
     ...(typeof author === 'string' && author.trim() ? { author: author.trim() } : {}),
@@ -45,7 +54,8 @@ export async function readDetails(store: FileStore, warnings: ProjectWarning[]):
 /** `CONTENTS.md` as domain contents, with warnings for anything that isn't a chapter or a part. */
 export function contentsFromText(text: string, warnings: ProjectWarning[]): Contents {
   const parsed = parseContents(text)
-  for (const warning of parsed.warnings) warnings.push({ file: CONTENTS_FILE, code: warning.code, line: warning.line, detail: warning.text })
+  for (const warning of parsed.warnings)
+    warnings.push({ file: CONTENTS_FILE, code: warning.code, line: warning.line, detail: warning.text })
   const chapter = (item: ContentsChapterItem): ContentsChapter[] => {
     const resolved = resolveRelative('', item.target)
     const path = resolved === null ? null : parseProjectPath(resolved)
@@ -56,12 +66,18 @@ export function contentsFromText(text: string, warnings: ProjectWarning[]): Cont
     return [{ kind: 'chapter', file: path.value, linkText: item.linkText }]
   }
   return {
-    entries: parsed.entries.flatMap<ContentsEntry>((entry) => (entry.kind === 'chapter' ? chapter(entry) : [{ kind: 'part', name: entry.name, chapters: entry.chapters.flatMap(chapter) }])),
+    entries: parsed.entries.flatMap<ContentsEntry>((entry) =>
+      entry.kind === 'chapter' ? chapter(entry) : [{ kind: 'part', name: entry.name, chapters: entry.chapters.flatMap(chapter) }],
+    ),
   }
 }
 
 /** Reads the whole project into a snapshot. Opening never changes a file (recovery aside, which runs before). */
-export async function readProject(root: string, store: FileStore, recovered: RecoveryOutcome[]): Promise<Result<ProjectSnapshot, OpenProblem>> {
+export async function readProject(
+  root: string,
+  store: FileStore,
+  recovered: RecoveryOutcome[],
+): Promise<Result<ProjectSnapshot, OpenProblem>> {
   const warnings: ProjectWarning[] = []
   const details = await readDetails(store, warnings)
   if (!details.ok) return details

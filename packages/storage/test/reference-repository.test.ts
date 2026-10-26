@@ -20,7 +20,10 @@ async function setup() {
   await cp(PROJECT, root, { recursive: true })
   await mkdir(join(root, 'characters'))
   await mkdir(join(root, 'places'))
-  await writeFile(join(root, 'characters/ilka.md'), '---\ntitle: Ilka Varga\naka: [Ilka]\npov: true # her chapters\n---\nInherits the orchard.\n\n## Family\nBea is her aunt.\n')
+  await writeFile(
+    join(root, 'characters/ilka.md'),
+    '---\ntitle: Ilka Varga\naka: [Ilka]\npov: true # her chapters\n---\nInherits the orchard.\n\n## Family\nBea is her aunt.\n',
+  )
   await writeFile(join(root, 'places/marrow.md'), '# Marrow\nWhere the orchard is.\n')
   const repository = createReferenceRepository({ folders: createProjectFolders() })
   const text = (path: string) => readFile(join(root, path), 'utf8')
@@ -37,20 +40,42 @@ describe('reference pages', () => {
     const { root, repository } = await setup()
     expect(await repository.listReferences(root)).toEqual([
       { file: 'characters/ilka.md', kind: 'character', title: 'Ilka Varga', aka: ['Ilka'], description: 'Inherits the orchard.' },
-      { file: 'notes/crossing-notes.md', kind: 'note', title: expect.any(String) as string, aka: [], description: expect.anything() as string },
-      { file: 'notes/loose-ideas.md', kind: 'note', title: 'Loose ideas', aka: [], description: expect.stringMatching(/^Maybe open/) as string },
+      {
+        file: 'notes/crossing-notes.md',
+        kind: 'note',
+        title: expect.any(String) as string,
+        aka: [],
+        description: expect.anything() as string,
+      },
+      {
+        file: 'notes/loose-ideas.md',
+        kind: 'note',
+        title: 'Loose ideas',
+        aka: [],
+        description: expect.stringMatching(/^Maybe open/) as string,
+      },
       { file: 'places/marrow.md', kind: 'place', title: 'Marrow', aka: [], description: 'Where the orchard is.' },
     ])
   })
 
   it('reads a page with its details', async () => {
     const { root, repository } = await setup()
-    expect(unwrap(await repository.readReference(root, p('characters/ilka.md')))).toMatchObject({ title: 'Ilka Varga', details: '## Family\nBea is her aunt.\n', invalidDetails: false })
+    expect(unwrap(await repository.readReference(root, p('characters/ilka.md')))).toMatchObject({
+      title: 'Ilka Varga',
+      details: '## Family\nBea is her aunt.\n',
+      invalidDetails: false,
+    })
   })
 
   it('creates pages named from their titles, in Hebrew too', async () => {
     const { root, repository, text } = await setup()
-    expect(unwrap(await repository.createReference(root, 'character', 'יעל'))).toEqual({ file: 'characters/יעל.md', kind: 'character', title: 'יעל', aka: [], description: null })
+    expect(unwrap(await repository.createReference(root, 'character', 'יעל'))).toEqual({
+      file: 'characters/יעל.md',
+      kind: 'character',
+      title: 'יעל',
+      aka: [],
+      description: null,
+    })
     expect(await text('characters/יעל.md')).toBe('---\ntitle: יעל\n---\n')
     expect(unwrap(await repository.createReference(root, 'place', 'Marrow')).file).toBe('places/marrow-2.md')
   })
@@ -58,7 +83,9 @@ describe('reference pages', () => {
   it('renames a page, changing only its title and keeping its other details and comments', async () => {
     const { root, repository, text } = await setup()
     unwrap(await repository.renameReference(root, p('characters/ilka.md'), 'Ilka'))
-    expect(await text('characters/ilka.md')).toBe('---\ntitle: Ilka\naka: [Ilka]\npov: true # her chapters\n---\nInherits the orchard.\n\n## Family\nBea is her aunt.\n')
+    expect(await text('characters/ilka.md')).toBe(
+      '---\ntitle: Ilka\naka: [Ilka]\npov: true # her chapters\n---\nInherits the orchard.\n\n## Family\nBea is her aunt.\n',
+    )
   })
 })
 

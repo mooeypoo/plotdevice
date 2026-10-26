@@ -112,5 +112,20 @@ export const useProjectStore = defineStore('project', () => {
   })
   void refreshRecent()
 
-  return { opened, project, recent, statuses, notice, tell, setProject, open, create, forget, changeContents, renameChapter, renameChapterFile, compile }
+  return {
+    opened,
+    project,
+    recent,
+    statuses,
+    notice,
+    tell,
+    setProject,
+    open,
+    create,
+    forget,
+    changeContents,
+    renameChapter,
+    renameChapterFile,
+    compile,
+  }
 })

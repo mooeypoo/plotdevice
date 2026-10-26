@@ -60,7 +60,12 @@ function layout(state: EditorState): Layout {
       hidden.push(hideMarkup.range(span.from, span.contentFrom), hideMarkup.range(span.contentTo, span.to))
       if (span.contentTo > span.contentFrom) {
         const bidiIsolate = span.direction === 'rtl' ? BidiDirection.RTL : BidiDirection.LTR
-        isolates.push(Decoration.mark({ attributes: { dir: span.direction }, class: 'cm-dir-span', bidiIsolate }).range(span.contentFrom, span.contentTo))
+        isolates.push(
+          Decoration.mark({ attributes: { dir: span.direction }, class: 'cm-dir-span', bidiIsolate }).range(
+            span.contentFrom,
+            span.contentTo,
+          ),
+        )
       }
     }
     const inDiv = div && line.from > div.open.from && line.from < div.close.from
@@ -77,7 +82,8 @@ function layout(state: EditorState): Layout {
 
 export const directionLayout = StateField.define<Layout>({
   create: layout,
-  update: (value, tr) => (tr.docChanged || tr.startState.facet(editorSettings) !== tr.state.facet(editorSettings) ? layout(tr.state) : value),
+  update: (value, tr) =>
+    tr.docChanged || tr.startState.facet(editorSettings) !== tr.state.facet(editorSettings) ? layout(tr.state) : value,
   provide: (field) => [
     EditorView.decorations.from(field, (l) => l.decorations),
     EditorView.atomicRanges.of((view) => view.state.field(field).hidden),
@@ -149,15 +155,28 @@ export const setParagraphDirection =
       // A list item or quote line: a fenced div would break the list, so its text becomes a span.
       const inner = wholeLineSpan(line.text)?.inner ?? line.text.slice(prefix.length)
       const needed = direction !== null && direction !== effectiveDirection(state, inner)
-      dispatch(state.update({ changes: { from: line.from + prefix.length, to: line.to, insert: needed ? wrapSpan(inner, direction) : inner }, userEvent: 'input.direction' }))
+      dispatch(
+        state.update({
+          changes: { from: line.from + prefix.length, to: line.to, insert: needed ? wrapSpan(inner, direction) : inner },
+          userEvent: 'input.direction',
+        }),
+      )
       return true
     }
     const { first, last, div } = paragraphAt(state, line.from)
     const needed = direction !== null && direction !== effectiveDirection(state, state.sliceDoc(first.from, last.to))
     let changes: ChangeSpec[] = []
     if (div && needed) changes = [{ from: div.open.from, to: div.open.to, insert: openDiv(direction) }]
-    else if (div) changes = [{ from: div.open.from, to: div.open.to + 1 }, { from: div.close.from - 1, to: div.close.to }]
-    else if (needed) changes = [{ from: first.from, insert: `${openDiv(direction)}${nl}` }, { from: last.to, insert: `${nl}:::` }]
+    else if (div)
+      changes = [
+        { from: div.open.from, to: div.open.to + 1 },
+        { from: div.close.from - 1, to: div.close.to },
+      ]
+    else if (needed)
+      changes = [
+        { from: first.from, insert: `${openDiv(direction)}${nl}` },
+        { from: last.to, insert: `${nl}:::` },
+      ]
     if (changes.length) dispatch(state.update({ changes, filter: false, userEvent: 'input.direction' }))
     return true
   }
@@ -176,8 +195,16 @@ export const setPhraseDirection =
     const needed = direction !== null && direction !== lineDirection
     let changes: ChangeSpec[] = []
     if (existing && needed) changes = [{ from: existing.contentTo, to: existing.to, insert: `]{dir=${direction}}` }]
-    else if (existing) changes = [{ from: existing.from, to: existing.contentFrom }, { from: existing.contentTo, to: existing.to }]
-    else if (needed) changes = [{ from: start, insert: '[' }, { from: end, insert: `]{dir=${direction}}` }]
+    else if (existing)
+      changes = [
+        { from: existing.from, to: existing.contentFrom },
+        { from: existing.contentTo, to: existing.to },
+      ]
+    else if (needed)
+      changes = [
+        { from: start, insert: '[' },
+        { from: end, insert: `]{dir=${direction}}` },
+      ]
     if (changes.length) dispatch(state.update({ changes, userEvent: 'input.direction' }))
     return true
   }

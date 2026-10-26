@@ -22,7 +22,14 @@ import {
   writeAtomically,
 } from '@plotdevice/fs-node'
 import { catalogs, createTranslator } from '@plotdevice/i18n'
-import { compileManuscript, createOutlineRepository, createProjectRepository, createReferenceRepository, createVersionRepository, withBackups } from '@plotdevice/storage'
+import {
+  compileManuscript,
+  createOutlineRepository,
+  createProjectRepository,
+  createReferenceRepository,
+  createVersionRepository,
+  withBackups,
+} from '@plotdevice/storage'
 import { app, BrowserWindow, dialog, ipcMain, session } from 'electron'
 import { access, readFile, stat } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -85,11 +92,18 @@ void app.whenReady().then(async () => {
   const backups = createBackupStore(userData)
   const folders = withBackups(createProjectFolders(), { backups, now: Date.now })
   const versions = createVersionRepository({ folders: createProjectFolders(), backups, now: Date.now })
-  const repository = withSlowChapterSaves(createProjectRepository({ folders, journals: createJournalStore(userData), ids: randomIdGenerator }))
+  const repository = withSlowChapterSaves(
+    createProjectRepository({ folders, journals: createJournalStore(userData), ids: randomIdGenerator }),
+  )
   const writing = createWritingSession({ repository, copyLabel: () => translate('conflict-copy-label') })
   const outlines = createOutlineSession({ repository: createOutlineRepository({ folders }), root: () => writing.project()?.root ?? null })
   const recent = await createRecentProjectsSession(createAppDataFile(userData, 'recent'))
-  pendingWork.push(() => preferences.idle(), () => writing.idle(), () => recent.idle(), () => outlines.idle())
+  pendingWork.push(
+    () => preferences.idle(),
+    () => writing.idle(),
+    () => recent.idle(),
+    () => outlines.idle(),
+  )
   // The watcher can start before the window exists (reopening the last project); events wait for it.
   let tellPage: (event: HostEvent) => void = () => undefined
   const stopWatching = watchOpenProject(writing, outlines, () => tellPage({ kind: 'references-changed' }))
@@ -133,7 +147,9 @@ void app.whenReady().then(async () => {
   const checkSpelling = (): void => {
     const project = writing.project()
     const available = session.defaultSession.availableSpellCheckerLanguages
-    session.defaultSession.setSpellCheckerLanguages(spellcheckLanguages(project?.details.language ?? 'en', preferences.current().locale, available))
+    session.defaultSession.setSpellCheckerLanguages(
+      spellcheckLanguages(project?.details.language ?? 'en', preferences.current().locale, available),
+    )
   }
   if (process.platform !== 'darwin') {
     checkSpelling()
@@ -160,7 +176,11 @@ void app.whenReady().then(async () => {
 
   const chooseFolder = async (titleKey: string): Promise<string | null> => {
     if (testFolderChoice !== undefined) return testFolderChoice || null
-    const chosen = await dialog.showOpenDialog(window, { title: translate(titleKey), buttonLabel: translate('dialog-choose'), properties: ['openDirectory', 'createDirectory'] })
+    const chosen = await dialog.showOpenDialog(window, {
+      title: translate(titleKey),
+      buttonLabel: translate('dialog-choose'),
+      properties: ['openDirectory', 'createDirectory'],
+    })
     return chosen.canceled ? null : (chosen.filePaths[0] ?? null)
   }
 
@@ -176,7 +196,11 @@ void app.whenReady().then(async () => {
       recent,
       chooseProjectFolder: () => chooseFolder('dialog-open-project'),
       chooseNewProjectLocation: () => chooseFolder('dialog-new-project-location'),
-      folderExists: (path) => access(path).then(() => true, () => false),
+      folderExists: (path) =>
+        access(path).then(
+          () => true,
+          () => false,
+        ),
       onFlushed: () => flushWaiters.splice(0).forEach((resolve) => resolve()),
       chooseSaveLocation: async (suggested) => {
         if (testSaveAs !== undefined) return testSaveAs || null
@@ -184,10 +208,11 @@ void app.whenReady().then(async () => {
         return chosen.canceled || !chosen.filePath ? null : chosen.filePath
       },
       compile: (snapshot) => compileManuscript(createProjectFolders(), snapshot),
-      writeOutside: (path, text) => writeAtomically(path, new TextEncoder().encode(text)).then(
-        () => true,
-        () => false,
-      ),
+      writeOutside: (path, text) =>
+        writeAtomically(path, new TextEncoder().encode(text)).then(
+          () => true,
+          () => false,
+        ),
     },
     outlines: { outlines, writing, recent },
     references: { references: createReferenceRepository({ folders }), writing, recent },
@@ -196,11 +221,19 @@ void app.whenReady().then(async () => {
       writing,
       outlines,
       repository,
-      copyLabel: (at) => translate('version-copy-label').replace('$1', new Intl.DateTimeFormat(preferences.current().locale, { dateStyle: 'medium', timeStyle: 'short' }).format(at).replace(/[:/]/g, '.')),
+      copyLabel: (at) =>
+        translate('version-copy-label').replace(
+          '$1',
+          new Intl.DateTimeFormat(preferences.current().locale, { dateStyle: 'medium', timeStyle: 'short' })
+            .format(at)
+            .replace(/[:/]/g, '.'),
+        ),
     },
   })
   for (const [channel, handle] of Object.entries(handlers)) {
-    ipcMain.handle(channel, (event, payload: unknown) => handle({ url: event.senderFrame?.url, fromAppWindow: event.sender === window.webContents }, payload))
+    ipcMain.handle(channel, (event, payload: unknown) =>
+      handle({ url: event.senderFrame?.url, fromAppWindow: event.sender === window.webContents }, payload),
+    )
   }
 
   window.webContents.once('did-finish-load', () => {
@@ -289,7 +322,9 @@ function withSlowPreferences(store: PreferencesStore): PreferencesStore {
 }
 
 function withSlowChapterSaves(repository: ProjectRepository): ProjectRepository {
-  return testSaveDelayMs ? { ...repository, saveChapter: async (...args) => (await testDelay(), repository.saveChapter(...args)) } : repository
+  return testSaveDelayMs
+    ? { ...repository, saveChapter: async (...args) => (await testDelay(), repository.saveChapter(...args)) }
+    : repository
 }
 
 function platformOf(platform: NodeJS.Platform): AppInfo['platform'] {

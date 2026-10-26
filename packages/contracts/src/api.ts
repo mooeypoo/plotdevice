@@ -1,5 +1,12 @@
 import type { AboutView, AppInfo } from './app-info'
-import type { HostEvent, LeftOffRequest, OpenChapterResult, ResolveConflictRequest, ResolveConflictResult, SaveChapterRequest } from './chapter'
+import type {
+  HostEvent,
+  LeftOffRequest,
+  OpenChapterResult,
+  ResolveConflictRequest,
+  ResolveConflictResult,
+  SaveChapterRequest,
+} from './chapter'
 import type { OutlineEditRequest, OutlineResult, OutlineSummaryView, Place } from './outline'
 import type { Preferences, PreferencesPatch } from './preferences'
 import type { CardLinksView, ReferenceKind, ReferencePageView, ReferenceResult, ReferenceSummaryView } from './references'

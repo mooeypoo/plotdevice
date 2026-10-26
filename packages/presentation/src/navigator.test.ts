@@ -40,7 +40,11 @@ describe('moving a chapter up and down follows reading order', () => {
   })
 
   it('moves among top-level chapters in a book without parts', () => {
-    const flat: ProjectView['contents'] = [{ kind: 'chapter', ...ch('a') }, { kind: 'chapter', ...ch('b') }, { kind: 'chapter', ...ch('c') }]
+    const flat: ProjectView['contents'] = [
+      { kind: 'chapter', ...ch('a') },
+      { kind: 'chapter', ...ch('b') },
+      { kind: 'chapter', ...ch('c') },
+    ]
     expect(moveUp(flat, p('manuscript/b.md'))).toEqual({ part: null, index: 0 })
     expect(moveDown(flat, p('manuscript/b.md'))).toEqual({ part: null, index: 2 })
   })

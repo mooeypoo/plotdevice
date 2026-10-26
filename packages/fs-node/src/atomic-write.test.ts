@@ -111,14 +111,18 @@ describe('writeAtomically', () => {
     await writeFile(target, 'ORIGINAL\n')
     const versionsSeen = new Set<string>()
     for (const delay of [15, 45, 30, 60, 20, 50, 35, 25]) {
-      const child = spawn(process.execPath, [join(import.meta.dirname, 'write-loop.fixture.ts'), target], { stdio: ['ignore', 'pipe', 'ignore'] })
+      const child = spawn(process.execPath, [join(import.meta.dirname, 'write-loop.fixture.ts'), target], {
+        stdio: ['ignore', 'pipe', 'ignore'],
+      })
       // Wait until it is writing: a busy machine can take longer than `delay` just to start Node.
       await new Promise((resolve) => child.stdout.once('data', resolve))
       await new Promise((resolve) => setTimeout(resolve, delay))
       child.kill('SIGKILL')
       await new Promise((resolve) => child.on('exit', resolve))
       const content = await readFile(target, 'utf8')
-      expect(content === 'ORIGINAL\n' || /^BEGIN ([AB])\n\1+\nEND \1\n$/.test(content), `partial file: ${content.length} characters`).toBe(true)
+      expect(content === 'ORIGINAL\n' || /^BEGIN ([AB])\n\1+\nEND \1\n$/.test(content), `partial file: ${content.length} characters`).toBe(
+        true,
+      )
       versionsSeen.add(content.slice(0, 7))
     }
     expect(versionsSeen.size).toBeGreaterThan(1) // the kills really landed while writing

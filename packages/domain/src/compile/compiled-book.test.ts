@@ -7,7 +7,11 @@ const p = (path: string) => path as ProjectPath
 const contents: Contents = {
   entries: [
     { kind: 'chapter', file: p('manuscript/prologue.md'), linkText: 'Prologue' },
-    { kind: 'part', name: 'Part One: Arrival', chapters: [{ kind: 'chapter', file: p('manuscript/crossing.md'), linkText: 'The Crossing' }] },
+    {
+      kind: 'part',
+      name: 'Part One: Arrival',
+      chapters: [{ kind: 'chapter', file: p('manuscript/crossing.md'), linkText: 'The Crossing' }],
+    },
     { kind: 'part', name: 'Part Two', chapters: [{ kind: 'chapter', file: p('manuscript/frost.md'), linkText: 'Frost' }] },
   ],
 }
@@ -25,7 +29,11 @@ describe('the compiled book', () => {
   })
 
   it('restarts numbering in each part, and leaves chapters outside parts unnumbered, with per-part numbering', () => {
-    expect(compiledBook(contents, 'per-part', titles).flatMap((entry) => (entry.kind === 'chapter' ? [entry.heading] : []))).toEqual(['## Prologue', '## 1. The Crossing', '## 1. Frost, again'])
+    expect(compiledBook(contents, 'per-part', titles).flatMap((entry) => (entry.kind === 'chapter' ? [entry.heading] : []))).toEqual([
+      '## Prologue',
+      '## 1. The Crossing',
+      '## 1. Frost, again',
+    ])
   })
 
   it('numbers nothing when numbering is off, and keeps Hebrew titles as they are', () => {

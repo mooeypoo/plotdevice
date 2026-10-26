@@ -4,7 +4,16 @@ import { newChapterFile, newContentsFile, newProjectFile } from './new-files'
 
 describe('new files, exactly as DOMAIN_AND_FILE_FORMAT.md shows them', () => {
   it('project.md', () => {
-    expect(newProjectFile({ title: 'The Salt Orchard', author: 'Ines Varga', language: 'he', chapterNumbering: 'continuous', id: 'prj-7d2k9q', schemaVersion: 1 })).toBe(
+    expect(
+      newProjectFile({
+        title: 'The Salt Orchard',
+        author: 'Ines Varga',
+        language: 'he',
+        chapterNumbering: 'continuous',
+        id: 'prj-7d2k9q',
+        schemaVersion: 1,
+      }),
+    ).toBe(
       '---\ntitle: The Salt Orchard\nauthor: Ines Varga\nlanguage: he\nchapterNumbering: continuous\nid: prj-7d2k9q\nschemaVersion: 1\n---\n',
     )
   })

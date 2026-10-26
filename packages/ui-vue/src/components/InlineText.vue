@@ -15,7 +15,14 @@ const spans = computed(() => inlineSpans(props.text))
       ><strong v-if="span.kind === 'strong'">{{ span.text }}</strong
       ><em v-else-if="span.kind === 'em'">{{ span.text }}</em
       ><code v-else-if="span.kind === 'code'">{{ span.text }}</code
-      ><button v-else-if="span.kind === 'link' && followLinks" type="button" class="inline-link" :title="span.target" @click.stop="emit('follow', span.target)">{{ span.text }}</button
+      ><button
+        v-else-if="span.kind === 'link' && followLinks"
+        type="button"
+        class="inline-link"
+        :title="span.target"
+        @click.stop="emit('follow', span.target)"
+      >
+        {{ span.text }}</button
       ><span v-else-if="span.kind === 'link'" class="inline-link" :title="span.target">{{ span.text }}</span
       ><template v-else>{{ span.text }}</template></template
     ></span

@@ -52,5 +52,7 @@ export const palettes = {
 
 /** `textSecondary` → `--color-text-secondary`. */
 export function cssVariables(palette: Palette): Record<string, string> {
-  return Object.fromEntries(Object.entries(palette).map(([token, value]) => [`--color-${token.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`, value]))
+  return Object.fromEntries(
+    Object.entries(palette).map(([token, value]) => [`--color-${token.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`, value]),
+  )
 }

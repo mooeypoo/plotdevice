@@ -60,7 +60,8 @@ function readInlineStyles(node: HastRoot | Element): void {
     if ((child.tagName === 'b' || child.tagName === 'strong') && notBold) child.tagName = 'span'
     else if (child.tagName === 'span' && bold) child.tagName = 'strong'
     if (child.tagName === 'span' && italic) child.tagName = 'em'
-    else if (child.tagName === 'strong' && italic) child.children = [{ type: 'element', tagName: 'em', properties: {}, children: child.children }]
+    else if (child.tagName === 'strong' && italic)
+      child.children = [{ type: 'element', tagName: 'em', properties: {}, children: child.children }]
     readInlineStyles(child)
   }
 }
@@ -131,7 +132,11 @@ function outerSpaces(node: Extract<PhrasingContent, { type: 'emphasis' | 'strong
   if (first?.type === 'text') first.value = first.value.slice(before.length)
   if (last?.type === 'text') last.value = last.value.slice(0, last.value.length - after.length)
   const empty = node.children.every((child) => child.type === 'text' && child.value === '')
-  return [...(before ? [{ type: 'text' as const, value: before }] : []), ...(empty ? [] : [node]), ...(after ? [{ type: 'text' as const, value: after }] : [])]
+  return [
+    ...(before ? [{ type: 'text' as const, value: before }] : []),
+    ...(empty ? [] : [node]),
+    ...(after ? [{ type: 'text' as const, value: after }] : []),
+  ]
 }
 
 function withSpaces(cells: PhrasingContent[][]): PhrasingContent[] {
@@ -143,4 +148,3 @@ const paragraphOf = (children: PhrasingContent[]): Paragraph => ({ type: 'paragr
 function isPhrasing(node: RootContent): node is PhrasingContent {
   return node.type === 'text' || node.type === 'emphasis' || node.type === 'strong' || node.type === 'link' || node.type === 'break'
 }
-

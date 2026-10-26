@@ -20,7 +20,13 @@ const WIKILINK = /\[\[([^\]|#\n]+)(#[^\]|\n]*)?(\|[^\]\n]*)?\]\]/g
  * inline links, reference definitions and `[[wikilinks]]`. Matches by resolved path, never by link text;
  * code is never touched. Fragments, titles, aliases and the link's own style are kept.
  */
-export function rewriteLinksTo(text: string, fileDir: string, from: string, to: string, options: RewriteOptions): { text: string; count: number } {
+export function rewriteLinksTo(
+  text: string,
+  fileDir: string,
+  from: string,
+  to: string,
+  options: RewriteOptions,
+): { text: string; count: number } {
   const protectedRanges = codeRanges(text)
   const inCode = (offset: number): boolean => protectedRanges.some((range) => offset >= range.start && offset < range.end)
   const splices: Splice[] = []
@@ -42,7 +48,8 @@ export function rewriteLinksTo(text: string, fileDir: string, from: string, to: 
     const fromWithoutExtension = from.replace(/\.md$/i, '')
     const means = pathForm
       ? collisionKey(target.replace(/\.md$/i, '')) === collisionKey(fromWithoutExtension)
-      : options.wikilinkNameIsUnique && (collisionKey(target) === collisionKey(stemOf(from)) || collisionKey(target) === collisionKey(basenameOf(from)))
+      : options.wikilinkNameIsUnique &&
+        (collisionKey(target) === collisionKey(stemOf(from)) || collisionKey(target) === collisionKey(basenameOf(from)))
     if (!means) continue
     const newTarget = pathForm ? to.replace(/\.md$/i, '') : stemOf(to)
     const start = match.index + 2 + (match[1] ?? '').indexOf(target)

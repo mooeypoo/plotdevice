@@ -43,7 +43,8 @@ async function focusCard(file: ProjectPath): Promise<void> {
 
 function openTarget(target: LinkTargetView): void {
   if (target.kind === 'chapter') view.writeChapter(target.file)
-  else if (target.kind === 'character' || target.kind === 'place' || target.kind === 'note') void shelf.open(target.file).then(() => focusCard(target.file))
+  else if (target.kind === 'character' || target.kind === 'place' || target.kind === 'note')
+    void shelf.open(target.file).then(() => focusCard(target.file))
 }
 
 function edit(file: ProjectPath): void {
@@ -54,9 +55,21 @@ function edit(file: ProjectPath): void {
 function menu(file: ProjectPath): MenuItem[] {
   const pinnedAt = shelf.pinned.indexOf(file)
   return [
-    pinnedAt >= 0 ? { key: 'unpin', label: t('shelf-unpin'), run: () => void shelf.unpin(file) } : { key: 'pin', label: t('shelf-pin'), run: () => void shelf.pin(file) },
-    { key: 'move-earlier', label: t('item-move-earlier'), disabled: pinnedAt <= 0, run: () => void shelf.moveTo(file, pinnedAt - 1).then(() => focusCard(file)) },
-    { key: 'move-later', label: t('item-move-later'), disabled: pinnedAt < 0 || pinnedAt >= shelf.pinned.length - 1, run: () => void shelf.moveTo(file, pinnedAt + 1).then(() => focusCard(file)) },
+    pinnedAt >= 0
+      ? { key: 'unpin', label: t('shelf-unpin'), run: () => void shelf.unpin(file) }
+      : { key: 'pin', label: t('shelf-pin'), run: () => void shelf.pin(file) },
+    {
+      key: 'move-earlier',
+      label: t('item-move-earlier'),
+      disabled: pinnedAt <= 0,
+      run: () => void shelf.moveTo(file, pinnedAt - 1).then(() => focusCard(file)),
+    },
+    {
+      key: 'move-later',
+      label: t('item-move-later'),
+      disabled: pinnedAt < 0 || pinnedAt >= shelf.pinned.length - 1,
+      run: () => void shelf.moveTo(file, pinnedAt + 1).then(() => focusCard(file)),
+    },
     { key: 'edit', label: t('shelf-edit'), group: 'edit', run: () => edit(file) },
     { key: 'close', label: t('shelf-close'), run: () => void shelf.close(file) },
   ]
@@ -85,12 +98,19 @@ function openResult(file: ProjectPath): void {
   <aside class="shelf" :aria-label="t('shelf')" data-testid="shelf">
     <label class="field">
       <span>{{ t('shelf-search') }}</span>
-      <input v-model="query" type="search" dir="auto" data-testid="shelf-search" @keydown.enter.prevent="results[0] && openResult(results[0].file)" />
+      <input
+        v-model="query"
+        type="search"
+        dir="auto"
+        data-testid="shelf-search"
+        @keydown.enter.prevent="results[0] && openResult(results[0].file)"
+      />
     </label>
     <ul v-if="query.trim() !== ''" class="results" data-testid="shelf-results">
       <li v-for="result in results" :key="result.file">
         <button type="button" class="chapter" @click="openResult(result.file)">
-          <span dir="auto">{{ result.title }}</span><span class="secondary">{{ t(`kind-${result.kind}`) }}</span>
+          <span dir="auto">{{ result.title }}</span
+          ><span class="secondary">{{ t(`kind-${result.kind}`) }}</span>
         </button>
       </li>
       <li v-if="results.length === 0" class="secondary">{{ t('shelf-no-results') }}</li>
@@ -99,11 +119,15 @@ function openResult(file: ProjectPath): void {
     <section v-if="shelf.aboutChapter.length > 0" class="shelf-section" data-testid="from-outline">
       <h2>{{ t('shelf-from-outline') }}</h2>
       <article v-for="(card, index) in shelf.aboutChapter" :key="index" class="outline-card shelf-outline-card">
-        <p class="card-section secondary" dir="auto">{{ card.outlineTitle ?? card.outline }}{{ card.section ? ` · ${card.section}` : '' }}</p>
+        <p class="card-section secondary" dir="auto">
+          {{ card.outlineTitle ?? card.outline }}{{ card.section ? ` · ${card.section}` : '' }}
+        </p>
         <InlineText :text="card.card" />
         <ul v-if="card.links.length > 0" class="shelf-links">
           <li v-for="link in card.links" :key="link.file">
-            <button type="button" class="link-button" @click="openTarget(link)"><span dir="auto">{{ link.title }}</span></button>
+            <button type="button" class="link-button" @click="openTarget(link)">
+              <span dir="auto">{{ link.title }}</span>
+            </button>
             <span class="secondary">{{ t(`kind-${link.kind}`) }}</span>
           </li>
         </ul>
@@ -131,7 +155,9 @@ function openResult(file: ProjectPath): void {
           <strong class="card-text" dir="auto">{{ shelf.pages[file]?.title ?? file }}</strong>
           <MenuButton :label="t('shelf-card-actions', shelf.pages[file]?.title ?? file)" :items="menu(file)" />
         </div>
-        <p v-if="shelf.pages[file]?.description" class="shelf-description" dir="auto"><InlineText :text="shelf.pages[file]?.description ?? ''" /></p>
+        <p v-if="shelf.pages[file]?.description" class="shelf-description" dir="auto">
+          <InlineText :text="shelf.pages[file]?.description ?? ''" />
+        </p>
         <details v-if="shelf.pages[file]?.details">
           <summary>{{ t('shelf-details') }}</summary>
           <pre dir="auto">{{ shelf.pages[file]?.details }}</pre>

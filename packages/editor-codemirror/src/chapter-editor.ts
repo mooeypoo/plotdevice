@@ -17,7 +17,9 @@ const pageTheme = EditorView.theme({
   '.cm-scroller': { fontFamily: "Georgia, 'Noto Serif Hebrew', 'Frank Ruehl CLM', serif", lineHeight: '1.75' },
   '.cm-content': { caretColor: 'var(--color-text)', paddingBlock: '2rem' },
   '.cm-cursor': { borderInlineStartColor: 'var(--color-text)' },
-  '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection': { backgroundColor: 'color-mix(in srgb, var(--color-accent) 25%, transparent)' },
+  '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection': {
+    backgroundColor: 'color-mix(in srgb, var(--color-accent) 25%, transparent)',
+  },
   '.cm-heading': { fontWeight: '650' },
   '.cm-h1': { fontSize: '1.6em' },
   '.cm-h2': { fontSize: '1.35em' },
@@ -71,7 +73,13 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
   let current = options.settings
   const contentAttributes = new Compartment()
   const attributesFor = (s: EditorSettings) =>
-    EditorView.contentAttributes.of({ dir: s.projectDirection, lang: s.language, spellcheck: 'true', 'aria-label': s.labels.chapterText, 'aria-multiline': 'true' })
+    EditorView.contentAttributes.of({
+      dir: s.projectDirection,
+      lang: s.language,
+      spellcheck: 'true',
+      'aria-label': s.labels.chapterText,
+      'aria-multiline': 'true',
+    })
 
   const viewExtensions = [
     EditorView.lineWrapping,
