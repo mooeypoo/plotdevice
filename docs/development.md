@@ -13,7 +13,8 @@
 |---|---|
 | `pnpm dev` | Run the app with hot reload |
 | `pnpm build` | Production build into `apps/desktop/out/` |
-| `pnpm lint` | ESLint (TypeScript and Vue) |
+| `pnpm lint` | ESLint (TypeScript and Vue), and Prettier's check that the code is formatted |
+| `pnpm format` | Formats the code with Prettier (fixtures, samples and docs are left as written) |
 | `pnpm typecheck` | `tsc -b` for the pure packages, `vue-tsc` for the Vue packages |
 | `pnpm test` | Unit and integration tests (Vitest) |
 | `pnpm arch` | Architecture rules: the real code must pass, every deliberate violation must be caught |

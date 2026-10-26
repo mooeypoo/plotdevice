@@ -1,0 +1,3 @@
+# One-off reformats that blame should skip: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# Prettier, Milestone 8
+c737abc6de3d3ec25133d5f3e826d055af0a615a
