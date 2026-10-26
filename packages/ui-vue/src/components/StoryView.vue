@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { OutlineViewKind, ProjectView, ReferenceKind } from '@plotdevice/contracts'
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted } from 'vue'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
 import { useOutlineActions } from '../composables/use-outline-actions'
@@ -55,6 +55,18 @@ async function newPage(kind: ReferenceKind): Promise<void> {
   const title = await ask(t('prompt-reference-title'))
   if (title) await story.createReference(kind, title)
 }
+
+/** Ctrl+Z (⌘Z) undoes the last outline change, unless the keyboard is in a text field or page editor. */
+function onKey(event: KeyboardEvent): void {
+  if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || event.key.toLowerCase() !== 'z') return
+  const target = event.target as HTMLElement | null
+  if (target?.closest('input, textarea, select, [contenteditable="true"], .page-editor')) return
+  if (story.showing.kind !== 'outline' || !story.outline?.canUndo) return
+  event.preventDefault()
+  void story.undo()
+}
+onMounted(() => window.addEventListener('keydown', onKey))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>
 
 <template>

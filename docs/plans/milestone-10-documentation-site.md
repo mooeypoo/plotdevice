@@ -107,4 +107,19 @@ Short pages, each named for what the reader wants to do, with a screenshot and t
 
 **The bilingual section** shows the interface and the book in different languages: on the English page, the English interface with the Hebrew book; on the Hebrew page, the Hebrew interface with the English book.
 
-**Not done yet:** the guide's other pages, the translation report, `astro check` in CI, the accessibility scan, and the deploy workflow.
+**Steps 2 to 6:**
+- **The guide:** 30 pages in each language, covering every section in the plan. The Hebrew is written, not translated word for word, gender-neutral, with a maqaf between a prefix and a bold label ("ו־**רוחב העמוד**") so the label still renders bold. Examples in the Hebrew "Your files" pages come from the Hebrew demo novel.
+- **Close-up screenshots** for guide pages (the book menu, Aa, ¶, a chapter's menu, a card's menu, the link picker, the new-book form), cropped from the same 2× window and shown at their natural size.
+- **The translation report:** `pnpm site:translations` lists missing and outdated pages per language; `--stamp <code>` records the English version a translation came from. Hebrew: 32 of 32 pages, up to date.
+- **Site tests,** `pnpm site:test`, served as GitHub Pages serves them:
+  - axe finds no serious problems on the front page and a guide page, in English and Hebrew, light and dark;
+  - Hebrew pages are right to left with code left to right;
+  - every front-page screenshot loads.
+
+  Writing that last right-to-left test found code blocks running right to left in Hebrew; they are now left to right.
+- **Help in the app's language** (decision 4): About and **☰ → Help and documentation** open `/plotdevice/he/` in Hebrew, and `/plotdevice/<code>/` for any later language; the link allowlist already covers it (unit- and end-to-end tested).
+- **The app, from writing the guide:** the outline's Undo showed a "Ctrl+Z" hint the app didn't honour. Ctrl+Z (⌘Z) now undoes the last outline change in Story, with an end-to-end test.
+
+**Step 7, the deploy workflow:** `.github/workflows/docs.yml` builds and checks the site on pull requests that touch it. It takes the screenshots under xvfb, builds the site, runs the translation report and runs the site tests. It publishes to GitHub Pages only when run by hand (decision 8). It hasn't run yet: it runs once this branch reaches GitHub.
+
+**Not done:** publishing (the owner's go-ahead), and the owner's review of the Hebrew.

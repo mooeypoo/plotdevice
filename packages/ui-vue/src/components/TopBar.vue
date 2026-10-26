@@ -2,7 +2,7 @@
 import type { Workspace } from '@plotdevice/contracts'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useVersions } from '../composables/use-versions'
-import { DOCUMENTATION } from '../links'
+import { documentationFor } from '../links'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import { useViewStore } from '../stores/view'
@@ -38,7 +38,11 @@ const bookItems = computed<MenuItem[]>(() => {
 const appItems = computed<MenuItem[]>(() => [
   { key: 'open-project', label: t('welcome-open-project'), hint: `${mod}O`, run: () => void store.open('choose') },
   { key: 'settings', label: t('settings-open'), hint: `${mod},`, group: 'app', run: () => settingsDialog.value?.show() },
-  { key: 'documentation', label: t('help-documentation'), run: () => void window.open(DOCUMENTATION, '_blank', 'noreferrer') },
+  {
+    key: 'documentation',
+    label: t('help-documentation'),
+    run: () => void window.open(documentationFor(settings.locale), '_blank', 'noreferrer'),
+  },
   { key: 'about', label: t('about'), run: () => about.value?.show() },
 ])
 

@@ -238,3 +238,26 @@ h1#_top {
 body:has(.landing) h1#_top {
   display: none;
 }
+
+/* Close-ups in the guide: at their natural size, with the window's own rounded corners. */
+.shot.close img {
+  inline-size: min(100%, var(--natural));
+  border-radius: 10px;
+}
+.sl-markdown-content .shot {
+  margin-block: 1.5rem;
+}
+.ui-label {
+  font-weight: 600;
+}
+
+/* Code, file names and paths read left to right in every language (Hebrew text inside them still
+   runs right to left within its own words); inline code is isolated from the sentence around it. */
+.sl-markdown-content :is(pre, .expressive-code) {
+  direction: ltr;
+  text-align: left;
+}
+.sl-markdown-content :not(pre) > code {
+  direction: ltr;
+  unicode-bidi: isolate;
+}

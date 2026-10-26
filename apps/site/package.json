@@ -23,6 +23,7 @@
     "sharp": "0.35.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "starlight-links-validator": "0.27.0"
   }
 }

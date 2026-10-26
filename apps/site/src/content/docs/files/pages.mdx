@@ -1,0 +1,24 @@
+---
+title: Character, place and note pages
+description: How a character, place or note is written, and how other names are found.
+---
+
+A page is a file in `characters/`, `places/` or `notes/`. The folder says what it is.
+
+```markdown
+---
+title: Bea Halmi
+aka: [Aunt Bea, Bea]
+---
+Ilka's aunt, who stayed in Marrow when everyone else left.
+
+## Habits
+Counts the trees aloud. Never sits with her back to the river.
+```
+
+- `title` is the page's name. Without one, the first `#` heading names it, then the file name, so pages written in any app work as they are.
+- `aka` lists other names; searching for any of them finds the page.
+- The first paragraph is the **description**. Everything after it is the **details**.
+- Links to other pages are ordinary Markdown links. Plot Device also reads Obsidian's `[[Bea]]` links, but never writes them.
+
+Plot Device never rewrites a page to fit; renaming it changes only its `title`.

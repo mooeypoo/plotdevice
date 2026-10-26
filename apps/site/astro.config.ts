@@ -24,7 +24,49 @@ export default defineConfig({
         {
           label: 'Start here',
           translations: { he: 'מתחילים' },
-          items: [{ slug: 'start/install' }],
+          items: ['start/install', 'start/first-book', 'start/tour'],
+        },
+        {
+          label: 'Writing',
+          translations: { he: 'כתיבה' },
+          items: [
+            'writing/chapters-and-parts',
+            'writing/moving-chapters',
+            'writing/formatting',
+            'writing/hebrew-and-english',
+            'writing/the-page',
+            'writing/references',
+          ],
+        },
+        {
+          label: 'Planning',
+          translations: { he: 'תכנון' },
+          items: ['planning/outlines', 'planning/cards', 'planning/linking', 'planning/pages', 'planning/book-chapters'],
+        },
+        {
+          label: 'Keeping it safe',
+          translations: { he: 'שמירה על הכתוב' },
+          items: ['safe/saving', 'safe/versions', 'safe/other-apps', 'safe/backups'],
+        },
+        {
+          label: 'Sharing',
+          translations: { he: 'שיתוף' },
+          items: ['sharing/export'],
+        },
+        {
+          label: 'Your files',
+          translations: { he: 'הקבצים שלך' },
+          items: ['files/folder', 'files/chapters', 'files/outlines', 'files/pages'],
+        },
+        {
+          label: 'Reference',
+          translations: { he: 'עיון' },
+          items: ['reference/shortcuts', 'reference/settings', 'reference/questions', 'reference/words'],
+        },
+        {
+          label: 'About',
+          translations: { he: 'אודות' },
+          items: ['about/credits', 'about/translate', 'about/problems'],
         },
       ],
       plugins: [starlightLinksValidator()],

@@ -1,0 +1,69 @@
+name: Documentation site
+
+# The site at https://mooeypoo.github.io/plotdevice/ (Milestone 10). Pull requests that touch it are
+# built and checked; publishing happens only when the owner runs this workflow by hand (decision 8),
+# until publishing on every change to main is agreed.
+on:
+  pull_request:
+    paths:
+      - 'apps/site/**'
+      - 'apps/desktop/**'
+      - 'packages/**'
+      - 'samples/**'
+      - 'tooling/site-translations.mjs'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # The site's screenshots come from the real app, in every language and theme.
+      - name: Download Electron
+        working-directory: apps/desktop
+        run: node -e "require('electron')"
+      - name: Allow Chromium's sandbox
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Take the screenshots
+        run: xvfb-run --auto-servernum pnpm site:screenshots
+
+      - name: Build the site (checks every link and every button name)
+        run: pnpm site:build
+      - name: Translation report
+        run: pnpm site:translations
+      - name: Browser for the site tests
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Accessibility and right-to-left checks
+        run: pnpm site:test
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/site/dist
+
+  deploy:
+    if: github.event_name == 'workflow_dispatch'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

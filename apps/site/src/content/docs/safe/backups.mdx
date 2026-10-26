@@ -1,0 +1,27 @@
+---
+title: Backups
+description: Where Plot Device keeps earlier versions of your files, and for how long.
+---
+
+Plot Device keeps a copy of a file, exactly as it was, before it changes it. These copies are what [Earlier versions](/plotdevice/safe/versions/) shows.
+
+## Where
+
+On your computer, outside the book's folder, so your book stays clean and you can copy or sync it freely:
+
+- **Linux:** `~/.config/plotdevice/backups/`
+- **Windows:** `%APPDATA%\plotdevice\backups\`
+
+There's one folder per book, named by the book's id (the `id` in its `project.md`).
+
+## How long
+
+- Every version from the last 24 hours.
+- Then one a day, for 30 days.
+- Then one a week, for a year.
+
+A year of history for a 100-chapter book takes about 100 MB.
+
+## Your own backups
+
+These copies protect against mistakes, not against losing the computer. Keep your book's folder in a backed-up or synced place as well, as you would any important document.

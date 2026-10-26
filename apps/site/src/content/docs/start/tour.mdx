@@ -1,0 +1,30 @@
+---
+title: A tour of the window
+description: The top bar, the chapter list, the page and the references, and what each is for.
+---
+
+import Ui from '~/components/Ui.astro'
+import Shot from '~/components/Shot.astro'
+
+<Shot name="references" alt="The writing window: the chapter list on one side, the page in the middle, and references on the other side" />
+
+## The top bar
+
+- **The book's title** opens the book menu: **<Ui k="export-book" />** and **<Ui k="chapter-versions" />**.
+- **<Ui k="workspace-story" /> | <Ui k="workspace-write" />** switches between planning and writing. Use them in any order; your place in each is kept.
+- **<Ui k="save-saved" />** tells you everything is on disk.
+- **Aa** changes how the page looks: text size, page width and focus mode.
+- **☰** has the rest: open another book, **<Ui k="settings-open" />**, help, and About.
+
+<Shot name="book-menu" alt="The book menu, open under the book's title" close />
+
+## Write
+
+- **The chapter list** shows the book in reading order, with its parts. The icon at the top of the page hides and shows it.
+- **The page** is where you write. Select text to format it.
+- **<Ui k="shelf" />** (the book icon at the top right of the page) keeps characters, places and notes beside the page.
+- **¶** has every formatting command, for when nothing is selected or you prefer the keyboard.
+
+## Story
+
+**<Ui k="workspace-story" />** holds your outlines, characters, places and notes. See [Outlines](/plotdevice/planning/outlines/).

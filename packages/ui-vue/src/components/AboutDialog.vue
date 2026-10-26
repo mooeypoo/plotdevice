@@ -2,7 +2,7 @@
 import type { AboutView } from '@plotdevice/contracts'
 import { ref } from 'vue'
 import { useApi } from '../api'
-import { AUTHOR_SITE, DOCUMENTATION } from '../links'
+import { AUTHOR_SITE, documentationFor } from '../links'
 import { useSettingsStore } from '../stores/settings'
 import BrandMark from './BrandMark.vue'
 
@@ -33,7 +33,9 @@ defineExpose({ show })
       {{ t('about-made-by') }} <a :href="AUTHOR_SITE" target="_blank" rel="noreferrer" dir="ltr">Moriel Schottlender</a>
     </p>
     <p>
-      <a :href="DOCUMENTATION" target="_blank" rel="noreferrer" data-testid="about-documentation">{{ t('help-documentation') }}</a>
+      <a :href="documentationFor(settings.locale)" target="_blank" rel="noreferrer" data-testid="about-documentation">{{
+        t('help-documentation')
+      }}</a>
     </p>
     <p>{{ t('about-license') }}</p>
     <p>{{ t('about-yours') }}</p>

@@ -25,7 +25,9 @@
     "demo": "node tooling/demo.mjs",
     "site:screenshots": "pnpm build && playwright test -c apps/site/playwright.config.ts",
     "site:dev": "pnpm --filter @plotdevice/site dev",
-    "site:build": "pnpm --filter @plotdevice/site build"
+    "site:build": "pnpm --filter @plotdevice/site build",
+    "site:translations": "node tooling/site-translations.mjs",
+    "site:test": "playwright test -c apps/site/playwright.site.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

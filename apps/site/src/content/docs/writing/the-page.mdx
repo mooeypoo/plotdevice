@@ -1,0 +1,23 @@
+---
+title: How the page looks
+description: Text size, page width, focus mode, and light or dark.
+---
+
+import Ui from '~/components/Ui.astro'
+import Shot from '~/components/Shot.astro'
+
+**Aa**, in the top bar while you write, changes how the page looks. Nothing here changes your book; these are your settings, kept on your computer.
+
+<Shot name="appearance" alt="The Aa panel: text size, page width and focus mode" close />
+
+- **<Ui k="settings-writing-size" />**: three sizes of the page's text.
+- **<Ui k="settings-page-width" />**: <Ui k="width-narrow" />, <Ui k="width-medium" /> or <Ui k="width-wide" />.
+- **<Ui k="focus-enter" />** hides everything but the page. Press **Escape**, or **<Ui k="focus-exit" />** at the corner, to come back. **Ctrl+Shift+F** (⌘⇧F) switches it on and off.
+
+## More room
+
+The icon at the top left of the page hides the chapter list; the book icon at the top right shows or hides the references.
+
+## Light or dark
+
+**☰ → <Ui k="settings-open" /> → <Ui k="settings-theme" />**: <Ui k="theme-light" />, <Ui k="theme-dark" />, or <Ui k="theme-system" />. The page, cursor and undo history stay as they were when you switch.

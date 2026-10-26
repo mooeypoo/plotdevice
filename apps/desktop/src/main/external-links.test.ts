@@ -17,3 +17,10 @@ describe('links the app opens in the browser', () => {
     expect(isAllowedExternalLink('not a url')).toBe(false)
   })
 })
+
+describe('the documentation in each language', () => {
+  it('allows the Hebrew documentation, and any future language under the same site', () => {
+    expect(isAllowedExternalLink('https://mooeypoo.github.io/plotdevice/he/')).toBe(true)
+    expect(isAllowedExternalLink('https://mooeypoo.github.io/plotdevice/fr/writing/formatting/')).toBe(true)
+  })
+})
