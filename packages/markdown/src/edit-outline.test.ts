@@ -223,6 +223,7 @@ describe.each(fixtureNames)('every edit on %s', (name) => {
   const source = fixture(name)
   const outline = readOutline(source)
 
+  // Thousands of moves: a check of correctness, not speed, so a busy machine mustn't fail it (5 s by default).
   it('every move matches the model, is local, and keeps what is kept as written', () => {
     let checked = 0
     for (const { item, section, path } of allItems(outline)) {
@@ -237,7 +238,7 @@ describe.each(fixtureNames)('every edit on %s', (name) => {
       }
     }
     expect(checked).toBeGreaterThan(0)
-  })
+  }, 60_000)
 
   it('every rename changes only that text', () => {
     for (const { item, section, path } of allItems(outline)) {
