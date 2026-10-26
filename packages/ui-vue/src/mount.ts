@@ -4,6 +4,7 @@ import { createApp } from 'vue'
 import { apiKey } from './api'
 import App from './App.vue'
 import { answerFlushRequests } from './closing'
+import './styles/fonts.css'
 import './styles/base.css'
 
 /** Starts the interface in `element`, talking to the host only through `api`. */

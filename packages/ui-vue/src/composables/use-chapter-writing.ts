@@ -1,5 +1,11 @@
 import type { ChapterPosition, HostEvent, Preferences, ProjectView, SaveStatusView } from '@plotdevice/contracts'
-import { createChapterEditor, type ChapterEditor, type EditorSettings, type FormatCommand } from '@plotdevice/editor-codemirror'
+import {
+  createChapterEditor,
+  type ChapterEditor,
+  type EditorSettings,
+  type FormatCommand,
+  type SelectionPlace,
+} from '@plotdevice/editor-codemirror'
 import { pastedMarkdown } from '@plotdevice/markdown'
 import type { ProjectPath } from '@plotdevice/shared'
 import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
@@ -25,6 +31,8 @@ export function useChapterWriting(host: Ref<HTMLElement | null>, options: { reme
   const settings = useSettingsStore()
   const file = ref<ProjectPath | null>(null)
   const state = ref<ChapterState>('none')
+  /** Where selected text is on screen, for the formatting bubble. */
+  const selection = ref<SelectionPlace | null>(null)
   /** Typed here but not yet sent to the host. */
   const pending = ref(false)
   let generation = 0
@@ -141,6 +149,9 @@ export function useChapterWriting(host: Ref<HTMLElement | null>, options: { reme
         timer = setTimeout(flush, AUTOSAVE_DELAY_MS)
       },
       convertPaste: pastedMarkdown,
+      onSelection: (place) => {
+        selection.value = place
+      },
     })
     stopEvents = api.onEvent(onHostEvent)
     window.addEventListener('blur', onBlur)
@@ -173,6 +184,11 @@ export function useChapterWriting(host: Ref<HTMLElement | null>, options: { reme
     insertLink: (url: string) => editor?.insertLink(url),
     setParagraphDirection: (direction: 'ltr' | 'rtl' | null) => editor?.setParagraphDirection(direction),
     setPhraseDirection: (direction: 'ltr' | 'rtl' | null) => editor?.setPhraseDirection(direction),
+    selection,
+    /** Measures the selection again, after the page around the editor scrolled. */
+    refreshSelection: () => {
+      selection.value = editor?.selectionPlace() ?? null
+    },
     focus: () => editor?.focus(),
     /** The view is about to be hidden: note the paragraph at the top of the page while it can be measured. */
     hiding: () => {

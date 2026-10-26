@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { cp, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { launch, openSettings, type Launched } from './launch'
+import { closeSettings, launch, openSettings, type Launched } from './launch'
 
 const FIXTURE = join(import.meta.dirname, '../../../tests/fixtures/projects/salt-orchard')
 
@@ -115,12 +115,12 @@ test('scenario F: Hebrew prose with an English phrase, in a Hebrew interface, sa
   let page = await start(base)
   await openSettings(page)
   await page.getByTestId('language').selectOption('he')
-  await page.locator('.settings-menu summary').click()
+  await closeSettings(page)
   await createProject(page, 'מטע המלח', 'he')
   await newChapter(page, 'פרק ראשון')
   await typeAtEnd(page, "נואל ענה: It was never anyone's orchard ושתק.")
   await selectInEditor(page, "It was never anyone's orchard")
-  await page.getByTestId('direction-menu').click()
+  await page.getByTestId('format-menu').click()
   await page.getByTestId('menu-phrase-ltr').click()
   await expect(page.getByTestId('save-status')).toHaveText('נשמר')
   await expect(page.locator('.cm-content')).toHaveAttribute('dir', 'rtl')
@@ -184,7 +184,11 @@ test('scenario H: theme, language and focus mode keep the same editor, the curso
   await openSettings(page)
   await page.getByTestId('theme').selectOption('dark')
   await page.getByTestId('language').selectOption('he')
-  await page.locator('.settings-menu summary').click()
+  await closeSettings(page)
+  // Aa: a bigger page, then focus mode, all without a new editor.
+  await page.getByTestId('appearance').click()
+  await page.getByTestId('writing-size-large').click()
+  await expect(page.getByTestId('writing-size-large')).toHaveAttribute('aria-pressed', 'true')
   await page.getByTestId('focus-mode').click()
   await expect(page.getByTestId('navigator')).toHaveCount(0)
   await page.getByTestId('leave-focus').click()

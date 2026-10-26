@@ -14,7 +14,7 @@ import { editorSettings, type EditorSettings } from './settings'
 const pageTheme = EditorView.theme({
   '&': { color: 'var(--color-text)', backgroundColor: 'transparent', fontSize: 'var(--writing-font-size, 1.15rem)' },
   '&.cm-focused': { outline: 'none' },
-  '.cm-scroller': { fontFamily: "Georgia, 'Noto Serif Hebrew', 'Frank Ruehl CLM', serif", lineHeight: '1.75' },
+  '.cm-scroller': { fontFamily: "var(--font-prose, Georgia), 'Noto Serif Hebrew', serif", lineHeight: '1.75' },
   '.cm-content': { caretColor: 'var(--color-text)', paddingBlock: '2rem' },
   '.cm-cursor': { borderInlineStartColor: 'var(--color-text)' },
   '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection': {
@@ -26,14 +26,14 @@ const pageTheme = EditorView.theme({
   '.cm-h3': { fontSize: '1.15em' },
   '.cm-quote': { color: 'var(--color-text-secondary)', fontStyle: 'italic' },
   '.cm-kept': { fontFamily: 'ui-monospace, monospace', fontSize: '0.85em', color: 'var(--color-text-secondary)' },
-  '.cm-scene-break': { display: 'inline-block', inlineSize: '100%', textAlign: 'center', color: 'var(--color-text-secondary)' },
+  '.cm-scene-break': { display: 'inline-block', inlineSize: '100%', textAlign: 'center', color: 'var(--color-mark, currentColor)' },
   '.cm-bullet': { color: 'var(--color-text-secondary)' },
 })
 
 const prose = HighlightStyle.define([
   { tag: tags.emphasis, fontStyle: 'italic' },
   { tag: tags.strong, fontWeight: '700' },
-  { tag: tags.link, color: 'var(--accent)', textDecoration: 'underline' },
+  { tag: tags.link, color: 'var(--color-accent)', textDecoration: 'underline' },
   { tag: tags.heading, fontWeight: '650' },
 ])
 
@@ -44,6 +44,18 @@ export interface ChapterEditorOptions {
   onChange: () => void
   /** Turns the clipboard's HTML and plain text into the Markdown to insert (ADR 0004). */
   convertPaste: (html: string, plain: string) => string
+  /** Told where selected text is on screen, so formatting can be offered beside it; `null` when nothing is selected. */
+  onSelection?: (place: SelectionPlace | null) => void
+}
+
+/**
+ * Where selected text is, in viewport pixels: the middle of its first line (`x`), and that line's top
+ * (`y`). `focused` says whether the editor has the keyboard.
+ */
+export interface SelectionPlace {
+  x: number
+  y: number
+  focused: boolean
 }
 
 /** The chapter editor as the interface uses it. The text in and out is the chapter's Markdown body, byte for byte. */
@@ -63,6 +75,8 @@ export interface ChapterEditor {
   setParagraphDirection(direction: Direction | null): void
   setPhraseDirection(direction: Direction | null): void
   cursor(): number
+  /** Where selected text is now (after the page around it scrolled, say), or `null`. */
+  selectionPlace(): SelectionPlace | null
   focus(): void
   destroy(): void
 }
@@ -72,6 +86,18 @@ export interface ChapterEditor {
  * the same distance down, so showing a paragraph and reading it back lands on the same paragraph.
  */
 const TOP_MARGIN = 32
+
+function selectionPlace(view: EditorView): SelectionPlace | null {
+  const { main } = view.state.selection
+  if (main.empty) return null
+  const start = view.coordsAtPos(main.from, 1)
+  const end = view.coordsAtPos(main.to, -1)
+  if (!start || !end) return null
+  // On one line, centre over the selection (whichever way the text runs); across lines, over its start.
+  const oneLine = Math.abs(start.top - end.top) < 2
+  const x = oneLine ? (Math.min(start.left, end.left) + Math.max(start.right, end.right)) / 2 : start.left
+  return { x, y: Math.min(start.top, end.top), focused: view.hasFocus }
+}
 
 const scrollToTop = (view: EditorView, top: number) =>
   EditorView.scrollIntoView(view.state.doc.lineAt(Math.min(top, view.state.doc.length)).from, { y: 'start', yMargin: TOP_MARGIN })
@@ -124,6 +150,8 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
     // `load` replaces the state without an update, so every change seen here is the author's.
     EditorView.updateListener.of((update) => {
       if (update.docChanged) options.onChange()
+      if (options.onSelection && (update.selectionSet || update.focusChanged || update.geometryChanged || update.docChanged))
+        options.onSelection(selectionPlace(update.view))
     }),
   ]
   const stateFor = (text: string) => chapterState(text, settings, current, viewExtensions)
@@ -155,6 +183,7 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
     setParagraphDirection: (direction) => run(setParagraphDirection(direction)),
     setPhraseDirection: (direction) => run(setPhraseDirection(direction)),
     cursor: () => view.state.selection.main.head,
+    selectionPlace: () => selectionPlace(view),
     focus: () => view.focus(),
     destroy: () => view.destroy(),
   }

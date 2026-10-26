@@ -60,7 +60,7 @@ G6. Fluidity: editing a chapter does not mount the entire manuscript in one edit
 ## 8. Themes and design language
 - Ship polished light, dark and system-following appearance.
 - Brand direction: **modern literary studio** rather than IDE or grayscale dashboard.
-- Initial accent candidate: literary teal, alternate plum/terracotta; colors are proposals pending visual review.
+- Colours come from the logo (ink, cream and gold), chosen in Milestone 9; `DESIGN_SYSTEM.md` holds the values.
 - Light warm canvas and comfortable white/cream paper; dark ink/slate surfaces (not pure black), gentle paper contrast.
 - Plot-card color categories can aid scanning; every color-coded state requires a noncolor cue.
 - Design tokens control palette, spacing, typography, elevation, motion and focus rings.

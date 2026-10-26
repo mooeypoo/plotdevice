@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import type { OutlineViewKind, ProjectView, ReferenceKind } from '@plotdevice/contracts'
 import { computed } from 'vue'
+import MenuButton from './MenuButton.vue'
+import type { MenuItem } from './menu'
 import { useOutlineActions } from '../composables/use-outline-actions'
 import { usePrompt } from '../composables/use-prompt'
 import { useVersions } from '../composables/use-versions'
-import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
 import { useViewStore } from '../stores/view'
@@ -17,7 +18,6 @@ import ReferencePage from './ReferencePage.vue'
 
 defineProps<{ project: ProjectView }>()
 const story = useStoryStore()
-const store = useProjectStore()
 const settings = useSettingsStore()
 const view = useViewStore()
 const actions = useOutlineActions()
@@ -28,6 +28,23 @@ const views: OutlineViewKind[] = ['board', 'outline', 'cards']
 const kinds: ReferenceKind[] = ['character', 'place', 'note']
 const pagesOf = (kind: ReferenceKind) => story.references.filter((reference) => reference.kind === kind)
 const showingOutline = computed(() => story.showing.kind === 'outline')
+
+/** Undo, rename and versions: under ⋯ beside the views, so the bar above the outline stays quiet. */
+const outlineItems = computed<MenuItem[]>(() => {
+  const outline = story.outline
+  if (!outline) return []
+  return [
+    {
+      key: 'outline-undo',
+      label: t('outline-undo'),
+      hint: navigator.platform.startsWith('Mac') ? '⌘Z' : 'Ctrl+Z',
+      disabled: !outline.canUndo,
+      run: () => void story.undo(),
+    },
+    { key: 'outline-rename', label: t('outline-rename-title'), run: () => void actions.renameOutline() },
+    { key: 'outline-versions', label: t('outline-versions'), run: () => versions.show(outline.file, outline.title ?? outline.file) },
+  ]
+})
 
 async function newOutline(): Promise<void> {
   const title = await ask(t('prompt-outline-title'))
@@ -63,8 +80,8 @@ async function newPage(kind: ReferenceKind): Promise<void> {
           </button>
         </li>
       </ul>
-      <div class="actions start">
-        <button type="button" data-testid="new-outline" @click="newOutline">{{ t('story-new-outline') }}</button>
+      <div class="add-links">
+        <button type="button" class="add-link" data-testid="new-outline" @click="newOutline">{{ t('story-new-outline') }}</button>
       </div>
 
       <section v-for="kind in kinds" :key="kind" class="navigator-section" :data-testid="`pages-${kind}`">
@@ -81,8 +98,8 @@ async function newPage(kind: ReferenceKind): Promise<void> {
             </button>
           </li>
         </ul>
-        <div class="actions start">
-          <button type="button" :data-testid="`new-${kind}`" @click="newPage(kind)">{{ t(`new-${kind}`) }}</button>
+        <div class="add-links">
+          <button type="button" class="add-link" :data-testid="`new-${kind}`" @click="newPage(kind)">{{ t(`new-${kind}`) }}</button>
         </div>
       </section>
 
@@ -99,9 +116,17 @@ async function newPage(kind: ReferenceKind): Promise<void> {
       <ManuscriptOutline v-if="story.showing.kind === 'manuscript'" class="story-page" :project="project" />
       <ReferencePage v-else-if="story.showing.kind === 'page'" :key="story.showing.file" class="story-page" :file="story.showing.file" />
       <template v-else-if="story.outline">
-        <div class="toolbar">
-          <h1 class="outline-title" dir="auto">{{ story.outline.title ?? story.outline.file }}</h1>
-          <button type="button" @click="actions.renameOutline">{{ t('outline-rename-title') }}</button>
+        <div class="story-head">
+          <button
+            type="button"
+            class="outline-title"
+            dir="auto"
+            :title="t('outline-rename-title')"
+            data-testid="outline-title"
+            @click="actions.renameOutline"
+          >
+            {{ story.outline.title ?? story.outline.file }}
+          </button>
           <div class="segmented" role="group" :aria-label="t('view-switch')">
             <button
               v-for="kind in views"
@@ -114,16 +139,7 @@ async function newPage(kind: ReferenceKind): Promise<void> {
               {{ t(`view-${kind}`) }}
             </button>
           </div>
-          <button type="button" :disabled="!story.outline.canUndo" data-testid="outline-undo" @click="story.undo">
-            {{ t('outline-undo') }}
-          </button>
-          <button
-            type="button"
-            data-testid="outline-versions"
-            @click="story.outline && versions.show(story.outline.file, story.outline.title ?? story.outline.file)"
-          >
-            {{ t('versions') }}
-          </button>
+          <MenuButton :label="t('outline-actions')" :items="outlineItems" button-class="icon-button" align="end" testid="outline-menu" />
         </div>
         <div class="story-page">
           <p v-if="story.outline.invalidDetails" class="warning" role="status">{{ t('invalid-details') }}</p>
@@ -139,13 +155,6 @@ async function newPage(kind: ReferenceKind): Promise<void> {
       <div v-else class="story-page">
         <p class="secondary">{{ t('story-no-outlines') }}</p>
       </div>
-      <footer class="status-line">
-        <span></span>
-        <span v-if="store.notice" class="notice" role="alert">
-          {{ t(store.notice.key, ...store.notice.params) }}
-          <button type="button" class="link-button" :aria-label="t('prompt-cancel')" @click="store.notice = null">×</button>
-        </span>
-      </footer>
     </section>
   </div>
 </template>

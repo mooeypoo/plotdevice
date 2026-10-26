@@ -142,11 +142,9 @@ test('pinned pages keep their order, set by keyboard, after a restart', async ()
     await page.getByTestId('shelf-search').press('Enter')
   }
   for (const title of ['Loose ideas', 'Marrow']) {
-    await page
-      .locator('.shelf-card', { hasText: title })
-      .getByRole('button', { name: /^Actions for/ })
-      .click()
-    await page.getByTestId('menu-pin').click()
+    const pin = page.locator('.shelf-card', { hasText: title }).getByTestId('shelf-pin')
+    await pin.click()
+    await expect(pin).toHaveAttribute('aria-pressed', 'true')
   }
   await page.locator('[data-shelf-card="places/marrow.md"]').focus()
   await page.keyboard.press('Alt+ArrowUp')

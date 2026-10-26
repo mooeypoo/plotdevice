@@ -1,7 +1,7 @@
 import type { OutlineItemView, OutlineView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { boardColumns, cardMoves, cardsInOrder, inlineSpans, outlineRows } from './outline-views'
+import { boardColumns, boardDrop, cardMoves, cardsInOrder, inlineSpans, outlineRows } from './outline-views'
 
 const item = (text: string, children: OutlineItemView[] = [], options: Partial<OutlineItemView> = {}): OutlineItemView => ({
   text,
@@ -131,5 +131,28 @@ describe('card text, shown formatted but never as HTML', () => {
       { kind: 'em', text: 'קראה' },
       { kind: 'text', text: ' [[the-crossing]]' },
     ])
+  })
+})
+
+describe('dropping a dragged card on the board', () => {
+  const card = (section: number, index: number) => ({ section, path: [index] })
+
+  it('goes before the card it was dropped above, counting its own place out in the same column', () => {
+    expect(boardDrop(card(0, 0), 0, 2)).toEqual({ section: 0, parentPath: [], index: 1 })
+    expect(boardDrop(card(0, 2), 0, 0)).toEqual({ section: 0, parentPath: [], index: 0 })
+  })
+
+  it('goes into another column at the gap, or at its end', () => {
+    expect(boardDrop(card(0, 0), 1, 1)).toEqual({ section: 1, parentPath: [], index: 1 })
+    expect(boardDrop(card(0, 0), 1, 3)).toEqual({ section: 1, parentPath: [], index: 3 })
+  })
+
+  it('is no move just above or just below the card itself', () => {
+    expect(boardDrop(card(0, 1), 0, 1)).toBeNull()
+    expect(boardDrop(card(0, 1), 0, 2)).toBeNull()
+  })
+
+  it('lifts a detail out to a card of its own', () => {
+    expect(boardDrop({ section: 0, path: [0, 1] }, 0, 1)).toEqual({ section: 0, parentPath: [], index: 1 })
   })
 })

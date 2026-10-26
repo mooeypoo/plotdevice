@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { OutlineView } from '@plotdevice/contracts'
-import { boardColumns } from '@plotdevice/presentation'
-import { computed } from 'vue'
+import { boardColumns, boardDrop } from '@plotdevice/presentation'
+import { computed, ref } from 'vue'
 import { useOutlineActions } from '../composables/use-outline-actions'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
@@ -16,6 +16,43 @@ const settings = useSettingsStore()
 const actions = useOutlineActions()
 const t = settings.t
 const columns = computed(() => boardColumns(props.outline))
+
+/** The gap a dragged card would land in: before the card at `before` in `section` (its length: the end). */
+const target = ref<{ section: number; before: number } | null>(null)
+const cardCount = (section: number): number => props.outline.sections[section]?.items.length ?? 0
+
+/** Over a card's top half, the gap above it; its bottom half, the gap below. Past every card, the end. */
+function onOver(event: DragEvent, section: number): void {
+  const from = actions.dragging.value
+  if (!from) return
+  event.preventDefault()
+  const cards = [...(event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>(':scope > .outline-card[data-index]')]
+  const above = cards.find((card) => {
+    const box = card.getBoundingClientRect()
+    return event.clientY < box.top + box.height / 2
+  })
+  const before = above ? Number(above.dataset.index) : cardCount(section)
+  target.value = boardDrop(from, section, before) ? { section, before } : null
+}
+
+function onLeave(event: DragEvent): void {
+  if (!(event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)) target.value = null
+}
+
+function onDrop(): void {
+  const at = target.value
+  target.value = null
+  if (at) actions.dropAt(at.section, at.before)
+  else actions.dragging.value = null
+}
+
+/** Which side of this card shows the line: above it for its own gap, below the last card for the end. */
+function dropSide(section: number, index: number): 'before' | 'after' | null {
+  const at = target.value
+  if (!at || at.section !== section) return null
+  if (at.before === index) return 'before'
+  return at.before === cardCount(section) && index === cardCount(section) - 1 ? 'after' : null
+}
 </script>
 
 <template>
@@ -26,8 +63,10 @@ const columns = computed(() => boardColumns(props.outline))
       class="column"
       :aria-label="column.name ?? t('outline-unnamed-section')"
       data-testid="column"
-      @dragover.prevent
-      @drop.prevent="actions.dropAtEnd(index)"
+      :class="{ 'drop-into': target?.section === index && cardCount(index) === 0 }"
+      @dragover="onOver($event, index)"
+      @dragleave="onLeave"
+      @drop.prevent="onDrop"
     >
       <header class="column-head">
         <EditableText
@@ -43,7 +82,14 @@ const columns = computed(() => boardColumns(props.outline))
       </header>
       <p v-for="(intro, i) in column.intro" :key="`intro-${i}`" class="column-intro secondary" dir="auto">{{ intro }}</p>
       <template v-for="(entry, i) in column.entries" :key="i">
-        <OutlineCard v-if="entry.kind === 'card'" :item="entry.item" :at="entry.path" />
+        <OutlineCard
+          v-if="entry.kind === 'card'"
+          :item="entry.item"
+          :at="entry.path"
+          board
+          :data-index="entry.path.path[0]"
+          :drop="dropSide(index, entry.path.path[0] ?? 0)"
+        />
         <p v-else-if="entry.kind === 'group'" class="group-label" dir="auto">{{ entry.text }}</p>
         <KeptAsWritten v-else :text="entry.text" />
       </template>

@@ -1,0 +1,7 @@
+/* Bundled fonts (SIL Open Font License 1.1; Milestone 9, decision 2). The app's Content-Security-Policy
+   allows only its own fonts, so none are fetched. Hebrew falls back letter by letter to its partner. */
+@import '@fontsource-variable/literata/opsz.css';
+@import '@fontsource-variable/literata/opsz-italic.css';
+@import '@fontsource-variable/noto-serif-hebrew/index.css';
+@import '@fontsource-variable/instrument-sans/index.css';
+@import '@fontsource-variable/assistant/index.css';

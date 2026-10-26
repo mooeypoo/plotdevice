@@ -2,7 +2,9 @@
 import type { AboutView } from '@plotdevice/contracts'
 import { ref } from 'vue'
 import { useApi } from '../api'
+import { AUTHOR_SITE, DOCUMENTATION } from '../links'
 import { useSettingsStore } from '../stores/settings'
+import BrandMark from './BrandMark.vue'
 
 const api = useApi()
 const settings = useSettingsStore()
@@ -20,8 +22,19 @@ defineExpose({ show })
 
 <template>
   <dialog ref="dialog" class="dialog about" data-testid="about" aria-labelledby="about-title">
-    <h2 id="about-title">{{ t('app-name') }}</h2>
-    <p v-if="about" class="secondary" data-testid="about-version">{{ t('app-version', about.version) }}</p>
+    <header class="about-head">
+      <BrandMark class="about-mark" />
+      <div>
+        <h2 id="about-title">{{ t('app-name') }}</h2>
+        <p v-if="about" class="secondary" data-testid="about-version">{{ t('app-version', about.version) }}</p>
+      </div>
+    </header>
+    <p data-testid="about-author">
+      {{ t('about-made-by') }} <a :href="AUTHOR_SITE" target="_blank" rel="noreferrer" dir="ltr">Moriel Schottlender</a>
+    </p>
+    <p>
+      <a :href="DOCUMENTATION" target="_blank" rel="noreferrer" data-testid="about-documentation">{{ t('help-documentation') }}</a>
+    </p>
     <p>{{ t('about-license') }}</p>
     <p>{{ t('about-yours') }}</p>
     <details v-if="about">

@@ -68,3 +68,34 @@ export function placementAfter(contents: Contents, file: ProjectPath | null): Pl
   if (!at) return { part: null, index: contents.length }
   return { part: at.part, index: at.index + 1 }
 }
+
+/** A gap between entries, counted before anything moves: at the top level (`part: null`), or inside a part. */
+export interface Slot {
+  part: number | null
+  index: number
+}
+
+/** What the pointer is over while a chapter is dragged: a chapter or a part's name. */
+export type DropRow = { kind: 'chapter'; file: ProjectPath } | { kind: 'part'; part: number }
+
+/**
+ * The gap a drop over `row` means: before it (the row's top half) or after it (the bottom half).
+ * Below the last chapter of a part is still inside the part; above the next entry is outside it.
+ */
+export function slotAt(contents: Contents, row: DropRow, half: 'before' | 'after'): Slot | null {
+  if (row.kind === 'part') return half === 'before' ? { part: null, index: row.part } : { part: row.part, index: 0 }
+  const at = locate(contents, row.file)
+  return at ? { part: at.part, index: at.index + (half === 'after' ? 1 : 0) } : null
+}
+
+/**
+ * Where a chapter dropped in `slot` goes, as a `move-chapter` (or, for a chapter not in the book yet,
+ * `add-to-book`) placement. `null` when the drop would leave it where it is.
+ */
+export function placementForDrop(contents: Contents, file: ProjectPath, slot: Slot): Placement | null {
+  const at = locate(contents, file)
+  if (!at) return { part: slot.part, index: slot.index }
+  const sameList = at.part === slot.part
+  const index = sameList && at.index < slot.index ? slot.index - 1 : slot.index
+  return sameList && index === at.index ? null : { part: slot.part, index }
+}

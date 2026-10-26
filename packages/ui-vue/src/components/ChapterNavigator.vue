@@ -3,14 +3,12 @@ import type { ChapterRef, ProjectView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { nextTick, toRef } from 'vue'
 import { useNavigator } from '../composables/use-navigator'
-import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import MenuButton from './MenuButton.vue'
 
 const props = defineProps<{ project: ProjectView; openFile: ProjectPath | null }>()
 const emit = defineEmits<{ open: [file: ProjectPath] }>()
 const settings = useSettingsStore()
-const store = useProjectStore()
 const t = settings.t
 const nav = useNavigator(toRef(props, 'project'), toRef(props, 'openFile'), (file) => emit('open', file))
 
@@ -23,13 +21,20 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
 </script>
 
 <template>
-  <nav class="navigator" :aria-label="t('navigator-label')" data-testid="navigator">
+  <nav
+    class="navigator"
+    :aria-label="t('navigator-label')"
+    data-testid="navigator"
+    @dragover="nav.dragOver"
+    @dragleave="nav.dragLeave"
+    @drop.prevent="nav.drop"
+  >
     <p v-if="project.contents.length === 0" class="secondary">{{ t('navigator-no-chapters') }}</p>
-    <ol class="contents">
+    <ol class="contents" :class="{ 'drop-end': nav.dropClass('end') !== '' }">
       <template v-for="(entry, index) in project.contents" :key="entry.kind === 'part' ? `part-${index}` : entry.file">
         <li v-if="entry.kind === 'part'" class="part">
-          <div class="row part-row">
-            <span class="part-name" dir="auto">{{ entry.name }}</span>
+          <div class="row part-row" :data-drop-row="`part:${index}`" :class="nav.dropClass(`part:${index}`)">
+            <span class="part-name" dir="auto" :lang="project.language">{{ entry.name }}</span>
             <MenuButton
               :label="t('part-actions', entry.name)"
               :items="[{ key: 'rename-part', label: t('part-rename'), run: () => nav.renamePart(index, entry.name) }]"
@@ -37,7 +42,17 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
           </div>
           <ol>
             <li v-for="chapter in entry.chapters" :key="chapter.file">
-              <div class="row chapter-row" :class="{ current: chapter.file === openFile, missing: nav.isMissing(chapter.file) }">
+              <div
+                class="row chapter-row"
+                :class="[
+                  { current: chapter.file === openFile, missing: nav.isMissing(chapter.file), lifted: nav.dragged.value === chapter.file },
+                  nav.dropClass(`chapter:${chapter.file}`),
+                ]"
+                :data-drop-row="`chapter:${chapter.file}`"
+                draggable="true"
+                @dragstart="nav.dragStart($event, chapter.file)"
+                @dragend="nav.dragEnd"
+              >
                 <button
                   type="button"
                   class="chapter"
@@ -58,7 +73,17 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
           </ol>
         </li>
         <li v-else>
-          <div class="row chapter-row" :class="{ current: entry.file === openFile, missing: nav.isMissing(entry.file) }">
+          <div
+            class="row chapter-row"
+            :class="[
+              { current: entry.file === openFile, missing: nav.isMissing(entry.file), lifted: nav.dragged.value === entry.file },
+              nav.dropClass(`chapter:${entry.file}`),
+            ]"
+            :data-drop-row="`chapter:${entry.file}`"
+            draggable="true"
+            @dragstart="nav.dragStart($event, entry.file)"
+            @dragend="nav.dragEnd"
+          >
             <button
               type="button"
               class="chapter"
@@ -79,10 +104,9 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
       </template>
     </ol>
 
-    <div class="actions start">
-      <button type="button" data-testid="new-chapter" @click="nav.addChapter">{{ t('navigator-new-chapter') }}</button>
-      <button type="button" @click="nav.addPart">{{ t('navigator-new-part') }}</button>
-      <button type="button" data-testid="compile-book" @click="store.compile">{{ t('compile-book') }}</button>
+    <div class="add-links">
+      <button type="button" class="add-link" data-testid="new-chapter" @click="nav.addChapter">{{ t('navigator-new-chapter') }}</button>
+      <button type="button" class="add-link" @click="nav.addPart">{{ t('navigator-new-part') }}</button>
     </div>
 
     <section v-if="nav.missing.value.length > 0" class="navigator-section">
@@ -104,7 +128,10 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
           v-for="chapter in nav.unlisted.value"
           :key="chapter.file"
           class="row chapter-row"
-          :class="{ current: chapter.file === openFile }"
+          :class="{ current: chapter.file === openFile, lifted: nav.dragged.value === chapter.file }"
+          draggable="true"
+          @dragstart="nav.dragStart($event, chapter.file)"
+          @dragend="nav.dragEnd"
         >
           <button type="button" class="chapter" :data-chapter="chapter.file" @click="emit('open', chapter.file)">
             <span dir="auto">{{ chapter.title ?? chapter.file }}</span>

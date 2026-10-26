@@ -12,7 +12,9 @@ import InlineText from './InlineText.vue'
 import KeptAsWritten from './KeptAsWritten.vue'
 import MenuButton from './MenuButton.vue'
 
-const props = defineProps<{ item: OutlineItemView; at: ItemAt; label?: string | null }>()
+// On the board, the column takes drops and `drop` shows where one would land; elsewhere, a card
+// dropped on a card goes before it.
+const props = defineProps<{ item: OutlineItemView; at: ItemAt; label?: string | null; board?: boolean; drop?: 'before' | 'after' | null }>()
 const story = useStoryStore()
 const settings = useSettingsStore()
 const actions = useOutlineActions()
@@ -20,6 +22,14 @@ const t = settings.t
 const follow = useFollowLink()
 const fromDir = computed(() => dirnameOf(story.outline?.file ?? 'outlines/x.md'))
 const key = computed(() => keyOf(props.at))
+const lifted = computed(() => actions.dragging.value !== null && keyOf(actions.dragging.value) === key.value)
+
+function onDrop(event: DragEvent): void {
+  if (props.board) return
+  event.preventDefault()
+  event.stopPropagation()
+  actions.dropBefore(props.at)
+}
 const editing = computed(() => story.editing?.kind === 'item' && story.editing.key === key.value)
 const detailCount = computed(() => {
   const count = (item: OutlineItemView): number => item.children.reduce((sum, child) => sum + 1 + count(child), 0)
@@ -30,7 +40,7 @@ const detailCount = computed(() => {
 <template>
   <article
     class="outline-card"
-    :class="{ locked: !item.movable }"
+    :class="[{ locked: !item.movable, lifted }, drop ? `drop-${drop}` : '']"
     tabindex="0"
     :data-item="key"
     :draggable="item.movable && !editing"
@@ -39,7 +49,8 @@ const detailCount = computed(() => {
     @dblclick="story.editing = { kind: 'item', key }"
     @dragstart="actions.dragStart($event, at)"
     @dragover.prevent
-    @drop.prevent.stop="actions.dropBefore(at)"
+    @dragend="actions.dragging.value = null"
+    @drop="onDrop"
   >
     <p v-if="label !== undefined" class="card-section secondary" dir="auto">{{ label ?? t('outline-unnamed-section') }}</p>
     <div class="card-head">

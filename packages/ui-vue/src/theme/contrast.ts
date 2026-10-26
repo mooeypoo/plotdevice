@@ -19,8 +19,9 @@ export interface ContrastProblem {
   required: number
 }
 
-const SURFACES: ColorToken[] = ['app', 'card', 'page']
-/** Text needs 4.5:1 (WCAG AA); focus rings and colour chips need 3:1 (non-text contrast). */
+/** `well` is a surface too: selected rows and segmented controls carry text on it. */
+const SURFACES: ColorToken[] = ['app', 'card', 'page', 'well']
+/** Text needs 4.5:1 (WCAG AA); focus rings, marks and colour chips need 3:1 (non-text contrast). */
 const REQUIREMENTS: [ColorToken, ColorToken[], number][] = [
   ['text', SURFACES, 4.5],
   ['textSecondary', SURFACES, 4.5],
@@ -28,6 +29,7 @@ const REQUIREMENTS: [ColorToken, ColorToken[], number][] = [
   ['warning', SURFACES, 4.5],
   ['onAccent', ['accent'], 4.5],
   ['focus', SURFACES, 3],
+  ['mark', SURFACES, 3],
   ['plotAmber', SURFACES, 3],
   ['plotPlum', SURFACES, 3],
   ['plotTerracotta', SURFACES, 3],

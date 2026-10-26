@@ -1,6 +1,6 @@
 import type { OutlineItemView } from '@plotdevice/contracts'
 import { uiDirection } from '@plotdevice/i18n'
-import { cardMoves, keyOf, markdownLink, type ItemAt, type ItemDestination } from '@plotdevice/presentation'
+import { boardDrop, cardMoves, keyOf, markdownLink, type ItemAt, type ItemDestination } from '@plotdevice/presentation'
 import { dirnameOf } from '@plotdevice/shared'
 import { nextTick, ref } from 'vue'
 import type { MenuItem } from '../components/menu'
@@ -190,6 +190,13 @@ export function useOutlineActions() {
     void move(from, { section: target.section, parentPath: [], index: sameList && (from.path[0] ?? 0) < index ? index - 1 : index })
   }
 
+  /** The board: the card goes into the gap before the card at `before` (the section's length: its end). */
+  function dropAt(section: number, before: number): void {
+    const from = dragging.value
+    dragging.value = null
+    if (from) void move(from, boardDrop(from, section, before))
+  }
+
   function dropAtEnd(section: number): void {
     const from = dragging.value
     dragging.value = null
@@ -209,6 +216,7 @@ export function useOutlineActions() {
     renameOutline,
     dragStart,
     dropBefore,
+    dropAt,
     dropAtEnd,
     dragging,
   }

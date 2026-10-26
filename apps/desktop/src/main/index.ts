@@ -30,10 +30,12 @@ import {
   createVersionRepository,
   withBackups,
 } from '@plotdevice/storage'
-import { app, BrowserWindow, dialog, ipcMain, session } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, session } from 'electron'
 import { access, readFile, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import icon from '../../../../assets/brand/icons/512x512.png?asset'
+import { applicationMenu } from './app-menu'
 import { createIpcHandlers } from './ipc'
 import { folderFromArgs } from './launch-folder'
 import { openedProject, openProblem } from './project-ipc'
@@ -125,11 +127,16 @@ void app.whenReady().then(async () => {
   const launchProblem = launchFolder ? await openFolder(launchFolder) : null
   if (!launchFolder) await reopenLastProject(writing, recent.current().projects[0]?.root)
 
+  Menu.setApplicationMenu(
+    Menu.buildFromTemplate(applicationMenu(process.platform, { developer: !app.isPackaged, viewLabel: translate('menu-view') })),
+  )
   const window = new BrowserWindow({
     width: 1100,
     height: 760,
     show: false,
     title: 'Plot Device',
+    // Linux shows this in the dock and window list; installed builds also have it from the desktop file.
+    ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(import.meta.dirname, '../preload/index.cjs'),
       contextIsolation: true,
@@ -139,6 +146,8 @@ void app.whenReady().then(async () => {
       spellcheck: true,
     },
   })
+  // The menu works through its shortcuts only; the app's own menus are on screen instead.
+  if (process.platform !== 'darwin') window.setMenuBarVisibility(false)
   tellPage = (event) => window.webContents.send(eventChannel, event)
   writing.onEvent((event) => window.webContents.send(eventChannel, hostEvent(event)))
   outlines.onEvent((event) => window.webContents.send(eventChannel, outlineEvent(event)))

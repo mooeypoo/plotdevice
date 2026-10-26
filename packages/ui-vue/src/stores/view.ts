@@ -1,4 +1,4 @@
-import type { OutlineViewKind, Workspace } from '@plotdevice/contracts'
+import type { OutlineViewKind, SaveStatusView, Workspace } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -12,11 +12,18 @@ export const useViewStore = defineStore('view', () => {
   const navigatorHidden = ref(false)
   /** A chapter chosen outside Write (in the manuscript outline): Write opens it. */
   const chapterRequest = ref<ProjectPath | null>(null)
+  /** The chapter open in Write and its save status, for the top bar and the book menu. */
+  const writingChapter = ref<{ file: ProjectPath; name: string } | null>(null)
+  const saveStatus = ref<SaveStatusView | null>(null)
 
   function writeChapter(file: ProjectPath): void {
     chapterRequest.value = file
     workspace.value = 'write'
   }
 
-  return { workspace, outlineView, focusMode, navigatorHidden, chapterRequest, writeChapter }
+  function setFocusMode(on: boolean): void {
+    focusMode.value = on
+  }
+
+  return { workspace, outlineView, focusMode, navigatorHidden, chapterRequest, writingChapter, saveStatus, writeChapter, setFocusMode }
 })

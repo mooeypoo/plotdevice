@@ -7,10 +7,9 @@ import ConfirmDialog from './components/ConfirmDialog.vue'
 import LinkPicker from './components/LinkPicker.vue'
 import VersionsDialog from './components/VersionsDialog.vue'
 import PromptDialog from './components/PromptDialog.vue'
-import SettingsMenu from './components/SettingsMenu.vue'
 import StoryView from './components/StoryView.vue'
+import TopBar from './components/TopBar.vue'
 import WelcomeView from './components/WelcomeView.vue'
-import WorkspaceSwitch from './components/WorkspaceSwitch.vue'
 import WritingView from './components/WritingView.vue'
 import { useAppearance } from './composables/use-appearance'
 import { useRememberedPlace } from './composables/use-remembered-place'
@@ -32,12 +31,7 @@ void api.getAppInfo().then((info) => (appInfo.value = info))
 
 <template>
   <div v-if="settings.preferences" class="shell" :class="{ 'focus-mode': view.focusMode }">
-    <header v-if="!view.focusMode" class="shell-header">
-      <span class="app-name">{{ settings.t('app-name') }}</span>
-      <span v-if="store.project" class="project-title" dir="auto">{{ store.project.title }}</span>
-      <WorkspaceSwitch v-if="store.project" />
-      <SettingsMenu />
-    </header>
+    <TopBar v-if="!view.focusMode" />
 
     <template v-if="store.project">
       <!-- Write stays mounted while Story is shown, so the editor, cursor and undo history survive the switch. -->
@@ -46,7 +40,11 @@ void api.getAppInfo().then((info) => (appInfo.value = info))
     </template>
     <WelcomeView v-else />
 
-    <footer v-if="appInfo && !store.project" class="secondary app-footer">{{ settings.t('app-version', appInfo.version) }}</footer>
+    <p v-if="appInfo && !store.project" class="secondary app-version">{{ settings.t('app-version', appInfo.version) }}</p>
+    <p v-if="store.project && store.notice" class="notice-toast" role="alert">
+      <span>{{ settings.t(store.notice.key, ...store.notice.params) }}</span>
+      <button type="button" class="icon-button" :aria-label="settings.t('prompt-cancel')" @click="store.notice = null">×</button>
+    </p>
     <PromptDialog />
     <ConfirmDialog />
     <LinkPicker />
