@@ -363,9 +363,16 @@ label {
   inset-inline-start: auto;
   inset-inline-end: 0;
 }
-.menu-list.above {
-  inset-block-start: auto;
-  inset-block-end: calc(100% + 0.35rem);
+/* Menus are fixed to the window, placed by MenuButton beside their button; hidden until measured. */
+.menu-list {
+  position: fixed;
+  inset: auto;
+  z-index: 60;
+  overflow-y: auto;
+  visibility: hidden;
+}
+.menu-list.placed {
+  visibility: visible;
 }
 .menu-list [role='menuitem'] {
   display: flex;
@@ -633,10 +640,6 @@ label {
 .navigator .row:focus-within .menu-button,
 .navigator .menu-button[aria-expanded='true'] {
   opacity: 1;
-}
-.navigator .menu-list {
-  inset-inline-start: auto;
-  inset-inline-end: 0;
 }
 .navigator-section {
   margin-block-start: 1rem;

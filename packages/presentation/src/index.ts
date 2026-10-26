@@ -43,3 +43,4 @@ export {
   suggestedLinkTargets,
   type LinkTarget,
 } from './references'
+export { menuPlacement, type Box } from './menu-placement'

@@ -318,6 +318,44 @@ test('editing a card: links show as names, and @ or the link button adds one wit
   await file(MAIN).toContain('- Write to ilka@marrow\n')
 })
 
+test('a row’s menu opens in full and on top, wherever the row is: under the title bar, or low in the window', async () => {
+  const page = await start()
+  await page.setViewportSize({ width: 1100, height: 560 })
+  await openStory(page)
+  await page.getByTestId('view-outline').click()
+  /** The whole menu is in the window, and on top: near its corners is the menu itself, not the bar or the page. */
+  const inWindow = async (): Promise<boolean> =>
+    page.evaluate(() => {
+      const menu = document.querySelector('[role="menu"]')
+      const box = menu?.getBoundingClientRect()
+      if (!menu || !box || box.top < 0 || box.bottom > window.innerHeight) return false
+      // Inside the rounded corners.
+      const corners = [
+        [box.left + 20, box.top + 20],
+        [box.right - 20, box.bottom - 20],
+      ] as const
+      return corners.every(([x, y]) => menu.contains(document.elementFromPoint(x, y)))
+    })
+
+  // The first row, just under the outline's title and views: the menu opens below it, in full.
+  const first = page.locator('[data-item="0/0"]')
+  await first.hover()
+  await first.getByRole('button', { name: /^Actions for/ }).click()
+  await expect(page.getByRole('menu')).toBeVisible()
+  expect(await inWindow()).toBe(true)
+  await page.keyboard.press('Escape')
+
+  // The last row, low in the window: the menu opens above it, over the bar if need be, never behind it.
+  const last = page.locator('.list-row[data-item]').last()
+  await last.scrollIntoViewIfNeeded()
+  await last.hover()
+  await last.getByRole('button', { name: /^Actions for/ }).click()
+  const menu = await page.getByRole('menu').boundingBox()
+  const row = await last.boundingBox()
+  expect(await inWindow()).toBe(true)
+  expect(menu && row && menu.y + menu.height <= row.y + row.height).toBe(true)
+})
+
 /** Undo, from the ⋯ menu beside the outline's views. */
 async function undo(page: Page): Promise<void> {
   await page.getByTestId('outline-menu').click()
