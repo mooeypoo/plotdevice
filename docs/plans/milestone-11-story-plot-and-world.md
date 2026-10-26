@@ -337,3 +337,10 @@ Engineering notes:
 - **Security policy:** the field runs in a shadow root, as the chapter editor does, so CodeMirror's styles need no exception to the Content Security Policy. Without it, the policy also blocked the style that keeps spaces, and a space after a link was lost.
 - **A late Escape:** after **Enter**, the next line opens once the kept one is saved. An **Esc** pressed in between now stops that next line from opening.
 - **Section names** stay a plain field; they rarely hold links.
+
+## Owner feedback, round 2 (2026-10-26)
+
+| Feedback | Change |
+|---|---|
+| A row's ⋯ near the top of the List opened behind the outline's title bar | Menus are fixed to the window and placed beside their button (`menuPlacement`, unit-tested): below when there's room, otherwise on the side with more room, scrolling if neither fits, mirrored in right-to-left. They follow their button if the page scrolls. |
+| "Add item" doesn't say what level it adds; a new item looked as if it were inside the one above, and it wasn't clear that sub-items are "details" | Reviewed against common outliners (Workflowy, Dynalist, Logseq, Notion, Todoist, Google Docs lists). The List now follows their rules:<br>• **Every row has a bullet in its level's column:** items ●, details ○ one step in, and a thin line down from an item beside its details.<br>• **The fold arrow sits in a margin** and shows on hover, or always when folded; a folded item's bullet has a halo.<br>• **A new line is a row:** its bullet shows where it will land, there is no box, and its placeholder names it ("New item", "New detail of …"). The hint under it says what **Tab** would make it.<br>• **"+ Add item"** is a faint row in the item column. **A quiet + beside the section's name** does the same (owner's choice: both).<br>• **"+ Detail"** is shown in words on hover.<br>• **Row ⋯** shows on hover or keyboard focus. |

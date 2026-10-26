@@ -1,5 +1,5 @@
 import { EditorSelection, EditorState, StateField, type Extension } from '@codemirror/state'
-import { Decoration, EditorView, keymap, WidgetType, type DecorationSet } from '@codemirror/view'
+import { Decoration, EditorView, keymap, placeholder, WidgetType, type DecorationSet } from '@codemirror/view'
 import { linkQueryAt, linkRanges } from './item-text'
 
 /**
@@ -13,6 +13,8 @@ export interface ItemEditorOptions {
   label: string
   /** Placed on the editable element, so tests and assistive technology find it like a text field. */
   testId?: string
+  /** Shown while the line is empty: what it is ("New detail of …"). */
+  placeholder?: string
   /** The name being typed after `@` or `[[`, and where on screen it is; `null` when none. */
   onLinkQuery: (query: { text: string; x: number; y: number } | null) => void
   /**
@@ -69,9 +71,10 @@ const chips = StateField.define<DecorationSet>({
 const look = EditorView.theme({
   '&': { background: 'none', color: 'var(--color-text)' },
   '&.cm-focused': { outline: 'none' },
-  '.cm-scroller': { fontFamily: 'var(--font-prose), serif', lineHeight: '1.45', overflow: 'visible' },
-  '.cm-content': { padding: '0', fontSize: '1.05rem', caretColor: 'var(--color-text)' },
+  '.cm-scroller': { fontFamily: 'var(--item-font, var(--font-prose)), serif', lineHeight: '1.45', overflow: 'visible' },
+  '.cm-content': { padding: '0', fontSize: 'var(--item-font-size, 1.05rem)', caretColor: 'var(--color-text)' },
   '.cm-line': { padding: '0' },
+  '.cm-placeholder': { color: 'var(--color-text-secondary)' },
   '.cm-link-chip': {
     paddingInline: '0.15em',
     borderRadius: '4px',
@@ -114,6 +117,7 @@ export function createItemEditor(parent: HTMLElement, options: ItemEditorOptions
   const extensions: Extension[] = [
     look,
     chips,
+    ...(options.placeholder ? [placeholder(options.placeholder)] : []),
     oneLine,
     EditorView.lineWrapping,
     EditorView.contentAttributes.of({

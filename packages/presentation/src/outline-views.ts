@@ -95,6 +95,25 @@ export function indentedLine(outline: OutlineView, to: ItemDestination): ItemDes
   return above ? { section: to.section, parentPath, index: above.children.length } : null
 }
 
+/**
+ * What a new line in the list belongs to, to name it while it's typed: its parent (a detail of it),
+ * and the item above it, which Tab would make it a detail of. Texts as they read, links as names.
+ */
+export function lineContext(outline: OutlineView, to: ItemDestination): { parent: string | null; above: string | null } {
+  const textAt = (path: number[]): string | null => {
+    const item = itemAt(outline, { section: to.section, path })
+    return item
+      ? inlineSpans(item.text)
+          .map((span) => span.text)
+          .join('')
+      : null
+  }
+  return {
+    parent: to.parentPath.length > 0 ? textAt(to.parentPath) : null,
+    above: to.index > 0 ? textAt([...to.parentPath, to.index - 1]) : null,
+  }
+}
+
 /** Shift+Tab on a new line: it moves out one level, right after its parent. `null` for a card. */
 export function outdentedLine(to: ItemDestination): ItemDestination | null {
   const parent = to.parentPath.at(-1)

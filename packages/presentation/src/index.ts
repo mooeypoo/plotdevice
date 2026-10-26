@@ -20,6 +20,7 @@ export {
   inlineSpans,
   itemAt,
   keyOf,
+  lineContext,
   newLineAfter,
   outdentedLine,
   outlineRows,

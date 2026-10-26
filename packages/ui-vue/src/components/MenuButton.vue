@@ -50,9 +50,9 @@ function keepInWindow(): void {
   place.value = { top, left, maxHeight }
 }
 
-/** The page moved under an open list (scrolling, a resized window): the list closes rather than float away. */
+/** The page moved under an open list (scrolling, a resized window): the list follows its button. */
 function onMoved(): void {
-  if (open.value) close(false)
+  if (open.value) keepInWindow()
 }
 
 function close(returnFocus = true): void {

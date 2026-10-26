@@ -11,7 +11,8 @@ import AppIcon from './AppIcon.vue'
 
 // A card's or item's text, edited in place with its links shown as names. Typing @ (or [[) offers
 // pages and chapters to link; the link button opens the full picker. Emits like `EditableText`.
-const props = defineProps<{ value: string; label: string; nests?: boolean }>()
+/** `bare`: a new line in the list, shown as a row with no box. `hint` replaces the default line under it. */
+const props = defineProps<{ value: string; label: string; nests?: boolean; bare?: boolean; placeholder?: string; hint?: string }>()
 const emit = defineEmits<{ commit: [text: string | null, byEnter: boolean]; indent: [text: string]; outdent: [text: string] }>()
 const project = useProjectStore()
 const story = useStoryStore()
@@ -60,6 +61,7 @@ onMounted(() => {
     text: props.value,
     label: props.label,
     testId: 'editable-text',
+    ...(props.placeholder ? { placeholder: props.placeholder } : {}),
     onLinkQuery: (found) => (query.value = found),
     onListKey: (key) => {
       if (!open.value) return false
@@ -99,7 +101,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="item-field">
+  <div class="item-field" :class="{ bare }">
     <div class="item-field-box">
       <div ref="host" class="item-editor"></div>
       <button
@@ -135,6 +137,6 @@ onBeforeUnmount(() => {
         </li>
       </ul>
     </div>
-    <span class="line-keys">{{ nests ? `${t('outline-line-keys')} · ${t('item-link-hint')}` : t('item-link-hint') }}</span>
+    <span class="line-keys">{{ hint ?? (nests ? `${t('outline-line-keys')} · ${t('item-link-hint')}` : t('item-link-hint')) }}</span>
   </div>
 </template>

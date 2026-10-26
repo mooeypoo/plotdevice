@@ -1,7 +1,17 @@
 import type { OutlineItemView, OutlineView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { boardColumns, boardDrop, cardMoves, indentedLine, inlineSpans, newLineAfter, outdentedLine, outlineRows } from './outline-views'
+import {
+  boardColumns,
+  boardDrop,
+  cardMoves,
+  indentedLine,
+  inlineSpans,
+  lineContext,
+  newLineAfter,
+  outdentedLine,
+  outlineRows,
+} from './outline-views'
 
 const item = (text: string, children: OutlineItemView[] = [], options: Partial<OutlineItemView> = {}): OutlineItemView => ({
   text,
@@ -90,6 +100,12 @@ describe('typing new lines in the list', () => {
     expect(outdentedLine(to(0, [0], 1))).toEqual(to(0, [], 1))
     expect(outdentedLine(to(0, [0, 0], 0))).toEqual(to(0, [0], 1))
     expect(outdentedLine(to(0, [], 3))).toBeNull()
+  })
+
+  it('knows what the line belongs to: its parent, and the item above that Tab would nest it under', () => {
+    expect(lineContext(outline, to(0, [], 2))).toEqual({ parent: null, above: 'The frost' })
+    expect(lineContext(outline, to(0, [0], 1))).toEqual({ parent: 'Ilka arrives', above: 'With one suitcase' })
+    expect(lineContext(outline, to(2, [], 0))).toEqual({ parent: null, above: null })
   })
 
   it('Tab then Shift+Tab puts the line back where it was', () => {

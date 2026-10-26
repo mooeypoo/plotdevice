@@ -229,6 +229,31 @@ test('the list: + Add card, Enter for the next line, Tab to make it a detail, Sh
   await expect(card(page, 'Noël waits')).toContainText('With the bolt cutters')
 })
 
+test('the list says what level a new line is: its bullet, its name, and what Tab would do', async () => {
+  const page = await start()
+  await openStory(page)
+  await page.getByTestId('view-outline').click()
+  const line = page.locator('.new-line')
+
+  // The quiet + beside a section's name adds an item at its end, like "+ Add item" below.
+  await page.getByTestId('add-item-top').first().click()
+  await expect(line).toHaveClass(/level-item/)
+  await expect(line.locator('.cm-placeholder')).toHaveText('New item')
+  await expect(line.locator('.line-keys')).toContainText('Enter: next item')
+  await expect(line.locator('.line-keys')).toContainText('Tab: make it a detail of “The gate, see The Orchard G…”')
+  await page.keyboard.press('Tab')
+  await expect(line).toHaveClass(/level-detail/)
+  await expect(line.locator('.cm-placeholder')).toHaveText('New detail of “The gate, see The Orchard G…”')
+  await expect(line.locator('.line-keys')).toContainText('Shift+Tab: make it an item')
+  await page.keyboard.type('Rusted shut')
+  await page.keyboard.press('Enter')
+  await page.keyboard.press('Escape')
+  await file(MAIN).toContain('- The gate, see [The Orchard Gate](../manuscript/the-orchard-gate.md)\n  - Rusted shut\n')
+  // Items and details have their own bullets.
+  await expect(page.locator('[data-item="0/1"]')).toHaveClass(/level-item/)
+  await expect(page.locator('[data-item="0/1/0"]')).toHaveClass(/level-detail/)
+})
+
 test('the list: + on a row adds a detail to it, and + Add section adds a section', async () => {
   const page = await start()
   await openStory(page)

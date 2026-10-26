@@ -25,8 +25,10 @@ They are two views of the same outline. A change in one is a change in both. The
 
 <Shot name="story-list" alt="The outline as a list, with + Add item under each section" />
 
-- **+ <Ui k="outline-add-item" />**, under a section, starts a new item at its end. **+ <Ui k="outline-add-section" />** is at the bottom.
-- Hover a card (or reach it with the keyboard) for a **+** that adds a detail to it.
+- Every row has a bullet, and where the bullet is says what it is: items **●**, and their details **○**, one step in, with a thin line down from their item. A folded item's bullet has a halo; its arrow opens it.
+- **+ <Ui k="outline-add-item" />**, under a section, starts a new item at its end. The quiet **+** beside the section's name does the same. **+ <Ui k="outline-add-section" />** is at the bottom.
+- Hover an item (or reach it with the keyboard) for **+ <Ui k="outline-detail" />**, which adds a detail to it.
+- A new line shows its bullet where it will land, and says what it is: "New item", or "New detail of …". The line under it says what **Tab** would make it.
 - While typing a new line: **Enter** keeps it and starts the next one, **Tab** makes it a detail of the line above, **Shift+Tab** brings it back out, and **Esc** stops.
 - To link a character, place, note or chapter while typing, type **@** and the start of its name, then choose it. See [Linking](/plotdevice/planning/linking/).
 
