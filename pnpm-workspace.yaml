@@ -1,3 +1,8 @@
 packages:
   - apps/*
   - packages/*
+
+# Install scripts pnpm may run. electron-winstaller (from electron-builder) builds Squirrel installers,
+# which Plot Device doesn't use (its Windows installer is NSIS), so its script stays off.
+allowBuilds:
+  electron-winstaller: false
