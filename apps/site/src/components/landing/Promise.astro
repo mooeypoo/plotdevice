@@ -1,0 +1,15 @@
+---
+// One promise: a few words beside the screenshot that proves it.
+import Shot from '../Shot.astro'
+
+const { eyebrow, title, shot, alt } = Astro.props as { eyebrow: string; title: string; shot: string; alt: string }
+---
+
+<section class="promise">
+  <div class="text">
+    <p class="eyebrow">{eyebrow}</p>
+    <h2>{title}</h2>
+    <slot />
+  </div>
+  <Shot name={shot} {alt} />
+</section>

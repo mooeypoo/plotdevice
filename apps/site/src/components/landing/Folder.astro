@@ -1,0 +1,23 @@
+---
+// "What's in the folder": the demo novel's real folder, and one of its real chapter files.
+import { Code, FileTree } from '@astrojs/starlight/components'
+import { readFileSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
+
+const { book, chapter } = Astro.props as { book: string; chapter: string }
+const root = join(process.cwd(), '../../samples', book)
+const escape = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+function tree(dir: string): string {
+  const entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) => Number(b.isDirectory()) - Number(a.isDirectory()) || a.name.localeCompare(b.name))
+  return `<ul>${entries
+    .map((entry) => (entry.isDirectory() ? `<li>${escape(entry.name)}/${tree(join(dir, entry.name))}</li>` : `<li>${escape(entry.name)}</li>`))
+    .join('')}</ul>`
+}
+const listing = `<ul><li>${escape(book)}/${tree(root)}</li></ul>`
+const text = readFileSync(join(root, chapter), 'utf8')
+---
+
+<div class="folder" dir="ltr">
+  <FileTree><Fragment set:html={listing} /></FileTree>
+  <Code code={text} lang="md" title={chapter} wrap />
+</div>

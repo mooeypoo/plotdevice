@@ -1,0 +1,240 @@
+/* The site in the app's look. Every colour comes from the --color-* variables (the app's tokens, set by
+   Head.astro); Starlight's own variables are mapped onto them, so both themes follow the app. */
+:root,
+:root[data-theme='light'] {
+  --font-ui: 'Instrument Sans Variable', 'Assistant Variable', system-ui, sans-serif;
+  --font-prose: 'Literata Variable', 'Noto Serif Hebrew Variable', Georgia, serif;
+  --sl-font: var(--font-ui);
+
+  --sl-color-white: var(--color-text);
+  --sl-color-gray-1: color-mix(in srgb, var(--color-text) 92%, var(--color-app));
+  --sl-color-gray-2: color-mix(in srgb, var(--color-text) 86%, var(--color-app));
+  --sl-color-gray-3: var(--color-text-secondary);
+  --sl-color-gray-4: color-mix(in srgb, var(--color-text-secondary) 55%, var(--color-app));
+  --sl-color-gray-5: var(--color-well);
+  --sl-color-gray-6: color-mix(in srgb, var(--color-well) 50%, var(--color-app));
+  --sl-color-gray-7: var(--color-app);
+  --sl-color-black: var(--color-app);
+
+  --sl-color-accent-low: var(--color-well);
+  --sl-color-accent: var(--color-accent);
+  --sl-color-accent-high: var(--color-accent);
+  --sl-color-text: var(--sl-color-gray-2);
+  --sl-color-text-accent: var(--color-accent);
+  --sl-color-text-invert: var(--color-on-accent);
+  --sl-color-bg: var(--color-app);
+  --sl-color-bg-nav: var(--color-app);
+  --sl-color-bg-sidebar: var(--color-app);
+  --sl-color-bg-inline-code: var(--color-well);
+  --sl-color-bg-accent: var(--color-accent);
+  --sl-color-hairline-light: color-mix(in srgb, var(--color-text) 10%, transparent);
+  --sl-color-hairline: color-mix(in srgb, var(--color-text) 10%, transparent);
+  --sl-color-hairline-shade: color-mix(in srgb, var(--color-text) 16%, transparent);
+  --glow: color-mix(in srgb, var(--color-card) 75%, transparent);
+  --shadow-page: 0 1px 2px rgb(0 0 0 / 0.06), 0 24px 60px rgb(0 0 0 / 0.14);
+}
+:root:not([data-theme='light']) {
+  --glow: color-mix(in srgb, var(--color-mark) 13%, transparent);
+  --shadow-page: 0 0 0 1px rgb(255 255 255 / 0.04), 0 30px 80px rgb(0 0 0 / 0.55);
+}
+
+/* Titles in the app's prose serif; Hebrew stays upright, as in the app. */
+.sl-markdown-content :is(h1, h2, h3),
+h1#_top,
+.site-title {
+  font-family: var(--font-prose);
+  font-weight: 400;
+}
+h1#_top {
+  font-style: italic;
+}
+:lang(he) h1#_top {
+  font-style: normal;
+}
+.sl-markdown-content a {
+  text-decoration-color: var(--color-mark);
+  text-underline-offset: 0.2em;
+}
+
+/* A screenshot with its light and dark versions: the site's theme picks one. */
+:root[data-theme='light'] .only-dark,
+:root:not([data-theme='light']) .only-light {
+  display: none;
+}
+.shot img {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  border-radius: 12px;
+  box-shadow: var(--shadow-page);
+}
+
+/* The front page */
+.landing {
+  --measure: 72rem;
+}
+.landing section {
+  margin-block: 0 7rem;
+}
+.landing .eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+:lang(he) .landing .eyebrow {
+  letter-spacing: 0.05em;
+  font-size: 0.9rem;
+}
+.landing h2 {
+  margin: 0 0 1rem;
+  font: 400 clamp(1.9rem, 3.2vw, 2.6rem) / 1.15 var(--font-prose);
+  color: var(--color-text);
+  border: none;
+}
+.landing p {
+  font-size: 1.12rem;
+  line-height: 1.65;
+}
+.hero {
+  text-align: center;
+  padding-block: 3rem 0;
+  background: radial-gradient(ellipse 55% 50% at 50% 35%, var(--glow), transparent 72%);
+}
+.hero-mark {
+  display: block;
+  block-size: 8.5rem;
+  inline-size: auto;
+  margin-inline: auto;
+}
+.hero-mark .thread {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw-thread 1.8s 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes draw-thread {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.hero h1 {
+  margin: 1.5rem 0 0;
+  font: 300 clamp(2.6rem, 6vw, 4.4rem) / 1.05 var(--font-prose);
+  letter-spacing: -0.015em;
+  color: var(--color-text);
+}
+.hero .lede {
+  max-inline-size: 36rem;
+  margin: 1.25rem auto 2rem;
+  font: italic 400 1.3rem/1.5 var(--font-prose);
+  color: var(--color-text-secondary);
+}
+:lang(he) .hero .lede {
+  font-style: normal;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--color-text);
+  background: var(--color-card);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-text) 18%, transparent);
+}
+.button.primary {
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+  box-shadow: none;
+}
+.button:hover {
+  filter: brightness(1.06);
+}
+.platforms {
+  margin: 0.9rem 0 0;
+  font-size: 0.92rem !important;
+  color: var(--color-text-secondary);
+}
+.hero .shot {
+  max-inline-size: var(--measure);
+  margin: 3.5rem auto 0;
+}
+.promise {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 3rem;
+  align-items: center;
+  max-inline-size: var(--measure);
+  margin-inline: auto;
+}
+.promise:nth-of-type(even) .text {
+  order: 2;
+}
+.promise .text :is(p, h2) {
+  margin-block-start: 0;
+}
+.story-band {
+  max-inline-size: var(--measure);
+  margin-inline: auto;
+  text-align: center;
+}
+.story-band > p {
+  max-inline-size: 40rem;
+  margin: 0 auto 2.5rem;
+}
+.folder {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 1.5rem;
+  align-items: start;
+  text-align: start;
+}
+.folder > * {
+  margin: 0 !important;
+}
+.yours {
+  max-inline-size: 46rem;
+  margin-inline: auto;
+  text-align: center;
+}
+.closing {
+  text-align: center;
+  padding-block: 3rem;
+  border-radius: 20px;
+  background: radial-gradient(ellipse 60% 70% at 50% 40%, var(--glow), transparent 75%);
+}
+.closing .credit {
+  margin-block-start: 2rem;
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+}
+@media (max-width: 50rem) {
+  .promise,
+  .folder {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .promise:nth-of-type(even) .text {
+    order: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-mark .thread {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The front page draws its own title in the hero. */
+body:has(.landing) h1#_top {
+  display: none;
+}

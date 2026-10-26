@@ -5,7 +5,8 @@
   "license": "GPL-3.0-or-later",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./theme": "./src/theme/tokens.ts"
   },
   "scripts": {
     "typecheck": "vue-tsc --noEmit"

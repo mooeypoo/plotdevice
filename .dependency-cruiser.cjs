@@ -143,6 +143,20 @@ module.exports = {
       '^electron$',
     ]),
     {
+      name: 'site-reads-only-words-and-colours',
+      comment: 'The documentation site reads only the message catalogs and the colour tokens from the app (Milestone 10)',
+      severity: 'error',
+      from: { path: '(^|/)apps/site/' },
+      to: { path: '(^|/)packages/', pathNot: [pkg('i18n'), `${pkg('ui-vue')}src/theme/`] },
+    },
+    {
+      name: 'nothing-imports-the-site',
+      comment: 'The app never depends on its documentation',
+      severity: 'error',
+      from: { path: ['(^|/)packages/', desktop('[^/]+')] },
+      to: { path: '(^|/)apps/site/' },
+    },
+    {
       name: 'main-does-not-load-ui',
       severity: 'error',
       from: { path: desktop('main') },
@@ -151,7 +165,7 @@ module.exports = {
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
-    exclude: { path: ['(^|/)\\.tsbuild/', '(^|/)dist/', '(^|/)out/'] },
+    exclude: { path: ['(^|/)\\.tsbuild/', '(^|/)dist/', '(^|/)out/', '(^|/)\\.astro/'] },
     tsPreCompilationDeps: true,
     combinedDependencies: true,
     enhancedResolveOptions: {

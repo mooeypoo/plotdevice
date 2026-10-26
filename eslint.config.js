@@ -9,6 +9,8 @@ export default defineConfig(
       '**/dist/**',
       '**/out/**',
       '**/.tsbuild/**',
+      '**/.astro/**',
+      '**/test-results/**',
       'tests/fixtures/**',
       'spikes/**',
       'tooling/arch-fixtures/**',
