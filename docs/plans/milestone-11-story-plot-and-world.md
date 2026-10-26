@@ -1,6 +1,6 @@
 # Milestone 11: Story, in two halves (Plot and World)
 
-Status: **Built** (2026-10-26) on branch `milestone-11/story-plot-and-world` (PR #28), waiting for the owner's review. Results are at the end of this document.
+Status: **Built** (2026-10-26) on branch `milestone-11/story-plot-and-world` (PR #28), ready for review after three rounds of owner feedback (at the end). Results are at the end of this document; the test counts include the feedback rounds.
 
 ## Goal
 
@@ -282,12 +282,12 @@ The clickable mock-ups came before step 2 and are approved (decision 7).
 |---|---|
 | `pnpm lint` | OK |
 | `pnpm typecheck` | OK |
-| `pnpm test` | 857 passed |
-| `pnpm arch` | 105 passed |
+| `pnpm test` | 868 passed. Under heavy machine load, two slow randomized tests (`outline-repository`, `edit-outline`) can exceed their 5-second limit; they did on the commit before these changes too. Follow-up below. |
+| `pnpm arch` | 107 passed |
 | `pnpm build` | OK |
-| `pnpm e2e` (Playwright) | 61 passed |
-| `pnpm site:screenshots`, `site:build`, `site:test` | OK; 4 new screens per language and theme |
-| `pnpm perf` | **1 failed:** moving a card on a 2,000-card outline took 520–560 ms against a 500 ms limit. `main` fails the same way on this machine (540–560 ms in three runs), and this milestone doesn't touch that code. Left as is, to look at separately. |
+| `pnpm e2e` (Playwright) | 64 passed |
+| `pnpm site:screenshots`, `site:build`, `site:test` | OK; 5 new screens per language and theme: the List, a gallery, a page's connections, the board showing one character's cards, linking with @ |
+| `pnpm perf` | **1 failed:** moving a card on a 2,000-card outline took 520–560 ms against a 500 ms limit. `main` fails the same way on this machine (540–560 ms in three runs), and this milestone doesn't touch that code. Follow-up below. |
 
 New tests:
 
@@ -344,3 +344,15 @@ Engineering notes:
 |---|---|
 | A row's ⋯ near the top of the List opened behind the outline's title bar | Menus are fixed to the window and placed beside their button (`menuPlacement`, unit-tested): below when there's room, otherwise on the side with more room, scrolling if neither fits, mirrored in right-to-left. They follow their button if the page scrolls. |
 | "Add item" doesn't say what level it adds; a new item looked as if it were inside the one above, and it wasn't clear that sub-items are "details" | Reviewed against common outliners (Workflowy, Dynalist, Logseq, Notion, Todoist, Google Docs lists). The List now follows their rules:<br>• **Every row has a bullet in its level's column:** items ●, details ○ one step in, and a thin line down from an item beside its details.<br>• **The fold arrow sits in a margin** and shows on hover, or always when folded; a folded item's bullet has a halo.<br>• **A new line is a row:** its bullet shows where it will land, there is no box, and its placeholder names it ("New item", "New detail of …"). The hint under it says what **Tab** would make it.<br>• **"+ Add item"** is a faint row in the item column. **A quiet + beside the section's name** does the same (owner's choice: both).<br>• **"+ Detail"** is shown in words on hover.<br>• **Row ⋯** shows on hover or keyboard focus. |
+
+## Owner feedback, round 3 (2026-10-26)
+
+| Feedback | Change |
+|---|---|
+| "+ Detail" sits at the far end of its row, so it isn't clear which item it adds to | The row under the pointer (or the keyboard) is lightly shaded across its width. |
+| (Found while reviewing) The Board's **⋯ → Add detail** still asked for plain text, so links had to be typed as Markdown | It opens the same field inside the card, under its details, named "New detail of “…”", with **@** to link; **Enter** adds the next detail. |
+
+## Follow-ups
+
+- **Speed:** moving a card on a 2,000-card outline (`pnpm perf`, limit 500 ms), and the two slow randomized unit tests' time limits. Not caused by this milestone; a separate change.
+- **To discuss once Story settles:** how important a character is, part by part (see "Later" above).

@@ -77,8 +77,13 @@ test('scenario B: build an outline visually, see it both ways, and find it all i
     .getByRole('button', { name: /Actions for/ })
     .click()
   await page.getByTestId('menu-add-detail').click()
-  await page.getByTestId('prompt-input').fill('Because of her mother')
-  await page.getByTestId('prompt-input').press('Enter')
+  // Typed in place inside the card, like everywhere else, with @ to link.
+  await expect(card(page, 'Wants to keep the orchard').locator('.card-new-detail .cm-placeholder')).toHaveText(
+    'New detail of “Wants to keep the orchard”',
+  )
+  await page.keyboard.type('Because of her mother')
+  await page.keyboard.press('Enter')
+  await page.keyboard.press('Escape')
   await page.getByTestId('add-section').click()
   await typeInPlace(page, 'Bea')
 

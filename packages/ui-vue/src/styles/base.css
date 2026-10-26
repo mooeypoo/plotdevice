@@ -1307,6 +1307,12 @@ button.outline-title:hover:not(:disabled) {
   background: var(--color-well);
 }
 
+/* A detail being added inside a board card, under its details. */
+.card-new-detail {
+  margin-block-start: 0.45rem;
+  --item-font: var(--font-ui);
+  --item-font-size: 0.9rem;
+}
 /* "+ Detail" on a row, on hover or keyboard focus. */
 .list-row .add-detail {
   border: none;

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { OutlineItemView } from '@plotdevice/contracts'
-import { keyOf, type ItemAt } from '@plotdevice/presentation'
+import { keyOf, linkTextOnly, type ItemAt } from '@plotdevice/presentation'
 import { dirnameOf } from '@plotdevice/shared'
 import { computed } from 'vue'
 import { useFollowLink } from '../composables/use-follow-link'
@@ -39,6 +39,19 @@ function onDrop(event: DragEvent): void {
   actions.dropBefore(props.at)
 }
 const editing = computed(() => story.editing?.kind === 'item' && story.editing.key === key.value)
+/** A detail being added to this card, typed in place under its details. */
+const addingDetail = computed(() => {
+  const line = story.editing
+  return (
+    line?.kind === 'new-line' &&
+    line.to.section === props.at.section &&
+    keyOf({ section: 0, path: line.to.parentPath }) === keyOf({ section: 0, path: props.at.path })
+  )
+})
+const cardName = computed(() => {
+  const text = linkTextOnly(props.item.text)
+  return text.length > 28 ? `${text.slice(0, 27).trimEnd()}…` : text
+})
 const detailCount = computed(() => {
   const count = (item: OutlineItemView): number => item.children.reduce((sum, child) => sum + 1 + count(child), 0)
   return count(props.item)
@@ -51,7 +64,7 @@ const detailCount = computed(() => {
     :class="[{ locked: !item.movable, lifted }, drop ? `drop-${drop}` : '', picked ? `picked-${picked}` : '']"
     tabindex="0"
     :data-item="key"
-    :draggable="item.movable && !editing"
+    :draggable="item.movable && !editing && !addingDetail"
     :aria-label="item.text"
     @keydown.self="actions.onItemKey($event, at, item)"
     @dblclick="story.editing = { kind: 'item', key }"
@@ -74,6 +87,15 @@ const detailCount = computed(() => {
       </li>
       <li v-if="detailCount > 3" class="secondary">{{ t('details-count', detailCount) }}</li>
     </ul>
+    <ItemTextField
+      v-if="addingDetail"
+      class="card-new-detail"
+      value=""
+      :label="t('line-new-detail', cardName)"
+      :placeholder="t('line-new-detail', cardName)"
+      bare
+      @commit="actions.commitLine"
+    />
     <KeptAsWritten v-for="(block, index) in item.keptAsWritten" :key="`kept-${index}`" :text="block" />
   </article>
 </template>

@@ -62,9 +62,9 @@ export function useOutlineActions() {
     if (await confirm(t('confirm-delete-item', item.text), t('confirm-delete'))) await story.edit({ kind: 'delete-item', at })
   }
 
-  async function addDetail(at: ItemAt, item: OutlineItemView): Promise<void> {
-    const text = await ask(t('prompt-detail-text'))
-    if (text) await story.edit({ kind: 'add-item', to: { section: at.section, parentPath: at.path, index: item.children.length }, text })
+  /** A new detail, typed in place at the end of the item's details (on the board, inside its card). */
+  function addDetail(at: ItemAt, item: OutlineItemView): void {
+    startLine({ section: at.section, parentPath: at.path, index: item.children.length })
   }
 
   function itemMenu(at: ItemAt, item: OutlineItemView): MenuItem[] {
@@ -87,7 +87,7 @@ export function useOutlineActions() {
       : []
     return [
       { key: 'edit', label: t('item-edit'), run: () => (story.editing = { kind: 'item', key: keyOf(at) }) },
-      { key: 'add-detail', label: t('outline-add-detail'), run: () => void addDetail(at, item) },
+      { key: 'add-detail', label: t('outline-add-detail'), run: () => addDetail(at, item) },
       { key: 'link-to', label: t('link-to'), run: () => void linkTo(at, item) },
       {
         key: 'move-earlier',
