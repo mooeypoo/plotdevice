@@ -1,0 +1,29 @@
+---
+title: Translate Plot Device
+description: Bring Plot Device and this guide to another language.
+---
+
+Plot Device is built to be translated. The app and this site each take their words from plain files, and adding a language is mostly writing.
+
+## The app
+
+1. Copy `packages/i18n/src/messages/en.json` to `<code>.json` (for example, `fr.json`).
+2. Translate each message. Keep `$1`, `$2` and `{{PLURAL:…}}` as they are: they're filled in by the app.
+3. Add the language to the catalogs in `packages/i18n/src/translator.ts`. A test checks that every message is translated.
+
+## This site
+
+1. Add the language to `locales` in `apps/site/astro.config.ts`, with `dir: 'rtl'` if it's written right to left.
+2. Translate pages into `apps/site/src/content/docs/<code>/`, with the same file names. Untranslated pages show the English with a notice, so you can go page by page.
+3. In each translated page's frontmatter, set `sourceHash` to the English page's hash from the report below. When the English page changes later, the report lists the translation as needing an update.
+4. Add the language to `LANGUAGES` in `apps/site/screenshots/screens.shots.ts`, so the site's screenshots show the app in it.
+
+Button names in the guide come from the app, through `<Ui k="…" />`, so they appear in the new language as soon as the app has it.
+
+## The report
+
+```sh
+pnpm site:translations
+```
+
+lists, for every language, the pages not yet translated and the ones whose English changed since.

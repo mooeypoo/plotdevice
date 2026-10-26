@@ -1,0 +1,45 @@
+---
+title: Chapters and the contents
+description: How chapter files and CONTENTS.md hold the book's text and order.
+---
+
+## A chapter
+
+Each chapter is a file in `manuscript/`:
+
+```markdown
+---
+title: The Crossing
+id: ch-d3m0c2
+---
+The ferry left Szeged an hour late.
+
+* * *
+
+"You're thinner than your photograph," said Aunt Bea.
+```
+
+- `title` is the chapter's name. Renaming a chapter changes this line, never the file's name.
+- `id` helps Plot Device recognise the chapter if its file is renamed elsewhere. It always asks before relinking.
+- `* * *` is a scene break.
+- Anything else you add above the text, or Markdown Plot Device doesn't show, is kept exactly as written.
+
+## The contents
+
+`CONTENTS.md` is the book's reading order, and also a table of contents a person can read:
+
+```markdown
+# The Salt Orchard
+
+- [Prologue](manuscript/prologue.md)
+- Part One: Arrival
+  - [The Crossing](manuscript/the-crossing.md)
+  - [The Orchard Gate](manuscript/the-orchard-gate.md)
+- [Epilogue](manuscript/epilogue.md)
+```
+
+- A list item with a link to a chapter file is a chapter; its place in the list is its place in the book.
+- A list item without a link, with chapters under it, is a part.
+- Reordering lines here, in any app, reorders the book. File names and folders don't matter.
+
+A chapter file the contents doesn't mention waits **on the side**; Plot Device never adds it by itself.

@@ -1,0 +1,30 @@
+---
+title: Moving chapters
+description: Rearrange the book by dragging, with the keyboard, or from a chapter's menu.
+---
+
+import Ui from '~/components/Ui.astro'
+
+Moving a chapter changes the book's reading order, nothing else: no file is renamed, and the text isn't touched.
+
+## Drag
+
+Drag a chapter in the list. A gold line shows where it will land:
+
+- Over the top half of a chapter, it goes **before** it; over the bottom half, **after** it.
+- Just below a part's last chapter, it stays **inside** the part. Over the top of the next entry, it goes **outside**.
+- Over a part's name: above it is outside the part, below it is the part's first place.
+
+## With the keyboard
+
+Focus a chapter in the list and press **Alt+↑** or **Alt+↓**. It moves one step through the reading order, in and out of parts, and keeps the focus.
+
+## From the menu
+
+A chapter's **⋯** has **<Ui k="chapter-move-up" />**, **<Ui k="chapter-move-down" />**, and **<Ui k="chapter-move-to" />**: the start of the book, the end of any part, or the end of the book.
+
+## Move for later
+
+**<Ui k="chapter-remove" />** takes a chapter out of the reading order and keeps it under **<Ui k="navigator-not-in-book" />**, with its text intact. To bring it back, choose **<Ui k="navigator-add-to-book" />**, or drag it into the book where you want it.
+
+Chapter files added to the book's folder by another app also appear under **<Ui k="navigator-not-in-book" />**, until you add them.

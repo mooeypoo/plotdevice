@@ -1,0 +1,8 @@
+---
+// Starlight's head, plus the app's colours as CSS variables (one source: packages/ui-vue's tokens).
+import Default from '@astrojs/starlight/components/Head.astro'
+import { themeCss } from '../app-bridge'
+---
+
+<Default><slot /></Default>
+<style is:inline set:html={themeCss}></style>

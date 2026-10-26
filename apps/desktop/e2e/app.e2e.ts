@@ -82,7 +82,7 @@ test('switching to Hebrew flips the interface to right-to-left without reloading
   await page.getByTestId('language').selectOption('he')
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
   await expect(page.locator('html')).toHaveAttribute('lang', 'he')
-  await expect(page.getByText('מקום שקט לכתוב בו את הרומן שלך.')).toBeVisible()
+  await expect(page.getByText('מקום שקט לכתוב בו את הסיפור שלך.')).toBeVisible()
   expect(await page.evaluate(() => (window as unknown as { marker?: string }).marker)).toBe('still here')
 })
 
@@ -187,8 +187,8 @@ test('an unreadable settings file falls back to defaults and is kept, not delete
 
 test('the About window shows the version, the licence and the open-source credits', async () => {
   running = await launch(userData)
-  await openSettings(running.page)
-  await running.page.getByTestId('open-about').click()
+  await running.page.getByTestId('app-menu').click()
+  await running.page.getByTestId('menu-about').click()
   const about = running.page.getByTestId('about')
   await expect(about).toBeVisible()
   await expect(about.getByTestId('about-version')).toHaveText('Version 0.2.0')
@@ -196,6 +196,8 @@ test('the About window shows the version, the licence and the open-source credit
   await about.getByText(/Open-source components/).click()
   await expect(about.getByTestId('credits')).toContainText('vue')
   await expect(about.getByTestId('credits')).toContainText('electron')
+  // The bundled fonts are open-source components too (Milestone 9, decision 2).
+  await expect(about.getByTestId('credits')).toContainText('@fontsource-variable/literata')
   await about.getByText('The full licence').click()
   await expect(about.locator('.license')).toContainText('GNU GENERAL PUBLIC LICENSE')
 })

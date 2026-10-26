@@ -1,0 +1,26 @@
+---
+title: The book's folder
+description: What's in a Plot Device book, and why it reads well without Plot Device.
+---
+
+import Folder from '~/components/landing/Folder.astro'
+
+A book is an ordinary folder. Everything in it is a Markdown text file that any app can open, and the folder still makes sense if Plot Device is gone.
+
+<Folder book="the-salt-orchard" chapter="CONTENTS.md" />
+
+| File or folder | What it holds |
+|---|---|
+| `project.md` | The book's title, author, language and a few settings. Anything you write under them is yours. |
+| `CONTENTS.md` | The reading order and the parts. See [Chapters and the contents](/plotdevice/files/chapters/). |
+| `manuscript/` | One file per chapter. |
+| `outlines/` | One file per outline. See [Outline files](/plotdevice/files/outlines/). |
+| `characters/`, `places/`, `notes/` | One file per page. See [Character, place and note pages](/plotdevice/files/pages/). |
+
+Plot Device keeps nothing else in the folder: no hidden database, no settings, no backups. Those live on your computer, outside the book. Copy the folder, sync it, or put it in git; it's complete.
+
+## Opening it elsewhere
+
+- **Obsidian:** open the folder as a vault. Links between pages work there too.
+- **A text editor, GitHub, or VS Code:** every file reads as plain Markdown.
+- **git:** each change is a small, readable difference in a text file.

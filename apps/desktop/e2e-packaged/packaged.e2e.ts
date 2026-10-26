@@ -72,8 +72,8 @@ test('it knows its name and version, and shows the licence and credits it ships 
   // Electron's own name is the package's (`plotdevice`, matching the desktop entry); authors see the title.
   expect(await app?.evaluate(({ app: electronApp }) => electronApp.getVersion())).toBe('0.2.0')
   expect(await page.title()).toBe('Plot Device')
-  await page.locator('.settings-menu summary').click()
-  await page.getByTestId('open-about').click()
+  await page.getByTestId('app-menu').click()
+  await page.getByTestId('menu-about').click()
   await page.getByText(/Open-source components/).click()
   await expect(page.getByTestId('credits')).toContainText('electron')
   await page.getByText('The full licence').click()
@@ -97,7 +97,8 @@ test('upgrading over the old app: its settings files are left as they were, and 
   }
   for (const [name, text] of Object.entries(old)) await writeFile(join(userData, name), text)
   const page = await start([], userData)
-  await page.locator('.settings-menu summary').click()
+  await page.getByTestId('app-menu').click()
+  await page.getByTestId('menu-settings').click()
   await page.getByTestId('theme').selectOption('dark')
   await expect.poll(() => readFile(join(userData, 'preferences.json'), 'utf8').catch(() => '')).toContain('"theme": "dark"')
   for (const [name, text] of Object.entries(old)) expect(await readFile(join(userData, name), 'utf8')).toBe(text)

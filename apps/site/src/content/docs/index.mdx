@@ -1,0 +1,66 @@
+---
+title: Plot Device
+description: A calm writing studio for novelists. Write first, see the story, and keep your book as a folder of plain Markdown files.
+template: splash
+tableOfContents: false
+---
+
+import Hero from '../../components/landing/Hero.astro'
+import Promise from '../../components/landing/Promise.astro'
+import Folder from '../../components/landing/Folder.astro'
+import Shot from '../../components/Shot.astro'
+
+<div class="landing">
+
+<Hero
+  title="Write the novel. Keep the files."
+  lede="A calm desk for your chapters, a clear view of your story, and a folder of plain Markdown files that stays yours."
+  download="Download Plot Device"
+  guide="Start the guide"
+  guideHref="/plotdevice/start/install/"
+  platforms="Early versions for Linux and Windows · macOS later · Open source"
+  shotAlt="Plot Device's writing desk: the chapter list, and a chapter of The Salt Orchard on the page"
+/>
+
+<Promise eyebrow="Write first" title="Open a chapter and write." shot="formatting" alt="Selected text in a chapter, with a small formatting bubble above it">
+  No outline to fill in, no setup. The page waits under a soft light; formatting appears only when you select text, and the rest of the app stays out of your way.
+</Promise>
+
+<Promise eyebrow="See the story" title="The shape of the book, at a glance." shot="story" alt="An outline on a board: Beginning, Middle and End, with cards linked to chapters and characters">
+  Plan in outlines that are simply Markdown lists: on a board, as a list, or as cards. Drag a card, link it to a chapter or a character, and your prose stays exactly as you wrote it.
+</Promise>
+
+<Promise eyebrow="Keep them close" title="Your characters, beside the page." shot="references" alt="A chapter with the references shelf open, showing Bea Halmi's page pinned">
+  Characters, places and notes sit beside the page while you write. Search, pin the ones you need, and never lose your place in the chapter.
+</Promise>
+
+<section class="story-band">
+  <p class="eyebrow">Hebrew and English</p>
+  <h2>The interface in your language. The book in its own.</h2>
+  <p>Write a Hebrew novel with English names, or an English one in a Hebrew interface. Every paragraph runs the right way, and punctuation lands where it belongs.</p>
+  <Shot name="bilingual" alt="A Hebrew chapter, right to left, in Plot Device's English interface" />
+</section>
+
+<section class="story-band">
+  <p class="eyebrow">Your files</p>
+  <h2>A folder of plain Markdown. Yours, for good.</h2>
+  <p>Every chapter is a Markdown file, the book's order is a readable list, and outlines are ordinary lists. Open the same folder in Obsidian, any text editor or git: Plot Device is a lens on your files, not a place that locks them in.</p>
+  <Folder book="the-salt-orchard" chapter="manuscript/the-crossing.md" />
+</section>
+
+<section class="yours">
+  <p class="eyebrow">Open, and yours</p>
+  <h2>No account. No cloud. No claim on your work.</h2>
+  <p>Plot Device is open source, under the GNU GPL. It runs on your computer and sends nothing anywhere. What you write belongs to you, under your own copyright.</p>
+</section>
+
+<section class="closing">
+  <h2>Whenever you're ready to write.</h2>
+  <div class="actions">
+    <a class="button primary" href="https://github.com/mooeypoo/plotdevice/releases">Download Plot Device</a>
+    <a class="button" href="/plotdevice/start/install/">Start the guide</a>
+  </div>
+  <p class="credit">Made by <a href="https://moriel.tech">Moriel Schottlender</a>.</p>
+</section>
+
+</div>

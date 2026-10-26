@@ -7,10 +7,12 @@ export type ColorToken =
   | 'app'
   | 'card'
   | 'page'
+  | 'well'
   | 'text'
   | 'textSecondary'
   | 'accent'
   | 'onAccent'
+  | 'mark'
   | 'warning'
   | 'focus'
   | 'plotAmber'
@@ -21,27 +23,31 @@ export type Palette = Readonly<Record<ColorToken, string>>
 
 export const palettes = {
   light: {
-    app: '#F7F5F1',
+    app: '#E8E4DC',
     card: '#FFFFFF',
-    page: '#FFFDF8',
-    text: '#27313A',
-    textSecondary: '#5E6A75',
-    accent: '#1F7A77',
+    page: '#F8F6F1',
+    well: '#E0DBD0',
+    text: '#1D1E23',
+    textSecondary: '#5C5B5E',
+    accent: '#2C3E63',
     onAccent: '#FFFFFF',
-    warning: '#9C6430',
-    focus: '#246FC1',
-    plotAmber: '#BB803F',
+    mark: '#8C6A2C',
+    warning: '#844E1E',
+    focus: '#2E62B8',
+    plotAmber: '#9A6A26',
     plotPlum: '#8C628C',
-    plotTerracotta: '#BA7158',
+    plotTerracotta: '#A55D44',
   },
   dark: {
-    app: '#191E27',
-    card: '#272D38',
-    page: '#222831',
-    text: '#EAE7E2',
-    textSecondary: '#A8B0BC',
-    accent: '#64C6BB',
-    onAccent: '#191E27',
+    app: '#101114',
+    card: '#222227',
+    page: '#1A1A1E',
+    well: '#2A2620',
+    text: '#E9E2D3',
+    textSecondary: '#9C9483',
+    accent: '#E0B66E',
+    onAccent: '#101114',
+    mark: '#B88E45',
     warning: '#E0AB76',
     focus: '#9CBFF8',
     plotAmber: '#E3B77E',

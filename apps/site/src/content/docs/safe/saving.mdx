@@ -1,0 +1,25 @@
+---
+title: Saving happens by itself
+description: When Plot Device saves, and what the save status in the top bar means.
+---
+
+import Ui from '~/components/Ui.astro'
+
+There is no save button. Plot Device saves a moment after you stop typing, and at once when you switch chapters, leave the window, or close the app.
+
+## The save status
+
+The top bar shows where things stand:
+
+| It says | Which means |
+|---|---|
+| **<Ui k="save-saved" />** | Everything you wrote is on disk. |
+| **<Ui k="save-saving" />** | Writing it now. |
+| **<Ui k="save-unsaved" />** | You just typed; it saves in a moment. |
+| **<Ui k="save-conflict" />** | The chapter changed outside Plot Device. Nothing was overwritten: see [When a file changes in another app](/plotdevice/safe/other-apps/). |
+
+If saving ever fails, for example because the disk is full, your text stays in Plot Device and saving tries again as you type.
+
+## Safe writes
+
+Every save writes a complete new copy of the file, then swaps it in, so a crash or power cut never leaves half a chapter behind. And before Plot Device changes a file, it keeps the old one: see [Earlier versions](/plotdevice/safe/versions/).

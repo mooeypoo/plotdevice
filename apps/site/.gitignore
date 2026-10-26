@@ -1,0 +1,5 @@
+dist/
+.astro/
+# Made from the real app by `pnpm site:screenshots` (locally, and in the docs workflow).
+src/assets/screens/
+test-results/

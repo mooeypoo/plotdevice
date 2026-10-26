@@ -42,11 +42,17 @@ export async function launch(userData: string, extraEnv: Record<string, string> 
   return { app, page }
 }
 
-/** Opens the Settings panel, where the language and theme are chosen. */
+/** Opens Settings (from the app menu), where the language and theme are chosen. */
 export async function openSettings(page: Page): Promise<void> {
-  const panel = page.locator('.settings-menu')
-  await panel.waitFor()
-  if ((await panel.getAttribute('open')) === null) await panel.locator('summary').click()
+  if (await page.getByTestId('settings').isVisible()) return
+  await page.getByTestId('app-menu').click()
+  await page.getByTestId('menu-settings').click()
+  await page.getByTestId('settings').waitFor()
+}
+
+/** Closes Settings, so the rest of the window can be used again. */
+export async function closeSettings(page: Page): Promise<void> {
+  if (await page.getByTestId('settings').isVisible()) await page.getByTestId('settings-close').click()
 }
 
 /** Runs the app once more, as a file manager's "Open with" would, and waits for that launch to exit. */

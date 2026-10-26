@@ -1,7 +1,17 @@
 import type { ChapterRef, ProjectView } from '@plotdevice/contracts'
-import { moveDown, moveTargets, moveUp, placementAfter, type Placement } from '@plotdevice/presentation'
+import {
+  moveDown,
+  moveTargets,
+  moveUp,
+  placementAfter,
+  placementForDrop,
+  slotAt,
+  type DropRow,
+  type Placement,
+  type Slot,
+} from '@plotdevice/presentation'
 import type { ProjectPath } from '@plotdevice/shared'
-import { computed, type Ref } from 'vue'
+import { computed, ref, type Ref } from 'vue'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import type { MenuItem } from '../components/menu'
@@ -90,6 +100,64 @@ export function useNavigator(project: Ref<ProjectView>, openFile: Ref<ProjectPat
     ]
   }
 
+  // Drag and drop. Rows carry `data-drop-row` ("chapter:<file>" or "part:<index>"): over a row's top
+  // half the chapter goes before it, its bottom half after it; below every row, the end of the book.
+  const dragged = ref<ProjectPath | null>(null)
+  const dropTarget = ref<{ slot: Slot; row: string; half: 'before' | 'after' } | null>(null)
+
+  function dragStart(event: DragEvent, file: ProjectPath): void {
+    dragged.value = file
+    event.dataTransfer?.setData('text/plain', file)
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
+  }
+
+  function dragOver(event: DragEvent): void {
+    const file = dragged.value
+    if (!file) return
+    event.preventDefault()
+    const target = event.target as Element
+    if (target.closest('.navigator-section')) {
+      dropTarget.value = null
+      return
+    }
+    const element = target.closest<HTMLElement>('[data-drop-row]')
+    const key = element?.dataset.dropRow ?? 'end'
+    let half: 'before' | 'after' = 'after'
+    let row: DropRow | null = null
+    if (element) {
+      const box = element.getBoundingClientRect()
+      half = event.clientY < box.top + box.height / 2 ? 'before' : 'after'
+      row = key.startsWith('part:') ? { kind: 'part', part: Number(key.slice(5)) } : { kind: 'chapter', file: key.slice(8) as ProjectPath }
+    }
+    const contents = project.value.contents
+    const slot = row ? slotAt(contents, row, half) : { part: null, index: contents.length }
+    dropTarget.value = slot && placementForDrop(contents, file, slot) ? { slot, row: key, half } : null
+  }
+
+  function dragLeave(event: DragEvent): void {
+    if (!(event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)) dropTarget.value = null
+  }
+
+  function dragEnd(): void {
+    dragged.value = null
+    dropTarget.value = null
+  }
+
+  async function drop(): Promise<void> {
+    const file = dragged.value
+    const target = dropTarget.value
+    dragEnd()
+    if (!file || !target) return
+    const placement = placementForDrop(project.value.contents, file, target.slot)
+    if (!placement) return
+    const listed = project.value.chapters.find((chapter) => chapter.file === file)?.listed ?? false
+    if (listed) await move(file, placement)
+    else await store.changeContents({ kind: 'add-to-book', file, placement })
+  }
+
+  /** The line showing where a dragged chapter would land, as a class for `row`. */
+  const dropClass = (row: string): string => (dropTarget.value?.row === row ? `drop-${dropTarget.value.half}` : '')
+
   /** Alt+Arrow keys move the focused chapter through the reading order. */
   async function moveWithKeyboard(event: KeyboardEvent, file: ProjectPath): Promise<void> {
     const placement = event.key === 'ArrowUp' ? moveUp(project.value.contents, file) : moveDown(project.value.contents, file)
@@ -107,6 +175,13 @@ export function useNavigator(project: Ref<ProjectView>, openFile: Ref<ProjectPat
     renamePart,
     chapterMenu,
     moveWithKeyboard,
+    dragged,
+    dragStart,
+    dragOver,
+    dragLeave,
+    dragEnd,
+    drop,
+    dropClass,
     addToBook: (file: ProjectPath) =>
       store.changeContents({ kind: 'add-to-book', file, placement: { part: null, index: project.value.contents.length } }),
     relink: (missingFile: ProjectPath, found: ProjectPath) => store.changeContents({ kind: 'relink', missing: missingFile, found }),

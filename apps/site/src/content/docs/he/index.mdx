@@ -1,0 +1,67 @@
+---
+sourceHash: bd07cd38cc97
+title: Plot Device
+description: סטודיו כתיבה שקט לסופרות ולסופרים. קודם כותבים, רואים את הסיפור, והספר נשאר תיקייה של קובצי Markdown פשוטים.
+template: splash
+tableOfContents: false
+---
+
+import Hero from '../../../components/landing/Hero.astro'
+import Promise from '../../../components/landing/Promise.astro'
+import Folder from '../../../components/landing/Folder.astro'
+import Shot from '../../../components/Shot.astro'
+
+<div class="landing">
+
+<Hero
+  title="לכתוב את הסיפור. לשמור את הקבצים."
+  lede="שולחן כתיבה שקט לפרקים, מבט ברור על העלילה, ותיקייה של קובצי Markdown פשוטים שנשארת שלך."
+  download="הורדת Plot Device"
+  guide="למדריך"
+  guideHref="/plotdevice/he/start/install/"
+  platforms="גרסאות מוקדמות ל־Linux ול־Windows · ‏macOS בהמשך · קוד פתוח"
+  shotAlt="שולחן הכתיבה של Plot Device: רשימת הפרקים, ופרק מתוך „מטע המלח” על העמוד"
+/>
+
+<Promise eyebrow="קודם כותבים" title="פותחים פרק, וכותבים." shot="formatting" alt="טקסט מסומן בפרק, ומעליו בועה קטנה של כלי עיצוב">
+  בלי מתווה למלא ובלי הגדרות. העמוד מחכה באור רך; כלי העיצוב מופיעים רק כשמסמנים טקסט, ושאר האפליקציה לא מפריעה.
+</Promise>
+
+<Promise eyebrow="רואים את הסיפור" title="מבנה הספר, במבט אחד." shot="story" alt="מתווה על לוח: התחלה, אמצע וסוף, עם כרטיסים שמקושרים לפרקים ולדמויות">
+  מתכננים במתווים שהם רשימות Markdown רגילות: על לוח, כרשימה או ככרטיסים. גוררים כרטיס, מקשרים אותו לפרק או לדמות, והפרוזה נשארת בדיוק כפי שנכתבה.
+</Promise>
+
+<Promise eyebrow="חומרי עזר בהישג יד" title="הדמויות, לצד העמוד." shot="references" alt="פרק, ולצדו מדף חומרי העזר עם הדף של בּיה הלמי מוצמד">
+  דמויות, מקומות והערות נמצאים לצד העמוד בזמן הכתיבה. מחפשים, מצמידים את מה שצריך, ולא מאבדים את המקום בפרק.
+</Promise>
+
+<section class="story-band">
+  <p class="eyebrow">עברית ואנגלית</p>
+  <h2>הממשק בשפה שלך. הספר בשפה שלו.</h2>
+  <p>כותבים ספר בעברית עם שמות באנגלית, או ספר באנגלית בממשק עברי. כל פסקה זורמת בכיוון הנכון, והפיסוק נוחת במקומו.</p>
+  <Shot name="bilingual" alt="פרק באנגלית, משמאל לימין, בממשק העברי של Plot Device" />
+</section>
+
+<section class="story-band">
+  <p class="eyebrow">הקבצים שלך</p>
+  <h2>תיקייה של Markdown פשוט. שלך, לתמיד.</h2>
+  <p>כל פרק הוא קובץ Markdown, סדר הספר הוא רשימה קריאה, והמתווים הם רשימות רגילות. אפשר לפתוח את אותה תיקייה ב־Obsidian, בכל עורך טקסט או ב־git: ‏Plot Device הוא עדשה על הקבצים, לא מקום שנועל אותם.</p>
+  <Folder book="מטע-המלח" chapter="manuscript/המעבר.md" />
+</section>
+
+<section class="yours">
+  <p class="eyebrow">פתוחה, ושלך</p>
+  <h2>בלי חשבון. בלי ענן. בלי שום טענה על היצירה שלך.</h2>
+  <p>Plot Device היא בקוד פתוח, לפי רישיון GNU GPL. היא פועלת במחשב שלך ולא שולחת דבר לשום מקום. מה שנכתב שייך לך, בזכויות יוצרים שלך.</p>
+</section>
+
+<section class="closing">
+  <h2>כשמתחשק לכתוב, הכול כאן.</h2>
+  <div class="actions">
+    <a class="button primary" href="https://github.com/mooeypoo/plotdevice/releases">הורדת Plot Device</a>
+    <a class="button" href="/plotdevice/he/start/install/">למדריך</a>
+  </div>
+  <p class="credit">נוצר על ידי <a href="https://moriel.tech">Moriel Schottlender</a>.</p>
+</section>
+
+</div>

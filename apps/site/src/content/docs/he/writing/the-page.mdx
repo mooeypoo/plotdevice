@@ -1,0 +1,24 @@
+---
+sourceHash: 7024cbddec6d
+title: מראה העמוד
+description: גודל הטקסט, רוחב העמוד, מצב ריכוז, ובהיר או כהה.
+---
+
+import Ui from '~/components/Ui.astro'
+import Shot from '~/components/Shot.astro'
+
+**Aa**, בסרגל העליון בזמן הכתיבה, משנה את מראה העמוד. שום דבר כאן לא משנה את הספר; אלה ההגדרות שלך, והן נשמרות במחשב.
+
+<Shot name="appearance" alt="חלונית Aa: גודל הטקסט, רוחב העמוד ומצב ריכוז" close />
+
+- **<Ui k="settings-writing-size" />**: שלושה גדלים לטקסט שעל העמוד.
+- **<Ui k="settings-page-width" />**: <Ui k="width-narrow" />, <Ui k="width-medium" /> או <Ui k="width-wide" />.
+- **<Ui k="focus-enter" />** מסתיר הכול חוץ מהעמוד. כדי לחזור לוחצים **Escape**, או **<Ui k="focus-exit" />** בפינה. **Ctrl+Shift+F** (‏⌘⇧F) מדליק ומכבה אותו.
+
+## יותר מקום
+
+הסמל בפינה העליונה של העמוד, בצד רשימת הפרקים, מסתיר אותה; סמל הספר בפינה השנייה מציג ומסתיר את חומרי העזר.
+
+## בהיר או כהה
+
+**☰ ← <Ui k="settings-open" /> ← <Ui k="settings-theme" />**: <Ui k="theme-light" />, <Ui k="theme-dark" />, או <Ui k="theme-system" />. העמוד, הסמן והיסטוריית הביטולים נשארים כפי שהיו כשמחליפים.

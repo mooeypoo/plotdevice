@@ -1,7 +1,7 @@
 import type { ProjectView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { moveDown, moveTargets, moveUp, placementAfter } from './navigator'
+import { moveDown, moveTargets, moveUp, placementAfter, placementForDrop, slotAt } from './navigator'
 
 const p = (path: string) => path as ProjectPath
 const ch = (name: string) => ({ file: p(`manuscript/${name}.md`), linkText: name, number: null })
@@ -78,5 +78,42 @@ describe('where a new chapter goes', () => {
   it('at the end of the book when no chapter in the book is open', () => {
     expect(placementAfter(contents, null)).toEqual({ part: null, index: 4 })
     expect(placementAfter(contents, p('manuscript/draft.md'))).toEqual({ part: null, index: 4 })
+  })
+})
+
+describe('dropping a dragged chapter', () => {
+  const drop = (file: string, row: Parameters<typeof slotAt>[1], half: 'before' | 'after') => {
+    const slot = slotAt(contents, row, half)
+    return slot && placementForDrop(contents, p(`manuscript/${file}.md`), slot)
+  }
+  const chapter = (name: string) => ({ kind: 'chapter' as const, file: p(`manuscript/${name}.md`) })
+
+  it('goes before the top half of a row and after the bottom half', () => {
+    expect(drop('epilogue', chapter('frost'), 'before')).toEqual({ part: 1, index: 0 })
+    expect(drop('epilogue', chapter('frost'), 'after')).toEqual({ part: 1, index: 1 })
+  })
+
+  it('counts the chapter’s own place out when it moves within its list', () => {
+    expect(drop('frost', chapter('salt'), 'after')).toEqual({ part: 1, index: 1 })
+    expect(drop('prologue', chapter('epilogue'), 'after')).toEqual({ part: null, index: 3 })
+  })
+
+  it('stays inside a part below its last chapter, and outside above the next entry', () => {
+    expect(drop('prologue', chapter('crossing'), 'after')).toEqual({ part: 2, index: 1 })
+    expect(drop('prologue', chapter('epilogue'), 'before')).toEqual({ part: null, index: 2 })
+  })
+
+  it('a part’s name: above it is outside the part, below it is the part’s start', () => {
+    expect(drop('epilogue', { kind: 'part', part: 2 }, 'before')).toEqual({ part: null, index: 2 })
+    expect(drop('epilogue', { kind: 'part', part: 2 }, 'after')).toEqual({ part: 2, index: 0 })
+  })
+
+  it('is no move when dropped right where it is', () => {
+    expect(drop('frost', chapter('frost'), 'before')).toBeNull()
+    expect(drop('frost', chapter('salt'), 'before')).toBeNull()
+  })
+
+  it('places a chapter not in the book yet straight into the gap', () => {
+    expect(drop('a-scene-for-later', chapter('salt'), 'before')).toEqual({ part: 1, index: 1 })
   })
 })

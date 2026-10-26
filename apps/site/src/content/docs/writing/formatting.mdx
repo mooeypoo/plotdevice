@@ -1,0 +1,36 @@
+---
+title: Formatting
+description: Bold, italic, quotes, lists, headings, scene breaks and links, from the bubble, the ¶ menu or the keyboard.
+---
+
+import Ui from '~/components/Ui.astro'
+import Shot from '~/components/Shot.astro'
+
+## Select text
+
+Select some text and a small bubble appears above it: **<Ui k="format-bold" />**, **<Ui k="format-italic" />**, **<Ui k="format-link" />**, **<Ui k="format-quote" />**, and **⋯** for the rest.
+
+<Shot name="formatting" alt="Selected text with the formatting bubble above it" />
+
+## The ¶ menu
+
+**¶**, at the top right of the page, has every command, with or without a selection:
+
+<Shot name="format-menu" alt="The ¶ menu: bold, italic, heading, quote, lists, scene break, link and direction" close />
+
+- **<Ui k="format-heading" />**, **<Ui k="format-quote" />**, **<Ui k="format-bulletList" />** and **<Ui k="format-orderedList" />** apply to the paragraph you're in.
+- **<Ui k="format-sceneBreak" />** inserts a break between scenes. It shows as **⁂** and is written as `* * *` in the file.
+- **<Ui k="format-link" />** asks for an address. To link a card to a chapter or a character, see [Linking](/plotdevice/planning/linking/).
+- The direction commands are explained in [Hebrew and English in one book](/plotdevice/writing/hebrew-and-english/).
+
+## Keyboard
+
+| Press | To |
+|---|---|
+| **Ctrl+B** (⌘B on a Mac) | Bold |
+| **Ctrl+I** (⌘I) | Italic |
+| **Enter** | Start a new paragraph |
+| **Shift+Enter** | Break the line without a new paragraph |
+| **Tab**, from the page | Reach the bubble's buttons; **Escape** returns to the page |
+
+Formatting is ordinary Markdown in the file (`**bold**`, `*italic*`, `> quote`), so the same text reads well in any other app.

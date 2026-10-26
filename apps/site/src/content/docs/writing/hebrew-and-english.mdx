@@ -1,0 +1,28 @@
+---
+title: Hebrew and English in one book
+description: Write right to left and left to right in the same book, and choose the interface's language separately.
+---
+
+import Ui from '~/components/Ui.astro'
+import Shot from '~/components/Shot.astro'
+
+Plot Device keeps three things separate: the **interface's language**, the **book's language**, and the **direction of each paragraph**.
+
+<Shot name="bilingual" alt="A Hebrew chapter, right to left, in the English interface" />
+
+## The book's language
+
+You choose it when you start a book. It sets the direction paragraphs run by default: a Hebrew book runs right to left, an English one left to right.
+
+## A paragraph or a phrase the other way
+
+When a paragraph, or a phrase inside one, should run the other way, select it and use the **¶** menu or the bubble's **⋯**:
+
+- **<Ui k="direction-paragraph-ltr" />** and **<Ui k="direction-paragraph-rtl" />** set the whole paragraph. **<Ui k="direction-paragraph-clear" />** returns it to the book's direction.
+- **<Ui k="direction-phrase-ltr" />** and **<Ui k="direction-phrase-rtl" />** set just the selected words, such as an English name inside a Hebrew sentence, so its punctuation lands in the right place. **<Ui k="direction-phrase-clear" />** removes the setting.
+
+Plot Device writes a direction into the file only when it's needed, using the standard notation that Pandoc understands (`[text]{dir=ltr}`). Other apps show it as plain text, and nothing is lost.
+
+## The interface's language
+
+**☰ → <Ui k="settings-open" /> → <Ui k="settings-language" />** changes the language of menus and buttons. It doesn't change your book. Write a Hebrew book in an English interface, or the other way round.

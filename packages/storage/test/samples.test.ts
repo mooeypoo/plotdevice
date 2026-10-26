@@ -2,7 +2,7 @@ import { createJournalStore, createProjectFolders } from '@plotdevice/fs-node'
 import { findLinks } from '@plotdevice/markdown'
 import { cp, mkdtemp, readdir, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join, posix } from 'node:path'
+import { join, posix, relative, sep } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createOutlineRepository, createProjectRepository, createReferenceRepository } from '../src/index'
 
@@ -36,9 +36,12 @@ async function open(name: string) {
 
 async function markdownFiles(root: string): Promise<string[]> {
   const entries = await readdir(root, { recursive: true, withFileTypes: true })
-  return entries
-    .filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
-    .map((entry) => posix.join(posix.relative(root, entry.parentPath.split('\\').join('/')), entry.name))
+  return (
+    entries
+      .filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
+      // Relative with the system's own separators first, then as the project path (always `/`).
+      .map((entry) => posix.join(relative(root, entry.parentPath).split(sep).join('/'), entry.name))
+  )
 }
 
 const demos = [

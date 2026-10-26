@@ -9,7 +9,9 @@ import { useSettingsStore } from '../stores/settings'
 import { useShelfStore } from '../stores/shelf'
 import { useStoryStore } from '../stores/story'
 import { useViewStore } from '../stores/view'
+import AppIcon from './AppIcon.vue'
 import InlineText from './InlineText.vue'
+import PageDetails from './PageDetails.vue'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
 
@@ -24,7 +26,21 @@ const view = useViewStore()
 const settings = useSettingsStore()
 const t = settings.t
 const query = ref('')
-const results = computed(() => search(story.references, query.value).slice(0, 8))
+const searching = ref(false)
+/** Typed: the best matches. Not yet: a few pages to start from, characters first, leaving out what's open. */
+const browsing = computed(() => query.value.trim() === '')
+const results = computed(() => {
+  if (!browsing.value) return search(story.references, query.value).slice(0, 8)
+  const order = ['character', 'place', 'note']
+  return story.references
+    .filter((reference) => !shelf.cards.includes(reference.file))
+    .sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))
+    .slice(0, 8)
+})
+
+function onFindFocusOut(event: FocusEvent): void {
+  searching.value = (event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)
+}
 const dragging = ref<ProjectPath | null>(null)
 
 watch(
@@ -55,9 +71,6 @@ function edit(file: ProjectPath): void {
 function menu(file: ProjectPath): MenuItem[] {
   const pinnedAt = shelf.pinned.indexOf(file)
   return [
-    pinnedAt >= 0
-      ? { key: 'unpin', label: t('shelf-unpin'), run: () => void shelf.unpin(file) }
-      : { key: 'pin', label: t('shelf-pin'), run: () => void shelf.pin(file) },
     {
       key: 'move-earlier',
       label: t('item-move-earlier'),
@@ -96,25 +109,29 @@ function openResult(file: ProjectPath): void {
 
 <template>
   <aside class="shelf" :aria-label="t('shelf')" data-testid="shelf">
-    <label class="field">
-      <span>{{ t('shelf-search') }}</span>
-      <input
-        v-model="query"
-        type="search"
-        dir="auto"
-        data-testid="shelf-search"
-        @keydown.enter.prevent="results[0] && openResult(results[0].file)"
-      />
-    </label>
-    <ul v-if="query.trim() !== ''" class="results" data-testid="shelf-results">
-      <li v-for="result in results" :key="result.file">
-        <button type="button" class="chapter" @click="openResult(result.file)">
-          <span dir="auto">{{ result.title }}</span
-          ><span class="secondary">{{ t(`kind-${result.kind}`) }}</span>
-        </button>
-      </li>
-      <li v-if="results.length === 0" class="secondary">{{ t('shelf-no-results') }}</li>
-    </ul>
+    <div class="shelf-find" @focusin="searching = true" @focusout="onFindFocusOut">
+      <label class="field shelf-search">
+        <h2>{{ t('shelf') }}</h2>
+        <input
+          v-model="query"
+          type="search"
+          dir="auto"
+          :placeholder="t('shelf-search')"
+          :aria-label="t('shelf-search')"
+          data-testid="shelf-search"
+          @keydown.enter.prevent="results[0] && openResult(results[0].file)"
+        />
+      </label>
+      <ul v-if="!browsing || searching" class="results" data-testid="shelf-results">
+        <li v-for="result in results" :key="result.file">
+          <button type="button" class="chapter" @mousedown.prevent @click="openResult(result.file)">
+            <span dir="auto">{{ result.title }}</span
+            ><span class="secondary">{{ t(`kind-${result.kind}`) }}</span>
+          </button>
+        </li>
+        <li v-if="results.length === 0 && !browsing" class="secondary">{{ t('shelf-no-results') }}</li>
+      </ul>
+    </div>
 
     <section v-if="shelf.aboutChapter.length > 0" class="shelf-section" data-testid="from-outline">
       <h2>{{ t('shelf-from-outline') }}</h2>
@@ -151,8 +168,18 @@ function openResult(file: ProjectPath): void {
         @drop.prevent="drop(file)"
       >
         <div class="card-head">
-          <span v-if="shelf.pinned.includes(file)" class="pin" role="img" :aria-label="t('shelf-pin')">📌</span>
           <strong class="card-text" dir="auto">{{ shelf.pages[file]?.title ?? file }}</strong>
+          <button
+            type="button"
+            class="icon-button pin-button"
+            :aria-pressed="shelf.pinned.includes(file)"
+            :aria-label="shelf.pinned.includes(file) ? t('shelf-unpin') : t('shelf-pin')"
+            :title="shelf.pinned.includes(file) ? t('shelf-unpin') : t('shelf-pin')"
+            data-testid="shelf-pin"
+            @click="shelf.pinned.includes(file) ? shelf.unpin(file) : shelf.pin(file)"
+          >
+            <AppIcon name="pin" />
+          </button>
           <MenuButton :label="t('shelf-card-actions', shelf.pages[file]?.title ?? file)" :items="menu(file)" />
         </div>
         <p v-if="shelf.pages[file]?.description" class="shelf-description" dir="auto">
@@ -160,7 +187,7 @@ function openResult(file: ProjectPath): void {
         </p>
         <details v-if="shelf.pages[file]?.details">
           <summary>{{ t('shelf-details') }}</summary>
-          <pre dir="auto">{{ shelf.pages[file]?.details }}</pre>
+          <PageDetails :markdown="shelf.pages[file]?.details ?? ''" />
         </details>
       </article>
     </section>

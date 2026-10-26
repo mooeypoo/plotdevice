@@ -1,2 +1,6 @@
+# Text files are checked out with LF line endings on every system, as the code is written and as
+# Prettier checks it (Windows would otherwise get CRLF, and `pnpm lint` fails there).
+* text=auto eol=lf
+
 # Fixtures are byte-exact test data (CRLF, BOM, no final newline). Git must never rewrite them.
 tests/fixtures/** -text

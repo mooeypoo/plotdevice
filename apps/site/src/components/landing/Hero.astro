@@ -1,0 +1,39 @@
+---
+// The front page's opening: the logo's line drawing itself, the promise, and the two ways in.
+import Shot from '../Shot.astro'
+
+interface Props {
+  title: string
+  lede: string
+  download: string
+  guide: string
+  guideHref: string
+  platforms: string
+  shotAlt: string
+}
+const { title, lede, download, guide, guideHref, platforms, shotAlt } = Astro.props
+---
+
+<section class="hero">
+  <svg class="hero-mark" viewBox="120 24 330 470" aria-hidden="true">
+    <path d="M256 40 L 368 196 C 378 211 375 232 362 245 L 256 352 L 150 245 C 137 232 134 211 144 196 Z" fill="var(--color-text)"
+    ></path>
+    <path d="M256 150 L 256 352" stroke="var(--color-app)" stroke-width="22" stroke-linecap="round"></path>
+    <path
+      class="thread"
+      pathLength="1"
+      d="M256 352 C 256 410, 176 404, 154 444 C 140 472, 214 474, 280 446 C 330 426, 372 432, 420 452"
+      fill="none"
+      stroke="var(--color-mark)"
+      stroke-width="30"
+      stroke-linecap="round"></path>
+  </svg>
+  <h1>{title}</h1>
+  <p class="lede">{lede}</p>
+  <div class="actions">
+    <a class="button primary" href="https://github.com/mooeypoo/plotdevice/releases">{download}</a>
+    <a class="button" href={guideHref}>{guide}</a>
+  </div>
+  <p class="platforms">{platforms}</p>
+  <Shot name="desk" alt={shotAlt} eager />
+</section>

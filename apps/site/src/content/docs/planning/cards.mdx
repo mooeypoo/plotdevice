@@ -1,0 +1,32 @@
+---
+title: Cards and their details
+description: Add, edit, move and delete cards and sections on the board.
+---
+
+import Ui from '~/components/Ui.astro'
+import Shot from '~/components/Shot.astro'
+
+## Add
+
+- **+ <Ui k="outline-add-card" />**, under a section, adds a card at its end.
+- **+ <Ui k="outline-add-section" />**, after the last column, adds a section.
+- A card's **⋯ → <Ui k="outline-add-detail" />** adds a detail inside it: a note, a beat, a reminder. Details can have details of their own.
+
+## Edit
+
+Double-click a card, or focus it and press **Enter** or **F2**, to edit its text. Formatting such as `**bold**` and links work inside cards.
+
+## A card's menu
+
+<Shot name="card-menu" alt="A card's menu: edit, add a detail, link, move and delete" close />
+
+- **<Ui k="item-edit" />**, **<Ui k="outline-add-detail" />** and **<Ui k="link-to" />**.
+- **<Ui k="item-move-earlier" />**, **<Ui k="item-move-later" />**, and moving to another section.
+- **<Ui k="item-delete" />** asks first, because everything inside the card goes with it. **<Ui k="outline-undo" />** brings it back.
+
+A section's **⋯** renames, moves and deletes the section, and adds a card to it.
+
+## Move
+
+- **Drag** a card. A gold line shows where it will land: over a card's top half it goes before it, over the bottom half after it.
+- **With the keyboard:** focus a card and press **Alt+↑** or **Alt+↓** to move it in its section, **Alt+←** or **Alt+→** to move it to the next section (mirrored in a right-to-left interface).

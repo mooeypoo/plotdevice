@@ -1,0 +1,33 @@
+---
+title: 'Outlines: board, list and cards'
+description: Plan the story in outlines, and see each one as a board, a list or a set of cards.
+---
+
+import Ui from '~/components/Ui.astro'
+import Shot from '~/components/Shot.astro'
+
+An outline is a plan you can rearrange: the main plot, one character's arc, a list of loose ideas. A book can have as many as you like, and none at all is fine.
+
+<Shot name="story" alt="An outline on a board: Beginning, Middle and End" />
+
+## Start an outline
+
+In **<Ui k="workspace-story" />**, choose **+ <Ui k="story-new-outline" />** and give it a title. Click the title at any time to rename it.
+
+## Three ways to see it
+
+- **<Ui k="view-board" />**: each section is a column of cards.
+- **<Ui k="view-outline" />**: everything as one indented list, with details folded in and out.
+- **<Ui k="view-cards" />**: every card side by side, labelled with its section.
+
+They are three views of the same outline. A change in one is a change in all.
+
+## Undo, rename and versions
+
+**⋯** beside the views has **<Ui k="outline-undo" />** (also **Ctrl+Z**), **<Ui k="outline-rename-title" />**, and **<Ui k="outline-versions" />**.
+
+## What an outline is, on disk
+
+An ordinary Markdown file in the book's `outlines` folder: `##` headings are sections, list items are cards, and the items under them are details. See [Outline files](/plotdevice/files/outlines/).
+
+An outline is a plan, not the book. Moving a card never moves a chapter.

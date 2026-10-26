@@ -1,0 +1,8 @@
+---
+// A control's label exactly as the app shows it in this page's language: <Ui k="export-book" />.
+import { uiLabel } from '../app-bridge'
+
+const { k } = Astro.props as { k: string }
+---
+
+<span class="ui-label">{uiLabel(Astro.locals.starlightRoute.lang, k)}</span>

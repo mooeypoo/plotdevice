@@ -1,0 +1,29 @@
+---
+title: When a file changes in another app
+description: Edit your book in other apps too; Plot Device notices, and never overwrites without asking.
+---
+
+import Ui from '~/components/Ui.astro'
+
+Your book is a folder of ordinary files, so you can open it in a text editor, Obsidian or git. Plot Device watches the folder while the book is open.
+
+## A change while you're not typing
+
+The chapter, outline or page reloads by itself with the other app's version.
+
+## A change while you were typing
+
+If a chapter changed elsewhere while you had unsaved typing in it, Plot Device stops and asks. Nothing has been overwritten:
+
+- **<Ui k="conflict-keep-both" />**: <Ui k="conflict-keep-both-detail" />
+- **<Ui k="conflict-use-mine" />**: <Ui k="conflict-use-mine-detail" />
+
+Either way, the version that's replaced is kept: see [Earlier versions](/plotdevice/safe/versions/).
+
+## Outlines
+
+If an outline changes elsewhere, it reloads. **<Ui k="outline-undo" />** won't undo past that change, so it can never overwrite it.
+
+:::tip
+To avoid surprises, close a chapter in one app before editing it in another, rather than typing in both at once.
+:::

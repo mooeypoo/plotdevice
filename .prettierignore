@@ -5,3 +5,5 @@ out/
 docs/
 *.md
 samples/
+.astro/
+test-results/

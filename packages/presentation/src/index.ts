@@ -1,7 +1,20 @@
 export { effectiveTheme, type Theme } from './appearance'
-export { moveDown, moveTargets, moveUp, placementAfter, type MoveTarget, type Placement } from './navigator'
+export { detailBlocks, type DetailBlock } from './detail-blocks'
+export {
+  moveDown,
+  moveTargets,
+  moveUp,
+  placementAfter,
+  placementForDrop,
+  slotAt,
+  type DropRow,
+  type MoveTarget,
+  type Placement,
+  type Slot,
+} from './navigator'
 export {
   boardColumns,
+  boardDrop,
   cardMoves,
   cardsInOrder,
   inlineSpans,

@@ -172,3 +172,14 @@ export function inlineSpans(markdown: string): InlineSpan[] {
   text(markdown.slice(at))
   return spans
 }
+
+/**
+ * Where a card dropped before the card at `before` in `section` goes (`before` counts the cards as they
+ * are, so the section's length means its end). `null` when the drop would leave it where it is.
+ */
+export function boardDrop(from: ItemAt, section: number, before: number): ItemDestination | null {
+  const sameList = from.path.length === 1 && from.section === section
+  const current = from.path[0] ?? 0
+  const index = sameList && current < before ? before - 1 : before
+  return sameList && index === current ? null : { section, parentPath: [], index }
+}

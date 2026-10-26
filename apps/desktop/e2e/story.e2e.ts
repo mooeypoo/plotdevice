@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { cp, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { launch, openSettings, type Launched } from './launch'
+import { closeSettings, launch, openSettings, type Launched } from './launch'
 
 const FIXTURES = join(import.meta.dirname, '../../../tests/fixtures')
 const MAIN = 'outlines/main-story.md'
@@ -105,15 +105,16 @@ test('scenario C: moving a card changes only those lines of the outline, and no 
   )
   await expect(card(page, 'The gate')).toBeFocused() // the keyboard stays with the card
 
-  await card(page, 'Ilka crosses').dragTo(card(page, 'Back to'))
+  // Onto the top half of a card: the dragged card goes before it.
+  await card(page, 'Ilka crosses').dragTo(card(page, 'Back to'), { targetPosition: { x: 20, y: 4 } })
   await expect(page.locator('[data-testid="column"]').nth(1).locator('.outline-card').first()).toContainText('Ilka crosses')
   await file(MAIN).toContain(
     '## Ending\n\n- Ilka crosses the river, see [The Crossing](../manuscript/the-crossing.md)\n  - Bea at the landing\n- Back to',
   )
   expect(await chapterBytes()).toEqual(chapters)
 
-  await page.getByTestId('outline-undo').click()
-  await page.getByTestId('outline-undo').click()
+  await undo(page)
+  await undo(page)
   await file(MAIN).toBe(await readFile(join(FIXTURES, 'projects/salt-orchard', MAIN), 'utf8'))
 })
 
@@ -138,12 +139,15 @@ test('an outline changed in another app reloads, and undo never overwrites that 
   await openStory(page)
   await card(page, 'The gate').focus()
   await page.keyboard.press('Alt+ArrowUp')
-  await expect(page.getByTestId('outline-undo')).toBeEnabled()
+  await page.getByTestId('outline-menu').click()
+  await expect(page.getByTestId('menu-outline-undo')).toBeEnabled()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('menu')).toHaveCount(0)
 
   const theirs = '# Main story\n\n## Rewritten elsewhere\n\n- A new card from another app\n'
   await writeFile(join(root, MAIN), theirs)
   await expect(card(page, 'A new card from another app')).toBeVisible()
-  await page.getByTestId('outline-undo').click()
+  await undo(page)
   await expect(page.getByRole('alert')).toContainText('changed in another app')
   await file(MAIN).toBe(theirs)
 })
@@ -191,13 +195,19 @@ test('in Hebrew, columns run right to left and the arrow keys follow them', asyn
   const page = await start()
   await openSettings(page)
   await page.getByTestId('language').selectOption('he')
-  await page.locator('.settings-menu summary').click()
+  await closeSettings(page)
   await openStory(page)
   await card(page, 'The gate').focus()
   await page.keyboard.press('Alt+ArrowLeft') // the next section is to the left in right-to-left
   await expect(page.locator('[data-testid="column"]').nth(1)).toContainText('The gate')
   await expect(page.getByTestId('workspace-story')).toHaveText('סיפור')
 })
+
+/** Undo, from the ⋯ menu beside the outline's views. */
+async function undo(page: Page): Promise<void> {
+  await page.getByTestId('outline-menu').click()
+  await page.getByTestId('menu-outline-undo').click()
+}
 
 /** Controls on the page without an accessible name. */
 async function unnamedControls(page: Page): Promise<string[]> {

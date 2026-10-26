@@ -1,0 +1,33 @@
+---
+title: Chapters and parts
+description: Add, rename and arrange chapters, and group them into parts.
+---
+
+import Ui from '~/components/Ui.astro'
+import Shot from '~/components/Shot.astro'
+
+A book is a list of **chapters**, in reading order. Chapters can be grouped into **parts**, such as "Part One: Arrival". Parts are optional.
+
+## Add a chapter or a part
+
+- **+ <Ui k="navigator-new-chapter" />** adds a chapter right after the one you're writing, and opens it.
+- **+ <Ui k="navigator-new-part" />** adds a part at the end of the book. Drag chapters into it.
+
+Chapter numbers are worked out by Plot Device from the reading order. They are never written into your files, so moving a chapter never renumbers anything by hand.
+
+## A chapter's menu
+
+Point at a chapter and choose **⋯**:
+
+<Shot name="chapter-menu" alt="A chapter's menu: rename, rename the file, move, and move for later" close />
+
+- **<Ui k="chapter-rename" />** changes the chapter's title.
+- **<Ui k="chapter-rename-file" />** changes the name of its file. Renaming the title never renames the file by itself.
+- **<Ui k="chapter-move-up" />**, **<Ui k="chapter-move-down" />** and **<Ui k="chapter-move-to" />** move it. See [Moving chapters](/plotdevice/writing/moving-chapters/).
+- **<Ui k="chapter-remove" />** takes it out of the reading order without deleting anything. It waits under **<Ui k="navigator-not-in-book" />** until you add it back.
+
+A part's **⋯** renames the part.
+
+## Missing chapters
+
+If a chapter's file was moved or deleted outside Plot Device, it appears under **<Ui k="navigator-missing" />**. When Plot Device finds a likely match, it offers to use it. It never deletes or relinks anything by itself.

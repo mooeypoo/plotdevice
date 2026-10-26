@@ -1,0 +1,26 @@
+---
+title: Exporting the book
+description: Put the whole book together as one Markdown file, ready to share or convert.
+---
+
+import Ui from '~/components/Ui.astro'
+
+The book menu (the book's title in the top bar) → **<Ui k="export-book" />** puts every chapter together, in reading order, as one Markdown file. Choose where to save it; by default, outside the book's folder.
+
+## What's in it
+
+- Parts become `#` headings, and chapters `##` headings, numbered as Plot Device shows them.
+- Each chapter's text follows, unchanged.
+- Chapters under **<Ui k="navigator-not-in-book" />** aren't included. If a chapter's file is missing, the book is exported without it, and Plot Device tells you which.
+
+```markdown
+# Part One: Arrival
+
+## 2. The Crossing
+
+The ferry left Szeged an hour late. …
+```
+
+## Word, EPUB and PDF
+
+The exported file is standard Markdown, including Hebrew and English directions, so [Pandoc](https://pandoc.org) can turn it into Word, EPUB or PDF. For example: `pandoc book.md -o book.docx`.

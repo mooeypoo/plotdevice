@@ -33,7 +33,7 @@ Version: 0.3 draft
 
 ## Color system
 The colour tokens, their contrast requirements and the single source of truth are defined in `DESIGN_SYSTEM.md`, which is authoritative (owner decision, 2026-10-25). This document does not repeat the values.
-- Default accent candidate: Literary Teal; alternative palettes may be user-selectable later.
+- The palette comes from the logo (ink, cream and gold; Milestone 9). Alternative palettes may be user-selectable later.
 - Plotline/card colors must include labels, icons or patterns as redundant signals.
 - No color-only status, no low contrast decorative text for essential controls.
 - Theme switch updates token variables without editor remount.
