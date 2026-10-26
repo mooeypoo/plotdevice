@@ -67,7 +67,7 @@ Short pages, each named for what the reader wants to do, with a screenshot and t
    - Untranslated pages fall back to English with a notice.
    - A `pnpm site:translations` report lists, per language, the missing pages and the pages whose English changed since they were translated (each translation records the version of the English page it came from).
    - A "Translate Plot Device" guide covers the app's catalogs and the site together.
-8. **Hosting:** GitHub Pages, deployed by a new `docs.yml` workflow when `apps/site/` or the app's words change on `main`. It keeps the current address; a custom domain is a separate decision.
+8. **Hosting:** GitHub Pages, deployed by `docs.yml`. Pull requests that touch the site are built and checked without publishing; a change reaching `main` that affects the site (its pages, the app's words or look, the demo novels) publishes it, and it can also be run by hand (owner decision, 2026-10-26). It keeps the current address; a custom domain is a separate decision.
 9. **Checks in CI:** the site builds; no broken internal links (Starlight's link validator); every `<Ui>` key exists; an accessibility scan (axe) of the front page and one guide page, in both languages and both themes.
 
 ## What I need from the owner
@@ -122,4 +122,6 @@ Short pages, each named for what the reader wants to do, with a screenshot and t
 
 **Step 7, the deploy workflow:** `.github/workflows/docs.yml` builds and checks the site on pull requests that touch it. It takes the screenshots under xvfb, builds the site, runs the translation report and runs the site tests. It publishes to GitHub Pages only when run by hand (decision 8). It hasn't run yet: it runs once this branch reaches GitHub.
 
-**Not done:** publishing (the owner's go-ahead), and the owner's review of the Hebrew.
+**Wording (owner decision, 2026-10-26):** the site doesn't promise that Plot Device costs nothing; paid options may come while it stays open source under the GPL. It says "open source" and "under the GNU GPL" instead, in both languages.
+
+**Not done:** the owner's review of the Hebrew.

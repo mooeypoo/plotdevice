@@ -1,9 +1,19 @@
 name: Documentation site
 
 # The site at https://mooeypoo.github.io/plotdevice/ (Milestone 10). Pull requests that touch it are
-# built and checked; publishing happens only when the owner runs this workflow by hand (decision 8),
-# until publishing on every change to main is agreed.
+# built and checked, without publishing. A change that reaches main publishes it (owner decision,
+# 2026-10-26): the guide, the app's words or its look, or the demo novels the screenshots show. It can
+# also be run by hand, from the Actions tab.
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/site/**'
+      - 'apps/desktop/**'
+      - 'packages/**'
+      - 'samples/**'
+      - 'tooling/site-translations.mjs'
+      - '.github/workflows/docs.yml'
   pull_request:
     paths:
       - 'apps/site/**'
@@ -55,7 +65,7 @@ jobs:
           path: apps/site/dist
 
   deploy:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     permissions:
