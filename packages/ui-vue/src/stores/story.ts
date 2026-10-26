@@ -7,19 +7,27 @@ import type {
   ReferenceKind,
   ReferenceSummaryView,
 } from '@plotdevice/contracts'
+import type { ItemDestination } from '@plotdevice/presentation'
 import type { ProjectPath } from '@plotdevice/shared'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useApi } from '../api'
 import { useProjectStore } from './project'
 
-/** What is being typed in place: an item's text, a section's name, or a new card or section. */
+/**
+ * What is being typed in place: an item's text, a section's name, a new card on the board, a new line
+ * in the list (with what was typed so far, kept when Tab moves it), or a new section.
+ */
 export type Editing =
   | { kind: 'item'; key: string }
   | { kind: 'section'; section: number }
   | { kind: 'new-card'; section: number }
+  | { kind: 'new-line'; to: ItemDestination; draft: string }
   | { kind: 'new-section' }
   | null
+
+export type Showing =
+  { kind: 'outline' } | { kind: 'gallery'; of: ReferenceKind } | { kind: 'page'; file: ProjectPath } | { kind: 'manuscript' }
 
 const MESSAGE: Partial<Record<OutlineProblem, string>> = {
   'changed-elsewhere': 'outline-changed-elsewhere',
@@ -37,8 +45,8 @@ export const useStoryStore = defineStore('story', () => {
   const collapsed = ref(new Set<string>())
   const editing = ref<Editing>(null)
   const references = ref<ReferenceSummaryView[]>([])
-  /** What the Story workspace shows: an outline, a character, place or note page, or the book's chapters. */
-  const showing = ref<{ kind: 'outline' } | { kind: 'page'; file: ProjectPath } | { kind: 'manuscript' }>({ kind: 'outline' })
+  /** What the Story workspace shows: an outline, one kind of page as a gallery, one page, or the book's chapters. */
+  const showing = ref<Showing>({ kind: 'outline' })
 
   async function refresh(): Promise<void> {
     ;[outlines.value, references.value] = await Promise.all([api.listOutlines(), api.listReferences()])
@@ -110,6 +118,14 @@ export const useStoryStore = defineStore('story', () => {
     else project.tell(result.error === 'changed-elsewhere' ? 'outline-undo-refused' : 'outline-failed')
   }
 
+  /** Shows what is inside an item, if it was folded. */
+  function expand(key: string): void {
+    if (!collapsed.value.has(key)) return
+    const next = new Set(collapsed.value)
+    next.delete(key)
+    collapsed.value = next
+  }
+
   function toggle(key: string): void {
     const next = new Set(collapsed.value)
     if (!next.delete(key)) next.add(key)
@@ -134,6 +150,7 @@ export const useStoryStore = defineStore('story', () => {
     edit,
     undo,
     toggle,
+    expand,
     createReference,
     renameReference,
     renameReferenceFile,

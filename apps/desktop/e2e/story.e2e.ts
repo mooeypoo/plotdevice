@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { cp, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { closeSettings, launch, openSettings, type Launched } from './launch'
@@ -60,7 +60,7 @@ async function typeInPlace(page: Page, text: string): Promise<void> {
   await input.press('Enter')
 }
 
-test('scenario B: build an outline visually, see it three ways, and find it all in the file', async () => {
+test('scenario B: build an outline visually, see it both ways, and find it all in the file', async () => {
   const page = await start()
   await page.getByTestId('workspace-story').click()
   await page.getByTestId('new-outline').click()
@@ -87,8 +87,6 @@ test('scenario B: build an outline visually, see it three ways, and find it all 
   )
   await page.getByTestId('view-outline').click()
   await expect(page.getByTestId('list')).toContainText('Because of her mother')
-  await page.getByTestId('view-cards').click()
-  await expect(card(page, 'Wants to keep the orchard')).toContainText('Ilka')
   expect(cspViolations()).toEqual([])
 })
 
@@ -162,7 +160,7 @@ test('switching between Story and Write keeps the editor, the cursor and undo; t
       document.querySelector('[data-testid="editor"]')?.shadowRoot?.querySelector('.cm-editor') ?? null
   })
   await openStory(page)
-  await page.getByTestId('view-cards').click()
+  await page.getByTestId('view-outline').click()
   await page.getByTestId('workspace-write').click()
   await page.keyboard.type(' Two')
   await expect(page.locator('.cm-content')).toContainText('river. One Two')
@@ -178,7 +176,7 @@ test('switching between Story and Write keeps the editor, the cursor and undo; t
   await page.getByTestId('workspace-story').click()
   await running?.app.close()
   page = await start()
-  await expect(page.getByTestId('cards')).toBeVisible()
+  await expect(page.getByTestId('list')).toBeVisible()
   await expect(page.locator('[data-outline][aria-current="page"]')).toHaveAttribute('data-outline', MAIN)
 })
 
@@ -203,6 +201,77 @@ test('in Hebrew, columns run right to left and the arrow keys follow them', asyn
   await expect(page.getByTestId('workspace-story')).toHaveText('סיפור')
 })
 
+test('the list: + Add card, Enter for the next line, Tab to make it a detail, Shift+Tab to bring it back', async () => {
+  const page = await start()
+  await openStory(page)
+  await page.getByTestId('view-outline').click()
+  const line = page.getByTestId('editable-text')
+
+  await page.getByTestId('add-card').first().click()
+  await line.fill('Noël waits')
+  await line.press('Enter')
+  await line.fill('With the bolt cutters')
+  await line.press('Tab') // a detail of "Noël waits"
+  await expect(page.locator('.new-line')).toHaveCSS('--depth', '1')
+  await line.press('Enter')
+  await line.fill('The first frost')
+  await line.press('Shift+Tab') // back to a card
+  await expect(page.locator('.new-line')).toHaveCSS('--depth', '0')
+  await line.press('Enter')
+  await line.press('Escape')
+  await expect(line).toHaveCount(0)
+
+  await file(MAIN).toContain(
+    '- The gate, see [The Orchard Gate](../manuscript/the-orchard-gate.md)\n- Noël waits\n  - With the bolt cutters\n- The first frost\n\n## Ending',
+  )
+  // The same outline on the board.
+  await page.getByTestId('view-board').click()
+  await expect(card(page, 'Noël waits')).toContainText('With the bolt cutters')
+})
+
+test('the list: + on a row adds a detail to it, and + Add section adds a section', async () => {
+  const page = await start()
+  await openStory(page)
+  await page.getByTestId('view-outline').click()
+  const row = page.locator('[data-item="0/0"]')
+  await row.hover()
+  await row.getByTestId('add-detail').click()
+  await page.getByTestId('editable-text').fill('Carrying one suitcase')
+  await page.getByTestId('editable-text').press('Enter')
+  await page.getByTestId('editable-text').press('Escape')
+  await file(MAIN).toContain('  - Bea at the landing\n  - Carrying one suitcase\n- The gate')
+
+  await page.getByTestId('add-section').click()
+  await typeInPlace(page, 'Middle')
+  await file(MAIN).toContain('## Middle')
+  await expect(page.getByTestId('list').locator('h3', { hasText: 'Middle' })).toBeVisible()
+})
+
+test('Story has two groups: Plot holds the outlines, World shows each kind of page as cards, A to Z', async () => {
+  await mkdir(join(root, 'characters'))
+  // File names in the opposite order to the titles, so the order shown must come from the titles.
+  await writeFile(join(root, 'characters/a.md'), '---\ntitle: Noël Arany\naka: [Noël]\n---\nKeeps the keys.\n')
+  await writeFile(join(root, 'characters/b.md'), '---\ntitle: Ilka Varga\n---\nInherits the orchard.\n')
+  await writeFile(join(root, 'characters/c.md'), '---\ntitle: Bea Halmi\n---\nWaits at the landing.\n')
+  const page = await start()
+  await openStory(page)
+  await expect(page.getByTestId('plot')).toContainText('Main story')
+  await expect(page.getByTestId('view-board')).toBeVisible()
+  await expect(page.locator('[data-testid^="view-"]')).toHaveCount(2) // Board and List; Cards is gone
+
+  await expect(page.locator('[data-gallery="character"] .count')).toHaveText('3')
+  await page.locator('[data-gallery="character"]').click()
+  await expect(page.getByTestId('view-board')).toHaveCount(0) // the views belong to outlines only
+  await expect(page.locator('.page-card-title')).toHaveText(['Bea Halmi', 'Ilka Varga', 'Noël Arany'])
+  await expect(page.locator('[data-page="characters/a.md"]')).toContainText('Keeps the keys.')
+
+  await page.locator('[data-page="characters/c.md"]').click()
+  await expect(page.getByTestId('reference-page').locator('.outline-title')).toHaveText('Bea Halmi')
+  await expect(page.locator('[data-gallery="character"]').locator('..')).toHaveClass(/current/)
+  await page.getByTestId('back-to-gallery').click()
+  await expect(page.getByTestId('gallery-character')).toBeVisible()
+})
+
 /** Undo, from the ⋯ menu beside the outline's views. */
 async function undo(page: Page): Promise<void> {
   await page.getByTestId('outline-menu').click()
@@ -222,7 +291,7 @@ async function unnamedControls(page: Page): Promise<string[]> {
 test('accessibility: every Story control is named in both languages, and cards can be added by keyboard alone', async () => {
   const page = await start()
   await openStory(page)
-  for (const view of ['board', 'outline', 'cards']) {
+  for (const view of ['board', 'outline']) {
     await page.getByTestId(`view-${view}`).click()
     expect(await unnamedControls(page), view).toEqual([])
   }

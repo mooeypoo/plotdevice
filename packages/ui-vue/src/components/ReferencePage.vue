@@ -40,6 +40,16 @@ watch(
 
 <template>
   <article class="reference-page" data-testid="reference-page">
+    <button
+      v-if="summary"
+      type="button"
+      class="crumb"
+      data-testid="back-to-gallery"
+      :aria-label="t('story-back-to', t(`story-${summary.kind}`))"
+      @click="story.showing = { kind: 'gallery', of: summary.kind }"
+    >
+      {{ t(`story-${summary.kind}`) }}
+    </button>
     <div class="toolbar">
       <h1 class="outline-title" dir="auto">{{ summary?.title ?? file }}</h1>
       <button type="button" data-testid="rename-reference" @click="rename">{{ t('reference-rename') }}</button>

@@ -1141,15 +1141,6 @@ button.outline-title:hover:not(:disabled) {
 .card-details li::marker {
   color: var(--color-mark);
 }
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-  gap: 1rem;
-  padding-block: 0.25rem;
-}
-.cards-grid .outline-card {
-  min-block-size: 7rem;
-}
 .list-section {
   margin-block-end: 1.25rem;
   max-inline-size: 48rem;
@@ -1162,6 +1153,62 @@ button.outline-title:hover:not(:disabled) {
   padding-block: 0.2rem;
   padding-inline-start: calc(var(--depth, 0) * 1.4rem);
   border-radius: 8px;
+}
+/* "+" on a row adds a detail; like the ⋯ menu, it shows on hover or keyboard focus. */
+.list-row .add-detail {
+  border: none;
+  background: none;
+  color: var(--color-mark);
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 6px;
+  opacity: 0;
+}
+.list-row:hover > .add-detail,
+.list-row:focus-within > .add-detail {
+  opacity: 1;
+}
+.list-row .add-detail:hover:not(:disabled) {
+  background: var(--hover);
+}
+.list-row.new-line {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.2rem;
+  padding-inline-start: calc(var(--depth, 0) * 1.4rem + 1.3rem);
+}
+.line-keys {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+/* "+ Add card" and "+ Add section" in the list: dashed, like the board's empty places. */
+.add-line {
+  display: block;
+  inline-size: calc(100% - 1.3rem);
+  margin-block-start: 0.35rem;
+  margin-inline-start: 1.3rem;
+  padding-block: 0.4rem;
+  padding-inline: 0.75rem;
+  border: 1.5px dashed var(--hair-strong);
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text-secondary);
+  text-align: start;
+}
+.add-line::before {
+  content: '+ ';
+  color: var(--color-mark);
+  font-weight: 600;
+}
+.add-line:hover:not(:disabled) {
+  background: none;
+  border-color: var(--color-mark);
+  color: var(--color-text);
+}
+.add-line.add-section {
+  inline-size: 100%;
+  max-inline-size: 48rem;
+  margin-inline-start: 0;
 }
 .list-row .is-card {
   font-family: var(--font-prose);
@@ -1237,6 +1284,127 @@ button.inline-link {
 }
 .link-picker [role='option'].selected {
   background: var(--color-well);
+}
+
+/* The Story sidebar's two groups: Plot and World. */
+.story-group + .story-group {
+  margin-block-start: 1.5rem;
+}
+.group-heading {
+  margin: 0.6rem 0 0.35rem;
+  padding-inline: 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.story-group .chapter .count {
+  margin-inline-start: auto;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+/* The views belong to the outline, so they sit right after its title. */
+.outline-head .outline-title {
+  margin-inline-end: 0.5rem;
+}
+
+/* World: one kind of page as cards. */
+.world-gallery {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  flex: 1;
+}
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
+  max-inline-size: 64rem;
+  margin: 0;
+  padding: 0.25rem 0 0;
+  list-style: none;
+}
+.gallery > li {
+  display: flex;
+}
+.page-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
+  min-block-size: 9rem;
+  padding: 1rem 1.1rem;
+  border: none;
+  border-radius: 14px;
+  background: var(--color-card);
+  box-shadow: var(--shadow-soft);
+  color: var(--color-text);
+  text-align: start;
+}
+.page-card:hover:not(:disabled) {
+  background: var(--color-card);
+  box-shadow:
+    0 0 0 2px var(--color-mark),
+    var(--shadow-soft);
+}
+.page-card-title {
+  font:
+    600 1.15rem/1.3 var(--font-prose),
+    serif;
+}
+.page-card-aka {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+.page-card-description {
+  font-size: 0.9rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.page-card.new-page {
+  align-items: center;
+  justify-content: center;
+  background: none;
+  box-shadow: none;
+  border: 1.5px dashed var(--hair-strong);
+  color: var(--color-text-secondary);
+}
+.page-card.new-page::before {
+  content: '+';
+  color: var(--color-mark);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+.page-card.new-page:hover:not(:disabled) {
+  background: none;
+  border-color: var(--color-mark);
+  box-shadow: none;
+  color: var(--color-text);
+}
+/* "‹ Characters", back from a page to its gallery. */
+.crumb {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  padding: 0.2rem 0.4rem;
+  margin-inline-start: -0.4rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+.crumb::before {
+  content: '‹ ';
+}
+[dir='rtl'] .crumb::before {
+  content: '› ';
+}
+.crumb:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--color-text);
 }
 
 /* Pages */

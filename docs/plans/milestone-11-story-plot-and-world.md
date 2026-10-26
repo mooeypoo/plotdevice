@@ -109,7 +109,9 @@ This milestone splits Story into two clearly named halves: **Plot** (building th
 
 ### A character's (or place's, or note's) page
 
-- **A "Relationships" list** under the description. "+ Add relationship" picks a page and asks for the words, such as "Sister of". The app writes one bullet into the page's file (decision 3, ADR 0009).
+- **A "Connections" panel** beside the page's text (decision 7) holds two boxes: "Relationships" and "Linked from".
+- **Relationships:** "+ Add relationship" picks a page and asks for the words, such as "Sister of". The app writes one bullet into the page's file (decision 3, ADR 0009).
+  - In the page's text, the `## Relationships` section is folded into one quiet line ("Relationships: shown beside the page"), so the same thing isn't shown twice. Clicking the line unfolds it for editing by hand.
 - **A "Linked from" list** shows everything that links to this page:
   - outline cards (with outline and section);
   - other pages (with their relationship words, if any);
@@ -126,6 +128,17 @@ This milestone splits Story into two clearly named halves: **Plot** (building th
 4. **Portraits come later.**
 5. **The plan and ADR 0009 are approved**, with clickable mock-ups first.
 6. **The gallery is alphabetical.** Dragging pages into an order would need somewhere new to store it.
+7. **The mock-ups are approved** ([canvas](https://claude.ai/artifact/T6EkrMrUaDoTwrzhobdcW1), private). Relationships and "Linked from" sit in a panel beside the page's text, not under the description.
+
+## Later: how important a character is, part by part (to discuss)
+
+The owner raised this on 2026-10-26 as an idea to discuss and refine, not yet a decision. A novel may have 20 characters: 3 main ones throughout, and different secondary and minor ones in each part. While writing a part, the references would offer that part's main and secondary characters first, while search and pinning still reach everyone.
+
+Questions to settle before deciding:
+
+- **Where it's written.** In each character's page, for example `importance: main`, or per part as `part 2: secondary`? Or in the outline or part itself, as a cast list? Either way the file must stay readable without the app.
+- **Typed by hand, or worked out?** The links already say which characters a part's chapters and cards mention. A suggestion built from those may be enough without a new field to keep up to date.
+- **How it stays simple.** One optional word per character (main, secondary, minor) costs little. A word per part costs more to maintain.
 
 ## ADR 0009: relationships between pages (accepted; see `docs/adr/0009-relationships.md`)
 
@@ -240,4 +253,4 @@ Daughter of Bea's sister.
 6. "Linked from", "Show on the board", "Start an arc outline".
 7. Demo novels, guide, screenshots.
 
-Before step 2: clickable mock-ups of the sidebar, the List, the gallery and a character page, for the owner to check.
+The clickable mock-ups came before step 2 and are approved (decision 7).

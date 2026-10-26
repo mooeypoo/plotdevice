@@ -83,3 +83,13 @@ export function markdownLink(fromDir: string, target: ProjectPath, title: string
   const destination = /[\s()<>]/.test(path) ? `<${path}>` : path
   return `[${title.replace(/([[\]\\])/g, '\\$1')}](${destination})`
 }
+
+/** One kind of page for its gallery, A to Z in the interface's language (Milestone 11, decision 6). */
+export function galleryPages(
+  references: readonly ReferenceSummaryView[],
+  kind: ReferenceSummaryView['kind'],
+  locale: string,
+): ReferenceSummaryView[] {
+  const collator = new Intl.Collator(locale, { sensitivity: 'base', numeric: true })
+  return references.filter((reference) => reference.kind === kind).sort((a, b) => collator.compare(a.title, b.title))
+}

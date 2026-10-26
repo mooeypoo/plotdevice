@@ -47,7 +47,9 @@ async function snapshot(): Promise<Record<string, string>> {
   return files
 }
 
+/** Adds a page from its gallery, under World. */
 async function newPage(page: Page, kind: 'character' | 'place' | 'note', title: string): Promise<void> {
+  await page.locator(`[data-gallery="${kind}"]`).click()
   await page.getByTestId(`new-${kind}`).click()
   await page.getByTestId('prompt-input').fill(title)
   await page.getByTestId('prompt-input').press('Enter')
@@ -189,10 +191,12 @@ test('renaming a page’s file keeps a card’s link to it working', async () =>
   )
   const page = await start()
   await page.getByTestId('workspace-story').click()
+  await page.locator('[data-gallery="character"]').click()
   await page.locator('[data-page="characters/ilka.md"]').click()
   await page.getByTestId('rename-page-file').click()
   await page.getByTestId('prompt-input').fill('ilka-varga')
   await page.getByTestId('prompt-input').press('Enter')
+  await page.getByTestId('back-to-gallery').click()
   await expect(page.locator('[data-page="characters/ilka-varga.md"]')).toBeVisible()
   await file('outlines/main-story.md').toContain('[Ilka](../characters/ilka-varga.md)')
   await page.locator('[data-outline="outlines/main-story.md"]').click()
@@ -219,6 +223,8 @@ test('accessibility: the shelf and pages are named in both languages and work by
   await expect(page.locator('[data-shelf-card="notes/loose-ideas.md"]')).toBeFocused()
   expect(await unnamedControls(page)).toEqual([])
   await page.getByTestId('workspace-story').click()
+  await page.locator('[data-gallery="note"]').click()
+  expect(await unnamedControls(page)).toEqual([])
   await page.locator('[data-page="notes/loose-ideas.md"]').click()
   await openSettings(page)
   await page.getByTestId('language').selectOption('he')

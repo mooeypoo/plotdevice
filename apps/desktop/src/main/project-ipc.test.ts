@@ -301,8 +301,8 @@ describe('outline calls', () => {
   it('remembers the workspace, outline and view for next time', async () => {
     const context = await setup()
     await openChosen(context)
-    await context.call(channels.rememberPlace, { workspace: 'story', outline: MAIN, view: 'cards' })
-    expect(await context.call(channels.getOpenProject)).toMatchObject({ place: { workspace: 'story', outline: MAIN, view: 'cards' } })
+    await context.call(channels.rememberPlace, { workspace: 'story', outline: MAIN, view: 'outline' })
+    expect(await context.call(channels.getOpenProject)).toMatchObject({ place: { workspace: 'story', outline: MAIN, view: 'outline' } })
     await expect(context.call(channels.rememberPlace, { workspace: 'Story' })).rejects.toThrow('invalid-payload')
   })
 })

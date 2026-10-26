@@ -1,7 +1,7 @@
 import type { ProjectView, ReferenceSummaryView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { linkTargets, markdownLink, search, suggestedLinkTargets } from './references'
+import { galleryPages, linkTargets, markdownLink, search, suggestedLinkTargets } from './references'
 
 const p = (path: string) => path as ProjectPath
 const page = (
@@ -79,5 +79,30 @@ describe('what the link picker offers before anything is typed', () => {
 
   it('leaves out kinds with nothing in them', () => {
     expect(suggestedLinkTargets([]).length).toBe(0)
+  })
+})
+
+describe('a gallery', () => {
+  const pages = [
+    page('characters/noel.md', 'character', 'Noël Arany'),
+    page('places/marrow.md', 'place', 'Marrow'),
+    page('characters/ilka.md', 'character', 'Ilka Varga'),
+    page('characters/bea.md', 'character', 'bea Halmi'),
+    page('characters/yael.md', 'character', 'יעל'),
+    page('characters/2.md', 'character', 'Guard 10'),
+    page('characters/1.md', 'character', 'Guard 9'),
+  ]
+
+  it('shows one kind of page, A to Z, ignoring case and counting numbers as numbers', () => {
+    expect(galleryPages(pages, 'character', 'en').map((entry) => entry.title)).toEqual([
+      'bea Halmi',
+      'Guard 9',
+      'Guard 10',
+      'Ilka Varga',
+      'Noël Arany',
+      'יעל',
+    ])
+    expect(galleryPages(pages, 'place', 'en').map((entry) => entry.title)).toEqual(['Marrow'])
+    expect(galleryPages(pages, 'note', 'he')).toEqual([])
   })
 })

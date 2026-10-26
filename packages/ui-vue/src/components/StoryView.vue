@@ -12,9 +12,9 @@ import { useViewStore } from '../stores/view'
 import KeptAsWritten from './KeptAsWritten.vue'
 import ManuscriptOutline from './ManuscriptOutline.vue'
 import OutlineBoard from './OutlineBoard.vue'
-import OutlineCards from './OutlineCards.vue'
 import OutlineList from './OutlineList.vue'
 import ReferencePage from './ReferencePage.vue'
+import WorldGallery from './WorldGallery.vue'
 
 defineProps<{ project: ProjectView }>()
 const story = useStoryStore()
@@ -24,10 +24,17 @@ const actions = useOutlineActions()
 const { ask } = usePrompt()
 const versions = useVersions()
 const t = settings.t
-const views: OutlineViewKind[] = ['board', 'outline', 'cards']
+const views: OutlineViewKind[] = ['board', 'outline']
 const kinds: ReferenceKind[] = ['character', 'place', 'note']
 const pagesOf = (kind: ReferenceKind) => story.references.filter((reference) => reference.kind === kind)
 const showingOutline = computed(() => story.showing.kind === 'outline')
+/** The World entry to mark: the gallery shown, or the kind of the page shown. */
+const currentKind = computed<ReferenceKind | null>(() => {
+  const showing = story.showing
+  if (showing.kind === 'gallery') return showing.of
+  if (showing.kind === 'page') return story.references.find((reference) => reference.file === showing.file)?.kind ?? null
+  return null
+})
 
 /** Undo, rename and versions: under ⋯ beside the views, so the bar above the outline stays quiet. */
 const outlineItems = computed<MenuItem[]>(() => {
@@ -51,11 +58,6 @@ async function newOutline(): Promise<void> {
   if (title) await story.create(title)
 }
 
-async function newPage(kind: ReferenceKind): Promise<void> {
-  const title = await ask(t('prompt-reference-title'))
-  if (title) await story.createReference(kind, title)
-}
-
 /** Ctrl+Z (⌘Z) undoes the last outline change, unless the keyboard is in a text field or page editor. */
 function onKey(event: KeyboardEvent): void {
   if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || event.key.toLowerCase() !== 'z') return
@@ -72,63 +74,69 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 <template>
   <div class="story" data-testid="story">
     <nav class="navigator" :aria-label="t('workspace-story')">
-      <h2>{{ t('story-outlines') }}</h2>
-      <p v-if="story.outlines.length === 0" class="secondary">{{ t('reference-none') }}</p>
-      <ul>
-        <li
-          v-for="entry in story.outlines"
-          :key="entry.file"
-          class="row chapter-row"
-          :class="{ current: showingOutline && story.outline?.file === entry.file }"
-        >
-          <button
-            type="button"
-            class="chapter"
-            :data-outline="entry.file"
-            :aria-current="showingOutline && story.outline?.file === entry.file ? 'page' : undefined"
-            @click="story.open(entry.file)"
-          >
-            <span dir="auto">{{ entry.title ?? entry.file }}</span>
-          </button>
-        </li>
-      </ul>
-      <div class="add-links">
-        <button type="button" class="add-link" data-testid="new-outline" @click="newOutline">{{ t('story-new-outline') }}</button>
-      </div>
-
-      <section v-for="kind in kinds" :key="kind" class="navigator-section" :data-testid="`pages-${kind}`">
-        <h2>{{ t(`story-${kind}`) }}</h2>
+      <section class="story-group" data-testid="plot">
+        <h2 class="group-heading">{{ t('story-plot') }}</h2>
         <ul>
           <li
-            v-for="page in pagesOf(kind)"
-            :key="page.file"
+            v-for="entry in story.outlines"
+            :key="entry.file"
             class="row chapter-row"
-            :class="{ current: story.showing.kind === 'page' && story.showing.file === page.file }"
+            :class="{ current: showingOutline && story.outline?.file === entry.file }"
           >
-            <button type="button" class="chapter" :data-page="page.file" @click="story.showing = { kind: 'page', file: page.file }">
-              <span dir="auto">{{ page.title }}</span>
+            <button
+              type="button"
+              class="chapter"
+              :data-outline="entry.file"
+              :aria-current="showingOutline && story.outline?.file === entry.file ? 'page' : undefined"
+              @click="story.open(entry.file)"
+            >
+              <span dir="auto">{{ entry.title ?? entry.file }}</span>
             </button>
           </li>
         </ul>
         <div class="add-links">
-          <button type="button" class="add-link" :data-testid="`new-${kind}`" @click="newPage(kind)">{{ t(`new-${kind}`) }}</button>
+          <button type="button" class="add-link" data-testid="new-outline" @click="newOutline">{{ t('story-new-outline') }}</button>
         </div>
+        <ul>
+          <li class="row chapter-row" :class="{ current: story.showing.kind === 'manuscript' }">
+            <button
+              type="button"
+              class="chapter"
+              data-testid="show-manuscript"
+              :aria-current="story.showing.kind === 'manuscript' ? 'page' : undefined"
+              @click="story.showing = { kind: 'manuscript' }"
+            >
+              {{ t('story-manuscript') }}
+            </button>
+          </li>
+        </ul>
       </section>
 
-      <ul class="navigator-section">
-        <li class="row chapter-row" :class="{ current: story.showing.kind === 'manuscript' }">
-          <button type="button" class="chapter" data-testid="show-manuscript" @click="story.showing = { kind: 'manuscript' }">
-            {{ t('story-manuscript') }}
-          </button>
-        </li>
-      </ul>
+      <section class="story-group" data-testid="world">
+        <h2 class="group-heading">{{ t('story-world') }}</h2>
+        <ul>
+          <li v-for="kind in kinds" :key="kind" class="row chapter-row" :class="{ current: currentKind === kind }">
+            <button
+              type="button"
+              class="chapter"
+              :data-gallery="kind"
+              :aria-current="story.showing.kind === 'gallery' && story.showing.of === kind ? 'page' : undefined"
+              @click="story.showing = { kind: 'gallery', of: kind }"
+            >
+              <span>{{ t(`story-${kind}`) }}</span>
+              <span class="count" :aria-label="t('gallery-pages', pagesOf(kind).length)">{{ pagesOf(kind).length }}</span>
+            </button>
+          </li>
+        </ul>
+      </section>
     </nav>
 
     <section class="desk">
       <ManuscriptOutline v-if="story.showing.kind === 'manuscript'" class="story-page" :project="project" />
+      <WorldGallery v-else-if="story.showing.kind === 'gallery'" :key="story.showing.of" :kind="story.showing.of" />
       <ReferencePage v-else-if="story.showing.kind === 'page'" :key="story.showing.file" class="story-page" :file="story.showing.file" />
       <template v-else-if="story.outline">
-        <div class="story-head">
+        <div class="story-head outline-head">
           <button
             type="button"
             class="outline-title"
@@ -160,8 +168,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
             <p>{{ t('outline-empty') }}</p>
           </div>
           <OutlineBoard v-if="view.outlineView === 'board'" :outline="story.outline" />
-          <OutlineList v-else-if="view.outlineView === 'outline'" :outline="story.outline" />
-          <OutlineCards v-else :outline="story.outline" />
+          <OutlineList v-else :outline="story.outline" />
         </div>
       </template>
       <div v-else class="story-page">

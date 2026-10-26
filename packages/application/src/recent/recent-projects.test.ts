@@ -173,13 +173,14 @@ describe('recent projects', () => {
     const { file } = memoryFile()
     const recent = await createRecentProjectsSession(file)
     await recent.opened({ root: '/a', title: 'A' })
-    await recent.place('/a', { workspace: 'story', outline: p('outlines/main-story.md'), view: 'cards' })
+    await recent.place('/a', { workspace: 'story', outline: p('outlines/main-story.md'), view: 'outline' })
     const restarted = await createRecentProjectsSession(file)
-    expect(restarted.current().projects[0]?.place).toEqual({ workspace: 'story', outline: 'outlines/main-story.md', view: 'cards' })
+    expect(restarted.current().projects[0]?.place).toEqual({ workspace: 'story', outline: 'outlines/main-story.md', view: 'outline' })
     const text = JSON.stringify({
       projects: [
         { root: '/b', title: 'B', place: { workspace: 'Story' } },
         { root: '/c', title: 'C', place: { workspace: 'write', outline: '../x.md', view: 'grid' } },
+        { root: '/d', title: 'D', place: { workspace: 'story', view: 'cards' } },
       ],
     })
     expect(parseRecentProjects(text)).toEqual({
@@ -188,6 +189,8 @@ describe('recent projects', () => {
         projects: [
           { root: '/b', title: 'B' },
           { root: '/c', title: 'C', place: { workspace: 'write' } },
+          // The Cards view is gone; a project left in it reopens on the Board.
+          { root: '/d', title: 'D', place: { workspace: 'story', view: 'board' } },
         ],
       },
     })

@@ -32,7 +32,7 @@ export const createOutlineSchema = z.strictObject({ title: line })
  * comes only from the message catalogs, so it can be renamed without touching code or saved settings.
  */
 export const workspaceSchema = z.enum(['write', 'story'])
-export const outlineViewKindSchema = z.enum(['board', 'outline', 'cards'])
+export const outlineViewKindSchema = z.enum(['board', 'outline'])
 export const placeSchema = z.strictObject({
   workspace: workspaceSchema,
   outline: outlineFileSchema.shape.file.optional(),

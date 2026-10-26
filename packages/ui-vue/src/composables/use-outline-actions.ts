@@ -1,6 +1,15 @@
 import type { OutlineItemView } from '@plotdevice/contracts'
 import { uiDirection } from '@plotdevice/i18n'
-import { boardDrop, cardMoves, keyOf, markdownLink, type ItemAt, type ItemDestination } from '@plotdevice/presentation'
+import {
+  boardDrop,
+  cardMoves,
+  indentedLine,
+  keyOf,
+  markdownLink,
+  outdentedLine,
+  type ItemAt,
+  type ItemDestination,
+} from '@plotdevice/presentation'
 import { dirnameOf } from '@plotdevice/shared'
 import { nextTick, ref } from 'vue'
 import type { MenuItem } from '../components/menu'
@@ -163,6 +172,38 @@ export function useOutlineActions() {
     }
   }
 
+  /** List: start typing a new line at `to`, opening its parent if it was folded. */
+  function startLine(to: ItemDestination, draft = ''): void {
+    if (to.parentPath.length > 0) story.expand(keyOf({ section: to.section, path: to.parentPath }))
+    story.editing = { kind: 'new-line', to, draft }
+  }
+
+  /** Enter adds the line and starts the next one below it; leaving the field adds it and stops. */
+  async function commitLine(text: string | null, byEnter: boolean): Promise<void> {
+    const editing = story.editing
+    if (editing?.kind !== 'new-line') return
+    story.editing = null
+    if (text === null || text.trim() === '') return
+    const { to } = editing
+    if ((await story.edit({ kind: 'add-item', to, text })) && byEnter) startLine({ ...to, index: to.index + 1 })
+  }
+
+  /** Tab: the line becomes a detail of the item above it. Shift+Tab: back out a level. */
+  function indentLine(draft: string): void {
+    const editing = story.editing
+    const outline = story.outline
+    if (editing?.kind !== 'new-line' || !outline) return
+    const to = indentedLine(outline, editing.to)
+    if (to) startLine(to, draft)
+  }
+
+  function outdentLine(draft: string): void {
+    const editing = story.editing
+    if (editing?.kind !== 'new-line') return
+    const to = outdentedLine(editing.to)
+    if (to) startLine(to, draft)
+  }
+
   async function commitNewSection(text: string | null): Promise<void> {
     story.editing = null
     const index = story.outline?.sections.length ?? 0
@@ -213,6 +254,10 @@ export function useOutlineActions() {
     commitSection,
     commitNewCard,
     commitNewSection,
+    startLine,
+    commitLine,
+    indentLine,
+    outdentLine,
     renameOutline,
     dragStart,
     dropBefore,
