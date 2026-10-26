@@ -7,6 +7,7 @@ import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
 import EditableText from './EditableText.vue'
 import InlineText from './InlineText.vue'
+import ItemTextField from './ItemTextField.vue'
 import KeptAsWritten from './KeptAsWritten.vue'
 import MenuButton from './MenuButton.vue'
 
@@ -52,15 +53,14 @@ function lineIn(section: number, rows: OutlineRow[]): { after: string | null; de
       </header>
       <ul role="tree" :aria-label="section.name ?? t('outline-unnamed-section')">
         <li v-if="line && line.after === null" :key="line.id" role="none" class="list-row new-line" :style="{ '--depth': line.depth }">
-          <EditableText
+          <ItemTextField
             :value="line.draft"
-            :label="line.depth === 0 ? t('prompt-card-text') : t('prompt-detail-text')"
+            :label="line.depth === 0 ? t('prompt-item-text') : t('prompt-detail-text')"
             nests
             @commit="actions.commitLine"
             @indent="actions.indentLine"
             @outdent="actions.outdentLine"
           />
-          <span class="line-keys">{{ t('outline-line-keys') }}</span>
         </li>
         <template v-for="row in rows" :key="row.key">
           <li
@@ -83,10 +83,10 @@ function lineIn(section: number, rows: OutlineRow[]): { after: string | null; de
               {{ row.collapsed ? '▸' : '▾' }}
             </button>
             <span v-else class="toggle-space"></span>
-            <EditableText
+            <ItemTextField
               v-if="story.editing?.kind === 'item' && story.editing.key === row.key"
               :value="row.item.text"
-              :label="t('prompt-card-text')"
+              :label="t('prompt-item-text')"
               @commit="actions.commitItem(row.path, row.item, $event)"
             />
             <InlineText
@@ -110,15 +110,14 @@ function lineIn(section: number, rows: OutlineRow[]): { after: string | null; de
             <KeptAsWritten v-for="(block, i) in row.item.keptAsWritten" :key="`kept-${i}`" :text="block" />
           </li>
           <li v-if="line && line.after === row.key" :key="line.id" role="none" class="list-row new-line" :style="{ '--depth': line.depth }">
-            <EditableText
+            <ItemTextField
               :value="line.draft"
-              :label="line.depth === 0 ? t('prompt-card-text') : t('prompt-detail-text')"
+              :label="line.depth === 0 ? t('prompt-item-text') : t('prompt-detail-text')"
               nests
               @commit="actions.commitLine"
               @indent="actions.indentLine"
               @outdent="actions.outdentLine"
             />
-            <span class="line-keys">{{ t('outline-line-keys') }}</span>
           </li>
         </template>
       </ul>
@@ -129,7 +128,7 @@ function lineIn(section: number, rows: OutlineRow[]): { after: string | null; de
         data-testid="add-card"
         @click="actions.startLine({ section: index, parentPath: [], index: section.items.length })"
       >
-        {{ t('outline-add-card') }}
+        {{ t('outline-add-item') }}
       </button>
       <KeptAsWritten v-for="(note, i) in section.notes.filter((n) => n.kind === 'kept')" :key="`note-${i}`" :text="note.text" />
     </section>

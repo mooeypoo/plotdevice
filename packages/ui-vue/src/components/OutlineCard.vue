@@ -7,7 +7,7 @@ import { useFollowLink } from '../composables/use-follow-link'
 import { useOutlineActions } from '../composables/use-outline-actions'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
-import EditableText from './EditableText.vue'
+import ItemTextField from './ItemTextField.vue'
 import InlineText from './InlineText.vue'
 import KeptAsWritten from './KeptAsWritten.vue'
 import MenuButton from './MenuButton.vue'
@@ -63,7 +63,7 @@ const detailCount = computed(() => {
     <p v-if="label !== undefined" class="card-section secondary" dir="auto">{{ label ?? t('outline-unnamed-section') }}</p>
     <div class="card-head">
       <span v-if="item.checked !== null" class="checkbox" aria-hidden="true">{{ item.checked ? '☑' : '☐' }}</span>
-      <EditableText v-if="editing" :value="item.text" :label="t('prompt-card-text')" @commit="actions.commitItem(at, item, $event)" />
+      <ItemTextField v-if="editing" :value="item.text" :label="t('prompt-card-text')" @commit="actions.commitItem(at, item, $event)" />
       <InlineText v-else class="card-text" :text="item.text" follow-links @follow="follow(fromDir, $event)" />
       <span v-if="!item.movable" class="lock" role="img" :aria-label="t('locked-item')" :title="t('locked-item')">🔒</span>
       <MenuButton :label="t('item-actions', item.text)" :items="actions.itemMenu(at, item)" />

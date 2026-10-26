@@ -6,6 +6,7 @@ import { useOutlineActions } from '../composables/use-outline-actions'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
 import EditableText from './EditableText.vue'
+import ItemTextField from './ItemTextField.vue'
 import KeptAsWritten from './KeptAsWritten.vue'
 import MenuButton from './MenuButton.vue'
 import OutlineCard from './OutlineCard.vue'
@@ -101,7 +102,7 @@ function dropSide(section: number, index: number): 'before' | 'after' | null {
         <p v-else-if="entry.kind === 'group'" class="group-label" dir="auto">{{ entry.text }}</p>
         <KeptAsWritten v-else :text="entry.text" />
       </template>
-      <EditableText
+      <ItemTextField
         v-if="story.editing?.kind === 'new-card' && story.editing.section === index"
         value=""
         :label="t('prompt-card-text')"

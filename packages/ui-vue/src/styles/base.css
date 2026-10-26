@@ -1154,6 +1154,67 @@ button.outline-title:hover:not(:disabled) {
   padding-inline-start: calc(var(--depth, 0) * 1.4rem);
   border-radius: 8px;
 }
+/* A card's or item's text being edited: its links show as names, and @ offers pages to link. */
+.item-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-inline-size: 12rem;
+}
+.item-field-box {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding-block: 0.35rem;
+  padding-inline: 0.6rem 0.3rem;
+  background: var(--color-card);
+  border: 1.5px solid var(--color-focus);
+  border-radius: 9px;
+}
+.item-editor {
+  flex: 1;
+  min-inline-size: 0;
+}
+.item-link-button {
+  flex: none;
+  border: none;
+  background: none;
+  padding: 0.2rem;
+  border-radius: 6px;
+  color: var(--color-text-secondary);
+}
+.item-link-button:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--color-text);
+}
+.item-suggestions {
+  position: fixed;
+  z-index: 50;
+  min-inline-size: 16rem;
+  max-block-size: 18rem;
+  overflow: auto;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  background: var(--color-card);
+  border-radius: 10px;
+  box-shadow: var(--shadow-pop);
+}
+.item-suggestions li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.item-suggestions li.selected,
+.item-suggestions li:hover {
+  background: var(--color-well);
+}
+
 /* "+" on a row adds a detail; like the ⋯ menu, it shows on hover or keyboard focus. */
 .list-row .add-detail {
   border: none;

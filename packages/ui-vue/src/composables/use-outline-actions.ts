@@ -21,6 +21,8 @@ import { usePrompt } from './use-prompt'
 
 /** The card being dragged, shared by every view. */
 const dragging = ref<ItemAt | null>(null)
+/** Counts list lines kept or cancelled, so a late Escape stops the next line from opening. */
+let lineTicket = 0
 
 /** Moves the keyboard focus to an item once the outline has been redrawn. */
 async function focusItem(key: string): Promise<void> {
@@ -178,14 +180,27 @@ export function useOutlineActions() {
     story.editing = { kind: 'new-line', to, draft }
   }
 
-  /** Enter adds the line and starts the next one below it; leaving the field adds it and stops. */
+  /**
+   * Enter adds the line and starts the next one below it, once it's saved; leaving the field adds it
+   * and stops. Escape pressed while it's being saved cancels the next line before it opens.
+   */
   async function commitLine(text: string | null, byEnter: boolean): Promise<void> {
+    const ticket = ++lineTicket
     const editing = story.editing
     if (editing?.kind !== 'new-line') return
     story.editing = null
     if (text === null || text.trim() === '') return
     const { to } = editing
-    if ((await story.edit({ kind: 'add-item', to, text })) && byEnter) startLine({ ...to, index: to.index + 1 })
+    // The field has closed by now, so Escape reaches the window, not the field.
+    const stop = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') lineTicket++
+    }
+    if (byEnter) window.addEventListener('keydown', stop)
+    try {
+      if ((await story.edit({ kind: 'add-item', to, text })) && byEnter && ticket === lineTicket) startLine({ ...to, index: to.index + 1 })
+    } finally {
+      window.removeEventListener('keydown', stop)
+    }
   }
 
   /** Tab: the line becomes a detail of the item above it. Shift+Tab: back out a level. */

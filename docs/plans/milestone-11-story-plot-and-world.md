@@ -323,3 +323,17 @@ New tests:
 - A relationship can point at a chapter too, because the picker offers chapters; it works, and is shown like any other.
 - The folded line's label is in the interface language the page was opened in.
 - Importance by part is still to be discussed (see "Later" above).
+
+## Owner feedback, round 1 (2026-10-26)
+
+| Feedback | Change |
+|---|---|
+| In the List, the button says "Add card", but a list has items | The List says **+ Add item**, and its new lines are "Item"; the Board keeps "Add card". |
+| Editing a card shows raw Markdown links (`[Bea](../characters/bea.md)`). Adding "must meet [a character]" means typing the words, closing, then **⋯ → Link to…**. Authors can't be expected to write link paths. | Card and item text is edited in a small CodeMirror field:<br>• **Links show as names**, one chip each; the cursor steps over a chip and **Backspace** removes it whole.<br>• **Typing @** (or `[[`, as in Obsidian) and the start of a name offers matching characters, places, notes and chapters; **↑/↓** and **Enter** or a click choose one, and the app writes the ordinary relative link.<br>• **A link button** at the field's end opens the full picker.<br>• A hint under the field says "Type @ to link…".<br>• An `@` inside a word (an email address) is left alone.<br>• No new dependency: the list is the app's own, so it matches the picker's search and look. |
+
+Engineering notes:
+
+- **Where the code is:** `editor-codemirror/src/item-editor.ts` (the field) and `item-text.ts` (finding links and the name being typed: pure, unit-tested).
+- **Security policy:** the field runs in a shadow root, as the chapter editor does, so CodeMirror's styles need no exception to the Content Security Policy. Without it, the policy also blocked the style that keeps spaces, and a space after a link was lost.
+- **A late Escape:** after **Enter**, the next line opens once the kept one is saved. An **Esc** pressed in between now stops that next line from opening.
+- **Section names** stay a plain field; they rarely hold links.

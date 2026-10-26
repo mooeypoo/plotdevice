@@ -19,6 +19,8 @@ interface Language {
   character: string
   /** That character's page, for the World screens. */
   characterPage: string
+  /** A new item being typed, linking a character with @. */
+  linkTyping: string
   /** A book in another language, for "the interface in your language, the book in its own". */
   otherBook: string
   otherCrossing: string
@@ -31,6 +33,7 @@ const LANGUAGES: Record<string, Language> = {
     phrase: 'a woman in a green coat',
     character: 'Bea',
     characterPage: 'characters/bea.md',
+    linkTyping: 'Must meet @be',
     otherBook: 'מטע-המלח',
     otherCrossing: 'manuscript/המעבר.md',
   },
@@ -40,6 +43,7 @@ const LANGUAGES: Record<string, Language> = {
     phrase: 'אישה במעיל ירוק',
     character: 'בּיה',
     characterPage: 'characters/ביה.md',
+    linkTyping: 'פוגשת את @בּ',
     otherBook: 'the-salt-orchard',
     otherCrossing: 'manuscript/the-crossing.md',
   },
@@ -182,6 +186,13 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await page.getByTestId('view-outline').click()
       await page.locator('[data-item="0/0"]').hover()
       await snap(page, lang, 'story-list', theme)
+      await page.getByTestId('add-card').first().click()
+      await page.getByTestId('editable-text').waitFor()
+      await page.keyboard.type(language.linkTyping)
+      await page.getByTestId('item-suggestions').waitFor()
+      await snapAround(page, lang, 'item-link', theme, [page.locator('.item-field'), page.getByTestId('item-suggestions')])
+      await page.keyboard.press('Escape')
+      await page.keyboard.press('Escape')
       await page.getByTestId('view-board').click()
 
       await page.locator('[data-gallery="character"]').click()

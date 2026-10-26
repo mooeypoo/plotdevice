@@ -1,4 +1,5 @@
 export { createChapterEditor, type ChapterEditor, type ChapterEditorOptions, type SelectionPlace } from './chapter-editor'
 export type { FoldedSection } from './folded-section'
+export { createItemEditor, type ItemEditor, type ItemEditorOptions } from './item-editor'
 export type { FormatCommand } from './format'
 export type { EditorLabels, EditorSettings } from './settings'
