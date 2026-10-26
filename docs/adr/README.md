@@ -12,3 +12,4 @@ Significant decisions and their reasons; minor tooling preferences are not recor
 | [0006](0006-project-format.md) | How a project is organized on disk | Accepted |
 | 0007 | Localization and theming | Planned (before Gate 3) |
 | [0008](0008-ids.md) | IDs | Accepted |
+| [0009](0009-relationships.md) | Relationships between characters, places and notes | Accepted |
