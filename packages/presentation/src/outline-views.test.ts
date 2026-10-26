@@ -148,6 +148,13 @@ describe('card text, shown formatted but never as HTML', () => {
     expect(inlineSpans('<b>not bold</b> and \\*not italic\\*')).toEqual([{ kind: 'text', text: '<b>not bold</b> and *not italic*' }])
   })
 
+  it('reads a link whose path has spaces, written in angle brackets', () => {
+    expect(inlineSpans('השער נעול, ראו [שער המטע](<../manuscript/שער המטע.md>)')).toEqual([
+      { kind: 'text', text: 'השער נעול, ראו ' },
+      { kind: 'link', text: 'שער המטע', target: '<../manuscript/שער המטע.md>' },
+    ])
+  })
+
   it('handles Hebrew and wikilinks as text', () => {
     expect(inlineSpans('יעל *קראה* [[the-crossing]]')).toEqual([
       { kind: 'text', text: 'יעל ' },

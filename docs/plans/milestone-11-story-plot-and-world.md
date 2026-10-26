@@ -1,6 +1,6 @@
 # Milestone 11: Story, in two halves (Plot and World)
 
-Status: **Approved** (2026-10-26), with ADR 0009 (relationships), on branch `milestone-11/story-plot-and-world`. Clickable mock-ups come before the interface work (step 2).
+Status: **Built** (2026-10-26) on branch `milestone-11/story-plot-and-world` (PR #28), waiting for the owner's review. Results are at the end of this document.
 
 ## Goal
 
@@ -254,3 +254,72 @@ Daughter of Bea's sister.
 7. Demo novels, guide, screenshots.
 
 The clickable mock-ups came before step 2 and are approved (decision 7).
+
+## Results
+
+### What the author can do
+
+- **Story has two groups.** **Plot** holds the outlines and the book's chapters; **World** holds Characters, Places and Notes, each with a count. **Board | List** sits right after the outline's title. Cards is gone, and a project left in Cards reopens on the Board.
+- **List.**
+  - A dashed **+ Add card** under each section, **+ Add section** at the end, and a **+** on each row (on hover or focus) for a detail.
+  - While typing a new line: **Enter** adds it and starts the next, **Tab** makes it a detail of the line above, **Shift+Tab** brings it back out, **Esc** stops. A hint under the line says so.
+- **World galleries.** Each kind opens as cards, A to Z in the interface language: name, other names, description, first three relationships. A dashed card adds a page. **‹ Characters** goes back from a page.
+- **A page's Connections panel.**
+  - **Relationships:** add one (pick a page, then say how), reword it, or remove it, one bullet at a time (ADR 0009). In the page's text, the section folds into one line.
+  - **Linked from:** cards (by outline and section), pages (with their relationship words) and chapters; each opens what it names.
+  - **Show on the board:** opens that outline with the page's cards outlined in gold and the rest faded. **✕** or **Esc** shows every card again.
+  - **Start an arc outline:** makes an outline that starts with a link back to the page.
+  - The page's rename, file name and versions moved into its **⋯**.
+- **Demo novels:** every character has relationships, and each book has an arc outline for Ilka.
+
+### Also fixed
+
+- Card text showed a link whose path has spaces (`[שער המטע](<../manuscript/שער המטע.md>)`) as raw Markdown. It existed before this milestone and showed on the Hebrew demo's board.
+
+### Tests
+
+| Command | Result |
+|---|---|
+| `pnpm lint` | OK |
+| `pnpm typecheck` | OK |
+| `pnpm test` | 857 passed |
+| `pnpm arch` | 105 passed |
+| `pnpm build` | OK |
+| `pnpm e2e` (Playwright) | 61 passed |
+| `pnpm site:screenshots`, `site:build`, `site:test` | OK; 4 new screens per language and theme |
+| `pnpm perf` | **1 failed:** moving a card on a 2,000-card outline took 520–560 ms against a 500 ms limit. `main` fails the same way on this machine (540–560 ms in three runs), and this milestone doesn't touch that code. Left as is, to look at separately. |
+
+New tests:
+
+- **Unit:**
+  - relationships, reading and writing: English and Hebrew headings, any level and case, words around a link, wikilinks, nested details, code, CRLF, the first one after the description, removing the last one;
+  - where a new list line goes, and Tab and Shift+Tab;
+  - gallery order;
+  - links shown as their text, and which relationships can be reworded;
+  - "Linked from";
+  - the folded section;
+  - an arc outline's first line;
+  - a remembered Cards view reopening as Board;
+  - the demo novels.
+- **Integration (IPC, real files):**
+  - adding a relationship to a page open in the editor reloads it there, and typing carries on without a conflict;
+  - "Linked from" finds cards, pages and chapters, never by name.
+- **End to end:**
+  - typing in the List with Enter, Tab and Shift+Tab;
+  - **+** on a row, and **+ Add section**;
+  - the Plot and World groups and the gallery;
+  - relationships from start to finish (add, see on the other page and the card, fold and unfold, Show on the board and Esc, arc outline, remove).
+
+### Architecture
+
+- Relationships are parsed and patched in `markdown` (beside the page parser), not in the domain as the ADR first said; the ADR's engineering notes are corrected.
+- The heading names are in `shared`, because the page editor needs them and the renderer may not import the domain.
+- Two calls were added to the app's connection to the host (`editRelationship`, `linkedFrom`); the test that lists every allowed call lists them.
+
+### Known limitations
+
+- "Linked from" reloads when pages or outlines change; a link typed into a chapter in Write shows the next time the page is opened.
+- "Show on the board" recognises a card by its section and text, so two identical cards in one section both stand out.
+- A relationship can point at a chapter too, because the picker offers chapters; it works, and is shown like any other.
+- The folded line's label is in the interface language the page was opened in.
+- Importance by part is still to be discussed (see "Later" above).

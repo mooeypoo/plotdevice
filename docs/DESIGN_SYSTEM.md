@@ -55,7 +55,7 @@ Shades such as hover backgrounds, hairlines and the glow behind the page are mix
 
 ## UX design gates
 1. Test a brand-new writer creating a project and writing a chapter without any outline.
-2. Test outline Board ↔ Outline ↔ Cards without content loss.
+2. Test outline Board ↔ List without content loss.
 3. Test Hebrew UI + English prose, English UI + Hebrew prose, and mixed-direction references.
 4. Test narrow screens, large zoom, keyboard-only and screen-reader basics.
 5. Test both themes and contrast, especially in manuscript text and plotline color labels.

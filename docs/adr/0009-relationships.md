@@ -45,6 +45,7 @@ Ilka's page shows "Sister of Bea" and "Owes money to the Salt Exchange". Bea's p
 
 ## Engineering notes
 
-- **Domain** (`domain/references`): find the section and its relationships beside the existing description/details split; patch one bullet with the targeted-edit approach of ADR 0003. A page that can't be read cleanly is shown and never "repaired".
+- **Markdown** (`markdown/src/relationships.ts`, beside the description/details split in `reference-page.ts`): find the section and its relationships; patch one bullet with splices, as ADR 0003 does for outlines. A page that can't be read cleanly is shown and never "repaired". The heading names live in `shared` (`RELATIONSHIP_HEADINGS`), because both the host and the page editor need them; the domain picks the name for a new section (`relationshipHeadingFor`).
+- **Page editor**: the section folds into one line (`editor-codemirror/src/folded-section.ts`), found by the same names on every change, so it stays right while the author types.
 - **Tests first:** heading names in both languages, words before and after the link, two links in one bullet, bullets without links, nested details, `[[wiki]]` links, mixed Hebrew and English with emoji, unchanged load and save is byte-identical, unknown frontmatter and line endings are kept.
 - **"Linked from"** is a query across outlines, pages and chapters, resolved by path after link normalisation; never by matching names.

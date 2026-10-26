@@ -27,7 +27,7 @@ G6. Fluidity: editing a chapter does not mount the entire manuscript in one edit
 - Editing chapters does not require outlines, characters or plots.
 
 ### Story (working label; user-testing may change it)
-- User-created outlines shown as Board, Outline, or Cards views. Views are presentations of one outline, not duplicated content.
+- User-created outlines shown as Board or List (Outline) views. Views are presentations of one outline, not duplicated content. (Cards was removed in Milestone 11.)
 - Multiple independent outlines per project (`outlines/*.md`), e.g. main story, character arc, loose ideas.
 - Simple model: Markdown `##` headings map to sections/board columns; primary bullets map to cards; nested bullets map to detail hierarchy.
 - Drag cards within/between sections while keeping nested children; keyboard equivalents mandatory.
@@ -67,12 +67,12 @@ G6. Fluidity: editing a chapter does not mount the entire manuscript in one edit
 - Editor-focused layout must remain visually quieter than Story workspace.
 
 ## 9. MVP scope
-IN: local project management; chapter writing; optional parts; manuscript ordering; Markdown persistence; Story outlines; Board/Outline/Card projections; basic characters/places/notes; quick reference shelf; English/Hebrew; RTL/BiDi; light/dark/system; autosave and external-change guardrails; keyboard access; basic compiled manuscript output.
+IN: local project management; chapter writing; optional parts; manuscript ordering; Markdown persistence; Story outlines; Board/List projections; basic characters/places/notes; quick reference shelf; English/Hebrew; RTL/BiDi; light/dark/system; autosave and external-change guardrails; keyboard access; basic compiled manuscript output.
 OUT: cloud sync, collaboration, AI writing, full publishing suite, relationship graphs, elaborate timeline engine, arbitrary block database, semantic scenes, generalized board configuration language and real-time multieditor merge.
 
 ## 10. End-to-end acceptance scenarios
 A. New author creates project, writes Chapter 1, exits, reopens and sees prose intact in Write.
-B. Author creates `outlines/main-story.md`, adds sections and nested cards visually, switches among Board/Outline/Cards, and verifies no Markdown content was lost.
+B. Author creates `outlines/main-story.md`, adds sections and nested cards visually, switches between Board and List, and verifies no Markdown content was lost.
 C. Author moves a card to another column and sees only the expected heading/list structure change; written chapters stay untouched.
 D. Author links a card to a chapter, character or place and can consult those links while writing; no automatic prose changes.
 E. Author moves a chapter in the manuscript, and both derived manuscript outline and compiled output reflect the new order without renaming the underlying chapter file.

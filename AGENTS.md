@@ -15,7 +15,7 @@ Priority of authority: explicit user decisions > current PRD/UX/file-format/arch
 ## Product invariants
 1. One Markdown file per **chapter**, optional parts, no required Scene entity or scene files. Scene separators inside chapter prose are formatting only in MVP.
 2. Manuscript order is in a project manifest, **not** filenames or filesystem order. Rename source files only by controlled explicit operation; IDs remain stable.
-3. Each author-created outline is ordinary Markdown: `##` sections, primary bullets as items/cards, nested bullets as details. Board, Outline and Cards are **projections**, not separate data stores. Multiple independent outlines are allowed.
+3. Each author-created outline is ordinary Markdown: `##` sections, primary bullets as items/cards, nested bullets as details. Board and List (Outline) are **projections**, not separate data stores (Cards was removed by owner decision, Milestone 11). Multiple independent outlines are allowed.
 4. Outline headings/cards do not automatically mean manuscript chapters/scenes. Cross-references are explicit and optional; moving an outline card never moves prose.
 5. All essential author data remains legible and organized without Plot Device; avoid opaque ID-only index files as the sole means of recovering story order.
 6. The application owns UX, not authors' text. Never lose unknown Markdown/frontmatter or silently overwrite concurrent external edits.

@@ -162,7 +162,7 @@ export type InlineSpan = { kind: 'text' | 'em' | 'strong' | 'code'; text: string
 
 // One alternative per kind; the first that matches at a position wins. Wikilinks (`[[…]]`) stay text.
 const INLINE =
-  /\\([\\`*_[\]()#+\-.!>])|`([^`\n]+)`|(?<!\[)\[([^[\]\n]+)\]\(([^()\s]+)(?:\s+"[^"]*")?\)|\*\*(?=\S)([^*\n]+?)(?<=\S)\*\*|__(?=\S)([^_\n]+?)(?<=\S)__|\*(?=\S)([^*\n]+?)(?<=\S)\*|(?<![\p{L}\p{N}])_(?=\S)([^_\n]+?)(?<=\S)_(?![\p{L}\p{N}])/gu
+  /\\([\\`*_[\]()#+\-.!>])|`([^`\n]+)`|(?<!\[)\[([^[\]\n]+)\]\((<[^<>\n]+>|[^()\s<]+)(?:\s+"[^"]*")?\)|\*\*(?=\S)([^*\n]+?)(?<=\S)\*\*|__(?=\S)([^_\n]+?)(?<=\S)__|\*(?=\S)([^*\n]+?)(?<=\S)\*|(?<![\p{L}\p{N}])_(?=\S)([^_\n]+?)(?<=\S)_(?![\p{L}\p{N}])/gu
 
 /**
  * A card's text as spans to show formatted: bold, italic, links and code. Everything else, HTML
