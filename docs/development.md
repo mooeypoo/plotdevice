@@ -12,6 +12,7 @@
 | Command | What it does |
 |---|---|
 | `pnpm dev` | Run the app with hot reload |
+| `pnpm demo` | Run the app on a fresh copy of the demo novel (`pnpm demo he` for the Hebrew one); the copy is in a temporary folder, so the repository never changes |
 | `pnpm build` | Production build into `apps/desktop/out/` |
 | `pnpm lint` | ESLint (TypeScript and Vue), and Prettier's check that the code is formatted |
 | `pnpm format` | Formats the code with Prettier (fixtures, samples and docs are left as written) |
@@ -56,3 +57,7 @@
   or `pnpm arch` fails.
 - Development settings live in `plotdevice-dev` in the OS app-data folder (on Linux,
   `~/.config/plotdevice-dev/preferences.json`).
+
+## The demo novels
+
+`samples/` holds two invented demo novels: *The Salt Orchard* in English and *מטע המלח* in Hebrew. They have parts, chapters (one not yet in the book), characters, places, notes, and an outline whose cards link to them, so every feature can be tried and shown. Use `pnpm demo` to try them. A test opens each one and fails on any broken link, so keep it passing when editing them. `tests/fixtures/` is different: its bytes are test data, and must never be edited by trying the app.
