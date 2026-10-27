@@ -164,6 +164,7 @@ tags: [Part One – secondary, Part Two – main, Marrow folk]
 ### What the author can do
 
 - Tag a character, place or note from pills under its name. "+ Tag" suggests the project's tags as the author types; Enter adds one, or makes a new one. × takes one off.
+- See each page's tags on its card in the World gallery: up to four, then "+ N more" (owner request, 2026-10-27).
 - Choose tags above a World gallery to group its cards: one group per tag, in the order chosen, then "Everyone else", folded. Past the first ten tags, "+ N more" lists the rest with a search.
 - On the shelf, while searching, the same row groups the results; tags matching what's typed are offered as pills. The chosen tags are remembered per part in app data, after a restart too.
 - In "Link to…", the same row; its choice lasts for the session.

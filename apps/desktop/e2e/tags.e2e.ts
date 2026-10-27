@@ -80,6 +80,12 @@ test('choosing tags above Characters groups the cards, in the order chosen, with
   await page.locator('[data-gallery="character"]').click()
   const row = page.locator('.world-gallery').getByTestId('tag-filter')
   await expect(row.locator('.tag-choice')).toHaveText(['Main', 'Part Two – main', 'Varga family'])
+  // Each card shows its tags, as written on its page; a card without tags shows none.
+  await expect(page.locator('[data-page="characters/bea.md"]').getByTestId('card-tags').locator('.tag-pill')).toHaveText([
+    'Main',
+    'Varga family',
+  ])
+  await expect(page.locator('[data-page="characters/yael.md"]').getByTestId('card-tags')).toHaveCount(0)
 
   const cardsIn = (group: string) => page.locator(`[data-group="${group}"] .page-card-title`)
   await row.getByRole('button', { name: 'Part Two – main' }).click()
@@ -254,4 +260,18 @@ test('tidying: a project with clean tags shows nothing; near-duplicates are offe
   // Fixed in another app: nothing left, and "Tidy tags…" is gone.
   await writeFile(join(root, 'characters/yael.md'), '---\ntitle: Yael\ntags: [Main]\n---\n')
   await expect(page.getByTestId('tag-tidy')).toHaveCount(0)
+})
+
+test('a card shows four tags at most, then how many more', async () => {
+  await character('bea', 'Bea Halmi', '[Main, Varga family, Part One – secondary, Part Two – main, Marrow folk, Keeps secrets]')
+  const page = await start()
+  await page.getByTestId('workspace-story').click()
+  await page.locator('[data-gallery="character"]').click()
+  await expect(page.locator('[data-page="characters/bea.md"]').getByTestId('card-tags').locator('.tag-pill')).toHaveText([
+    'Main',
+    'Varga family',
+    'Part One – secondary',
+    'Part Two – main',
+    '+ 2 more',
+  ])
 })

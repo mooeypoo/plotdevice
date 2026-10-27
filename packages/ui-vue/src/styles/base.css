@@ -1808,6 +1808,22 @@ button.inline-link {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.page-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-block-start: 0.2rem;
+}
+.page-card-tags .tag-pill {
+  padding-block: 0.05rem;
+  padding-inline: 0.5rem;
+  font-size: 0.75rem;
+}
+.page-card-tags .tag-pill-more {
+  background: transparent;
+  box-shadow: none;
+  color: var(--color-text-secondary);
+}
 .page-card-relationships {
   display: flex;
   flex-direction: column;

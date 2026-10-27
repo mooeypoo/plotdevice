@@ -21,6 +21,8 @@ const chosen = computed({
   set: (value: string[]) => (story.galleryTags = { ...story.galleryTags, [props.kind]: value }),
 })
 const othersOpen = ref(false)
+/** Tags shown on a card before "+ N more", so a long list never crowds it. */
+const CARD_TAGS = 4
 
 interface Section {
   key: string
@@ -73,6 +75,12 @@ async function newPage(): Promise<void> {
               <span class="page-card-title" dir="auto">{{ page.title }}</span>
               <span v-if="page.aka.length > 0" class="page-card-aka" dir="auto">{{ t('reference-aka', page.aka.join(', ')) }}</span>
               <span v-if="page.description" class="page-card-description" dir="auto">{{ page.description }}</span>
+              <span v-if="page.tags.length > 0" class="page-card-tags" :aria-label="t('tags')" data-testid="card-tags">
+                <span v-for="tag in page.tags.slice(0, CARD_TAGS)" :key="tag" class="tag-pill" dir="auto">{{ tag }}</span>
+                <span v-if="page.tags.length > CARD_TAGS" class="tag-pill tag-pill-more">{{
+                  t('tag-more', String(page.tags.length - CARD_TAGS))
+                }}</span>
+              </span>
               <span v-if="page.relationships.length > 0" class="page-card-relationships">
                 <span v-for="(relationship, index) in page.relationships.slice(0, 3)" :key="index" dir="auto">
                   {{ linkTextOnly(relationship.text) }}
