@@ -35,7 +35,9 @@ const sections = computed<Section[]>(() => {
   if (groups.length === 0) return [{ key: 'all', label: null, pages: pages.value }]
   return [
     ...groups.map((group) => ({ key: `tag:${group.tag}`, label: group.tag, pages: group.pages })),
-    ...(others.length > 0 ? [{ key: 'others', label: t('tag-everyone-else', String(others.length)), pages: others, folds: true }] : []),
+    ...(others.length > 0
+      ? [{ key: 'others', label: t(`tag-else-${props.kind}`, String(others.length)), pages: others, folds: true }]
+      : []),
   ]
 })
 

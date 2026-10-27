@@ -275,3 +275,25 @@ test('a card shows four tags at most, then how many more', async () => {
     '+ 2 more',
   ])
 })
+
+test('the rest of a grouped gallery is named for its kind: everyone, everywhere or everything else', async () => {
+  await character('bea', 'Bea Halmi', '[Varga family]')
+  await character('noel', 'Noël', '')
+  await mkdir(join(root, 'places'), { recursive: true })
+  await writeFile(join(root, 'places/orchard.md'), '---\ntitle: The Salt Orchard\ntags: [Varga family]\n---\n')
+  await writeFile(join(root, 'places/landing.md'), '---\ntitle: The Ferry Landing\n---\n')
+  await mkdir(join(root, 'notes'), { recursive: true })
+  await writeFile(join(root, 'notes/will.md'), '---\ntitle: The will\ntags: [Varga family]\n---\n')
+  const page = await start()
+  await page.getByTestId('workspace-story').click()
+  for (const [kind, rest] of [
+    ['character', 'Everyone else'],
+    ['place', 'Everywhere else'],
+    ['note', 'Everything else'],
+  ] as const) {
+    await page.locator(`[data-gallery="${kind}"]`).click()
+    const row = page.locator('.world-gallery').getByTestId('tag-filter')
+    await row.getByRole('button', { name: 'Varga family' }).click()
+    await expect(page.getByTestId('everyone-else')).toHaveText(new RegExp(`^${rest} \\(\\d+\\)$`))
+  }
+})
