@@ -7,6 +7,8 @@ export const MAX_CHAPTER_POSITIONS = 200
 /** Parts whose chosen tags are kept, per project, and tags per part (Milestone 12). */
 export const MAX_TAGGED_PARTS = 100
 export const MAX_CHOSEN_TAGS = 50
+/** Tag problems already reported, per project, so the notice isn't repeated (Milestone 12). */
+export const MAX_REPORTED_TAG_PROBLEMS = 500
 
 /** Where the author was in a chapter. Offsets in the chapter's text, in UTF-16 code units (ADR 0003), never pixels. */
 export interface ChapterPosition {
@@ -44,6 +46,8 @@ export interface RecentProject {
    * (Milestone 12, decision 3). A renamed part simply starts afresh.
    */
   shelfTags?: Record<string, string[]>
+  /** The tag problems the author has already been told about, by key (Milestone 12, decision 6). */
+  reportedTagProblems?: string[]
 }
 
 /** Kept in app data, never in a project folder. The first project is the one to reopen at startup. */
@@ -67,6 +71,9 @@ export function parseRecentProjects(text: string): Result<RecentProjects, 'unrea
     const positions = parsePositions(entry.positions)
     const place = parsePlace(entry.place)
     const shelfTags = parseShelfTags(entry.shelfTags)
+    const reported = Array.isArray(entry.reportedTagProblems)
+      ? entry.reportedTagProblems.filter((key): key is string => typeof key === 'string').slice(-MAX_REPORTED_TAG_PROBLEMS)
+      : []
     const shelf = Array.isArray(entry.shelf)
       ? entry.shelf
           .flatMap((file) => (typeof file === 'string' ? [parseProjectPath(file)] : []))
@@ -81,6 +88,7 @@ export function parseRecentProjects(text: string): Result<RecentProjects, 'unrea
         ...(place ? { place } : {}),
         ...(shelf.length ? { shelf } : {}),
         ...(shelfTags ? { shelfTags } : {}),
+        ...(reported.length ? { reportedTagProblems: reported } : {}),
       },
     ]
   })
@@ -160,6 +168,8 @@ export interface RecentProjectsSession {
   pin(root: string, shelf: readonly ProjectPath[]): Promise<Result<void, AppDataWriteFailure>>
   /** The tags chosen on the shelf while writing in `part` (`''`: outside any part). */
   chooseShelfTags(root: string, part: string, tags: readonly string[]): Promise<Result<void, AppDataWriteFailure>>
+  /** Adds tag problems the author has now been told about. */
+  reportedTagProblems(root: string, keys: readonly string[]): Promise<Result<void, AppDataWriteFailure>>
   forget(root: string): Promise<Result<void, AppDataWriteFailure>>
   idle(): Promise<void>
 }
@@ -202,6 +212,14 @@ export async function createRecentProjectsSession(file: AppDataFile): Promise<Re
         projects.map((project) =>
           project.root === root ? { ...project, shelfTags: withShelfTags(project.shelfTags, part, tags) } : project,
         ),
+      ),
+    reportedTagProblems: (root, keys) =>
+      change((projects) =>
+        projects.map((project) => {
+          if (project.root !== root) return project
+          const known = (project.reportedTagProblems ?? []).filter((key) => !keys.includes(key))
+          return { ...project, reportedTagProblems: [...known, ...keys].slice(-MAX_REPORTED_TAG_PROBLEMS) }
+        }),
       ),
     forget: (root) => change((projects) => projects.filter((project) => project.root !== root)),
     idle: async () => {

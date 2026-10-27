@@ -203,3 +203,51 @@ test('rename a tag everywhere, merging it into another, then remove one from all
   expect(await read('characters/bea.md')).toBe('---\ntitle: Bea Halmi\ntags: [Main]\n---\nThe aunt.\n')
   expect(await read('characters/noel.md')).toBe('---\ntitle: Noël\ntags: [Marrow folk]\n---\nKeeps the ferry.\n')
 })
+
+test('tidying: a project with clean tags shows nothing; near-duplicates are offered once, and merged on request', async () => {
+  await character('bea', 'Bea Halmi', '[Main, Varga family]', 'The aunt.')
+  await character('josef', 'Josef Varga', '[Varga family]', 'The uncle.')
+  await character('noel', 'Noël', '[Used once]', 'Keeps the ferry.')
+  let page = await start()
+  await expect(page.locator('.project-title')).toBeVisible()
+  await page.getByTestId('workspace-story').click()
+  await page.locator('[data-gallery="character"]').click()
+  await expect(page.locator('.world-gallery').getByTestId('tag-filter')).toBeVisible()
+  await expect(page.locator('.notice-toast')).toHaveCount(0)
+  await expect(page.getByTestId('tag-tidy')).toHaveCount(0)
+
+  // A typo, made in another app; the next time the project opens, the author is told once.
+  await running?.app.close()
+  await character('ilka', 'Ilka Varga', '[Varga famliy]', 'The heir.')
+  await writeFile(join(root, 'characters/yael.md'), '---\ntitle: [unclosed\ntags: [Main]\n---\n# Yael\n')
+  const reopen = async (): Promise<Page> => {
+    running = await launch(join(base, 'user-data'), { PLOTDEVICE_TEST_CHOOSE_FOLDER: root })
+    await running.page.locator('.project-title').waitFor()
+    return running.page
+  }
+  page = await reopen()
+  await expect(page.locator('.notice-toast')).toContainText('Some tags may need tidying (2).')
+  await page.getByTestId('notice-action').click()
+  const dialog = page.getByTestId('tidy-tags')
+  await expect(dialog.getByTestId('tidy-pair').first()).toContainText('Varga family')
+  await expect(dialog).toContainText('Yael')
+  await dialog.getByRole('button', { name: 'Merge into “Varga family”' }).click()
+  await file('characters/ilka.md').toBe('---\ntitle: Ilka Varga\ntags: [Varga family]\n---\nThe heir.\n')
+  await expect(dialog.getByTestId('tidy-pair')).toHaveCount(0)
+  // The broken page is opened for the author to fix; the app never repairs it.
+  await dialog.getByRole('button', { name: 'Open page' }).click()
+  await expect(page.getByTestId('reference-page')).toBeVisible()
+  expect(await read('characters/yael.md')).toBe('---\ntitle: [unclosed\ntags: [Main]\n---\n# Yael\n')
+
+  // Reported once: reopening says nothing, though "Tidy tags…" stays while a problem remains.
+  await running?.app.close()
+  page = await reopen()
+  await page.getByTestId('workspace-story').click()
+  await page.locator('[data-gallery="character"]').click()
+  await expect(page.getByTestId('tag-tidy')).toBeVisible()
+  await expect(page.locator('.notice-toast')).toHaveCount(0)
+
+  // Fixed in another app: nothing left, and "Tidy tags…" is gone.
+  await writeFile(join(root, 'characters/yael.md'), '---\ntitle: Yael\ntags: [Main]\n---\n')
+  await expect(page.getByTestId('tag-tidy')).toHaveCount(0)
+})

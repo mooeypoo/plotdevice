@@ -1,5 +1,5 @@
 import type { ProjectView } from '@plotdevice/contracts'
-import { projectTags, tagKey, type ProjectPath, type ProjectTag } from '@plotdevice/shared'
+import { nearDuplicateTags, projectTags, tagKey, type NearDuplicate, type ProjectPath, type ProjectTag } from '@plotdevice/shared'
 
 /** The tags on `pages`, A to Z in the interface's language, for the row of tags above a list. */
 export function tagRow(pages: readonly { tags: readonly string[] }[], locale: string): ProjectTag[] {
@@ -60,4 +60,26 @@ export function groupByTags<T extends { tags: readonly string[] }>(pages: readon
 export function partOf(project: Pick<ProjectView, 'contents'>, chapter: ProjectPath): string {
   const part = project.contents.find((entry) => entry.kind === 'part' && entry.chapters.some((ref) => ref.file === chapter))
   return part?.kind === 'part' ? part.name : ''
+}
+
+/** What "Tidy tags" lists (Milestone 12, decision 6). A tag on only one page is not a problem. */
+export interface TagProblems {
+  /** Tags that are probably one, the more used first in each pair. */
+  duplicates: NearDuplicate[]
+  /** Pages with a `tags:` line in frontmatter that can't be read. */
+  unreadable: { file: ProjectPath; title: string }[]
+  /** One key per problem, the same each time it's found, so a reported problem isn't reported again. */
+  keys: string[]
+}
+
+export function tagProblems(
+  pages: readonly { file: ProjectPath; title: string; tags: readonly string[]; unreadableTags: boolean }[],
+): TagProblems {
+  const duplicates = nearDuplicateTags(projectTags([...pages].sort((a, b) => a.file.localeCompare(b.file))))
+  const unreadable = pages.filter((page) => page.unreadableTags).map((page) => ({ file: page.file, title: page.title }))
+  return {
+    duplicates,
+    unreadable,
+    keys: [...duplicates.map((pair) => `duplicate:${pair.key}`), ...unreadable.map((page) => `unreadable:${page.file}`)],
+  }
 }

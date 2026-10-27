@@ -8,10 +8,10 @@ import type {
   ReferenceSummaryView,
   RelationshipChangeRequest,
 } from '@plotdevice/contracts'
-import { cardKey, type ItemDestination } from '@plotdevice/presentation'
+import { cardKey, tagProblems, type ItemDestination } from '@plotdevice/presentation'
 import type { ProjectPath } from '@plotdevice/shared'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useApi } from '../api'
 import { useProjectStore } from './project'
 
@@ -50,6 +50,9 @@ export const useStoryStore = defineStore('story', () => {
   const showing = ref<Showing>({ kind: 'outline' })
   /** The tags chosen above each gallery, which group it (Milestone 12); for this session only. */
   const galleryTags = ref<Partial<Record<ReferenceKind, string[]>>>({})
+  /** What "Tidy tags" would list, kept up to date; and whether its dialog is open (Milestone 12). */
+  const problems = computed(() => tagProblems(references.value))
+  const tidying = ref(false)
   /** The tags chosen in "Link to…", for this session. */
   const linkTags = ref<string[]>([])
   /** "Show on the board": the open outline's cards that link to a page stand out, and the rest fade. */
@@ -167,6 +170,19 @@ export const useStoryStore = defineStore('story', () => {
       )
   }
 
+  /**
+   * When a project opens: if its tags have problems the author hasn't been told about, says so once,
+   * offering to tidy them. Otherwise nothing is shown (Milestone 12, decision 6).
+   */
+  async function checkTags(): Promise<void> {
+    const keys = problems.value.keys
+    if (keys.length === 0) return
+    const reported = new Set(await api.getReportedTagProblems())
+    if (keys.every((key) => reported.has(key))) return
+    project.offer('tags-need-tidying', [String(keys.length)], { key: 'tidy-tags', run: () => (tidying.value = true) })
+    await api.reportTagProblems([...keys])
+  }
+
   async function edit(request: OutlineEditRequest): Promise<boolean> {
     if (!outline.value) return false
     // A plain copy: positions taken from the reactive outline are proxies, which can't cross to the host.
@@ -210,6 +226,9 @@ export const useStoryStore = defineStore('story', () => {
     references,
     showing,
     galleryTags,
+    problems,
+    tidying,
+    checkTags,
     linkTags,
     about,
     refresh,

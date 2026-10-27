@@ -112,6 +112,15 @@ function toggle(tag: string): void {
         </div>
       </div>
     </PopoverPanel>
+    <button
+      v-if="manage && story.problems.keys.length > 0"
+      type="button"
+      class="tag-tidy"
+      data-testid="tag-tidy"
+      @click="story.tidying = true"
+    >
+      {{ t('tidy-tags') }}
+    </button>
     <MenuButton
       v-if="manage"
       ref="menu"

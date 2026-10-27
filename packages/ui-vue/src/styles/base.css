@@ -1700,6 +1700,50 @@ button.inline-link {
   transform: rotate(-90deg);
 }
 
+/* Tidy tags: shown only while something needs tidying. */
+.tag-tidy {
+  border: none;
+  padding: 0.1rem 0.4rem;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.tag-tidy:hover:not(:disabled) {
+  color: var(--color-text);
+}
+.tidy-tags {
+  inline-size: min(34rem, 100% - 2rem);
+}
+.tidy-tags h2 {
+  margin-block-start: 0;
+}
+.tidy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-block: 0.4rem 1rem;
+}
+.tidy-pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-block: 0.4rem;
+  border-block-end: 1px solid var(--hair);
+}
+.tidy-tags-pair,
+.tidy-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.notice-toast button:not(.icon-button) {
+  white-space: nowrap;
+}
+
 /* World: one kind of page as cards. */
 .world-gallery {
   display: flex;

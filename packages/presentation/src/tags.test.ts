@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { ProjectView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
-import { groupByTags, partOf, tagRow, tagSuggestions } from './tags'
+import { groupByTags, partOf, tagProblems, tagRow, tagSuggestions } from './tags'
 
 const pages = [
   { title: 'Bea', tags: ['Main', 'Varga family'] },
@@ -77,5 +77,31 @@ describe('the part a chapter is in', () => {
     expect(partOf({ contents }, p('manuscript/frost.md'))).toBe('Part Two: Salt')
     expect(partOf({ contents }, p('manuscript/prologue.md'))).toBe('')
     expect(partOf({ contents }, p('manuscript/not-in-the-book.md'))).toBe('')
+  })
+})
+
+describe('what needs tidying', () => {
+  const p = (path: string) => path as ProjectPath
+  const page = (file: string, tags: string[], unreadableTags = false) => ({ file: p(file), title: file, tags, unreadableTags })
+
+  it('is nothing when the tags are clean, even with tags used once', () => {
+    expect(tagProblems([page('characters/a.md', ['Main', 'Once']), page('characters/b.md', ['main'])])).toEqual({
+      duplicates: [],
+      unreadable: [],
+      keys: [],
+    })
+  })
+
+  it('lists near-duplicates and pages whose tags cannot be read, each with a lasting key', () => {
+    const found = tagProblems([
+      page('characters/a.md', ['Varga famliy']),
+      page('characters/b.md', ['Varga family']),
+      page('characters/c.md', ['Varga family']),
+      page('characters/d.md', [], true),
+    ])
+    expect(found.duplicates.map((pair) => pair.tags.map((tag) => tag.tag))).toEqual([['Varga family', 'Varga famliy']])
+    expect(found.unreadable).toEqual([{ file: 'characters/d.md', title: 'characters/d.md' }])
+    expect(found.keys).toHaveLength(2)
+    expect(tagProblems([page('characters/z.md', ['varga family']), page('characters/y.md', ['Varga Famliy'])]).keys[0]).toBe(found.keys[0])
   })
 })

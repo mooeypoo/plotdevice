@@ -95,6 +95,9 @@ export interface PlotDeviceApi {
   /** The tags chosen on the shelf while writing, by part name (`''`: outside any part). */
   getShelfTags(): Promise<Record<string, string[]>>
   chooseShelfTags(part: string, tags: string[]): Promise<void>
+  /** The tag problems already reported for this project, so the notice isn't repeated. */
+  getReportedTagProblems(): Promise<string[]>
+  reportTagProblems(keys: string[]): Promise<void>
 
   /** Earlier versions of a chapter, page or outline, from the backups. */
   listVersions(file: ProjectPath): Promise<VersionResult<VersionsView>>

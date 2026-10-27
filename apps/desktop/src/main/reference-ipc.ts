@@ -15,6 +15,7 @@ import {
   referenceFileSchema,
   renameReferenceFileSchema,
   renameReferenceSchema,
+  reportedTagProblemsSchema,
   retagSchema,
   setTagsSchema,
   shelfSchema,
@@ -185,6 +186,17 @@ export function createReferenceHandlers({ references, writing, recent }: Referen
     [channels.getShelfTags]: async () => {
       const projectRoot = root()
       return (projectRoot && recent.current().projects.find((project) => project.root === projectRoot)?.shelfTags) ?? {}
+    },
+
+    [channels.getReportedTagProblems]: async () => {
+      const projectRoot = root()
+      return (projectRoot && recent.current().projects.find((project) => project.root === projectRoot)?.reportedTagProblems) ?? []
+    },
+
+    [channels.reportTagProblems]: async (payload) => {
+      const { keys } = parsePayload(reportedTagProblemsSchema, payload)
+      const projectRoot = root()
+      if (projectRoot) await recent.reportedTagProblems(projectRoot, keys)
     },
 
     [channels.chooseShelfTags]: async (payload) => {

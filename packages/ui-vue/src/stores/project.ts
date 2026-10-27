@@ -17,6 +17,8 @@ import { useApi } from '../api'
 export interface Notice {
   key: string
   params: string[]
+  /** A button beside the message, such as "Tidy tags…". */
+  action?: { key: string; run: () => void }
 }
 
 /** The open project, the recent list and save statuses, shared by every screen. */
@@ -30,6 +32,11 @@ export const useProjectStore = defineStore('project', () => {
 
   const tell = (key: string, ...params: string[]): void => {
     notice.value = { key, params }
+  }
+
+  /** A notice with something to do about it. */
+  const offer = (key: string, params: string[], action: NonNullable<Notice['action']>): void => {
+    notice.value = { key, params, action }
   }
 
   function setProject(view: ProjectView): void {
@@ -119,6 +126,7 @@ export const useProjectStore = defineStore('project', () => {
     statuses,
     notice,
     tell,
+    offer,
     setProject,
     open,
     create,

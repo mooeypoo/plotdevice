@@ -33,6 +33,8 @@ export const setTagsSchema = z.strictObject({ file: referenceFile, tags: z.array
 export const retagSchema = z.strictObject({ from: tag, to: tag.nullable() })
 /** The tags chosen on the shelf while writing in a part (`''`: outside any part); personal, in app data. */
 export const shelfTagsSchema = z.strictObject({ part: z.string().max(500), tags: z.array(tag).max(50) })
+/** Tag problems the author has now been told about, by key; personal, in app data. */
+export const reportedTagProblemsSchema = z.strictObject({ keys: z.array(z.string().max(2000)).max(500) })
 /** The pinned shelf, in the author's order. */
 export const shelfSchema = z.strictObject({ files: z.array(referenceFile).max(100) })
 
@@ -54,6 +56,8 @@ export interface ReferenceSummaryView {
   description: string | null
   /** The frontmatter couldn't be read; its tags are unknown, and it is never rewritten to fix it. */
   invalidDetails: boolean
+  /** The frontmatter can't be read and has a `tags:` line, so its tags are unknown. */
+  unreadableTags: boolean
   relationships: RelationshipView[]
   /** Every file the page links to. */
   links: ProjectPath[]

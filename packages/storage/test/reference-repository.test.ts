@@ -47,6 +47,7 @@ describe('reference pages', () => {
         tags: [],
         description: 'Inherits the orchard.',
         invalidDetails: false,
+        unreadableTags: false,
         relationships: [],
         links: [],
       },
@@ -58,6 +59,7 @@ describe('reference pages', () => {
         tags: [],
         description: expect.anything() as string,
         invalidDetails: false,
+        unreadableTags: false,
         relationships: [],
         links: expect.any(Array) as ProjectPath[],
       },
@@ -69,6 +71,7 @@ describe('reference pages', () => {
         tags: [],
         description: expect.stringMatching(/^Maybe open/) as string,
         invalidDetails: false,
+        unreadableTags: false,
         relationships: [],
         links: expect.any(Array) as ProjectPath[],
       },
@@ -80,6 +83,7 @@ describe('reference pages', () => {
         tags: [],
         description: 'Where the orchard is.',
         invalidDetails: false,
+        unreadableTags: false,
         relationships: [],
         links: [],
       },
@@ -152,6 +156,13 @@ describe('reference pages', () => {
     expect((await repository.listReferences(root)).find((page) => page.file === 'characters/bea.md')).toMatchObject({
       tags: [],
       invalidDetails: true,
+      unreadableTags: true,
+    })
+    // A broken page with no tags line is not a tag problem.
+    await writeFile(join(root, 'characters/bea.md'), '---\ntitle: [unclosed\n---\n# Bea\n')
+    expect((await repository.listReferences(root)).find((page) => page.file === 'characters/bea.md')).toMatchObject({
+      invalidDetails: true,
+      unreadableTags: false,
     })
   })
 
@@ -165,6 +176,7 @@ describe('reference pages', () => {
       tags: [],
       description: null,
       invalidDetails: false,
+      unreadableTags: false,
       relationships: [],
       links: [],
     })

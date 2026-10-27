@@ -38,6 +38,8 @@ export const channels = {
   setShelf: 'plotdevice:set-shelf',
   getShelfTags: 'plotdevice:get-shelf-tags',
   chooseShelfTags: 'plotdevice:choose-shelf-tags',
+  getReportedTagProblems: 'plotdevice:get-reported-tag-problems',
+  reportTagProblems: 'plotdevice:report-tag-problems',
   listVersions: 'plotdevice:list-versions',
   readVersion: 'plotdevice:read-version',
   restoreVersion: 'plotdevice:restore-version',

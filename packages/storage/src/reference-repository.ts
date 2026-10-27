@@ -17,6 +17,7 @@ import {
   readRelationships,
   setFrontmatterList,
   setFrontmatterValues,
+  splitFrontmatter,
   type FoundLink,
   type OutlineItemSource,
 } from '@plotdevice/markdown'
@@ -46,6 +47,7 @@ function summarize(file: ProjectPath, text: string, files: readonly ProjectPath[
     tags: cleanTags(page.tags),
     description: page.description,
     invalidDetails: page.invalidDetails,
+    unreadableTags: page.invalidDetails && /^tags[ \t]*:/m.test(splitFrontmatter(text).frontmatter?.text ?? ''),
     relationships: readRelationships(text, dir, HEADINGS).relationships.map((relationship) => ({
       text: relationship.text,
       links: resolveAll(relationship.links, files),
@@ -95,7 +97,18 @@ export function createReferenceRepository({ folders }: { folders: ProjectFolders
         const file = referenceFileFor(kind, name, await store.listMarkdownFiles())
         const written = await store.write(file, content, null)
         if (written.ok)
-          return ok({ file, kind, title: name, aka: [], tags: [], description: null, invalidDetails: false, relationships: [], links: [] })
+          return ok({
+            file,
+            kind,
+            title: name,
+            aka: [],
+            tags: [],
+            description: null,
+            invalidDetails: false,
+            unreadableTags: false,
+            relationships: [],
+            links: [],
+          })
         if (written.error.code !== 'stale') break
       }
       return err('write-failed')

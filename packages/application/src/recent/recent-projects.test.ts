@@ -240,4 +240,21 @@ describe('recent projects', () => {
     expect(kept).toHaveLength(MAX_TAGGED_PARTS)
     expect(kept).not.toContain('Part 0')
   })
+
+  it('remembers which tag problems were reported, each once', async () => {
+    const { file } = memoryFile()
+    const recent = await createRecentProjectsSession(file)
+    await recent.opened({ root: '/a', title: 'A' })
+    await recent.reportedTagProblems('/a', ['dup:a|b', 'unreadable:characters/bea.md'])
+    await recent.reportedTagProblems('/a', ['dup:a|b', 'dup:c|d'])
+    expect((await createRecentProjectsSession(file)).current().projects[0]?.reportedTagProblems).toEqual([
+      'unreadable:characters/bea.md',
+      'dup:a|b',
+      'dup:c|d',
+    ])
+    expect(parseRecentProjects(JSON.stringify({ projects: [{ root: '/b', title: 'B', reportedTagProblems: ['x', 3] }] }))).toEqual({
+      ok: true,
+      value: { projects: [{ root: '/b', title: 'B', reportedTagProblems: ['x'] }] },
+    })
+  })
 })

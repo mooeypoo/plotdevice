@@ -75,6 +75,7 @@ export {
   editRelationshipSchema,
   referenceFileSchema,
   referenceKindSchema,
+  reportedTagProblemsSchema,
   renameReferenceFileSchema,
   renameReferenceSchema,
   retagSchema,

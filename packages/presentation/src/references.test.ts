@@ -11,7 +11,18 @@ const page = (
   aka: string[] = [],
   description: string | null = null,
   tags: string[] = [],
-): ReferenceSummaryView => ({ file: p(file), kind, title, aka, tags, description, invalidDetails: false, relationships: [], links: [] })
+): ReferenceSummaryView => ({
+  file: p(file),
+  kind,
+  title,
+  aka,
+  tags,
+  description,
+  invalidDetails: false,
+  unreadableTags: false,
+  relationships: [],
+  links: [],
+})
 
 const library = [
   page('characters/ilka.md', 'character', 'Ilka Varga', ['Ili'], 'Inherits the orchard.'),
