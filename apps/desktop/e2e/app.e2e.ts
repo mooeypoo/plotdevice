@@ -229,5 +229,5 @@ test('the start screen offers the guide to moving an existing book in, in the in
   await page.getByTestId('language').selectOption('he')
   await closeSettings(page)
   await expect(link).toHaveAttribute('href', 'https://mooeypoo.github.io/plotdevice/he/start/bring-in/')
-  await expect(link).toHaveText('מעבירים אותן פנימה ←')
+  await expect(link).toHaveText('העבירו אותן למערכת ←')
 })
