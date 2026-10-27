@@ -240,6 +240,16 @@ describe.each(fixtureNames)('every edit on %s', (name) => {
     expect(checked).toBeGreaterThan(0)
   }, 60_000)
 
+  it('reading a moved outline again, with its unchanged sections remembered, gives exactly what a fresh read gives', () => {
+    const first = allItems(outline).find(({ item }) => item.movable)
+    if (!first) return
+    readOutline(source)
+    for (const to of destinationsFor(outline, first)) {
+      const after = apply(source, { kind: 'move-item', from: { section: first.section, path: first.path }, to })
+      expect(readOutline(after)).toEqual(readOutline(after, { fresh: true }))
+    }
+  })
+
   it('every rename changes only that text', () => {
     for (const { item, section, path } of allItems(outline)) {
       const edit: OutlineEdit = { kind: 'rename-item', at: { section, path }, text: 'Renamed — שונה 🍐' }
