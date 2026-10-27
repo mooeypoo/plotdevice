@@ -20,7 +20,8 @@ watch(
     if (!open) return dialog.value?.close()
     dialog.value?.showModal()
     await nextTick()
-    dialog.value?.querySelector<HTMLButtonElement>('.tidy-list button')?.focus() ?? done.value?.focus()
+    const first = dialog.value?.querySelector<HTMLButtonElement>('.tidy-list button') ?? done.value
+    first?.focus()
   },
 )
 
