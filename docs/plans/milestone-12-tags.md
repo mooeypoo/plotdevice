@@ -46,6 +46,25 @@ Characters      (Main ✓) (Part Two – main ✓) (Part Two – secondary) (Var
 - Typing in search filters names across all groups, Everyone else included. A tag whose name matches what's typed is offered as a pill to choose.
 - Right-clicking a pill (or its `⋯` from the keyboard) offers "Rename everywhere…" and "Remove from all pages…". Each says how many pages will change before doing it.
 
+### Tidying tags, only when there's something to tidy
+
+When a project opens, the app checks its tags. If nothing needs tidying, nothing is shown, and there is no "Tidy tags" anywhere. If something does, the existing notice appears once:
+
+```
+Some tags may need tidying (3).   [Tidy tags…]  ×
+```
+
+"Tidy tags…" opens a small dialog listing what was found:
+
+- **Near-duplicates:** tags that match once case, spaces, dashes and punctuation are ignored, or that differ by one or two letters (`Varga famliy` and `Varga family`). Each pair offers "Merge into '…'", which is "Rename everywhere" and says how many pages will change. "Part 2" versus "Part Two" isn't caught: number words in every language are out of scope.
+- **Pages whose tags can't be read**, because their frontmatter is broken YAML. Each one offers "Open page", where the existing "kept as written" notice shows the problem. Nothing is repaired without the author.
+
+Tags used on only one page are not a problem, since every new tag starts that way, and are not reported.
+
+- Each fix is a button the author presses, and only `tags:` lines change. The app never tidies by itself.
+- × or "Not now" dismisses the notice. It returns only when the project has a problem it hasn't reported before, not on every open. Which problems were already reported is personal state kept in app data.
+- While problems remain, "Tidy tags…" also stays in the tag row's menu. When none remain, it disappears.
+
 ### While writing
 
 The tags chosen on the shelf and in the link picker are remembered per part. Moving to a chapter in Part Two brings back the tags last chosen in Part Two. Chapters outside any part, and books without parts, share one remembered choice.
@@ -57,6 +76,7 @@ The tags chosen on the shelf and in the link picker are remembered per part. Mov
 3. Chosen tags are remembered per part while writing, if it stays simple.
 4. Characters, places and notes all have tags.
 5. No tag colours for now.
+6. Tag problems are checked when a project opens. The author is told only when there is something to tidy, and is offered to tidy it. Otherwise nothing is shown.
 
 ## Open decisions (recommendations marked)
 
@@ -83,17 +103,18 @@ tags: [Part One – secondary, Part Two – main, Marrow folk]
 ## Files
 
 - **Markdown:** `frontmatter.ts` (set or remove one list-valued key, keeping the rest byte-identical); `reference-page.ts` (read `tags`), with tests.
-- **Domain:** `references/` (tag normalising and matching; the first spelling wins), with tests.
+- **Domain:** `references/` (tag normalising and matching; the first spelling wins; finding near-duplicates), with tests.
 - **Application:** `references/` (add or remove a tag on a page; rename or remove a tag on every page, with a result that names skipped pages), with tests.
 - **Contracts:** `references.ts` (`tags` on the summary view; requests to add, remove and rename tags), `api.ts`, the IPC channels and schemas.
 - **Storage:** `reference-repository.ts` (write the tags line through the existing safe page writes).
-- **Desktop:** `reference-ipc.ts`; the remembered tags per part next to the pinned shelf in the recent-projects app data.
+- **Desktop:** `reference-ipc.ts`; the remembered tags per part, and the tag problems already reported, next to the pinned shelf in the recent-projects app data.
 - **Presentation:** `references.ts` (the project's tags for a kind; grouping a list by chosen tags; search within groups; tag suggestions while typing).
 - **UI:**
   - new `TagPills.vue` (the pills, "+ Tag" with suggestions, × to remove);
   - new `TagFilter.vue` (the row of tags to choose, "+ N more", the right-click menu);
   - `ReferencePage.vue` (the pills under the title);
-  - `WorldGallery.vue`, `ReferenceShelf.vue`, `LinkPicker.vue` (the row and the groups).
+  - `WorldGallery.vue`, `ReferenceShelf.vue`, `LinkPicker.vue` (the row and the groups);
+  - new `TidyTagsDialog.vue`; the notice in `App.vue` and `stores/project.ts` gains an optional action button.
 - **Words:** `packages/i18n/src/messages/en.json`, `he.json`.
 - **Demo:** the Salt Orchard samples (English and Hebrew) get a few tags, including per-part ones.
 - **Docs:** `DOMAIN_AND_FILE_FORMAT.md` (the `tags` key); `UX_SPEC.md` (tags and grouping); the user guide (English and Hebrew) on the docs site.
@@ -106,6 +127,10 @@ tags: [Part One – secondary, Part Two – main, Marrow folk]
   - Quotes only when needed (`"Part Two: Salt"`), and reads unquoted tags written by hand where YAML allows.
   - Unknown keys, the body and CRLF line endings are kept; a load and save with no change is byte-identical.
 - **Domain:** matching ignores case and spaces; the first spelling wins; mixed Hebrew and English.
+- **Domain:** near-duplicates.
+  - Found when only case, spaces, dashes or punctuation differ, or one or two letters in a longer tag.
+  - Not found for short tags that merely look alike ("Main" and "Maid"), or for tags used once.
+  - Hebrew and English tags are never paired with each other.
 - **Application:** rename everywhere touches only pages with that tag, merges into an existing tag without duplicates on a page, and reports pages it couldn't read without changing them.
 - **Presentation:** grouping follows the chosen order; a page appears once; "Everyone else" counts the rest; search filters inside groups; a matching tag is offered.
 - **Desktop:** remembered tags per part survive a restart and never touch the project folder.
@@ -115,6 +140,10 @@ tags: [Part One – secondary, Part Two – main, Marrow folk]
   - Rename a tag everywhere and see every page change, and only its `tags:` line in the files.
   - While writing, choose tags in Part One, move to Part Two and choose others, come back, and see Part One's again; the same after a restart.
   - The link picker shows the chosen groups before anything is typed.
+  - **Tidying:**
+    - A project with clean tags opens with no notice and no "Tidy tags".
+    - A project with `Varga famliy` and `Varga family` shows the notice once. Merging fixes every page, and "Tidy tags" disappears.
+    - Reopening after "Not now" shows nothing until a new problem appears.
   - **Hebrew:** the pills and the row mirror; keyboard use works throughout (Tab to the pills, Enter to choose, Delete or × to remove).
 - **Screens:** a page with tags, the gallery grouped, the shelf grouped, in both themes and both languages, checked by eye.
 
@@ -125,4 +154,5 @@ tags: [Part One – secondary, Part Two – main, Marrow folk]
 3. Grouping: presentation, the tag row, the World gallery.
 4. The shelf and the link picker, with tags remembered per part.
 5. Rename and remove everywhere.
-6. Demo novels, guide, screenshots.
+6. Tidying: the check when a project opens, the notice, the dialog.
+7. Demo novels, guide, screenshots.
