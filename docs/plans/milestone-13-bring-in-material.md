@@ -80,10 +80,11 @@ It's in English only, since assistants read English, but it covers books in any 
 
 ## Files
 
-- **Domain:** a pure function that finds links to missing files, given each file's links and the project's file list, with tests.
-- **Application** (`checks/`, new): `checkProject`, which turns what reading a project finds into a list of problems, each "to fix" or "to know", with tests. It reuses `readProject` and the reference and outline readers, so the check and the app can't disagree.
-  - **To fix:** `project.md` missing or unreadable; `CONTENTS.md` missing, or its list can't be read; a contents link to a missing file; a chapter or page whose frontmatter isn't valid YAML; a link in a chapter, page or outline to a file that isn't there; a Markdown file outside the known folders.
-  - **To know:** a chapter not in the contents; contents link text that differs from the chapter's title.
+- **Domain:** `unresolvedLink`, a pure function that says whether a link leads to no file or, for `[[name]]`, to more than one, with tests.
+- **Markdown:** `locateLinks`, the links in a file with the line each starts on, with tests.
+- **Storage** (`check-project.ts`, new): `checkProject`, which reads a book folder the way opening it does and lists problems, each "to fix" or "to know", with tests against real temporary folders. It reuses `readProject` and the app's own link reading, so the check and the app can't disagree. It lives in storage, not application, because it reads Markdown.
+  - **To fix:** `project.md` or `CONTENTS.md` missing or unreadable; a contents link to a missing file; a chapter or page whose frontmatter isn't valid YAML; a link in a chapter, page or outline to a file that isn't there, or a `[[name]]` two files share.
+  - **To know:** a chapter not in the contents; contents link text that differs from the chapter's title; lines in the contents that aren't chapters or parts; a Markdown file outside the book's folders, which the app doesn't show (a `README.md`, say: harmless, but not in the app).
   - It only reads. It never writes, repairs or creates a file.
 - **UI:** `WelcomeView.vue` (the line); `links.ts` (the guide page's address per language).
 - **Words:** `packages/i18n/src/messages/en.json`, `he.json`.
@@ -96,9 +97,9 @@ It's in English only, since assistants read English, but it covers books in any 
 
 ## Tests
 
-- **Application, against real temporary folders:**
+- **Storage, against real temporary folders:**
   - The Salt Orchard samples, English and Hebrew, report nothing to fix.
-  - Each problem above is found once, with its file and line: a missing contents file, an unreadable list, a broken link in a chapter, a page and an outline card, a file outside the folders, broken YAML.
+  - Each problem above is found once, with its file and line: a missing project or contents file, a missing chapter, a broken link in a chapter, a page and an outline, a file outside the folders, broken YAML.
   - Obsidian `[[links]]` that resolve to one file aren't reported; ones that resolve to none or several are.
   - Paths with spaces, Hebrew file names, CRLF files.
   - Checking changes no file: the folder is byte-identical afterwards.
@@ -109,7 +110,7 @@ It's in English only, since assistants read English, but it covers books in any 
 
 ## Work order
 
-1. Broken links and `checkProject`: domain and application, test-first.
+1. Broken links and `checkProject`: domain, markdown and storage, test-first.
 2. The assistants' guide, `llms.txt`, and the test that keeps the guide true.
 3. The guide page, English and Hebrew; sidebar and links.
 4. The start-screen line.

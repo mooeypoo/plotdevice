@@ -1,6 +1,6 @@
 import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { kindOfFile, referenceFileFor, relationshipHeadingFor, resolveWikiLink } from './references'
+import { kindOfFile, referenceFileFor, relationshipHeadingFor, resolveWikiLink, unresolvedLink } from './references'
 
 const p = (path: string) => path as ProjectPath
 describe('reference kinds', () => {
@@ -28,6 +28,30 @@ describe('wikilinks', () => {
     expect(resolveWikiLink('Marrow', files)).toBe('places/marrow.md')
     expect(resolveWikiLink('ilka', files)).toBeNull()
     expect(resolveWikiLink('characters/ilka', files)).toBe('characters/ilka.md')
+  })
+})
+
+describe('links that point at nothing', () => {
+  const files = [p('characters/ilka.md'), p('notes/ilka.md'), p('places/marrow.md'), p('places/מטע המלח.md')]
+
+  it('are paths to a Markdown file the project doesn’t have', () => {
+    expect(unresolvedLink({ kind: 'path', target: 'places/marrow.md' }, files)).toBeNull()
+    expect(unresolvedLink({ kind: 'path', target: 'places/מטע המלח.md' }, files)).toBeNull()
+    expect(unresolvedLink({ kind: 'path', target: 'places/mill.md' }, files)).toBe('missing')
+    // The app follows a path exactly, so a different case is a different file.
+    expect(unresolvedLink({ kind: 'path', target: 'places/Marrow.md' }, files)).toBe('missing')
+  })
+
+  it('leave other files alone, since only Markdown files are known', () => {
+    expect(unresolvedLink({ kind: 'path', target: 'assets/map.png' }, files)).toBeNull()
+    expect(unresolvedLink({ kind: 'path', target: 'places' }, files)).toBeNull()
+  })
+
+  it('are wikilinks no file has, or that more than one file has', () => {
+    expect(unresolvedLink({ kind: 'wiki', name: 'Marrow' }, files)).toBeNull()
+    expect(unresolvedLink({ kind: 'wiki', name: 'characters/ilka' }, files)).toBeNull()
+    expect(unresolvedLink({ kind: 'wiki', name: 'Oren' }, files)).toBe('missing')
+    expect(unresolvedLink({ kind: 'wiki', name: 'ilka' }, files)).toBe('ambiguous')
   })
 })
 

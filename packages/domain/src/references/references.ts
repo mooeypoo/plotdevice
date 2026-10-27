@@ -54,6 +54,22 @@ export function resolveWikiLink(name: string, files: readonly ProjectPath[]): Pr
   return matches.length === 1 ? (matches[0] ?? null) : null
 }
 
+/** A link as written: a path resolved from its file, or an Obsidian `[[name]]`. */
+export type LinkTarget = { kind: 'path'; target: string } | { kind: 'wiki'; name: string }
+
+/**
+ * Why a link leads nowhere in the app, or `null` when it leads to a file (or isn't to a Markdown
+ * file, which the app doesn't know about). A path must match exactly, as the app follows it; a
+ * `[[name]]` must match exactly one file.
+ */
+export function unresolvedLink(link: LinkTarget, files: readonly ProjectPath[]): 'missing' | 'ambiguous' | null {
+  if (link.kind === 'path') return !/\.md$/i.test(link.target) || files.some((file) => file === link.target) ? null : 'missing'
+  if (resolveWikiLink(link.name, files) !== null) return null
+  const key = collisionKey(link.name.replace(/\.md$/i, ''))
+  const named = link.name.includes('/') ? [] : files.filter((file) => collisionKey(stemOf(file)) === key)
+  return named.length > 1 ? 'ambiguous' : 'missing'
+}
+
 /** A new relationships section is named in the project's language, or in English when the app has no name in it. */
 export function relationshipHeadingFor(language: string): string {
   const base = language.toLowerCase().split('-')[0] ?? ''

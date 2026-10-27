@@ -104,6 +104,11 @@ const INLINE_LINK = /(!?)\[([^\]\n]*)\]\((<[^>\n]*>|[^\s)]+)(?:[ \t]+"[^"\n]*")?
  * are left out. Paths come back resolved to project paths.
  */
 export function findLinks(text: string, fileDir: string): FoundLink[] {
+  return locateLinks(text, fileDir).map(({ link }) => link)
+}
+
+/** `findLinks`, with the line (from 1) each link starts on, for reporting where a link is. */
+export function locateLinks(text: string, fileDir: string): { link: FoundLink; line: number }[] {
   const protectedRanges = codeRanges(text)
   const inCode = (offset: number): boolean => protectedRanges.some((range) => offset >= range.start && offset < range.end)
   const found: { at: number; link: FoundLink }[] = []
@@ -117,7 +122,13 @@ export function findLinks(text: string, fileDir: string): FoundLink[] {
     if (inCode(match.index)) continue
     found.push({ at: match.index, link: { kind: 'wiki', name: (match[1] ?? '').trim(), text: match[3] ? match[3].slice(1).trim() : null } })
   }
-  return found.sort((a, b) => a.at - b.at).map(({ link }) => link)
+  return found.sort((a, b) => a.at - b.at).map(({ at, link }) => ({ link, line: lineAt(text, at) }))
+}
+
+function lineAt(text: string, offset: number): number {
+  let line = 1
+  for (let i = text.indexOf('\n'); i !== -1 && i < offset; i = text.indexOf('\n', i + 1)) line++
+  return line
 }
 
 /** The project path a link destination points at, or `null` for web links and paths outside the project. */

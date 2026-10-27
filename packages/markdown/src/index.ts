@@ -20,7 +20,7 @@ export {
   type Frontmatter,
   type FrontmatterProblem,
 } from './frontmatter'
-export { findLinks, rewriteLinksTo, type FoundLink, type RewriteOptions } from './links'
+export { findLinks, locateLinks, rewriteLinksTo, type FoundLink, type RewriteOptions } from './links'
 export { newChapterFile, newContentsFile, newOutlineFile, newProjectFile, type NewProjectDetails } from './new-files'
 export { lineEndingOf } from './text'
 export { htmlToMarkdown, pastedMarkdown } from './paste'
