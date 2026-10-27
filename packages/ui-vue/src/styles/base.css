@@ -2044,6 +2044,37 @@ button.inline-link {
   box-shadow: var(--shadow-soft);
 }
 
+/* An outline as text (Milestone 14): the page editor's sheet, in the outline's place. */
+.outline-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-inline-size: 52rem;
+}
+.outline-text .hint {
+  margin: 0;
+  font-size: 0.85rem;
+}
+.outline-text .paper {
+  padding-inline: 0;
+}
+.outline-text-editor {
+  min-block-size: 24rem;
+  padding-inline: 2.5rem;
+  background: var(--color-page);
+  border-radius: 10px;
+  box-shadow: var(--shadow-soft);
+}
+.outline-text .status-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.kept-count {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
 /* Versions */
 .versions {
   inline-size: min(48rem, 100% - 2rem);

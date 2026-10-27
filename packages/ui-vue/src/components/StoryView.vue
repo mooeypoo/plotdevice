@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { OutlineViewKind, ProjectView, ReferenceKind } from '@plotdevice/contracts'
-import { computed, onBeforeUnmount, onMounted } from 'vue'
+import type { ProjectView, ReferenceKind } from '@plotdevice/contracts'
+import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
 import { useOutlineActions } from '../composables/use-outline-actions'
@@ -8,11 +8,12 @@ import { usePrompt } from '../composables/use-prompt'
 import { useVersions } from '../composables/use-versions'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
-import { useViewStore } from '../stores/view'
+import { textViewKeys, useViewStore, type OutlineMode } from '../stores/view'
 import KeptAsWritten from './KeptAsWritten.vue'
 import ManuscriptOutline from './ManuscriptOutline.vue'
 import OutlineBoard from './OutlineBoard.vue'
 import OutlineList from './OutlineList.vue'
+import OutlineText from './OutlineText.vue'
 import ReferencePage from './ReferencePage.vue'
 import WorldGallery from './WorldGallery.vue'
 
@@ -24,7 +25,7 @@ const actions = useOutlineActions()
 const { ask } = usePrompt()
 const versions = useVersions()
 const t = settings.t
-const views: OutlineViewKind[] = ['board', 'outline']
+const views: OutlineMode[] = ['board', 'outline', 'text']
 const kinds: ReferenceKind[] = ['character', 'place', 'note']
 const pagesOf = (kind: ReferenceKind) => story.references.filter((reference) => reference.kind === kind)
 const showingOutline = computed(() => story.showing.kind === 'outline')
@@ -41,13 +42,18 @@ const outlineItems = computed<MenuItem[]>(() => {
   const outline = story.outline
   if (!outline) return []
   return [
-    {
-      key: 'outline-undo',
-      label: t('outline-undo'),
-      hint: navigator.platform.startsWith('Mac') ? '⌘Z' : 'Ctrl+Z',
-      disabled: !outline.canUndo,
-      run: () => void story.undo(),
-    },
+    // In Text, the editor has its own undo, by the keystroke.
+    ...(view.outlineView === 'text'
+      ? []
+      : [
+          {
+            key: 'outline-undo',
+            label: t('outline-undo'),
+            hint: navigator.platform.startsWith('Mac') ? '⌘Z' : 'Ctrl+Z',
+            disabled: !outline.canUndo,
+            run: () => void story.undo(),
+          },
+        ]),
     { key: 'outline-rename', label: t('outline-rename-title'), run: () => void actions.renameOutline() },
     { key: 'outline-versions', label: t('outline-versions'), run: () => versions.show(outline.file, outline.title ?? outline.file) },
   ]
@@ -58,19 +64,57 @@ async function newOutline(): Promise<void> {
   if (title) await story.create(title)
 }
 
-/** Ctrl+Z (⌘Z) undoes the last outline change, unless the keyboard is in a text field or page editor. Escape shows every card again. */
+/**
+ * Ctrl+Z (⌘Z) undoes the last outline change, unless the keyboard is in a text field or page editor.
+ * Escape shows every card again. Ctrl+Shift+E (⌘⇧E) switches between the outline as text and the board or list.
+ */
 function onKey(event: KeyboardEvent): void {
   if (event.key === 'Escape' && story.about && !document.querySelector('[role="menu"], dialog[open]')) {
     story.about = null
     return
   }
+  if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.key.toLowerCase() === 'e') {
+    if (view.workspace !== 'story' || story.showing.kind !== 'outline' || !story.outline || document.querySelector('dialog[open]')) return
+    event.preventDefault()
+    view.toggleText()
+    return
+  }
   if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || event.key.toLowerCase() !== 'z') return
   const target = event.target as HTMLElement | null
   if (target?.closest('input, textarea, select, [contenteditable="true"], .page-editor')) return
-  if (story.showing.kind !== 'outline' || !story.outline?.canUndo) return
+  if (story.showing.kind !== 'outline' || view.outlineView === 'text' || !story.outline?.canUndo) return
   event.preventDefault()
   void story.undo()
 }
+/** The card or detail the author is on, for the Text view to open on. */
+function noteItem(event: FocusEvent): void {
+  const key = (event.target as HTMLElement | null)?.closest('[data-item]')?.getAttribute('data-item')
+  if (key) story.lastItem = key
+}
+
+/**
+ * Back from Text: focus the card the cursor was on, once the outline has been read again. A detail
+ * folded away in the list is shown; the board has no details of its own, so its card is focused.
+ */
+watch(
+  () => [story.focusItem, story.outline, view.outlineView] as const,
+  ([key, , mode]) => {
+    if (!key || mode === 'text') return
+    const keys = key.split('/').map((_, i, parts) => parts.slice(0, i + 1).join('/'))
+    for (const ancestor of keys.slice(1, -1)) story.expand(ancestor)
+    const found = keys
+      .slice(1)
+      .reverse()
+      .map((each) => document.querySelector<HTMLElement>(`[data-item="${CSS.escape(each)}"]`))
+      .find((element) => element)
+    if (!found) return
+    found.focus()
+    found.scrollIntoView({ block: 'nearest' })
+    story.focusItem = null
+  },
+  { flush: 'post' },
+)
+
 onMounted(() => window.addEventListener('keydown', onKey))
 onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>
@@ -135,7 +179,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
       </section>
     </nav>
 
-    <section class="desk">
+    <section class="desk" @focusin="noteItem">
       <ManuscriptOutline v-if="story.showing.kind === 'manuscript'" class="story-page" :project="project" />
       <WorldGallery v-else-if="story.showing.kind === 'gallery'" :key="story.showing.of" :kind="story.showing.of" />
       <ReferencePage v-else-if="story.showing.kind === 'page'" :key="story.showing.file" class="story-page" :file="story.showing.file" />
@@ -157,6 +201,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
               :key="kind"
               type="button"
               :aria-pressed="view.outlineView === kind"
+              :title="kind === 'text' ? t('view-text-title', textViewKeys()) : undefined"
               :data-testid="`view-${kind}`"
               @click="view.outlineView = kind"
             >
@@ -179,12 +224,20 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         </div>
         <div class="story-page">
           <p v-if="story.outline.invalidDetails" class="warning" role="status">{{ t('invalid-details') }}</p>
-          <KeptAsWritten v-for="(block, i) in story.outline.preamble" :key="`pre-${i}`" :text="block" />
-          <div v-if="story.outline.sections.length === 0" class="empty-outline">
-            <p>{{ t('outline-empty') }}</p>
-          </div>
-          <OutlineBoard v-if="view.outlineView === 'board'" :outline="story.outline" />
-          <OutlineList v-else :outline="story.outline" />
+          <OutlineText
+            v-if="view.outlineView === 'text'"
+            :key="story.outline.file"
+            :file="story.outline.file"
+            :title="story.outline.title ?? story.outline.file"
+          />
+          <template v-else>
+            <KeptAsWritten v-for="(block, i) in story.outline.preamble" :key="`pre-${i}`" :text="block" />
+            <div v-if="story.outline.sections.length === 0" class="empty-outline">
+              <p>{{ t('outline-empty') }}</p>
+            </div>
+            <OutlineBoard v-if="view.outlineView === 'board'" :outline="story.outline" />
+            <OutlineList v-else :outline="story.outline" />
+          </template>
         </div>
       </template>
       <div v-else class="story-page">

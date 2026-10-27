@@ -30,8 +30,12 @@ export function createOutlineHandlers({ outlines, writing, recent }: OutlineIpcC
       const { title, about } = parsePayload(createOutlineSchema, payload)
       return view(await outlines.create(title, about))
     },
-    [channels.openOutline]: async (payload): Promise<OutlineResult> =>
-      view(await outlines.open(parsePayload(outlineFileSchema, payload).file)),
+    [channels.openOutline]: async (payload): Promise<OutlineResult> => {
+      const { file } = parsePayload(outlineFileSchema, payload)
+      // Text typed in the outline's Text view is saved like a chapter's: it lands before the outline is read.
+      await writing.idle()
+      return view(await outlines.open(file))
+    },
     [channels.editOutline]: async (payload): Promise<OutlineResult> => {
       const { file, edit } = parsePayload(editOutlineSchema, payload)
       return view(await outlines.edit(file, edit))

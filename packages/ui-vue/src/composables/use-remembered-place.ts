@@ -32,7 +32,7 @@ export function useRememberedPlace(): void {
   )
 
   watch(
-    () => [view.workspace, story.outline?.file, view.outlineView] as const,
+    () => [view.workspace, story.outline?.file, view.outlineLayout] as const,
     ([workspace, outline, kind]) => {
       if (project.project) void api.rememberPlace({ workspace, ...(outline ? { outline } : {}), view: kind })
     },

@@ -92,7 +92,8 @@ export function createOutlineSession({ repository, root }: OutlineSessionOptions
       const read = await repository.readOutline(projectRoot, file)
       if (!read.ok) return read
       if (known && known.document.revision === read.value.revision) return ok(stateOf(known))
-      const entry: Open = { document: read.value, undo: known?.undo ?? [], queue: known?.queue ?? Promise.resolve() }
+      // Changed since (in the Text view, or another program): undo would be refused, so it isn't offered.
+      const entry: Open = { document: read.value, undo: [], queue: known?.queue ?? Promise.resolve() }
       open.set(file, entry)
       return ok(stateOf(entry))
     },
