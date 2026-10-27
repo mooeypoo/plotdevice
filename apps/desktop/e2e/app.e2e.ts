@@ -3,7 +3,7 @@ import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { palettes } from '../../../packages/ui-vue/src/theme/tokens'
-import { launch, openSettings, type Launched } from './launch'
+import { closeSettings, launch, openSettings, type Launched } from './launch'
 
 let userData = ''
 let running: Launched | undefined
@@ -208,4 +208,26 @@ test('the About window shows the version, the licence and the open-source credit
   await expect(about.getByTestId('credits')).toContainText('@fontsource-variable/literata')
   await about.getByText('The full licence').click()
   await expect(about.locator('.license')).toContainText('GNU GENERAL PUBLIC LICENSE')
+})
+
+test('the start screen offers the guide to moving an existing book in, in the interface’s language', async () => {
+  running = await launch(userData)
+  const { page } = running
+  const link = page.getByTestId('welcome-bring-in')
+  await expect(page.getByText('Already have notes or a draft?')).toBeVisible()
+  await expect(link).toHaveAttribute('href', 'https://mooeypoo.github.io/plotdevice/start/bring-in/')
+  // Reached by keyboard straight after the two buttons.
+  await page.getByTestId('open-project').focus()
+  await page.keyboard.press('Tab')
+  await expect(link).toBeFocused()
+  // Starting a new book hides it, to keep the form calm.
+  await page.getByTestId('new-project').click()
+  await expect(link).toBeHidden()
+  await page.getByRole('button', { name: 'Cancel' }).click()
+
+  await openSettings(page)
+  await page.getByTestId('language').selectOption('he')
+  await closeSettings(page)
+  await expect(link).toHaveAttribute('href', 'https://mooeypoo.github.io/plotdevice/he/start/bring-in/')
+  await expect(link).toHaveText('מעבירים אותן פנימה ←')
 })

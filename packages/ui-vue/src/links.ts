@@ -4,3 +4,6 @@ export const DOCUMENTATION = 'https://mooeypoo.github.io/plotdevice/'
 
 /** The documentation in the interface's language: English at the root, other languages under their code. */
 export const documentationFor = (locale: string): string => (locale === 'en' ? DOCUMENTATION : `${DOCUMENTATION}${locale}/`)
+
+/** The guide to moving an existing book in (Milestone 13), offered on the start screen. */
+export const bringInGuideFor = (locale: string): string => `${documentationFor(locale)}start/bring-in/`

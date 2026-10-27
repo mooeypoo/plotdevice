@@ -6,6 +6,7 @@ Version: 0.3 draft
 - Reopen to last workspace and context. A workspace remembers its last outline/view; Write remembers chapter, scroll and selection (subject to persistence safety).
 - No necessary dashboard after initial project creation. Avoid developer vocabulary in regular UI.
 - Do not automatically infer manuscript semantics from arbitrary outline titles.
+- The start screen offers "New project" and "Open project…", recent projects, and one quiet line for authors arriving with material: "Already have notes or a draft? Moving them in →", which opens the guide page in the interface's language (Milestone 13). It hides while the new-project form is open.
 
 ## Write layout
 - Central writing surface; hideable manuscript navigator and hideable reference shelf.
