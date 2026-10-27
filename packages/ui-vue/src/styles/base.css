@@ -1654,8 +1654,14 @@ button.inline-link {
   background: var(--hair);
 }
 .tag-choice[aria-pressed='true'] {
-  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--color-mark) 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-mark) 60%, transparent);
+}
+/* Chosen is said with a mark as well as a colour. */
+.tag-choice[aria-pressed='true']::before {
+  content: '✓' / '';
+  margin-inline-end: 0.3rem;
+  font-size: 0.8em;
 }
 .tag-more {
   display: flex;
@@ -1676,6 +1682,8 @@ button.inline-link {
 }
 .gallery-group > .group-label {
   margin-block-end: 0.5rem;
+  font-family: var(--font-ui);
+  font-style: normal;
 }
 .group-toggle {
   display: inline-flex;

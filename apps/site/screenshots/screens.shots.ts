@@ -21,6 +21,8 @@ interface Language {
   characterPage: string
   /** A new item being typed, linking a character with @. */
   linkTyping: string
+  /** Tags to choose above the characters, grouping them (Milestone 12). */
+  tags: string[]
   /** A book in another language, for "the interface in your language, the book in its own". */
   otherBook: string
   otherCrossing: string
@@ -34,6 +36,7 @@ const LANGUAGES: Record<string, Language> = {
     character: 'Bea',
     characterPage: 'characters/bea.md',
     linkTyping: 'Must meet @be',
+    tags: ['Main', 'Part Two – main'],
     otherBook: 'מטע-המלח',
     otherCrossing: 'manuscript/המעבר.md',
   },
@@ -44,6 +47,7 @@ const LANGUAGES: Record<string, Language> = {
     character: 'בּיה',
     characterPage: 'characters/ביה.md',
     linkTyping: 'פוגשת את @בּ',
+    tags: ['ראשית', 'חלק שני – ראשית'],
     otherBook: 'the-salt-orchard',
     otherCrossing: 'manuscript/the-crossing.md',
   },
@@ -197,6 +201,10 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
 
       await page.locator('[data-gallery="character"]').click()
       await snap(page, lang, 'world-gallery', theme)
+      const tagRow = page.locator('.world-gallery').getByTestId('tag-filter')
+      for (const tag of language.tags) await tagRow.getByRole('button', { name: tag, exact: true }).click()
+      await snap(page, lang, 'world-tags', theme)
+      for (const tag of language.tags) await tagRow.getByRole('button', { name: tag, exact: true }).click()
       await page.locator(`[data-page="${language.characterPage}"]`).click()
       await page.getByTestId('linked-from').locator('.linked-entry').first().waitFor()
       await snap(page, lang, 'page-connections', theme)

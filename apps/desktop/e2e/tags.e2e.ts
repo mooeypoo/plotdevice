@@ -142,6 +142,9 @@ test('while writing, the shelf groups by the tags chosen for each part, and reme
   await shelf().getByTestId('tag-filter').getByRole('button', { name: 'Part Two – main' }).click()
   await expect(group('Part Two – main')).toHaveText(['Ilka Varga', 'Noël'])
   await writeIn('the-orchard-gate')
+  // The row shows only while finding, so the page stays calm.
+  await expect(shelf().getByTestId('tag-filter')).toHaveCount(0)
+  await shelf().getByTestId('shelf-search').focus()
   await expect(shelf().getByTestId('tag-filter').locator('[aria-pressed="true"]')).toHaveText(['Part One – main', 'Varga family'])
 
   await running?.app.close()
@@ -150,6 +153,7 @@ test('while writing, the shelf groups by the tags chosen for each part, and reme
   await page.locator('.project-title').waitFor()
   await writeIn('frost')
   if (!(await shelf().isVisible())) await page.keyboard.press('Control+Shift+R')
+  await shelf().getByTestId('shelf-search').focus()
   await expect(shelf().getByTestId('tag-filter').locator('[aria-pressed="true"]')).toHaveText(['Part Two – main'])
 })
 

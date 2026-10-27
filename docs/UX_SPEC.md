@@ -11,6 +11,7 @@ Version: 0.3 draft
 - Central writing surface; hideable manuscript navigator and hideable reference shelf.
 - Three layout presets: Standard, With References, Focus. All render one editor instance; layout changes never remount the editor or erase undo history.
 - Search reference catalog by title; open overlay, peek or pin to shelf; move pinned cards by pointer or keyboard; linked contextual references may be suggested without AI.
+- Tags (Milestone 12): pages carry the author's own tags, as calm pills under the name with "+ Tag" suggesting existing ones. A row of tags above the World gallery, the shelf and "Link to…" groups the list by the chosen tags (one group per tag, in the order chosen; everyone else folded). The shelf remembers its chosen tags per part. Right-click or Shift+F10 on a tag: rename everywhere, remove from all pages. "Tidy tags" appears only when tags look duplicated or can't be read, with one notice when a project opens.
 - Chapter is the editing and autosave unit. Navigation can prefetch one adjacent chapter but does not load all chapters.
 - Scene breaks can be inserted as `* * *` in chapter Markdown; no distinct scenes to manage in MVP.
 - Primary writing shortcuts discoverable from menu/help; keyboard-only complete.

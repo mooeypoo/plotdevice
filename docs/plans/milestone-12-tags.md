@@ -1,6 +1,6 @@
 # Milestone 12: Tags on pages
 
-Status: **Approved** (2026-10-27), with the recommended answers to the open decisions; in progress on branch `milestone-12/tags` (PR #30). The decisions behind it are in `milestone-11-story-plot-and-world.md`, section "Later: tags on pages".
+Status: **Built** (2026-10-27) on branch `milestone-12/tags` (PR #30), approved with the recommended answers to the open decisions. Results are at the end of this document. The decisions behind it are in `milestone-11-story-plot-and-world.md`, section "Later: tags on pages".
 
 ## Goal
 
@@ -158,3 +158,38 @@ tags: [Part One – secondary, Part Two – main, Marrow folk]
 5. Rename and remove everywhere.
 6. Tidying: the check when a project opens, the notice, the dialog.
 7. Demo novels, guide, screenshots.
+
+## Results
+
+### What the author can do
+
+- Tag a character, place or note from pills under its name. "+ Tag" suggests the project's tags as the author types; Enter adds one, or makes a new one. × takes one off.
+- Choose tags above a World gallery to group its cards: one group per tag, in the order chosen, then "Everyone else", folded. Past the first ten tags, "+ N more" lists the rest with a search.
+- On the shelf, while searching, the same row groups the results; tags matching what's typed are offered as pills. The chosen tags are remembered per part in app data, after a restart too.
+- In "Link to…", the same row; its choice lasts for the session.
+- Right-click a tag (or Shift+F10 on it) above a gallery or on the shelf: "Rename everywhere…" (renaming to an existing tag merges them) and "Remove from all pages…", each saying first how many pages will change.
+- When a project opens, near-duplicate tags and pages whose `tags:` line can't be read are found. If any is new, one notice offers "Tidy tags…"; otherwise nothing is shown. "Tidy tags…" stays beside the tags while something is left.
+
+### Changed from the plan while building
+
+- Tag matching lives in `shared`, not `domain`, so the host and the renderer share one idea of "one tag" (as the relationship headings do).
+- "Link to…" is used only in Story, where no part is being written, so only the shelf remembers tags per part.
+- The shelf's tag row shows only while its search is in use, to keep the writing page calm; a chosen tag carries a ✓ as well as the gold colour.
+- A page with broken frontmatter counts as a tag problem only if it has a `tags:` line.
+- The "+ N more" cut-off is the first ten tags, rather than two lines.
+
+### Found and fixed by the tests
+
+- Two tags added quickly lost the first: the second change started from the page's old tags. The pills now keep the author's tags locally, and the store writes changes one at a time.
+- CSS-generated text is part of a button's accessible name, so the ✓ would have been read aloud; it now has empty alt text.
+
+### Tests
+
+- Unit: tags read and written (lists, single tags, Hebrew, unquoted `Part Two: main`, quoting, CRLF, round trip), matching and near-duplicates, grouping, suggestions, the part a chapter is in, tag problems, renaming and merging everywhere, remembered tags per part and reported problems in app data, and the IPC calls (including a page being typed in while it's tagged or retagged).
+- End to end (`apps/desktop/e2e/tags.e2e.ts`): tagging from a page; grouping a gallery; the shelf per part, after a restart; "Link to…"; renaming and removing everywhere by mouse and keyboard; tidying, offered once, merged on request, gone when fixed.
+- Screens: the grouped gallery, a page with tags and the shelf, checked by eye in both themes and languages.
+
+### Known limitations
+
+- "Part 2" and "Part Two" aren't recognised as the same tag.
+- Renaming a part forgets the shelf's remembered tags for it (by design: parts have no ids).

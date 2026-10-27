@@ -149,7 +149,8 @@ function openResult(file: ProjectPath): void {
           @keydown.enter.prevent="results[0] && openResult(results[0].file)"
         />
       </label>
-      <TagFilter v-model:chosen="chosen" :tags="tags" manage />
+      <!-- Only while finding: the row matters for the list it groups, and the page stays calm otherwise. -->
+      <TagFilter v-if="!browsing || searching" v-model:chosen="chosen" :tags="tags" manage />
       <div v-if="!browsing || searching" class="results" data-testid="shelf-results">
         <div v-if="matchingTags.length > 0" class="tag-filter" data-testid="matching-tags">
           <button
