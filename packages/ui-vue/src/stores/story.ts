@@ -48,6 +48,8 @@ export const useStoryStore = defineStore('story', () => {
   const references = ref<ReferenceSummaryView[]>([])
   /** What the Story workspace shows: an outline, one kind of page as a gallery, one page, or the book's chapters. */
   const showing = ref<Showing>({ kind: 'outline' })
+  /** The tags chosen above each gallery, which group it (Milestone 12); for this session only. */
+  const galleryTags = ref<Partial<Record<ReferenceKind, string[]>>>({})
   /** "Show on the board": the open outline's cards that link to a page stand out, and the rest fade. */
   const about = ref<{ file: ProjectPath; title: string; cards: Set<string> } | null>(null)
 
@@ -190,6 +192,7 @@ export const useStoryStore = defineStore('story', () => {
     editing,
     references,
     showing,
+    galleryTags,
     about,
     refresh,
     showOnBoard,

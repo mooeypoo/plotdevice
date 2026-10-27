@@ -1624,6 +1624,70 @@ button.inline-link {
   background: var(--hover);
 }
 
+/* The row of tags above a list; a chosen tag is quietly filled. */
+.tag-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  max-inline-size: 64rem;
+  margin-block-end: 1rem;
+}
+.tag-choice {
+  border: none;
+  padding-inline: 0.65rem;
+  cursor: pointer;
+}
+.tag-choice:hover:not(:disabled) {
+  background: var(--hair);
+}
+.tag-choice[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+.tag-more {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  inline-size: min(22rem, 80vw);
+}
+.tag-more-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  max-block-size: 14rem;
+  overflow-y: auto;
+}
+.gallery-group + .gallery-group,
+.gallery-group + .gallery {
+  margin-block-start: 1.25rem;
+}
+.gallery-group > .group-label {
+  margin-block-end: 0.5rem;
+}
+.group-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  padding: 0.2rem 0.25rem;
+  background: transparent;
+  cursor: pointer;
+}
+.group-toggle::before {
+  content: '▸';
+  transition: transform 0.15s;
+}
+.group-toggle[aria-expanded='true']::before {
+  transform: rotate(90deg);
+}
+[dir='rtl'] .group-toggle::before {
+  content: '◂';
+}
+[dir='rtl'] .group-toggle[aria-expanded='true']::before {
+  transform: rotate(-90deg);
+}
+
 /* World: one kind of page as cards. */
 .world-gallery {
   display: flex;

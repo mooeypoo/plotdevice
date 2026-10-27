@@ -68,3 +68,39 @@ test('tag a character from its page, picking an existing tag or making a new one
   await file('characters/noel.md').toBe('---\ntitle: Noël\ntags: ["Part Two: main"]\n---\nKeeps the ferry.\n')
   await expect(pills).toHaveText(['Part Two: main'])
 })
+
+test('choosing tags above Characters groups the cards, in the order chosen, with everyone else folded', async () => {
+  await character('bea', 'Bea Halmi', '[Main, Varga family]')
+  await character('ilka', 'Ilka Varga', '[main, Part Two – main]')
+  await character('josef', 'Josef Varga', '[Varga family]')
+  await character('noel', 'Noël', '[Part Two – main]')
+  await character('yael', 'Yael', '')
+  const page = await start()
+  await page.getByTestId('workspace-story').click()
+  await page.locator('[data-gallery="character"]').click()
+  const row = page.getByTestId('tag-filter')
+  await expect(row.locator('.tag-choice')).toHaveText(['Main', 'Part Two – main', 'Varga family'])
+
+  const cardsIn = (group: string) => page.locator(`[data-group="${group}"] .page-card-title`)
+  await row.getByRole('button', { name: 'Part Two – main' }).click()
+  await row.getByRole('button', { name: 'Main', exact: true }).click()
+  await expect(row.getByRole('button', { name: 'Main', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.locator('.gallery-group > .group-label')).toHaveText(['Part Two – main', 'Main', 'Everyone else (2)'])
+  await expect(cardsIn('tag:Part Two – main')).toHaveText(['Ilka Varga', 'Noël'])
+  await expect(cardsIn('tag:Main')).toHaveText(['Bea Halmi'])
+  await expect(cardsIn('others')).toHaveCount(0)
+  await page.getByTestId('everyone-else').click()
+  await expect(cardsIn('others')).toHaveText(['Josef Varga', 'Yael'])
+
+  // Choosing them again lets them go, and the gallery is as it was; adding a page still works.
+  await row.getByRole('button', { name: 'Part Two – main' }).click()
+  await row.getByRole('button', { name: 'Main', exact: true }).click()
+  await expect(page.getByTestId('gallery-character').locator('.page-card-title')).toHaveText([
+    'Bea Halmi',
+    'Ilka Varga',
+    'Josef Varga',
+    'Noël',
+    'Yael',
+  ])
+  await expect(page.getByTestId('new-character')).toBeVisible()
+})
