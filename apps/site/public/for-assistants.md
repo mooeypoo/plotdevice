@@ -45,7 +45,7 @@ The Salt Orchard/
 | A character's or subplot's arc | its own outline (`outlines/the-arc-of-ilka.md`) |
 | Chapters already written | one file each in `manuscript/`, listed in `CONTENTS.md` |
 | Scenes, if the draft is in scenes | the chapter they're in, separated by `* * *` |
-| Deleted or unplaced scenes | files in `manuscript/` that aren't listed in `CONTENTS.md`; the app shows them as "Not in the book yet" |
+| Deleted or unplaced scenes | files in `manuscript/` that aren't listed in `CONTENTS.md`; the app keeps them "On the side" |
 | Images (maps, portraits) | `assets/`, linked from the page that uses them |
 
 When a section describes one person or place, make it a page. When it describes many at once ("The Varga family: Ilka, Bea and Josef…"), make a page for each that the material describes, and a note for the section itself if it says more than the individual pages hold.
@@ -292,6 +292,6 @@ Before reporting to the author, go through every file:
 
 Then tell the author, briefly:
 
-1. Where the new folder is, and that they can open it in Plot Device with "Open book".
+1. Where the new folder is, and that they can open it in Plot Device with "Open project…".
 2. What went where: how many chapters, characters, places, notes and outlines.
 3. **Everything you weren't sure about**: guesses at where something belonged, chapters you titled, relationships you placed on one page rather than the other, and what's in "To sort".

@@ -6,7 +6,7 @@ import { CONTENTS_FILE, MANUSCRIPT_FOLDER, PROJECT_FILE, readProject } from './r
 
 /**
  * `fix`: the app can't use something as written (a missing chapter, a broken link, unreadable details).
- * `know`: the app copes, but the author may not expect what it shows (a chapter "Not in the book yet").
+ * `know`: the app copes, but the author may not expect what it shows (a chapter "On the side").
  */
 export type CheckSeverity = 'fix' | 'know'
 

@@ -33,7 +33,7 @@ Moving material in is not the same as learning the app. The guide page says so a
 
 ### On the start screen
 
-Under "New book" and "Open book", one line in the secondary text colour:
+Under "New project" and "Open project…", one line in the secondary text colour:
 
 ```
 Already have notes or a draft?  Moving them in →
@@ -59,7 +59,7 @@ In "Start here", after "Your first book". It opens with one short paragraph: thi
 
 2. **Doing it yourself.** Start a new book in the app, then add pages and paste in your text. It's slower, and nothing can go wrong.
 3. **With an AI assistant.** Give it the address of the assistants' guide and your material. Ask it to make a **new** folder, never to change your originals. Then open the folder in Plot Device and look.
-4. **When something didn't come across.** What the app shows ("Not in the book yet", "kept as written", a missing chapter) and how to fix it.
+4. **When something didn't come across.** What the app shows ("On the side", "Missing", "Kept as written") and how to fix it.
 
 ### The guide for assistants
 
