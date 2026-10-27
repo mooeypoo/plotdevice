@@ -16,6 +16,7 @@ import {
   renameReferenceSchema,
   setTagsSchema,
   shelfSchema,
+  shelfTagsSchema,
   type CardLinksView,
   type LinkedFromView,
   type LinkTargetView,
@@ -161,6 +162,17 @@ export function createReferenceHandlers({ references, writing, recent }: Referen
       const { files } = parsePayload(shelfSchema, payload)
       const projectRoot = root()
       if (projectRoot) await recent.pin(projectRoot, files)
+    },
+
+    [channels.getShelfTags]: async () => {
+      const projectRoot = root()
+      return (projectRoot && recent.current().projects.find((project) => project.root === projectRoot)?.shelfTags) ?? {}
+    },
+
+    [channels.chooseShelfTags]: async (payload) => {
+      const { part, tags } = parsePayload(shelfTagsSchema, payload)
+      const projectRoot = root()
+      if (projectRoot) await recent.chooseShelfTags(projectRoot, part, tags)
     },
   }
 }

@@ -89,6 +89,9 @@ export interface PlotDeviceApi {
   linkedFrom(file: ProjectPath): Promise<LinkedFromView>
   getShelf(): Promise<ProjectPath[]>
   setShelf(files: ProjectPath[]): Promise<void>
+  /** The tags chosen on the shelf while writing, by part name (`''`: outside any part). */
+  getShelfTags(): Promise<Record<string, string[]>>
+  chooseShelfTags(part: string, tags: string[]): Promise<void>
 
   /** Earlier versions of a chapter, page or outline, from the backups. */
   listVersions(file: ProjectPath): Promise<VersionResult<VersionsView>>

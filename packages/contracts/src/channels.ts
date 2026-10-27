@@ -35,6 +35,8 @@ export const channels = {
   linkedFrom: 'plotdevice:linked-from',
   getShelf: 'plotdevice:get-shelf',
   setShelf: 'plotdevice:set-shelf',
+  getShelfTags: 'plotdevice:get-shelf-tags',
+  chooseShelfTags: 'plotdevice:choose-shelf-tags',
   listVersions: 'plotdevice:list-versions',
   readVersion: 'plotdevice:read-version',
   restoreVersion: 'plotdevice:restore-version',

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { groupByTags, tagRow, tagSuggestions } from './tags'
+import type { ProjectView } from '@plotdevice/contracts'
+import type { ProjectPath } from '@plotdevice/shared'
+import { groupByTags, partOf, tagRow, tagSuggestions } from './tags'
 
 const pages = [
   { title: 'Bea', tags: ['Main', 'Varga family'] },
@@ -60,5 +62,20 @@ describe('grouping a list by tags', () => {
       others: ['Ilka', 'Noël', 'Yael'],
     })
     expect(titles(groupByTags(pages, []))).toEqual({ groups: [], others: ['Bea', 'Ilka', 'Josef', 'Noël', 'Yael'] })
+  })
+})
+
+describe('the part a chapter is in', () => {
+  const p = (path: string) => path as ProjectPath
+  const chapter = (file: string) => ({ file: p(file), linkText: file, number: null })
+  const contents = [
+    { kind: 'chapter', ...chapter('manuscript/prologue.md') },
+    { kind: 'part', name: 'Part Two: Salt', chapters: [chapter('manuscript/frost.md')] },
+  ] satisfies ProjectView['contents']
+
+  it('is named, or empty outside any part', () => {
+    expect(partOf({ contents }, p('manuscript/frost.md'))).toBe('Part Two: Salt')
+    expect(partOf({ contents }, p('manuscript/prologue.md'))).toBe('')
+    expect(partOf({ contents }, p('manuscript/not-in-the-book.md'))).toBe('')
   })
 })

@@ -1,4 +1,5 @@
-import { projectTags, tagKey, type ProjectTag } from '@plotdevice/shared'
+import type { ProjectView } from '@plotdevice/contracts'
+import { projectTags, tagKey, type ProjectPath, type ProjectTag } from '@plotdevice/shared'
 
 /** The tags on `pages`, A to Z in the interface's language, for the row of tags above a list. */
 export function tagRow(pages: readonly { tags: readonly string[] }[], locale: string): ProjectTag[] {
@@ -50,4 +51,13 @@ export function groupByTags<T extends { tags: readonly string[] }>(pages: readon
     else groups[at]?.pages.push(page)
   }
   return { groups: groups.filter((group) => group.pages.length > 0), others }
+}
+
+/**
+ * The part a chapter is in, by name, which is how the shelf remembers its tags while writing; `''` for
+ * a chapter outside any part, or in a book without parts. Parts have no ids, only their names.
+ */
+export function partOf(project: Pick<ProjectView, 'contents'>, chapter: ProjectPath): string {
+  const part = project.contents.find((entry) => entry.kind === 'part' && entry.chapters.some((ref) => ref.file === chapter))
+  return part?.kind === 'part' ? part.name : ''
 }

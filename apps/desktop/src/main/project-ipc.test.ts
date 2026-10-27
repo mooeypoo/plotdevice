@@ -476,6 +476,18 @@ describe('reference calls', () => {
     await expect(context.call(channels.readReference, { file: 'manuscript/frost.md' })).rejects.toThrow('invalid-payload')
     await expect(context.call(channels.setShelf, { files: ['project.md'] })).rejects.toThrow('invalid-payload')
   })
+
+  it("remembers the shelf's tags per part, never in the project folder", async () => {
+    const context = await setup()
+    await openChosen(context)
+    const before = await context.read('CONTENTS.md')
+    expect(await context.call(channels.getShelfTags)).toEqual({})
+    await context.call(channels.chooseShelfTags, { part: 'Part Two: Salt', tags: ['Part Two – main', 'Main'] })
+    await context.call(channels.chooseShelfTags, { part: '', tags: ['Main'] })
+    expect(await context.call(channels.getShelfTags)).toEqual({ 'Part Two: Salt': ['Part Two – main', 'Main'], '': ['Main'] })
+    expect(await context.read('CONTENTS.md')).toBe(before)
+    await expect(context.call(channels.chooseShelfTags, { part: 'x', tags: [''] })).rejects.toThrow('invalid-payload')
+  })
 })
 
 describe('version calls', () => {

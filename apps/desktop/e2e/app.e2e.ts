@@ -35,6 +35,7 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
   const bridge = [
     'cardsAbout',
     'changeContents',
+    'chooseShelfTags',
     'compileBook',
     'copyVersion',
     'createOutline',
@@ -50,6 +51,7 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'getPreferences',
     'getRecentProjects',
     'getShelf',
+    'getShelfTags',
     'leftOff',
     'linkedFrom',
     'listOutlines',

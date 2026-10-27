@@ -78,7 +78,7 @@ test('choosing tags above Characters groups the cards, in the order chosen, with
   const page = await start()
   await page.getByTestId('workspace-story').click()
   await page.locator('[data-gallery="character"]').click()
-  const row = page.getByTestId('tag-filter')
+  const row = page.locator('.world-gallery').getByTestId('tag-filter')
   await expect(row.locator('.tag-choice')).toHaveText(['Main', 'Part Two – main', 'Varga family'])
 
   const cardsIn = (group: string) => page.locator(`[data-group="${group}"] .page-card-title`)
@@ -103,4 +103,70 @@ test('choosing tags above Characters groups the cards, in the order chosen, with
     'Yael',
   ])
   await expect(page.getByTestId('new-character')).toBeVisible()
+})
+
+test('while writing, the shelf groups by the tags chosen for each part, and remembers them after a restart', async () => {
+  await character('bea', 'Bea Halmi', '[Part One – main, Varga family]')
+  await character('ilka', 'Ilka Varga', '[Part One – main, Part Two – main]')
+  await character('noel', 'Noël', '[Part Two – main]')
+  await character('josef', 'Josef Varga', '[Varga family]')
+  let page = await start()
+  const writeIn = async (chapter: string): Promise<void> => {
+    await page.locator(`[data-chapter="manuscript/${chapter}.md"]`).first().click()
+    await expect(page.locator('[aria-current="page"]')).toHaveAttribute('data-chapter', `manuscript/${chapter}.md`)
+  }
+  const shelf = () => page.getByTestId('shelf')
+  const group = (tag: string) => shelf().locator(`[data-group="tag:${tag}"] button span[dir]`)
+
+  await writeIn('the-crossing')
+  await page.keyboard.press('Control+Shift+R')
+  await shelf().getByTestId('shelf-search').focus()
+  await shelf().getByTestId('tag-filter').getByRole('button', { name: 'Part One – main' }).click()
+  await expect(group('Part One – main')).toHaveText(['Bea Halmi', 'Ilka Varga'])
+  // Everyone else: Josef and Noël, and the sample's places and notes.
+  await expect(shelf().getByTestId('shelf-everyone-else')).toHaveText(/^Everyone else \(\d+\)$/)
+  await expect(shelf().locator('[data-group="others"] li')).toHaveCount(0)
+
+  // Typing filters inside the groups; a matching tag is offered to choose.
+  await shelf().getByTestId('shelf-search').fill('varga')
+  await expect(group('Part One – main')).toHaveText(['Ilka Varga'])
+  await expect(shelf().locator('[data-group="others"] button span[dir]')).toHaveText(['Josef Varga'])
+  await shelf().getByTestId('matching-tags').getByRole('button', { name: 'Varga family' }).click()
+  await expect(shelf().getByTestId('shelf-search')).toHaveValue('')
+  await expect(group('Varga family')).toHaveText(['Josef Varga'])
+
+  // Part Two has its own choice; going back to Part One brings its tags back.
+  await writeIn('frost')
+  await shelf().getByTestId('shelf-search').focus()
+  await expect(shelf().getByTestId('tag-filter').locator('[aria-pressed="true"]')).toHaveCount(0)
+  await shelf().getByTestId('tag-filter').getByRole('button', { name: 'Part Two – main' }).click()
+  await expect(group('Part Two – main')).toHaveText(['Ilka Varga', 'Noël'])
+  await writeIn('the-orchard-gate')
+  await expect(shelf().getByTestId('tag-filter').locator('[aria-pressed="true"]')).toHaveText(['Part One – main', 'Varga family'])
+
+  await running?.app.close()
+  running = await launch(join(base, 'user-data'), { PLOTDEVICE_TEST_CHOOSE_FOLDER: root })
+  page = running.page
+  await page.locator('.project-title').waitFor()
+  await writeIn('frost')
+  if (!(await shelf().isVisible())) await page.keyboard.press('Control+Shift+R')
+  await expect(shelf().getByTestId('tag-filter').locator('[aria-pressed="true"]')).toHaveText(['Part Two – main'])
+})
+
+test('"Link to…" groups by the chosen tags before anything is typed', async () => {
+  await character('bea', 'Bea Halmi', '[Varga family]')
+  await character('noel', 'Noël', '')
+  const page = await start()
+  await page.getByTestId('workspace-story').click()
+  await page.locator('[data-outline="outlines/main-story.md"]').click()
+  const card = page.locator('.outline-card', { hasText: 'Ilka crosses the river' })
+  await card.getByRole('button', { name: /^Actions for/ }).click()
+  await page.getByTestId('menu-link-to').click()
+  const picker = page.getByTestId('link-picker')
+  await picker.getByTestId('tag-filter').getByRole('button', { name: 'Varga family' }).click()
+  await expect(picker.getByTestId('link-search')).toBeFocused()
+  await expect(picker.getByTestId('link-group-tag:Varga family').getByRole('option')).toHaveText(['Bea HalmiCharacter'])
+  await expect(picker.getByTestId('link-group-character').getByRole('option')).toHaveText(['Noël'])
+  await picker.getByTestId('link-search').press('Enter')
+  await file('outlines/main-story.md').toContain('[Bea Halmi](../characters/bea.md)')
 })

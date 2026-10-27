@@ -67,7 +67,9 @@ Tags used on only one page are not a problem, since every new tag starts that wa
 
 ### While writing
 
-The tags chosen on the shelf and in the link picker are remembered per part. Moving to a chapter in Part Two brings back the tags last chosen in Part Two. Chapters outside any part, and books without parts, share one remembered choice.
+The tags chosen on the shelf are remembered per part. Moving to a chapter in Part Two brings back the tags last chosen in Part Two. Chapters outside any part, and books without parts, share one remembered choice.
+
+The link picker ("Link to…") is used in Story, on cards and relationships, where there is no part being written; its chosen tags last for the session, as the gallery's do. Before anything is typed it shows the chosen tags' groups, then a few of each kind as before; once typed, the best matches, the chosen tags' pages first. Tags matching what's typed are offered as pills on the shelf.
 
 ## Decisions (owner, 2026-10-27)
 

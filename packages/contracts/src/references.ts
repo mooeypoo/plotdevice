@@ -29,6 +29,8 @@ const tag = z
   .max(200)
   .refine((value) => !/[\r\n]/.test(value))
 export const setTagsSchema = z.strictObject({ file: referenceFile, tags: z.array(tag).max(100) })
+/** The tags chosen on the shelf while writing in a part (`''`: outside any part); personal, in app data. */
+export const shelfTagsSchema = z.strictObject({ part: z.string().max(500), tags: z.array(tag).max(50) })
 /** The pinned shelf, in the author's order. */
 export const shelfSchema = z.strictObject({ files: z.array(referenceFile).max(100) })
 

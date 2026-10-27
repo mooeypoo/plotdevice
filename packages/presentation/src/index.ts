@@ -45,4 +45,4 @@ export {
   type LinkTarget,
 } from './references'
 export { menuPlacement, type Box } from './menu-placement'
-export { groupByTags, tagRow, tagSuggestions, type TagGroups } from './tags'
+export { groupByTags, partOf, tagRow, tagSuggestions, type TagGroups } from './tags'

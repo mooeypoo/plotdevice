@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { LinkTargetView } from '@plotdevice/contracts'
-import { search } from '@plotdevice/presentation'
+import type { ReferenceSummaryView } from '@plotdevice/contracts'
+import { groupByTags, partOf, search, tagRow, tagSuggestions } from '@plotdevice/presentation'
 import type { ProjectPath } from '@plotdevice/shared'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useApi } from '../api'
@@ -12,6 +13,7 @@ import { useViewStore } from '../stores/view'
 import AppIcon from './AppIcon.vue'
 import InlineText from './InlineText.vue'
 import PageDetails from './PageDetails.vue'
+import TagFilter from './TagFilter.vue'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
 
@@ -27,16 +29,41 @@ const settings = useSettingsStore()
 const t = settings.t
 const query = ref('')
 const searching = ref(false)
-/** Typed: the best matches. Not yet: a few pages to start from, characters first, leaving out what's open. */
+/** Typed: the best matches. Not yet: pages to start from, characters first, leaving out what's open. */
 const browsing = computed(() => query.value.trim() === '')
-const results = computed(() => {
-  if (!browsing.value) return search(story.references, query.value).slice(0, 8)
+const candidates = computed(() => {
+  if (!browsing.value) return search(story.references, query.value)
   const order = ['character', 'place', 'note']
   return story.references
     .filter((reference) => !shelf.cards.includes(reference.file))
     .sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))
-    .slice(0, 8)
 })
+/** The part being written: the shelf's chosen tags are remembered for each (Milestone 12, decision 3). */
+const part = computed(() => (project.project && props.chapter ? partOf(project.project, props.chapter) : ''))
+const chosen = computed({
+  get: () => shelf.chosenTags(part.value),
+  set: (tags: string[]) => void shelf.chooseTags(part.value, tags),
+})
+const tags = computed(() => tagRow(story.references, settings.locale))
+/** Tags whose names match what was typed, offered to choose. */
+const matchingTags = computed(() => (browsing.value ? [] : tagSuggestions(tags.value, chosen.value, query.value, 3)))
+const othersOpen = ref(false)
+/** The chosen tags' pages first, one group per tag; the rest after, folded until something is typed. */
+const sections = computed(() => {
+  const { groups, others } = groupByTags(candidates.value, chosen.value)
+  const rest = { key: 'others', label: groups.length > 0 ? t('tag-everyone-else', String(others.length)) : null, pages: others.slice(0, 8) }
+  const folded = groups.length > 0 && browsing.value && !othersOpen.value
+  return [
+    ...groups.map((group) => ({ key: `tag:${group.tag}`, label: group.tag as string | null, pages: group.pages })),
+    ...(others.length > 0 ? [{ ...rest, folds: groups.length > 0 && browsing.value, pages: folded ? [] : rest.pages }] : []),
+  ] as { key: string; label: string | null; pages: ReferenceSummaryView[]; folds?: boolean }[]
+})
+const results = computed(() => sections.value.flatMap((section) => section.pages))
+
+function chooseTag(tag: string): void {
+  chosen.value = [...chosen.value, tag]
+  query.value = ''
+}
 
 function onFindFocusOut(event: FocusEvent): void {
   searching.value = (event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)
@@ -122,15 +149,45 @@ function openResult(file: ProjectPath): void {
           @keydown.enter.prevent="results[0] && openResult(results[0].file)"
         />
       </label>
-      <ul v-if="!browsing || searching" class="results" data-testid="shelf-results">
-        <li v-for="result in results" :key="result.file">
-          <button type="button" class="chapter" @mousedown.prevent @click="openResult(result.file)">
-            <span dir="auto">{{ result.title }}</span
-            ><span class="secondary">{{ t(`kind-${result.kind}`) }}</span>
+      <TagFilter v-model:chosen="chosen" :tags="tags" />
+      <div v-if="!browsing || searching" class="results" data-testid="shelf-results">
+        <div v-if="matchingTags.length > 0" class="tag-filter" data-testid="matching-tags">
+          <button
+            v-for="tag in matchingTags"
+            :key="tag"
+            type="button"
+            class="tag-pill tag-choice"
+            :aria-pressed="false"
+            dir="auto"
+            @mousedown.prevent
+            @click="chooseTag(tag)"
+          >
+            {{ tag }}
           </button>
-        </li>
-        <li v-if="results.length === 0 && !browsing" class="secondary">{{ t('shelf-no-results') }}</li>
-      </ul>
+        </div>
+        <template v-for="section in sections" :key="section.key">
+          <h3 v-if="section.label && !section.folds" class="group-label" dir="auto">{{ section.label }}</h3>
+          <button
+            v-else-if="section.folds"
+            type="button"
+            class="group-label group-toggle"
+            :aria-expanded="othersOpen"
+            data-testid="shelf-everyone-else"
+            @click="othersOpen = !othersOpen"
+          >
+            {{ section.label }}
+          </button>
+          <ul :data-group="section.key">
+            <li v-for="result in section.pages" :key="result.file">
+              <button type="button" class="chapter" @mousedown.prevent @click="openResult(result.file)">
+                <span dir="auto">{{ result.title }}</span
+                ><span class="secondary">{{ t(`kind-${result.kind}`) }}</span>
+              </button>
+            </li>
+          </ul>
+        </template>
+        <p v-if="results.length === 0 && !browsing" class="secondary">{{ t('shelf-no-results') }}</p>
+      </div>
     </div>
 
     <section v-if="shelf.aboutChapter.length > 0" class="shelf-section" data-testid="from-outline">

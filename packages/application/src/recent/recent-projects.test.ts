@@ -1,7 +1,13 @@
 import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
 import type { AppDataFile, AppDataWriteFailure } from '../ports/app-data-file'
-import { createRecentProjectsSession, MAX_CHAPTER_POSITIONS, MAX_RECENT_PROJECTS, parseRecentProjects } from './recent-projects'
+import {
+  createRecentProjectsSession,
+  MAX_CHAPTER_POSITIONS,
+  MAX_RECENT_PROJECTS,
+  MAX_TAGGED_PARTS,
+  parseRecentProjects,
+} from './recent-projects'
 
 const p = (path: string) => path as ProjectPath
 
@@ -206,5 +212,32 @@ describe('recent projects', () => {
       ok: true,
       value: { projects: [{ root: '/b', title: 'B', shelf: ['ok.md'] }] },
     })
+  })
+
+  it("remembers the shelf's tags per part, forgets a part with none, and drops what it can't read", async () => {
+    const { file } = memoryFile()
+    const recent = await createRecentProjectsSession(file)
+    await recent.opened({ root: '/a', title: 'A' })
+    await recent.chooseShelfTags('/a', 'Part One: Arrival', ['Part One – main', 'Varga family'])
+    await recent.chooseShelfTags('/a', '', ['Main'])
+    await recent.chooseShelfTags('/a', 'Part Two: Salt', ['Part Two – main'])
+    await recent.chooseShelfTags('/a', 'Part Two: Salt', [])
+    expect((await createRecentProjectsSession(file)).current().projects[0]?.shelfTags).toEqual({
+      'Part One: Arrival': ['Part One – main', 'Varga family'],
+      '': ['Main'],
+    })
+    expect(
+      parseRecentProjects(JSON.stringify({ projects: [{ root: '/b', title: 'B', shelfTags: { a: ['x', 3], b: 'x', c: [] } }] })),
+    ).toEqual({ ok: true, value: { projects: [{ root: '/b', title: 'B', shelfTags: { a: ['x'], c: [] } }] } })
+  })
+
+  it(`keeps the tags of the ${MAX_TAGGED_PARTS} parts chosen in most recently`, async () => {
+    const { file } = memoryFile()
+    const recent = await createRecentProjectsSession(file)
+    await recent.opened({ root: '/a', title: 'A' })
+    for (let part = 0; part <= MAX_TAGGED_PARTS; part++) await recent.chooseShelfTags('/a', `Part ${part}`, ['Main'])
+    const kept = Object.keys(recent.current().projects[0]?.shelfTags ?? {})
+    expect(kept).toHaveLength(MAX_TAGGED_PARTS)
+    expect(kept).not.toContain('Part 0')
   })
 })

@@ -17,6 +17,8 @@ export const useShelfStore = defineStore('shelf', () => {
   const opened = ref<ProjectPath[]>([])
   const pages = ref<Partial<Record<ProjectPath, ReferencePageView>>>({})
   const aboutChapter = ref<CardLinksView[]>([])
+  /** The tags chosen on the shelf, by the part being written (`''`: outside any part); Milestone 12. */
+  const tagsByPart = ref<Record<string, string[]>>({})
   const cards = computed(() => [...opened.value.filter((file) => !pinned.value.includes(file)), ...pinned.value])
 
   async function load(file: ProjectPath): Promise<void> {
@@ -28,6 +30,7 @@ export const useShelfStore = defineStore('shelf', () => {
     opened.value = []
     pages.value = {}
     pinned.value = project.project ? await api.getShelf() : []
+    tagsByPart.value = project.project ? await api.getShelfTags() : {}
     await Promise.all(pinned.value.map(load))
   }
 
@@ -66,6 +69,13 @@ export const useShelfStore = defineStore('shelf', () => {
     await save()
   }
 
+  const chosenTags = (part: string): string[] => tagsByPart.value[part] ?? []
+
+  async function chooseTags(part: string, tags: string[]): Promise<void> {
+    tagsByPart.value = { ...tagsByPart.value, [part]: tags }
+    await api.chooseShelfTags(part, [...tags])
+  }
+
   async function refreshAbout(chapter: ProjectPath | null): Promise<void> {
     aboutChapter.value = chapter ? await api.cardsAbout(chapter) : []
   }
@@ -74,5 +84,21 @@ export const useShelfStore = defineStore('shelf', () => {
     if (event.kind === 'references-changed') void Promise.all(cards.value.map(load))
   })
 
-  return { visible, pinned, opened, pages, aboutChapter, cards, reset, open, pin, unpin, close, moveTo, refreshAbout }
+  return {
+    visible,
+    pinned,
+    opened,
+    pages,
+    aboutChapter,
+    cards,
+    reset,
+    open,
+    pin,
+    unpin,
+    close,
+    moveTo,
+    refreshAbout,
+    chosenTags,
+    chooseTags,
+  }
 })

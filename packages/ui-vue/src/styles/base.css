@@ -876,6 +876,15 @@ label {
 .shelf-section h2 {
   margin: 0;
 }
+.shelf .tag-filter {
+  margin-block: 0.5rem 0;
+}
+.shelf .results .tag-filter {
+  margin-block: 0.25rem 0.4rem;
+}
+.shelf .results .group-label {
+  margin-block: 0.5rem 0.15rem;
+}
 .shelf .results li {
   padding-block: 0.05rem;
 }
@@ -1462,6 +1471,9 @@ button.inline-link {
 }
 .link-picker .group-label:first-child {
   margin-block-start: 0;
+}
+.link-picker .tag-filter {
+  margin-block: 0.6rem 0.2rem;
 }
 .link-picker [role='option'] {
   display: flex;
