@@ -6,6 +6,7 @@ import type { MenuItem } from './menu'
 
 // A button that opens a list of commands. The button shows its slot (or ⋯); `heading` names what the
 // commands act on, above them; `align: 'end'` opens the list towards the end side, for buttons there.
+// `showFrom` opens it beside another element instead (a right-click on a tag), with no button shown.
 const props = defineProps<{
   label: string
   items: MenuItem[]
@@ -14,12 +15,17 @@ const props = defineProps<{
   buttonClass?: string
   align?: 'start' | 'end'
   heading?: string
+  /** No button of its own: the list only opens through `showFrom`. */
+  buttonless?: boolean
 }>()
 const open = ref(false)
 /** Where the list is, fixed to the window so no scrolling area or bar hides it; `null` until measured. */
 const place = ref<{ top: number; left: number; maxHeight: number } | null>(null)
 const button = ref<HTMLButtonElement | null>(null)
 const menu = ref<HTMLElement | null>(null)
+/** What the list opened beside, when not its own button; focus returns there. */
+const anchor = ref<HTMLElement | null>(null)
+const opener = (): HTMLElement | null => anchor.value ?? button.value
 
 const entries = (): HTMLButtonElement[] => [...(menu.value?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])') ?? [])]
 
@@ -38,7 +44,7 @@ async function show(): Promise<void> {
 /** Opens the list below the button, or above it when there's more room there, inside the window. */
 function keepInWindow(): void {
   const list = menu.value
-  const at = button.value?.getBoundingClientRect()
+  const at = opener()?.getBoundingClientRect()
   if (!list || !at) return
   const rtl = getComputedStyle(list).direction === 'rtl'
   const { top, left, maxHeight } = menuPlacement(
@@ -60,11 +66,18 @@ function close(returnFocus = true): void {
   document.removeEventListener('pointerdown', onOutside, true)
   window.removeEventListener('resize', onMoved)
   document.removeEventListener('scroll', onMoved, true)
-  if (returnFocus) button.value?.focus()
+  if (returnFocus) opener()?.focus()
+  anchor.value = null
+}
+
+/** Opens the list beside `element`, as if it were the button. */
+function showFrom(element: HTMLElement): Promise<void> {
+  anchor.value = element
+  return show()
 }
 
 function onOutside(event: PointerEvent): void {
-  if (!menu.value?.contains(event.target as Node) && !button.value?.contains(event.target as Node)) close(false)
+  if (!menu.value?.contains(event.target as Node) && !opener()?.contains(event.target as Node)) close(false)
 }
 
 function choose(item: MenuItem): void {
@@ -91,12 +104,13 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', onMoved)
   document.removeEventListener('scroll', onMoved, true)
 })
-defineExpose({ show })
+defineExpose({ show, showFrom })
 </script>
 
 <template>
   <span class="menu">
     <button
+      v-if="!props.buttonless"
       ref="button"
       type="button"
       class="menu-button"

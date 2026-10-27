@@ -1,6 +1,7 @@
 import {
   cardsLinkingTo,
   linkedFrom,
+  retaggedPages,
   type ProjectSnapshot,
   type RecentProjectsSession,
   type ReferenceRepository,
@@ -14,6 +15,7 @@ import {
   referenceFileSchema,
   renameReferenceFileSchema,
   renameReferenceSchema,
+  retagSchema,
   setTagsSchema,
   shelfSchema,
   shelfTagsSchema,
@@ -23,6 +25,7 @@ import {
   type ReferencePageView,
   type ReferenceResult,
   type ReferenceSummaryView,
+  type RetagView,
 } from '@plotdevice/contracts'
 import { kindOfFile } from '@plotdevice/domain'
 import { err, ok, stemOf, type ProjectPath } from '@plotdevice/shared'
@@ -130,6 +133,21 @@ export function createReferenceHandlers({ references, writing, recent }: Referen
       if (!set.ok) return set
       const summary = await summaryOf(projectRoot, file)
       return summary ? ok(summary) : err('missing')
+    },
+
+    [channels.retag]: async (payload): Promise<RetagView> => {
+      const { from, to } = parsePayload(retagSchema, payload)
+      const projectRoot = root()
+      if (!projectRoot) return { changed: 0, skipped: [] }
+      const pages = await references.listReferences(projectRoot)
+      const result: RetagView = { changed: 0, skipped: [] }
+      // One page at a time, each through the session, as when the author tags it on its own.
+      for (const page of retaggedPages(pages, from, to)) {
+        const set = await writing.updateFile(page.file, () => references.setTags(projectRoot, page.file, page.tags))
+        if (set.ok) result.changed++
+        else result.skipped.push({ file: page.file, title: pages.find((known) => known.file === page.file)?.title ?? page.file })
+      }
+      return result
     },
 
     [channels.linkedFrom]: async (payload): Promise<LinkedFromView> => {

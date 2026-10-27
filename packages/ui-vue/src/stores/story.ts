@@ -152,6 +152,21 @@ export const useStoryStore = defineStore('story', () => {
     return result.ok
   }
 
+  /** Renames a tag on every page (merging into an existing one), or removes it when `to` is `null`; says how it went. */
+  async function retag(from: string, to: string | null): Promise<void> {
+    await tagging
+    const result = await api.retag(from, to)
+    await refresh()
+    if (result.skipped.length === 0) project.tell('tag-retagged', String(result.changed))
+    else
+      project.tell(
+        'tag-retagged-skipped',
+        String(result.changed),
+        String(result.skipped.length),
+        result.skipped.map((page) => page.title).join(', '),
+      )
+  }
+
   async function edit(request: OutlineEditRequest): Promise<boolean> {
     if (!outline.value) return false
     // A plain copy: positions taken from the reactive outline are proxies, which can't cross to the host.
@@ -201,6 +216,7 @@ export const useStoryStore = defineStore('story', () => {
     showOnBoard,
     editRelationship,
     setTags,
+    retag,
     open,
     create,
     edit,

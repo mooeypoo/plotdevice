@@ -32,6 +32,7 @@ export const channels = {
   cardsAbout: 'plotdevice:cards-about',
   editRelationship: 'plotdevice:edit-relationship',
   setTags: 'plotdevice:set-tags',
+  retag: 'plotdevice:retag',
   linkedFrom: 'plotdevice:linked-from',
   getShelf: 'plotdevice:get-shelf',
   setShelf: 'plotdevice:set-shelf',

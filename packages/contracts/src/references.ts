@@ -29,6 +29,8 @@ const tag = z
   .max(200)
   .refine((value) => !/[\r\n]/.test(value))
 export const setTagsSchema = z.strictObject({ file: referenceFile, tags: z.array(tag).max(100) })
+/** "Rename everywhere" (`to`: the new name, or an existing tag to merge into) and "Remove from all pages" (`to: null`). */
+export const retagSchema = z.strictObject({ from: tag, to: tag.nullable() })
 /** The tags chosen on the shelf while writing in a part (`''`: outside any part); personal, in app data. */
 export const shelfTagsSchema = z.strictObject({ part: z.string().max(500), tags: z.array(tag).max(50) })
 /** The pinned shelf, in the author's order. */
@@ -82,6 +84,12 @@ export interface LinkedFromView {
   cards: CardLinksView[]
   pages: { file: ProjectPath; kind: ReferenceKind; title: string; relationships: string[] }[]
   chapters: { file: ProjectPath; title: string }[]
+}
+
+/** What "Rename everywhere" or "Remove from all pages" did: pages changed, and pages that couldn't be. */
+export interface RetagView {
+  changed: number
+  skipped: { file: ProjectPath; title: string }[]
 }
 
 export type ReferenceProblem =

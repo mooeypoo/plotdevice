@@ -17,6 +17,7 @@ import type {
   ReferenceResult,
   ReferenceSummaryView,
   RelationshipChangeRequest,
+  RetagView,
 } from './references'
 import type { CopyVersionResult, VersionResult, VersionsView } from './versions'
 import type {
@@ -85,6 +86,8 @@ export interface PlotDeviceApi {
   editRelationship(file: ProjectPath, change: RelationshipChangeRequest): Promise<ReferenceResult<ReferencePageView>>
   /** Sets a page's tags (Milestone 12), and returns the page as lists show it now. */
   setTags(file: ProjectPath, tags: string[]): Promise<ReferenceResult<ReferenceSummaryView>>
+  /** Renames a tag on every page that has it (merging into `to` if it exists), or removes it when `to` is `null`. */
+  retag(from: string, to: string | null): Promise<RetagView>
   /** The outline cards, pages and chapters that link to a page. */
   linkedFrom(file: ProjectPath): Promise<LinkedFromView>
   getShelf(): Promise<ProjectPath[]>

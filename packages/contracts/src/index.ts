@@ -77,6 +77,7 @@ export {
   referenceKindSchema,
   renameReferenceFileSchema,
   renameReferenceSchema,
+  retagSchema,
   setTagsSchema,
   shelfSchema,
   shelfTagsSchema,
@@ -88,6 +89,7 @@ export {
   type ReferenceProblem,
   type ReferenceResult,
   type ReferenceSummaryView,
+  type RetagView,
   type RelationshipChangeRequest,
   type RelationshipView,
 } from './references'

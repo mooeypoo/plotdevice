@@ -49,7 +49,7 @@ async function newPage(): Promise<void> {
       <h1 class="outline-title">{{ t(`story-${kind}`) }}</h1>
     </div>
     <div class="story-page">
-      <TagFilter v-model:chosen="chosen" :tags="tags" />
+      <TagFilter v-model:chosen="chosen" :tags="tags" manage />
       <section v-for="section in sections" :key="section.key" class="gallery-group" :data-group="section.key">
         <h2 v-if="section.label && !section.folds" class="group-label" dir="auto">{{ section.label }}</h2>
         <button

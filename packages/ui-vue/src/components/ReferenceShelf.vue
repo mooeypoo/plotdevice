@@ -149,7 +149,7 @@ function openResult(file: ProjectPath): void {
           @keydown.enter.prevent="results[0] && openResult(results[0].file)"
         />
       </label>
-      <TagFilter v-model:chosen="chosen" :tags="tags" />
+      <TagFilter v-model:chosen="chosen" :tags="tags" manage />
       <div v-if="!browsing || searching" class="results" data-testid="shelf-results">
         <div v-if="matchingTags.length > 0" class="tag-filter" data-testid="matching-tags">
           <button
