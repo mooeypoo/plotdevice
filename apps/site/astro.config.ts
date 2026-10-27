@@ -24,7 +24,7 @@ export default defineConfig({
         {
           label: 'Start here',
           translations: { he: 'מתחילים' },
-          items: ['start/install', 'start/first-book', 'start/tour'],
+          items: ['start/install', 'start/first-book', 'start/tour', 'start/bring-in'],
         },
         {
           label: 'Writing',

@@ -19,6 +19,8 @@
   "welcome-recent-missing": "Moved or missing",
   "welcome-find": "Find…",
   "welcome-forget": "Remove from list",
+  "welcome-bring-in-question": "Already have notes or a draft?",
+  "welcome-bring-in": "Moving them in →",
   "new-project-title-label": "Title",
   "new-project-author-label": "Name on the cover (optional)",
   "new-project-language-label": "Language of the book",

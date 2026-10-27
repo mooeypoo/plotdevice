@@ -1,0 +1,63 @@
+---
+title: Moving an existing book in
+description: Bring a world bible, notes, a timeline or a draft you already have into a Plot Device book, by hand or with an AI assistant.
+---
+
+import Ui from '~/components/Ui.astro'
+
+This page is about moving what you've already written (a world bible, notes, a timeline, a plot synopsis, chapters) into a Plot Device book. It's done once. To learn the app itself, start with [Your first book](/plotdevice/start/first-book/) and [the tour](/plotdevice/start/tour/).
+
+Your originals stay as they are. You make a new book, and copy into it.
+
+## What goes where
+
+| What you have | Where it goes |
+|---|---|
+| A character | A character page: one paragraph to describe them, then anything else you wrote |
+| A place | A place page |
+| Magic, history, factions, religion, a glossary, research | A note, one for each topic |
+| Groups: a family, a faction, the main characters | [Tags](/plotdevice/planning/tags/) on the pages |
+| "Bea is Ilka's aunt" | A relationship, on Bea's page or Ilka's but not on both. The other page shows it by itself. See [Characters, places and notes](/plotdevice/planning/pages/) |
+| A timeline | A note with a list, like the timeline in the demo book |
+| A plot synopsis or beat sheet | An [outline](/plotdevice/planning/outlines/): each section a column, each point a card |
+| Chapters you've drafted | One chapter each, in order, in parts if you use them |
+| Scenes you cut, or haven't placed | Chapters kept **<Ui k="navigator-not-in-book" />**, outside the book's order |
+
+Anything that doesn't fit anywhere can go into a note called "To sort", and you can sort it later.
+
+## Doing it yourself
+
+It's slower, and nothing can go wrong.
+
+1. Choose **<Ui k="welcome-new-project" />** and start a new book.
+2. For each chapter, add a chapter in **<Ui k="workspace-write" />** and paste in its text.
+3. For each character, place or topic, add a page in **<Ui k="workspace-story" />**, under **<Ui k="story-world" />**, and paste in what you wrote about it. Make sure the first paragraph is the one you want on its card.
+4. Add relationships and tags as you go, or afterwards.
+
+## With an AI assistant
+
+Plot Device has no AI in it, and sends nothing anywhere. If you already use an AI assistant that can make files on your computer, it can do the move for you, following a guide written for it:
+
+**https://mooeypoo.github.io/plotdevice/for-assistants.md**
+
+That guide tells it the format of every file, where each kind of material goes, and its rules: keep your words exactly, invent nothing, leave nothing out, and never touch your original files. You could write to it:
+
+> Read https://mooeypoo.github.io/plotdevice/for-assistants.md. Then make a new Plot Device book in a new folder called "The Glass Weir", from my world bible and my draft chapters in this folder. Don't change my files. Tell me what you weren't sure about.
+
+When it's done:
+
+1. Choose **<Ui k="welcome-open-project" />** and open the new folder.
+2. Look through it: the chapters in order, a few characters and places, the outline.
+3. Read the assistant's list of what it wasn't sure about, and the "To sort" note.
+
+Everything it made is ordinary text in the book's folder. If something isn't right, fix it in Plot Device, as you would anything else.
+
+## If something didn't come across
+
+- **A chapter you expected is <Ui k="navigator-not-in-book" />.** It isn't in the book's order yet. Move it into place: see [Moving chapters](/plotdevice/writing/moving-chapters/).
+- **A chapter is <Ui k="navigator-missing" />.** The book's contents lists a file that isn't there. Plot Device offers a likely match if it finds one.
+- **A box says <Ui k="kept-as-written" />.** Part of a page or chapter is written in a way Plot Device doesn't show, but it's kept exactly as it is. You can leave it, or rewrite it.
+- **A page has no description on its card.** Its first paragraph is empty, or is a heading. Write one at the top.
+- **A link goes nowhere.** It points to a page that doesn't exist, often by a slightly different name. Link it again from the page.
+
+For how each file is written, see [Your files](/plotdevice/files/folder/).

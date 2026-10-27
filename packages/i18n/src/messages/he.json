@@ -19,6 +19,8 @@
   "welcome-recent-missing": "הועבר או חסר",
   "welcome-find": "איתור…",
   "welcome-forget": "הסרה מהרשימה",
+  "welcome-bring-in-question": "כבר יש הערות או טיוטה?",
+  "welcome-bring-in": "העבירו אותן למערכת ←",
   "new-project-title-label": "כותרת",
   "new-project-author-label": "השם על הכריכה (לא חובה)",
   "new-project-language-label": "שפת הספר",

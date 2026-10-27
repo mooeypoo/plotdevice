@@ -1,0 +1,12 @@
+# Plot Device
+
+> Plot Device is an open-source writing app for novelists. A book is an ordinary folder of Markdown files: chapters, an ordered contents list, outlines, and pages for characters, places and notes.
+
+## For AI assistants
+
+- [Moving an author's material into a book](https://mooeypoo.github.io/plotdevice/for-assistants.md): the book's file format, where each kind of material goes, the rules to follow, a worked example, and a checklist. Read this before creating or converting a Plot Device book.
+
+## For authors
+
+- [User guide](https://mooeypoo.github.io/plotdevice/): installing and using the app, in English and Hebrew.
+- [Moving an existing book in](https://mooeypoo.github.io/plotdevice/start/bring-in/): the same move, explained for authors.

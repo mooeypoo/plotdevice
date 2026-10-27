@@ -2,7 +2,7 @@ import theCrossing from '../../../tests/fixtures/projects/salt-orchard/manuscrip
 import looseIdeas from '../../../tests/fixtures/projects/salt-orchard/notes/loose-ideas.md?raw'
 import mainStory from '../../../tests/fixtures/projects/salt-orchard/outlines/main-story.md?raw'
 import { describe, expect, it } from 'vitest'
-import { rewriteLinksTo } from './links'
+import { locateLinks, rewriteLinksTo } from './links'
 
 const FROM = 'manuscript/the-crossing.md'
 
@@ -65,5 +65,15 @@ describe('rewriteLinksTo: every link to a renamed file, and nothing else', () =>
       text: '# Nothing here\n',
       count: 0,
     })
+  })
+})
+
+describe('locateLinks: where each link is', () => {
+  it('gives the line each link starts on, with CRLF line endings too', () => {
+    const text = '---\ntitle: Bea\n---\nAunt of [Ilka](ilka.md).\r\n\r\n- Waits at [[Ferry Landing]]\n\n`[not](a-link.md)`\n'
+    expect(locateLinks(text, 'characters')).toEqual([
+      { link: { kind: 'path', target: 'characters/ilka.md', text: 'Ilka' }, line: 4 },
+      { link: { kind: 'wiki', name: 'Ferry Landing', text: null }, line: 6 },
+    ])
   })
 })

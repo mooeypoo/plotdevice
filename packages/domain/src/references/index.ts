@@ -4,6 +4,8 @@ export {
   referenceFileFor,
   relationshipHeadingFor,
   resolveWikiLink,
+  unresolvedLink,
+  type LinkTarget,
   type ReferenceKind,
   type ReferenceSummary,
   type Relationship,

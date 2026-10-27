@@ -496,6 +496,14 @@ label {
 .welcome-view > .actions {
   justify-content: center;
 }
+.welcome-bring-in {
+  margin-block: 1rem 0;
+  font-size: 0.9rem;
+}
+.welcome-bring-in a {
+  color: var(--color-accent);
+  text-underline-offset: 0.2em;
+}
 .welcome-view .new-project {
   inline-size: min(28rem, 100%);
   padding: 1.5rem;

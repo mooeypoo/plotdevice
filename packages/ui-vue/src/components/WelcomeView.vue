@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { bringInGuideFor } from '../links'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import BrandMark from './BrandMark.vue'
@@ -63,6 +64,12 @@ async function create(): Promise<void> {
       </button>
       <button type="button" data-testid="open-project" @click="store.open('choose')">{{ settings.t('welcome-open-project') }}</button>
     </div>
+    <p v-if="!creating" class="welcome-bring-in secondary">
+      {{ settings.t('welcome-bring-in-question') }}
+      <a :href="bringInGuideFor(settings.locale)" target="_blank" rel="noreferrer" data-testid="welcome-bring-in">{{
+        settings.t('welcome-bring-in')
+      }}</a>
+    </p>
 
     <p v-if="store.notice" class="warning" role="alert">{{ settings.t(store.notice.key, ...store.notice.params) }}</p>
 
