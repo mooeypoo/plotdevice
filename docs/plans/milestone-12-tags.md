@@ -22,7 +22,7 @@ Authors give pages **tags** they type themselves ("Part Two – main", "Varga fa
 Pills under the title, with "+ Tag":
 
 ```
-Noël Arceneaux
+Noël Arany
 (Part One – secondary ×) (Part Two – main ×) (Marrow folk ×)  + Tag
 ```
 
@@ -91,7 +91,7 @@ The link picker ("Link to…") is used in Story, on cards and relationships, whe
 
 ```markdown
 ---
-title: Noël Arceneaux
+title: Noël Arany
 aka: [Noël]
 tags: [Part One – secondary, Part Two – main, Marrow folk]
 ---

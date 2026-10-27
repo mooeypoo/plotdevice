@@ -142,7 +142,7 @@ This milestone splits Story into two clearly named halves: **Plot** (building th
 
 ```markdown
 ---
-title: Noël Arceneaux
+title: Noël Arany
 aka: [Noël]
 tags: [Part One – secondary, Part Two – main, Marrow folk]
 ---
