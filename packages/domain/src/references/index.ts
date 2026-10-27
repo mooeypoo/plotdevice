@@ -8,3 +8,4 @@ export {
   type ReferenceSummary,
   type Relationship,
 } from './references'
+export { cleanTags, nearDuplicateTags, projectTags, tagKey, type NearDuplicate, type ProjectTag } from './tags'

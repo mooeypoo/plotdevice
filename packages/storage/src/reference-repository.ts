@@ -1,5 +1,6 @@
 import type { CardLinks, FileLinks, ProjectFolders, ReferenceRepository } from '@plotdevice/application'
 import {
+  cleanTags,
   kindOfFile,
   OUTLINES_FOLDER,
   REFERENCE_FOLDERS,
@@ -15,6 +16,7 @@ import {
   readOutline,
   readReferencePage,
   readRelationships,
+  setFrontmatterList,
   setFrontmatterValues,
   type FoundLink,
   type OutlineItemSource,
@@ -42,7 +44,9 @@ function summarize(file: ProjectPath, text: string, files: readonly ProjectPath[
     kind: kindOfFile(file) ?? 'note',
     title: page.title,
     aka: page.aka,
+    tags: cleanTags(page.tags),
     description: page.description,
+    invalidDetails: page.invalidDetails,
     relationships: readRelationships(text, dir, HEADINGS).relationships.map((relationship) => ({
       text: relationship.text,
       links: resolveAll(relationship.links, files),
@@ -53,7 +57,7 @@ function summarize(file: ProjectPath, text: string, files: readonly ProjectPath[
 
 /**
  * Characters, places and notes as Markdown pages, read leniently (Milestone 5), and the links outline
- * cards make. Only the app's own changes write: creating a page, or setting its title.
+ * cards make. Only the app's own changes write: creating a page, or setting its title, tags or relationships.
  */
 export function createReferenceRepository({ folders }: { folders: ProjectFolders }): ReferenceRepository {
   return {
@@ -78,7 +82,6 @@ export function createReferenceRepository({ folders }: { folders: ProjectFolders
       return ok({
         ...summarize(file, read.value.text, await store.listMarkdownFiles()),
         details: page.details,
-        invalidDetails: page.invalidDetails,
       })
     },
 
@@ -92,7 +95,8 @@ export function createReferenceRepository({ folders }: { folders: ProjectFolders
       for (let attempt = 0; attempt < 3; attempt++) {
         const file = referenceFileFor(kind, name, await store.listMarkdownFiles())
         const written = await store.write(file, content, null)
-        if (written.ok) return ok({ file, kind, title: name, aka: [], description: null, relationships: [], links: [] })
+        if (written.ok)
+          return ok({ file, kind, title: name, aka: [], tags: [], description: null, invalidDetails: false, relationships: [], links: [] })
         if (written.error.code !== 'stale') break
       }
       return err('write-failed')
@@ -107,6 +111,18 @@ export function createReferenceRepository({ folders }: { folders: ProjectFolders
       if (!current.ok) return err(current.error === 'missing' ? 'missing' : 'unreadable')
       const updated = setFrontmatterValues(current.value.text, { title: name })
       if (!updated.ok) return err('unreadable')
+      const written = await store.write(file, { text: updated.value, hasBom: current.value.hasBom }, current.value.revision)
+      if (!written.ok) return err(written.error.code === 'stale' ? 'stale' : 'write-failed')
+      return ok(undefined)
+    },
+
+    async setTags(root, file, tags) {
+      const store = folders.open(root)
+      const current = await store.read(file)
+      if (!current.ok) return err(current.error === 'missing' ? 'missing' : 'unreadable')
+      const updated = setFrontmatterList(current.value.text, 'tags', cleanTags(tags))
+      if (!updated.ok) return err('unreadable')
+      if (updated.value === current.value.text) return ok(undefined)
       const written = await store.write(file, { text: updated.value, hasBom: current.value.hasBom }, current.value.revision)
       if (!written.ok) return err(written.error.code === 'stale' ? 'stale' : 'write-failed')
       return ok(undefined)

@@ -1,6 +1,6 @@
 import { err, ok, type Result } from '@plotdevice/shared'
 import { isMap, isScalar, parseDocument, type Scalar } from 'yaml'
-import { applySplices, lineEndingOf, type Splice } from './text'
+import { applySplices, lineEndAt, lineEndingOf, lineStartAt, type Splice } from './text'
 
 /** The frontmatter block at the very start of a file, with offsets into the whole text. */
 export interface Frontmatter {
@@ -72,6 +72,38 @@ export function setFrontmatterValues(text: string, values: Readonly<Record<strin
   }
   if (missing.length > 0) splices.push({ start: frontmatter.yamlEnd, end: frontmatter.yamlEnd, text: missing.join('') })
   return ok(applySplices(text, splices))
+}
+
+/**
+ * Sets one top-level list, such as `tags`, by replacing only its lines with a flow list
+ * (`tags: [a, b]`); an empty list removes the key. Everything else stays byte for byte (ADR 0005).
+ */
+export function setFrontmatterList(text: string, key: string, values: readonly string[]): Result<string, FrontmatterProblem> {
+  const eol = lineEndingOf(text)
+  const line = values.length > 0 ? `${key}: [${values.map(formatFlowItem).join(', ')}]${eol}` : ''
+  const { frontmatter } = splitFrontmatter(text)
+  if (!frontmatter) return ok(line === '' ? text : `---${eol}${line}---${eol}${text}`)
+
+  const doc = parseDocument(text.slice(frontmatter.yamlStart, frontmatter.yamlEnd))
+  if (doc.errors.length > 0) return err('invalid-yaml')
+  const map = doc.contents
+  if (map !== null && !isMap(map)) return err('not-a-map')
+  const pair = map?.items.find((item) => isScalar(item.key) && item.key.value === key)
+  if (!pair) return ok(line === '' ? text : applySplices(text, [{ start: frontmatter.yamlEnd, end: frontmatter.yamlEnd, text: line }]))
+
+  const keyRange = isScalar(pair.key) ? pair.key.range : null
+  const valueRange = (pair.value as { range?: [number, number, number] } | null)?.range ?? keyRange
+  if (!keyRange || !valueRange) return err('not-a-plain-value')
+  const start = lineStartAt(text, frontmatter.yamlStart + keyRange[0])
+  // A block list ends just past its last line ending; anything else ends on the line it is written on.
+  const end = lineEndAt(text, frontmatter.yamlStart + Math.max(valueRange[1], keyRange[1]) - 1)
+  return ok(applySplices(text, [{ start, end, text: line }]))
+}
+
+/** An entry of a flow list: plain when that is safe there too, double-quoted otherwise. */
+function formatFlowItem(value: string): string {
+  const plain = formatScalar(value)
+  return plain === value && !/[,[\]{}]/.test(value) ? value : JSON.stringify(value)
 }
 
 const YAML_SPECIAL = /^(?:true|false|null|yes|no|on|off|~|[-+]?(?:\d[\d_]*(?:\.\d*)?|\.\d+)(?:e[-+]?\d+)?|\.inf|\.nan)$/i

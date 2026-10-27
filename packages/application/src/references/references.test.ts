@@ -49,6 +49,8 @@ describe('"Linked from": everything that links to a page', () => {
     kind: 'character',
     title,
     aka: [],
+    tags: [],
+    invalidDetails: false,
     description: null,
     relationships: relationships.map((relationship) => ({ text: relationship.text, links: relationship.links.map(p) })),
     links: links.map(p),

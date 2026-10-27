@@ -39,7 +39,10 @@ export interface ReferenceSummaryView {
   kind: ReferenceKind
   title: string
   aka: string[]
+  tags: string[]
   description: string | null
+  /** The frontmatter couldn't be read; its tags are unknown, and it is never rewritten to fix it. */
+  invalidDetails: boolean
   relationships: RelationshipView[]
   /** Every file the page links to. */
   links: ProjectPath[]
@@ -47,7 +50,6 @@ export interface ReferenceSummaryView {
 
 export interface ReferencePageView extends ReferenceSummaryView {
   details: string
-  invalidDetails: boolean
 }
 
 /** Something a card links to, named for display. */

@@ -10,7 +10,8 @@ const page = (
   title: string,
   aka: string[] = [],
   description: string | null = null,
-): ReferenceSummaryView => ({ file: p(file), kind, title, aka, description, relationships: [], links: [] })
+  tags: string[] = [],
+): ReferenceSummaryView => ({ file: p(file), kind, title, aka, tags, description, invalidDetails: false, relationships: [], links: [] })
 
 const library = [
   page('characters/ilka.md', 'character', 'Ilka Varga', ['Ili'], 'Inherits the orchard.'),

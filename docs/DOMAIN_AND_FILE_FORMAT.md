@@ -144,6 +144,7 @@ The letter was written in English, and it began without a greeting.
 ---
 title: Ilka Varga
 aka: [Ilka, Ili]
+tags: [Main, Varga family]
 ---
 Inherits the orchard; distrusts everyone in Marrow.
 
@@ -156,7 +157,8 @@ Daughter of Bea's sister.
 ```
 - One page per file in `characters/`, `places/` or `notes/`. The folder says what the page is; a `type` key is optional and informational.
 - `title` names the page. Without one, the first `#` heading names it, then the file name, so pages written in any app work unchanged. `aka` (a list, or a single name) holds other names, used by search.
-- The first paragraph is the description; everything after it is details. Pages are read leniently and never rewritten to fit; the app changes only `title`, when the author renames a page, and one bullet of the relationships section, when the author adds, rewords or removes a relationship.
+- **Tags** (Milestone 12): `tags` (a list, or a single tag) holds the author's own words for grouping pages ("Part Two – main", "Varga family"), spaces included. Tags that differ only in case or spacing are the same tag, shown with the first spelling found. An entry YAML reads as a one-key map (`- Part Two: main`, unquoted) is read as the tag the author meant. When the author changes a page's tags, the app rewrites only the `tags:` line, as a flow list, quoting a tag only when YAML needs it; removing the last tag removes the line.
+- The first paragraph is the description; everything after it is details. Pages are read leniently and never rewritten to fit; the app changes only `title`, when the author renames a page, the `tags:` line, when the author changes its tags, and one bullet of the relationships section, when the author adds, rewords or removes a relationship.
 - **Relationships** (ADR 0009): a heading named "Relationships" (or "קשרים", any level, any case) with a bulleted list. Each top-level bullet with a link is one relationship: the words around the link say what it is, the link says with whom. One direction only: the other page shows it under "Linked from" and is never written to. The first relationship adds the heading after the description, in the project's language.
 - Pages have no ids (ADR 0008).
 

@@ -44,7 +44,9 @@ describe('reference pages', () => {
         kind: 'character',
         title: 'Ilka Varga',
         aka: ['Ilka'],
+        tags: [],
         description: 'Inherits the orchard.',
+        invalidDetails: false,
         relationships: [],
         links: [],
       },
@@ -53,7 +55,9 @@ describe('reference pages', () => {
         kind: 'note',
         title: expect.any(String) as string,
         aka: [],
+        tags: [],
         description: expect.anything() as string,
+        invalidDetails: false,
         relationships: [],
         links: expect.any(Array) as ProjectPath[],
       },
@@ -62,7 +66,9 @@ describe('reference pages', () => {
         kind: 'note',
         title: 'Loose ideas',
         aka: [],
+        tags: [],
         description: expect.stringMatching(/^Maybe open/) as string,
+        invalidDetails: false,
         relationships: [],
         links: expect.any(Array) as ProjectPath[],
       },
@@ -71,7 +77,9 @@ describe('reference pages', () => {
         kind: 'place',
         title: 'Marrow',
         aka: [],
+        tags: [],
         description: 'Where the orchard is.',
+        invalidDetails: false,
         relationships: [],
         links: [],
       },
@@ -122,6 +130,31 @@ describe('reference pages', () => {
     })
   })
 
+  it('sets tags, changing only the tags line, and lists them each once', async () => {
+    const { root, repository, text } = await setup()
+    const before = await text('characters/ilka.md')
+    unwrap(await repository.setTags(root, p('characters/ilka.md'), ['Main', ' main', 'Part Two: main', 'משפחת ורגה']))
+    expect(await text('characters/ilka.md')).toBe(
+      before.replace('pov: true # her chapters\n', 'pov: true # her chapters\ntags: [Main, "Part Two: main", משפחת ורגה]\n'),
+    )
+    const listed = await repository.listReferences(root)
+    expect(listed.find((page) => page.file === 'characters/ilka.md')?.tags).toEqual(['Main', 'Part Two: main', 'משפחת ורגה'])
+    unwrap(await repository.setTags(root, p('characters/ilka.md'), []))
+    expect(await text('characters/ilka.md')).toBe(before)
+  })
+
+  it('never rewrites a page whose frontmatter cannot be read to set its tags', async () => {
+    const { root, repository, text } = await setup()
+    const broken = '---\ntitle: [unclosed\ntags: [Main]\n---\n# Bea\nThe aunt.\n'
+    await writeFile(join(root, 'characters/bea.md'), broken)
+    expect(await repository.setTags(root, p('characters/bea.md'), ['Main'])).toEqual({ ok: false, error: 'unreadable' })
+    expect(await text('characters/bea.md')).toBe(broken)
+    expect((await repository.listReferences(root)).find((page) => page.file === 'characters/bea.md')).toMatchObject({
+      tags: [],
+      invalidDetails: true,
+    })
+  })
+
   it('creates pages named from their titles, in Hebrew too', async () => {
     const { root, repository, text } = await setup()
     expect(unwrap(await repository.createReference(root, 'character', 'יעל'))).toEqual({
@@ -129,7 +162,9 @@ describe('reference pages', () => {
       kind: 'character',
       title: 'יעל',
       aka: [],
+      tags: [],
       description: null,
+      invalidDetails: false,
       relationships: [],
       links: [],
     })

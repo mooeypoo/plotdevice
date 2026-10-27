@@ -1,6 +1,6 @@
 # Milestone 12: Tags on pages
 
-Status: **Proposed** (2026-10-27). Waiting for the owner's approval before any code. The decisions behind it are in `milestone-11-story-plot-and-world.md`, section "Later: tags on pages".
+Status: **Approved** (2026-10-27), with the recommended answers to the open decisions; in progress on branch `milestone-12/tags` (PR #30). The decisions behind it are in `milestone-11-story-plot-and-world.md`, section "Later: tags on pages".
 
 ## Goal
 
@@ -78,12 +78,12 @@ The tags chosen on the shelf and in the link picker are remembered per part. Mov
 5. No tag colours for now.
 6. Tag problems are checked when a project opens. The author is told only when there is something to tidy, and is offered to tidy it. Otherwise nothing is shown.
 
-## Open decisions (recommendations marked)
+## Settled with the plan (owner, 2026-10-27: the recommendations)
 
-1. **How remembered tags find their part.** Parts have no id, only their name in `CONTENTS.md`. **Recommended:** remember by part name. If a part is renamed, its remembered choice is simply forgotten. It's personal convenience, kept in app data, so nothing in the book breaks.
-2. **Many tags in one row.** **Recommended:** the row wraps to at most two lines, then "+ 6 more" opens the rest in a small list with search.
-3. **A page whose frontmatter can't be read** (broken YAML) during "Rename everywhere". **Recommended:** it's skipped and named in the result ("2 pages couldn't be changed: …"); nothing is repaired without the author.
-4. **An ADR?** **Recommended:** no. One optional frontmatter list is a small format change; it goes into `DOMAIN_AND_FILE_FORMAT.md` beside `aka`.
+1. **How remembered tags find their part.** Parts have no id, only their name in `CONTENTS.md`. Remembered by part name. If a part is renamed, its remembered choice is simply forgotten. It's personal convenience, kept in app data, so nothing in the book breaks.
+2. **Many tags in one row.** The row wraps to at most two lines, then "+ 6 more" opens the rest in a small list with search.
+3. **A page whose frontmatter can't be read** (broken YAML) during "Rename everywhere". It's skipped and named in the result ("2 pages couldn't be changed: …"); nothing is repaired without the author.
+4. **An ADR?** No. One optional frontmatter list is a small format change; it goes into `DOMAIN_AND_FILE_FORMAT.md` beside `aka`.
 
 ## File format
 

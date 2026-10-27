@@ -7,6 +7,8 @@ export interface ReferencePage {
   title: string
   /** Other names, for search (`aka` in frontmatter: a list or a single name). */
   aka: string[]
+  /** The author's tags, as written (`tags` in frontmatter: a list or a single tag). */
+  tags: string[]
   /** The first paragraph, as written; `null` when the page has none. */
   description: string | null
   /** Everything after the description, as written. */
@@ -43,6 +45,7 @@ export function readReferencePage(text: string, fileStem: string): ReferencePage
   return {
     title: nonEmpty(fields.title) ?? (headingTitle || null) ?? fileStem,
     aka: names(fields.aka),
+    tags: names(fields.tags),
     description,
     details: body.slice(detailsStart).replace(/^(?:[ \t]*\r?\n)+/, ''),
     invalidDetails: frontmatter !== null && !values.ok,
@@ -54,9 +57,23 @@ const nonEmpty = (value: unknown): string | null => (typeof value === 'string' &
 function names(value: unknown): string[] {
   const list = Array.isArray(value) ? value : [value]
   return list.flatMap((entry) => {
-    const name = nonEmpty(typeof entry === 'number' ? String(entry) : entry)
+    const name = nonEmpty(asText(entry))
     return name ? [name] : []
   })
+}
+
+/**
+ * An entry as the author meant it. `- Part Two: main` written without quotes is a one-key map to YAML,
+ * but the author wrote one name.
+ */
+function asText(entry: unknown): unknown {
+  if (typeof entry === 'number' || typeof entry === 'boolean') return String(entry)
+  if (typeof entry === 'object' && entry !== null && !Array.isArray(entry)) {
+    const pairs = Object.entries(entry)
+    const [key, value] = pairs[0] ?? []
+    if (pairs.length === 1 && key !== undefined && (typeof value === 'string' || typeof value === 'number')) return `${key}: ${value}`
+  }
+  return entry
 }
 
 /** A new page: just its title (Milestone 5, decision 1). */
