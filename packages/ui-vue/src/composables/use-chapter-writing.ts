@@ -5,6 +5,7 @@ import {
   type EditorSettings,
   type FoldedSection,
   type FormatCommand,
+  type OutlineTextOptions,
   type SelectionPlace,
 } from '@plotdevice/editor-codemirror'
 import { pastedMarkdown } from '@plotdevice/markdown'
@@ -28,7 +29,9 @@ export type ChapterState = 'none' | 'loading' | 'ready' | 'missing' | 'unreadabl
  */
 export function useChapterWriting(
   host: Ref<HTMLElement | null>,
-  options: { remembersPosition: boolean; foldedSection?: FoldedSection } = { remembersPosition: true },
+  options: { remembersPosition: boolean; foldedSection?: FoldedSection; outline?: OutlineTextOptions; label?: () => string } = {
+    remembersPosition: true,
+  },
 ) {
   const api = useApi()
   const store = useProjectStore()
@@ -53,7 +56,7 @@ export function useChapterWriting(
     projectDirection: project?.direction ?? 'ltr',
     directionMode: 'project',
     language: project?.language ?? preferences?.locale ?? 'en',
-    labels: { chapterText: settings.t('chapter-text'), sceneBreak: settings.t('scene-break') },
+    labels: { chapterText: options.label?.() ?? settings.t('chapter-text'), sceneBreak: settings.t('scene-break') },
   })
 
   function flush(): void {
@@ -129,7 +132,9 @@ export function useChapterWriting(
     }
     const { copy, text, project } = result.value
     store.setProject(project)
-    if (copy) store.tell('conflict-kept', project.chapters.find((chapter) => chapter.file === copy)?.title ?? copy)
+    // A chapter's copy is put on the side of the book; a page's or an outline's sits beside it in its folder.
+    const chapter = copy ? project.chapters.find((each) => each.file === copy) : undefined
+    if (copy) store.tell(chapter ? 'conflict-kept' : 'conflict-kept-beside', chapter?.title ?? copy.split('/').at(-1) ?? copy)
     if (text === null) state.value = 'missing'
     else if (result.value.generation !== generation) editor?.load(text, editor.cursor(), editor.top() ?? lastTop)
     generation = result.value.generation
@@ -157,6 +162,7 @@ export function useChapterWriting(
         selection.value = place
       },
       ...(options.foldedSection ? { foldedSection: options.foldedSection } : {}),
+      ...(options.outline ? { outline: options.outline } : {}),
     })
     stopEvents = api.onEvent(onHostEvent)
     window.addEventListener('blur', onBlur)
@@ -187,6 +193,11 @@ export function useChapterWriting(
     resolveConflict,
     format: (command: FormatCommand) => editor?.format(command),
     insertLink: (url: string) => editor?.insertLink(url),
+    pickLink: (markdown: string) => editor?.pickLink(markdown),
+    /** The text in the editor now, saved or not. */
+    text: () => editor?.text() ?? '',
+    cursor: () => editor?.cursor() ?? 0,
+    select: (from: number, to?: number) => editor?.select(from, to),
     setParagraphDirection: (direction: 'ltr' | 'rtl' | null) => editor?.setParagraphDirection(direction),
     setPhraseDirection: (direction: 'ltr' | 'rtl' | null) => editor?.setPhraseDirection(direction),
     selection,

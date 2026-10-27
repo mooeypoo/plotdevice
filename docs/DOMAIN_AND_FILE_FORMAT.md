@@ -135,6 +135,7 @@ The letter was written in English, and it began without a greeting.
 - The family secret is revealed
 ```
 - In default Board: H2 -> columns, first-level list item -> card, descendants -> details. Mapping and supported Markdown are defined in ADR 0003.
+- The Text view (Milestone 14) shows the outline's body as written, to type freely, and saves it like a chapter's text; frontmatter is kept as is. Board and List read the file again when they show.
 - Do not conflate board card with manuscript chapter/scene.
 - Unknown Markdown blocks: retain; if structural editing cannot round-trip safely, restrict operation with helpful explanation.
 - Cards link to chapters, characters and places with ordinary relative Markdown links. Cards themselves have no stored IDs in the MVP (ADR 0003).
