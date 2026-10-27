@@ -1742,6 +1742,10 @@ button.inline-link {
   padding-block: 0.4rem;
   border-block-end: 1px solid var(--hair);
 }
+.tidy-tags-pair .secondary {
+  margin-inline-start: 0.4rem;
+  font-size: 0.85em;
+}
 .tidy-tags-pair,
 .tidy-actions {
   display: flex;

@@ -41,7 +41,7 @@ export default defineConfig({
         {
           label: 'Planning',
           translations: { he: 'תכנון' },
-          items: ['planning/outlines', 'planning/cards', 'planning/linking', 'planning/pages', 'planning/book-chapters'],
+          items: ['planning/outlines', 'planning/cards', 'planning/linking', 'planning/pages', 'planning/tags', 'planning/book-chapters'],
         },
         {
           label: 'Keeping it safe',
