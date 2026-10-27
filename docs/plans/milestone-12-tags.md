@@ -103,7 +103,7 @@ tags: [Part One – secondary, Part Two – main, Marrow folk]
 ## Files
 
 - **Markdown:** `frontmatter.ts` (set or remove one list-valued key, keeping the rest byte-identical); `reference-page.ts` (read `tags`), with tests.
-- **Domain:** `references/` (tag normalising and matching; the first spelling wins; finding near-duplicates), with tests.
+- **Shared:** `tags.ts` (tag matching, the first spelling wins, near-duplicates), with tests. Shared, like the relationship headings, because the host writes tags and the renderer groups and tidies them.
 - **Application:** `references/` (add or remove a tag on a page; rename or remove a tag on every page, with a result that names skipped pages), with tests.
 - **Contracts:** `references.ts` (`tags` on the summary view; requests to add, remove and rename tags), `api.ts`, the IPC channels and schemas.
 - **Storage:** `reference-repository.ts` (write the tags line through the existing safe page writes).

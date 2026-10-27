@@ -1,6 +1,5 @@
 import type { CardLinks, FileLinks, ProjectFolders, ReferenceRepository } from '@plotdevice/application'
 import {
-  cleanTags,
   kindOfFile,
   OUTLINES_FOLDER,
   REFERENCE_FOLDERS,
@@ -21,7 +20,7 @@ import {
   type FoundLink,
   type OutlineItemSource,
 } from '@plotdevice/markdown'
-import { dirnameOf, err, ok, RELATIONSHIP_HEADINGS, stemOf, type ProjectPath } from '@plotdevice/shared'
+import { cleanTags, dirnameOf, err, ok, RELATIONSHIP_HEADINGS, stemOf, type ProjectPath } from '@plotdevice/shared'
 
 const REFERENCE_PREFIXES = Object.values(REFERENCE_FOLDERS).map((folder) => `${folder}/`)
 const HEADINGS = Object.values(RELATIONSHIP_HEADINGS)

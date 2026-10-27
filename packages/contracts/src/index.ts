@@ -77,6 +77,7 @@ export {
   referenceKindSchema,
   renameReferenceFileSchema,
   renameReferenceSchema,
+  setTagsSchema,
   shelfSchema,
   type CardLinksView,
   type LinkedFromView,

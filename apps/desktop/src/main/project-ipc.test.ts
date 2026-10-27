@@ -361,6 +361,36 @@ describe('reference calls', () => {
     expect(context.session.saveStatus(created.value.file)?.kind).toBe('saved')
   })
 
+  it('tags a page that is open and being typed in, without a conflict', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const created = (await context.call(channels.createReference, {
+      kind: 'character',
+      title: 'Noël',
+    })) as ReferenceResult<ReferenceSummaryView>
+    if (!created.ok) throw new Error(created.error)
+    const page = (await context.call(channels.openChapter, { file: created.value.file })) as OpenChapterResult
+    if (!page.ok) throw new Error(page.error)
+    await context.call(channels.saveChapter, { file: created.value.file, text: 'Keeps the ferry.\n', generation: page.value.generation })
+    const tagged = (await context.call(channels.setTags, {
+      file: created.value.file,
+      tags: ['Part Two – main', 'Marrow folk'],
+    })) as ReferenceResult<ReferenceSummaryView>
+    expect(tagged.ok && tagged.value.tags).toEqual(['Part Two – main', 'Marrow folk'])
+    await context.call(channels.saveChapter, {
+      file: created.value.file,
+      text: 'Keeps the ferry, and the keys.\n',
+      generation: page.value.generation,
+    })
+    await context.session.idle()
+    expect(context.session.saveStatus(created.value.file)?.kind).toBe('saved')
+    expect(await context.read(created.value.file)).toBe(
+      '---\ntitle: Noël\ntags: [Part Two – main, Marrow folk]\n---\nKeeps the ferry, and the keys.\n',
+    )
+    await expect(context.call(channels.setTags, { file: created.value.file, tags: ['two\nlines'] })).rejects.toThrow('invalid-payload')
+    await expect(context.call(channels.setTags, { file: 'manuscript/frost.md', tags: ['Main'] })).rejects.toThrow('invalid-payload')
+  })
+
   it('adds a relationship to a page open in the editor: the editor shows it, and saving carries on', async () => {
     const context = await setup()
     await openChosen(context)

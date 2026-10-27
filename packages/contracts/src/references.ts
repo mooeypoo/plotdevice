@@ -22,6 +22,13 @@ export const editRelationshipSchema = z.strictObject({
     z.strictObject({ kind: z.literal('remove'), index: relationshipIndex }),
   ]),
 })
+/** A tag as the author typed it (Milestone 12): one line. */
+const tag = z
+  .string()
+  .min(1)
+  .max(200)
+  .refine((value) => !/[\r\n]/.test(value))
+export const setTagsSchema = z.strictObject({ file: referenceFile, tags: z.array(tag).max(100) })
 /** The pinned shelf, in the author's order. */
 export const shelfSchema = z.strictObject({ files: z.array(referenceFile).max(100) })
 

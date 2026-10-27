@@ -35,6 +35,7 @@ const api: PlotDeviceApi = {
   renameReferenceFile: (file, newName) => ipcRenderer.invoke(channels.renameReferenceFile, { file, newName }),
   cardsAbout: (chapter) => ipcRenderer.invoke(channels.cardsAbout, { file: chapter }),
   editRelationship: (file, change) => ipcRenderer.invoke(channels.editRelationship, { file, change }),
+  setTags: (file, tags) => ipcRenderer.invoke(channels.setTags, { file, tags }),
   linkedFrom: (file) => ipcRenderer.invoke(channels.linkedFrom, { file }),
   getShelf: () => ipcRenderer.invoke(channels.getShelf),
   setShelf: (files) => ipcRenderer.invoke(channels.setShelf, { files }),

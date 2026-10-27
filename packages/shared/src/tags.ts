@@ -1,3 +1,6 @@
+// Tags on pages (Milestone 12). Shared because both the host (reading and writing pages) and the
+// renderer (grouping lists, suggesting tags, finding what to tidy) need the same idea of "one tag".
+
 /**
  * Tags are written as the author says them (Milestone 12, decision 1). Two spellings are the same tag
  * when they differ only in case or spacing: "Marrow folk" and "marrow  Folk".

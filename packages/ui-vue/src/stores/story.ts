@@ -128,6 +128,26 @@ export const useStoryStore = defineStore('story', () => {
     return result.ok
   }
 
+  /** Tag changes, one at a time, so a quick second change never starts from the tags before the first. */
+  let tagging: Promise<unknown> = Promise.resolve()
+
+  /** Sets a page's tags; tells the author when it couldn't be done. */
+  function setTags(file: ProjectPath, tags: string[]): Promise<boolean> {
+    const run = tagging.then(() => writeTags(file, tags))
+    tagging = run.catch(() => undefined)
+    return run
+  }
+
+  async function writeTags(file: ProjectPath, tags: string[]): Promise<boolean> {
+    const result = await api.setTags(file, [...tags])
+    await refresh()
+    if (!result.ok)
+      project.tell(
+        result.error === 'unreadable' ? 'tags-unreadable' : result.error === 'stale' ? 'relationship-changed-elsewhere' : 'tags-failed',
+      )
+    return result.ok
+  }
+
   async function edit(request: OutlineEditRequest): Promise<boolean> {
     if (!outline.value) return false
     // A plain copy: positions taken from the reactive outline are proxies, which can't cross to the host.
@@ -174,6 +194,7 @@ export const useStoryStore = defineStore('story', () => {
     refresh,
     showOnBoard,
     editRelationship,
+    setTags,
     open,
     create,
     edit,

@@ -14,6 +14,7 @@ import {
   referenceFileSchema,
   renameReferenceFileSchema,
   renameReferenceSchema,
+  setTagsSchema,
   shelfSchema,
   type CardLinksView,
   type LinkedFromView,
@@ -117,6 +118,17 @@ export function createReferenceHandlers({ references, writing, recent }: Referen
       )
       if (!edited.ok) return edited
       return references.readReference(project.root, file)
+    },
+
+    [channels.setTags]: async (payload): Promise<ReferenceResult<ReferenceSummaryView>> => {
+      const { file, tags } = parsePayload(setTagsSchema, payload)
+      const projectRoot = root()
+      if (!projectRoot) return err('no-project')
+      // Between saves, if the page is open: the tags are in its frontmatter.
+      const set = await writing.updateFile(file, () => references.setTags(projectRoot, file, tags))
+      if (!set.ok) return set
+      const summary = await summaryOf(projectRoot, file)
+      return summary ? ok(summary) : err('missing')
     },
 
     [channels.linkedFrom]: async (payload): Promise<LinkedFromView> => {

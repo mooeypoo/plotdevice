@@ -83,6 +83,8 @@ export interface PlotDeviceApi {
   cardsAbout(chapter: ProjectPath): Promise<CardLinksView[]>
   /** Adds, changes or removes one relationship on a page (ADR 0009), and returns the page as it is now. */
   editRelationship(file: ProjectPath, change: RelationshipChangeRequest): Promise<ReferenceResult<ReferencePageView>>
+  /** Sets a page's tags (Milestone 12), and returns the page as lists show it now. */
+  setTags(file: ProjectPath, tags: string[]): Promise<ReferenceResult<ReferenceSummaryView>>
   /** The outline cards, pages and chapters that link to a page. */
   linkedFrom(file: ProjectPath): Promise<LinkedFromView>
   getShelf(): Promise<ProjectPath[]>

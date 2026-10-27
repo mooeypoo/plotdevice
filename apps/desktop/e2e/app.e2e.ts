@@ -71,6 +71,7 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'saveChapter',
     'setPreferences',
     'setShelf',
+    'setTags',
     'undoOutline',
   ]
   expect(exposed).toEqual({ process: 'undefined', require: 'undefined', bridge })
