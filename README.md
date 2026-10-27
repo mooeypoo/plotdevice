@@ -24,8 +24,8 @@ A calm writing studio for novelists, in English and Hebrew.</p>
 </p>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="apps/site/src/assets/screens/en/desk-dark.png">
-  <img src="apps/site/src/assets/screens/en/desk-light.png" alt="Plot Device's writing desk: the chapter list, and a chapter of The Salt Orchard on the page">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/desk-dark.webp">
+  <img src="assets/readme/desk-light.webp" alt="Plot Device's writing desk: the chapter list, and a chapter of The Salt Orchard on the page">
 </picture>
 
 Plot Device is a desktop app for writing a novel. It gives you a quiet page to write on, a clear view of your story while you plan it, and keeps the whole book as an ordinary folder of Markdown files that you can open in any other app, back up however you like, and keep for good.
@@ -39,8 +39,8 @@ It is in **early versions for Linux and Windows**; macOS will come later. It nee
 Open a chapter and write. There's no outline to fill in and no setup. Formatting appears only when you select text, and the rest of the app stays out of your way.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="apps/site/src/assets/screens/en/formatting-dark.png">
-  <img src="apps/site/src/assets/screens/en/formatting-light.png" alt="Selected text in a chapter, with a small formatting bubble above it">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/formatting-dark.webp">
+  <img src="assets/readme/formatting-light.webp" alt="Selected text in a chapter, with a small formatting bubble above it">
 </picture>
 
 ### See the story
@@ -48,8 +48,8 @@ Open a chapter and write. There's no outline to fill in and no setup. Formatting
 Plan in outlines that are simply Markdown lists, shown as a board, a list or cards. Drag a card, link it to a chapter or a character, and your prose stays exactly as you wrote it.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="apps/site/src/assets/screens/en/story-dark.png">
-  <img src="apps/site/src/assets/screens/en/story-light.png" alt="An outline on a board: Beginning, Middle and End, with cards linked to chapters and characters">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/story-dark.webp">
+  <img src="assets/readme/story-light.webp" alt="An outline on a board: Beginning, Middle and End, with cards linked to chapters and characters">
 </picture>
 
 ### Keep your world close
@@ -57,13 +57,13 @@ Plan in outlines that are simply Markdown lists, shown as a board, a list or car
 Characters, places and notes live in the book too, with tags to group them. While you write, they sit beside the page: search, pin the ones you need, and never lose your place in the chapter.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="apps/site/src/assets/screens/en/world-gallery-dark.png">
-  <img src="apps/site/src/assets/screens/en/world-gallery-light.png" alt="The book's characters as cards, with their tags and connections">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/world-gallery-dark.webp">
+  <img src="assets/readme/world-gallery-light.webp" alt="The book's characters as cards, with their tags and connections">
 </picture>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="apps/site/src/assets/screens/en/references-dark.png">
-  <img src="apps/site/src/assets/screens/en/references-light.png" alt="A chapter with the references shelf open, showing Bea Halmi's page pinned">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/references-dark.webp">
+  <img src="assets/readme/references-light.webp" alt="A chapter with the references shelf open, showing Bea Halmi's page pinned">
 </picture>
 
 ### Multilingual
@@ -71,8 +71,8 @@ Characters, places and notes live in the book too, with tags to group them. Whil
 The interface in your language, the book in its own. Plot Device speaks English and Hebrew today, right to left included, and is built to take more languages: each new one is a translation, not a rewrite. Write a Hebrew novel with English names, or an English one in a Hebrew interface: every paragraph runs the right way, and punctuation lands where it belongs. Want Plot Device in your language? [Help translate it](https://mooeypoo.github.io/plotdevice/about/translate/).
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="apps/site/src/assets/screens/en/bilingual-dark.png">
-  <img src="apps/site/src/assets/screens/en/bilingual-light.png" alt="A Hebrew chapter, right to left, in Plot Device's English interface">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/bilingual-dark.webp">
+  <img src="assets/readme/bilingual-light.webp" alt="A Hebrew chapter, right to left, in Plot Device's English interface">
 </picture>
 
 ### Your files, yours for good
