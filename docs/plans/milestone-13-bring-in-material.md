@@ -122,7 +122,7 @@ It's in English only, since assistants read English, but it covers books in any 
 With a command, an assistant could run the check itself (`npx … check <folder>`), fix what it reports and run it again, instead of working through a checklist. Naming, as researched on 2026-10-27:
 
 - **A scope belongs to the project, not a person.** `@mooeypoo/…` ties the project to one account; an `@plotdevice` organisation on npm can have more members and outlive any one of them. Organisations are free for public packages.
-- **Claim `@plotdevice` on npm soon, even before publishing.** The workspace's own packages are already named `@plotdevice/domain`, `@plotdevice/storage` and so on. Until the scope is claimed on the public registry, someone else could register it and publish packages with those names (a "dependency confusion" risk). Claiming it needs the owner's npm account.
+- **`@plotdevice` is claimed.** The owner created the `plotdevice` organisation on npm on 2026-10-27, owned by their account `mooeypoo`, with no packages. The workspace's own packages are already named `@plotdevice/domain`, `@plotdevice/storage` and so on; owning the scope means nobody else can publish packages with those names (a "dependency confusion" risk). The workspace packages stay private and are never published. Publishing utilities under the scope is possible whenever it's useful, and decided then.
 - **The command's name is unscoped either way.** A scoped package that installs a command named `plotdevice` leaves the unscoped name `plotdevice` open for someone else to register. So the common pattern is a short unscoped package for the command, with any libraries under the scope (as Astro does with `astro` and `@astrojs/*`).
 
 | Option | Running it | For |
