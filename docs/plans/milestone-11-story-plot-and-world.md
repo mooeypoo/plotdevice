@@ -130,7 +130,7 @@ This milestone splits Story into two clearly named halves: **Plot** (building th
 6. **The gallery is alphabetical.** Dragging pages into an order would need somewhere new to store it.
 7. **The mock-ups are approved** ([canvas](https://claude.ai/artifact/T6EkrMrUaDoTwrzhobdcW1), private). Relationships and "Linked from" sit in a panel beside the page's text, not under the description.
 
-## Later: tags on pages (decided 2026-10-27, not yet scheduled)
+## Later: tags on pages (decided 2026-10-27; built in Milestone 12, see `milestone-12-tags.md`)
 
 **Where it came from.** A novel may have 20 characters: 3 main ones throughout, and different secondary ones in each part. The owner wanted the references to offer a part's main and secondary characters first. An "importance" field was considered and dropped (2026-10-27):
 
