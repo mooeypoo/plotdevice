@@ -51,7 +51,7 @@ const othersOpen = ref(false)
 /** The chosen tags' pages first, one group per tag; the rest after, folded until something is typed. */
 const sections = computed(() => {
   const { groups, others } = groupByTags(candidates.value, chosen.value)
-  const rest = { key: 'others', label: groups.length > 0 ? t('tag-everyone-else', String(others.length)) : null, pages: others.slice(0, 8) }
+  const rest = { key: 'others', label: groups.length > 0 ? t('tag-all-pages', String(others.length)) : null, pages: others.slice(0, 8) }
   const folded = groups.length > 0 && browsing.value && !othersOpen.value
   return [
     ...groups.map((group) => ({ key: `tag:${group.tag}`, label: group.tag as string | null, pages: group.pages })),
@@ -173,7 +173,7 @@ function openResult(file: ProjectPath): void {
             type="button"
             class="group-label group-toggle"
             :aria-expanded="othersOpen"
-            data-testid="shelf-everyone-else"
+            data-testid="shelf-rest"
             @click="othersOpen = !othersOpen"
           >
             {{ section.label }}

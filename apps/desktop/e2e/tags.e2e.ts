@@ -69,7 +69,7 @@ test('tag a character from its page, picking an existing tag or making a new one
   await expect(pills).toHaveText(['Part Two: main'])
 })
 
-test('choosing tags above Characters groups the cards, in the order chosen, with everyone else folded', async () => {
+test('choosing tags above Characters groups the cards, in the order chosen, with the rest folded', async () => {
   await character('bea', 'Bea Halmi', '[Main, Varga family]')
   await character('ilka', 'Ilka Varga', '[main, Part Two – main]')
   await character('josef', 'Josef Varga', '[Varga family]')
@@ -91,11 +91,11 @@ test('choosing tags above Characters groups the cards, in the order chosen, with
   await row.getByRole('button', { name: 'Part Two – main' }).click()
   await row.getByRole('button', { name: 'Main', exact: true }).click()
   await expect(row.getByRole('button', { name: 'Main', exact: true })).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.locator('.gallery-group > .group-label')).toHaveText(['Part Two – main', 'Main', 'Everyone else (2)'])
+  await expect(page.locator('.gallery-group > .group-label')).toHaveText(['Part Two – main', 'Main', 'All characters (2)'])
   await expect(cardsIn('tag:Part Two – main')).toHaveText(['Ilka Varga', 'Noël'])
   await expect(cardsIn('tag:Main')).toHaveText(['Bea Halmi'])
   await expect(cardsIn('others')).toHaveCount(0)
-  await page.getByTestId('everyone-else').click()
+  await page.getByTestId('the-rest').click()
   await expect(cardsIn('others')).toHaveText(['Josef Varga', 'Yael'])
 
   // Choosing them again lets them go, and the gallery is as it was; adding a page still works.
@@ -129,8 +129,8 @@ test('while writing, the shelf groups by the tags chosen for each part, and reme
   await shelf().getByTestId('shelf-search').focus()
   await shelf().getByTestId('tag-filter').getByRole('button', { name: 'Part One – main' }).click()
   await expect(group('Part One – main')).toHaveText(['Bea Halmi', 'Ilka Varga'])
-  // Everyone else: Josef and Noël, and the sample's places and notes.
-  await expect(shelf().getByTestId('shelf-everyone-else')).toHaveText(/^Everyone else \(\d+\)$/)
+  // The rest: Josef and Noël, and the sample's places and notes.
+  await expect(shelf().getByTestId('shelf-rest')).toHaveText(/^All pages \(\d+\)$/)
   await expect(shelf().locator('[data-group="others"] li')).toHaveCount(0)
 
   // Typing filters inside the groups; a matching tag is offered to choose.
@@ -276,7 +276,7 @@ test('a card shows four tags at most, then how many more', async () => {
   ])
 })
 
-test('the rest of a grouped gallery is named for its kind: everyone, everywhere or everything else', async () => {
+test('the rest of a grouped gallery is named for its kind: all characters, all places or all notes', async () => {
   await character('bea', 'Bea Halmi', '[Varga family]')
   await character('noel', 'Noël', '')
   await mkdir(join(root, 'places'), { recursive: true })
@@ -287,13 +287,13 @@ test('the rest of a grouped gallery is named for its kind: everyone, everywhere 
   const page = await start()
   await page.getByTestId('workspace-story').click()
   for (const [kind, rest] of [
-    ['character', 'Everyone else'],
-    ['place', 'Everywhere else'],
-    ['note', 'Everything else'],
+    ['character', 'All characters'],
+    ['place', 'All places'],
+    ['note', 'All notes'],
   ] as const) {
     await page.locator(`[data-gallery="${kind}"]`).click()
     const row = page.locator('.world-gallery').getByTestId('tag-filter')
     await row.getByRole('button', { name: 'Varga family' }).click()
-    await expect(page.getByTestId('everyone-else')).toHaveText(new RegExp(`^${rest} \\(\\d+\\)$`))
+    await expect(page.getByTestId('the-rest')).toHaveText(new RegExp(`^${rest} \\(\\d+\\)$`))
   }
 })

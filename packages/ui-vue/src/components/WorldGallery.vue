@@ -8,7 +8,7 @@ import { useStoryStore } from '../stores/story'
 import TagFilter from './TagFilter.vue'
 
 // One kind of page (characters, places or notes) as cards, A to Z, with a card to add one more.
-// Choosing tags above it groups the cards by them; the rest fold away under "Everyone else".
+// Choosing tags above it groups the cards by them; the rest fold away under "All characters" (places, notes).
 const props = defineProps<{ kind: ReferenceKind }>()
 const story = useStoryStore()
 const settings = useSettingsStore()
@@ -35,9 +35,7 @@ const sections = computed<Section[]>(() => {
   if (groups.length === 0) return [{ key: 'all', label: null, pages: pages.value }]
   return [
     ...groups.map((group) => ({ key: `tag:${group.tag}`, label: group.tag, pages: group.pages })),
-    ...(others.length > 0
-      ? [{ key: 'others', label: t(`tag-else-${props.kind}`, String(others.length)), pages: others, folds: true }]
-      : []),
+    ...(others.length > 0 ? [{ key: 'others', label: t(`tag-all-${props.kind}`, String(others.length)), pages: others, folds: true }] : []),
   ]
 })
 
@@ -61,7 +59,7 @@ async function newPage(): Promise<void> {
           type="button"
           class="group-label group-toggle"
           :aria-expanded="othersOpen"
-          data-testid="everyone-else"
+          data-testid="the-rest"
           @click="othersOpen = !othersOpen"
         >
           {{ section.label }}

@@ -39,7 +39,7 @@ const groups = computed<{ key: string; label: string | null; targets: LinkTarget
     return [
       ...byTag,
       ...(rest.length > 0
-        ? [{ key: 'found', label: byTag.length > 0 ? t('tag-everyone-else', String(tagged.others.length)) : null, targets: rest }]
+        ? [{ key: 'found', label: byTag.length > 0 ? t('tag-all-pages', String(tagged.others.length)) : null, targets: rest }]
         : []),
     ]
   }

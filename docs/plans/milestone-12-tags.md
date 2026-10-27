@@ -6,7 +6,7 @@ Status: **Built** (2026-10-27) on branch `milestone-12/tags` (PR #30), approved 
 
 A novel may have 20 characters, and the author needs the right ones at hand: this part's main and secondary characters while writing Part Two, the Varga family while planning a subplot. Today the link picker offers the first five pages A to Z, and the gallery and shelf have no way to group.
 
-Authors give pages **tags** they type themselves ("Part Two – main", "Varga family", "the Marrow plot"). Any list of pages can then be grouped by the tags the author picks: those pages first, one group per tag, everyone else folded below.
+Authors give pages **tags** they type themselves ("Part Two – main", "Varga family", "the Marrow plot"). Any list of pages can then be grouped by the tags the author picks: those pages first, one group per tag, the rest folded below.
 
 **Out of scope:**
 
@@ -39,11 +39,11 @@ Characters      (Main ✓) (Part Two – main ✓) (Part Two – secondary) (Var
    Ilka   Bea   Josef
  Part Two – main
    Noël
- ▸ Everyone else (14)
+ ▸ All characters (14)
 ```
 
-- Choosing tags groups the list: one group per chosen tag, in the order chosen; a page with two chosen tags appears in the first group only; "Everyone else" follows, folded. With no tag chosen, the list is as today.
-- Typing in search filters names across all groups, Everyone else included. A tag whose name matches what's typed is offered as a pill to choose.
+- Choosing tags groups the list: one group per chosen tag, in the order chosen; a page with two chosen tags appears in the first group only; the rest follow, folded, under "All characters" (or "All places", "All notes"; "All pages" on the shelf and in "Link to…", which mix kinds). With no tag chosen, the list is as today.
+- Typing in search filters names across all groups, the rest included. A tag whose name matches what's typed is offered as a pill to choose.
 - Right-clicking a pill (or its `⋯` from the keyboard) offers "Rename everywhere…" and "Remove from all pages…". Each says how many pages will change before doing it.
 
 ### Tidying tags, only when there's something to tidy
@@ -134,11 +134,11 @@ tags: [Part One – secondary, Part Two – main, Marrow folk]
   - Not found for short tags that merely look alike ("Main" and "Maid"), or for tags used once.
   - Hebrew and English tags are never paired with each other.
 - **Application:** rename everywhere touches only pages with that tag, merges into an existing tag without duplicates on a page, and reports pages it couldn't read without changing them.
-- **Presentation:** grouping follows the chosen order; a page appears once; "Everyone else" counts the rest; search filters inside groups; a matching tag is offered.
+- **Presentation:** grouping follows the chosen order; a page appears once; the folded rest is counted; search filters inside groups; a matching tag is offered.
 - **Desktop:** remembered tags per part survive a restart and never touch the project folder.
 - **End to end:**
   - Tag a character from its page, picking an existing tag from the suggestions, then remove it.
-  - In Characters, choose two tags and see two groups and "Everyone else"; search within them.
+  - In Characters, choose two tags and see two groups and "All characters"; search within them.
   - Rename a tag everywhere and see every page change, and only its `tags:` line in the files.
   - While writing, choose tags in Part One, move to Part Two and choose others, come back, and see Part One's again; the same after a restart.
   - The link picker shows the chosen groups before anything is typed.
@@ -165,7 +165,7 @@ tags: [Part One – secondary, Part Two – main, Marrow folk]
 
 - Tag a character, place or note from pills under its name. "+ Tag" suggests the project's tags as the author types; Enter adds one, or makes a new one. × takes one off.
 - See each page's tags on its card in the World gallery: up to four, then "+ N more" (owner request, 2026-10-27).
-- Choose tags above a World gallery to group its cards: one group per tag, in the order chosen, then "Everyone else", folded. Past the first ten tags, "+ N more" lists the rest with a search.
+- Choose tags above a World gallery to group its cards: one group per tag, in the order chosen, then the rest, folded under "All characters", "All places" or "All notes" (owner wording, 2026-10-27; "All pages" where kinds mix). Past the first ten tags, "+ N more" lists the rest with a search.
 - On the shelf, while searching, the same row groups the results; tags matching what's typed are offered as pills. The chosen tags are remembered per part in app data, after a restart too.
 - In "Link to…", the same row; its choice lasts for the session.
 - Right-click a tag (or Shift+F10 on it) above a gallery or on the shelf: "Rename everywhere…" (renaming to an existing tag merges them) and "Remove from all pages…", each saying first how many pages will change.
