@@ -1,6 +1,6 @@
 # Milestone 13: Bringing in what you've already written
 
-Status: **Approved** (2026-10-27) on branch `milestone-13/bring-in-material` (PR #31). The owner's answers to the plan's open decisions are under "Decisions". Publishing a package is deferred; its options are under "Later".
+Status: **Built** (2026-10-27) on branch `milestone-13/bring-in-material` (PR #31). Results are under "Results", before "Later". The owner's answers to the plan's open decisions are under "Decisions". Publishing a package is deferred; its options are under "Later".
 
 ## Goal
 
@@ -115,6 +115,60 @@ It's in English only, since assistants read English, but it covers books in any 
 3. The guide page, English and Hebrew; sidebar and links.
 4. The start-screen line.
 5. The hand-run conversion.
+
+## Results
+
+### What the author can do
+
+- From the start screen, follow "Already have notes or a draft? Moving them in →" to the guide page, in the interface's language. The line hides while the new-project form is open.
+- Read "Moving an existing book in" (English and Hebrew, in "Start here"): what goes where, doing it by hand, doing it with an AI assistant, and what to do when something didn't come across. Questions and "The book's folder" link to it.
+- Give an AI assistant `/plotdevice/for-assistants.md`, or let it find the guide through `/plotdevice/llms.txt`.
+
+### Changed from the plan while building
+
+- `checkProject` lives in `storage`, not `application`, because it reads Markdown.
+- A Markdown file outside the book's folders is "to know", not "to fix": a `README.md` is harmless.
+- The app's own words are used throughout: "New project", "Open project…", "On the side".
+- The Hebrew page addresses the reader impersonally ("בוחרים"), like the rest of the Hebrew site.
+
+### The trial conversion
+
+An assistant given only the guide converted a short invented world bible ("The Glass Weir": premise, five characters, three places, a company, ice lore, a timeline, a three-act plot, a "Misc" section, and two draft chapters, one titled only "Chapter 2"). The result opened with nothing to fix: 2 chapters, 5 characters, 3 places, 5 notes, 1 outline. The source files were untouched. It titled the untitled chapter from its opening, left a character mentioned once without a page, and listed both in its report, as the guide asks.
+
+Its feedback on the guide led to these additions:
+
+- **Formatting:** formatting-only changes are allowed (labels to headings, `***` to `* * *`), but spelling and capitals are not fixed.
+- **Open questions:** the author's open questions and reminders stay where they are.
+- **Descriptions:** a page whose material has no description starts with its material; only "To sort" has a first line the assistant writes.
+- **Relationships:** a relationship already in a description is added, without cutting the description.
+- **Passing mentions:** someone mentioned only in passing gets no page, and is reported.
+- **The premise:** a premise, logline and alternative titles go in `project.md`'s body.
+- **Titles:** a page's title has no rank or honorific; those go in `aka`.
+- **Outlines:**
+  - The author's outline headings are kept as written.
+  - A card links to a chapter through a detail, so the card's sentence isn't changed.
+  - An outline needs no frontmatter.
+
+### Tests
+
+- **Domain, markdown and storage:** `unresolvedLink`, `locateLinks` (lines, CRLF, links in code), and `checkProject`, against real temporary folders:
+  - the demo novels, English and Hebrew, have nothing to fix;
+  - each problem is found with its file and line;
+  - spaces, Hebrew names and CRLF are handled;
+  - the folder is byte-identical afterwards.
+- **The guide stays true:** its example files build a book with nothing to fix (a broken link in the guide fails the test).
+- **End to end:** the start-screen line, its address in English and Hebrew, and reaching it by keyboard.
+- **Commands:**
+  - `pnpm check` (lint, typecheck, unit tests, architecture, performance, build) passes;
+  - `pnpm site:build` (with its link checker) and `pnpm site:test` pass;
+  - `npx playwright test` passes, 73 of 73.
+  - An existing test, "the page is isolated", failed twice in about 70 runs, at the step where it opens Settings; it doesn't involve this milestone's changes.
+- **Screens:** the start screen, in light English and dark Hebrew, checked by eye.
+
+### Known limitations
+
+- The check isn't a command authors or assistants can run yet; the guide ends with a checklist instead (see "Later").
+- The guide for assistants is in English only, though it covers books in any language.
 
 ## Later
 

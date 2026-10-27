@@ -7,7 +7,7 @@ This guide is only about the files. It doesn't explain how to use the app; the a
 ## Rules
 
 1. **Write into a new folder.** Never change, move or delete the author's original files.
-2. **Keep the author's words.** Move their text as it is. Don't rewrite, summarise, shorten, correct or "improve" it. Changing Markdown formatting (headings, lists, bold, italic) is fine; changing what it says is not.
+2. **Keep the author's words.** Move their text as it is. Don't rewrite, summarise, shorten, correct or "improve" it, and don't fix spelling or capitals. Changing only the formatting is fine: a label like "Wants:" becoming a `## Wants` heading, a list becoming bullets, `***` becoming `* * *`. The author's open questions and reminders ("Pip's grandmother? (decide)", "ending undecided!!") stay where they are, word for word; mention them in your report.
 3. **Invent nothing.** No new facts, names, dates, relationships, descriptions or tags the material doesn't state. If something is unclear, keep the author's text and say so in your report.
 4. **Leave nothing out.** Anything you can't place goes into a note called "To sort" (`notes/to-sort.md`), word for word, under a heading saying where it came from.
 5. **Links are ordinary relative Markdown links** to files that exist: `[Bea](../characters/bea.md)`. Don't write `[[wikilinks]]`, web links to the book's own files, or links to files you haven't created.
@@ -49,6 +49,10 @@ The Salt Orchard/
 | Images (maps, portraits) | `assets/`, linked from the page that uses them |
 
 When a section describes one person or place, make it a page. When it describes many at once ("The Varga family: Ilka, Bea and Josef…"), make a page for each that the material describes, and a note for the section itself if it says more than the individual pages hold.
+
+Someone or somewhere only mentioned in passing, inside another entry ("Their agent in town is called Mr. Lowe"), doesn't get a page: leave the mention where it is, and list it in your report so the author can decide.
+
+The book's premise, logline, themes or alternative titles go in the body of `project.md`, as the author wrote them.
 
 ## project.md
 
@@ -105,7 +109,7 @@ The ferry left Szeged an hour late. [Ilka](../characters/ilka.md) held the will 
 - Don't write an `id`; the app adds one.
 - The text: paragraphs separated by a blank line; `*italic*`, `**bold**`, `> quotes`, lists, `## headings` inside a chapter if the author used them. A line ending in `\` is a line break inside a paragraph.
 - A scene break is `* * *` on its own line, with a blank line before and after.
-- No HTML, footnote markup or comments. If the draft has comments or notes to self, put them at the end of the chapter under a `## Notes` heading, or in "To sort".
+- No HTML, footnote markup or comment markup. Comments kept outside the text (in a word processor's margin, or as `<!-- -->`) go at the end of the chapter under a `## Notes` heading. Notes the author typed into the text itself stay where they are.
 - Links in the prose are optional. Add one only where the draft already had one.
 
 `manuscript/the-orchard-gate.md`:
@@ -151,11 +155,12 @@ To sell the orchard quickly and go back to the city.
 Granddaughter of the first Varga to farm the salt fields.
 ```
 
-- `title`: the name, as the author writes it in full.
-- `aka`: other names, nicknames and titles the material uses for them. Search finds the page by these. Optional.
+- `title`: the name, in full, without a rank or honorific: "Hedda Strand", not "Magistrate Hedda Strand".
+- `aka`: other names, nicknames and titles the material uses for them ("Magistrate Hedda Strand", "Ren"). Search finds the page by these. Optional.
 - `tags`: groups, in the author's words (see "Tags"). Optional.
-- **The first paragraph is the description**, shown on the page's card. Use the author's own one-line summary if there is one; otherwise their first sentence or two about this character, as written. Don't write a new one.
-- Everything after it is the author's material, under `##` headings that keep the author's own section names ("Appearance", "Backstory", "Wants").
+- **The first paragraph is the description**, shown on the page's card. Use the author's own one-line summary if there is one; otherwise their first sentence or two about this character, as written. Don't write a new one: if the material has no sentence that describes it (a note that is only a list, say), start straight with the material, and the author can add a description later.
+- Everything after it is the author's material, under the author's own headings ("Appearance", "Backstory", "Wants") where they had them. Without headings, it's just paragraphs.
+- A page can be nothing but its frontmatter and a description, if that's all the material says.
 - Any other frontmatter the material has as clear fields (`born: 1931`, `pronouns: she/her`) can stay as YAML keys; the app keeps them. Prose belongs in the body.
 
 `characters/bea.md`:
@@ -202,6 +207,7 @@ A `## Relationships` heading with a bulleted list. Each bullet is one relationsh
 - **Write each relationship once**, on one page: the app shows it on the other page under "Linked from". Write "Aunt of [Ilka](ilka.md)" on Bea's page, and nothing about it on Ilka's. Usually the relationship goes on the page of whoever the sentence is about in the author's material.
 - A relationship can link to a place or a note too ("Heir to [the Salt Orchard](../places/salt-orchard.md)").
 - Put the heading right after the description. In a Hebrew book, the heading is `## קשרים`.
+- When the author's description already says it ("Oren's younger sister, a glassblower…"), keep the description whole, as written, and add the relationship too. Don't cut words out of the description to make one.
 - Only relationships the material states. If it says "Bea and Ilka are related" without saying how, write "Related to [Ilka](ilka.md)", the author's words.
 
 ### Tags
@@ -214,7 +220,9 @@ The author's own words for grouping pages: a family, a faction, the main charact
 
 ### Notes
 
-Anything that isn't a character or a place: one page per topic, written the same way. A `title`, a first paragraph that says what the note is, then the material.
+Anything that isn't a character or a place: one page per topic, written the same way: a `title`, the author's description if there is one, then the material.
+
+The timeline below comes from the demo book, whose author wrote its first line. "To sort" is the one page you write the first line of yourself.
 
 `notes/timeline.md`:
 
@@ -266,8 +274,9 @@ A plan of the plot, shown in the app as a board: each `##` heading is a column, 
 - The orchard is sold, but not for money
 ```
 
-- The `#` heading is the outline's name. Use the author's sections ("Act One", "Part Two", "Beginning") as the `##` headings, in their order.
-- Cards are plans, not chapters: a card doesn't need a chapter, and a chapter doesn't need a card. Link a card to a chapter only when the material connects them.
+- The `#` heading is the outline's name. Use the author's sections ("Act One", "ACT II", "Beginning") as the `##` headings, as written and in their order. One card in a column is fine.
+- Cards are plans, not chapters: a card doesn't need a chapter, and a chapter doesn't need a card. Link a card to a chapter only when the material connects them. To link without changing the author's sentence, add the link as a detail under the card: `  - [The Crossing](../manuscript/the-crossing.md)`.
+- An outline needs no frontmatter.
 - A synopsis written as paragraphs: keep each paragraph as one card, in order, under the section it belongs to. Don't break it into beats the author didn't write.
 
 ## Books in Hebrew and other right-to-left languages
@@ -286,7 +295,7 @@ Before reporting to the author, go through every file:
 - [ ] Every link in every file points to a file that exists, by the right relative path (`../characters/bea.md` from another folder, `bea.md` from the same folder). Paths are case-sensitive.
 - [ ] Every frontmatter block is valid YAML: values with `: ` are quoted, lists are closed.
 - [ ] Each relationship is written on one page only.
-- [ ] Every page's first paragraph is the author's words.
+- [ ] Every page's first paragraph is the author's words, or the page starts with its material.
 - [ ] No Markdown files outside the book's folders, except `project.md` and `CONTENTS.md`.
 - [ ] Nothing from the material is missing: whatever didn't fit is in `notes/to-sort.md`.
 
