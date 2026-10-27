@@ -146,7 +146,9 @@ test('an outline changed in another app reloads, and undo never overwrites that 
   await page.getByTestId('outline-menu').click()
   await expect(page.getByTestId('menu-outline-undo')).toBeEnabled()
   await file(MAIN).toContain('## Beginning\n\n- The gate, see [The Orchard Gate](../manuscript/the-orchard-gate.md)\n- Ilka crosses')
-  await expect(page.getByTestId('menu-outline-undo')).toBeFocused()
+  // Still in the menu. Which item depends on timing: Undo is disabled until the move is saved, so a
+  // menu opened sooner starts on the first enabled item. What matters is that the move didn't take it.
+  await expect(page.getByRole('menu').locator('[role="menuitem"]:focus')).toHaveCount(1)
   await page.keyboard.press('Escape')
   await expect(page.getByRole('menu')).toHaveCount(0)
 

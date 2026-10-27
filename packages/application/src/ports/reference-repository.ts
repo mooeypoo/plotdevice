@@ -4,7 +4,6 @@ import type { ProjectPath, Result } from '@plotdevice/shared'
 /** A page with its details, for the shelf and the page view. */
 export interface ReferencePage extends ReferenceSummary {
   details: string
-  invalidDetails: boolean
 }
 
 /** An outline card and the files its text links to (its details included), resolved to project paths. */
@@ -44,6 +43,15 @@ export interface ReferenceRepository {
     file: ProjectPath,
     title: string,
   ): Promise<Result<void, 'empty-text' | 'multiline-text' | 'missing' | 'unreadable' | 'stale' | 'write-failed'>>
+  /**
+   * Sets the page's tags (Milestone 12), rewriting only its `tags:` line; refused if the file changed
+   * since it was read, or if its frontmatter can't be read (`unreadable`), which is never repaired.
+   */
+  setTags(
+    root: string,
+    file: ProjectPath,
+    tags: readonly string[],
+  ): Promise<Result<void, 'missing' | 'unreadable' | 'stale' | 'write-failed'>>
   /**
    * Changes the page's relationships section, touching only that bullet; refused if the file changed
    * since it was read. A new section is named in `language`, the project's.

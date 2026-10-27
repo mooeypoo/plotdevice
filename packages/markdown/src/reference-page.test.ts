@@ -11,6 +11,7 @@ describe('reading a character, place or note page', () => {
     expect(page).toEqual({
       title: 'Ilka Varga',
       aka: ['Ilka', 'Ili'],
+      tags: [],
       description: 'Inherits the orchard;\ndistrusts everyone.',
       details: "## Family\nDaughter of Bea's sister.\n",
       invalidDetails: false,
@@ -27,6 +28,7 @@ describe('reading a character, place or note page', () => {
     expect(readReferencePage('---\naka: Marrow town\n---\n', 'marrow')).toEqual({
       title: 'marrow',
       aka: ['Marrow town'],
+      tags: [],
       description: null,
       details: '',
       invalidDetails: false,
@@ -41,6 +43,16 @@ describe('reading a character, place or note page', () => {
   it('still reads a page whose frontmatter is invalid, and says so', () => {
     const page = readReferencePage('---\ntitle: [unclosed\n---\n# Bea\nThe aunt.\n', 'bea')
     expect(page).toMatchObject({ title: 'Bea', description: 'The aunt.', invalidDetails: true })
+  })
+
+  it('reads tags: a list, a single tag, Hebrew, and entries YAML reads as something else', () => {
+    const tagsOf = (yaml: string): string[] => readReferencePage(`---\n${yaml}\n---\n`, 'x').tags
+    expect(tagsOf('tags: [Part Two – main, Varga family]')).toEqual(['Part Two – main', 'Varga family'])
+    expect(tagsOf('tags: Marrow folk')).toEqual(['Marrow folk'])
+    expect(tagsOf('tags:\n  - משפחת ורגה\n  - " "\n  - 1912')).toEqual(['משפחת ורגה', '1912'])
+    // Written by hand without quotes, YAML reads these as a one-key map; the author meant one tag.
+    expect(tagsOf('tags:\n  - Part Two: main')).toEqual(['Part Two: main'])
+    expect(tagsOf('tags:')).toEqual([])
   })
 
   it('writes a new page as just its title', () => {

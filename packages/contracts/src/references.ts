@@ -22,6 +22,19 @@ export const editRelationshipSchema = z.strictObject({
     z.strictObject({ kind: z.literal('remove'), index: relationshipIndex }),
   ]),
 })
+/** A tag as the author typed it (Milestone 12): one line. */
+const tag = z
+  .string()
+  .min(1)
+  .max(200)
+  .refine((value) => !/[\r\n]/.test(value))
+export const setTagsSchema = z.strictObject({ file: referenceFile, tags: z.array(tag).max(100) })
+/** "Rename everywhere" (`to`: the new name, or an existing tag to merge into) and "Remove from all pages" (`to: null`). */
+export const retagSchema = z.strictObject({ from: tag, to: tag.nullable() })
+/** The tags chosen on the shelf while writing in a part (`''`: outside any part); personal, in app data. */
+export const shelfTagsSchema = z.strictObject({ part: z.string().max(500), tags: z.array(tag).max(50) })
+/** Tag problems the author has now been told about, by key; personal, in app data. */
+export const reportedTagProblemsSchema = z.strictObject({ keys: z.array(z.string().max(2000)).max(500) })
 /** The pinned shelf, in the author's order. */
 export const shelfSchema = z.strictObject({ files: z.array(referenceFile).max(100) })
 
@@ -39,7 +52,12 @@ export interface ReferenceSummaryView {
   kind: ReferenceKind
   title: string
   aka: string[]
+  tags: string[]
   description: string | null
+  /** The frontmatter couldn't be read; its tags are unknown, and it is never rewritten to fix it. */
+  invalidDetails: boolean
+  /** The frontmatter can't be read and has a `tags:` line, so its tags are unknown. */
+  unreadableTags: boolean
   relationships: RelationshipView[]
   /** Every file the page links to. */
   links: ProjectPath[]
@@ -47,7 +65,6 @@ export interface ReferenceSummaryView {
 
 export interface ReferencePageView extends ReferenceSummaryView {
   details: string
-  invalidDetails: boolean
 }
 
 /** Something a card links to, named for display. */
@@ -71,6 +88,12 @@ export interface LinkedFromView {
   cards: CardLinksView[]
   pages: { file: ProjectPath; kind: ReferenceKind; title: string; relationships: string[] }[]
   chapters: { file: ProjectPath; title: string }[]
+}
+
+/** What "Rename everywhere" or "Remove from all pages" did: pages changed, and pages that couldn't be. */
+export interface RetagView {
+  changed: number
+  skipped: { file: ProjectPath; title: string }[]
 }
 
 export type ReferenceProblem =

@@ -38,6 +38,8 @@ export interface LinkTarget {
   kind: 'chapter' | 'character' | 'place' | 'note'
   title: string
   aka: string[]
+  /** A page's tags, for grouping; chapters have none. */
+  tags: string[]
   description: string | null
 }
 
@@ -57,6 +59,7 @@ export function linkTargets(project: ProjectView, references: readonly Reference
       kind: 'chapter',
       title: chapter.title ?? chapter.file,
       aka: [],
+      tags: [],
       description: null,
     })),
     ...references.map((reference): LinkTarget => ({ ...reference })),

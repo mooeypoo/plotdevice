@@ -24,7 +24,7 @@ import {
   createVersionRepository,
   withBackups,
 } from '@plotdevice/storage'
-import { access, cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { access, cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -361,6 +361,63 @@ describe('reference calls', () => {
     expect(context.session.saveStatus(created.value.file)?.kind).toBe('saved')
   })
 
+  it('tags a page that is open and being typed in, without a conflict', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const created = (await context.call(channels.createReference, {
+      kind: 'character',
+      title: 'Noël',
+    })) as ReferenceResult<ReferenceSummaryView>
+    if (!created.ok) throw new Error(created.error)
+    const page = (await context.call(channels.openChapter, { file: created.value.file })) as OpenChapterResult
+    if (!page.ok) throw new Error(page.error)
+    await context.call(channels.saveChapter, { file: created.value.file, text: 'Keeps the ferry.\n', generation: page.value.generation })
+    const tagged = (await context.call(channels.setTags, {
+      file: created.value.file,
+      tags: ['Part Two – main', 'Marrow folk'],
+    })) as ReferenceResult<ReferenceSummaryView>
+    expect(tagged.ok && tagged.value.tags).toEqual(['Part Two – main', 'Marrow folk'])
+    await context.call(channels.saveChapter, {
+      file: created.value.file,
+      text: 'Keeps the ferry, and the keys.\n',
+      generation: page.value.generation,
+    })
+    await context.session.idle()
+    expect(context.session.saveStatus(created.value.file)?.kind).toBe('saved')
+    expect(await context.read(created.value.file)).toBe(
+      '---\ntitle: Noël\ntags: [Part Two – main, Marrow folk]\n---\nKeeps the ferry, and the keys.\n',
+    )
+    await expect(context.call(channels.setTags, { file: created.value.file, tags: ['two\nlines'] })).rejects.toThrow('invalid-payload')
+    await expect(context.call(channels.setTags, { file: 'manuscript/frost.md', tags: ['Main'] })).rejects.toThrow('invalid-payload')
+  })
+
+  it('renames a tag everywhere, merging into one a page already has, even on a page being typed in', async () => {
+    const context = await setup()
+    await openChosen(context)
+    await mkdir(join(context.root, 'characters'), { recursive: true })
+    await writeFile(join(context.root, 'characters/bea.md'), '---\ntitle: Bea\ntags: [Main, Varga famliy]\n---\nThe aunt.\n')
+    await writeFile(join(context.root, 'characters/josef.md'), '---\ntitle: Josef\ntags: [Varga famliy, Varga family]\n---\n')
+    await writeFile(join(context.root, 'characters/noel.md'), '---\ntitle: Noël\ntags: [Marrow folk]\n---\n')
+    // Bea is open and being typed in: the rename lands between saves, with no conflict.
+    const page = (await context.call(channels.openChapter, { file: 'characters/bea.md' })) as OpenChapterResult
+    if (!page.ok) throw new Error(page.error)
+    await context.call(channels.saveChapter, {
+      file: 'characters/bea.md',
+      text: 'The aunt, who stayed.\n',
+      generation: page.value.generation,
+    })
+
+    expect(await context.call(channels.retag, { from: 'varga famliy', to: 'Varga family' })).toEqual({ changed: 2, skipped: [] })
+    await context.session.idle()
+    expect(await context.read('characters/bea.md')).toBe('---\ntitle: Bea\ntags: [Main, Varga family]\n---\nThe aunt, who stayed.\n')
+    expect(await context.read('characters/josef.md')).toBe('---\ntitle: Josef\ntags: [Varga family]\n---\n')
+    expect(await context.read('characters/noel.md')).toBe('---\ntitle: Noël\ntags: [Marrow folk]\n---\n')
+
+    expect(await context.call(channels.retag, { from: 'Varga family', to: null })).toEqual({ changed: 2, skipped: [] })
+    expect(await context.read('characters/josef.md')).toBe('---\ntitle: Josef\n---\n')
+    await expect(context.call(channels.retag, { from: '', to: null })).rejects.toThrow('invalid-payload')
+  })
+
   it('adds a relationship to a page open in the editor: the editor shows it, and saving carries on', async () => {
     const context = await setup()
     await openChosen(context)
@@ -445,6 +502,18 @@ describe('reference calls', () => {
     expect(await context.call(channels.getShelf)).toEqual(['notes/loose-ideas.md', 'characters/ilka.md'])
     await expect(context.call(channels.readReference, { file: 'manuscript/frost.md' })).rejects.toThrow('invalid-payload')
     await expect(context.call(channels.setShelf, { files: ['project.md'] })).rejects.toThrow('invalid-payload')
+  })
+
+  it("remembers the shelf's tags per part, never in the project folder", async () => {
+    const context = await setup()
+    await openChosen(context)
+    const before = await context.read('CONTENTS.md')
+    expect(await context.call(channels.getShelfTags)).toEqual({})
+    await context.call(channels.chooseShelfTags, { part: 'Part Two: Salt', tags: ['Part Two – main', 'Main'] })
+    await context.call(channels.chooseShelfTags, { part: '', tags: ['Main'] })
+    expect(await context.call(channels.getShelfTags)).toEqual({ 'Part Two: Salt': ['Part Two – main', 'Main'], '': ['Main'] })
+    expect(await context.read('CONTENTS.md')).toBe(before)
+    await expect(context.call(channels.chooseShelfTags, { part: 'x', tags: [''] })).rejects.toThrow('invalid-payload')
   })
 })
 

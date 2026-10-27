@@ -13,7 +13,13 @@ export interface ReferenceSummary {
   title: string
   /** Other names, for search. */
   aka: string[]
+  /** The author's tags, each once (Milestone 12). */
+  tags: string[]
   description: string | null
+  /** The frontmatter couldn't be read: the page is shown, its tags are unknown, and it is never rewritten to fix it. */
+  invalidDetails: boolean
+  /** The frontmatter can't be read and has a `tags:` line: tags the app can't see, for tidying (Milestone 12). */
+  unreadableTags: boolean
   /** Its relationships section, in order (ADR 0009). */
   relationships: Relationship[]
   /** Every file the page links to, relationships included, for "Linked from" on those files. */

@@ -35,6 +35,7 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
   const bridge = [
     'cardsAbout',
     'changeContents',
+    'chooseShelfTags',
     'compileBook',
     'copyVersion',
     'createOutline',
@@ -49,7 +50,9 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'getOpenProject',
     'getPreferences',
     'getRecentProjects',
+    'getReportedTagProblems',
     'getShelf',
+    'getShelfTags',
     'leftOff',
     'linkedFrom',
     'listOutlines',
@@ -66,11 +69,14 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'renameChapterFile',
     'renameReference',
     'renameReferenceFile',
+    'reportTagProblems',
     'resolveConflict',
     'restoreVersion',
+    'retag',
     'saveChapter',
     'setPreferences',
     'setShelf',
+    'setTags',
     'undoOutline',
   ]
   expect(exposed).toEqual({ process: 'undefined', require: 'undefined', bridge })

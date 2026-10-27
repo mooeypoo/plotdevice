@@ -130,15 +130,40 @@ This milestone splits Story into two clearly named halves: **Plot** (building th
 6. **The gallery is alphabetical.** Dragging pages into an order would need somewhere new to store it.
 7. **The mock-ups are approved** ([canvas](https://claude.ai/artifact/T6EkrMrUaDoTwrzhobdcW1), private). Relationships and "Linked from" sit in a panel beside the page's text, not under the description.
 
-## Later: how important a character is, part by part (to discuss)
+## Later: tags on pages (decided 2026-10-27; built in Milestone 12, see `milestone-12-tags.md`)
 
-The owner raised this on 2026-10-26 as an idea to discuss and refine, not yet a decision. A novel may have 20 characters: 3 main ones throughout, and different secondary and minor ones in each part. While writing a part, the references would offer that part's main and secondary characters first, while search and pinning still reach everyone.
+**Where it came from.** A novel may have 20 characters: 3 main ones throughout, and different secondary ones in each part. The owner wanted the references to offer a part's main and secondary characters first. An "importance" field was considered and dropped (2026-10-27):
 
-Questions to settle before deciding:
+- Per-part importance has to name the part, and parts have no file or id, only their text in `CONTENTS.md`. Renaming a part would leave stale entries on every character page.
+- Working it out from links misses main characters, who are rarely linked. In the sample's main outline, Ilka is never linked.
+- Other tools that have importance (bibisco, Manuskript, yWriter) offer only one book-wide setting. None asks for it per part.
 
-- **Where it's written.** In each character's page, for example `importance: main`, or per part as `part 2: secondary`? Or in the outline or part itself, as a cast list? Either way the file must stay readable without the app.
-- **Typed by hand, or worked out?** The links already say which characters a part's chapters and cards mention. A suggestion built from those may be enough without a new field to keep up to date.
-- **How it stays simple.** One optional word per character (main, secondary, minor) costs little. A word per part costs more to maintain.
+**Decision: tags.** Pages carry tags the author types. Lists can group by them. A tag like "Part Two – main" covers the original need. "Varga family" or "the Marrow plot" covers any other grouping. Nothing in the format depends on part names, so renaming a part breaks nothing.
+
+```markdown
+---
+title: Noël Arany
+aka: [Noël]
+tags: [Part One – secondary, Part Two – main, Marrow folk]
+---
+```
+
+**Owner decisions:**
+
+1. **Tags are written as the author says them**, spaces included. There's no slug/display-name split. Obsidian flags tags with spaces in its own properties panel, but the file stays valid.
+2. **Choosing tags groups the list.** The chosen tags' pages come first, in one group per tag, in the order the tags were chosen. A page with two chosen tags appears in the first group only. "Everyone else" follows, folded. Search filters names across all groups.
+3. **While writing, the chosen tags are remembered per part**, so returning to Part Two brings back its tags. This is personal state in app data, like pinned cards, never in the project folder. Keep it only if it stays simple.
+4. **Every kind of page has tags:** characters, places and notes.
+5. **No tag colours for now.** Tags are calm, neutral pills.
+
+**Rules:**
+
+- `tags` is a frontmatter list, like `aka`. A single word is also accepted. Matching ignores case. A tag is shown with the first spelling the app finds.
+- When the author adds or removes a tag, the app rewrites only the `tags:` line, and quotes a tag that needs it (one with a colon or comma).
+- On the page, tags are pills under the title, with "+ Tag". The field suggests existing tags as the author types, so near-duplicates are rare. Enter creates a new tag.
+- The same tag row sits above the Story gallery, the shelf and the link picker. If what the author types into search matches a tag, the tag is offered as a pill to choose.
+- There's no separate tag manager. Right-clicking a pill offers "Rename everywhere…" and "Remove from all pages…". Each shows how many pages will change, then edits only their `tags:` line. A tag on no page simply stops existing.
+- When this is built, `tags` is added to the page format in `DOMAIN_AND_FILE_FORMAT.md`.
 
 ## ADR 0009: relationships between pages (accepted; see `docs/adr/0009-relationships.md`)
 

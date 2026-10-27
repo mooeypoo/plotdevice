@@ -8,10 +8,10 @@ import type {
   ReferenceSummaryView,
   RelationshipChangeRequest,
 } from '@plotdevice/contracts'
-import { cardKey, type ItemDestination } from '@plotdevice/presentation'
+import { cardKey, tagProblems, type ItemDestination } from '@plotdevice/presentation'
 import type { ProjectPath } from '@plotdevice/shared'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useApi } from '../api'
 import { useProjectStore } from './project'
 
@@ -48,6 +48,13 @@ export const useStoryStore = defineStore('story', () => {
   const references = ref<ReferenceSummaryView[]>([])
   /** What the Story workspace shows: an outline, one kind of page as a gallery, one page, or the book's chapters. */
   const showing = ref<Showing>({ kind: 'outline' })
+  /** The tags chosen above each gallery, which group it (Milestone 12); for this session only. */
+  const galleryTags = ref<Partial<Record<ReferenceKind, string[]>>>({})
+  /** What "Tidy tags" would list, kept up to date; and whether its dialog is open (Milestone 12). */
+  const problems = computed(() => tagProblems(references.value))
+  const tidying = ref(false)
+  /** The tags chosen in "Link to…", for this session. */
+  const linkTags = ref<string[]>([])
   /** "Show on the board": the open outline's cards that link to a page stand out, and the rest fade. */
   const about = ref<{ file: ProjectPath; title: string; cards: Set<string> } | null>(null)
 
@@ -128,6 +135,54 @@ export const useStoryStore = defineStore('story', () => {
     return result.ok
   }
 
+  /** Tag changes, one at a time, so a quick second change never starts from the tags before the first. */
+  let tagging: Promise<unknown> = Promise.resolve()
+
+  /** Sets a page's tags; tells the author when it couldn't be done. */
+  function setTags(file: ProjectPath, tags: string[]): Promise<boolean> {
+    const run = tagging.then(() => writeTags(file, tags))
+    tagging = run.catch(() => undefined)
+    return run
+  }
+
+  async function writeTags(file: ProjectPath, tags: string[]): Promise<boolean> {
+    const result = await api.setTags(file, [...tags])
+    await refresh()
+    if (!result.ok)
+      project.tell(
+        result.error === 'unreadable' ? 'tags-unreadable' : result.error === 'stale' ? 'relationship-changed-elsewhere' : 'tags-failed',
+      )
+    return result.ok
+  }
+
+  /** Renames a tag on every page (merging into an existing one), or removes it when `to` is `null`; says how it went. */
+  async function retag(from: string, to: string | null): Promise<void> {
+    await tagging
+    const result = await api.retag(from, to)
+    await refresh()
+    if (result.skipped.length === 0) project.tell('tag-retagged', String(result.changed))
+    else
+      project.tell(
+        'tag-retagged-skipped',
+        String(result.changed),
+        String(result.skipped.length),
+        result.skipped.map((page) => page.title).join(', '),
+      )
+  }
+
+  /**
+   * When a project opens: if its tags have problems the author hasn't been told about, says so once,
+   * offering to tidy them. Otherwise nothing is shown (Milestone 12, decision 6).
+   */
+  async function checkTags(): Promise<void> {
+    const keys = problems.value.keys
+    if (keys.length === 0) return
+    const reported = new Set(await api.getReportedTagProblems())
+    if (keys.every((key) => reported.has(key))) return
+    project.offer('tags-need-tidying', [String(keys.length)], { key: 'tidy-tags', run: () => (tidying.value = true) })
+    await api.reportTagProblems([...keys])
+  }
+
   async function edit(request: OutlineEditRequest): Promise<boolean> {
     if (!outline.value) return false
     // A plain copy: positions taken from the reactive outline are proxies, which can't cross to the host.
@@ -170,10 +225,17 @@ export const useStoryStore = defineStore('story', () => {
     editing,
     references,
     showing,
+    galleryTags,
+    problems,
+    tidying,
+    checkTags,
+    linkTags,
     about,
     refresh,
     showOnBoard,
     editRelationship,
+    setTags,
+    retag,
     open,
     create,
     edit,

@@ -876,6 +876,15 @@ label {
 .shelf-section h2 {
   margin: 0;
 }
+.shelf .tag-filter {
+  margin-block: 0.5rem 0;
+}
+.shelf .results .tag-filter {
+  margin-block: 0.25rem 0.4rem;
+}
+.shelf .results .group-label {
+  margin-block: 0.5rem 0.15rem;
+}
 .shelf .results li {
   padding-block: 0.05rem;
 }
@@ -1463,6 +1472,9 @@ button.inline-link {
 .link-picker .group-label:first-child {
   margin-block-start: 0;
 }
+.link-picker .tag-filter {
+  margin-block: 0.6rem 0.2rem;
+}
 .link-picker [role='option'] {
   display: flex;
   justify-content: space-between;
@@ -1536,6 +1548,214 @@ button.inline-link {
   background: color-mix(in srgb, var(--color-on-accent) 30%, transparent);
 }
 
+/* Tags (Milestone 12): calm, neutral pills; no colours. */
+.tag-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-block: 0.4rem 0.8rem;
+}
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding-block: 0.15rem;
+  padding-inline: 0.65rem 0.25rem;
+  border-radius: 999px;
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.tag-pill:not(:has(.tag-remove)) {
+  padding-inline-end: 0.65rem;
+}
+.tag-remove {
+  border: none;
+  border-radius: 50%;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  padding: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  line-height: 1;
+}
+.tag-remove:hover:not(:disabled) {
+  background: var(--hair);
+  color: var(--color-text);
+}
+.tag-add {
+  border: 1px dashed var(--hair-strong);
+  border-radius: 999px;
+  padding-block: 0.1rem;
+  padding-inline: 0.65rem;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+.tag-add:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--color-text);
+}
+.tag-adder {
+  position: relative;
+}
+.tag-adder input {
+  inline-size: 14rem;
+  padding-block: 0.15rem;
+  padding-inline: 0.65rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+.tag-options {
+  position: absolute;
+  inset-block-start: calc(100% + 0.3rem);
+  inset-inline-start: 0;
+  z-index: 20;
+  min-inline-size: 14rem;
+  max-block-size: 16rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  border-radius: 10px;
+  background: var(--color-card);
+  box-shadow: var(--shadow-pop);
+}
+.tag-options li {
+  padding-block: 0.3rem;
+  padding-inline: 0.6rem;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  cursor: default;
+}
+.tag-options li.selected,
+.tag-options li:hover {
+  background: var(--hover);
+}
+
+/* The row of tags above a list; a chosen tag is quietly filled. */
+.tag-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  max-inline-size: 64rem;
+  margin-block-end: 1rem;
+}
+.tag-choice {
+  border: none;
+  padding-inline: 0.65rem;
+  cursor: pointer;
+}
+.tag-choice:hover:not(:disabled) {
+  background: var(--hair);
+}
+.tag-choice[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--color-mark) 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-mark) 60%, transparent);
+}
+/* Chosen is said with a mark as well as a colour. */
+.tag-choice[aria-pressed='true']::before {
+  content: '✓' / '';
+  margin-inline-end: 0.3rem;
+  font-size: 0.8em;
+}
+.tag-more {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  inline-size: min(22rem, 80vw);
+}
+.tag-more-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  max-block-size: 14rem;
+  overflow-y: auto;
+}
+.gallery-group + .gallery-group,
+.gallery-group + .gallery {
+  margin-block-start: 1.25rem;
+}
+.gallery-group > .group-label {
+  margin-block-end: 0.5rem;
+  font-family: var(--font-ui);
+  font-style: normal;
+}
+.group-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  padding: 0.2rem 0.25rem;
+  background: transparent;
+  cursor: pointer;
+}
+.group-toggle::before {
+  content: '▸';
+  transition: transform 0.15s;
+}
+.group-toggle[aria-expanded='true']::before {
+  transform: rotate(90deg);
+}
+[dir='rtl'] .group-toggle::before {
+  content: '◂';
+}
+[dir='rtl'] .group-toggle[aria-expanded='true']::before {
+  transform: rotate(-90deg);
+}
+
+/* Tidy tags: shown only while something needs tidying. */
+.tag-tidy {
+  border: none;
+  padding: 0.1rem 0.4rem;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.tag-tidy:hover:not(:disabled) {
+  color: var(--color-text);
+}
+.tidy-tags {
+  inline-size: min(34rem, 100% - 2rem);
+}
+.tidy-tags h2 {
+  margin-block-start: 0;
+}
+.tidy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-block: 0.4rem 1rem;
+}
+.tidy-pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-block: 0.4rem;
+  border-block-end: 1px solid var(--hair);
+}
+.tidy-tags-pair .secondary {
+  margin-inline-start: 0.4rem;
+  font-size: 0.85em;
+}
+.tidy-tags-pair,
+.tidy-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.notice-toast button:not(.icon-button) {
+  white-space: nowrap;
+}
+
 /* World: one kind of page as cards. */
 .world-gallery {
   display: flex;
@@ -1591,6 +1811,22 @@ button.inline-link {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+.page-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-block-start: 0.2rem;
+}
+.page-card-tags .tag-pill {
+  padding-block: 0.05rem;
+  padding-inline: 0.5rem;
+  font-size: 0.75rem;
+}
+.page-card-tags .tag-pill-more {
+  background: transparent;
+  box-shadow: none;
+  color: var(--color-text-secondary);
 }
 .page-card-relationships {
   display: flex;

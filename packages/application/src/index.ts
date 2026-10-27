@@ -40,6 +40,7 @@ export type { IdGenerator } from './ports/id-generator'
 export type { OutlineDocument, OutlineRepository, OutlineSummary, OutlineWriteProblem } from './ports/outline-repository'
 export type { CardLinks, FileLinks, ReferencePage, ReferenceRepository, RelationshipChange } from './ports/reference-repository'
 export { cardsLinkingTo, linkedFrom, type LinkedFrom } from './references/references'
+export { retaggedPages } from './references/tags'
 export {
   createOutlineSession,
   type OutlineEditFailure,

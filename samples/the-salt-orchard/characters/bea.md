@@ -1,6 +1,7 @@
 ---
 title: Bea Halmi
 aka: [Aunt Bea, Bea]
+tags: [Part One – secondary, Part Two – main, Varga family]
 ---
 Ilka's aunt, who stayed in Marrow when everyone else left; knows more about the orchard than she will say.
 

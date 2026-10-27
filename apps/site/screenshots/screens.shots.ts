@@ -1,5 +1,5 @@
 import { test, type ElectronApplication, type Locator, type Page } from '@playwright/test'
-import { cp, mkdir, mkdtemp, rm } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { closeSettings, launch, openSettings } from '../../desktop/e2e/launch'
@@ -21,6 +21,13 @@ interface Language {
   characterPage: string
   /** A new item being typed, linking a character with @. */
   linkTyping: string
+  /** Tags to choose above the characters, grouping them (Milestone 12). */
+  tags: string[]
+  /** The start of a tag, typed in "+ Tag" to show suggestions; a tag to choose on the shelf while writing The Crossing. */
+  tagTyping: string
+  shelfTag: string
+  /** A page with a misspelled tag, added to a copy of the book for the "Tidy tags" screens; the samples stay clean. */
+  typo: { file: string; text: string }
   /** A book in another language, for "the interface in your language, the book in its own". */
   otherBook: string
   otherCrossing: string
@@ -34,6 +41,10 @@ const LANGUAGES: Record<string, Language> = {
     character: 'Bea',
     characterPage: 'characters/bea.md',
     linkTyping: 'Must meet @be',
+    tags: ['Main', 'Part Two – main'],
+    tagTyping: 'par',
+    shelfTag: 'Part One – main',
+    typo: { file: 'characters/josef.md', text: '---\ntitle: Josef Varga\ntags: [Varga famliy]\n---\nIlka’s brother, who never came.\n' },
     otherBook: 'מטע-המלח',
     otherCrossing: 'manuscript/המעבר.md',
   },
@@ -44,6 +55,10 @@ const LANGUAGES: Record<string, Language> = {
     character: 'בּיה',
     characterPage: 'characters/ביה.md',
     linkTyping: 'פוגשת את @בּ',
+    tags: ['ראשית', 'חלק שני – ראשית'],
+    tagTyping: 'חלק',
+    shelfTag: 'חלק ראשון – ראשית',
+    typo: { file: 'characters/יוסף.md', text: '---\ntitle: יוסף ורגה\ntags: [משפחת ורגא]\n---\nהאח של אילקה, שלא הגיע אף פעם.\n' },
     otherBook: 'the-salt-orchard',
     otherCrossing: 'manuscript/the-crossing.md',
   },
@@ -84,10 +99,19 @@ async function snapAround(page: Page, lang: string, name: string, theme: string,
   })
 }
 
-/** Opens a fresh copy of `book` (or, without one, the welcome screen) in `lang` and `theme`, at the size the site shows. */
-async function open(lang: string, theme: string, book?: string): Promise<{ app: ElectronApplication; page: Page }> {
+/**
+ * Opens a fresh copy of `book` (or, without one, the welcome screen) in `lang` and `theme`, at the size
+ * the site shows. `extra` adds a file to the copy first, as `[path in the book, text]`.
+ */
+async function open(
+  lang: string,
+  theme: string,
+  book?: string,
+  extra?: { file: string; text: string },
+): Promise<{ app: ElectronApplication; page: Page }> {
   const copy = join(work, `${lang}-${theme}-${Date.now()}`)
   if (book) await cp(join(SAMPLES, book), join(copy, book), { recursive: true })
+  if (book && extra) await writeFile(join(copy, book, extra.file), extra.text)
   const running = await launch(join(copy, 'user-data'), {}, book ? [join(copy, book)] : [])
   const { app, page } = running
   // A 1440 × 900 window drawn with twice the pixels: 2880 × 1800, zoomed to 200%.
@@ -172,6 +196,15 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await restCursor(page)
       await snap(page, lang, 'references', theme)
 
+      // While writing The Crossing (Part One), the shelf grouped by that part's tag.
+      const shelf = page.getByTestId('shelf')
+      await shelf.getByTestId('shelf-search').focus()
+      await shelf.getByTestId('tag-filter').getByRole('button', { name: language.shelfTag, exact: true }).click()
+      await shelf.locator('[data-group^="tag:"] li').first().waitFor()
+      await snapAround(page, lang, 'shelf-tags', theme, [shelf.locator('.shelf-find')])
+      await shelf.getByTestId('tag-filter').getByRole('button', { name: language.shelfTag, exact: true }).click()
+      await restCursor(page)
+
       await page.getByTestId('workspace-story').click()
       await page.locator('[data-testid="column"]').first().waitFor()
       await snap(page, lang, 'story', theme)
@@ -197,9 +230,25 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
 
       await page.locator('[data-gallery="character"]').click()
       await snap(page, lang, 'world-gallery', theme)
+      const tagRow = page.locator('.world-gallery').getByTestId('tag-filter')
+      for (const tag of language.tags) await tagRow.getByRole('button', { name: tag, exact: true }).click()
+      await snap(page, lang, 'world-tags', theme)
+      await tagRow.locator('.tag-choice').first().click({ button: 'right' })
+      await snapAround(page, lang, 'tag-menu', theme, [tagRow, menu])
+      await page.keyboard.press('Escape')
+      for (const tag of language.tags) await tagRow.getByRole('button', { name: tag, exact: true }).click()
       await page.locator(`[data-page="${language.characterPage}"]`).click()
       await page.getByTestId('linked-from').locator('.linked-entry').first().waitFor()
       await snap(page, lang, 'page-connections', theme)
+      await page.getByTestId('tag-add').click()
+      await page.getByTestId('tag-input').fill(language.tagTyping)
+      await page.locator('.tag-options').waitFor()
+      await snapAround(page, lang, 'tag-add', theme, [
+        page.locator('.toolbar'),
+        page.getByTestId('page-tags'),
+        page.locator('.tag-options'),
+      ])
+      await page.getByTestId('tag-input').press('Escape')
       await page.getByTestId('show-on-board').first().click()
       await page.getByTestId('showing-about').waitFor()
       await snap(page, lang, 'show-on-board', theme)
@@ -209,6 +258,16 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await welcome.page.getByTestId('new-project').click()
       await snap(welcome.page, lang, 'new-project', theme)
       await welcome.app.close()
+
+      // A misspelled tag: the notice when the book opens, then "Tidy tags".
+      const typo = await open(lang, theme, language.book, language.typo)
+      const notice = typo.page.locator('.notice-toast')
+      await notice.waitFor()
+      await snapAround(typo.page, lang, 'tidy-notice', theme, [notice])
+      await typo.page.getByTestId('notice-action').click()
+      await typo.page.getByTestId('tidy-pair').first().waitFor()
+      await snapAround(typo.page, lang, 'tidy-tags', theme, [typo.page.getByTestId('tidy-tags')], 0)
+      await typo.app.close()
 
       const other = await open(lang, theme, language.otherBook)
       await showChapter(other.page, language.otherCrossing)

@@ -1,0 +1,91 @@
+---
+title: Tags
+description: Group characters, places and notes your own way, by part, family, plot or anything else, and find them first when you need them.
+---
+
+import Ui from '~/components/Ui.astro'
+import Shot from '~/components/Shot.astro'
+
+A novel can have twenty characters, but in Part Two only a few of them really matter. Tags let you say which ones. A tag is a word or a few words of your own, such as "Part Two – main", "Varga family" or "the Marrow plot". Any character, place or note can have as many tags as you like, and a tag can be on characters, places and notes alike.
+
+Tags don't change the story. They're for you: they put the pages you need first, wherever you look for them.
+
+## Tag a page
+
+Open a character, place or note under **<Ui k="story-world" />**. Its tags are under its name.
+
+- **<Ui k="tag-add" />** adds one. Tags you've already used are suggested as you type, so the same tag isn't spelled two ways. Press **Enter** to add the highlighted one, or keep typing to make a new one.
+- The field stays open for the next tag. **Esc** closes it.
+- **×** takes a tag off this page. The tag stays on other pages.
+
+<Shot name="tag-add" alt="Bea's page with three tags, and “par” typed in + Tag: Part One – main and Part Two – secondary are suggested, or a new tag “par”" close />
+
+Each card under **<Ui k="story-character" />**, **<Ui k="story-place" />** and **<Ui k="story-note" />** shows its page's tags too: four at most, then how many more.
+
+## Group by tags
+
+Above the cards is a row with every tag in use. Choose one or more:
+
+- The pages with the first tag you chose come first, then those with the second, and so on. A page with two chosen tags is in the first group only.
+- The rest fold away below, under **All characters** (or **All places**, **All notes**). Click it to see them.
+- A chosen tag shows a ✓. Choose it again to let it go.
+- With many tags, the first ten are in the row and **+ N more** lists the rest, with a search.
+
+<Shot name="world-tags" alt="The characters grouped: Main first, then Part Two – main, and the rest folded below" />
+
+## While you write
+
+The references shelf beside the page has the same row of tags while you search it. Choose the tags that matter for this part, and those pages come first, before you've typed anything. The rest are under **All pages**.
+
+<Shot name="shelf-tags" alt="The references shelf while writing The Crossing, with Part One – main chosen: Noël Arany first, then All pages folded" close />
+
+The shelf remembers your choice **for each part**. Choose "Part One – main" while writing in Part One and "Part Two – main" in Part Two: each time you move between parts, its tags are chosen again, even after Plot Device restarts. Chapters outside any part share one choice. This is kept on your computer, not in the book's files.
+
+Type in the search, and the names are found inside the groups. If what you type matches a tag, that tag is offered to choose.
+
+**<Ui k="link-to" />** has the same row too, for picking a page to link to.
+
+## Rename or remove a tag everywhere
+
+Right-click a tag in the row above the cards or on the shelf, or press **Shift+F10** on it:
+
+- **<Ui k="tag-rename-everywhere" />** gives it a new name on every page. Renaming a tag to one that already exists merges the two.
+- **<Ui k="tag-remove-everywhere" />** takes it off every page. The pages themselves stay.
+
+Both say how many pages they'll change before they do it, and afterwards how many changed.
+
+<Shot name="tag-menu" alt="Right-clicking the tag Main: Rename everywhere… and Remove from all pages…" close />
+
+## Tidy tags
+
+Tags typed in a hurry, or in another app, can go astray: "Varga famliy" next to "Varga family". When a project opens, Plot Device looks for:
+
+- tags that seem to be the same one, spelled a little differently;
+- pages whose tags can't be read, because the details at the top of the file are broken.
+
+If it finds something it hasn't told you about before, it says so once:
+
+<Shot name="tidy-notice" alt="A notice: Some tags may need tidying (1), with a Tidy tags… button" close />
+
+If there's nothing to tidy, you won't see anything at all.
+
+**<Ui k="tidy-tags" />** lists what it found. Merge a pair into whichever spelling you prefer, or open a page to fix it yourself. Nothing changes until you choose, and Plot Device never repairs a file by itself.
+
+<Shot name="tidy-tags" alt="Tidy tags: Varga family (2 pages) and Varga famliy (1 page), with Merge into “Varga family” and Merge into “Varga famliy”" close />
+
+While something is left to tidy, **<Ui k="tidy-tags" />** stays at the end of the row of tags. When it's all tidy, it goes.
+
+"Part 2" and "Part Two" aren't recognised as the same tag. If you have both, rename one to the other.
+
+## In the file
+
+Tags are a line at the top of the page's file, so they work in other apps too:
+
+```markdown
+---
+title: Noël Arany
+tags: [Part One – main, Part Two – secondary, Marrow folk]
+---
+```
+
+See [Character, place and note pages](/plotdevice/files/pages/) for more.

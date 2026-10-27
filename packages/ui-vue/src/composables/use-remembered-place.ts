@@ -24,6 +24,7 @@ export function useRememberedPlace(): void {
       view.workspace = place?.workspace ?? 'write'
       view.outlineView = place?.view ?? 'board'
       await story.refresh()
+      void story.checkTags()
       const outline = story.outlines.find((entry) => entry.file === place?.outline) ?? story.outlines[0]
       if (outline) await story.open(outline.file)
     },

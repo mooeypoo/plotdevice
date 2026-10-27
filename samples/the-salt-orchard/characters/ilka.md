@@ -1,6 +1,7 @@
 ---
 title: Ilka Varga
 aka: [Ilka, Ili]
+tags: [Main, Varga family]
 ---
 Inherits the orchard from a grandfather she met twice; trusts paperwork more than people.
 

@@ -10,6 +10,7 @@ import ConflictDialog from './ConflictDialog.vue'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
 import PageConnections from './PageConnections.vue'
+import TagPills from './TagPills.vue'
 
 // One character, place or note: its name, and its text in the same editor as chapters, with the same
 // autosave and conflict protection. Write's place in the book is left alone.
@@ -68,6 +69,7 @@ watch(
       <MenuButton :label="t('page-actions')" :items="pageItems" button-class="icon-button" testid="page-menu" />
     </div>
     <p v-if="summary && summary.aka.length > 0" class="secondary" dir="auto">{{ t('reference-aka', summary.aka.join(', ')) }}</p>
+    <TagPills v-if="summary && !summary.invalidDetails" :tags="summary.tags" @change="(tags) => story.setTags(file, tags)" />
     <div class="page-layout">
       <div class="page-main">
         <p class="secondary hint">{{ t('reference-hint') }}</p>
