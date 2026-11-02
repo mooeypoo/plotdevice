@@ -5,15 +5,16 @@ import { createIpcHandlers, isAppUrl, type Sender } from './ipc'
 import type { OutlineIpcContext } from './outline-ipc'
 import type { ProjectIpcContext } from './project-ipc'
 import type { ReferenceIpcContext } from './reference-ipc'
+import type { UpdateIpcContext } from './update-ipc'
 import type { VersionIpcContext } from './version-ipc'
 
-const MEDIUM_PAGE = { writingSize: 'medium', pageWidth: 'medium' } as const
+const OTHER_DEFAULTS = { writingSize: 'medium', pageWidth: 'medium', checkForUpdates: true } as const
 
 const appUrl = 'file:///opt/plotdevice/out/renderer/index.html'
 const appPage: Sender = { url: `${appUrl}?x=1#top`, fromAppWindow: true }
 
 function setup(saveError?: string) {
-  let current: Preferences = { theme: 'system', locale: 'en', ...MEDIUM_PAGE }
+  let current: Preferences = { theme: 'system', locale: 'en', ...OTHER_DEFAULTS }
   const handlers = createIpcHandlers({
     appUrl,
     appInfo: { name: 'Plot Device', version: '0.1.0', platform: 'linux' },
@@ -29,6 +30,7 @@ function setup(saveError?: string) {
     outlines: {} as OutlineIpcContext,
     references: {} as ReferenceIpcContext,
     versions: {} as VersionIpcContext,
+    updates: {} as UpdateIpcContext,
   })
   const call = (channel: string, sender: Sender, payload?: unknown) => {
     const handler = handlers[channel]
@@ -41,8 +43,8 @@ function setup(saveError?: string) {
 describe('IPC handlers', () => {
   it('serve the app page', async () => {
     const { call } = setup()
-    expect(await call(channels.getPreferences, appPage)).toEqual({ theme: 'system', locale: 'en', ...MEDIUM_PAGE })
-    expect(await call(channels.setPreferences, appPage, { locale: 'he' })).toEqual({ theme: 'system', locale: 'he', ...MEDIUM_PAGE })
+    expect(await call(channels.getPreferences, appPage)).toEqual({ theme: 'system', locale: 'en', ...OTHER_DEFAULTS })
+    expect(await call(channels.setPreferences, appPage, { locale: 'he' })).toEqual({ theme: 'system', locale: 'he', ...OTHER_DEFAULTS })
   })
 
   it.each([
@@ -60,7 +62,7 @@ describe('IPC handlers', () => {
     async (payload) => {
       const { call, current } = setup()
       await expect(call(channels.setPreferences, appPage, payload)).rejects.toThrow('invalid-payload')
-      expect(current()).toEqual({ theme: 'system', locale: 'en', ...MEDIUM_PAGE })
+      expect(current()).toEqual({ theme: 'system', locale: 'en', ...OTHER_DEFAULTS })
     },
   )
 

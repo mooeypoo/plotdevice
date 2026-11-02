@@ -11,6 +11,8 @@ export const preferencesSchema = z.strictObject({
   locale: localeSchema,
   writingSize: writingSizeSchema,
   pageWidth: pageWidthSchema,
+  /** Whether the app asks, once a day, if a newer version is out (Milestone 15). */
+  checkForUpdates: z.boolean(),
 })
 
 /** A change to some settings; unknown keys are rejected rather than ignored. */

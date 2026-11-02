@@ -44,6 +44,9 @@ export const channels = {
   readVersion: 'plotdevice:read-version',
   restoreVersion: 'plotdevice:restore-version',
   copyVersion: 'plotdevice:copy-version',
+  getUpdate: 'plotdevice:get-update',
+  checkForUpdates: 'plotdevice:check-for-updates',
+  dismissUpdate: 'plotdevice:dismiss-update',
 } as const
 
 /** The one channel the host uses to send events to the page. */

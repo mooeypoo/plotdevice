@@ -35,12 +35,14 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
   const bridge = [
     'cardsAbout',
     'changeContents',
+    'checkForUpdates',
     'chooseShelfTags',
     'compileBook',
     'copyVersion',
     'createOutline',
     'createProject',
     'createReference',
+    'dismissUpdate',
     'editOutline',
     'editRelationship',
     'flushed',
@@ -53,6 +55,7 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'getReportedTagProblems',
     'getShelf',
     'getShelfTags',
+    'getUpdate',
     'leftOff',
     'linkedFrom',
     'listOutlines',
@@ -199,7 +202,8 @@ test('the About window shows the version, the licence and the open-source credit
   await running.page.getByTestId('menu-about').click()
   const about = running.page.getByTestId('about')
   await expect(about).toBeVisible()
-  await expect(about.getByTestId('about-version')).toHaveText('Version 0.2.0')
+  const { version } = JSON.parse(await readFile(join(import.meta.dirname, '../package.json'), 'utf8')) as { version: string }
+  await expect(about.getByTestId('about-version')).toHaveText(`Version ${version}`)
   await expect(about).toContainText('Everything you write with Plot Device is yours')
   await about.getByText(/Open-source components/).click()
   await expect(about.getByTestId('credits')).toContainText('vue')

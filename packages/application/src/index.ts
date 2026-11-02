@@ -10,6 +10,15 @@ export {
 export type { PreferencesStore, PreferencesWriteFailure } from './preferences/preferences-store'
 export { createChapterAutosave, type ChapterAutosave, type SaveStatus, type WriteChapter } from './chapters/chapter-autosave'
 export type { AppDataFile, AppDataWriteFailure } from './ports/app-data-file'
+export {
+  createUpdateSession,
+  isNewerVersion,
+  UPDATE_INTERVAL_MS,
+  type UpdateCheck,
+  type UpdateSession,
+  type UpdateSessionOptions,
+  type UpdateSource,
+} from './updates/updates'
 export type { BackupEntry, BackupStore } from './ports/backup-store'
 export type { VersionRepository, Versions } from './ports/version-repository'
 export {

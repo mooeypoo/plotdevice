@@ -3,7 +3,10 @@ import { preferencesPatchSchema, preferencesSchema } from './preferences'
 
 describe('preferences on the wire', () => {
   it('accepts valid settings', () => {
-    expect(preferencesSchema.safeParse({ theme: 'dark', locale: 'he', writingSize: 'large', pageWidth: 'narrow' }).success).toBe(true)
+    expect(
+      preferencesSchema.safeParse({ theme: 'dark', locale: 'he', writingSize: 'large', pageWidth: 'narrow', checkForUpdates: false })
+        .success,
+    ).toBe(true)
   })
 
   it.each([

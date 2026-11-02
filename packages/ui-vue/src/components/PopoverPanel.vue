@@ -15,7 +15,7 @@ async function show(): Promise<void> {
   await nextTick()
   const box = panel.value?.getBoundingClientRect()
   flipped.value = !!box && (box.right > window.innerWidth - 8 || box.left < 8)
-  panel.value?.querySelector<HTMLElement>('button:not([disabled]), select, input')?.focus()
+  panel.value?.querySelector<HTMLElement>('a[href], button:not([disabled]), select, input')?.focus()
   document.addEventListener('pointerdown', onOutside, true)
 }
 

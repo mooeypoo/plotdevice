@@ -32,8 +32,15 @@ test.afterEach(async () => {
   await rm(base, { recursive: true, force: true })
 })
 
-/** Starts the installed app as an author would, with its settings in `userData` unless told otherwise. */
+/**
+ * Starts the installed app as an author would, with its settings in `userData` unless told otherwise.
+ * Update checks are turned off there, so tests never ask GitHub (Milestone 15).
+ */
 async function start(args: string[], userData: string | null = join(base, 'user-data')): Promise<Page> {
+  if (userData) {
+    await mkdir(userData, { recursive: true })
+    await writeFile(join(userData, 'preferences.json'), '{"checkForUpdates":false}\n', { flag: 'wx' }).catch(() => undefined)
+  }
   const env = Object.fromEntries(
     Object.entries(process.env).filter((entry): entry is [string, string] => entry[0] !== 'ELECTRON_RUN_AS_NODE' && entry[1] !== undefined),
   )
@@ -70,7 +77,8 @@ test('the installed app opens a novel, and saves what the author writes', async 
 test('it knows its name and version, and shows the licence and credits it ships with', async () => {
   const page = await start([])
   // Electron's own name is the package's (`plotdevice`, matching the desktop entry); authors see the title.
-  expect(await app?.evaluate(({ app: electronApp }) => electronApp.getVersion())).toBe('0.2.0')
+  const { version } = JSON.parse(readFileSync(join(import.meta.dirname, '../package.json'), 'utf8')) as { version: string }
+  expect(await app?.evaluate(({ app: electronApp }) => electronApp.getVersion())).toBe(version)
   expect(await page.title()).toBe('Plot Device')
   await page.getByTestId('app-menu').click()
   await page.getByTestId('menu-about').click()

@@ -30,9 +30,10 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { moveDown, moveUp } from '@plotdevice/presentation'
 import type { ProjectPath } from '@plotdevice/shared'
+import type { UpdateIpcContext } from './update-ipc'
 import { createIpcHandlers, type Sender } from './ipc'
 
-const MEDIUM_PAGE = { writingSize: 'medium', pageWidth: 'medium' } as const
+const OTHER_DEFAULTS = { writingSize: 'medium', pageWidth: 'medium', checkForUpdates: true } as const
 
 const FIXTURE = join(import.meta.dirname, '../../../../tests/fixtures/projects/salt-orchard')
 const appUrl = 'file:///opt/plotdevice/out/renderer/index.html'
@@ -65,7 +66,7 @@ async function setup() {
     appUrl,
     appInfo: { name: 'Plot Device', version: '0.1.0', platform: 'linux' },
     about: async () => ({ name: 'Plot Device', version: '0.1.0', licenseText: '', thirdParty: [] }),
-    currentPreferences: () => ({ theme: 'system', locale: 'en', ...MEDIUM_PAGE }),
+    currentPreferences: () => ({ theme: 'system', locale: 'en', ...OTHER_DEFAULTS }),
     updatePreferences: async () => {
       throw new Error('not used')
     },
@@ -97,6 +98,7 @@ async function setup() {
       repository,
       copyLabel: () => 'version 1',
     },
+    updates: {} as UpdateIpcContext,
   })
   const call = (channel: string, payload?: unknown, sender: Sender = appPage): Promise<unknown> => {
     const handler = handlers[channel]

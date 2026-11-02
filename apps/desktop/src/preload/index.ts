@@ -48,6 +48,9 @@ const api: PlotDeviceApi = {
   readVersion: (file, at) => ipcRenderer.invoke(channels.readVersion, { file, at }),
   restoreVersion: (file, at, revision) => ipcRenderer.invoke(channels.restoreVersion, { file, at, revision }),
   copyVersion: (file, at) => ipcRenderer.invoke(channels.copyVersion, { file, at }),
+  getUpdate: () => ipcRenderer.invoke(channels.getUpdate),
+  checkForUpdates: () => ipcRenderer.invoke(channels.checkForUpdates),
+  dismissUpdate: (version) => ipcRenderer.invoke(channels.dismissUpdate, { version }),
   onEvent: (listener) => {
     const forward = (_event: IpcRendererEvent, hostEvent: HostEvent): void => listener(hostEvent)
     ipcRenderer.on(eventChannel, forward)
