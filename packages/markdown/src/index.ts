@@ -41,6 +41,7 @@ export type {
   ParsedOutline,
   TextRange,
 } from './outline-model'
+export { itemAt, itemStart, keptPassages } from './outline-places'
 export { readOutline } from './read-outline'
 export { newReferencePage, readReferencePage, type ReferencePage } from './reference-page'
 export {

@@ -7,6 +7,7 @@ import { chapterState } from './chapter-state'
 import { formatCommands, insertLink, type FormatCommand } from './format'
 import { foldedSection, type FoldedSection } from './folded-section'
 import { livePreview } from './live-preview'
+import { insertChosenLink, outlineText, type OutlineTextOptions } from './outline-text'
 import { pasteText } from './paste'
 import { setParagraphDirection, setPhraseDirection } from './paragraph-direction'
 import { editorSettings, type EditorSettings } from './settings'
@@ -49,6 +50,8 @@ export interface ChapterEditorOptions {
   onSelection?: (place: SelectionPlace | null) => void
   /** A section shown elsewhere, folded into one line (a page's relationships). */
   foldedSection?: FoldedSection
+  /** An outline written as text (Milestone 14): Tab nests list lines, and `@` offers pages to link. */
+  outline?: OutlineTextOptions
 }
 
 /**
@@ -75,9 +78,13 @@ export interface ChapterEditor {
   updateSettings(settings: EditorSettings): void
   format(command: FormatCommand): void
   insertLink(url: string): void
+  /** Outline text: puts a chosen link in place of the `@name` being typed, or at the cursor. */
+  pickLink(markdown: string): void
   setParagraphDirection(direction: Direction | null): void
   setPhraseDirection(direction: Direction | null): void
   cursor(): number
+  /** Selects `from` to `to` (or puts the cursor at `from`) and scrolls it into view; undo history stays. */
+  select(from: number, to?: number): void
   /** Where selected text is now (after the page around it scrolled, say), or `null`. */
   selectionPlace(): SelectionPlace | null
   focus(): void
@@ -158,7 +165,9 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
     }),
   ]
   if (options.foldedSection) viewExtensions.push(foldedSection(options.foldedSection))
-  const stateFor = (text: string) => chapterState(text, settings, current, viewExtensions)
+  const { outline } = options
+  const stateFor = (text: string) =>
+    chapterState(text, settings, current, outline ? [viewExtensions, outlineText(outline, text)] : viewExtensions)
   const view = new EditorView({ parent: root, root, state: stateFor(options.text) })
 
   const run = (command: StateCommand): void => {
@@ -184,9 +193,15 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
     },
     format: (command) => run(formatCommands[command]),
     insertLink: (url) => run(insertLink(url)),
+    pickLink: (markdown) => insertChosenLink(view, markdown),
     setParagraphDirection: (direction) => run(setParagraphDirection(direction)),
     setPhraseDirection: (direction) => run(setPhraseDirection(direction)),
     cursor: () => view.state.selection.main.head,
+    select(from, to = from) {
+      const length = view.state.doc.length
+      view.dispatch({ selection: EditorSelection.range(Math.min(from, length), Math.min(to, length)), scrollIntoView: true })
+      view.focus()
+    },
     selectionPlace: () => selectionPlace(view),
     focus: () => view.focus(),
     destroy: () => view.destroy(),

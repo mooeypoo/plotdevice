@@ -295,7 +295,8 @@ test('Story has two groups: Plot holds the outlines, World shows each kind of pa
   await openStory(page)
   await expect(page.getByTestId('plot')).toContainText('Main story')
   await expect(page.getByTestId('view-board')).toBeVisible()
-  await expect(page.locator('[data-testid^="view-"]')).toHaveCount(2) // Board and List; Cards is gone
+  // Board, List and Text (Milestone 14); Cards is gone
+  await expect(page.locator('[data-testid^="view-"]')).toHaveText(['Board', 'List', 'Text'])
 
   await expect(page.locator('[data-gallery="character"] .count')).toHaveText('3')
   await page.locator('[data-gallery="character"]').click()

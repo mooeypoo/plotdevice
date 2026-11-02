@@ -45,7 +45,7 @@ Open a chapter and write. There's no outline to fill in and no setup. Formatting
 
 ### See the story
 
-Plan in outlines that are simply Markdown lists, shown as a board, a list or cards. Drag a card, link it to a chapter or a character, and your prose stays exactly as you wrote it.
+Plan in outlines that are simply Markdown lists, shown as a board or a list, or typed freely as text. Drag a card, link it to a chapter or a character, and your prose stays exactly as you wrote it.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/readme/story-dark.webp">

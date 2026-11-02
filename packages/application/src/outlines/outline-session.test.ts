@@ -160,6 +160,16 @@ describe('outline session', () => {
     expect(session.current(MAIN)?.canUndo).toBe(false)
   })
 
+  it('opening an outline changed since its last edit (in the Text view) offers no undo, and keeps undo otherwise', async () => {
+    const { session, elsewhere } = setup()
+    await session.open(MAIN)
+    await session.edit(MAIN, { kind: 'set-title', text: 'Mine' })
+    expect((await session.open(MAIN)).ok && session.current(MAIN)?.canUndo).toBe(true)
+    elsewhere(MAIN, { title: 'Typed as text', preamble: [], sections: [] })
+    const reopened = await session.open(MAIN)
+    expect(reopened.ok && reopened.value).toMatchObject({ canUndo: false, outline: { title: 'Typed as text' } })
+  })
+
   it('reloads an open outline changed elsewhere, but not after its own edits', async () => {
     const { session, elsewhere, events } = setup()
     await session.open(MAIN)

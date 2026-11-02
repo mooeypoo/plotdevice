@@ -57,6 +57,12 @@ export const useStoryStore = defineStore('story', () => {
   const linkTags = ref<string[]>([])
   /** "Show on the board": the open outline's cards that link to a page stand out, and the rest fade. */
   const about = ref<{ file: ProjectPath; title: string; cards: Set<string> } | null>(null)
+  /**
+   * The card or detail last focused on the board or list, and the one to focus when they show again:
+   * the Text view opens on the first and, leaving, asks for the second (Milestone 14).
+   */
+  const lastItem = ref<string | null>(null)
+  const focusItem = ref<string | null>(null)
 
   async function refresh(): Promise<void> {
     ;[outlines.value, references.value] = await Promise.all([api.listOutlines(), api.listReferences()])
@@ -106,8 +112,14 @@ export const useStoryStore = defineStore('story', () => {
     if (outline.value?.file !== file) {
       collapsed.value = new Set()
       about.value = null
+      lastItem.value = null
     }
     settle(await api.openOutline(file))
+  }
+
+  /** Reads the open outline again, after it was written as text. */
+  async function reload(): Promise<void> {
+    if (outline.value) settle(await api.openOutline(outline.value.file))
   }
 
   /** A new outline; `about` a page (a character's arc), which the outline starts by linking to. */
@@ -231,6 +243,9 @@ export const useStoryStore = defineStore('story', () => {
     checkTags,
     linkTags,
     about,
+    lastItem,
+    focusItem,
+    reload,
     refresh,
     showOnBoard,
     editRelationship,

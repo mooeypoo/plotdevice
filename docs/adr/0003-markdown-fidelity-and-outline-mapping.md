@@ -45,3 +45,11 @@ Authors own their Markdown. Loading and saving without changes must produce iden
 - **Undo** restores the file's previous text only if the file is unchanged since the app's own edit (Milestone 4, decision 2).
 - **Card IDs are still not stored** (point 8): nothing in Milestone 4 needed them.
 - **Link syntax decided (Milestone 5; point 9 is closed).** The app writes relative Markdown links (`[Ilka](../characters/ilka.md)`) and reads Obsidian's `[[name]]` too, resolved only when the name is unique. Recorded in `DOMAIN_AND_FILE_FORMAT.md`.
+
+## Note (Milestone 14): an outline typed as text
+
+- **What changed for authors:** an outline can now also be shown as **Text**, its Markdown typed freely in the writing editor, beside the Board and List.
+- **This is not re-serializing (point 1).** The app writes the text the author typed, whole, as it does for a chapter; it never regenerates an outline. Structural edits on the Board and List are still splices.
+- **Nothing is refused (point 4).** Text that isn't headings and bullets is kept and shown "kept as written" on the board, as before. The Text view counts these passages and can select each one.
+- **Undo:** the board's undo history is dropped when the outline was changed since its last edit, because it would be refused anyway (Milestone 4, decision 2).
+- Details: `docs/plans/milestone-14-outline-text.md`.

@@ -1,6 +1,6 @@
 ---
-title: 'Outlines: board and list'
-description: Plan the story in outlines, and see each one as a board or a list.
+title: 'Outlines: board, list and text'
+description: Plan the story in outlines, and see each one as a board, a list or text.
 ---
 
 import Ui from '~/components/Ui.astro'
@@ -14,12 +14,13 @@ An outline is a plan you can rearrange: the main plot, one character's arc, a li
 
 In **<Ui k="workspace-story" />**, choose **+ <Ui k="story-new-outline" />** and give it a title. Click the title at any time to rename it.
 
-## Two ways to see it
+## Three ways to see it
 
 - **<Ui k="view-board" />**: each section is a column of cards.
 - **<Ui k="view-outline" />**: everything as one indented list, with details folded in and out.
+- **<Ui k="view-text" />**: the outline as text, to type freely. See [Type it as text](#type-it-as-text) below.
 
-They are two views of the same outline. A change in one is a change in both. The switch is beside the outline's title, because it belongs to the outline.
+They are three views of the same outline. A change in one is a change in both. The switch is beside the outline's title, because it belongs to the outline.
 
 ## Add in the list
 
@@ -31,6 +32,18 @@ They are two views of the same outline. A change in one is a change in both. The
 - A new line shows its bullet where it will land, and says what it is: "New item", or "New detail of …". The line under it says what **Tab** would make it.
 - While typing a new line: **Enter** keeps it and starts the next one, **Tab** makes it a detail of the line above, **Shift+Tab** brings it back out, and **Esc** stops.
 - To link a character, place, note or chapter while typing, type **@** and the start of its name, then choose it. See [Linking](/plotdevice/planning/linking/).
+
+## Type it as text
+
+For a first draft of the plan, or a quick change, **<Ui k="view-text" />** lets you type without clicking each item. **Ctrl+Shift+E** (**⌘⇧E** on a Mac) switches to it and back.
+
+- A line starting `## ` is a section, a line starting `- ` is a card, and a `- ` line under a card, one step in, is a detail.
+- **Enter** on a card starts the next one. **Tab** makes a line a detail of the one above, with its own details; **Shift+Tab** brings it back out.
+- Type **@** and the start of a name to link a character, place, note or chapter, as on a card.
+- It opens on the card you were on, and going back to the board or list takes you to the card you were typing.
+- Anything else you write, such as a paragraph between cards or a table, is kept. The board shows it "kept as written"; under the text, Plot Device says how many such passages there are, and **<Ui k="outline-text-show-kept" />** finds each one.
+
+It saves as you type, like a chapter. Undo in the text works by the keystroke; back on the board, there is nothing from the text to undo there.
 
 ## Undo, rename and versions
 
