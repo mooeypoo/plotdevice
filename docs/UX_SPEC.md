@@ -7,6 +7,8 @@ Version: 0.3 draft
 - No necessary dashboard after initial project creation. Avoid developer vocabulary in regular UI.
 - Do not automatically infer manuscript semantics from arbitrary outline titles.
 - The start screen offers "New project" and "Open project…", recent projects, and one quiet line for authors arriving with material: "Already have notes or a draft? Moving them in →", which opens the guide page in the interface's language (Milestone 13). It hides while the new-project form is open.
+- Update notices (Milestone 15): when a newer version is out, a quiet "Update available" button in the top bar, before the ☰ menu, opens a small panel: "Plot Device 0.4.0 is out.", "What's new", "Download" and "Not now". Nothing interrupts writing, and nothing is downloaded or installed by the app. About has "Check for updates"; Settings has "Check for updates automatically" (on at first; once a day; nothing about the author is sent).
+- The ☰ menu's last group: "Help and documentation", "Report a problem…" (the GitHub form, with the version and system filled in), "Suggest an idea…", and "About". About ends with the licence, "your writing is yours", and a "buy me a coffee" line.
 
 ## Write layout
 - Central writing surface; hideable manuscript navigator and hideable reference shelf.
