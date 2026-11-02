@@ -1,0 +1,27 @@
+name: An idea or a request
+description: Something that would make writing in Plot Device better.
+labels: [idea]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for sharing it. You're welcome to write in Hebrew.
+
+        The most useful ideas start with what you're trying to do while writing, before how the app should do it.
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to do?
+      description: The part of writing, planning or revising where you'd like more help.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: How do you do it today?
+      description: In Plot Device, in another app, or on paper.
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: Optional. How you imagine it could work.
