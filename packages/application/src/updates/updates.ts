@@ -79,6 +79,8 @@ export interface UpdateSession {
   /** "Check for updates": asks now, whatever the setting, and reports a dismissed version too. */
   checkNow(): Promise<UpdateCheck>
   dismiss(version: string): Promise<void>
+  /** Resolves once every save has finished. The app waits for this before quitting. */
+  idle(): Promise<void>
 }
 
 export interface UpdateSessionOptions {
@@ -97,9 +99,13 @@ export interface UpdateSessionOptions {
  */
 export async function createUpdateSession({ source, store, currentVersion, enabled, now }: UpdateSessionOptions): Promise<UpdateSession> {
   let state = parseUpdateState(await store.read().catch(() => null))
+  // Saves run one after another, so a slow one can't land after, and undo, a later one.
+  let saving: Promise<unknown> = Promise.resolve()
   const save = (next: UpdateState): Promise<unknown> => {
     state = next
-    return store.write(`${JSON.stringify(state, null, 2)}\n`)
+    const text = `${JSON.stringify(state, null, 2)}\n`
+    saving = saving.then(() => store.write(text)).catch(() => undefined)
+    return saving
   }
   const newer = (release: LatestRelease | null): LatestRelease | null =>
     release && isNewerVersion(release.version, currentVersion) ? release : null
@@ -131,6 +137,14 @@ export async function createUpdateSession({ source, store, currentVersion, enabl
     },
     async dismiss(version) {
       await save({ ...state, dismissed: version })
+    },
+    idle: async () => {
+      // Saves may be queued while waiting, so wait until the queue stops growing.
+      let seen: Promise<unknown> | undefined
+      while (seen !== saving) {
+        seen = saving
+        await saving
+      }
     },
   }
   return session

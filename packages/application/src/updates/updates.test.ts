@@ -140,6 +140,32 @@ describe('dismissing', () => {
   })
 })
 
+describe('saving', () => {
+  it('finishes every save before idle() resolves, in the order they were made', async () => {
+    let open = (): void => undefined
+    const gate = new Promise<void>((resolve) => (open = resolve))
+    const writes: string[] = []
+    const updates = await createUpdateSession({
+      source: source(release('0.4.0')).latest,
+      store: {
+        read: async () => null,
+        write: async (text) => (await gate, writes.push(text), ok(undefined)),
+        setAside: async () => undefined,
+      },
+      currentVersion: '0.3.0',
+      enabled: () => true,
+      now: () => 0,
+    })
+    void updates.checkIfDue()
+    void updates.dismiss('0.4.0')
+    const idle = updates.idle()
+    open()
+    await idle
+    expect(writes).toHaveLength(2)
+    expect(parseUpdateState(writes.at(-1) ?? null).dismissed).toBe('0.4.0')
+  })
+})
+
 describe('"Check for updates"', () => {
   it('asks even when checks are off or it asked today, and reports a dismissed version', async () => {
     const { updates, asked } = await session({ answers: [release('0.4.0')], enabled: false })

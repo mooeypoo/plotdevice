@@ -121,6 +121,7 @@ void app.whenReady().then(async () => {
     () => writing.idle(),
     () => recent.idle(),
     () => outlines.idle(),
+    () => updates.idle(),
   )
   // The watcher can start before the window exists (reopening the last project); events wait for it.
   let tellPage: (event: HostEvent) => void = () => undefined

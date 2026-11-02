@@ -77,6 +77,8 @@ test('“Not now” stops mentioning that version, after a restart too, but a la
   await page.getByTestId('update-available').click()
   await page.getByTestId('update-not-now').click()
   await expect(page.getByTestId('update-available')).toBeHidden()
+  // The page tells the app in the background; quitting waits for saves the app has started, not for messages on the way.
+  await expect.poll(() => readFile(join(userData, 'updates.json'), 'utf8')).toContain('"dismissed": "9.0.0"')
   await running?.app.close()
 
   page = await start()
