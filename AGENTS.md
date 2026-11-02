@@ -46,6 +46,7 @@ Priority of authority: explicit user decisions > current PRD/UX/file-format/arch
 - Banana-style keyed JSON localization; translator facade supports parameters, plural, gender, CLDR as needed; avoid gettext/POT. Use logical CSS properties, isolation for user content and keyboard-accessible drag alternatives.
 - Document exported domain/application interfaces concisely. Explain *why* in comments; avoid verbose boilerplate. A short README per bounded context is encouraged.
 - No new app feature, cross-context coupling, schema change or dependency without identifying which requirement it serves.
+- **Commit messages become release notes** (Milestone 15). Every commit starts with a prefix: `feat`, `fix`, `perf`, `docs`, `test`, `ci`, `build`, `style`, `dev`, `refactor`, `chore` or `release` (CI checks a pull request's commits). `feat:`, `fix:` and `perf:` lines go into the changelog as written, so write them for authors: "feat: tag a page from its pills", not "feat: add TagPills component".
 
 ## Quality gates
 - Tests: pure domain; Markdown round-trip and targeted edits; stale write and atomic recovery; schema fixtures; typed IPC contracts; critical UI E2E; EN/HE mixed text; theme persistence and editor-not-remounting.
