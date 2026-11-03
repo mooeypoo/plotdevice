@@ -4,7 +4,7 @@ Each version starts with a short summary, then what's new, what's fixed and what
 
 ## 0.3.0 — 2026-11-03
 
-The first public version of Plot Device: a place to write your book chapter by chapter, with your characters, places, notes and outline beside the draft. Everything is saved as ordinary files in a folder you choose, so your book stays yours. This is a beta for Linux, and Windows comes next. If something goes wrong, or you have an idea, tell us from the menu.
+The first public version of Plot Device: a place to write your book chapter by chapter, with your characters, places, notes and outline beside the draft. Everything is saved as ordinary files in a folder you choose, so your book stays yours. This is a beta for Linux, with an early beta for Windows. If something goes wrong, or you have an idea, tell us from the menu.
 
 ### New
 
@@ -22,6 +22,8 @@ The first public version of Plot Device: a place to write your book chapter by c
 
 ### Good to know
 
-- This beta is for Linux, as an AppImage and a .deb. Windows comes next; macOS later.
-- The Linux files aren't signed. Check them against `SHA256SUMS` on the release page if you like.
-- It's a beta: keep your book's folder in a backed-up or synced place, as you would any important document.
+- **Linux:** an AppImage and a .deb. On Ubuntu or Debian, the .deb installs Plot Device with your other apps.
+- **Windows (early beta):** an installer, `plotdevice-0.3.0-setup.exe`. Every change is tested on Windows automatically, including installing and removing the app, but it hasn't been used on real Windows computers yet. Expect rough edges, and please tell us about them with "Report a problem". The installer isn't signed yet, so Windows may say "Windows protected your PC": choose "More info", then "Run anyway".
+- **macOS** comes later.
+- **Your book is safe** on any system: it's plain files, each save swaps in a complete new file, and earlier versions are kept outside the book (`%APPDATA%\plotdevice\backups\` on Windows). Still, keep your book's folder in a backed-up or synced place, as you would any important document.
+- **Checking the files:** compare them with `SHA256SUMS` on the release page.
