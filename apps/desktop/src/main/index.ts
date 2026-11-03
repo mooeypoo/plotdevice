@@ -38,6 +38,7 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import icon from '../../../../assets/brand/icons/512x512.png?asset'
 import { applicationMenu } from './app-menu'
+import { dataHome, integrateAppImage } from './appimage-desktop'
 import { createIpcHandlers } from './ipc'
 import { folderFromArgs } from './launch-folder'
 import { openedProject, openProblem } from './project-ipc'
@@ -86,6 +87,11 @@ app.on('before-quit', (event) => {
 
 void app.whenReady().then(async () => {
   denyAllPermissions(session.defaultSession)
+  // Before the window opens, so the taskbar finds the entry (and its icon) for it from the first start.
+  if (process.platform === 'linux' && process.env.APPIMAGE)
+    await integrateAppImage({ appImage: process.env.APPIMAGE, icon, home: dataHome() }).catch((error: unknown) =>
+      console.warn('Could not add Plot Device to the applications menu.', error),
+    )
   const userData = app.getPath('userData')
   const store = withSlowPreferences(createPreferencesFileStore(userData))
   const loaded = await loadPreferences(store, app.getLocale())
