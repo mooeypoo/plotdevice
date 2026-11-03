@@ -43,6 +43,17 @@ defineExpose({ show: () => dialog.value?.showModal() })
           <option v-for="theme in themes" :key="theme" :value="theme">{{ t(`theme-${theme}`) }}</option>
         </select>
       </label>
+      <label class="check-row">
+        <input
+          type="checkbox"
+          data-testid="check-for-updates-setting"
+          :checked="settings.preferences.checkForUpdates"
+          aria-describedby="check-for-updates-hint"
+          @change="settings.update({ checkForUpdates: ($event.target as HTMLInputElement).checked })"
+        />
+        {{ t('settings-check-updates') }}
+      </label>
+      <p id="check-for-updates-hint" class="secondary hint">{{ t('settings-check-updates-hint') }}</p>
     </template>
     <p v-if="settings.saveFailed" class="warning" role="status">⚠ {{ t('settings-save-failed') }}</p>
     <form method="dialog" class="actions">

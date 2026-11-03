@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions about using Plot Device
+    url: https://mooeypoo.github.io/plotdevice/reference/questions/
+    about: The guide, in English and Hebrew, answers most questions about writing and planning in Plot Device.

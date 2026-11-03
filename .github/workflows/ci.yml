@@ -9,6 +9,26 @@ permissions:
   contents: read
 
 jobs:
+  # feat:, fix: and perf: commits become the release notes (Milestone 15), so every commit in a pull
+  # request needs a known prefix. A release pull request also needs its notes ready: the summary written.
+  commits:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Every commit has a prefix
+        run: node tooling/release-notes.mjs check-commits "${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+      - name: The release notes are ready
+        if: startsWith(github.head_ref, 'release/v')
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: node tooling/release-notes.mjs check "${BRANCH#release/v}"
+
   check:
     name: ${{ matrix.os }}
     strategy:

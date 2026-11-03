@@ -303,5 +303,20 @@
   "about-license": "Plot Device is free software: you may use, study, share and change it under the GNU General Public License, version 3 or later.",
   "about-yours": "Everything you write with Plot Device is yours, under your own copyright. The licence covers the program, never your writing.",
   "about-credits": "Open-source components ($1)",
-  "about-full-license": "The full licence (in English)"
+  "about-full-license": "The full licence (in English)",
+  "update-available": "Update available",
+  "update-is-out": "Plot Device $1 is out.",
+  "update-whats-new": "What's new",
+  "update-download": "Download",
+  "update-not-now": "Not now",
+  "update-check": "Check for updates",
+  "update-checking": "Checking…",
+  "update-newest": "You have the newest version.",
+  "update-failed": "Couldn't check for updates. Check your internet connection, or try again later.",
+  "settings-check-updates": "Check for updates automatically",
+  "settings-check-updates-hint": "Once a day, Plot Device asks GitHub whether a newer version is out. Nothing about you or your writing is sent.",
+  "report-problem": "Report a problem…",
+  "suggest-idea": "Suggest an idea…",
+  "about-coffee": "Plot twist: this app runs on coffee. ☕ If Plot Device helps you write, you can $1. I'll put it toward the next chapter… of the code.",
+  "about-coffee-link": "buy me one"
 }

@@ -18,6 +18,20 @@ describe('links the app opens in the browser', () => {
   })
 })
 
+describe('release notes, issue forms and the coffee page', () => {
+  it('allows the project’s GitHub pages and the author’s coffee page', () => {
+    expect(isAllowedExternalLink('https://github.com/mooeypoo/plotdevice/releases/tag/v0.4.0')).toBe(true)
+    expect(isAllowedExternalLink('https://github.com/mooeypoo/plotdevice/issues/new?template=problem.yml&version=0.3.0')).toBe(true)
+    expect(isAllowedExternalLink('https://buymeacoffee.com/mooeypoo')).toBe(true)
+  })
+
+  it('refuses other GitHub projects and other coffee pages', () => {
+    expect(isAllowedExternalLink('https://github.com/mooeypoo/plotdevice-evil/releases')).toBe(false)
+    expect(isAllowedExternalLink('https://github.com/someone/plotdevice/')).toBe(false)
+    expect(isAllowedExternalLink('https://buymeacoffee.com/someone')).toBe(false)
+  })
+})
+
 describe('the documentation in each language', () => {
   it('allows the Hebrew documentation, and any future language under the same site', () => {
     expect(isAllowedExternalLink('https://mooeypoo.github.io/plotdevice/he/')).toBe(true)

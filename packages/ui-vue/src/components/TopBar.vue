@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { Workspace } from '@plotdevice/contracts'
+import type { AppInfo, Workspace } from '@plotdevice/contracts'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useApi } from '../api'
 import { useVersions } from '../composables/use-versions'
-import { documentationFor } from '../links'
+import { documentationFor, IDEA_FORM, problemReportFor } from '../links'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import { useViewStore } from '../stores/view'
@@ -12,6 +13,7 @@ import AppearancePanel from './AppearancePanel.vue'
 import BrandMark from './BrandMark.vue'
 import MenuButton from './MenuButton.vue'
 import SettingsDialog from './SettingsDialog.vue'
+import UpdateNotice from './UpdateNotice.vue'
 import type { MenuItem } from './menu'
 
 // The one bar at the top: the book (its title opens the book menu), Story | Write, and the app menu.
@@ -24,6 +26,12 @@ const t = settings.t
 const settingsDialog = ref<InstanceType<typeof SettingsDialog> | null>(null)
 const about = ref<InstanceType<typeof AboutDialog> | null>(null)
 const mod = navigator.platform.startsWith('Mac') ? '⌘' : 'Ctrl+'
+// For the problem form, which is filled in with the version and system.
+const appInfo = ref<AppInfo | null>(null)
+void useApi()
+  .getAppInfo()
+  .then((info) => (appInfo.value = info))
+const openInBrowser = (url: string): void => void window.open(url, '_blank', 'noreferrer')
 // The names come only from the catalogs (`workspace-story`, `workspace-write`): the Story label is a working name.
 const workspaces: Workspace[] = ['story', 'write']
 
@@ -38,11 +46,13 @@ const bookItems = computed<MenuItem[]>(() => {
 const appItems = computed<MenuItem[]>(() => [
   { key: 'open-project', label: t('welcome-open-project'), hint: `${mod}O`, run: () => void store.open('choose') },
   { key: 'settings', label: t('settings-open'), hint: `${mod},`, group: 'app', run: () => settingsDialog.value?.show() },
+  { key: 'documentation', label: t('help-documentation'), run: () => openInBrowser(documentationFor(settings.locale)) },
   {
-    key: 'documentation',
-    label: t('help-documentation'),
-    run: () => void window.open(documentationFor(settings.locale), '_blank', 'noreferrer'),
+    key: 'report-problem',
+    label: t('report-problem'),
+    run: () => openInBrowser(problemReportFor(appInfo.value?.version ?? '', appInfo.value?.platform ?? '')),
   },
+  { key: 'suggest-idea', label: t('suggest-idea'), run: () => openInBrowser(IDEA_FORM) },
   { key: 'about', label: t('about'), run: () => about.value?.show() },
 ])
 
@@ -92,6 +102,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
     <span v-else></span>
 
     <div class="top-end">
+      <UpdateNotice />
       <span
         v-if="store.project && view.workspace === 'write' && view.saveStatus"
         class="save-status"

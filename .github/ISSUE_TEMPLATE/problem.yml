@@ -1,0 +1,61 @@
+name: Something isn't working
+description: Plot Device did something unexpected, lost track of something, or got stuck.
+labels: [problem]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to tell us. You're welcome to write in Hebrew.
+
+        **Please don't attach your book.** A small invented example that shows the problem is just as useful, and your writing stays private.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you see? Copy any message Plot Device showed.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How can we make it happen again?
+      description: The steps, one per line, starting from opening the app.
+      placeholder: |
+        1. Open a book
+        2. Open the chapter "Frost"
+        3. …
+  - type: input
+    id: version
+    attributes:
+      label: Plot Device version
+      description: In the ⋯ menu, choose About. "Report a problem…" in the app fills this in.
+      placeholder: '0.3.0'
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Your system
+      description: Linux (which one?) or Windows.
+      placeholder: Ubuntu 24.04
+    validations:
+      required: true
+  - type: dropdown
+    id: language
+    attributes:
+      label: The book's language
+      options:
+        - English
+        - Hebrew
+        - Both, or another language
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If they show the problem. Drag them here.

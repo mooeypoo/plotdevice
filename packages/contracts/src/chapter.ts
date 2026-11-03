@@ -1,6 +1,7 @@
 import type { ProjectPath, Result } from '@plotdevice/shared'
 import { z } from 'zod'
 import type { OutlineView } from './outline'
+import type { UpdateView } from './updates'
 import { projectPathSchema, type OpenedProject, type ProjectView } from './project'
 
 /** Chapters well beyond any novel's: a guard against runaway payloads, not a writing limit. */
@@ -55,3 +56,5 @@ export type HostEvent =
   | { kind: 'open-failed'; error: 'not-a-project' | 'unreadable' | 'newer-format' }
   /** The app is closing: send any text still waiting to be saved. */
   | { kind: 'flush' }
+  /** A newer version is out (Milestone 15). */
+  | { kind: 'update-available'; update: UpdateView }

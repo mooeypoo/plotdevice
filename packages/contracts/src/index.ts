@@ -95,6 +95,14 @@ export {
   type RelationshipView,
 } from './references'
 export {
+  dismissUpdateSchema,
+  latestReleaseSchema,
+  releaseVersionSchema,
+  type LatestRelease,
+  type UpdateCheckView,
+  type UpdateView,
+} from './updates'
+export {
   restoreVersionSchema,
   versionSchema,
   versionsSchema,

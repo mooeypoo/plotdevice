@@ -1,44 +1,83 @@
 name: Release
 
-# A tag such as v0.2.0 builds the installers and attaches them to a DRAFT release. Nothing is public
-# until the owner publishes the draft (Milestone 7, decision 3).
+# A tag such as v0.3.0 builds the Linux files and attaches them, with that version's notes from
+# CHANGELOG.md, to a DRAFT release. Nothing is public until the owner publishes the draft (Milestone 7,
+# decision 3). Merging a release pull request tags it and runs this (tag-release.yml); a tag pushed by
+# hand runs it too. Windows joins when its beta starts (Milestone 15).
+#
+# Each release carries latest.json. The app asks for it at
+# https://github.com/mooeypoo/plotdevice/releases/latest/download/latest.json, which GitHub sends to the
+# newest PUBLISHED release, so update notices change the moment a draft is published. Releases must
+# not be marked "Pre-release": `latest` skips those.
 on:
   push:
     tags: ['v*']
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
 
 permissions:
   contents: write
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   draft:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Check the version and the notes
+        run: |
+          version="${TAG#v}"
+          packaged="$(node -p "require('./apps/desktop/package.json').version")"
+          if [ "$packaged" != "$version" ]; then
+            echo "::error::The tag is $TAG, but apps/desktop/package.json says $packaged."
+            exit 1
+          fi
+          node tooling/release-notes.mjs notes "$version" > notes.md
       - name: Create the draft release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft --title "Plot Device ${GITHUB_REF_NAME#v}" --notes "Draft: review, then publish."
+        run: gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --draft --title "Plot Device ${TAG#v}" --notes-file notes.md
 
-  installers:
+  linux:
     needs: draft
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Build the installers
+      # "What's new" in Linux software centres comes from the metadata inside the .deb.
+      - name: Put the notes in the Linux metadata
+        run: node tooling/release-notes.mjs metainfo "${TAG#v}"
+      - name: Check the Linux metadata
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq appstream
+          appstreamcli validate --no-net --explain apps/desktop/build/tech.moriel.plotdevice.metainfo.xml
+      - name: Build the AppImage and the .deb
         working-directory: apps/desktop
-        run: pnpm build && pnpm exec electron-builder --publish never
+        run: pnpm build && pnpm exec electron-builder --linux --publish never
+      - name: Checksums and latest.json
+        working-directory: apps/desktop/dist
+        run: |
+          sha256sum *.AppImage *.deb > SHA256SUMS
+          node ../../../tooling/release-notes.mjs latest "${TAG#v}" > latest.json
       - name: Attach them to the draft
-        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         working-directory: apps/desktop/dist
-        run: gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber $(ls *.AppImage *.deb *-setup.exe 2>/dev/null)
+        run: gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber *.AppImage *.deb SHA256SUMS latest.json

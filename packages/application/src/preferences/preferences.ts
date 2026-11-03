@@ -7,9 +7,18 @@ const LOCALES: readonly Locale[] = ['en', 'he']
 const WRITING_SIZES: readonly WritingSize[] = ['small', 'medium', 'large']
 const PAGE_WIDTHS: readonly PageWidth[] = ['narrow', 'medium', 'wide']
 
-/** First-run settings: follow the system theme, use Hebrew if the system is in Hebrew, and a medium page. */
+/**
+ * First-run settings: follow the system theme, use Hebrew if the system is in Hebrew, a medium page,
+ * and update notices on (Milestone 15: a copy that never checks can never hear of a fix).
+ */
 export function defaultPreferences(systemLocale: string): Preferences {
-  return { theme: 'system', locale: systemLocale.toLowerCase().startsWith('he') ? 'he' : 'en', writingSize: 'medium', pageWidth: 'medium' }
+  return {
+    theme: 'system',
+    locale: systemLocale.toLowerCase().startsWith('he') ? 'he' : 'en',
+    writingSize: 'medium',
+    pageWidth: 'medium',
+    checkForUpdates: true,
+  }
 }
 
 /**
@@ -30,6 +39,7 @@ export function parsePreferences(text: string, defaults: Preferences): Result<Pr
     locale: LOCALES.find((l) => l === record.locale) ?? defaults.locale,
     writingSize: WRITING_SIZES.find((size) => size === record.writingSize) ?? defaults.writingSize,
     pageWidth: PAGE_WIDTHS.find((width) => width === record.pageWidth) ?? defaults.pageWidth,
+    checkForUpdates: typeof record.checkForUpdates === 'boolean' ? record.checkForUpdates : defaults.checkForUpdates,
   })
 }
 
@@ -98,6 +108,7 @@ export async function updatePreferences(
     locale: patch.locale ?? current.locale,
     writingSize: patch.writingSize ?? current.writingSize,
     pageWidth: patch.pageWidth ?? current.pageWidth,
+    checkForUpdates: patch.checkForUpdates ?? current.checkForUpdates,
   }
   const written = await store.write(`${JSON.stringify(next, null, 2)}\n`)
   return written.ok ? ok(next) : written

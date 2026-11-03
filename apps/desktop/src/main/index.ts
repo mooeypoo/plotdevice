@@ -2,11 +2,13 @@ import {
   createOutlineSession,
   createPreferencesSession,
   createRecentProjectsSession,
+  createUpdateSession,
   createWritingSession,
   loadPreferences,
   type OutlineSession,
   type PreferencesStore,
   type ProjectRepository,
+  type UpdateSession,
   type WritingSession,
 } from '@plotdevice/application'
 import { eventChannel, type AboutView, type AppInfo, type HostEvent } from '@plotdevice/contracts'
@@ -41,6 +43,8 @@ import { folderFromArgs } from './launch-folder'
 import { openedProject, openProblem } from './project-ipc'
 import { denyAllPermissions, hardenWebContents } from './security'
 import { enableSpellingMenu, spellcheckLanguages } from './spellcheck'
+import { updateView } from './update-ipc'
+import { createUpdateSource, GITHUB_HOSTS, LATEST_RELEASE_URL } from './update-source'
 import { hostEvent, outlineEvent } from './views'
 
 // Tests may point unpackaged builds at a temporary folder.
@@ -100,11 +104,24 @@ void app.whenReady().then(async () => {
   const writing = createWritingSession({ repository, copyLabel: () => translate('conflict-copy-label') })
   const outlines = createOutlineSession({ repository: createOutlineRepository({ folders }), root: () => writing.project()?.root ?? null })
   const recent = await createRecentProjectsSession(createAppDataFile(userData, 'recent'))
+  const updates = await createUpdateSession({
+    source: createUpdateSource(
+      testUpdateUrl
+        ? { url: testUpdateUrl, hosts: [new URL(testUpdateUrl).hostname], allowHttp: true }
+        : { url: LATEST_RELEASE_URL, hosts: GITHUB_HOSTS },
+    ),
+    store: createAppDataFile(userData, 'updates'),
+    currentVersion: app.getVersion(),
+    // Development builds don't check on their own (tests point them at a local server instead).
+    enabled: () => preferences.current().checkForUpdates && (app.isPackaged || testUpdateUrl !== undefined),
+    now: Date.now,
+  })
   pendingWork.push(
     () => preferences.idle(),
     () => writing.idle(),
     () => recent.idle(),
     () => outlines.idle(),
+    () => updates.idle(),
   )
   // The watcher can start before the window exists (reopening the last project); events wait for it.
   let tellPage: (event: HostEvent) => void = () => undefined
@@ -194,12 +211,18 @@ void app.whenReady().then(async () => {
   }
 
   const appInfo: AppInfo = { name: 'Plot Device', version: app.getVersion(), platform: platformOf(process.platform) }
+  const checkForUpdates = (): Promise<void> => announceUpdate(updates, (event) => !window.isDestroyed() && tellPage(event))
   const handlers = createIpcHandlers({
     appUrl,
     appInfo,
     about: () => readAbout(appInfo),
     currentPreferences: () => preferences.current(),
-    updatePreferences: (patch) => preferences.update(patch),
+    updatePreferences: async (patch) => {
+      const saved = await preferences.update(patch)
+      // Turning update checks on checks straight away, if a day has passed since the last answer.
+      if (saved.ok && patch.checkForUpdates) void checkForUpdates()
+      return saved
+    },
     projects: {
       session: writing,
       recent,
@@ -238,6 +261,7 @@ void app.whenReady().then(async () => {
             .replace(/[:/]/g, '.'),
         ),
     },
+    updates: { updates },
   })
   for (const [channel, handle] of Object.entries(handlers)) {
     ipcMain.handle(channel, (event, payload: unknown) =>
@@ -247,6 +271,9 @@ void app.whenReady().then(async () => {
 
   window.webContents.once('did-finish-load', () => {
     if (launchProblem?.kind === 'open-failed') tellPage(launchProblem)
+    // Shortly after opening, so it never competes with the book; then now and then while the app is open.
+    setTimeout(() => void checkForUpdates(), testUpdateUrl ? 0 : UPDATE_FIRST_CHECK_MS)
+    setInterval(() => void checkForUpdates(), UPDATE_RECHECK_MS).unref()
   })
   app.on('second-instance', (_event, argv) => {
     if (window.isMinimized()) window.restore()
@@ -260,11 +287,22 @@ void app.whenReady().then(async () => {
 })
 
 const FLUSH_TIMEOUT_MS = 2000
+const UPDATE_FIRST_CHECK_MS = 5000
+/** How often a long-open app looks again; the check itself still asks GitHub at most once a day. */
+const UPDATE_RECHECK_MS = 6 * 60 * 60 * 1000
 
 /** Test-only (unpackaged builds): the folder every folder dialog "chooses"; empty means cancelled. */
 const testFolderChoice = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_CHOOSE_FOLDER
 /** Test-only (unpackaged builds): the file every save dialog "chooses"; empty means cancelled. */
 const testSaveAs = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_SAVE_AS
+/** Test-only (unpackaged builds): a local server standing in for GitHub's latest.json. */
+const testUpdateUrl = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_UPDATE_URL
+
+/** Runs the automatic update check, and tells the page about a newer version (Milestone 15). */
+async function announceUpdate(updates: UpdateSession, tell: (event: HostEvent) => void): Promise<void> {
+  const release = await updates.checkIfDue()
+  if (release) tell({ kind: 'update-available', update: updateView(release) })
+}
 
 /**
  * The licence and the credits list: shipped as resources in an installed app, and found in the

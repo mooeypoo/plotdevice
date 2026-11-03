@@ -11,6 +11,7 @@ import { IpcRefused, parsePayload } from './payload'
 import { createOutlineHandlers, type OutlineIpcContext } from './outline-ipc'
 import { createProjectHandlers, type PayloadHandler, type ProjectIpcContext } from './project-ipc'
 import { createReferenceHandlers, type ReferenceIpcContext } from './reference-ipc'
+import { createUpdateHandlers, type UpdateIpcContext } from './update-ipc'
 import { createVersionHandlers, type VersionIpcContext } from './version-ipc'
 
 /** What the main process knows about who sent a request. */
@@ -31,6 +32,7 @@ export interface IpcContext {
   outlines: OutlineIpcContext
   references: ReferenceIpcContext
   versions: VersionIpcContext
+  updates: UpdateIpcContext
 }
 
 export type IpcHandler = (sender: Sender, payload: unknown) => Promise<unknown>
@@ -53,6 +55,7 @@ export function createIpcHandlers(context: IpcContext): Record<string, IpcHandle
     ...createOutlineHandlers(context.outlines),
     ...createReferenceHandlers(context.references),
     ...createVersionHandlers(context.versions),
+    ...createUpdateHandlers(context.updates),
   }
   return Object.fromEntries(
     Object.entries(handlers).map(([channel, handle]) => [

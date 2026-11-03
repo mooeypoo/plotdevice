@@ -22,6 +22,7 @@
     "e2e:packaged": "playwright test --config playwright.packaged.config.ts",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm arch && pnpm perf && pnpm build",
     "format": "prettier --write .",
+    "release": "node tooling/release.mjs",
     "demo": "node tooling/demo.mjs",
     "site:screenshots": "pnpm build && playwright test -c apps/site/playwright.config.ts",
     "site:dev": "pnpm --filter @plotdevice/site dev",

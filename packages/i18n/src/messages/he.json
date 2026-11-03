@@ -303,5 +303,20 @@
   "about-license": "Plot Device היא תוכנה חופשית: מותר להשתמש בה, ללמוד אותה, לשתף ולשנות אותה לפי הרישיון הציבורי הכללי של GNU, גרסה 3 ואילך.",
   "about-yours": "כל מה שכותבים ב־Plot Device שייך לכותבים, בזכויות יוצרים משלהם. הרישיון חל על התוכנה, לעולם לא על הכתיבה.",
   "about-credits": "רכיבי קוד פתוח ($1)",
-  "about-full-license": "הרישיון המלא (באנגלית)"
+  "about-full-license": "הרישיון המלא (באנגלית)",
+  "update-available": "עדכון זמין",
+  "update-is-out": "יצאה גרסה $1 של Plot Device.",
+  "update-whats-new": "מה חדש",
+  "update-download": "הורדה",
+  "update-not-now": "לא עכשיו",
+  "update-check": "בדיקת עדכונים",
+  "update-checking": "בודקים…",
+  "update-newest": "זו הגרסה החדשה ביותר.",
+  "update-failed": "לא ניתן היה לבדוק אם יש עדכונים. כדאי לבדוק את החיבור לאינטרנט, או לנסות שוב מאוחר יותר.",
+  "settings-check-updates": "בדיקת עדכונים אוטומטית",
+  "settings-check-updates-hint": "פעם ביום Plot Device בודקת ב־GitHub אם יצאה גרסה חדשה. שום מידע על הכותבים או על הכתיבה לא נשלח.",
+  "report-problem": "דיווח על בעיה…",
+  "suggest-idea": "הצעת רעיון…",
+  "about-coffee": "טוויסט בעלילה: האפליקציה הזאת רצה על קפה. ☕ אם Plot Device עוזרת בכתיבה, אפשר $1, והיא תלך לפרק הבא… של הקוד.",
+  "about-coffee-link": "לקנות לי כוס קפה"
 }

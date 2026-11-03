@@ -2146,6 +2146,48 @@ button.inline-link {
   white-space: pre-wrap;
   font-size: 0.8rem;
 }
+.about-update {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  margin-block: 0.5rem 0;
+}
+.about-update p {
+  margin: 0;
+}
+
+/* Update notices (Milestone 15): quiet in the top bar, never in the way of writing. */
+.update-button {
+  border-color: transparent;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+.update-button::before {
+  content: '';
+  display: inline-block;
+  inline-size: 6px;
+  block-size: 6px;
+  margin-inline-end: 0.4rem;
+  vertical-align: middle;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+.update-notice {
+  padding: 0.5rem 0.75rem;
+}
+.update-notice p {
+  margin-block: 0 0.75rem;
+}
+.update-links {
+  display: flex;
+  gap: 1rem;
+}
+.update-links a {
+  color: var(--color-accent);
+  text-underline-offset: 0.2em;
+}
 
 /* Dialogs */
 .dialog {
@@ -2174,6 +2216,17 @@ button.inline-link {
   display: flex;
   justify-content: space-between;
   margin-block-end: 0.85rem;
+}
+.settings-dialog label.check-row {
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-end: 0.25rem;
+}
+.settings-dialog .hint {
+  max-inline-size: 24rem;
+  margin-block: 0 0.85rem;
+  font-size: 0.8rem;
 }
 .conflict .choice {
   margin-block: 1rem;

@@ -31,9 +31,21 @@
   unpacked app, which is quicker and is what `pnpm e2e:packaged` tests.
 - The release identity is fixed (ADR 0001): app id `tech.moriel.plotdevice`, executable `plotdevice`, settings
   folder `plotdevice`. Never change it: Windows upgrades and authors' settings depend on it.
-- **To release:** set the version in `apps/desktop/package.json`, commit, and push a tag such as `v0.2.0`. CI builds
-  the installers and attaches them to a **draft** release. Check the draft, then publish it yourself.
-- Windows installers aren't signed yet, so Windows shows an "unknown publisher" warning when installing.
+- **To release** (Milestone 15), on an up-to-date `main` whose CI passed:
+  1. `pnpm release 0.4.0 --dry-run` shows the notes and anything that isn't ready, changing nothing.
+  2. `pnpm release 0.4.0` sets the version (`apps/desktop/package.json`, the Linux metadata), writes the new
+     `CHANGELOG.md` section from the `feat:`, `fix:` and `perf:` commits since the last tag, and opens a pull request.
+  3. In that pull request, write the summary (replacing the `<!-- Summary … -->` line) and edit the notes for
+     authors. CI stays red until the summary is written.
+  4. Merging tags the merge commit (`tag-release.yml`), and `release.yml` builds the AppImage and the `.deb` and
+     attaches them, with the notes, `SHA256SUMS` and `latest.json`, to a **draft** release.
+  5. Try the draft's files, then publish it. Don't mark it "Pre-release".
+- **Update notices** read `latest.json` from `https://github.com/mooeypoo/plotdevice/releases/latest/download/latest.json`,
+  which GitHub sends to the newest published release. Publishing a release is what tells earlier copies about it.
+  Development builds don't check on their own; `PLOTDEVICE_TEST_UPDATE_URL` points an unpackaged build at a local
+  server instead.
+- Releases are Linux only until the Windows beta. CI still builds and tests the Windows installer. Windows installers
+  aren't signed yet, so Windows shows an "unknown publisher" warning when installing.
 
 ## Troubleshooting
 

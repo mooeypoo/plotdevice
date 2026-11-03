@@ -9,6 +9,7 @@ import type {
 } from './chapter'
 import type { OutlineEditRequest, OutlineResult, OutlineSummaryView, Place } from './outline'
 import type { Preferences, PreferencesPatch } from './preferences'
+import type { UpdateCheckView, UpdateView } from './updates'
 import type {
   CardLinksView,
   LinkedFromView,
@@ -106,6 +107,13 @@ export interface PlotDeviceApi {
   restoreVersion(file: ProjectPath, at: number, revision: string): Promise<VersionResult<void>>
   /** Saves an earlier version as a new file next to it. */
   copyVersion(file: ProjectPath, at: number): Promise<CopyVersionResult>
+
+  /** A newer version to mention, unless the author dismissed it or turned update checks off (Milestone 15). */
+  getUpdate(): Promise<UpdateView | null>
+  /** Asks now, whatever the setting: "Check for updates" in About. */
+  checkForUpdates(): Promise<UpdateCheckView>
+  /** Stops mentioning this version; a later one is mentioned again. */
+  dismissUpdate(version: string): Promise<void>
 
   onEvent(listener: (event: HostEvent) => void): () => void
 }
