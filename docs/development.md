@@ -35,6 +35,8 @@
   1. `pnpm release 0.4.0 --dry-run` shows the notes and anything that isn't ready, changing nothing.
   2. `pnpm release 0.4.0` sets the version (`apps/desktop/package.json`, the Linux metadata), writes the new
      `CHANGELOG.md` section from the `feat:`, `fix:` and `perf:` commits since the last tag, and opens a pull request.
+     The section ends with "All changes, for developers:", a link comparing the last tag with this version on
+     GitHub (left out of the Linux metadata, and of the first release, which has no earlier tag).
   3. In that pull request, write the summary (replacing the `<!-- Summary … -->` line) and edit the notes for
      authors. CI stays red until the summary is written. The script's bullets are the raw commit lines, so
      rewrite them (0.3.0 in `CHANGELOG.md` is the example):

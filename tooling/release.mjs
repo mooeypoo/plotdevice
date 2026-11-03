@@ -97,7 +97,7 @@ function main() {
   const dryRun = flags.includes('--dry-run')
   const facts = gatherFacts(version)
   const problems = releaseProblems(facts)
-  const section = changelogSection({ version, date: today(), subjects: facts.subjects })
+  const section = changelogSection({ version, date: today(), subjects: facts.subjects, since: facts.lastTag })
 
   if (dryRun) {
     console.log(section)
