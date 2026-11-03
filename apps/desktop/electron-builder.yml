@@ -4,6 +4,9 @@ appId: tech.moriel.plotdevice
 productName: Plot Device
 extraMetadata:
   name: plotdevice
+  # The window's app id on Linux (Wayland and X11), so the taskbar matches it to plotdevice.desktop
+  # and shows its icon: the .deb's entry, or the one an AppImage adds for itself.
+  desktopName: plotdevice.desktop
 directories:
   output: dist
   buildResources: build
