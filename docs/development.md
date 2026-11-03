@@ -36,7 +36,17 @@
   2. `pnpm release 0.4.0` sets the version (`apps/desktop/package.json`, the Linux metadata), writes the new
      `CHANGELOG.md` section from the `feat:`, `fix:` and `perf:` commits since the last tag, and opens a pull request.
   3. In that pull request, write the summary (replacing the `<!-- Summary … -->` line) and edit the notes for
-     authors. CI stays red until the summary is written.
+     authors. CI stays red until the summary is written. The script's bullets are the raw commit lines, so
+     rewrite them (0.3.0 in `CHANGELOG.md` is the example):
+     - **Summary:** two to four sentences for authors: what this version means for their writing.
+     - **Each bullet:** a bold name, then what an author can now do, in the app's own words. Where it helps
+       someone who reads files or code, end with an italic *Technical: …* sentence: the files, fields or
+       behaviour behind it. Say plainly what changed; don't hide the technical detail, just put it second.
+     - **Combine and cut:** merge commits about the same feature into one bullet. Leave out what no author or
+       contributor would notice (tests, CI, internal refactors), and fixes to things that were never released.
+     - **Good to know** (optional, last): platforms, known limits, anything to do before updating.
+     - Run `node tooling/release-notes.mjs check <version>` before pushing. The same notes become the GitHub
+       release and the Linux "What's new", where links and emphasis turn into plain text.
   4. Merging tags the merge commit (`tag-release.yml`), and `release.yml` builds the AppImage and the `.deb` and
      attaches them, with the notes, `SHA256SUMS` and `latest.json`, to a **draft** release.
   5. Try the draft's files, then publish it. Don't mark it "Pre-release".
