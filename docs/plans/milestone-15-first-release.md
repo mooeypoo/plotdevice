@@ -298,6 +298,8 @@ The forms are in English, with a line saying reports in Hebrew are welcome (**De
 - **The first release's notes start where this implementation starts** (`133ae0a`, 2026-10-25): the repository also holds the old app's history. They are generated like any other release's (26 lines, to edit in the pull request), with no special summary-only case.
 - **`latest.json` is checked in the main process**, which fetches it; the application layer may use contract types only (an architecture rule caught this), so it keeps the last answer and checks it by shape.
 - **The fetch uses Node's own `fetch`**, with redirects followed by hand so each one is checked against GitHub's hosts. It doesn't use the system's proxy settings (see "Known limitations").
+- **0.3.0 includes a Windows installer, as an early beta** (owner, 2026-11-03), rather than waiting for the Windows beta. `release.yml` builds it on `windows-latest`, and a last job writes one `SHA256SUMS` for every platform's files, with `latest.json`. The release isn't marked "Pre-release" (update notices would skip it); the notes and the install page say it's an early beta and how to get past SmartScreen.
+- **Release notes are rewritten for authors** in the release pull request, with a *Technical:* sentence where it helps (`docs/development.md`). Many features went in as "Milestone N" commits without a prefix, so 0.3.0's notes were written from the guide, not the generated lines.
 - **The Hebrew "Report a problem" page wasn't updated**: the owner has edits to it in progress. `pnpm site:translations` lists it.
 
 ### Tests

@@ -1,11 +1,11 @@
 ---
 title: Install Plot Device
-description: Download Plot Device for Linux, and open your first book.
+description: Download Plot Device for Linux or Windows, and open your first book.
 ---
 
 import Ui from '~/components/Ui.astro'
 
-Plot Device is in early versions for **Linux**. Windows is coming soon, and macOS later. It needs no account or internet connection.
+Plot Device is in early versions for **Linux**, with an early beta for **Windows**. macOS comes later. It needs no account or internet connection.
 
 ## Download
 
@@ -13,6 +13,15 @@ Get the newest version from the [releases page](https://github.com/mooeypoo/plot
 
 - **The `.AppImage`** runs as it is: make it executable, then open it.
 - **The `.deb`**, on Ubuntu or Debian, installs Plot Device with your other apps.
+- **The `-setup.exe`**, on Windows, installs Plot Device and adds it to the Start menu.
+
+### Windows is an early beta
+
+Every change is tested on Windows automatically, including installing and removing the app, but it hasn't been used on real Windows computers yet. Expect rough edges, and please tell us about them: **☰ → <Ui k="report-problem" />**.
+
+The installer isn't signed yet, so Windows may say **Windows protected your PC**. Choose **More info**, then **Run anyway**.
+
+Your book is safe either way: it's plain files, each save swaps in a complete new file, and earlier versions are kept outside the book. See [Saving](/plotdevice/safe/saving/) and [Backups](/plotdevice/safe/backups/).
 
 ## New versions
 

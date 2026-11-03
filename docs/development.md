@@ -47,15 +47,16 @@
      - **Good to know** (optional, last): platforms, known limits, anything to do before updating.
      - Run `node tooling/release-notes.mjs check <version>` before pushing. The same notes become the GitHub
        release and the Linux "What's new", where links and emphasis turn into plain text.
-  4. Merging tags the merge commit (`tag-release.yml`), and `release.yml` builds the AppImage and the `.deb` and
-     attaches them, with the notes, `SHA256SUMS` and `latest.json`, to a **draft** release.
+  4. Merging tags the merge commit (`tag-release.yml`), and `release.yml` builds the AppImage, the `.deb` and the
+     Windows installer and attaches them, with the notes, `SHA256SUMS` and `latest.json`, to a **draft** release.
   5. Try the draft's files, then publish it. Don't mark it "Pre-release".
 - **Update notices** read `latest.json` from `https://github.com/mooeypoo/plotdevice/releases/latest/download/latest.json`,
   which GitHub sends to the newest published release. Publishing a release is what tells earlier copies about it.
   Development builds don't check on their own; `PLOTDEVICE_TEST_UPDATE_URL` points an unpackaged build at a local
   server instead.
-- Releases are Linux only until the Windows beta. CI still builds and tests the Windows installer. Windows installers
-  aren't signed yet, so Windows shows an "unknown publisher" warning when installing.
+- Windows is an early beta from 0.3.0: tested in CI, including installing and removing it, but not yet on real
+  computers. Say so in each release's "Good to know", never by marking the release "Pre-release". The installer
+  isn't signed yet, so SmartScreen warns ("Windows protected your PC"; "More info", then "Run anyway").
 
 ## Troubleshooting
 
