@@ -11,9 +11,18 @@ Plot Device is in early versions for **Linux**, with an early beta for **Windows
 
 Get the newest version from the [releases page](https://github.com/mooeypoo/plotdevice/releases):
 
-- **The `.AppImage`** runs as it is: make it executable, then open it.
+- **The `.AppImage`** runs as it is, once it's allowed to: see below.
 - **The `.deb`**, on Ubuntu or Debian, installs Plot Device with your other apps.
 - **The `-setup.exe`**, on Windows, installs Plot Device and adds it to the Start menu.
+
+### Allow the AppImage to run
+
+Downloads aren't allowed to run until you say so, so at first a double-click on the AppImage does nothing, or opens it as a disk. Once, after downloading:
+
+- **In Files:** right-click the AppImage → **Properties** → turn on **Executable as Program**.
+- **Or in a terminal:** `chmod +x ~/Downloads/plotdevice-*.AppImage`
+
+Then double-click it to open Plot Device. A newer version is a new download, so allow it once again.
 
 ### Windows is an early beta
 
