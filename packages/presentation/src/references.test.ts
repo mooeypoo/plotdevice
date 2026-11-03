@@ -1,7 +1,16 @@
 import type { ProjectView, ReferenceSummaryView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { galleryPages, linkTargets, linkTextOnly, markdownLink, relationshipWords, search, suggestedLinkTargets } from './references'
+import {
+  galleryPages,
+  initials,
+  linkTargets,
+  linkTextOnly,
+  markdownLink,
+  relationshipWords,
+  search,
+  suggestedLinkTargets,
+} from './references'
 
 const p = (path: string) => path as ProjectPath
 const page = (
@@ -133,5 +142,22 @@ describe('relationships as they read', () => {
     expect(relationshipWords('[Bea](bea.md)')).toEqual({ words: '', link: '[Bea](bea.md)' })
     expect(relationshipWords('[Noël](noel.md)’s rival')).toBeNull()
     expect(relationshipWords('Between [Bea](bea.md) and [Ilka](ilka.md)')).toBeNull()
+  })
+})
+
+describe('a page’s initials', () => {
+  it.each([
+    ['Bea Halmi', 'BH'],
+    ['Marrow', 'M'],
+    ['the Ferry Landing', 'TL'],
+    ['Noël Varga-Hale', 'NV'],
+    ['élan', 'E'],
+    ['בּיה הלמי', 'בה'],
+    ['יַעֵל', 'י'],
+    ['"Loose" ideas…', 'LI'],
+    ['🌳 Orchard', '🌳O'],
+    ['  ', ''],
+  ])('%j → %j', (title, expected) => {
+    expect(initials(title)).toBe(expected)
   })
 })

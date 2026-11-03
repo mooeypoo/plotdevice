@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { detailBlocks } from '@plotdevice/presentation'
-import { computed } from 'vue'
+import type { DetailBlock } from '@plotdevice/presentation'
 import InlineText from './InlineText.vue'
 
 // A page's details as formatted text (headings, paragraphs, lists, quotes, code), never as HTML.
-const props = defineProps<{ markdown: string }>()
-const blocks = computed(() => detailBlocks(props.markdown))
+defineProps<{ blocks: DetailBlock[] }>()
 </script>
 
 <template>

@@ -158,6 +158,41 @@ test('pinned pages keep their order, set by keyboard, after a restart', async ()
   await expect(page.locator('.shelf-card')).toHaveText([/Marrow/, /Loose ideas/])
 })
 
+test('a shelf page opens one part of its details at a time and folds back to slim', async () => {
+  await mkdir(join(root, 'characters'), { recursive: true })
+  await writeFile(
+    join(root, 'characters/bea.md'),
+    '---\ntitle: Bea Halmi\n---\nIlka’s aunt.\n\n## Relationships\n- Aunt of Ilka\n- Waits at the landing\n\n## Secret\nShe kept the ledger.\n',
+  )
+  const page = await start()
+  await page.getByTestId('toggle-shelf').click()
+  await page.getByTestId('shelf-search').fill('bea')
+  await page.getByTestId('shelf-search').press('Enter')
+  const card = page.locator('[data-shelf-card="characters/bea.md"]')
+  const parts = card.getByTestId('shelf-part')
+  const all = card.getByTestId('shelf-details')
+
+  // Slim at first: the description and the names of the parts, with how many items a list holds.
+  await expect(parts).toHaveText([/^Relationships\s*2$/, 'Secret'])
+  await expect(card).toContainText('Ilka’s aunt.')
+  await expect(card).not.toContainText('Aunt of Ilka')
+
+  await parts.filter({ hasText: 'Relationships' }).click()
+  await expect(card).toContainText('Waits at the landing')
+  await expect(card).not.toContainText('kept the ledger')
+  await expect(all).toHaveAttribute('aria-expanded', 'true')
+
+  // The card's own button folds everything, then opens everything.
+  await all.click()
+  await expect(card).not.toContainText('Aunt of Ilka')
+  await all.click()
+  await expect(card).toContainText('Aunt of Ilka')
+  await expect(card).toContainText('kept the ledger')
+  await parts.filter({ hasText: 'Secret' }).click()
+  await expect(card).not.toContainText('kept the ledger')
+  await expect(card).toContainText('Aunt of Ilka')
+})
+
 test('the shelf and the chapters list keep the widths they are dragged to, after a restart', async () => {
   let page = await start()
   await page.getByTestId('toggle-shelf').click()

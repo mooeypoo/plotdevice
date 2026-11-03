@@ -943,10 +943,95 @@ label {
 .shelf .results .chapter:hover {
   background: var(--hover);
 }
+/* Shelf cards (option A, "Quiet paper", 2026-11-03): warm paper and a hairline rather than a white card
+   and a shadow; dark cards lift with their lighter surface. Each kind has its own colour, always beside
+   its name, deepened toward the text colour so it reads as text in both themes. */
+.outline-card.shelf-card {
+  --shelf-card-bg: var(--color-page);
+  --kind-ink: color-mix(in srgb, var(--kind) 70%, var(--color-text));
+  padding-block: 0.85rem 0.55rem;
+  padding-inline: 1rem;
+  border-radius: 10px;
+  background: var(--shelf-card-bg);
+  box-shadow:
+    0 0 0 1px var(--hair),
+    0 1px 2px rgb(0 0 0 / 0.05);
+}
+:root[data-theme='dark'] .outline-card.shelf-card {
+  --shelf-card-bg: var(--color-card);
+  box-shadow: 0 0 0 1px var(--hair);
+}
+.shelf-card.kind-character {
+  --kind: var(--color-plot-amber);
+}
+.shelf-card.kind-place {
+  --kind: var(--color-plot-terracotta);
+}
+.shelf-card.kind-note {
+  --kind: var(--color-plot-plum);
+}
+.shelf-card .card-head {
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+.monogram {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 2.4rem;
+  block-size: 2.4rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--kind) 14%, var(--shelf-card-bg));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kind) 32%, transparent);
+  color: var(--kind-ink);
+  font:
+    600 0.92rem/1 var(--font-prose),
+    serif;
+  letter-spacing: 0.02em;
+}
+.shelf-card-titles {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.shelf-card-kind {
+  font:
+    600 0.66rem/1 var(--font-ui),
+    sans-serif;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--kind-ink);
+  margin-block-start: 0.1rem;
+}
+:lang(he) .shelf-card-kind {
+  letter-spacing: 0;
+  font-size: 0.74rem;
+}
 .shelf-card .card-text {
   font:
-    500 1.15rem/1.25 var(--font-prose),
+    500 1.15rem/1.2 var(--font-prose),
     serif;
+}
+.shelf-card-aka {
+  font:
+    italic 0.85rem/1.3 var(--font-prose),
+    serif;
+  color: var(--color-text-secondary);
+}
+.shelf-card-actions {
+  display: flex;
+  flex: none;
+  transition: opacity 120ms;
+}
+/* The buttons wait until the card is pointed at, focused or open; a pinned pin always shows, as it says
+   something. Faded rather than hidden, so they stay in the keyboard order and focusing one shows them. */
+.shelf-card:not(:hover, :focus-within, .reading) .shelf-card-actions > :not(.pin-button[aria-pressed='true']) {
+  opacity: 0;
+}
+.shelf-card-tags {
+  margin-block: 0.55rem 0;
 }
 .pin-button {
   inline-size: 2rem;
@@ -1013,14 +1098,77 @@ label {
     0.82rem/1.45 ui-monospace,
     monospace;
 }
-.shelf-card summary {
+.details-button {
+  inline-size: 2rem;
+  block-size: 2rem;
+}
+.details-button .icon,
+.shelf-part-toggle .icon {
+  transition: rotate 120ms;
+}
+.details-button[aria-expanded='true'] .icon,
+.shelf-part-toggle[aria-expanded='true'] .icon {
+  rotate: 180deg;
+}
+/* While a card is open for reading, its title and buttons stay in view, so folding it is always at hand. */
+.shelf-card.reading .card-head {
+  position: sticky;
+  /* Past the shelf's own top padding, so no text shows above the title. */
+  inset-block-start: -0.5rem;
+  z-index: 1;
+  margin-block: -0.85rem -0.3rem;
+  margin-inline: -1rem;
+  padding-block: 0.85rem 0.3rem;
+  padding-inline: 1rem;
+  border-radius: 10px 10px 0 0;
+  background: var(--shelf-card-bg);
+}
+/* Each part of the details as a ruled row: its name, how many items it holds, and which way it folds. */
+.shelf-parts {
+  margin-block-start: 0.65rem;
+  border-block-start: 1px solid var(--hair);
+}
+.shelf-part + .shelf-part {
+  border-block-start: 1px solid var(--hair);
+}
+.shelf-part-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  inline-size: 100%;
+  padding-block: 0.45rem;
+  padding-inline: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  text-align: start;
+  font-size: 0.86rem;
+  color: var(--color-text-secondary);
   cursor: pointer;
-  margin-block-start: 0.5rem;
-  font-size: 0.85rem;
+}
+.shelf-part-toggle:hover,
+.shelf-part-toggle[aria-expanded='true'] {
+  color: var(--color-text);
+}
+.shelf-part-name {
+  flex: 1;
+  min-inline-size: 0;
+}
+.shelf-part-count {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
   color: var(--color-text-secondary);
 }
+.shelf-part-toggle .icon {
+  flex: none;
+  inline-size: 0.9rem;
+  block-size: 0.9rem;
+}
+.shelf-part .page-details {
+  padding-block-end: 0.45rem;
+}
 .shelf-description {
-  margin: 0.35rem 0 0;
+  margin: 0.6rem 0 0;
   font:
     0.98rem/1.55 var(--font-prose),
     serif;

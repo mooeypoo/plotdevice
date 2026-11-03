@@ -192,11 +192,11 @@ test('a reference card’s details show as formatted text, not Markdown', async 
   await page.getByTestId('shelf-search').fill('Bea')
   await page.getByTestId('shelf-search').press('Enter')
   const card = page.locator('.shelf-card', { hasText: 'Bea Halmi' })
-  await card.getByText('Details').click()
-  await expect(card.locator('.page-details h3', { hasText: 'Habits' })).toBeVisible()
+  await card.getByTestId('shelf-details').click()
+  await expect(card.getByTestId('shelf-part').filter({ hasText: 'Habits' })).toBeVisible()
   await expect(card.locator('.page-details .inline-link', { hasText: 'Ilka' }).first()).toBeVisible()
-  await expect(card.locator('.page-details')).not.toContainText('##')
-  await expect(card.locator('.page-details')).not.toContainText('](')
+  await expect(card).not.toContainText('##')
+  await expect(card).not.toContainText('](')
 })
 
 test('Ctrl+Z in Story undoes the last outline change', async () => {

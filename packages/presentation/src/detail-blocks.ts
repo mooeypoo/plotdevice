@@ -4,13 +4,13 @@
  * rendered as HTML, and the page's file is never changed by reading it this way.
  */
 export type DetailBlock =
-  | { kind: 'heading'; text: string }
+  | { kind: 'heading'; level: number; text: string }
   | { kind: 'paragraph'; text: string }
   | { kind: 'quote'; text: string }
   | { kind: 'list'; ordered: boolean; items: { text: string; depth: number }[] }
   | { kind: 'code'; text: string }
 
-const HEADING = /^#{1,6}\s+(.*?)\s*#*\s*$/
+const HEADING = /^(#{1,6})\s+(.*?)\s*#*\s*$/
 const LIST_ITEM = /^(\s*)([-*+]|\d+[.)])\s+(.*)$/
 const QUOTE = /^\s*>\s?(.*)$/
 const FENCE = /^\s*(```|~~~)/
@@ -30,7 +30,7 @@ export function detailBlocks(markdown: string): DetailBlock[] {
     }
     const heading = HEADING.exec(line)
     if (heading) {
-      blocks.push({ kind: 'heading', text: heading[1] ?? '' })
+      blocks.push({ kind: 'heading', level: heading[1]?.length ?? 1, text: heading[2] ?? '' })
       continue
     }
     if (LIST_ITEM.test(line)) {
@@ -62,3 +62,30 @@ export function detailBlocks(markdown: string): DetailBlock[] {
   }
   return blocks
 }
+
+/** A part of a page's details: a heading and what follows it, or (`heading: null`) what comes before any heading. */
+export interface DetailSection {
+  heading: string | null
+  blocks: DetailBlock[]
+}
+
+/**
+ * A page's details split at their top-level headings, so the shelf can open one part at a time.
+ * Deeper headings stay inside their part. Details without headings are one unnamed part.
+ */
+export function detailSections(markdown: string): DetailSection[] {
+  const blocks = detailBlocks(markdown)
+  const levels = blocks.flatMap((block) => (block.kind === 'heading' ? [block.level] : []))
+  const top = Math.min(...levels)
+  const sections: DetailSection[] = []
+  for (const block of blocks) {
+    if (block.kind === 'heading' && block.level === top) sections.push({ heading: block.text, blocks: [] })
+    else if (sections.length > 0) sections.at(-1)?.blocks.push(block)
+    else sections.push({ heading: null, blocks: [block] })
+  }
+  return sections
+}
+
+/** How many top-level list items a part holds, for a count beside its name; 0 when it isn't a list. */
+export const sectionItems = (section: DetailSection): number =>
+  section.blocks.reduce((sum, block) => sum + (block.kind === 'list' ? block.items.filter((item) => item.depth === 0).length : 0), 0)

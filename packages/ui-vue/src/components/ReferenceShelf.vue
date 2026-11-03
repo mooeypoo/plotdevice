@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import type { LinkTargetView } from '@plotdevice/contracts'
 import type { ReferenceSummaryView } from '@plotdevice/contracts'
-import { groupByTags, partOf, search, tagRow, tagSuggestions } from '@plotdevice/presentation'
+import {
+  detailSections,
+  groupByTags,
+  initials,
+  partOf,
+  search,
+  sectionItems,
+  tagRow,
+  tagSuggestions,
+  type DetailSection,
+} from '@plotdevice/presentation'
 import type { ProjectPath } from '@plotdevice/shared'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useApi } from '../api'
@@ -128,6 +138,25 @@ function drop(target: ProjectPath): void {
   if (file && file !== target) void shelf.moveTo(file, shelf.pinned.filter((entry) => entry !== file).indexOf(target))
 }
 
+/** Tags shown on a card before the rest fold into "+ 2 more", as in the World gallery. */
+const CARD_TAGS = 4
+
+/** A page's details in parts, each opened on its own so the shelf can stay slim. */
+const partsOf = (file: ProjectPath): DetailSection[] => detailSections(shelf.pages[file]?.details ?? '')
+const partKey = (part: DetailSection): string => part.heading ?? ''
+const isOpen = (file: ProjectPath, part: DetailSection): boolean => (shelf.openParts[file] ?? []).includes(partKey(part))
+const anyOpen = (file: ProjectPath): boolean => partsOf(file).some((part) => isOpen(file, part))
+
+function togglePart(file: ProjectPath, part: DetailSection): void {
+  const open = shelf.openParts[file] ?? []
+  shelf.setOpenParts(file, isOpen(file, part) ? open.filter((key) => key !== partKey(part)) : [...open, partKey(part)])
+}
+
+/** Opens every part, or, when any is open, folds the card back to its title and description. */
+function toggleAll(file: ProjectPath): void {
+  shelf.setOpenParts(file, anyOpen(file) ? [] : partsOf(file).map(partKey))
+}
+
 function openResult(file: ProjectPath): void {
   query.value = ''
   void shelf.open(file).then(() => focusCard(file))
@@ -215,7 +244,7 @@ function openResult(file: ProjectPath): void {
         v-for="file in shelf.cards"
         :key="file"
         class="outline-card shelf-card"
-        :class="{ pinned: shelf.pinned.includes(file) }"
+        :class="[`kind-${shelf.pages[file]?.kind ?? 'note'}`, { pinned: shelf.pinned.includes(file), reading: anyOpen(file) }]"
         tabindex="0"
         :data-shelf-card="file"
         :aria-label="shelf.pages[file]?.title ?? file"
@@ -226,27 +255,66 @@ function openResult(file: ProjectPath): void {
         @drop.prevent="drop(file)"
       >
         <div class="card-head">
-          <strong class="card-text" dir="auto">{{ shelf.pages[file]?.title ?? file }}</strong>
-          <button
-            type="button"
-            class="icon-button pin-button"
-            :aria-pressed="shelf.pinned.includes(file)"
-            :aria-label="shelf.pinned.includes(file) ? t('shelf-unpin') : t('shelf-pin')"
-            :title="shelf.pinned.includes(file) ? t('shelf-unpin') : t('shelf-pin')"
-            data-testid="shelf-pin"
-            @click="shelf.pinned.includes(file) ? shelf.unpin(file) : shelf.pin(file)"
-          >
-            <AppIcon name="pin" />
-          </button>
-          <MenuButton :label="t('shelf-card-actions', shelf.pages[file]?.title ?? file)" :items="menu(file)" />
+          <span class="monogram" aria-hidden="true">{{ initials(shelf.pages[file]?.title ?? '') }}</span>
+          <div class="shelf-card-titles">
+            <span v-if="shelf.pages[file]" class="shelf-card-kind">{{ t(`kind-${shelf.pages[file]?.kind}`) }}</span>
+            <strong class="card-text" dir="auto">{{ shelf.pages[file]?.title ?? file }}</strong>
+            <span v-if="shelf.pages[file]?.aka.length" class="shelf-card-aka" dir="auto">{{
+              t('shelf-aka', shelf.pages[file]?.aka.join(', ') ?? '')
+            }}</span>
+          </div>
+          <span class="shelf-card-actions">
+            <button
+              v-if="partsOf(file).length > 0"
+              type="button"
+              class="icon-button details-button"
+              :aria-expanded="anyOpen(file)"
+              :aria-label="anyOpen(file) ? t('shelf-hide-details') : t('shelf-show-details')"
+              :title="anyOpen(file) ? t('shelf-hide-details') : t('shelf-show-details')"
+              data-testid="shelf-details"
+              @click="toggleAll(file)"
+            >
+              <AppIcon name="chevron" />
+            </button>
+            <button
+              type="button"
+              class="icon-button pin-button"
+              :aria-pressed="shelf.pinned.includes(file)"
+              :aria-label="shelf.pinned.includes(file) ? t('shelf-unpin') : t('shelf-pin')"
+              :title="shelf.pinned.includes(file) ? t('shelf-unpin') : t('shelf-pin')"
+              data-testid="shelf-pin"
+              @click="shelf.pinned.includes(file) ? shelf.unpin(file) : shelf.pin(file)"
+            >
+              <AppIcon name="pin" />
+            </button>
+            <MenuButton :label="t('shelf-card-actions', shelf.pages[file]?.title ?? file)" :items="menu(file)" />
+          </span>
         </div>
         <p v-if="shelf.pages[file]?.description" class="shelf-description" dir="auto">
           <InlineText :text="shelf.pages[file]?.description ?? ''" />
         </p>
-        <details v-if="shelf.pages[file]?.details">
-          <summary>{{ t('shelf-details') }}</summary>
-          <PageDetails :markdown="shelf.pages[file]?.details ?? ''" />
-        </details>
+        <span v-if="shelf.pages[file]?.tags.length" class="page-card-tags shelf-card-tags" :aria-label="t('tags')">
+          <span v-for="tag in shelf.pages[file]?.tags.slice(0, CARD_TAGS)" :key="tag" class="tag-pill" dir="auto">{{ tag }}</span>
+          <span v-if="(shelf.pages[file]?.tags.length ?? 0) > CARD_TAGS" class="tag-pill tag-pill-more">{{
+            t('tag-more', String((shelf.pages[file]?.tags.length ?? 0) - CARD_TAGS))
+          }}</span>
+        </span>
+        <div v-if="partsOf(file).length > 0" class="shelf-parts">
+          <section v-for="part in partsOf(file)" :key="partKey(part)" class="shelf-part">
+            <button
+              type="button"
+              class="shelf-part-toggle"
+              :aria-expanded="isOpen(file, part)"
+              data-testid="shelf-part"
+              @click="togglePart(file, part)"
+            >
+              <span class="shelf-part-name" dir="auto"><InlineText :text="part.heading ?? t('shelf-details')" /></span>
+              <span v-if="sectionItems(part) > 0" class="shelf-part-count">{{ sectionItems(part) }}</span>
+              <AppIcon name="chevron" />
+            </button>
+            <PageDetails v-if="isOpen(file, part)" :blocks="part.blocks" />
+          </section>
+        </div>
       </article>
     </section>
   </aside>

@@ -1,5 +1,5 @@
 export { effectiveTheme, type Theme } from './appearance'
-export { detailBlocks, type DetailBlock } from './detail-blocks'
+export { detailBlocks, detailSections, sectionItems, type DetailBlock, type DetailSection } from './detail-blocks'
 export {
   moveDown,
   moveTargets,
@@ -40,6 +40,7 @@ export {
   linkTextOnly,
   markdownLink,
   relationshipWords,
+  initials,
   search,
   suggestedLinkTargets,
   type LinkTarget,
