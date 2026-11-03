@@ -19,6 +19,8 @@ export const useShelfStore = defineStore('shelf', () => {
   const aboutChapter = ref<CardLinksView[]>([])
   /** The tags chosen on the shelf, by the part being written (`''`: outside any part); Milestone 12. */
   const tagsByPart = ref<Record<string, string[]>>({})
+  /** The parts of each page's details open on the shelf, by heading (`''`: before any heading). Not saved. */
+  const openParts = ref<Partial<Record<ProjectPath, string[]>>>({})
   const cards = computed(() => [...opened.value.filter((file) => !pinned.value.includes(file)), ...pinned.value])
 
   async function load(file: ProjectPath): Promise<void> {
@@ -69,6 +71,10 @@ export const useShelfStore = defineStore('shelf', () => {
     await save()
   }
 
+  function setOpenParts(file: ProjectPath, parts: string[]): void {
+    openParts.value = { ...openParts.value, [file]: parts }
+  }
+
   const chosenTags = (part: string): string[] => tagsByPart.value[part] ?? []
 
   async function chooseTags(part: string, tags: string[]): Promise<void> {
@@ -89,6 +95,8 @@ export const useShelfStore = defineStore('shelf', () => {
     pinned,
     opened,
     pages,
+    openParts,
+    setOpenParts,
     aboutChapter,
     cards,
     reset,

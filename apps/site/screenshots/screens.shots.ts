@@ -192,7 +192,7 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await page.getByTestId('shelf-search').press('Enter')
       const card = page.locator('.shelf-card').first()
       await card.getByTestId('shelf-pin').click()
-      await card.locator('summary').click()
+      await card.getByTestId('shelf-part').first().click()
       await restCursor(page)
       await snap(page, lang, 'references', theme)
 

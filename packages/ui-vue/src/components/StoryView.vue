@@ -4,6 +4,7 @@ import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
 import { useOutlineActions } from '../composables/use-outline-actions'
+import { usePanelWidths } from '../composables/use-panel-widths'
 import { usePrompt } from '../composables/use-prompt'
 import { useVersions } from '../composables/use-versions'
 import { useSettingsStore } from '../stores/settings'
@@ -15,6 +16,7 @@ import OutlineBoard from './OutlineBoard.vue'
 import OutlineList from './OutlineList.vue'
 import OutlineText from './OutlineText.vue'
 import ReferencePage from './ReferencePage.vue'
+import ResizeHandle from './ResizeHandle.vue'
 import WorldGallery from './WorldGallery.vue'
 
 defineProps<{ project: ProjectView }>()
@@ -25,6 +27,7 @@ const actions = useOutlineActions()
 const { ask } = usePrompt()
 const versions = useVersions()
 const t = settings.t
+const panels = usePanelWidths()
 const views: OutlineMode[] = ['board', 'outline', 'text']
 const kinds: ReferenceKind[] = ['character', 'place', 'note']
 const pagesOf = (kind: ReferenceKind) => story.references.filter((reference) => reference.kind === kind)
@@ -120,7 +123,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>
 
 <template>
-  <div class="story" data-testid="story">
+  <div class="story" data-testid="story" :style="panels.style.value">
     <nav class="navigator" :aria-label="t('workspace-story')">
       <section class="story-group" data-testid="plot">
         <h2 class="group-heading">{{ t('story-plot') }}</h2>
@@ -178,6 +181,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         </ul>
       </section>
     </nav>
+    <ResizeHandle setting="navigatorWidth" grows="end" :label="t('resize-navigator')" />
 
     <section class="desk" @focusin="noteItem">
       <ManuscriptOutline v-if="story.showing.kind === 'manuscript'" class="story-page" :project="project" />

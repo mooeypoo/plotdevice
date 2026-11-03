@@ -120,3 +120,23 @@ export function relationshipWords(text: string): { words: string; link: string }
 
 /** Picks out an outline's cards on the board: the same card by its section and text. */
 export const cardKey = (section: string | null, card: string): string => `${section ?? ''}\n${card}`
+
+const graphemes = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+const SIGN = /[\p{L}\p{N}\p{Extended_Pictographic}]/u
+
+/**
+ * A page's initials for its round badge: the first sign of its first and last words, without niqqud or
+ * accents ("Bea Halmi": "BH", "בּיה הלמי": "בה", "Marrow": "M"). Punctuation never counts as a sign.
+ */
+export function initials(title: string): string {
+  const words = title.split(/\s+/).flatMap((word) => {
+    for (const { segment } of graphemes.segment(word)) {
+      const bare = segment.normalize('NFD').replace(/\p{M}/gu, '').normalize('NFC')
+      if (SIGN.test(bare)) return [bare === '' ? segment : bare]
+    }
+    return []
+  })
+  const first = words[0] ?? ''
+  const last = words.length > 1 ? (words.at(-1) ?? '') : ''
+  return (first + last).toLocaleUpperCase()
+}

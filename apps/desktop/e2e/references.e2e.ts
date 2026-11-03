@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { launch, openSettings, type Launched } from './launch'
+import { closeSettings, launch, openSettings, type Launched } from './launch'
 
 const FIXTURE = join(import.meta.dirname, '../../../tests/fixtures/projects/salt-orchard')
 
@@ -156,6 +156,86 @@ test('pinned pages keep their order, set by keyboard, after a restart', async ()
   page = await start()
   await page.getByTestId('toggle-shelf').click()
   await expect(page.locator('.shelf-card')).toHaveText([/Marrow/, /Loose ideas/])
+})
+
+test('a shelf page opens one part of its details at a time and folds back to slim', async () => {
+  await mkdir(join(root, 'characters'), { recursive: true })
+  await writeFile(
+    join(root, 'characters/bea.md'),
+    '---\ntitle: Bea Halmi\n---\nIlka’s aunt.\n\n## Relationships\n- Aunt of Ilka\n- Waits at the landing\n\n## Secret\nShe kept the ledger.\n',
+  )
+  const page = await start()
+  await page.getByTestId('toggle-shelf').click()
+  await page.getByTestId('shelf-search').fill('bea')
+  await page.getByTestId('shelf-search').press('Enter')
+  const card = page.locator('[data-shelf-card="characters/bea.md"]')
+  const parts = card.getByTestId('shelf-part')
+  const all = card.getByTestId('shelf-details')
+
+  // Slim at first: the description and the names of the parts, with how many items a list holds.
+  await expect(parts).toHaveText([/^Relationships\s*2$/, 'Secret'])
+  await expect(card).toContainText('Ilka’s aunt.')
+  await expect(card).not.toContainText('Aunt of Ilka')
+
+  await parts.filter({ hasText: 'Relationships' }).click()
+  await expect(card).toContainText('Waits at the landing')
+  await expect(card).not.toContainText('kept the ledger')
+  await expect(all).toHaveAttribute('aria-expanded', 'true')
+
+  // The card's own button folds everything, then opens everything.
+  await all.click()
+  await expect(card).not.toContainText('Aunt of Ilka')
+  await all.click()
+  await expect(card).toContainText('Aunt of Ilka')
+  await expect(card).toContainText('kept the ledger')
+  await parts.filter({ hasText: 'Secret' }).click()
+  await expect(card).not.toContainText('kept the ledger')
+  await expect(card).toContainText('Aunt of Ilka')
+})
+
+test('the shelf and the chapters list keep the widths they are dragged to, after a restart', async () => {
+  let page = await start()
+  await page.getByTestId('toggle-shelf').click()
+  const shelf = page.getByTestId('shelf')
+  const handle = page.getByTestId('resize-shelfWidth')
+  await expect(handle).toHaveAttribute('aria-valuenow', '336')
+
+  // By keyboard: the shelf is on the right, so moving its edge left makes it wider.
+  await handle.focus()
+  await page.keyboard.press('ArrowLeft')
+  await page.keyboard.press('ArrowLeft')
+  await expect(handle).toHaveAttribute('aria-valuenow', '368')
+
+  // By mouse.
+  const box = await handle.boundingBox()
+  if (!box) throw new Error('the shelf’s edge is not on screen')
+  await page.mouse.move(box.x + box.width / 2, box.y + 200)
+  await page.mouse.down()
+  await page.mouse.move(box.x + box.width / 2 - 100, box.y + 200, { steps: 5 })
+  await page.mouse.up()
+  await expect(handle).toHaveAttribute('aria-valuenow', '468')
+  // As dragged, unless that is more than 45% of the window (Windows' frame leaves a narrower page).
+  const capped = Math.min(468, Math.round(0.45 * (await page.evaluate(() => window.innerWidth))))
+  expect(Math.abs(((await shelf.boundingBox())?.width ?? 0) - capped)).toBeLessThanOrEqual(1)
+
+  const navigator = page.getByTestId('resize-navigatorWidth')
+  await navigator.focus()
+  await page.keyboard.press('Home')
+  await expect(navigator).toHaveAttribute('aria-valuenow', '192')
+
+  await running?.app.close()
+  page = await start()
+  await page.getByTestId('toggle-shelf').click()
+  await expect(page.getByTestId('resize-shelfWidth')).toHaveAttribute('aria-valuenow', '468')
+  await expect(page.getByTestId('resize-navigatorWidth')).toHaveAttribute('aria-valuenow', '192')
+
+  // In Hebrew the shelf is on the left, so the arrow keys turn around with it.
+  await openSettings(page)
+  await page.getByTestId('language').selectOption('he')
+  await closeSettings(page)
+  await page.getByTestId('resize-shelfWidth').focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(page.getByTestId('resize-shelfWidth')).toHaveAttribute('aria-valuenow', '484')
 })
 
 test('search finds pages by other names, in Hebrew too, ignoring niqqud', async () => {

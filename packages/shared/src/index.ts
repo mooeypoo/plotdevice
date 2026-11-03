@@ -15,3 +15,4 @@ export {
 export { err, mapResult, ok, type Result } from './result'
 export { RELATIONSHIP_HEADINGS } from './relationships'
 export { cleanTags, nearDuplicateTags, projectTags, tagKey, type NearDuplicate, type ProjectTag } from './tags'
+export { PANEL_WIDTHS, type PanelWidthSetting } from './panel-widths'
