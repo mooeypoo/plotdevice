@@ -35,11 +35,15 @@ export function commitsWithoutPrefix(subjects) {
 
 const capitalised = (text) => text.replace(/^\p{Ll}/u, (letter) => letter.toUpperCase())
 
+/** Starts the line linking to every commit in a version, for developers. Left out of the Linux metadata. */
+export const ALL_CHANGES = 'All changes, for developers:'
+
 /**
- * A version's section: heading, summary placeholder, then one group per kind of change. `subjects`
- * are oldest first; a line repeated by several commits appears once.
+ * A version's section: heading, summary placeholder, then one group per kind of change, then a link to
+ * every commit since the tag `since` (none for the first release). `subjects` are oldest first; a line
+ * repeated by several commits appears once.
  */
-export function changelogSection({ version, date, subjects }) {
+export function changelogSection({ version, date, subjects, since = null }) {
   const groups = GROUPS.map(({ prefix, heading }) => {
     const lines = [
       ...new Set(
@@ -51,7 +55,8 @@ export function changelogSection({ version, date, subjects }) {
     ]
     return lines.length ? `### ${heading}\n\n${lines.join('\n')}\n` : null
   }).filter(Boolean)
-  return [`## ${version} — ${date}\n`, `${SUMMARY_PLACEHOLDER}\n`, ...groups].join('\n')
+  const all = since ? [`${ALL_CHANGES} [${since}…v${version}](${REPOSITORY}/compare/${since}...v${version})\n`] : []
+  return [`## ${version} — ${date}\n`, `${SUMMARY_PLACEHOLDER}\n`, ...groups, ...all].join('\n')
 }
 
 /** The changelog with a new section at the top, under the header. A missing changelog starts from the header. */
@@ -145,7 +150,7 @@ export function appstreamDescription(section) {
   const parts = []
   for (const block of section.split(/\n{2,}/)) {
     const lines = block.split('\n').filter((line) => line.trim() && !line.startsWith('<!--'))
-    if (!lines.length) continue
+    if (!lines.length || lines[0].startsWith(ALL_CHANGES)) continue
     if (lines.every((line) => line.startsWith('- ')))
       parts.push(`<ul>${lines.map((line) => `<li>${plain(line.slice(2))}</li>`).join('')}</ul>`)
     else if (lines[0].startsWith('### ')) parts.push(`<p>${plain(lines[0].slice(4))}</p>`)

@@ -35,17 +35,30 @@
   1. `pnpm release 0.4.0 --dry-run` shows the notes and anything that isn't ready, changing nothing.
   2. `pnpm release 0.4.0` sets the version (`apps/desktop/package.json`, the Linux metadata), writes the new
      `CHANGELOG.md` section from the `feat:`, `fix:` and `perf:` commits since the last tag, and opens a pull request.
+     The section ends with "All changes, for developers:", a link comparing the last tag with this version on
+     GitHub (left out of the Linux metadata, and of the first release, which has no earlier tag).
   3. In that pull request, write the summary (replacing the `<!-- Summary … -->` line) and edit the notes for
-     authors. CI stays red until the summary is written.
-  4. Merging tags the merge commit (`tag-release.yml`), and `release.yml` builds the AppImage and the `.deb` and
-     attaches them, with the notes, `SHA256SUMS` and `latest.json`, to a **draft** release.
+     authors. CI stays red until the summary is written. The script's bullets are the raw commit lines, so
+     rewrite them (0.3.0 in `CHANGELOG.md` is the example):
+     - **Summary:** two to four sentences for authors: what this version means for their writing.
+     - **Each bullet:** a bold name, then what an author can now do, in the app's own words. Where it helps
+       someone who reads files or code, end with an italic *Technical: …* sentence: the files, fields or
+       behaviour behind it. Say plainly what changed; don't hide the technical detail, just put it second.
+     - **Combine and cut:** merge commits about the same feature into one bullet. Leave out what no author or
+       contributor would notice (tests, CI, internal refactors), and fixes to things that were never released.
+     - **Good to know** (optional, last): platforms, known limits, anything to do before updating.
+     - Run `node tooling/release-notes.mjs check <version>` before pushing. The same notes become the GitHub
+       release and the Linux "What's new", where links and emphasis turn into plain text.
+  4. Merging tags the merge commit (`tag-release.yml`), and `release.yml` builds the AppImage, the `.deb` and the
+     Windows installer and attaches them, with the notes, `SHA256SUMS` and `latest.json`, to a **draft** release.
   5. Try the draft's files, then publish it. Don't mark it "Pre-release".
 - **Update notices** read `latest.json` from `https://github.com/mooeypoo/plotdevice/releases/latest/download/latest.json`,
   which GitHub sends to the newest published release. Publishing a release is what tells earlier copies about it.
   Development builds don't check on their own; `PLOTDEVICE_TEST_UPDATE_URL` points an unpackaged build at a local
   server instead.
-- Releases are Linux only until the Windows beta. CI still builds and tests the Windows installer. Windows installers
-  aren't signed yet, so Windows shows an "unknown publisher" warning when installing.
+- Windows is an early beta from 0.3.0: tested in CI, including installing and removing it, but not yet on real
+  computers. Say so in each release's "Good to know", never by marking the release "Pre-release". The installer
+  isn't signed yet, so SmartScreen warns ("Windows protected your PC"; "More info", then "Run anyway").
 
 ## Troubleshooting
 

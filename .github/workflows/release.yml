@@ -1,9 +1,10 @@
 name: Release
 
-# A tag such as v0.3.0 builds the Linux files and attaches them, with that version's notes from
-# CHANGELOG.md, to a DRAFT release. Nothing is public until the owner publishes the draft (Milestone 7,
-# decision 3). Merging a release pull request tags it and runs this (tag-release.yml); a tag pushed by
-# hand runs it too. Windows joins when its beta starts (Milestone 15).
+# A tag such as v0.3.0 builds the Linux files and the Windows installer and attaches them, with that
+# version's notes from CHANGELOG.md, to a DRAFT release. Nothing is public until the owner publishes the
+# draft (Milestone 7, decision 3). Merging a release pull request tags it and runs this
+# (tag-release.yml); a tag pushed by hand runs it too. Windows is an early beta, said so in the notes,
+# never by marking the release "Pre-release" (Milestone 15).
 #
 # Each release carries latest.json. The app asks for it at
 # https://github.com/mooeypoo/plotdevice/releases/latest/download/latest.json, which GitHub sends to the
@@ -71,13 +72,55 @@ jobs:
       - name: Build the AppImage and the .deb
         working-directory: apps/desktop
         run: pnpm build && pnpm exec electron-builder --linux --publish never
-      - name: Checksums and latest.json
-        working-directory: apps/desktop/dist
-        run: |
-          sha256sum *.AppImage *.deb > SHA256SUMS
-          node ../../../tooling/release-notes.mjs latest "${TAG#v}" > latest.json
       - name: Attach them to the draft
         env:
           GH_TOKEN: ${{ github.token }}
         working-directory: apps/desktop/dist
-        run: gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber *.AppImage *.deb SHA256SUMS latest.json
+        run: gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber *.AppImage *.deb
+
+  windows:
+    needs: draft
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build the installer
+        working-directory: apps/desktop
+        run: pnpm build && pnpm exec electron-builder --win --publish never
+      - name: Attach it to the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: apps/desktop/dist
+        shell: bash
+        run: gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber plotdevice-*-setup.exe
+
+  # Once every platform's files are on the draft: one SHA256SUMS for all of them, and latest.json.
+  finish:
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Checksums and latest.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir files
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir files --pattern '*.AppImage' --pattern '*.deb' --pattern '*-setup.exe'
+          (cd files && sha256sum * > ../SHA256SUMS)
+          node tooling/release-notes.mjs latest "${TAG#v}" > latest.json
+      - name: Attach them to the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber SHA256SUMS latest.json

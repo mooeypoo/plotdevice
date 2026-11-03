@@ -50,6 +50,14 @@ describe('a version’s section, from its commits', () => {
     )
   })
 
+  it('ends with a link to every commit since the last tag, but not for the first release', () => {
+    const later = changelogSection({ version: '0.4.0', date: '2026-11-20', subjects, since: 'v0.3.0' })
+    expect(later.trimEnd().split('\n').at(-1)).toBe(
+      'All changes, for developers: [v0.3.0…v0.4.0](https://github.com/mooeypoo/plotdevice/compare/v0.3.0...v0.4.0)',
+    )
+    expect(changelogSection({ version: '0.3.0', date: '2026-11-03', subjects })).not.toContain('All changes')
+  })
+
   it('leaves out a group with nothing in it', () => {
     expect(changelogSection({ version: '0.4.1', date: '2026-11-21', subjects: ['fix: a typo in Hebrew'] })).not.toContain('### New')
   })
@@ -156,6 +164,12 @@ describe('the Linux metadata', () => {
     expect(again.match(/version="0\.3\.0"/g)).toHaveLength(1)
     expect(again).toContain('<release version="0.3.0" date="2026-11-05"><description><p>B</p></description></release>')
     expect(again).toContain('<release version="0.2.0" date="2026-10-25"/>')
+  })
+
+  it('leaves the developers’ link out of the Linux metadata', () => {
+    const section =
+      sectionFor(changelogSection({ version: '0.4.0', date: '2026-11-20', subjects: ['feat: tags'], since: 'v0.3.0' }), '0.4.0') ?? ''
+    expect(appstreamDescription(section)).not.toContain('All changes')
   })
 
   it('turns the notes into paragraphs and lists, with no Markdown or unescaped characters', () => {

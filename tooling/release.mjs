@@ -89,7 +89,7 @@ Before merging:
 - [ ] **Write the summary** in \`CHANGELOG.md\`, replacing the \`<!-- Summary … -->\` line: two or three sentences for authors.
 - [ ] **Edit the lines** so each makes sense to an author: reword, merge or drop them.
 
-Merging tags \`v${version}\`. CI then builds the Linux files and attaches them, with the notes, to a **draft** release. Try the AppImage or the \`.deb\` from the draft, then publish it: that's when update notices reach earlier copies.`
+Merging tags \`v${version}\`. CI then builds the Linux files and the Windows installer and attaches them, with the notes, to a **draft** release. Try the AppImage, the \`.deb\` or the installer from the draft, then publish it: that's when update notices reach earlier copies.`
 }
 
 function main() {
@@ -97,7 +97,7 @@ function main() {
   const dryRun = flags.includes('--dry-run')
   const facts = gatherFacts(version)
   const problems = releaseProblems(facts)
-  const section = changelogSection({ version, date: today(), subjects: facts.subjects })
+  const section = changelogSection({ version, date: today(), subjects: facts.subjects, since: facts.lastTag })
 
   if (dryRun) {
     console.log(section)
