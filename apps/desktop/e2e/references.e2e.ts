@@ -214,7 +214,9 @@ test('the shelf and the chapters list keep the widths they are dragged to, after
   await page.mouse.move(box.x + box.width / 2 - 100, box.y + 200, { steps: 5 })
   await page.mouse.up()
   await expect(handle).toHaveAttribute('aria-valuenow', '468')
-  expect(Math.round((await shelf.boundingBox())?.width ?? 0)).toBe(468)
+  // As dragged, unless that is more than 45% of the window (Windows' frame leaves a narrower page).
+  const capped = Math.min(468, Math.round(0.45 * (await page.evaluate(() => window.innerWidth))))
+  expect(Math.abs(((await shelf.boundingBox())?.width ?? 0) - capped)).toBeLessThanOrEqual(1)
 
   const navigator = page.getByTestId('resize-navigatorWidth')
   await navigator.focus()
