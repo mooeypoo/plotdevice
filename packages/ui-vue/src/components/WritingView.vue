@@ -4,6 +4,7 @@ import type { FormatCommand } from '@plotdevice/editor-codemirror'
 import type { ProjectPath } from '@plotdevice/shared'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useChapterWriting } from '../composables/use-chapter-writing'
+import { usePanelWidths } from '../composables/use-panel-widths'
 import { usePrompt } from '../composables/use-prompt'
 import { useProjectStore } from '../stores/project'
 import { useShelfStore } from '../stores/shelf'
@@ -15,6 +16,7 @@ import ConflictDialog from './ConflictDialog.vue'
 import FormatBubble from './FormatBubble.vue'
 import MenuButton from './MenuButton.vue'
 import ReferenceShelf from './ReferenceShelf.vue'
+import ResizeHandle from './ResizeHandle.vue'
 import type { MenuItem } from './menu'
 
 const props = defineProps<{ project: ProjectView }>()
@@ -26,6 +28,7 @@ const { ask } = usePrompt()
 const t = settings.t
 const host = ref<HTMLElement | null>(null)
 const writing = useChapterWriting(host)
+const panels = usePanelWidths()
 
 async function addLink(): Promise<void> {
   const url = await ask(t('prompt-link'))
@@ -166,6 +169,7 @@ onBeforeUnmount(() => {
   <div
     class="writing"
     :class="{ 'focus-mode': view.focusMode, 'navigator-hidden': view.navigatorHidden, 'with-shelf': shelf.visible && !view.focusMode }"
+    :style="panels.style.value"
   >
     <ChapterNavigator
       v-if="!view.focusMode && !view.navigatorHidden"
@@ -173,6 +177,7 @@ onBeforeUnmount(() => {
       :open-file="writing.file.value"
       @open="writing.open"
     />
+    <ResizeHandle v-if="!view.focusMode && !view.navigatorHidden" setting="navigatorWidth" grows="end" :label="t('resize-navigator')" />
 
     <section class="desk">
       <div v-if="!view.focusMode" class="edge">
@@ -222,6 +227,7 @@ onBeforeUnmount(() => {
     </section>
 
     <ReferenceShelf v-if="shelf.visible && !view.focusMode" :chapter="writing.file.value" />
+    <ResizeHandle v-if="shelf.visible && !view.focusMode" setting="shelfWidth" grows="start" :label="t('resize-shelf')" />
 
     <ConflictDialog
       v-if="writing.status.value === 'conflict'"

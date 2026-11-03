@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { launch, openSettings, type Launched } from './launch'
+import { closeSettings, launch, openSettings, type Launched } from './launch'
 
 const FIXTURE = join(import.meta.dirname, '../../../tests/fixtures/projects/salt-orchard')
 
@@ -156,6 +156,49 @@ test('pinned pages keep their order, set by keyboard, after a restart', async ()
   page = await start()
   await page.getByTestId('toggle-shelf').click()
   await expect(page.locator('.shelf-card')).toHaveText([/Marrow/, /Loose ideas/])
+})
+
+test('the shelf and the chapters list keep the widths they are dragged to, after a restart', async () => {
+  let page = await start()
+  await page.getByTestId('toggle-shelf').click()
+  const shelf = page.getByTestId('shelf')
+  const handle = page.getByTestId('resize-shelfWidth')
+  await expect(handle).toHaveAttribute('aria-valuenow', '336')
+
+  // By keyboard: the shelf is on the right, so moving its edge left makes it wider.
+  await handle.focus()
+  await page.keyboard.press('ArrowLeft')
+  await page.keyboard.press('ArrowLeft')
+  await expect(handle).toHaveAttribute('aria-valuenow', '368')
+
+  // By mouse.
+  const box = await handle.boundingBox()
+  if (!box) throw new Error('the shelf’s edge is not on screen')
+  await page.mouse.move(box.x + box.width / 2, box.y + 200)
+  await page.mouse.down()
+  await page.mouse.move(box.x + box.width / 2 - 100, box.y + 200, { steps: 5 })
+  await page.mouse.up()
+  await expect(handle).toHaveAttribute('aria-valuenow', '468')
+  expect(Math.round((await shelf.boundingBox())?.width ?? 0)).toBe(468)
+
+  const navigator = page.getByTestId('resize-navigatorWidth')
+  await navigator.focus()
+  await page.keyboard.press('Home')
+  await expect(navigator).toHaveAttribute('aria-valuenow', '192')
+
+  await running?.app.close()
+  page = await start()
+  await page.getByTestId('toggle-shelf').click()
+  await expect(page.getByTestId('resize-shelfWidth')).toHaveAttribute('aria-valuenow', '468')
+  await expect(page.getByTestId('resize-navigatorWidth')).toHaveAttribute('aria-valuenow', '192')
+
+  // In Hebrew the shelf is on the left, so the arrow keys turn around with it.
+  await openSettings(page)
+  await page.getByTestId('language').selectOption('he')
+  await closeSettings(page)
+  await page.getByTestId('resize-shelfWidth').focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(page.getByTestId('resize-shelfWidth')).toHaveAttribute('aria-valuenow', '484')
 })
 
 test('search finds pages by other names, in Hebrew too, ignoring niqqud', async () => {

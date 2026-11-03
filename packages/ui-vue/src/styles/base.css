@@ -700,9 +700,16 @@ label {
 }
 
 /* Writing */
+.writing,
+.story {
+  /* The side panels as wide as the author dragged them, but never crowding out the page. */
+  --navigator-column: min(var(--navigator-width, 17rem), 30vw);
+  --shelf-column: min(var(--shelf-width, 21rem), 45vw);
+}
 .writing {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(14rem, 17rem) 1fr;
+  grid-template-columns: var(--navigator-column) minmax(0, 1fr);
   min-block-size: 0;
 }
 .writing.navigator-hidden,
@@ -710,10 +717,43 @@ label {
   grid-template-columns: 1fr;
 }
 .writing.with-shelf {
-  grid-template-columns: minmax(14rem, 17rem) 1fr minmax(17rem, 21rem);
+  grid-template-columns: var(--navigator-column) minmax(0, 1fr) var(--shelf-column);
 }
 .writing.with-shelf.navigator-hidden {
-  grid-template-columns: 1fr minmax(17rem, 21rem);
+  grid-template-columns: minmax(0, 1fr) var(--shelf-column);
+}
+/* Grid layouts place children in order; the handles sit over the panels' edges instead. */
+.resize-handle {
+  position: absolute;
+  z-index: 5;
+  inset-block: 0;
+  inline-size: 9px;
+  cursor: col-resize;
+  touch-action: none;
+}
+.resize-handle.resize-end {
+  inset-inline-start: calc(var(--navigator-column) - 5px);
+}
+.resize-handle.resize-start {
+  inset-inline-end: calc(var(--shelf-column) - 5px);
+}
+.resize-handle::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 4px;
+  inline-size: 1px;
+  background: var(--color-mark);
+  opacity: 0;
+  transition: opacity 120ms;
+}
+.resize-handle:hover::after,
+.resize-handle:active::after,
+.resize-handle:focus-visible::after {
+  opacity: 1;
+}
+.resize-handle:focus-visible {
+  outline: none;
 }
 .desk {
   display: grid;
@@ -1000,8 +1040,9 @@ label {
 
 /* Story */
 .story {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(14rem, 17rem) 1fr;
+  grid-template-columns: var(--navigator-column) minmax(0, 1fr);
   min-block-size: 0;
 }
 .story .desk {

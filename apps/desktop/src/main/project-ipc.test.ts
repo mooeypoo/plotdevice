@@ -33,7 +33,7 @@ import type { ProjectPath } from '@plotdevice/shared'
 import type { UpdateIpcContext } from './update-ipc'
 import { createIpcHandlers, type Sender } from './ipc'
 
-const OTHER_DEFAULTS = { writingSize: 'medium', pageWidth: 'medium', checkForUpdates: true } as const
+const OTHER_DEFAULTS = { writingSize: 'medium', pageWidth: 'medium', checkForUpdates: true, navigatorWidth: 272, shelfWidth: 336 } as const
 
 const FIXTURE = join(import.meta.dirname, '../../../../tests/fixtures/projects/salt-orchard')
 const appUrl = 'file:///opt/plotdevice/out/renderer/index.html'

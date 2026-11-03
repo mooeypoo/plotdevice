@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { createPreferencesSession, defaultPreferences, loadPreferences, parsePreferences, updatePreferences } from './preferences'
 import type { PreferencesStore, PreferencesWriteFailure } from './preferences-store'
 
-const OTHER_DEFAULTS = { writingSize: 'medium', pageWidth: 'medium', checkForUpdates: true } as const
+const OTHER_DEFAULTS = { writingSize: 'medium', pageWidth: 'medium', checkForUpdates: true, navigatorWidth: 272, shelfWidth: 336 } as const
 
 function memoryStore(initial: string | null, failWith?: PreferencesWriteFailure) {
   const state = { text: initial, setAside: [] as string[] }
@@ -43,13 +43,25 @@ describe('reading saved settings', () => {
   it('keeps a valid page width when the writing size is unknown', () => {
     expect(parsePreferences('{"theme":"dark","locale":"he","writingSize":"huge","pageWidth":"wide"}', defaults)).toEqual({
       ok: true,
-      value: { theme: 'dark', locale: 'he', writingSize: 'medium', pageWidth: 'wide', checkForUpdates: true },
+      value: { ...OTHER_DEFAULTS, theme: 'dark', locale: 'he', writingSize: 'medium', pageWidth: 'wide' },
     })
   })
 
   it('keeps update checks turned off, and turns them on for anything but true or false', () => {
     expect(parsePreferences('{"checkForUpdates":false}', defaults)).toMatchObject({ value: { checkForUpdates: false } })
     expect(parsePreferences('{"checkForUpdates":"no"}', defaults)).toMatchObject({ value: { checkForUpdates: true } })
+  })
+
+  it('keeps dragged panel widths, brought within their limits; settings saved before them get the defaults', () => {
+    expect(parsePreferences('{"navigatorWidth":300,"shelfWidth":480}', defaults)).toMatchObject({
+      value: { navigatorWidth: 300, shelfWidth: 480 },
+    })
+    expect(parsePreferences('{"navigatorWidth":10,"shelfWidth":99999.6}', defaults)).toMatchObject({
+      value: { navigatorWidth: 192, shelfWidth: 720 },
+    })
+    expect(parsePreferences('{"theme":"dark","shelfWidth":"wide"}', defaults)).toMatchObject({
+      value: { navigatorWidth: 272, shelfWidth: 336 },
+    })
   })
 
   it('replaces only the invalid value with its default', () => {

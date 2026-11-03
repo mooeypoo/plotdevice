@@ -1,9 +1,12 @@
+import { PANEL_WIDTHS, type PanelWidthSetting } from '@plotdevice/shared'
 import { z } from 'zod'
 
 export const themePreferenceSchema = z.enum(['system', 'light', 'dark'])
 export const localeSchema = z.enum(['en', 'he'])
 export const writingSizeSchema = z.enum(['small', 'medium', 'large'])
 export const pageWidthSchema = z.enum(['narrow', 'medium', 'wide'])
+
+const panelWidthSchema = (setting: PanelWidthSetting) => z.number().int().min(PANEL_WIDTHS[setting].min).max(PANEL_WIDTHS[setting].max)
 
 /** The author's personal settings. Stored in OS app data, never in a project folder. */
 export const preferencesSchema = z.strictObject({
@@ -13,6 +16,8 @@ export const preferencesSchema = z.strictObject({
   pageWidth: pageWidthSchema,
   /** Whether the app asks, once a day, if a newer version is out (Milestone 15). */
   checkForUpdates: z.boolean(),
+  navigatorWidth: panelWidthSchema('navigatorWidth'),
+  shelfWidth: panelWidthSchema('shelfWidth'),
 })
 
 /** A change to some settings; unknown keys are rejected rather than ignored. */

@@ -1,11 +1,17 @@
 import type { Locale, PageWidth, Preferences, PreferencesPatch, ThemePreference, WritingSize } from '@plotdevice/contracts'
-import { err, ok, type Result } from '@plotdevice/shared'
+import { err, ok, PANEL_WIDTHS, type PanelWidthSetting, type Result } from '@plotdevice/shared'
 import type { PreferencesStore, PreferencesWriteFailure } from './preferences-store'
 
 const THEMES: readonly ThemePreference[] = ['system', 'light', 'dark']
 const LOCALES: readonly Locale[] = ['en', 'he']
 const WRITING_SIZES: readonly WritingSize[] = ['small', 'medium', 'large']
 const PAGE_WIDTHS: readonly PageWidth[] = ['narrow', 'medium', 'wide']
+
+/** A saved panel width, brought within its limits; anything that isn't a number is the default. */
+function panelWidth(setting: PanelWidthSetting, value: unknown): number {
+  const { min, max, initial } = PANEL_WIDTHS[setting]
+  return typeof value === 'number' && Number.isFinite(value) ? Math.min(max, Math.max(min, Math.round(value))) : initial
+}
 
 /**
  * First-run settings: follow the system theme, use Hebrew if the system is in Hebrew, a medium page,
@@ -18,6 +24,8 @@ export function defaultPreferences(systemLocale: string): Preferences {
     writingSize: 'medium',
     pageWidth: 'medium',
     checkForUpdates: true,
+    navigatorWidth: PANEL_WIDTHS.navigatorWidth.initial,
+    shelfWidth: PANEL_WIDTHS.shelfWidth.initial,
   }
 }
 
@@ -40,6 +48,8 @@ export function parsePreferences(text: string, defaults: Preferences): Result<Pr
     writingSize: WRITING_SIZES.find((size) => size === record.writingSize) ?? defaults.writingSize,
     pageWidth: PAGE_WIDTHS.find((width) => width === record.pageWidth) ?? defaults.pageWidth,
     checkForUpdates: typeof record.checkForUpdates === 'boolean' ? record.checkForUpdates : defaults.checkForUpdates,
+    navigatorWidth: panelWidth('navigatorWidth', record.navigatorWidth),
+    shelfWidth: panelWidth('shelfWidth', record.shelfWidth),
   })
 }
 
@@ -109,6 +119,8 @@ export async function updatePreferences(
     writingSize: patch.writingSize ?? current.writingSize,
     pageWidth: patch.pageWidth ?? current.pageWidth,
     checkForUpdates: patch.checkForUpdates ?? current.checkForUpdates,
+    navigatorWidth: patch.navigatorWidth ?? current.navigatorWidth,
+    shelfWidth: patch.shelfWidth ?? current.shelfWidth,
   }
   const written = await store.write(`${JSON.stringify(next, null, 2)}\n`)
   return written.ok ? ok(next) : written
