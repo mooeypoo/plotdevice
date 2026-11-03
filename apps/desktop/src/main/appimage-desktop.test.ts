@@ -4,6 +4,9 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { appImageDesktopEntry, dataHome, integrateAppImage } from './appimage-desktop'
 
+/** AppImages and desktop entries are Linux only; their paths are POSIX paths. */
+const isPosix = process.platform !== 'win32'
+
 let base = ''
 let home = ''
 let icon = ''
@@ -38,7 +41,7 @@ describe('the AppImage’s desktop entry', () => {
   })
 })
 
-describe('keeping the entry in the user’s data folder', () => {
+describe.runIf(isPosix)('keeping the entry in the user’s data folder', () => {
   it('writes the entry and the icon, then writes nothing while they are current', async () => {
     expect(await integrateAppImage({ appImage: '/apps/plotdevice.AppImage', icon, home })).toBe('written')
     expect(await readFile(entryPath(), 'utf8')).toContain('Exec="/apps/plotdevice.AppImage" %U')
@@ -67,7 +70,7 @@ describe('keeping the entry in the user’s data folder', () => {
   })
 })
 
-describe('the user’s data folder', () => {
+describe.runIf(isPosix)('the user’s data folder', () => {
   it('is $XDG_DATA_HOME when it is an absolute path, and ~/.local/share otherwise', () => {
     expect(dataHome({ XDG_DATA_HOME: '/data/ilka' })).toBe('/data/ilka')
     expect(dataHome({ XDG_DATA_HOME: 'relative' })).toMatch(/\.local\/share$/)
