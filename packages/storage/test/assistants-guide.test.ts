@@ -36,6 +36,6 @@ describe('the guide for AI assistants', () => {
 
     const result = await checkProject(createFileStore(root))
     expect(result.findings).toEqual([])
-    expect(result.counts).toEqual({ chapters: 3, characters: 2, places: 2, notes: 2, outlines: 1 })
+    expect(result.counts).toEqual({ chapters: 3, outlines: 1, pages: { characters: 2, places: 2, notes: 2 } })
   })
 })

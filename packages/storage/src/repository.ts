@@ -17,7 +17,7 @@ import {
   addPart,
   chapterCopyFileFor,
   chapterFileFor,
-  kindOfFile,
+  pageFolderOf,
   CURRENT_SCHEMA_VERSION,
   moveChapter,
   projectFolderName,
@@ -157,7 +157,7 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
     async renameFile(snapshot, file, newName) {
       const store = folders.open(snapshot.root)
       // A chapter, or a character, place or note page; pages aren't in the snapshot or the contents.
-      const chapter = snapshot.chapters.find((c) => c.file === file) ?? (kindOfFile(file) ? { revision: undefined, listed: false } : null)
+      const chapter = snapshot.chapters.find((c) => c.file === file) ?? (pageFolderOf(file) ? { revision: undefined, listed: false } : null)
       if (!chapter) return err('not-found')
       const target = targetPath(file, newName)
       if (!target.ok) return target

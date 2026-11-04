@@ -265,7 +265,7 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await page.keyboard.press('Escape')
       await page.getByTestId('view-board').click()
 
-      await page.locator('[data-gallery="character"]').click()
+      await page.locator('[data-gallery="characters"]').click()
       await snap(page, lang, 'world-gallery', theme)
       const tagRow = page.locator('.world-gallery').getByTestId('tag-filter')
       for (const tag of language.tags) await tagRow.getByRole('button', { name: tag, exact: true }).click()

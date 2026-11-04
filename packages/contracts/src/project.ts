@@ -57,6 +57,10 @@ export interface ProjectView {
   relinkSuggestions: { missing: ProjectPath; found: ProjectPath; reason: 'same-id' | 'same-title' }[]
   duplicateIds: { id: string; files: ProjectPath[] }[]
   warnings: { file: ProjectPath; code: string; line?: number }[]
+  /** The book's kinds of pages, in sidebar order: a folder and, for the author's own, its names (ADR 0011). */
+  kinds: { folder: string; one?: string; many?: string }[]
+  /** What the interface calls a chapter in this book, or `null` for the app's own word. */
+  manuscriptUnit: { one: string; many: string } | null
 }
 
 export interface RecentProjectView {

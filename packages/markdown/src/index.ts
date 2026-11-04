@@ -14,6 +14,7 @@ export {
 export {
   formatScalar,
   readFrontmatter,
+  setFrontmatterBlock,
   setFrontmatterList,
   setFrontmatterValues,
   splitFrontmatter,

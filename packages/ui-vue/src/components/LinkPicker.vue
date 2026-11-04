@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useKinds } from '../composables/use-kinds'
 import { groupByTags, linkTargets, search, suggestedLinkTargets, tagRow, type LinkTarget } from '@plotdevice/presentation'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useLinkPicker } from '../composables/use-link-picker'
@@ -6,6 +7,8 @@ import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
 import TagFilter from './TagFilter.vue'
+
+const kinds = useKinds()
 
 const { current } = useLinkPicker()
 const project = useProjectStore()
@@ -43,9 +46,9 @@ const groups = computed<{ key: string; label: string | null; targets: LinkTarget
         : []),
     ]
   }
-  const byKind = suggestedLinkTargets(tagged.others).map((group) => ({
+  const byKind = suggestedLinkTargets(tagged.others, 5, kinds.order.value).map((group) => ({
     key: group.kind,
-    label: t(group.kind === 'chapter' ? 'navigator-label' : `story-${group.kind}`),
+    label: group.kind === 'chapter' ? t('navigator-label') : kinds.labels(group.kind).many,
     targets: group.targets,
   }))
   return [...byTag, ...byKind]
@@ -111,7 +114,7 @@ function onKey(event: KeyboardEvent): void {
           @click="current?.resolve(target)"
         >
           <span dir="auto">{{ target.title }}</span>
-          <span v-if="searching || group.key.startsWith('tag:')" class="secondary">{{ t(`kind-${target.kind}`) }}</span>
+          <span v-if="searching || group.key.startsWith('tag:')" class="secondary">{{ kinds.kindWord(target.kind) }}</span>
         </div>
       </div>
     </div>

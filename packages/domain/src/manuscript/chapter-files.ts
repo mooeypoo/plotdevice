@@ -39,7 +39,7 @@ function freeFileName(folder: string, stem: string, existing: readonly ProjectPa
   }
 }
 
-function safeStem(title: string, fallback = 'chapter'): string {
+export function safeStem(title: string, fallback = 'chapter'): string {
   const slug = title
     .normalize('NFC')
     .toLowerCase()

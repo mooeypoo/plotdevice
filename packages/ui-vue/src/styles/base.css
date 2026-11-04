@@ -1001,6 +1001,16 @@ label {
 .shelf-card.kind-note {
   --kind: var(--color-plot-plum);
 }
+/* The book's own kinds (ADR 0011) take the plot colours in turn, always beside their name. */
+.shelf-card.kind-plot-0 {
+  --kind: var(--color-plot-amber);
+}
+.shelf-card.kind-plot-1 {
+  --kind: var(--color-plot-plum);
+}
+.shelf-card.kind-plot-2 {
+  --kind: var(--color-plot-terracotta);
+}
 .shelf-card .card-head {
   align-items: flex-start;
   gap: 0.6rem;

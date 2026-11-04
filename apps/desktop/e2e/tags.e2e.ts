@@ -39,7 +39,7 @@ const character = (name: string, title: string, tags: string, text = 'Someone in
 
 async function openCharacter(page: Page, name: string): Promise<void> {
   await page.getByTestId('workspace-story').click()
-  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-gallery="characters"]').click()
   await page.locator(`[data-page="characters/${name}.md"]`).click()
 }
 
@@ -77,7 +77,7 @@ test('choosing tags above Characters groups the cards, in the order chosen, with
   await character('yael', 'Yael', '')
   const page = await start()
   await page.getByTestId('workspace-story').click()
-  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-gallery="characters"]').click()
   const row = page.locator('.world-gallery').getByTestId('tag-filter')
   await expect(row.locator('.tag-choice')).toHaveText(['Main', 'Part Two – main', 'Varga family'])
   // Each card shows its tags, as written on its page; a card without tags shows none.
@@ -101,14 +101,14 @@ test('choosing tags above Characters groups the cards, in the order chosen, with
   // Choosing them again lets them go, and the gallery is as it was; adding a page still works.
   await row.getByRole('button', { name: 'Part Two – main' }).click()
   await row.getByRole('button', { name: 'Main', exact: true }).click()
-  await expect(page.getByTestId('gallery-character').locator('.page-card-title')).toHaveText([
+  await expect(page.getByTestId('gallery-characters').locator('.page-card-title')).toHaveText([
     'Bea Halmi',
     'Ilka Varga',
     'Josef Varga',
     'Noël',
     'Yael',
   ])
-  await expect(page.getByTestId('new-character')).toBeVisible()
+  await expect(page.getByTestId('new-characters')).toBeVisible()
 })
 
 test('while writing, the shelf groups by the tags chosen for each part, and remembers them after a restart', async () => {
@@ -176,7 +176,7 @@ test('"Link to…" groups by the chosen tags before anything is typed', async ()
   await picker.getByTestId('tag-filter').getByRole('button', { name: 'Varga family' }).click()
   await expect(picker.getByTestId('link-search')).toBeFocused()
   await expect(picker.getByTestId('link-group-tag:Varga family').getByRole('option')).toHaveText(['Bea HalmiCharacter'])
-  await expect(picker.getByTestId('link-group-character').getByRole('option')).toHaveText(['Noël'])
+  await expect(picker.getByTestId('link-group-characters').getByRole('option')).toHaveText(['Noël'])
   await picker.getByTestId('link-search').press('Enter')
   await file('outlines/main-story.md').toContain('[Bea Halmi](../characters/bea.md)')
 })
@@ -187,7 +187,7 @@ test('rename a tag everywhere, merging it into another, then remove one from all
   await character('noel', 'Noël', '[Marrow folk]', 'Keeps the ferry.')
   const page = await start()
   await page.getByTestId('workspace-story').click()
-  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-gallery="characters"]').click()
   const row = page.locator('.world-gallery').getByTestId('tag-filter')
 
   // Right-click: rename; typing an existing tag's name merges the two.
@@ -221,7 +221,7 @@ test('tidying: a project with clean tags shows nothing; near-duplicates are offe
   let page = await start()
   await expect(page.locator('.project-title')).toBeVisible()
   await page.getByTestId('workspace-story').click()
-  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-gallery="characters"]').click()
   await expect(page.locator('.world-gallery').getByTestId('tag-filter')).toBeVisible()
   await expect(page.locator('.notice-toast')).toHaveCount(0)
   await expect(page.getByTestId('tag-tidy')).toHaveCount(0)
@@ -253,7 +253,7 @@ test('tidying: a project with clean tags shows nothing; near-duplicates are offe
   await running?.app.close()
   page = await reopen()
   await page.getByTestId('workspace-story').click()
-  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-gallery="characters"]').click()
   await expect(page.getByTestId('tag-tidy')).toBeVisible()
   await expect(page.locator('.notice-toast')).toHaveCount(0)
 
@@ -266,7 +266,7 @@ test('a card shows four tags at most, then how many more', async () => {
   await character('bea', 'Bea Halmi', '[Main, Varga family, Part One – secondary, Part Two – main, Marrow folk, Keeps secrets]')
   const page = await start()
   await page.getByTestId('workspace-story').click()
-  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-gallery="characters"]').click()
   await expect(page.locator('[data-page="characters/bea.md"]').getByTestId('card-tags').locator('.tag-pill')).toHaveText([
     'Main',
     'Varga family',
@@ -287,9 +287,9 @@ test('the rest of a grouped gallery is named for its kind: all characters, all p
   const page = await start()
   await page.getByTestId('workspace-story').click()
   for (const [kind, rest] of [
-    ['character', 'All characters'],
-    ['place', 'All places'],
-    ['note', 'All notes'],
+    ['characters', 'All characters'],
+    ['places', 'All places'],
+    ['notes', 'All notes'],
   ] as const) {
     await page.locator(`[data-gallery="${kind}"]`).click()
     const row = page.locator('.world-gallery').getByTestId('tag-filter')

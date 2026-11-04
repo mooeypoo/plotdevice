@@ -298,17 +298,17 @@ test('Story has two groups: Plot holds the outlines, World shows each kind of pa
   // Board, List and Text (Milestone 14); Cards is gone
   await expect(page.locator('[data-testid^="view-"]')).toHaveText(['Board', 'List', 'Text'])
 
-  await expect(page.locator('[data-gallery="character"] .count')).toHaveText('3')
-  await page.locator('[data-gallery="character"]').click()
+  await expect(page.locator('[data-gallery="characters"] .count')).toHaveText('3')
+  await page.locator('[data-gallery="characters"]').click()
   await expect(page.getByTestId('view-board')).toHaveCount(0) // the views belong to outlines only
   await expect(page.locator('.page-card-title')).toHaveText(['Bea Halmi', 'Ilka Varga', 'Noël Arany'])
   await expect(page.locator('[data-page="characters/a.md"]')).toContainText('Keeps the keys.')
 
   await page.locator('[data-page="characters/c.md"]').click()
   await expect(page.getByTestId('reference-page').locator('.item-title')).toHaveText('Bea Halmi')
-  await expect(page.locator('[data-gallery="character"]').locator('..')).toHaveClass(/current/)
+  await expect(page.locator('[data-gallery="characters"]').locator('..')).toHaveClass(/current/)
   await page.getByTestId('back-to-gallery').click()
-  await expect(page.getByTestId('gallery-character')).toBeVisible()
+  await expect(page.getByTestId('gallery-characters')).toBeVisible()
 })
 
 test('editing a card: links show as their words, and @ or the link button adds one without writing Markdown', async () => {

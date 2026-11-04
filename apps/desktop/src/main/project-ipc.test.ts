@@ -322,7 +322,7 @@ describe('reference calls', () => {
     const context = await setup()
     await openChosen(context)
     const created = (await context.call(channels.createReference, {
-      kind: 'character',
+      kind: 'characters',
       title: 'Ilka Varga',
     })) as ReferenceResult<ReferenceSummaryView>
     expect(created.ok && created.value.file).toBe('characters/ilka-varga.md')
@@ -336,7 +336,7 @@ describe('reference calls', () => {
       outlineTitle: null,
       section: 'Ilka',
       card: 'She crosses, see [The Crossing](../manuscript/the-crossing.md) and [Ilka](../characters/ilka-varga.md)',
-      links: [{ file: 'characters/ilka-varga.md', kind: 'character', title: 'Ilka Varga' }],
+      links: [{ file: 'characters/ilka-varga.md', kind: 'characters', title: 'Ilka Varga' }],
     })
   })
 
@@ -344,7 +344,7 @@ describe('reference calls', () => {
     const context = await setup()
     await openChosen(context)
     const created = (await context.call(channels.createReference, {
-      kind: 'place',
+      kind: 'places',
       title: 'Marrow',
     })) as ReferenceResult<ReferenceSummaryView>
     if (!created.ok) throw new Error(created.error)
@@ -374,7 +374,7 @@ describe('reference calls', () => {
     const context = await setup()
     await openChosen(context)
     const created = (await context.call(channels.createReference, {
-      kind: 'character',
+      kind: 'characters',
       title: 'Noël',
     })) as ReferenceResult<ReferenceSummaryView>
     if (!created.ok) throw new Error(created.error)
@@ -430,7 +430,7 @@ describe('reference calls', () => {
   it('adds a relationship to a page open in the editor: the editor shows it, and saving carries on', async () => {
     const context = await setup()
     await openChosen(context)
-    for (const title of ['Bea Halmi', 'Ilka Varga']) await context.call(channels.createReference, { kind: 'character', title })
+    for (const title of ['Bea Halmi', 'Ilka Varga']) await context.call(channels.createReference, { kind: 'characters', title })
     const BEA = 'characters/bea-halmi.md' as ProjectPath
     const page = (await context.call(channels.openChapter, { file: BEA })) as OpenChapterResult
     if (!page.ok) throw new Error(page.error)
@@ -475,7 +475,7 @@ describe('reference calls', () => {
   it('lists what links to a page: cards, pages with their relationships to it, and chapters; never by name alone', async () => {
     const context = await setup()
     await openChosen(context)
-    for (const title of ['Bea Halmi', 'Ilka Varga']) await context.call(channels.createReference, { kind: 'character', title })
+    for (const title of ['Bea Halmi', 'Ilka Varga']) await context.call(channels.createReference, { kind: 'characters', title })
     await context.call(channels.editRelationship, {
       file: 'characters/bea-halmi.md',
       change: { kind: 'add', text: 'Aunt of [Ilka](ilka-varga.md)' },
@@ -499,7 +499,9 @@ describe('reference calls', () => {
           links: [],
         },
       ],
-      pages: [{ file: 'characters/bea-halmi.md', kind: 'character', title: 'Bea Halmi', relationships: ['Aunt of [Ilka](ilka-varga.md)'] }],
+      pages: [
+        { file: 'characters/bea-halmi.md', kind: 'characters', title: 'Bea Halmi', relationships: ['Aunt of [Ilka](ilka-varga.md)'] },
+      ],
       chapters: [{ file: 'manuscript/frost.md', title: 'Frost' }],
     })
   })

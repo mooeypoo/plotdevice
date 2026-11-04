@@ -1,5 +1,6 @@
 import { err, ok, type Brand, type Result } from '@plotdevice/shared'
 import type { ChapterNumbering } from '../manuscript/index'
+import type { ManuscriptUnit, PageKind } from './kinds'
 
 export type ProjectId = Brand<string, 'ProjectId'>
 export type ChapterId = Brand<string, 'ChapterId'>
@@ -12,6 +13,10 @@ export interface ProjectDetails {
   chapterNumbering: ChapterNumbering
   id?: ProjectId
   schemaVersion: number
+  /** The kinds of pages, in sidebar order (ADR 0011); the defaults when `project.md` lists none. */
+  kinds: readonly PageKind[]
+  /** What the interface calls a chapter; `null` for the app's own word. */
+  manuscriptUnit: ManuscriptUnit | null
 }
 
 export const CURRENT_SCHEMA_VERSION = 1

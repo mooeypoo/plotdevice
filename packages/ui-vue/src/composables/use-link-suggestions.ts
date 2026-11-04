@@ -2,6 +2,7 @@ import { linkTargets, markdownLink, search, suggestedLinkTargets, type LinkTarge
 import { dirnameOf, type ProjectPath } from '@plotdevice/shared'
 import { computed, ref, watch } from 'vue'
 import { useProjectStore } from '../stores/project'
+import { useKinds } from './use-kinds'
 import { useStoryStore } from '../stores/story'
 
 export interface LinkQuery {
@@ -18,13 +19,14 @@ export interface LinkQuery {
 export function useLinkSuggestions(insert: (markdown: string) => void, from?: () => ProjectPath) {
   const project = useProjectStore()
   const story = useStoryStore()
+  const kinds = useKinds()
   const query = ref<LinkQuery | null>(null)
   const selected = ref(0)
   const targets = computed<LinkTarget[]>(() => (project.project ? linkTargets(project.project, story.references) : []))
   const offered = computed<LinkTarget[]>(() => {
     const typed = query.value?.text.trim()
     if (typed === undefined) return []
-    if (typed === '') return suggestedLinkTargets(targets.value, 3).flatMap((group) => group.targets)
+    if (typed === '') return suggestedLinkTargets(targets.value, 3, kinds.order.value).flatMap((group) => group.targets)
     return search(targets.value, typed).slice(0, 8)
   })
   const open = computed(() => offered.value.length > 0)

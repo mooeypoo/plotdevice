@@ -48,7 +48,7 @@ async function snapshot(): Promise<Record<string, string>> {
 }
 
 /** Adds a page from its gallery, under World. */
-async function newPage(page: Page, kind: 'character' | 'place' | 'note', title: string): Promise<void> {
+async function newPage(page: Page, kind: 'characters' | 'places' | 'notes', title: string): Promise<void> {
   await page.locator(`[data-gallery="${kind}"]`).click()
   await page.getByTestId(`new-${kind}`).click()
   await page.getByTestId('prompt-input').fill(title)
@@ -59,7 +59,7 @@ async function newPage(page: Page, kind: 'character' | 'place' | 'note', title: 
 test('scenario D: link a card to a character and a chapter, and consult them while writing', async () => {
   const page = await start()
   await page.getByTestId('workspace-story').click()
-  await newPage(page, 'character', 'Ilka Varga')
+  await newPage(page, 'characters', 'Ilka Varga')
   await page.getByTestId('page-editor').locator('.cm-content').click()
   await page.keyboard.type('Inherits the orchard; distrusts everyone in Marrow.')
   await expect(page.getByTestId('save-status')).toHaveText('Saved')
@@ -122,8 +122,8 @@ test('"Link to…" shows a few of each kind before anything is typed, and picks 
     'Frost',
     'Epilogue',
   ])
-  await expect(page.getByTestId('link-group-character').getByRole('option')).toHaveText(['Ada', 'Bea', 'Ilka', 'Marta', 'Noël'])
-  await expect(page.getByTestId('link-group-place').getByRole('option')).toHaveText(['Marrow'])
+  await expect(page.getByTestId('link-group-characters').getByRole('option')).toHaveText(['Ada', 'Bea', 'Ilka', 'Marta', 'Noël'])
+  await expect(page.getByTestId('link-group-places').getByRole('option')).toHaveText(['Marrow'])
   await page.screenshot({ path: test.info().outputPath('link-picker.png') })
 
   // Down through the five chapters to the first character, without typing.
@@ -252,7 +252,7 @@ test('search finds pages by other names, in Hebrew too, ignoring niqqud', async 
 test('a page changed in another app while being edited offers the same choices as a chapter', async () => {
   const page = await start()
   await page.getByTestId('workspace-story').click()
-  await newPage(page, 'place', 'Marrow')
+  await newPage(page, 'places', 'Marrow')
   await page.getByTestId('page-editor').locator('.cm-content').click()
   await page.keyboard.type('Mine.')
   await writeFile(join(root, 'places/marrow.md'), '---\ntitle: Marrow\n---\nChanged in another app.\n')
@@ -271,7 +271,7 @@ test('renaming a page’s file keeps a card’s link to it working', async () =>
   )
   const page = await start()
   await page.getByTestId('workspace-story').click()
-  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-gallery="characters"]').click()
   await page.locator('[data-page="characters/ilka.md"]').click()
   await page.getByTestId('page-menu').click()
   await page.getByTestId('menu-rename-page-file').click()
@@ -295,7 +295,7 @@ test('relationships and connections: added on one page, seen on the other, in th
   )
   const page = await start()
   await page.getByTestId('workspace-story').click()
-  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-gallery="characters"]').click()
   await page.locator('[data-page="characters/bea.md"]').click()
 
   // Add a relationship: pick who, then say how.
@@ -328,7 +328,7 @@ test('relationships and connections: added on one page, seen on the other, in th
   await expect(page.locator('.outline-card', { hasText: 'The gate' })).not.toHaveClass(/picked/)
 
   // The gallery card shows it; Ilka's page lists Bea under "Linked from", with the words.
-  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-gallery="characters"]').click()
   await expect(page.locator('[data-page="characters/bea.md"]')).toContainText('Aunt of Ilka Varga')
   await page.locator('[data-page="characters/ilka.md"]').click()
   await expect(page.locator('[data-linked-page="characters/bea.md"]')).toContainText('Aunt of Ilka Varga')
@@ -343,7 +343,7 @@ test('relationships and connections: added on one page, seen on the other, in th
   await file(`outlines/${arc}`).toBe('# Ilka Varga’s arc\n\n[Ilka Varga](../characters/ilka.md)\n')
 
   // Removing it asks first, and changes only that line.
-  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-gallery="characters"]').click()
   await page.locator('[data-page="characters/bea.md"]').click()
   await page
     .getByTestId('relationships')
@@ -376,7 +376,7 @@ test('accessibility: the shelf and pages are named in both languages and work by
   await expect(page.locator('[data-shelf-card="notes/loose-ideas.md"]')).toBeFocused()
   expect(await unnamedControls(page)).toEqual([])
   await page.getByTestId('workspace-story').click()
-  await page.locator('[data-gallery="note"]').click()
+  await page.locator('[data-gallery="notes"]').click()
   expect(await unnamedControls(page)).toEqual([])
   await page.locator('[data-page="notes/loose-ideas.md"]').click()
   await expect(page.getByTestId('linked-from')).toBeVisible()

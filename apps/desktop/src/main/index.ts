@@ -12,6 +12,8 @@ import {
   type WritingSession,
 } from '@plotdevice/application'
 import { eventChannel, type AboutView, type AppInfo, type HostEvent } from '@plotdevice/contracts'
+import { pageFolderOf } from '@plotdevice/domain'
+import type { ProjectPath } from '@plotdevice/shared'
 import {
   createAppDataFile,
   createBackupStore,
@@ -344,7 +346,8 @@ function watchOpenProject(writing: WritingSession, outlines: OutlineSession, ref
       watcher: watchProject(event.project.root, (change) => {
         if (change.kind === 'changed' && change.path.startsWith('outlines/')) void outlines.fileChanged(change.path)
         else if (change.kind === 'changed') void writing.fileChanged(change.path)
-        if (/^(characters|places|notes)\//.test(change.path)) referencesChanged()
+        // A page in any kind's folder, or one the book doesn't list yet (ADR 0011).
+        if (pageFolderOf(change.path as ProjectPath) !== null) referencesChanged()
         clearTimeout(refresh)
         refresh = setTimeout(() => void writing.refreshProject(), REFRESH_DELAY_MS)
       }),

@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useKinds } from '../composables/use-kinds'
 import type { LinkTarget } from '@plotdevice/presentation'
 import type { LinkQuery } from '../composables/use-link-suggestions'
 import { useSettingsStore } from '../stores/settings'
+
+const kinds = useKinds()
 
 // The pages offered under an `@name` being typed. The editor keeps the keyboard; a click chooses.
 defineProps<{ query: LinkQuery; offered: LinkTarget[]; selected: number }>()
@@ -27,7 +30,7 @@ const t = useSettingsStore().t
       @click="emit('choose', target)"
     >
       <span dir="auto">{{ target.title }}</span>
-      <span class="secondary">{{ t(`kind-${target.kind}`) }}</span>
+      <span class="secondary">{{ kinds.kindWord(target.kind) }}</span>
     </li>
   </ul>
 </template>
