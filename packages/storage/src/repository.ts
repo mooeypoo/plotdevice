@@ -27,6 +27,9 @@ import {
   replaceChapterFile,
   validateNewProject,
   type ManuscriptProblem,
+  isDefaultKinds,
+  type ManuscriptUnit,
+  type PageKind,
 } from '@plotdevice/domain'
 import {
   editContents,
@@ -36,6 +39,7 @@ import {
   newProjectFile,
   readFrontmatter,
   rewriteLinksTo,
+  setFrontmatterBlock,
   setFrontmatterValues,
   splitFrontmatter,
   type ContentsEdit,
@@ -151,6 +155,21 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
         const linked = await store.write(CONTENTS_FILE, { text: edited.value, hasBom: contents.value.hasBom }, contents.value.revision)
         if (!linked.ok) return err(writeProblem(linked.error))
       }
+      return reopen(snapshot.root)
+    },
+
+    async setKinds(snapshot, kinds, manuscriptUnit) {
+      const store = folders.open(snapshot.root)
+      const current = await store.read(PROJECT_FILE)
+      if (!current.ok) return err('unreadable')
+      // Only these two keys change; back to the defaults, a key goes (ADR 0011, decision 2).
+      const withKinds = setFrontmatterBlock(current.value.text, 'kinds', kindsLines(kinds))
+      if (!withKinds.ok) return err('unreadable')
+      const withUnit = setFrontmatterBlock(withKinds.value, 'manuscriptUnit', unitLines(manuscriptUnit))
+      if (!withUnit.ok) return err('unreadable')
+      if (withUnit.value === current.value.text) return ok(snapshot)
+      const written = await store.write(PROJECT_FILE, { text: withUnit.value, hasBom: current.value.hasBom }, current.value.revision)
+      if (!written.ok) return err(writeProblem(written.error))
       return reopen(snapshot.root)
     },
 
@@ -331,6 +350,23 @@ function writeStep(store: FileStore, path: ProjectPath, current: StoredText, tex
     text,
     hasBom: current.hasBom,
   }
+}
+
+/** `kinds:` as `project.md` writes it: a block list, plain values quoted only when YAML needs it; `null` for the defaults. */
+function kindsLines(kinds: readonly PageKind[]): string[] | null {
+  if (isDefaultKinds(kinds)) return null
+  return [
+    'kinds:',
+    ...kinds.flatMap((kind) => [
+      `  - folder: ${formatScalar(kind.folder)}`,
+      ...(kind.one === undefined ? [] : [`    one: ${formatScalar(kind.one)}`]),
+      ...(kind.many === undefined ? [] : [`    many: ${formatScalar(kind.many)}`]),
+    ]),
+  ]
+}
+
+function unitLines(unit: ManuscriptUnit | null): string[] | null {
+  return unit === null ? null : ['manuscriptUnit:', `  one: ${formatScalar(unit.one)}`, `  many: ${formatScalar(unit.many)}`]
 }
 
 function writeProblem(problem: WriteProblem): ChangeProblem {

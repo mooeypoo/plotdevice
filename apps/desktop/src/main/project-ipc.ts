@@ -8,6 +8,7 @@ import {
   openChapterSchema,
   openProjectSchema,
   renameChapterFileSchema,
+  kindsChangeSchema,
   renameChapterSchema,
   resolveConflictSchema,
   saveChapterSchema,
@@ -95,6 +96,8 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
 
     [channels.changeContents]: async (payload) =>
       changed(await session.changeContents(parsePayload(contentsChangeSchema, payload) satisfies ContentsChange)),
+
+    [channels.changeKinds]: async (payload) => changed(await session.changeKinds(parsePayload(kindsChangeSchema, payload))),
 
     [channels.renameChapter]: async (payload) => {
       const { file, title } = parsePayload(renameChapterSchema, payload)

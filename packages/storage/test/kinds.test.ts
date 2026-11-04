@@ -1,9 +1,10 @@
-import { createFileStore, createProjectFolders } from '@plotdevice/fs-node'
+import type { IdGenerator } from '@plotdevice/application'
+import { createFileStore, createJournalStore, createProjectFolders } from '@plotdevice/fs-node'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { createReferenceRepository } from '../src/index'
+import { createProjectRepository, createReferenceRepository } from '../src/index'
 import { readProject } from '../src/read-project'
 
 // Kinds of pages per project (Milestone 18, ADR 0011): read from project.md, pages listed by folder.
@@ -100,5 +101,54 @@ describe('listing pages by folder', () => {
     const root = await book({ 'project.md': CAMPAIGN })
     expect(await createReferenceRepository({ folders: createProjectFolders() }).listReferences(root)).toEqual([])
     expect((await open(root)).warnings).toEqual([])
+  })
+})
+
+describe('writing the kinds to project.md (ADR 0011, decision 2)', () => {
+  const ids: IdGenerator = { next: (prefix) => `${prefix}-1` }
+  async function repositoryFor(root: string) {
+    const repository = createProjectRepository({
+      folders: createProjectFolders(),
+      journals: createJournalStore(join(root, '..', 'app-data')),
+      ids,
+    })
+    const opened = await repository.open(root)
+    if (!opened.ok) throw new Error(opened.error)
+    return { repository, snapshot: opened.value }
+  }
+
+  const SALT = '---\ntitle: The Salt Orchard\nlanguage: en\n# Kept by hand\nseries: Orchard Books\n---\nNotes the author keeps.\n'
+
+  it('adds only the two keys, keeping comments, other keys and the body', async () => {
+    const root = await book({ 'project.md': SALT })
+    const { repository, snapshot } = await repositoryFor(root)
+    const kinds = [
+      { folder: 'characters', one: 'NPC', many: 'NPCs' },
+      { folder: 'פלגים', one: 'פלג', many: 'פלגים' },
+    ]
+    const written = await repository.setKinds(snapshot, kinds, { one: 'Session', many: 'Sessions' })
+    expect(written.ok && written.value.details.kinds).toEqual(kinds)
+    expect(await readFile(join(root, 'project.md'), 'utf8')).toBe(
+      '---\ntitle: The Salt Orchard\nlanguage: en\n# Kept by hand\nseries: Orchard Books\n' +
+        'kinds:\n  - folder: characters\n    one: NPC\n    many: NPCs\n  - folder: פלגים\n    one: פלג\n    many: פלגים\n' +
+        'manuscriptUnit:\n  one: Session\n  many: Sessions\n---\nNotes the author keeps.\n',
+    )
+  })
+
+  it('back to the defaults, the keys go and the file is as it was', async () => {
+    const root = await book({ 'project.md': SALT })
+    const first = await repositoryFor(root)
+    const changed = await first.repository.setKinds(first.snapshot, [{ folder: 'npcs', one: 'NPC: Ally', many: 'NPCs' }], null)
+    expect(await readFile(join(root, 'project.md'), 'utf8')).toContain('    one: "NPC: Ally"\n')
+    if (!changed.ok) throw new Error(changed.error)
+    await first.repository.setKinds(changed.value, [{ folder: 'characters' }, { folder: 'places' }, { folder: 'notes' }], null)
+    expect(await readFile(join(root, 'project.md'), 'utf8')).toBe(SALT)
+  })
+
+  it('writes nothing when nothing changes', async () => {
+    const root = await book({ 'project.md': SALT })
+    const { repository, snapshot } = await repositoryFor(root)
+    expect((await repository.setKinds(snapshot, snapshot.details.kinds, null)).ok).toBe(true)
+    expect(await readFile(join(root, 'project.md'), 'utf8')).toBe(SALT)
   })
 })

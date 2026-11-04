@@ -212,6 +212,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
             </button>
           </li>
         </ul>
+        <div v-if="worldOpen" class="add-links">
+          <button type="button" class="add-link" data-testid="new-kind" @click="view.kindsDialog = true">{{ t('story-new-kind') }}</button>
+        </div>
       </section>
 
       <!-- Pages in folders the book doesn't list as a kind: nothing is lost, and each folder can become a kind (ADR 0011). -->

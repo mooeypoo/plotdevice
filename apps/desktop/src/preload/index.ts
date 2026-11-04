@@ -16,6 +16,7 @@ const api: PlotDeviceApi = {
   changeContents: (change) => ipcRenderer.invoke(channels.changeContents, change),
   compileBook: () => ipcRenderer.invoke(channels.compileBook),
   renameChapter: (file, title) => ipcRenderer.invoke(channels.renameChapter, { file, title }),
+  changeKinds: (change) => ipcRenderer.invoke(channels.changeKinds, change),
   renameChapterFile: (file, newName) => ipcRenderer.invoke(channels.renameChapterFile, { file, newName }),
   openChapter: (file) => ipcRenderer.invoke(channels.openChapter, { file }),
   saveChapter: (request) => ipcRenderer.invoke(channels.saveChapter, request),

@@ -4,6 +4,7 @@ import type { FormatCommand } from '@plotdevice/editor-codemirror'
 import type { ProjectPath } from '@plotdevice/shared'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRef, watch } from 'vue'
 import { useChapterWriting } from '../composables/use-chapter-writing'
+import { useKinds } from '../composables/use-kinds'
 import { useNavigator } from '../composables/use-navigator'
 import { usePanelWidths } from '../composables/use-panel-widths'
 import { usePrompt } from '../composables/use-prompt'
@@ -36,6 +37,7 @@ const t = settings.t
 const host = ref<HTMLElement | null>(null)
 const writing = useChapterWriting(host)
 const panels = usePanelWidths()
+const kinds = useKinds()
 // The open chapter's own actions, the same as on its row in the sidebar, under ⋯ in the header row.
 const chapterNav = useNavigator(toRef(props, 'project'), writing.file, (file) => void writing.open(file))
 
@@ -97,7 +99,7 @@ const openRef = computed<{ ref: ChapterRef; part: string | null } | null>(() => 
 const place = computed(() => {
   const open = openRef.value
   if (!open) return writing.file.value ? t('navigator-not-in-book') : ''
-  const number = open.ref.number === null ? open.ref.linkText : t('chapter-number', open.ref.number)
+  const number = open.ref.number === null ? open.ref.linkText : kinds.chapters.number(open.ref.number)
   return open.part ? `${open.part} · ${number}` : number
 })
 const chapterItems = computed<MenuItem[]>(() => (openRef.value ? chapterNav.chapterMenu(openRef.value.ref) : []))
@@ -113,7 +115,7 @@ const heading = computed(() => {
   const refs = props.project.contents.flatMap((entry) => (entry.kind === 'part' ? entry.chapters : [entry]))
   const ref = refs.find((chapter) => chapter.file === file)
   const title = props.project.chapters.find((chapter) => chapter.file === file)?.title ?? ref?.linkText ?? ''
-  const eyebrow = !ref ? t('navigator-not-in-book') : ref.number !== null ? t('chapter-number', ref.number) : ''
+  const eyebrow = !ref ? t('navigator-not-in-book') : ref.number !== null ? kinds.chapters.number(ref.number) : ''
   return { eyebrow, title }
 })
 const pageClasses = computed(() => [
@@ -243,9 +245,9 @@ onBeforeUnmount(() => {
         <EmptyState
           v-if="project.chapters.length === 0"
           sketch="cards"
-          :title="t('write-empty-title')"
-          :text="t('write-empty-text')"
-          :action="t('navigator-new-chapter')"
+          :title="kinds.chapters.none()"
+          :text="kinds.chapters.noneText()"
+          :action="kinds.chapters.add()"
           testid="no-chapter"
           @act="chapterNav.addChapter"
         />

@@ -52,6 +52,7 @@ function memoryRepository(initial: Record<string, string>) {
   const repository: ProjectRepository = {
     create: unknown,
     open: async () => ok(snapshot()),
+    setKinds: unknown,
     changeContents: async () => ok(snapshot()),
     async renameChapter(given, file, title) {
       const entry = disk.get(file)

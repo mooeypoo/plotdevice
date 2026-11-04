@@ -1,4 +1,13 @@
-import type { Contents, NewProject, OutdatedLinkText, Placement, ProjectDetails, RelinkSuggestion } from '@plotdevice/domain'
+import type {
+  Contents,
+  ManuscriptUnit,
+  NewProject,
+  OutdatedLinkText,
+  PageKind,
+  Placement,
+  ProjectDetails,
+  RelinkSuggestion,
+} from '@plotdevice/domain'
 import type { ProjectPath, Result } from '@plotdevice/shared'
 import type { Revision } from './file-store'
 
@@ -87,6 +96,12 @@ export interface ProjectRepository {
    * through the recovery journal. Only a chapter's line in `CONTENTS.md` changes with it.
    */
   renameFile(snapshot: ProjectSnapshot, file: ProjectPath, newName: string): Promise<Result<FileRenamed, RenameFileProblem>>
+  /** Writes the book's kinds of pages and what it calls a chapter to `project.md` (ADR 0011); nothing else changes. */
+  setKinds(
+    snapshot: ProjectSnapshot,
+    kinds: readonly PageKind[],
+    manuscriptUnit: ManuscriptUnit | null,
+  ): Promise<Result<ProjectSnapshot, ChangeProblem>>
   readChapter(root: string, file: ProjectPath): Promise<Result<ChapterText, 'missing' | 'unreadable'>>
   /** Saves the text, keeping the frontmatter as it is; refused if the file changed since `expected`. */
   saveChapter(

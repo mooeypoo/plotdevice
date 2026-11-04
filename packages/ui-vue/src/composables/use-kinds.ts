@@ -23,7 +23,8 @@ export function useKinds() {
 
   /** One word for what a search result or link is: "Character", "NPC", "Chapter". */
   function kindWord(kind: string): string {
-    if (kind === 'chapter' || kind === 'outline' || kind === 'other') return settings.t(`kind-${kind}`)
+    if (kind === 'chapter') return chapters.one()
+    if (kind === 'outline' || kind === 'other') return settings.t(`kind-${kind}`)
     return labels(kind).one
   }
 
@@ -38,5 +39,19 @@ export function useKinds() {
     return `kind-plot-${(at < 0 ? 0 : at) % 3}`
   }
 
-  return { kinds, unsorted, order, labels, listed, kindWord, colourClass }
+  /**
+   * What this book calls a chapter (ADR 0011, `manuscriptUnit`): "Session 3", "New session". Only the
+   * prominent words change (Milestone 18, open question 2); files and contents never do.
+   */
+  const unit = computed(() => project.project?.manuscriptUnit ?? null)
+  const chapters = {
+    one: (): string => unit.value?.one ?? settings.t('kind-chapter'),
+    many: (): string => unit.value?.many ?? settings.t('navigator-label'),
+    number: (n: number): string => (unit.value ? `${unit.value.one} ${n}` : settings.t('chapter-number', n)),
+    add: (): string => (unit.value ? settings.t('navigator-new-unit', unit.value.one) : settings.t('navigator-new-chapter')),
+    none: (): string => (unit.value ? settings.t('gallery-empty-kind', unit.value.many) : settings.t('write-empty-title')),
+    noneText: (): string => (unit.value ? settings.t('write-empty-unit-text') : settings.t('write-empty-text')),
+  }
+
+  return { kinds, unsorted, order, labels, listed, kindWord, colourClass, chapters }
 }

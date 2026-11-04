@@ -31,6 +31,7 @@ import type {
   OpenProjectResult,
   ProjectChangeResult,
   RecentProjectView,
+  KindsChangeRequest,
 } from './project'
 import type { ProjectPath } from '@plotdevice/shared'
 
@@ -56,6 +57,8 @@ export interface PlotDeviceApi {
   /** Compiles the book into one Markdown file, asking the author where to save it. */
   compileBook(): Promise<CompileResult>
   renameChapter(file: ProjectPath, title: string): Promise<ProjectChangeResult>
+  /** A change to the book's kinds of pages, or to what it calls a chapter (ADR 0011). */
+  changeKinds(change: KindsChangeRequest): Promise<ProjectChangeResult>
   renameChapterFile(file: ProjectPath, newName: string): Promise<ProjectChangeResult>
 
   openChapter(file: ProjectPath): Promise<OpenChapterResult>

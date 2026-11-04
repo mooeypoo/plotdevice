@@ -1,5 +1,6 @@
 import type {
   ContentsChangeRequest,
+  KindsChangeRequest,
   NewProjectRequest,
   OpenedProject,
   OpenProjectRequest,
@@ -102,6 +103,8 @@ export const useProjectStore = defineStore('project', () => {
     } else if (compiled.error !== 'cancelled') tell('compile-failed')
   }
   const renameChapter = (file: ProjectPath, title: string) => change(() => api.renameChapter(file, title))
+  /** The book's kinds of pages, and what it calls a chapter (ADR 0011). */
+  const changeKinds = (request: KindsChangeRequest) => change(() => api.changeKinds(request))
   const renameChapterFile = (file: ProjectPath, newName: string) => change(() => api.renameChapterFile(file, newName))
 
   api.onEvent((event) => {
@@ -132,6 +135,7 @@ export const useProjectStore = defineStore('project', () => {
     create,
     forget,
     changeContents,
+    changeKinds,
     renameChapter,
     renameChapterFile,
     compile,

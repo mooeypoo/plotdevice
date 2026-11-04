@@ -12,6 +12,7 @@ export const channels = {
   changeContents: 'plotdevice:change-contents',
   compileBook: 'plotdevice:compile-book',
   renameChapter: 'plotdevice:rename-chapter',
+  changeKinds: 'plotdevice:change-kinds',
   renameChapterFile: 'plotdevice:rename-chapter-file',
   openChapter: 'plotdevice:open-chapter',
   saveChapter: 'plotdevice:save-chapter',

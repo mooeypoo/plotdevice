@@ -48,7 +48,7 @@ const groups = computed<{ key: string; label: string | null; targets: LinkTarget
   }
   const byKind = suggestedLinkTargets(tagged.others, 5, kinds.order.value).map((group) => ({
     key: group.kind,
-    label: group.kind === 'chapter' ? t('navigator-label') : kinds.labels(group.kind).many,
+    label: group.kind === 'chapter' ? kinds.chapters.many() : kinds.labels(group.kind).many,
     targets: group.targets,
   }))
   return [...byTag, ...byKind]

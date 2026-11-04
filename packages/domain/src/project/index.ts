@@ -9,6 +9,7 @@ export {
 } from './project-details'
 export {
   addKind,
+  applyKindsChange,
   DEFAULT_KINDS,
   folderForKind,
   isDefaultKinds,
@@ -19,6 +20,7 @@ export {
   removeKind,
   renameKind,
   type KindProblem,
+  type KindsChange,
   type ManuscriptUnit,
   type PageKind,
 } from './kinds'

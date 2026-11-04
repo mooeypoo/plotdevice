@@ -1,9 +1,6 @@
-import { collisionKey, dirnameOf, isReservedName, stemOf, type ProjectPath } from '@plotdevice/shared'
+import { collisionKey, dirnameOf, isReservedName, safeFileStem as safeStem, stemOf, type ProjectPath } from '@plotdevice/shared'
 
 const MANUSCRIPT = 'manuscript'
-const MAX_STEM_CHARACTERS = 100
-/** Forbidden on Windows, plus characters that would complicate Markdown links (`[]()#%{}`). */
-const UNSAFE_IN_FILE_NAMES = /[<>:"/\\|?*\u0000-\u001f[\]()#%{}]/g
 const UNSAFE_IN_FOLDER_NAMES = /[<>:"/\\|?*\u0000-\u001f]/g
 
 /**
@@ -37,23 +34,6 @@ function freeFileName(folder: string, stem: string, existing: readonly ProjectPa
     const candidate = `${folder ? `${folder}/` : ''}${n === 1 ? stem : `${stem}-${n}`}.md`
     if (!taken.has(collisionKey(candidate))) return candidate as ProjectPath
   }
-}
-
-export function safeStem(title: string, fallback = 'chapter'): string {
-  const slug = title
-    .normalize('NFC')
-    .toLowerCase()
-    .replace(UNSAFE_IN_FILE_NAMES, ' ')
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/-{2,}/g, '-')
-    .replace(/^[-.]+|[-.]+$/g, '')
-  const short = Array.from(slug)
-    .slice(0, MAX_STEM_CHARACTERS)
-    .join('')
-    .replace(/[-.]+$/, '')
-  if (short === '') return fallback
-  return isReservedName(short) ? `${short}-${fallback}` : short
 }
 
 /** The folder for a new project: the title as written, minus characters no file system accepts. */

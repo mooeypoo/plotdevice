@@ -1,4 +1,4 @@
-import type { NewProject } from '@plotdevice/domain'
+import { applyKindsChange, type KindProblem, type KindsChange, type NewProject } from '@plotdevice/domain'
 import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
 import { createChapterAutosave, type ChapterAutosave, type SaveStatus } from '../chapters/chapter-autosave'
 import type { Revision } from '../ports/file-store'
@@ -66,6 +66,8 @@ export interface WritingSession {
   resolveConflict(file: ProjectPath, choice: ConflictChoice): Promise<Result<ConflictResolved, ResolveProblem>>
   changeContents(change: ContentsChange): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   renameChapter(file: ProjectPath, title: string): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
+  /** A change on the "Kinds of pages" screen (ADR 0011): written to `project.md` only. */
+  changeKinds(change: KindsChange): Promise<Result<ProjectSnapshot, ChangeProblem | KindProblem | NoProject>>
   renameFile(file: ProjectPath, newName: string): Promise<Result<FileRenamed, RenameFileProblem | NoProject>>
   /**
    * Runs `change` on a file outside its text, such as a page's title in its frontmatter. For an open
@@ -255,6 +257,16 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
         const changed = await repository.changeContents(project, change)
         if (changed.ok) setProject(changed.value)
         return changed
+      }),
+
+    changeKinds: (change) =>
+      serially(async () => {
+        if (!project) return err('no-project')
+        const next = applyKindsChange(project.details, change)
+        if (!next.ok) return next
+        const written = await repository.setKinds(project, next.value.kinds, next.value.manuscriptUnit)
+        if (written.ok) setProject(written.value)
+        return written
       }),
 
     renameChapter: (file, title) =>

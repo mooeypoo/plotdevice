@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   addKind,
+  applyKindsChange,
   DEFAULT_KINDS,
   folderForKind,
   isDefaultKinds,
@@ -82,5 +83,31 @@ describe('changing the kinds', () => {
     expect(isDefaultKinds(DEFAULT_KINDS)).toBe(true)
     expect(isDefaultKinds([{ folder: 'characters' }, { folder: 'places' }])).toBe(false)
     expect(isDefaultKinds([{ folder: 'characters', one: 'NPC', many: 'NPCs' }, { folder: 'places' }, { folder: 'notes' }])).toBe(false)
+  })
+})
+
+describe('a change from the "Kinds of pages" screen', () => {
+  const book = { kinds: DEFAULT_KINDS, manuscriptUnit: null }
+
+  it('adds, renames, moves and removes, and names the chapters', () => {
+    const added = applyKindsChange(book, { kind: 'add', one: 'Faction', many: 'Factions', folder: 'factions' })
+    expect(added.ok && added.value.kinds.at(-1)).toEqual({ folder: 'factions', one: 'Faction', many: 'Factions' })
+    expect(applyKindsChange(book, { kind: 'move', folder: 'notes', index: 0 })).toMatchObject({
+      ok: true,
+      value: { kinds: [{ folder: 'notes' }, { folder: 'characters' }, { folder: 'places' }] },
+    })
+    expect(applyKindsChange(book, { kind: 'unit', unit: { one: ' Session ', many: 'Sessions' } })).toEqual({
+      ok: true,
+      value: { kinds: DEFAULT_KINDS, manuscriptUnit: { one: 'Session', many: 'Sessions' } },
+    })
+    expect(applyKindsChange({ ...book, manuscriptUnit: { one: 'Session', many: 'Sessions' } }, { kind: 'unit', unit: null })).toEqual({
+      ok: true,
+      value: { kinds: DEFAULT_KINDS, manuscriptUnit: null },
+    })
+  })
+
+  it('refuses a change to a kind the book doesn’t have', () => {
+    expect(applyKindsChange(book, { kind: 'remove', folder: 'factions' }).ok).toBe(false)
+    expect(applyKindsChange(book, { kind: 'rename', folder: 'factions', one: 'F', many: 'Fs' }).ok).toBe(false)
   })
 })

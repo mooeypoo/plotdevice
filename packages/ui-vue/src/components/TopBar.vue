@@ -39,6 +39,7 @@ const bookItems = computed<MenuItem[]>(() => {
   const chapter = view.workspace === 'write' ? view.writingChapter : null
   return [
     { key: 'export-book', label: t('export-book'), run: () => void store.compile() },
+    { key: 'kinds', label: t('kinds-menu'), run: () => (view.kindsDialog = true) },
     ...(chapter ? [{ key: 'chapter-versions', label: t('chapter-versions'), run: () => versions.show(chapter.file, chapter.name) }] : []),
   ]
 })

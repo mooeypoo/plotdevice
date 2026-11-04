@@ -6,6 +6,7 @@ import { computed, ref } from 'vue'
 import { usePrompt } from '../composables/use-prompt'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
+import { useViewStore } from '../stores/view'
 import EmptyState from './EmptyState.vue'
 import ItemHeader from './ItemHeader.vue'
 import TagFilter from './TagFilter.vue'
@@ -18,6 +19,12 @@ const settings = useSettingsStore()
 const { ask } = usePrompt()
 const t = settings.t
 const kinds = useKinds()
+const view = useViewStore()
+/** An unsorted folder becomes a kind from "Kinds of pages", which asks for its names (ADR 0011). */
+function makeKind(): void {
+  view.kindsAdopt = props.kind
+  view.kindsDialog = true
+}
 const labels = computed(() => kinds.labels(props.kind))
 const pages = computed(() => galleryPages(story.references, props.kind, settings.locale))
 const tags = computed(() => tagRow(pages.value, settings.locale))
@@ -56,6 +63,9 @@ async function newPage(): Promise<void> {
   <div class="world-gallery">
     <ItemHeader>
       <h1 class="item-title" dir="auto">{{ kinds.listed(kind) ? labels.many : `${kind}/` }}</h1>
+      <button v-if="!kinds.listed(kind)" type="button" class="link-button" data-testid="make-kind" @click="makeKind">
+        {{ t('kinds-adopt') }}
+      </button>
     </ItemHeader>
     <div v-if="pages.length === 0" class="story-page">
       <EmptyState

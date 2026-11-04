@@ -25,6 +25,18 @@ export const contentsChangeSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('update-link-text'), file: projectPathSchema }),
 ])
 
+/** A kind of page's folder (ADR 0011): one name, which the domain checks further. */
+const kindFolder = z.string().min(1).max(255)
+/** A change on the "Kinds of pages" screen (Milestone 18). */
+export const kindsChangeSchema = z.discriminatedUnion('kind', [
+  z.strictObject({ kind: z.literal('add'), one: name, many: name, folder: kindFolder }),
+  z.strictObject({ kind: z.literal('rename'), folder: kindFolder, one: name, many: name }),
+  z.strictObject({ kind: z.literal('move'), folder: kindFolder, index }),
+  z.strictObject({ kind: z.literal('remove'), folder: kindFolder }),
+  z.strictObject({ kind: z.literal('unit'), unit: z.strictObject({ one: name, many: name }).nullable() }),
+])
+export type KindsChangeRequest = z.infer<typeof kindsChangeSchema>
+
 export const renameChapterSchema = z.strictObject({ file: projectPathSchema, title: name })
 export const renameChapterFileSchema = z.strictObject({ file: projectPathSchema, newName: name })
 export const openProjectSchema = z.union([z.strictObject({ recent: z.string().min(1) }), z.literal('choose')])
@@ -92,7 +104,19 @@ export type OpenProjectResult = Result<OpenedProject, 'cancelled' | 'not-a-proje
 export type CreateProjectResult = Result<OpenedProject, 'cancelled' | 'invalid-details' | 'folder-exists' | 'inside-project' | 'io'>
 export type ProjectChangeResult = Result<
   ProjectView,
-  'stale' | 'invalid' | 'not-found' | 'unreadable' | 'write-failed' | 'invalid-name' | 'name-taken' | 'no-project'
+  | 'stale'
+  | 'invalid'
+  | 'not-found'
+  | 'unreadable'
+  | 'write-failed'
+  | 'invalid-name'
+  | 'name-taken'
+  | 'no-project'
+  // Kinds of pages (ADR 0011).
+  | 'empty-name'
+  | 'folder-taken'
+  | 'invalid-folder'
+  | 'invalid-kinds'
 >
 
 /** The compiled book was written to `path`; `missing` chapters couldn't be read and are not in it. */

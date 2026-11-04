@@ -4,6 +4,7 @@ import type { ProjectPath } from '@plotdevice/shared'
 import { computed, nextTick, ref, toRef, watch } from 'vue'
 import { useNavigator } from '../composables/use-navigator'
 import { useSettingsStore } from '../stores/settings'
+import { useKinds } from '../composables/use-kinds'
 import AppIcon from './AppIcon.vue'
 import MenuButton from './MenuButton.vue'
 
@@ -11,6 +12,7 @@ const props = defineProps<{ project: ProjectView; openFile: ProjectPath | null }
 const emit = defineEmits<{ open: [file: ProjectPath] }>()
 const settings = useSettingsStore()
 const t = settings.t
+const kinds = useKinds()
 const nav = useNavigator(toRef(props, 'project'), toRef(props, 'openFile'), (file) => emit('open', file))
 
 /**
@@ -52,7 +54,7 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
 <template>
   <nav
     class="navigator"
-    :aria-label="t('navigator-label')"
+    :aria-label="kinds.chapters.many()"
     data-testid="navigator"
     @dragover="nav.dragOver"
     @dragleave="nav.dragLeave"
@@ -145,7 +147,7 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
     </ol>
 
     <div class="add-links">
-      <button type="button" class="add-link" data-testid="new-chapter" @click="nav.addChapter">{{ t('navigator-new-chapter') }}</button>
+      <button type="button" class="add-link" data-testid="new-chapter" @click="nav.addChapter">{{ kinds.chapters.add() }}</button>
       <button type="button" class="add-link" @click="nav.addPart">{{ t('navigator-new-part') }}</button>
     </div>
 

@@ -1,4 +1,5 @@
 import type { ProjectView, ReferenceSummaryView } from '@plotdevice/contracts'
+import { freeFolderName } from '@plotdevice/shared'
 
 /** The interface's translator: a message key and its values. */
 export type Translate = (key: string, ...params: (string | number)[]) => string
@@ -65,3 +66,7 @@ export function unsortedFolders(kinds: Kinds, references: readonly Pick<Referenc
 export function kindOrder(kinds: Kinds, references: readonly Pick<ReferenceSummaryView, 'kind'>[]): string[] {
   return [...kinds.map((kind) => kind.folder), ...unsortedFolders(kinds, references)]
 }
+
+/** The folder a new kind gets, from its plural, as the host will make it (ADR 0011, decision 8). */
+export const kindFolderFor = (plural: string, kinds: Kinds): string =>
+  freeFolderName(plural, [...kinds.map((kind) => kind.folder), 'manuscript', 'outlines'])

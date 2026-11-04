@@ -1,5 +1,4 @@
-import { collisionKey, err, FORBIDDEN_IN_NAMES, isReservedName, ok, type Result } from '@plotdevice/shared'
-import { safeStem } from '../manuscript/chapter-files'
+import { collisionKey, err, FORBIDDEN_IN_NAMES, freeFolderName, isReservedName, ok, type Result } from '@plotdevice/shared'
 
 /**
  * The kinds of pages a book has (ADR 0011), read from `project.md`. A kind is its folder; `one` and
@@ -76,12 +75,7 @@ export function isDefaultKinds(kinds: readonly PageKind[]): boolean {
 
 /** A new kind's folder, from its plural: made safe for every system, and free ("characters-2"). */
 export function folderForKind(plural: string, kinds: readonly PageKind[]): string {
-  const stem = safeStem(plural, 'kind')
-  const taken = new Set([...kinds.map((kind) => collisionKey(kind.folder)), ...BOOK_FOLDERS])
-  for (let n = 1; ; n++) {
-    const candidate = n === 1 ? stem : `${stem}-${n}`
-    if (!taken.has(collisionKey(candidate))) return candidate
-  }
+  return freeFolderName(plural, [...kinds.map((kind) => kind.folder), ...BOOK_FOLDERS])
 }
 
 export function addKind(kinds: readonly PageKind[], kind: { one: string; many: string; folder: string }): Result<PageKind[], KindProblem> {
@@ -116,4 +110,44 @@ export function moveKind(kinds: readonly PageKind[], folder: string, index: numb
 /** Takes a kind off the list; its folder and pages stay, and show as "Not sorted yet" (ADR 0011, decision 5). */
 export function removeKind(kinds: readonly PageKind[], folder: string): PageKind[] {
   return kinds.filter((kind) => kind.folder !== folder)
+}
+
+/** A change the author makes on the "Kinds of pages" screen (Milestone 18). */
+export type KindsChange =
+  | { kind: 'add'; one: string; many: string; folder: string }
+  | { kind: 'rename'; folder: string; one: string; many: string }
+  | { kind: 'move'; folder: string; index: number }
+  | { kind: 'remove'; folder: string }
+  | { kind: 'unit'; unit: ManuscriptUnit | null }
+
+/**
+ * Applies one change to a book's kinds and the name of its chapters. "Make this a kind…" for an
+ * unsorted folder is an `add` with that folder. Nothing here touches a folder or a page.
+ */
+export function applyKindsChange(
+  current: { kinds: readonly PageKind[]; manuscriptUnit: ManuscriptUnit | null },
+  change: KindsChange,
+): Result<{ kinds: readonly PageKind[]; manuscriptUnit: ManuscriptUnit | null }, KindProblem> {
+  const unchanged = (kinds: readonly PageKind[]) => ok({ kinds, manuscriptUnit: current.manuscriptUnit })
+  const known = (folder: string) => current.kinds.some((kind) => kind.folder === folder)
+  switch (change.kind) {
+    case 'add': {
+      const added = addKind(current.kinds, change)
+      return added.ok ? unchanged(added.value) : added
+    }
+    case 'rename': {
+      if (!known(change.folder)) return err('invalid-kinds')
+      const renamed = renameKind(current.kinds, change.folder, change)
+      return renamed.ok ? unchanged(renamed.value) : renamed
+    }
+    case 'move':
+      return known(change.folder) ? unchanged(moveKind(current.kinds, change.folder, change.index)) : err('invalid-kinds')
+    case 'remove':
+      return known(change.folder) ? unchanged(removeKind(current.kinds, change.folder)) : err('invalid-kinds')
+    case 'unit': {
+      if (change.unit === null) return ok({ kinds: current.kinds, manuscriptUnit: null })
+      const unit = { one: change.unit.one.trim(), many: change.unit.many.trim() }
+      return unit.one === '' || unit.many === '' ? err('empty-name') : ok({ kinds: current.kinds, manuscriptUnit: unit })
+    }
+  }
 }
