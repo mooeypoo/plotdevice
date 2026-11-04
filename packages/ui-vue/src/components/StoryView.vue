@@ -59,6 +59,15 @@ const outlineItems = computed<MenuItem[]>(() => {
         ]),
     { key: 'outline-rename', label: t('outline-rename-title'), run: () => void actions.renameOutline() },
     { key: 'outline-versions', label: t('outline-versions'), run: () => versions.show(outline.file, outline.title ?? outline.file) },
+    {
+      key: 'plain-text-edit',
+      label: t('plain-text-edit'),
+      group: 'mode',
+      run: () => {
+        view.plainTextRequest = true
+        view.outlineView = 'text'
+      },
+    },
   ]
 })
 

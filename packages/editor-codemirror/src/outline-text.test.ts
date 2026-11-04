@@ -3,7 +3,7 @@ import { Compartment, EditorSelection, type EditorState, type StateCommand } fro
 import { describe, expect, it } from 'vitest'
 import { chapterState } from './chapter-state'
 import { newParagraph } from './keys'
-import { linkQueryIn, nest } from './outline-text'
+import { cardAfterSection, linkQueryIn, nest } from './outline-text'
 import type { EditorSettings } from './settings'
 
 const english: EditorSettings = {
@@ -79,5 +79,17 @@ describe('an outline written as text (Milestone 14)', () => {
     // An `@` on an earlier line is not what is being typed now.
     expect(linkQueryIn(stateAt('- ask @Bea\n- The gate', 'The gate'))).toBeNull()
     expect(linkQueryIn(stateAt('- mail ilka@marrow', 'marrow'))).toBeNull()
+  })
+})
+
+describe('Enter at the end of a section', () => {
+  it('starts the section’s first card', () => {
+    expect(run(stateAt('## Coda', 'Coda'), cardAfterSection).state.sliceDoc()).toBe('## Coda\n\n- ')
+    expect(run(stateAt('## Coda\r\n\r\n- Last', 'Coda'), cardAfterSection).state.sliceDoc()).toBe('## Coda\r\n\r\n- \r\n\r\n- Last')
+  })
+
+  it('is left to the editor anywhere else', () => {
+    expect(run(stateAt('## Coda', 'Co'), cardAfterSection).handled).toBe(false)
+    expect(run(stateAt('- a card', 'card'), cardAfterSection).handled).toBe(false)
   })
 })

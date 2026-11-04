@@ -1,3 +1,5 @@
+import { wikilinks, type Hidden } from './hidden'
+
 /**
  * Reading a card's one line of text for its editor: where its links are, so they show as names, and
  * whether the author is typing the name of something to link (`@Bea`, or `[[Bea` as in Obsidian).
@@ -48,4 +50,24 @@ export function linkQueryAt(text: string, cursor: number): { from: number; text:
   const query = before.slice(start + marker)
   if (query.length > LONGEST || /[\]\n,.;:!?]/.test(query)) return null
   return { from: start, text: query }
+}
+
+/**
+ * What a card's text hides (ADR 0010): each link's `[` and `](address)`, its words left to edit, and
+ * wikilinks as `hidden.ts` treats them. Read from the text alone, since a card's line has no parser.
+ */
+export function linkHidden(text: string): Hidden[] {
+  const code = [...text.matchAll(CODE)].map((match) => [match.index, match.index + match[0].length] as const)
+  const inCode = (at: number): boolean => code.some(([from, to]) => at >= from && at < to)
+  const wiki = wikilinks(text, 0)
+  const found: Hidden[] = [...wiki]
+  for (const match of text.matchAll(LINK)) {
+    const from = match.index
+    const to = from + match[0].length
+    if (inCode(from) || wiki.some((w) => from >= w.group.from && from < w.group.to)) continue
+    const group = { from, to }
+    const wordsTo = from + 1 + (match[1] ?? '').length
+    found.push({ from, to: from + 1, kind: 'link-open', group }, { from: wordsTo, to, kind: 'link-close', group })
+  }
+  return found.sort((a, b) => a.from - b.from)
 }

@@ -2,9 +2,12 @@ import type { ChapterPosition, HostEvent, Preferences, ProjectView, SaveStatusVi
 import {
   createChapterEditor,
   type ChapterEditor,
+  type EditorMode,
   type EditorSettings,
   type FoldedSection,
   type FormatCommand,
+  type LinkReport,
+  type LinkSuggestionOptions,
   type OutlineTextOptions,
   type SelectionPlace,
 } from '@plotdevice/editor-codemirror'
@@ -29,7 +32,13 @@ export type ChapterState = 'none' | 'loading' | 'ready' | 'missing' | 'unreadabl
  */
 export function useChapterWriting(
   host: Ref<HTMLElement | null>,
-  options: { remembersPosition: boolean; foldedSection?: FoldedSection; outline?: OutlineTextOptions; label?: () => string } = {
+  options: {
+    remembersPosition: boolean
+    foldedSection?: FoldedSection
+    outline?: OutlineTextOptions
+    links?: LinkSuggestionOptions
+    label?: () => string
+  } = {
     remembersPosition: true,
   },
 ) {
@@ -42,6 +51,18 @@ export function useChapterWriting(
   const selection = ref<SelectionPlace | null>(null)
   /** Typed here but not yet sent to the host. */
   const pending = ref(false)
+  /**
+   * Rendered or plain text (ADR 0010). Plain text lasts until "Back to normal view" or until another
+   * file opens; then the setting decides (Milestone 16, decision 8).
+   */
+  const defaultMode = (): EditorMode => (settings.preferences?.plainTextByDefault ? 'plain' : 'rendered')
+  const mode = ref<EditorMode>(defaultMode())
+  /** The link the cursor is in, for the link popup. */
+  const link = ref<LinkReport | null>(null)
+  function setMode(next: EditorMode): void {
+    mode.value = next
+    editor?.setMode(next)
+  }
   let generation = 0
   let timer: ReturnType<typeof setTimeout> | undefined
   let editor: ChapterEditor | null = null
@@ -91,6 +112,7 @@ export function useChapterWriting(
     flush()
     rememberPosition()
     const { cursor, top } = position ?? positions.get(next) ?? { cursor: 0 }
+    if (next !== file.value) setMode(defaultMode())
     file.value = next
     state.value = 'loading'
     const chapter = await api.openChapter(next)
@@ -161,8 +183,13 @@ export function useChapterWriting(
       onSelection: (place) => {
         selection.value = place
       },
+      onLink: (place) => {
+        link.value = place
+      },
+      mode: mode.value,
       ...(options.foldedSection ? { foldedSection: options.foldedSection } : {}),
       ...(options.outline ? { outline: options.outline } : {}),
+      ...(options.links ? { links: options.links } : {}),
     })
     stopEvents = api.onEvent(onHostEvent)
     window.addEventListener('blur', onBlur)
@@ -193,6 +220,11 @@ export function useChapterWriting(
     resolveConflict,
     format: (command: FormatCommand) => editor?.format(command),
     insertLink: (url: string) => editor?.insertLink(url),
+    mode,
+    setMode,
+    link,
+    changeLink: (target: string) => editor?.changeLink(target),
+    removeLink: () => editor?.removeLink(),
     pickLink: (markdown: string) => editor?.pickLink(markdown),
     /** The text in the editor now, saved or not. */
     text: () => editor?.text() ?? '',

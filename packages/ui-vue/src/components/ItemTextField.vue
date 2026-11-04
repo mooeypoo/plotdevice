@@ -4,15 +4,21 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useLinkPicker } from '../composables/use-link-picker'
 import { useLinkSuggestions } from '../composables/use-link-suggestions'
 import { useSettingsStore } from '../stores/settings'
+import { useStoryStore } from '../stores/story'
 import AppIcon from './AppIcon.vue'
+import LinkBubble from './LinkBubble.vue'
 import LinkSuggestions from './LinkSuggestions.vue'
 
-// A card's or item's text, edited in place with its links shown as names. Typing @ (or [[) offers
+// A card's or item's text, edited in place with its links shown as their words (Milestone 16), and a
+// popup to change or remove a link. Typing @ (or [[) offers
 // pages and chapters to link; the link button opens the full picker. Emits like `EditableText`.
 /** `bare`: a new line in the list, shown as a row with no box. `hint` replaces the default line under it. */
 const props = defineProps<{ value: string; label: string; nests?: boolean; bare?: boolean; placeholder?: string; hint?: string }>()
 const emit = defineEmits<{ commit: [text: string | null, byEnter: boolean]; indent: [text: string]; outdent: [text: string] }>()
 const settings = useSettingsStore()
+const story = useStoryStore()
+/** The link the cursor is in, for the link popup. */
+const link = ref<{ target: string; x: number; y: number } | null>(null)
 const { pick } = useLinkPicker()
 const t = settings.t
 const host = ref<HTMLElement | null>(null)
@@ -31,6 +37,10 @@ async function pickLink(): Promise<void> {
   setTimeout(() => editor?.focus())
 }
 
+const changeLink = (target: string): void => editor?.changeLink(target)
+const removeLink = (): void => editor?.removeLink()
+const focusText = (): void => editor?.focus()
+
 onMounted(() => {
   if (!host.value) return
   editor = createItemEditor(host.value, {
@@ -40,6 +50,7 @@ onMounted(() => {
     ...(props.placeholder ? { placeholder: props.placeholder } : {}),
     onLinkQuery: (found) => (query.value = found),
     onListKey,
+    onLink: (found) => (link.value = found),
     onDone: (text, byEnter) => {
       if (moving) return
       // A link is added with a space after it, to carry on typing; it isn't kept at the end.
@@ -85,6 +96,14 @@ onBeforeUnmount(() => {
         <AppIcon name="link" />
       </button>
       <LinkSuggestions v-if="open && query" :query="query" :offered="offered" :selected="selected" @choose="choose" />
+      <LinkBubble
+        :link="link"
+        :from="story.outline?.file ?? null"
+        :hidden="Boolean(open && query)"
+        @change="changeLink"
+        @remove="removeLink"
+        @back="focusText"
+      />
     </div>
     <span class="line-keys">{{ hint ?? (nests ? `${t('outline-line-keys')} · ${t('item-link-hint')}` : t('item-link-hint')) }}</span>
   </div>

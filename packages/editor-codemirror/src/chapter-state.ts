@@ -30,6 +30,11 @@ export function chapterState(text: string, settings: Compartment, initial: Edito
         { key: 'Shift-Enter', run: lineBreak },
         { key: 'Mod-b', run: formatCommands.bold },
         { key: 'Mod-i', run: formatCommands.italic },
+        // As in Word and Google Docs; Ctrl+0 stays the app's Reset zoom.
+        { key: 'Mod-Alt-1', run: formatCommands.heading1 },
+        { key: 'Mod-Alt-2', run: formatCommands.heading2 },
+        { key: 'Mod-Alt-3', run: formatCommands.heading3 },
+        { key: 'Mod-Alt-0', run: formatCommands.body },
         ...defaultKeymap,
         ...historyKeymap,
       ]),

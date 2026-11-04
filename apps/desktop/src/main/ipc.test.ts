@@ -8,7 +8,14 @@ import type { ReferenceIpcContext } from './reference-ipc'
 import type { UpdateIpcContext } from './update-ipc'
 import type { VersionIpcContext } from './version-ipc'
 
-const OTHER_DEFAULTS = { writingSize: 'medium', pageWidth: 'medium', checkForUpdates: true, navigatorWidth: 272, shelfWidth: 336 } as const
+const OTHER_DEFAULTS = {
+  writingSize: 'medium',
+  pageWidth: 'medium',
+  checkForUpdates: true,
+  plainTextByDefault: false,
+  navigatorWidth: 272,
+  shelfWidth: 336,
+} as const
 
 const appUrl = 'file:///opt/plotdevice/out/renderer/index.html'
 const appPage: Sender = { url: `${appUrl}?x=1#top`, fromAppWindow: true }

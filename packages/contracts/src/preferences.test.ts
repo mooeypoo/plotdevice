@@ -10,6 +10,7 @@ describe('preferences on the wire', () => {
         writingSize: 'large',
         pageWidth: 'narrow',
         checkForUpdates: false,
+        plainTextByDefault: false,
         navigatorWidth: 300,
         shelfWidth: 480,
       }).success,

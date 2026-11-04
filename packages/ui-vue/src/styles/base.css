@@ -886,6 +886,33 @@ label {
   font-family: var(--font-prose);
   font-size: 1.05rem;
 }
+.link-bubble {
+  translate: -0.25rem 8px;
+  font-size: 0.85rem;
+}
+.link-bubble-target {
+  max-inline-size: 16rem;
+  padding-inline: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings-group {
+  margin-block: 1rem 0.25rem;
+  font-size: 0.95rem;
+}
+.plain-text-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  align-items: baseline;
+  margin-block: 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px dashed var(--hair-strong, currentColor);
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
 .format-bubble .divider {
   inline-size: 1px;
   block-size: 1.1rem;
