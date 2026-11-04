@@ -1,6 +1,6 @@
 # Milestone 17: The main screen, tightened
 
-Status: **Approved** (owner, 2026-11-04), with the recommended answers to the open questions; in progress. Direction from `roadmap-16-approachable-studio-and-timelines.md` (Phase A). Designed with the owner in a session on 2026-11-04; mockups: https://claude.ai/artifact/Avk17Kgjj5Di3gwozkFHtc (Hebrew in light, English in dark, narrow windows, new and long books).
+Status: **Built** (2026-11-04) on branch `milestone-17/main-screen`, with the recommended answers to the open questions; awaiting owner review. Results at the end. Direction from `roadmap-16-approachable-studio-and-timelines.md` (Phase A). Designed with the owner in a session on 2026-11-04; mockups: https://claude.ai/artifact/Avk17Kgjj5Di3gwozkFHtc (Hebrew in light, English in dark, narrow windows, new and long books).
 
 ## Goal
 
@@ -156,3 +156,44 @@ Each empty area gives one plain explanation and one next step:
 4. **The collapse shortcut.** Ctrl+B is bold, so it can't be that. **Recommendation:** Ctrl+\ (⌘\), as in Notion. Ctrl+Shift+F stays Focus.
 5. **The start screen.** **Recommendation:** in this milestone only the logo and spacing match the mockup. Its new-project flow changes with the templates (Milestone 19).
 6. **Aa outside Write.** **Recommendation:** Aa sets text size and page width for every page (World pages and outline Text too), so it's always meaningful. On the board and gallery it stays, for the pages they open.
+
+## Results
+
+### What the author can do
+
+- See the same top bar in Write and Story: the book, Story | Write, the save status, **Aa** and ☰. In Story the status is that of the page or outline text open.
+- Use one sidebar in both workspaces, with one label style. Parts, Plot and World fold; a folded part shows its chapter count; the open chapter's part stays open; folds are remembered per book.
+- Collapse the sidebar the same way in both workspaces: the toggle at the start of the header row, or **Ctrl+\\** (⌘\\).
+- Read the open item in one header row: "Part One · Chapter 2" with the chapter's `⋯` (the same actions as its row), "Main story" with Board · List · Text and `⋯`, "Characters › Bea Halmi" with the page's `⋯`.
+- Format from a labelled **Format** button at the top corner of every page to write on: chapters, World pages and outline Text. **References** has its word, and only its icon under about 1100 px.
+- Use Focus as the sidebar and shelf put away, with the top bar and header row quiet until reached.
+- On the board, see a card's or column's `⋯` only on hover or keyboard focus; right-click and Shift+F10 open the same menu.
+- Start a new book with one next step everywhere: "No chapters yet" and **New chapter**; "Start writing here." on an empty page; "No outline yet" and **New outline**; "No characters yet" (or places, or notes) and **New character**.
+- Browse a kind with more than 12 pages as compact cards (name and one line).
+- See the logo's gold line a shade darker on the light desk.
+
+### Changed from the plan while building
+
+- **Write with no chapters** got its own empty state; the mockup assumed a template's first chapter, but a new project starts with none.
+- **"Edit as plain text" moved from a page's `⋯` into Format**, so each command has one place. The outline's `⋯` keeps it for the board, which has no Format.
+- **Folded parts are remembered in the app's own browser storage**, keyed by the book's folder, which Electron keeps in the app's data folder. Nothing is written to the book.
+- **Pages and outline Text start their first line below Format**, since their margins are narrower than a chapter's. On a chapter, Format sits in the page's corner; once scrolled, it can sit over the end of a long first visible line.
+- The scroll fade at the bottom of a long sidebar, drawn in the mockup, isn't built: the list scrolls as before.
+
+### Found and fixed by the tests
+
+- A test's typing helper clicked the middle of a wrapped paragraph, landing on its first row; it now clicks the last row.
+- An empty gallery no longer had the dashed "New character" card the tests used; the empty state's button has the same name and test ID.
+
+### Tests
+
+- `pnpm lint`, `pnpm typecheck`: clean.
+- `pnpm test`: 71 files, 1106 tests passed. `pnpm arch`: 157 passed. `pnpm perf`: 7 passed. `pnpm build`: clean.
+- `pnpm e2e` (whole suite): 104 passed, including the new `main-screen.e2e.ts` (9 tests): the same sidebar and bars in both workspaces in English and Hebrew; collapse by button and Ctrl+\\; Focus; Format on every page to write on and nowhere else, by keyboard; References at 1280 and 960 px; card menus by hover, right-click and Shift+F10; a new book's empty states; a 60-chapter book's folding parts, remembered after a restart.
+- Screenshots retaken (`pnpm site:screenshots`, 4 passed) and checked by eye; docs site built, `pnpm site:test` 10 passed.
+
+### Known limitations
+
+- The long sidebar's scroll fade (above).
+- Format can cover the end of a chapter's first visible line while scrolled.
+- The new Hebrew wording is listed for review in `docs/reviews/hebrew-wording-milestone-16.md`.

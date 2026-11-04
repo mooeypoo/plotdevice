@@ -13,9 +13,19 @@ The audience is non-technical writers, some of them wary of technology (`PRD.md`
 - Update notices (Milestone 15): when a newer version is out, a quiet "Update available" button in the top bar, before the ☰ menu, opens a small panel: "Plot Device 0.4.0 is out.", "What's new", "Download" and "Not now". Nothing interrupts writing, and nothing is downloaded or installed by the app. About has "Check for updates"; Settings has "Check for updates automatically" (on at first; once a day; nothing about the author is sent).
 - The ☰ menu's last group: "Help and documentation", "Report a problem…" (the GitHub form, with the version and system filled in), "Suggest an idea…", and "About". About ends with the licence, "your writing is yours", and a "buy me a coffee" line.
 
+## The main screen (Milestone 17)
+Write and Story share one layout language: the same top bar, the same sidebar, one header row for whatever is open, and the tools for writing on the page itself. Mockups: `docs/plans/milestone-17-main-screen.md`.
+- **Top bar, the same everywhere:** the logo and the book's title (the book menu), Story | Write, the save status, **Aa** and ☰. Story's save status is that of the page or outline text open; the board and gallery save as they change.
+- **One sidebar:** the same width, look and collapse in both workspaces; one group-label style (a quiet serif) for parts, "On the side", Plot and World. Parts, Plot and World fold; a part folds to its name and chapter count, the open chapter's part stays open, and folded parts are remembered per book.
+- **One header row:** the sidebar toggle, the open item's name ("Part One · Chapter 2"; "Main story"; "Characters / Bea Halmi"), its views (outlines: Board · List · Text), its `⋯`, and at the far end its tools (References in Write).
+- **Format on the page:** a labelled **Format** button at the top corner of every page to write on (chapters, World pages, outline Text), staying at the top of the visible page; the ¶ menu is retired. The selection bubble handles a selection; Format the paragraph the cursor is in.
+- **References** has its word, quieter than Format; under about 1100 px it shows only its icon (named for screen readers, with a tooltip).
+- **Collapse and Focus:** the toggle and **Ctrl+\\** (⌘\\) hide the sidebar in both workspaces. Focus puts the sidebar and the shelf away and quiets the top bar and header row until the pointer or keyboard reaches them. Nothing remounts the editor or erases undo history.
+- **Board menus:** a card's or column's `⋯` shows on hover or keyboard focus; right-click and Shift+F10 open the same menu.
+- **Empty and long:** no chapters, no outline and an empty kind of page each show one explanation and one next step; an empty page says "Start writing here."; a kind with more than 12 pages shows compact cards.
+
 ## Write layout
-- Central writing surface; hideable manuscript navigator and hideable reference shelf.
-- Three layout presets: Standard, With References, Focus. All render one editor instance; layout changes never remount the editor or erase undo history.
+- Central writing surface; the sidebar (the manuscript navigator) and the reference shelf can be hidden.
 - Search reference catalog by title; open overlay, peek or pin to shelf; move pinned cards by pointer or keyboard; linked contextual references may be suggested without AI.
 - Tags (Milestone 12): pages carry the author's own tags, as calm pills under the name with "+ Tag" suggesting existing ones. A row of tags above the World gallery, the shelf and "Link to…" groups the list by the chosen tags (one group per tag, in the order chosen; the rest folded under "All" and the kind's plural name, such as "All characters" or "All factions", or "All pages" where kinds mix). The shelf remembers its chosen tags per part. Right-click or Shift+F10 on a tag: rename everywhere, remove from all pages. "Tidy tags" appears only when tags look duplicated or can't be read, with one notice when a project opens.
 - The manuscript unit is named per project (`manuscriptUnit`, ADR 0011): "New session" and "Session 3" in a campaign. Only the interface changes; files and `CONTENTS.md` don't.
@@ -31,7 +41,7 @@ Every editing surface (chapters, outline Text, every World page) shows what the 
 - **Typing Markdown still works:** `## ` at the start of a line becomes a heading and `- ` a bullet, and the marks disappear once understood.
 - **Backspace works the way it looks:** at the start of a heading it makes body text; at the start of a bullet it moves a detail out a step, or ends the list. A heading level on a bullet makes it a heading. In outline Text, Enter at the end of a section starts its first card.
 - **"Kept as written"** passages (tables, code, unusual Markdown) show as written, with their quiet style and count. Pointed out, never changed.
-- **Plain text, one step away.** Each page's `⋯` menu has **Edit as plain text**: the same file in the same editor, every mark visible, links as written, under a quiet banner, "Plain text. Changes here are saved exactly as typed.", with **Back to normal view**. Settings → Advanced has **Show plain text when I open a page** (off by default). Switching never loses undo history or the selection.
+- **Plain text, one step away.** **Format** on each page (Milestone 17; on the board, the outline's `⋯`) has **Edit as plain text**: the same file in the same editor, every mark visible, links as written, under a quiet banner, "Plain text. Changes here are saved exactly as typed.", with **Back to normal view**. Settings → Advanced has **Show plain text when I open a page** (off by default). Switching never loses undo history or the selection.
 - "Text" (the rendered outline view) and "plain text" are working names, kept in the message catalogs only, to revisit if testers confuse them.
 
 ## Story layout

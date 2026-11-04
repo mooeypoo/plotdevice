@@ -45,3 +45,17 @@ After changing a guide page, `pnpm site:translations` shows what is behind; the 
 ## Also worth checking by hand
 
 - [ ] **Screen readers** (Orca, NVDA), in Hebrew and English: hidden marks stay silent, headings are announced as headings (ADR 0010, implementation note).
+
+## Added in Milestone 17
+
+| Key | Hebrew now | English |
+|---|---|---|
+| `sidebar-toggle` | סרגל צד | Sidebar |
+| `start-writing` | כאן מתחילים לכתוב. | Start writing here. |
+| `write-empty-title`, `-text` | עוד אין פרקים · ספר נכתב פרק אחרי פרק. מתחילים בראשון; את השם אפשר לתת עכשיו או אחר כך. | No chapters yet · A book is written one chapter at a time… |
+| `story-empty-title`, `-text` | עוד אין מתווה · מתווה הוא התוכנית של הסיפור… לא צריך מתווה כדי לכתוב. | No outline yet · An outline is the plan of your story… |
+| `gallery-empty-character`, `-text` | עוד אין דמויות · לכל דמות יש דף משלה… | No characters yet · Each character has a page of their own… |
+| `gallery-empty-place`, `-text` | עוד אין מקומות · לכל מקום יש דף משלו… | No places yet · Each place has a page of its own… |
+| `gallery-empty-note`, `-text` | עוד אין הערות · בהערות נכנס כל השאר על העולם… | No notes yet · Notes hold everything else about the world… |
+
+- [ ] Guide pages changed for Format, the sidebar and Focus: `writing/formatting.mdx`, `start/tour.mdx`, `writing/hebrew-and-english.mdx`, `writing/the-page.mdx`, `reference/shortcuts.mdx`.
