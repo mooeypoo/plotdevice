@@ -9,6 +9,9 @@ import { ref, watch } from 'vue'
  */
 export type OutlineMode = OutlineViewKind | 'text'
 
+/** The keys that show and hide the sidebar, in both workspaces (Milestone 17); Ctrl+B is bold. */
+export const sidebarKeys = (): string => (navigator.platform.startsWith('Mac') ? '⌘\\' : 'Ctrl+\\')
+
 /** The keys that switch to Text and back, as the author's keyboard names them. */
 export const textViewKeys = (): string => (navigator.platform.startsWith('Mac') ? '⌘⇧E' : 'Ctrl+Shift+E')
 
@@ -29,6 +32,8 @@ export const useViewStore = defineStore('view', () => {
   /** The chapter open in Write and its save status, for the top bar and the book menu. */
   const writingChapter = ref<{ file: ProjectPath; name: string } | null>(null)
   const saveStatus = ref<SaveStatusView | null>(null)
+  /** The save status of the page or outline text open in Story, for the same place in the top bar (Milestone 17). */
+  const storySaveStatus = ref<SaveStatusView | null>(null)
   /** "Edit as plain text" from the outline's menu: Text opens as plain text (ADR 0010). */
   const plainTextRequest = ref(false)
 
@@ -39,6 +44,19 @@ export const useViewStore = defineStore('view', () => {
 
   function setFocusMode(on: boolean): void {
     focusMode.value = on
+  }
+
+  /**
+   * The sidebar, in Write and Story alike (Milestone 17, decision 2). Showing it from Focus leaves Focus,
+   * since Focus is the sidebar and shelf put away.
+   */
+  function toggleNavigator(): void {
+    if (focusMode.value) {
+      focusMode.value = false
+      navigatorHidden.value = false
+      return
+    }
+    navigatorHidden.value = !navigatorHidden.value
   }
 
   /** Ctrl+Shift+E: the outline as text, and back to the board or list. */
@@ -56,8 +74,10 @@ export const useViewStore = defineStore('view', () => {
     chapterRequest,
     writingChapter,
     saveStatus,
+    storySaveStatus,
     plainTextRequest,
     writeChapter,
     setFocusMode,
+    toggleNavigator,
   }
 })

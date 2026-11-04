@@ -14,7 +14,7 @@ defineProps<{ draw?: boolean }>()
       pathLength="1"
       d="M256 352 C 256 410, 176 404, 154 444 C 140 472, 214 474, 280 446 C 330 426, 372 432, 420 452"
       fill="none"
-      stroke="var(--color-mark)"
+      stroke="var(--logo-gold, var(--color-mark))"
       :stroke-width="draw ? 30 : 40"
       stroke-linecap="round"
     />

@@ -9,6 +9,7 @@ import EditableText from './EditableText.vue'
 import ItemTextField from './ItemTextField.vue'
 import KeptAsWritten from './KeptAsWritten.vue'
 import MenuButton from './MenuButton.vue'
+import { openOwnMenu } from './menu'
 import OutlineCard from './OutlineCard.vue'
 
 const props = defineProps<{ outline: OutlineView }>()
@@ -76,7 +77,7 @@ function dropSide(section: number, index: number): 'before' | 'after' | null {
       @dragleave="onLeave"
       @drop.prevent="onDrop"
     >
-      <header class="column-head">
+      <header class="column-head" @contextmenu="openOwnMenu($event, '.menu-button')">
         <EditableText
           v-if="story.editing?.kind === 'section' && story.editing.section === index"
           :value="column.name ?? ''"

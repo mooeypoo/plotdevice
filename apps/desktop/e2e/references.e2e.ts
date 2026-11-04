@@ -53,7 +53,7 @@ async function newPage(page: Page, kind: 'character' | 'place' | 'note', title: 
   await page.getByTestId(`new-${kind}`).click()
   await page.getByTestId('prompt-input').fill(title)
   await page.getByTestId('prompt-input').press('Enter')
-  await expect(page.getByTestId('reference-page').locator('.outline-title')).toHaveText(title)
+  await expect(page.getByTestId('reference-page').locator('.item-title')).toHaveText(title)
 }
 
 test('scenario D: link a card to a character and a chapter, and consult them while writing', async () => {
@@ -62,7 +62,7 @@ test('scenario D: link a card to a character and a chapter, and consult them whi
   await newPage(page, 'character', 'Ilka Varga')
   await page.getByTestId('page-editor').locator('.cm-content').click()
   await page.keyboard.type('Inherits the orchard; distrusts everyone in Marrow.')
-  await expect(page.getByTestId('page-save-status')).toHaveText('Saved')
+  await expect(page.getByTestId('save-status')).toHaveText('Saved')
 
   await page.locator('[data-outline="outlines/main-story.md"]').click()
   const card = page.locator('.outline-card', { hasText: 'Ilka crosses the river' })
@@ -282,7 +282,7 @@ test('renaming a page’s file keeps a card’s link to it working', async () =>
   await file('outlines/main-story.md').toContain('[Ilka](../characters/ilka-varga.md)')
   await page.locator('[data-outline="outlines/main-story.md"]').click()
   await page.locator('.outline-card').getByRole('button', { name: 'Ilka', exact: true }).click()
-  await expect(page.getByTestId('reference-page').locator('.outline-title')).toHaveText('Ilka Varga')
+  await expect(page.getByTestId('reference-page').locator('.item-title')).toHaveText('Ilka Varga')
 })
 
 test('relationships and connections: added on one page, seen on the other, in the gallery and on the board', async () => {

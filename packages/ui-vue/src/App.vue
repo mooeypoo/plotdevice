@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AppInfo } from '@plotdevice/contracts'
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useApi } from './api'
 import ConfirmDialog from './components/ConfirmDialog.vue'
 import LinkPicker from './components/LinkPicker.vue'
@@ -35,11 +35,22 @@ function runNoticeAction(): void {
 
 const appInfo = ref<AppInfo | null>(null)
 void api.getAppInfo().then((info) => (appInfo.value = info))
+
+/** Ctrl+\\ (⌘\\) shows or hides the sidebar, in Write and Story alike (Milestone 17). */
+function onKey(event: KeyboardEvent): void {
+  if (!store.project || !(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey) return
+  if (event.key !== '\\' && event.code !== 'Backslash') return
+  event.preventDefault()
+  view.toggleNavigator()
+}
+onMounted(() => window.addEventListener('keydown', onKey))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>
 
 <template>
   <div v-if="settings.preferences" class="shell" :class="{ 'focus-mode': view.focusMode }">
-    <TopBar v-if="!view.focusMode" />
+    <!-- In Focus the bar stays, quiet until the pointer or keyboard reaches it (Milestone 17, decision 2). -->
+    <TopBar :class="{ quiet: view.focusMode }" />
 
     <template v-if="store.project">
       <!-- Write stays mounted while Story is shown, so the editor, cursor and undo history survive the switch. -->

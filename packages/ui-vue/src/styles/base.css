@@ -10,6 +10,8 @@
   --shadow-pop: 0 0 0 1px var(--hair), 0 18px 50px rgb(0 0 0 / 0.22);
   --shadow-page: 0 1px 2px rgb(0 0 0 / 0.06), 0 24px 60px rgb(0 0 0 / 0.14);
   --glow: color-mix(in srgb, var(--color-card) 75%, transparent);
+  /* The logo's line, a shade darker than the gold marks on the light desk (Milestone 17, decision 7). */
+  --logo-gold: color-mix(in srgb, var(--color-mark) 78%, var(--color-text));
   font-family: var(--font-ui);
   font-size: 15px;
   line-height: 1.5;
@@ -22,6 +24,7 @@
   --shadow-pop: 0 0 0 1px var(--hair), 0 24px 60px rgb(0 0 0 / 0.5);
   --shadow-page: 0 0 0 1px rgb(255 255 255 / 0.03), 0 30px 80px rgb(0 0 0 / 0.55);
   --glow: color-mix(in srgb, var(--color-mark) 13%, transparent);
+  --logo-gold: var(--color-mark);
   color-scheme: dark;
 }
 * {
@@ -226,9 +229,6 @@ label {
   grid-template-rows: auto 1fr;
   block-size: 100vh;
   position: relative;
-}
-.shell.focus-mode {
-  grid-template-rows: 1fr;
 }
 .top-bar {
   display: grid;
@@ -1228,6 +1228,9 @@ label {
   display: flex;
   flex-direction: column;
 }
+.story.navigator-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
 .story-head {
   display: flex;
   align-items: center;
@@ -1310,6 +1313,20 @@ button.outline-title:hover:not(:disabled) {
   background: none;
   color: var(--color-text-secondary);
   padding: 0.1rem 0.4rem;
+}
+/* A card's or column's ⋯ shows on hover or keyboard focus, as rows do elsewhere (Milestone 17, decision 5). */
+.column-head .menu-button,
+.outline-card .menu-button {
+  opacity: 0;
+  transition: opacity 120ms;
+}
+.column-head:hover .menu-button,
+.column-head:focus-within .menu-button,
+.outline-card:hover .menu-button,
+.outline-card:focus-within .menu-button,
+.column-head .menu-button[aria-expanded='true'],
+.outline-card .menu-button[aria-expanded='true'] {
+  opacity: 1;
 }
 .column-intro {
   margin: 0;
@@ -1719,14 +1736,38 @@ button.inline-link {
 .story-group + .story-group {
   margin-block-start: 1.5rem;
 }
+/* Plot and World: the same quiet italic serif as a part's name in Write (Milestone 17, decision 1). */
 .group-heading {
   margin: 0.6rem 0 0.35rem;
+}
+.group-fold {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  inline-size: 100%;
+  padding-block: 0.15rem;
   padding-inline: 0.6rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+}
+.group-fold:hover {
+  background: var(--hover);
+}
+.group-fold svg {
+  inline-size: 0.8rem;
+  block-size: 0.8rem;
+  opacity: 0.6;
+  transition: rotate 120ms;
+}
+.group-fold[aria-expanded='false'] svg {
+  rotate: -90deg;
+}
+:dir(rtl) .group-fold[aria-expanded='false'] svg {
+  rotate: 90deg;
 }
 .story-group .chapter .count {
   margin-inline-start: auto;
@@ -2482,4 +2523,253 @@ button.inline-link {
   .welcome-mark .thread {
     stroke-dashoffset: 0;
   }
+}
+
+/* Milestone 17: one layout language for Write and Story. */
+
+/* In Focus the top bar stays, quiet until the pointer or keyboard reaches it. */
+.top-bar.quiet {
+  opacity: 0.3;
+  transition: opacity 160ms;
+}
+.top-bar.quiet:hover,
+.top-bar.quiet:focus-within {
+  opacity: 1;
+}
+
+/* One header row for whatever is open: the sidebar toggle, the item, and its tools at the far end. */
+.item-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  min-block-size: 3rem;
+  padding-block: 0.25rem;
+  padding-inline: 0.5rem 1rem;
+}
+.item-header .grow {
+  flex: 1;
+}
+.item-name {
+  padding-inline: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+.item-title,
+.item-header .outline-title {
+  margin: 0;
+  padding-inline: 0.25rem;
+  font:
+    italic 400 1.5rem/1.2 var(--font-prose),
+    serif;
+  color: var(--color-text);
+}
+.item-header button.outline-title {
+  margin-inline-start: 0;
+  margin-inline-end: 0.25rem;
+}
+.item-header .crumb {
+  margin: 0;
+}
+.focus-mode .item-header {
+  opacity: 0.35;
+  transition: opacity 160ms;
+}
+.focus-mode .item-header:hover,
+.focus-mode .item-header:focus-within {
+  opacity: 1;
+}
+
+/* An item's tool with its word (References): quieter than Format; just the icon in a narrow window. */
+.tool-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  block-size: 2rem;
+  padding-inline: 0.6rem;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: 0.88rem;
+}
+.tool-button:hover {
+  background: var(--hover);
+  color: var(--color-text);
+}
+.tool-button[aria-pressed='true'] {
+  background: var(--color-well);
+  color: var(--color-text);
+}
+@media (max-width: 1100px) {
+  .tool-label {
+    display: none;
+  }
+}
+
+/*
+ * Format, at the top corner of the page itself, on the reading-end side; it stays at the top of the
+ * visible page while scrolling, and takes no room in the text.
+ */
+.page-tools {
+  position: sticky;
+  inset-block-start: 0.75rem;
+  z-index: 4;
+  display: flex;
+  justify-content: flex-end;
+  block-size: 0;
+}
+.page-tools > * {
+  margin-block-start: 0.75rem;
+  margin-inline-end: 0.75rem;
+}
+/* On a chapter's sheet, into its corner: the button moves, the text below it doesn't. */
+.sheet > .page-tools > * {
+  position: relative;
+  inset-block-start: -2.75rem;
+  inset-inline-end: -3.75rem;
+}
+.format-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  block-size: 1.9rem;
+  padding-inline: 0.65rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-well);
+  color: var(--color-text);
+  font-size: 0.82rem;
+}
+.format-button:hover,
+.format-button[aria-expanded='true'] {
+  background: color-mix(in srgb, var(--color-well) 70%, var(--color-text) 12%);
+}
+.format-b {
+  font:
+    700 0.9rem/1 var(--font-prose),
+    serif;
+}
+.focus-mode .format-button {
+  opacity: 0.45;
+}
+.focus-mode .format-button:hover,
+.focus-mode .format-button:focus-visible,
+.focus-mode .format-button[aria-expanded='true'] {
+  opacity: 1;
+}
+.paper:has(> .page-tools) {
+  position: relative;
+}
+
+/* Where there is nothing yet: one explanation, one next step, a small sketch. */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-inline-size: 30rem;
+  margin-block: 4rem;
+  margin-inline: auto;
+  text-align: center;
+}
+.empty-sketch {
+  display: flex;
+  gap: 0.6rem;
+}
+.sketch-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  inline-size: 4.75rem;
+}
+.sketch-heading {
+  inline-size: 2.75rem;
+  block-size: 0.5rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-text) 25%, transparent);
+}
+.sketch-card {
+  block-size: 1.9rem;
+  border-radius: 6px;
+  background: var(--color-card);
+  box-shadow: var(--shadow-soft);
+}
+.sketch-page {
+  inline-size: 5.25rem;
+  block-size: 6.5rem;
+  border-radius: 10px;
+  background: var(--color-card);
+  box-shadow: var(--shadow-soft);
+}
+.sketch-new {
+  background: none;
+  box-shadow: none;
+  border: 1.5px dashed color-mix(in srgb, var(--color-text) 30%, transparent);
+}
+.empty-title {
+  margin: 0;
+  font-size: 1.6rem;
+  color: var(--color-text);
+}
+.empty-text {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+/* A long cast: compact cards, the name and one line. */
+.gallery.compact .page-card-aka,
+.gallery.compact .page-card-tags,
+.gallery.compact .page-card-relationships {
+  display: none;
+}
+.gallery.compact .page-card-description {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.gallery.compact .page-card {
+  min-block-size: 0;
+}
+
+/* A part's name folds its chapters (Milestone 17). */
+.part-fold {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  text-align: start;
+}
+.part-fold:hover {
+  background: var(--hover);
+}
+.part-fold svg {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  margin-inline-start: auto;
+  opacity: 0.5;
+  transition: rotate 120ms;
+}
+.part-fold[aria-expanded='false'] svg {
+  rotate: -90deg;
+}
+:dir(rtl) .part-fold[aria-expanded='false'] svg {
+  rotate: 90deg;
+}
+.part-count {
+  font-style: normal;
+  font-size: 0.85rem;
+}
+
+/* Pages and outline Text have narrow margins: their first line starts below Format, not under it. */
+.paper:has(> .page-tools) .page-editor,
+.paper:has(> .page-tools) .outline-text-editor {
+  padding-block-start: 2.5rem;
+}
+.item-header .crumb {
+  align-self: center;
 }

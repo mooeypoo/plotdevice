@@ -56,7 +56,9 @@ const appItems = computed<MenuItem[]>(() => [
   { key: 'about', label: t('about'), run: () => about.value?.show() },
 ])
 
-const problem = computed(() => view.saveStatus === 'conflict' || view.saveStatus === 'failed')
+/** Write's chapter, or the page or outline text open in Story; Story's board and gallery save as they change. */
+const status = computed(() => (view.workspace === 'write' ? view.saveStatus : (view.storySaveStatus ?? 'saved')))
+const problem = computed(() => status.value === 'conflict' || status.value === 'failed')
 
 function onKey(event: KeyboardEvent): void {
   if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey) return
@@ -103,15 +105,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 
     <div class="top-end">
       <UpdateNotice />
-      <span
-        v-if="store.project && view.workspace === 'write' && view.saveStatus"
-        class="save-status"
-        :class="{ problem }"
-        role="status"
-        data-testid="save-status"
-        >{{ t(`save-${view.saveStatus}`) }}</span
-      >
-      <AppearancePanel v-if="store.project && view.workspace === 'write'" />
+      <!-- The same bar in both workspaces (Milestone 17, decision 3). -->
+      <span v-if="store.project && status" class="save-status" :class="{ problem }" role="status" data-testid="save-status">{{
+        t(`save-${status}`)
+      }}</span>
+      <AppearancePanel v-if="store.project" />
       <MenuButton :label="t('app-menu')" :items="appItems" button-class="icon-button" align="end" testid="app-menu">
         <AppIcon name="menu" />
       </MenuButton>

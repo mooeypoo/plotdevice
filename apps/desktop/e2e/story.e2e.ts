@@ -305,7 +305,7 @@ test('Story has two groups: Plot holds the outlines, World shows each kind of pa
   await expect(page.locator('[data-page="characters/a.md"]')).toContainText('Keeps the keys.')
 
   await page.locator('[data-page="characters/c.md"]').click()
-  await expect(page.getByTestId('reference-page').locator('.outline-title')).toHaveText('Bea Halmi')
+  await expect(page.getByTestId('reference-page').locator('.item-title')).toHaveText('Bea Halmi')
   await expect(page.locator('[data-gallery="character"]').locator('..')).toHaveClass(/current/)
   await page.getByTestId('back-to-gallery').click()
   await expect(page.getByTestId('gallery-character')).toBeVisible()

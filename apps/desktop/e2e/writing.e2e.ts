@@ -48,7 +48,9 @@ async function openChapter(page: Page, file: string): Promise<void> {
 async function typeAtEnd(page: Page, text: string): Promise<void> {
   const lastLine = page.locator('.cm-line').filter({ hasText: /\S/ }).last()
   if ((await lastLine.count()) > 0) {
-    await lastLine.click()
+    // In the paragraph's last row: a click in the middle of a wrapped paragraph can land on its first row.
+    const box = await lastLine.boundingBox()
+    await lastLine.click(box ? { position: { x: box.width / 2, y: box.height - 6 } } : {})
     await page.keyboard.press('End')
   } else {
     await page.locator('.cm-content').click()

@@ -77,7 +77,11 @@ export function useChapterWriting(
     projectDirection: project?.direction ?? 'ltr',
     directionMode: 'project',
     language: project?.language ?? preferences?.locale ?? 'en',
-    labels: { chapterText: options.label?.() ?? settings.t('chapter-text'), sceneBreak: settings.t('scene-break') },
+    labels: {
+      chapterText: options.label?.() ?? settings.t('chapter-text'),
+      sceneBreak: settings.t('scene-break'),
+      startWriting: settings.t('start-writing'),
+    },
   })
 
   function flush(): void {
