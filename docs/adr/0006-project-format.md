@@ -146,3 +146,11 @@ Both are only suggestions: the author confirms before anything changes.
 - A person can understand the book from `CONTENTS.md` alone, in any Markdown app.
 - Reordering in another app works, as long as the list structure is kept.
 - The app needs a "Not in the book yet" tray, missing-chapter handling, and a relink suggestion: all part of Gate 2.
+
+## Amendment (2026-11-04): kinds of pages per project
+
+Accepted by the owner with roadmap decisions D3–D5 (`docs/plans/roadmap-16-approachable-studio-and-timelines.md`).
+
+- **The fixed folders become the default.** "What is already decided" lists `characters/`, `places/` and `notes/`; these are now the default kinds. A project can list its own kinds in `project.md` (`kinds`), each a folder, and rename "chapter" in the interface (`manuscriptUnit`). Details in **ADR 0011**.
+- `outlines/`, `manuscript/` and `CONTENTS.md` don't change.
+- **No schema version change.** The new keys are optional and older versions ignore them without loss, so `schemaVersion` stays 1 and nothing is migrated.

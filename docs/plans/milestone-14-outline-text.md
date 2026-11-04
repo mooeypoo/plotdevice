@@ -1,5 +1,7 @@
 # Milestone 14: An outline as text
 
+> **Later change (2026-11-04):** the trial is concluded and Text is kept (owner). From Milestone 16, Text is rendered, with links as names, and the raw Markdown moves to a plain-text mode (ADR 0010). This replaces decision 1's raw Text and the "links show as Markdown" limit.
+
 Status: **Built for trial** (2026-10-27) on branch `milestone-14/outline-text`. The owner asked for it as a PR to try out in real use and revert if it doesn't work out. Everything it adds is in new files or small, separate changes, so reverting the PR removes it cleanly. Results are at the end of this document.
 
 ## Goal

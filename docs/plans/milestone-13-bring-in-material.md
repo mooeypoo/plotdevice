@@ -1,5 +1,7 @@
 # Milestone 13: Bringing in what you've already written
 
+> **Later change (2026-11-04):** reading `.docx` for chapters comes into scope in Milestone 22 (roadmap 16, D9). The guide for assistants and the project check stop assuming three folders in Milestone 18 (ADR 0011).
+
 Status: **Built** (2026-10-27) on branch `milestone-13/bring-in-material` (PR #31). Results are under "Results", before "Later". The owner's answers to the plan's open decisions are under "Decisions". Publishing a package is deferred; its options are under "Later".
 
 ## Goal

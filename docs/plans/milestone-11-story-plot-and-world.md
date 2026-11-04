@@ -1,5 +1,7 @@
 # Milestone 11: Story, in two halves (Plot and World)
 
+> **Later change (2026-11-04):** timelines, out of scope here, come in as views of an outline (roadmap 16, ADR 0012). World's three kinds become the project's own kinds (ADR 0011).
+
 Status: **Built** (2026-10-26) on branch `milestone-11/story-plot-and-world` (PR #28), ready for review after three rounds of owner feedback (at the end). Results are at the end of this document; the test counts include the feedback rounds.
 
 ## Goal

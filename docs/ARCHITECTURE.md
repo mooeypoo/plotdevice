@@ -6,7 +6,7 @@ Hexagonal architecture + DDD-inspired bounded contexts; **domain must not depend
 - Domain: invariants, entities/value objects and commands over story concepts; pure TypeScript.
 - Application: use cases/command and query handlers, transaction boundaries, abstract ports; framework-neutral TypeScript.
 - Infrastructure: Markdown parser/serializer, filesystem repositories, OS storage, version/checksum checks, backups.
-- Presentation: view models/projections for Board, List (Outline), manuscript, galleries and references; framework-neutral where possible.
+- Presentation: view models/projections for Board, List (Outline), Timeline, manuscript, galleries and references; framework-neutral where possible.
 - UI: Vue components and editor integration only; invoke application-facing transport contracts and present view models.
 - Platform: Electron main and restricted preload typed IPC; replaceable by HTTP/mobile hosts.
 
@@ -51,8 +51,8 @@ docs/adr/
 
 ## Rich-text adapter boundary
 - `ChapterEditorAdapter` provides open chapter, content edits, cursor/selection, focus, dirty state, undo/redo and save-on-command interfaces.
-- Tiptap vs CodeMirror 6 is **not decided**. Evaluate via POC on writing UX, Markdown fidelity, Hebrew/BiDi, performance and accessibility.
-- Tiptap cannot be assumed to round-trip unknown Markdown; CodeMirror must not expose a technical syntax-heavy editor as default unless its writer UX passes tests.
+- CodeMirror 6 is the editor (ADR 0004). Rendered editing and plain text are two modes of one instance, switched by a compartment without remount (ADR 0010).
+- The default view never shows Markdown syntax; raw Markdown appears only in plain-text mode.
 - Editor representation is not authoritative; saved Markdown is. On unsupported constructs, do not silently normalize or delete them.
 
 ## Persistence safety
