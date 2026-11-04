@@ -345,3 +345,4 @@ A writer coming from Word can bring a manuscript in, hand chapters to an editor 
 - macOS, and signing the Windows installer.
 - A public plugin API (not planned; see the internal view registry in M20).
 - A third interface language.
+- Optional nikkud (Hebrew vowel points), possibly with a dedicated way to type them: planned later, with its own plan. Milestone 16 only keeps pointed text working.

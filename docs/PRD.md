@@ -84,7 +84,7 @@ G7. No visible Markdown: in normal use an author never sees Markdown symbols. Ra
 ## 9. Scope
 IN: local project management; chapter writing; optional parts; manuscript ordering; Markdown persistence; Story outlines; Board/List/Text projections; rendered editing with a plain-text mode; page kinds per project; templates for new projects; timelines and lanes as views of outlines; Word import for chapters; basic characters/places/notes; quick reference shelf; English/Hebrew; RTL/BiDi; light/dark/system; autosave and external-change guardrails; keyboard access; basic manuscript export.
 
-LATER, designed together with the owner before any plan: export to Word; backups to a folder the author chooses; story order vs. book order on the timeline; several outlines on one timeline; optional real dates on moments; tags on cards (ADR 0012); a read-only relationship map drawn from existing relationships (ADR 0009). See the roadmap's Milestone 21 and 22 tables.
+LATER, designed together with the owner before any plan: export to Word; backups to a folder the author chooses; story order vs. book order on the timeline; several outlines on one timeline; optional real dates on moments; tags on cards (ADR 0012); optional nikkud, possibly with a dedicated way to type it; a read-only relationship map drawn from existing relationships (ADR 0009). See the roadmap's Milestone 21 and 22 tables.
 
 OUT: cloud sync, collaboration, AI writing, full publishing suite, hand-drawn relationship webs, a separate timeline engine or timeline file, dates guessed from prose, arbitrary block database, semantic scenes, generalized board configuration language, a public plugin API and real-time multieditor merge.
 
