@@ -50,3 +50,10 @@ From Milestone 16, every editing surface (chapters, outline Text and every World
 - Milestone 14's Text view stays, now rendered. Plain text is the raw view it used to be.
 - Authors who know Markdown lose nothing: typing it still works, and plain text shows it all.
 - Every new editing surface must offer both modes.
+
+## Implementation note (Milestone 16)
+
+- **Built as decided**, with one change of mechanism: what is hidden is worked out per line, on demand, by one pure function (`editor-codemirror/src/hidden.ts`), rather than kept for the whole document in a state field. The drawing asks for the visible lines, and the cursor and edit rules for the lines they touch. It is still testable without a screen, and a keystroke in a 150,000-character chapter takes about 5 ms (budget: one 16 ms frame; `packages/editor-codemirror/test/typing.perf.ts`).
+- **The cursor rule** (`restingPlace`) and the edit rules (`caret.ts`) are shared by chapters, pages, outline Text and card fields. The Markdown package's own Backspace for lists is overridden where something is hidden, because it removed a bullet's mark and left its indentation.
+- **Outline Text** also gained: Enter at the end of a section starts its first card, and a heading level on a bullet line makes it a heading (as in Word), so an outline can be written without typing `## ` or `- `.
+- **Still to verify by hand:** Orca and NVDA with rendered editing. Hidden marks are not in the page, and heading lines carry `role="heading"` with their level, but how a screen reader reads that inside the editor hasn't been heard yet.

@@ -1,6 +1,6 @@
 # Milestone 16: Rendered editing everywhere
 
-Status: **Approved** (owner, 2026-11-04); not started. Owner answers so far (2026-11-04): heading keys as in Word and Google Docs; links edited letter by letter, as in Word and Docs; plain text in Write's ¶ menu for now (menus are revisited in Milestone 17); cursor movement tested in the built app; the open questions' recommendations accepted, with a link popup added (decision 10) and nikkud planned for later. Direction from `roadmap-16-approachable-studio-and-timelines.md` (Phase A); decisions in ADR 0010, which amends ADR 0004, point 2.
+Status: **Built** (2026-11-04) on branch `milestone-16/rendered-editing`, awaiting owner review; results at the end. Owner answers so far (2026-11-04): heading keys as in Word and Google Docs; links edited letter by letter, as in Word and Docs; plain text in Write's ¶ menu for now (menus are revisited in Milestone 17); cursor movement tested in the built app; the open questions' recommendations accepted, with a link popup added (decision 10) and nikkud planned for later. Direction from `roadmap-16-approachable-studio-and-timelines.md` (Phase A); decisions in ADR 0010, which amends ADR 0004, point 2.
 
 ## Goal
 
@@ -211,3 +211,44 @@ Stated before coding. Cursor movement over hidden marks and links is the highest
 ## Later: nikkud
 
 Optional nikkud (Hebrew vowel points), for poetry, children's books and names, possibly with a dedicated way to type them, since most Hebrew keyboards make it awkward. A good amount of specific work (input, fonts, search that ignores points, spellcheck), so it gets its own plan later. This milestone only makes sure pointed text that's already in a file keeps working (Tests, "Nikkud already in files").
+
+## Results
+
+### What the author can do
+
+- Write in chapters, World pages, outline Text and card fields without seeing a Markdown mark, on any line: headings, bold, italics, quotes, bullets and links all show as what they mean.
+- Move with the arrows, Home, End and Shift through hidden marks without the cursor ever stopping on one, in English, Hebrew and mixed lines. Typing takes the formatting before the cursor; next to a link it's outside the link.
+- Edit a link's words letter by letter; the link goes with its last letter. With the cursor in or beside a link, a popup says where it goes and offers Open, Change link… (the usual picker, or an address for a web link) and Remove link.
+- Set Heading 1, 2, 3 or Body text from the bubble's ⋯, the ¶ menu, or Ctrl+Alt+1, 2, 3 and Ctrl+Alt+0. Backspace at the start of a heading or bullet makes it ordinary text, or moves a detail out a step.
+- Write an outline in Text with Enter, Tab, Shift+Tab, Ctrl+Alt+2 and @ alone: Enter at the end of a section starts its first card.
+- Use the format bubble and `@` links on World pages, and the format bubble in outline Text.
+- Choose Edit as plain text (¶ in Write, ⋯ on a page or outline) to see and edit every mark, under a banner with Back to normal view; undo carries across. Settings → Advanced → Show plain text when I open a page.
+
+### Changed from the plan while building
+
+- **What is hidden is worked out per line, on demand** (`hidden.ts`), not kept in a whole-document state field (decision 2). The view draws only visible lines; the rules read only the lines they touch. Same testability, less work per keystroke.
+- **The Markdown package's own Backspace for lists** ran before ours and left a bullet's indentation behind; the cursor keys now run first (found by the end-to-end tests).
+- **Two outline additions**, needed to write an outline without Markdown: Enter at the end of a section starts its first card, and a heading level on a bullet makes it a heading.
+- **`@` on pages comes without the outline's keys:** link suggestions were split out of outline Text, so Tab and Enter on a page behave as in a chapter.
+- **The link popup also shows with the cursor right beside a link**, since a click at a link's end rests just outside it.
+- **Card fields lost their chips** (decision 7): their links are edited as words too, with the same popup.
+
+### Tests
+
+- `pnpm lint`, `pnpm typecheck`: clean.
+- `pnpm test`: 71 files, 1106 tests passed (editor package: 128, of which `hidden.test.ts` holds the cursor and edit rules, written first, and fidelity over 14 chapter and outline fixtures with the cursor at every position).
+- `pnpm arch`: 154 passed.
+- `pnpm perf`: 7 passed; new `typing.perf.ts`: a letter typed in the middle of a 150,000-character Hebrew and English chapter takes a median of 5.4 ms, Backspace past hidden marks 0.01 ms (budget 16 ms).
+- `pnpm build`: clean. `pnpm e2e` (whole suite): 95 passed, after updating two tests that expected raw Markdown in an unfolded relationships section and the old chip class.
+- New `rendered-editing.e2e.ts` (10 tests): 16 English and 6 Hebrew cursor cases, checked by where a typed marker lands in the saved file; two mixed-direction lines walked press by press (every press moves, no mark shows); an outline written without Markdown, in the English and Hebrew interfaces; plain text and undo across modes; the setting; `@`, the link popup, and erasing a link; headings from the bubble in a chapter and on a page.
+- Docs site: `astro build` clean, `pnpm site:test` 10 passed.
+
+### Known limitations
+
+- **Screen readers not yet heard** (Orca, NVDA). Hidden marks aren't in the page and heading lines carry their level; the hand check is still to do.
+- **Screenshots** of the new menus, bubble and banner in both languages and themes are not retaken yet (`pnpm site:screenshots`).
+- **Hebrew wording** (menus, banner, setting, guide pages) was written for this milestone and should be read by a Hebrew writer.
+- **Typing at the very start of a bold paragraph** is plain (decision 3); to check with testers.
+- **A link's address** can be changed only by choosing again, or in plain text.
+- **Copying** carries Markdown marks into other apps (Milestone 22).
+- `about/problems.mdx` in Hebrew was already behind its English page before this milestone, and still is.
