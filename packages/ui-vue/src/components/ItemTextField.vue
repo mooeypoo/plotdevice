@@ -18,7 +18,7 @@ const emit = defineEmits<{ commit: [text: string | null, byEnter: boolean]; inde
 const settings = useSettingsStore()
 const story = useStoryStore()
 /** The link the cursor is in, for the link popup. */
-const link = ref<{ target: string; x: number; y: number } | null>(null)
+const link = ref<{ target: string; x: number; y: number; rtl: boolean } | null>(null)
 const { pick } = useLinkPicker()
 const t = settings.t
 const host = ref<HTMLElement | null>(null)

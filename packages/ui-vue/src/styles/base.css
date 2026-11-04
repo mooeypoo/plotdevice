@@ -890,6 +890,10 @@ label {
   translate: -0.25rem 8px;
   font-size: 0.85rem;
 }
+/* Right-to-left words: `left` is where they start, at their right edge, so the popup grows leftwards. */
+.link-bubble.rtl {
+  translate: calc(-100% + 0.25rem) 8px;
+}
 .link-bubble-target {
   max-inline-size: 16rem;
   padding-inline: 0.5rem;

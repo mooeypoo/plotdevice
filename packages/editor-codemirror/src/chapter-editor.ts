@@ -1,6 +1,6 @@
 import type { Direction } from '@plotdevice/domain'
 import { Compartment, EditorSelection, type Extension, type StateCommand } from '@codemirror/state'
-import { EditorView } from '@codemirror/view'
+import { Direction as TextDirection, EditorView } from '@codemirror/view'
 import { chapterState } from './chapter-state'
 import { formatCommands, insertLink, type FormatCommand } from './format'
 import type { FoldedSection } from './folded-section'
@@ -67,6 +67,8 @@ export interface LinkReport {
   x: number
   y: number
   focused: boolean
+  /** The link's words run right to left, so `x` is their right edge and the popup grows leftwards. */
+  rtl: boolean
 }
 
 /**
@@ -135,7 +137,8 @@ function linkReport(view: EditorView): LinkReport | null {
   const { main } = view.state.selection
   const link = linkAt(view.state, main.from, main.to)
   const place = link ? view.coordsAtPos(link.wordsFrom, 1) : null
-  return link && place ? { target: link.target, x: place.left, y: place.bottom, focused: view.hasFocus } : null
+  const rtl = link ? view.textDirectionAt(link.wordsFrom) === TextDirection.RTL : false
+  return link && place ? { target: link.target, x: place.left, y: place.bottom, focused: view.hasFocus, rtl } : null
 }
 
 const scrollToTop = (view: EditorView, top: number) =>

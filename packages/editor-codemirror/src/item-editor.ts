@@ -1,5 +1,5 @@
 import { EditorSelection, EditorState, StateField, type Extension } from '@codemirror/state'
-import { Decoration, EditorView, keymap, placeholder, type DecorationSet } from '@codemirror/view'
+import { Decoration, Direction, EditorView, keymap, placeholder, type DecorationSet } from '@codemirror/view'
 import { caretKeymap, renderedRules } from './caret'
 import { hiddenIn } from './hidden'
 import { linkHidden, linkQueryAt } from './item-text'
@@ -32,7 +32,7 @@ export interface ItemEditorOptions {
   /** Tab and Shift+Tab, when the line can move in or out a level. */
   onNest?: (direction: 'in' | 'out', text: string) => void
   /** Told where the link the cursor is in goes, and where it is on screen, for the link popup; `null` when not in one. */
-  onLink?: (link: { target: string; x: number; y: number } | null) => void
+  onLink?: (link: { target: string; x: number; y: number; rtl: boolean } | null) => void
 }
 
 export interface ItemEditor {
@@ -173,7 +173,8 @@ export function createItemEditor(parent: HTMLElement, options: ItemEditorOptions
         const { main } = update.state.selection
         const link = update.view.hasFocus ? linkAt(update.state, main.from, main.to) : null
         const place = link ? update.view.coordsAtPos(link.wordsFrom, 1) : null
-        options.onLink(link && place ? { target: link.target, x: place.left, y: place.bottom } : null)
+        const rtl = link ? update.view.textDirectionAt(link.wordsFrom) === Direction.RTL : false
+        options.onLink(link && place ? { target: link.target, x: place.left, y: place.bottom, rtl } : null)
       }
     }),
     EditorView.domEventHandlers({

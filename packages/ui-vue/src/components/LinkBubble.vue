@@ -8,7 +8,7 @@ import { useSettingsStore } from '../stores/settings'
 // The link's words are edited in the text itself; this changes only where it goes. Like the format
 // bubble, clicks don't take the keyboard from the editor; Tab reaches it and Escape returns.
 const props = defineProps<{
-  link: { target: string; x: number; y: number; focused?: boolean } | null
+  link: { target: string; x: number; y: number; focused?: boolean; rtl?: boolean } | null
   from: ProjectPath | null
   /** While text is selected the format bubble shows instead. */
   hidden?: boolean
@@ -52,6 +52,7 @@ function onKey(event: KeyboardEvent): void {
     v-show="shown"
     ref="root"
     class="format-bubble link-bubble"
+    :class="{ rtl: link?.rtl }"
     :style="position"
     role="toolbar"
     :aria-label="t('toolbar-link')"
