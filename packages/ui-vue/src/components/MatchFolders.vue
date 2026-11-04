@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { FolderRenamePlanView } from '@plotdevice/contracts'
+import { uiDirection } from '@plotdevice/i18n'
 import { computed, ref, watch } from 'vue'
 import { useApi } from '../api'
+import { useFolderUndo } from '../composables/use-folder-undo'
 import { useKinds } from '../composables/use-kinds'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
@@ -16,9 +18,12 @@ const project = useProjectStore()
 const story = useStoryStore()
 const view = useViewStore()
 const kinds = useKinds()
+const undoFolders = useFolderUndo()
 const settings = useSettingsStore()
 const t = settings.t
 const dialog = ref<HTMLDialogElement | null>(null)
+/** Old name, then new, in the interface's reading direction. */
+const arrow = computed(() => (uiDirection(settings.locale) === 'rtl' ? '←' : '→'))
 
 const plan = ref<FolderRenamePlanView | null>(null)
 const backup = ref<{ path: string } | 'failed' | null>(null)
@@ -57,8 +62,11 @@ async function makeBackup(): Promise<void> {
 async function rename(): Promise<void> {
   const renames = ready.value.map(({ from, to }) => ({ from, to }))
   working.value = true
-  const renamed = await project.renameFolders(renames)
-  if (renamed) await story.followFolders(renames)
+  const links = await project.renameFolders(renames)
+  if (links !== null) {
+    await story.followFolders(renames)
+    project.offer('folders-renamed', [String(links)], { key: 'outline-undo', run: () => void undoFolders() })
+  }
   working.value = false
   close()
 }
@@ -78,10 +86,10 @@ function close(): void {
         <li v-for="rename in plan.renames" :key="rename.from" class="kind-row match-row" :data-rename="rename.from">
           <span class="kind-names">
             <span class="kind-many" dir="auto">{{ kinds.labels(rename.from).many }}</span>
-            <span class="secondary kind-folder" dir="ltr">
+            <span class="secondary kind-folder">
               <bdi>{{ rename.from }}/</bdi>
               <template v-if="rename.blocked === null">
-                → <bdi>{{ rename.to }}/</bdi></template
+                {{ arrow }} <bdi>{{ rename.to }}/</bdi></template
               >
             </span>
             <span v-if="rename.blocked" class="warning">{{ t(`match-blocked-${rename.blocked}`) }}</span>

@@ -15,7 +15,8 @@ export const builtInKindKey = (folder: string): string | null => BUILT_IN[folder
 export interface KindLabels {
   one: string
   many: string
-  /** The button that adds a page: "New character", or "+ Faction" for the author's kinds. */
+  /** The button that adds a page: "New character", or "New Faction" for the author's kinds;
+   * in Hebrew "הוספת פלג", so no adjective must agree in gender. */
   newPage: string
   /** The empty gallery's title and explanation. */
   empty: string

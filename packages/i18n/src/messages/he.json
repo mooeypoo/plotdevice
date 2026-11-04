@@ -181,7 +181,7 @@
   "kinds-unit-one-placeholder": "פרק",
   "kinds-unit-many-placeholder": "פרקים",
   "kinds-close": "סיום",
-  "kinds-mismatch": "לחלק מהתיקיות יש עדיין שמות ישנים.",
+  "kinds-mismatch": "חלק משמות התיקיות כבר לא תואמים את השמות ב־Plot Device. זה חשוב רק אם פותחים את תיקיית הספר ביישומים אחרים.",
   "kinds-match-folders": "התאמת שמות התיקיות…",
   "match-title": "התאמת שמות התיקיות",
   "match-hint": "כל תיקייה תקבל את השם של הסוג שלה. הדפים שבה יעברו איתה, וכל קישור אליהם יעודכן.",

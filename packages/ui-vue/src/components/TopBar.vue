@@ -2,11 +2,11 @@
 import type { AppInfo, Workspace } from '@plotdevice/contracts'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useApi } from '../api'
+import { useFolderUndo } from '../composables/use-folder-undo'
 import { useVersions } from '../composables/use-versions'
 import { documentationFor, IDEA_FORM, problemReportFor } from '../links'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
-import { useStoryStore } from '../stores/story'
 import { useViewStore } from '../stores/view'
 import AboutDialog from './AboutDialog.vue'
 import AppIcon from './AppIcon.vue'
@@ -22,7 +22,7 @@ import type { MenuItem } from './menu'
 const store = useProjectStore()
 const settings = useSettingsStore()
 const view = useViewStore()
-const story = useStoryStore()
+const undoFolders = useFolderUndo()
 const versions = useVersions()
 const t = settings.t
 const settingsDialog = ref<InstanceType<typeof SettingsDialog> | null>(null)
@@ -46,11 +46,6 @@ const bookItems = computed<MenuItem[]>(() => {
     ...(chapter ? [{ key: 'chapter-versions', label: t('chapter-versions'), run: () => versions.show(chapter.file, chapter.name) }] : []),
   ]
 })
-
-async function undoFolders(): Promise<void> {
-  const back = await store.undoFolderRenames()
-  if (back) await story.followFolders(back)
-}
 
 const appItems = computed<MenuItem[]>(() => [
   { key: 'open-project', label: t('welcome-open-project'), hint: `${mod}O`, run: () => void store.open('choose') },

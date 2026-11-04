@@ -110,17 +110,16 @@ export const useProjectStore = defineStore('project', () => {
   const renameChapter = (file: ProjectPath, title: string) => change(() => api.renameChapter(file, title))
   /** The book's kinds of pages, and what it calls a chapter (ADR 0011). */
   const changeKinds = (request: KindsChangeRequest) => change(() => api.changeKinds(request))
-  /** Renames the kinds' folders and every link to them. Returns whether it worked. */
-  async function renameFolders(renames: FolderRenamesRequest): Promise<boolean> {
+  /** Renames the kinds' folders and every link to them: how many links changed, or `null` when it couldn't. */
+  async function renameFolders(renames: FolderRenamesRequest): Promise<number | null> {
     const result = await api.renameFolders(renames)
     if (!result.ok) {
       tell('folders-failed')
-      return false
+      return null
     }
     setProject(result.value.project)
     renamedFolders.value = renames
-    tell('folders-renamed', String(result.value.linksUpdated))
-    return true
+    return result.value.linksUpdated
   }
 
   /** Puts the last folder renames back; the folders it moved back, or `null` when it couldn't. */
