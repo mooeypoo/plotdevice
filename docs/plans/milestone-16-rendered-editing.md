@@ -231,6 +231,8 @@ Optional nikkud (Hebrew vowel points), for poetry, children's books and names, p
 - **Two outline additions**, needed to write an outline without Markdown: Enter at the end of a section starts its first card, and a heading level on a bullet makes it a heading.
 - **`@` on pages comes without the outline's keys:** link suggestions were split out of outline Text, so Tab and Enter on a page behave as in a chapter.
 - **The link popup also shows with the cursor right beside a link**, since a click at a link's end rests just outside it.
+- **The link popup grows leftwards under a right-to-left link**, found in the Hebrew screenshots: it started at the link's first letter and hung off past it.
+- **Screenshots:** two new ones, the link popup and a chapter in plain text, in both languages and themes, on the guide's Formatting page; all shots retaken (`pnpm site:screenshots`, 4 passed) and checked by eye.
 - **Card fields lost their chips** (decision 7): their links are edited as words too, with the same popup.
 
 ### Tests
@@ -246,7 +248,6 @@ Optional nikkud (Hebrew vowel points), for poetry, children's books and names, p
 ### Known limitations
 
 - **Screen readers not yet heard** (Orca, NVDA). Hidden marks aren't in the page and heading lines carry their level; the hand check is still to do.
-- **Screenshots** of the new menus, bubble and banner in both languages and themes are not retaken yet (`pnpm site:screenshots`).
 - **Hebrew wording** (menus, banner, setting, guide pages) was written for this milestone and should be read by a Hebrew writer.
 - **Typing at the very start of a bold paragraph** is plain (decision 3); to check with testers.
 - **A link's address** can be changed only by choosing again, or in plain text.

@@ -16,6 +16,8 @@ interface Language {
   crossing: string
   /** A phrase in that chapter to select, and a character to look up on the shelf. */
   phrase: string
+  /** A link's words in that chapter, to show the link popup (Milestone 16). */
+  linkWords: string
   character: string
   /** That character's page, for the World screens. */
   characterPage: string
@@ -38,6 +40,7 @@ const LANGUAGES: Record<string, Language> = {
     book: 'the-salt-orchard',
     crossing: 'manuscript/the-crossing.md',
     phrase: 'a woman in a green coat',
+    linkWords: 'Aunt Bea',
     character: 'Bea',
     characterPage: 'characters/bea.md',
     linkTyping: 'Must meet @be',
@@ -52,6 +55,7 @@ const LANGUAGES: Record<string, Language> = {
     book: 'מטע-המלח',
     crossing: 'manuscript/המעבר.md',
     phrase: 'אישה במעיל ירוק',
+    linkWords: 'דודה בּיה',
     character: 'בּיה',
     characterPage: 'characters/ביה.md',
     linkTyping: 'פוגשת את @בּ',
@@ -125,8 +129,8 @@ async function open(
 }
 
 /**
- * Opens a chapter as it reads: the cursor rests on a blank line between paragraphs (the editor shows
- * a paragraph's Markdown where the cursor is), and the keyboard leaves the page, so no cursor shows.
+ * Opens a chapter as it reads: the cursor rests on a blank line between paragraphs, away from any
+ * link (whose popup would show), and the keyboard leaves the page, so no cursor shows.
  */
 async function showChapter(page: Page, file: string): Promise<void> {
   await page.locator(`[data-chapter="${file}"]`).first().click()
@@ -141,6 +145,21 @@ async function restCursor(page: Page): Promise<void> {
     if (blank) document.getSelection()?.setBaseAndExtent(blank, 0, blank, 0)
   })
   await page.locator('.chapter-title').click()
+}
+
+/** Puts the cursor in the middle of `phrase`, as a click there would. */
+async function caretIn(page: Page, phrase: string): Promise<void> {
+  await page.locator('.cm-content').click()
+  await page.evaluate((wanted) => {
+    const content = document.querySelector('[data-testid="editor"]')?.shadowRoot?.querySelector('.cm-content')
+    const walker = content && document.createTreeWalker(content, NodeFilter.SHOW_TEXT)
+    for (let node = walker?.nextNode(); node; node = walker?.nextNode()) {
+      const at = node.textContent?.indexOf(wanted) ?? -1
+      const middle = at + Math.floor(wanted.length / 2)
+      if (at >= 0) return document.getSelection()?.setBaseAndExtent(node, middle, node, middle)
+    }
+    throw new Error(`"${wanted}" isn't on the page`)
+  }, phrase)
 }
 
 /** Selects `phrase` in the editor, as a person would by dragging over it. */
@@ -186,6 +205,24 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
 
       await select(page, language.phrase)
       await snap(page, lang, 'formatting', theme)
+
+      // A link: its words on the page, and the popup that changes or removes it (Milestone 16).
+      await caretIn(page, language.linkWords)
+      const linkBubble = page.getByTestId('link-bubble')
+      await linkBubble.waitFor()
+      await snapAround(page, lang, 'link-bubble', theme, [
+        page.getByTestId('editor').locator('.cm-line', { hasText: language.linkWords }),
+        linkBubble,
+      ])
+
+      // Plain text: the same chapter with every mark showing.
+      await page.getByTestId('format-menu').click()
+      await page.getByTestId('menu-plain-text-edit').click()
+      await page.getByTestId('plain-text-banner').waitFor()
+      await restCursor(page)
+      await snap(page, lang, 'plain-text', theme)
+      await page.getByTestId('plain-text-back').click()
+      await restCursor(page)
 
       await page.getByTestId('toggle-shelf').click()
       await page.getByTestId('shelf-search').fill(language.character)
