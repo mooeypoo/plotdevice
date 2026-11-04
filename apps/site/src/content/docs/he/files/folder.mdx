@@ -1,5 +1,5 @@
 ---
-sourceHash: ff216a457e25
+sourceHash: 8a3f07fa3701
 title: תיקיית הספר
 description: מה יש בספר של Plot Device, ולמה הוא נקרא היטב גם בלי Plot Device.
 ---
@@ -17,8 +17,30 @@ import Folder from '~/components/landing/Folder.astro'
 | `manuscript/` | קובץ אחד לכל פרק. |
 | `outlines/` | קובץ אחד לכל מתווה. ראו [קובצי מתווים](/plotdevice/he/files/outlines/). |
 | `characters/`, `places/`, `notes/` | קובץ אחד לכל דף. ראו [דפי דמויות, מקומות והערות](/plotdevice/he/files/pages/). |
+| תיקיות דפים אחרות | [סוגי הדפים](/plotdevice/he/planning/kinds/) של הספר עצמו, כמו `פלגים/`, שנכתבים כמו כל דף אחר. |
 
 Plot Device לא שומרת בתיקייה שום דבר נוסף: לא מסד נתונים נסתר, לא הגדרות, לא גיבויים. אלה נמצאים במחשב, מחוץ לספר. אפשר להעתיק את התיקייה, לסנכרן אותה או לשים אותה ב־git; היא שלמה.
+
+## סוגי דפים ב־project.md
+
+ספר עם סוגי דפים משלו מונה אותם ב־`project.md`, בסדר ש־Plot Device מציגה אותם. [סוגי דפים](/plotdevice/he/planning/kinds/) משנה את הרשימה הזו בשבילך; היא מוסברת כאן כדי שהקובץ יהיה מובן כשקוראים אותו.
+
+```yaml
+kinds:
+  - folder: characters
+  - folder: פלגים
+    one: פלג
+    many: פלגים
+  - folder: places
+  - folder: notes
+manuscriptUnit:
+  one: מפגש
+  many: מפגשים
+```
+
+- `folder` היא התיקייה של הסוג; `one` ו־`many` הם השם שלו ב־Plot Device. דמויות, מקומות והערות לא צריכים שמות.
+- `manuscriptUnit` הוא איך הספר קורא לפרקים שלו. בלעדיו, הם פרקים.
+- לספר בלי `kinds` יש דמויות, מקומות והערות. תיקיית דפים שאינה ברשימה מופיעה תחת „עוד לא ממוינים”.
 
 ## פותחים אותה במקום אחר
 

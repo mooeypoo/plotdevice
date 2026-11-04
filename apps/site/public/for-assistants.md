@@ -27,7 +27,7 @@ The Salt Orchard/
   assets/           images, if any
 ```
 
-- The folder name is the book's title. Only these folders and files are part of the book; the app ignores other Markdown files.
+- The folder name is the book's title. Every other folder of Markdown pages is part of the book too (see "Kinds of pages"); Markdown files directly in the book folder, other than these two, are ignored.
 - File names: from the title, lowercase, spaces as hyphens, ending in `.md`: "Bea Halmi" → `bea-halmi.md` or `bea.md`. Letters in any script are fine (`מרו.md`). Two files in one folder can't share a name.
 - Files are UTF-8 with LF line endings. Frontmatter (the block between `---` lines at the top) is YAML; quote a text value, or a list entry, if it contains `: ` or starts with `[`, `{`, `"`, `'`, `*`, `&`, `!` or `#`.
 
@@ -37,7 +37,8 @@ The Salt Orchard/
 |---|---|
 | A character | a page in `characters/` |
 | A place: a town, a house, a planet, a ship | a page in `places/` |
-| Anything else about the world: magic, history, a faction, a religion, technology, a glossary, research | a page in `notes/`, one per topic |
+| Anything else about the world: magic, history, a religion, technology, a glossary, research | a page in `notes/`, one per topic |
+| Many entries of one sort that is neither a character nor a place: factions, ships, spells | a kind of its own (see "Kinds of pages") |
 | Groups: a family, a faction's members, who matters in which part | `tags` on the pages |
 | "Bea is Ilka's aunt" | one relationship, on one of the two pages (see "Relationships") |
 | A timeline of the world's or story's events | a note (`notes/timeline.md`), as a list |
@@ -69,6 +70,26 @@ Anything the author wants to note about the book.
 - `language` is the book's language as a code: `en`, `he`, `fr`… Hebrew and Arabic books are shown right to left.
 - Optional: `chapterNumbering`: `continuous` (the default), `per-part` (numbering restarts in each part) or `none`.
 - Don't write `id` or `schemaVersion`; the app manages them.
+
+## Kinds of pages
+
+`characters`, `places` and `notes` are the kinds every book starts with. When the material has many entries of another sort (a dozen factions, a fleet of ships), give them a kind of their own: a folder, listed in `project.md` with its names. List every kind the book uses, in the order the app should show them, the three defaults included if they're used:
+
+```yaml
+kinds:
+  - folder: characters
+  - folder: factions
+    one: Faction
+    many: Factions
+  - folder: places
+  - folder: notes
+```
+
+- `folder` is the folder's name: lowercase, hyphens for spaces, in any script (`פלגים`). It can't be `manuscript` or `outlines`.
+- `one` and `many` are what the app calls one page and the whole kind, in the book's language. The defaults need neither.
+- Pages of every kind are written the same way (see "Characters, places and notes"), and link to each other the same way: `[the Merchants](../factions/merchants.md)`.
+- Don't make a kind for two or three entries: notes are fine for those. A folder of pages not listed in `kinds` still shows in the app, as "Not sorted yet".
+- If the book calls its chapters something else (sessions, episodes), say so too: `manuscriptUnit: { one: Session, many: Sessions }`, or as a block like `kinds`.
 
 ## CONTENTS.md
 

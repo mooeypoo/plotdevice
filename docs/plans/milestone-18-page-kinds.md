@@ -1,6 +1,6 @@
 # Milestone 18: Kinds of pages per project
 
-Status: **Approved** (owner, 2026-11-04), with the recommended answers to the open questions; in progress. Direction from `roadmap-16-approachable-studio-and-timelines.md` (Phase B); decisions in ADR 0011 (amends ADR 0006) and the note of 2026-11-04 in ADR 0005.
+Status: **Built** (2026-11-04). Approved by the owner on 2026-11-04, with the recommended answers to the open questions. See [Results](#results). Direction from `roadmap-16-approachable-studio-and-timelines.md` (Phase B); decisions in ADR 0011 (amends ADR 0006) and the note of 2026-11-04 in ADR 0005.
 
 ## Goal
 
@@ -167,3 +167,42 @@ Stated before coding. The folder rename is test-first.
 3. **Hebrew grammar for author-typed names.** "New" agrees in gender in Hebrew: "מפגש חדש", "סצנה חדשה". **Recommendation:** for custom kinds and units, buttons read "+ ‹name›" (in Hebrew "+ פלג", "+ מפגש"), with no adjective. The default kinds keep their translated "דמות חדשה".
 4. **Undo of folder renames after the app closes.** **Recommendation:** until the book is closed, as the roadmap says. After that, the backup and the versions of each changed file remain.
 5. **Removing a kind that has pages.** **Recommendation:** allowed, with a confirmation that says how many pages move to "Not sorted yet". Nothing is deleted.
+
+## Results
+
+### What the author can do
+
+- Open **Kinds of pages…** from the book menu, or **+ Kind of page** under World, and see each kind with its folder and page count.
+- Add a kind with its name and plural ("Faction", "Factions"). Its folder follows the plural and can be changed before it is made. Rename, move up, move down or remove a kind from its `⋯`.
+- Find a removed kind's pages, or any folder of pages the book doesn't list, under **Not sorted yet**, and make it a kind again with **Make this a kind…**.
+- Use pages of any kind everywhere pages are used: galleries, tags, relationships, links, "Link to…", the references shelf.
+- Call chapters something else ("Session", "Sessions"): the sidebar, "New Session", "Session 3", the header row, the empty state and the link picker use it.
+- After renaming a kind, match its folder with **Match folder names…**: see each folder's new name, its pages and the links that will change; make a backup of the whole book first, or say there is one; rename; and undo from the notice, or from the book menu until the book is closed.
+- Hand the guide for AI assistants a world with factions or ships: it now explains kinds, and its example is checked against the app.
+
+### Changed from the plan while building
+
+- **A new page of the author's own kind** is "New Faction" in English, not "+ Faction": the add card already draws its "+", and the screenshots showed "+ + Faction". Hebrew keeps "הוספת פלג" (open question 3).
+- **Rows aren't dragged**; Move up and Move down in each row's `⋯` do it.
+- **The undo is gentler than the plan's "byte-identical or nothing":** a page that only moved goes back with what was typed in it since. A file whose links were rewritten must be unchanged, and a page added to a renamed folder since blocks the undo, so nothing is left behind.
+- **Kinds with no pages aren't offered for matching**, since they have no folder to move.
+- **The words for a unit are used as typed**, so "Session" gives "New Session" in English, not "New session".
+
+### Found and fixed by the tests
+
+- The matching screen sent the host a reactive list, which can't cross between the page and the host, so no preview showed. It now sends a plain copy.
+- A page open in the editor moved with its folder only after the session learned to follow it; without that, typing in it after the rename was refused.
+- In Hebrew, the rename arrow pointed left to right; it now follows the interface's direction.
+
+### Tests
+
+- `pnpm lint`, `pnpm typecheck`, `pnpm build`: clean.
+- `pnpm test`: 76 files, 1174 tests passed, including `storage/test/folder-rename.test.ts` (the preview, every blocked reason, the rename, a crash halfway finished from the journal, undo byte for byte, undo refused after outside changes or new pages, undo after typing in a moved page), `fs-node/src/copy-book.test.ts`, and the IPC test for backup, rename and undo with an open page. `pnpm arch`: 162 passed. `pnpm perf`: 7 passed.
+- `pnpm e2e` (whole suite): 107 passed, including the new `kinds.e2e.ts`: add Factions, create and link a page, rename the kind, match folders with a backup, undo, remove the kind and find it under "Not sorted yet", in English and Hebrew; a book that calls its chapters sessions.
+- Screenshots retaken (`pnpm site:screenshots`, 4 passed; new: `kinds-dialog`, `world-own-kind`, `match-folders`) and checked by eye; `pnpm site:test` 10 passed.
+
+### Known limitations
+
+- Longer messages (conflicts, versions, export) still say "chapter" (open question 2).
+- Undo of folder renames ends when the book closes (open question 4); the backup remains.
+- The new Hebrew wording is listed for review in `docs/reviews/hebrew-wording-milestone-16.md`.
