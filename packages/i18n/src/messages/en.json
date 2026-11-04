@@ -1,7 +1,5 @@
 {
-  "@metadata": {
-    "comment": "English UI messages. Banana format: https://github.com/wikimedia/banana-i18n"
-  },
+  "@metadata": { "comment": "English UI messages. Banana format: https://github.com/wikimedia/banana-i18n" },
   "app-name": "Plot Device",
   "app-version": "Version $1",
   "shell-welcome": "A quiet place to write your novel.",

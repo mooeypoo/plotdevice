@@ -1,7 +1,5 @@
 {
-  "@metadata": {
-    "comment": "Hebrew UI messages. Natural, gender-neutral wording (owner decision, 2026-10-25)."
-  },
+  "@metadata": { "comment": "Hebrew UI messages. Natural, gender-neutral wording (owner decision, 2026-10-25)." },
   "app-name": "Plot Device",
   "app-version": "גרסה $1",
   "shell-welcome": "מקום שקט לכתוב בו את הסיפור שלך.",
