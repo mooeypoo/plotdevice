@@ -8,7 +8,7 @@ export type JournalStep =
 
 export interface JournalEntry {
   id: string
-  operation: 'rename-chapter-file'
+  operation: 'rename-chapter-file' | 'rename-folder' | 'undo-rename-folder'
   steps: JournalStep[]
 }
 

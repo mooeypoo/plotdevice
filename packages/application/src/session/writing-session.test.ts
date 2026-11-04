@@ -53,6 +53,9 @@ function memoryRepository(initial: Record<string, string>) {
     create: unknown,
     open: async () => ok(snapshot()),
     setKinds: unknown,
+    planFolderRenames: unknown,
+    renameFolders: unknown,
+    undoFolderRenames: unknown,
     changeContents: async () => ok(snapshot()),
     async renameChapter(given, file, title) {
       const entry = disk.get(file)

@@ -1,4 +1,4 @@
-import { collisionKey, err, FORBIDDEN_IN_NAMES, freeFolderName, isReservedName, ok, type Result } from '@plotdevice/shared'
+import { collisionKey, err, FORBIDDEN_IN_NAMES, freeFolderName, isReservedName, ok, safeFileStem, type Result } from '@plotdevice/shared'
 
 /**
  * The kinds of pages a book has (ADR 0011), read from `project.md`. A kind is its folder; `one` and
@@ -150,4 +150,31 @@ export function applyKindsChange(
       return unit.one === '' || unit.many === '' ? err('empty-name') : ok({ kinds: current.kinds, manuscriptUnit: unit })
     }
   }
+}
+
+/** A folder to rename so it matches what the author calls its kind (ADR 0011, decision 7). */
+export interface FolderRename {
+  from: string
+  to: string
+}
+
+/**
+ * The kinds whose folder no longer matches their plural: "Match folder names…" offers to rename these.
+ * The default kinds, unrenamed, always match. Only the names decide; whether a rename can happen
+ * (a folder in the way, a name some system refuses) is checked when it is planned.
+ */
+export function folderMismatches(kinds: readonly PageKind[]): FolderRename[] {
+  return kinds.flatMap((kind) => {
+    if (kind.many === undefined) return []
+    const to = safeFileStem(kind.many, 'kind')
+    return to === kind.folder ? [] : [{ from: kind.folder, to }]
+  })
+}
+
+/** The kinds after their folders are renamed: the same names and order, new folders. */
+export function withRenamedFolders(kinds: readonly PageKind[], renames: readonly FolderRename[]): PageKind[] {
+  return kinds.map((kind) => {
+    const rename = renames.find((each) => each.from === kind.folder)
+    return rename ? { ...kind, folder: rename.to } : kind
+  })
 }

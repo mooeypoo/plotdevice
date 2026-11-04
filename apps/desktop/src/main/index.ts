@@ -24,6 +24,7 @@ import {
   watchProject,
   type ProjectWatcher,
   writeAtomically,
+  copyBook,
 } from '@plotdevice/fs-node'
 import { catalogs, createTranslator } from '@plotdevice/i18n'
 import {
@@ -248,6 +249,8 @@ void app.whenReady().then(async () => {
         return chosen.canceled || !chosen.filePath ? null : chosen.filePath
       },
       compile: (snapshot) => compileManuscript(createProjectFolders(), snapshot),
+      chooseBackupLocation: async () => (testBackupTo !== undefined ? testBackupTo || null : chooseFolder('dialog-backup-location')),
+      copyBook,
       writeOutside: (path, text) =>
         writeAtomically(path, new TextEncoder().encode(text)).then(
           () => true,
@@ -301,6 +304,8 @@ const UPDATE_RECHECK_MS = 6 * 60 * 60 * 1000
 
 /** Test-only (unpackaged builds): the folder every folder dialog "chooses"; empty means cancelled. */
 const testFolderChoice = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_CHOOSE_FOLDER
+/** Test-only (unpackaged builds): the folder a backup goes to; empty means cancelled. */
+const testBackupTo = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_BACKUP_TO
 /** Test-only (unpackaged builds): the file every save dialog "chooses"; empty means cancelled. */
 const testSaveAs = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_SAVE_AS
 /** Test-only (unpackaged builds): a local server standing in for GitHub's latest.json. */

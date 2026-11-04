@@ -1,6 +1,6 @@
 import type { OutlineEvent, OutlineState, ProjectSnapshot, SaveStatus, SessionEvent } from '@plotdevice/application'
 import type { HostEvent, OutlineView, ProjectView, SaveStatusView } from '@plotdevice/contracts'
-import { chapterNumbers, directionOfLanguage } from '@plotdevice/domain'
+import { chapterNumbers, directionOfLanguage, folderMismatches } from '@plotdevice/domain'
 import type { ProjectPath } from '@plotdevice/shared'
 
 /** The project as the page sees it: what to show, without revisions or other bookkeeping. */
@@ -21,6 +21,7 @@ export function projectView(snapshot: ProjectSnapshot): ProjectView {
     chapterNumbering: details.chapterNumbering,
     kinds: details.kinds.map((kind) => ({ ...kind })),
     manuscriptUnit: details.manuscriptUnit ? { ...details.manuscriptUnit } : null,
+    folderMismatches: folderMismatches(details.kinds),
     contents: snapshot.contents.entries.map((entry) =>
       entry.kind === 'chapter' ? { kind: 'chapter', ...ref(entry) } : { kind: 'part', name: entry.name, chapters: entry.chapters.map(ref) },
     ),

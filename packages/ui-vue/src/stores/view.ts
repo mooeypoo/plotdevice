@@ -39,6 +39,8 @@ export const useViewStore = defineStore('view', () => {
   /** "Kinds of pages" is open (Milestone 18), and the unsorted folder it should offer to make a kind, if any. */
   const kindsDialog = ref(false)
   const kindsAdopt = ref<string | null>(null)
+  /** "Match folder names", opened from "Kinds of pages" (Milestone 18). */
+  const matchFolders = ref(false)
 
   function writeChapter(file: ProjectPath): void {
     chapterRequest.value = file
@@ -81,6 +83,7 @@ export const useViewStore = defineStore('view', () => {
     plainTextRequest,
     kindsDialog,
     kindsAdopt,
+    matchFolders,
     writeChapter,
     setFocusMode,
     toggleNavigator,

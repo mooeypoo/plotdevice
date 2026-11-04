@@ -2835,3 +2835,27 @@ button.inline-link {
 .kinds-unit {
   margin-block-start: 1.25rem;
 }
+.kinds-mismatch {
+  font-size: 0.85rem;
+}
+.match-folders {
+  inline-size: min(36rem, 92vw);
+}
+.match-row .kind-names {
+  flex-wrap: wrap;
+}
+.match-backup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-block-start: 1rem;
+}
+.match-backup p {
+  margin: 0;
+}
+.match-backup label.check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

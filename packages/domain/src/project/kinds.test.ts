@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   addKind,
   applyKindsChange,
+  folderMismatches,
+  withRenamedFolders,
   DEFAULT_KINDS,
   folderForKind,
   isDefaultKinds,
@@ -109,5 +111,29 @@ describe('a change from the "Kinds of pages" screen', () => {
   it('refuses a change to a kind the book doesn’t have', () => {
     expect(applyKindsChange(book, { kind: 'remove', folder: 'factions' }).ok).toBe(false)
     expect(applyKindsChange(book, { kind: 'rename', folder: 'factions', one: 'F', many: 'Fs' }).ok).toBe(false)
+  })
+})
+
+describe('folders that no longer match their names (ADR 0011, decision 7)', () => {
+  it('lists the kinds whose folder isn’t their plural, made safe', () => {
+    const kinds = [
+      { folder: 'characters', one: 'NPC', many: 'NPCs' },
+      { folder: 'places' },
+      { folder: 'factions', one: 'Faction', many: 'Factions' },
+      { folder: 'notes', one: 'Lore', many: 'Lore & Legends' },
+      { folder: 'groups', one: 'פלג', many: 'פלגים' },
+    ]
+    expect(folderMismatches(kinds)).toEqual([
+      { from: 'characters', to: 'npcs' },
+      { from: 'notes', to: 'lore-&-legends' },
+      { from: 'groups', to: 'פלגים' },
+    ])
+    expect(folderMismatches(DEFAULT_KINDS)).toEqual([])
+  })
+
+  it('renames the folders in the list, keeping names and order', () => {
+    expect(
+      withRenamedFolders([{ folder: 'characters', one: 'NPC', many: 'NPCs' }, { folder: 'notes' }], [{ from: 'characters', to: 'npcs' }]),
+    ).toEqual([{ folder: 'npcs', one: 'NPC', many: 'NPCs' }, { folder: 'notes' }])
   })
 })

@@ -30,6 +30,10 @@ export interface FileStore {
   rename(from: ProjectPath, to: ProjectPath, expected: Revision): Promise<Result<void, RenameProblem>>
   /** Every Markdown file in the project, skipping hidden folders. */
   listMarkdownFiles(): Promise<ProjectPath[]>
+  /** Every file in one folder and its subfolders, of any type (images too), skipping hidden ones; `[]` when it isn't there. */
+  listFiles(folder: string): Promise<string[]>
+  /** Removes a folder that holds no files, its empty subfolders with it; a folder with anything in it stays. */
+  removeEmptyFolder(folder: string): Promise<void>
   /** The revision `content` would have once written, so a journal can record it beforehand. */
   revisionOf(content: TextToStore): Revision
   /** Removes leftovers of interrupted writes (hidden temp files). Called when a project opens. */

@@ -45,6 +45,8 @@ test('the book menu and the app menu work by keyboard, and close on Escape or a 
   await page.keyboard.press('Enter')
   await expect(page.getByTestId('menu-export-book')).toBeFocused()
   await page.keyboard.press('ArrowDown')
+  await expect(page.getByTestId('menu-kinds')).toBeFocused()
+  await page.keyboard.press('ArrowDown')
   await expect(page.getByTestId('menu-chapter-versions')).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('menu')).toHaveCount(0)

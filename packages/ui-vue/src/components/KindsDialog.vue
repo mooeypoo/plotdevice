@@ -36,6 +36,9 @@ const problem = ref<string | null>(null)
 const unitOne = ref('')
 const unitMany = ref('')
 
+// Kinds renamed since their folder was made: matching the folders is offered, never done unasked.
+const mismatches = computed(() => (project.project?.folderMismatches ?? []).filter(({ from }) => pagesOf(from) > 0))
+
 const pagesOf = (folder: string): number => story.references.filter((reference) => reference.kind === folder).length
 
 watch(
@@ -148,6 +151,13 @@ function close(): void {
         <MenuButton :label="t('kinds-actions', kinds.labels(kind.folder).many)" :items="menu(kind.folder, at)" align="end" />
       </li>
     </ul>
+
+    <p v-if="mismatches.length > 0" class="secondary kinds-mismatch" data-testid="kinds-mismatch">
+      {{ t('kinds-mismatch') }}
+      <button type="button" class="link-button" data-testid="match-folders" @click="view.matchFolders = true">
+        {{ t('kinds-match-folders') }}
+      </button>
+    </p>
 
     <section v-if="kinds.unsorted.value.length > 0" class="kinds-unsorted">
       <h3 class="group-label">{{ t('story-unsorted') }}</h3>

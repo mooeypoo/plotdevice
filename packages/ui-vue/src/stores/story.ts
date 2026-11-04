@@ -90,6 +90,17 @@ export const useStoryStore = defineStore('story', () => {
     if (showing.value.kind === 'page' && showing.value.file === file) showing.value = { kind: 'page', file: renamed.value.file }
   }
 
+  /** After folders are renamed: the pages list again, and the page on show follows its folder. */
+  async function followFolders(renames: readonly { from: string; to: string }[]): Promise<void> {
+    await refresh()
+    const shown = showing.value
+    const rename = shown.kind === 'page' ? renames.find(({ from }) => shown.file.startsWith(`${from}/`)) : undefined
+    if (shown.kind === 'page' && rename)
+      showing.value = { kind: 'page', file: `${rename.to}${shown.file.slice(rename.from.length)}` as ProjectPath }
+    // Links in the open outline may have changed.
+    await reload()
+  }
+
   async function renameReference(file: ProjectPath, title: string): Promise<void> {
     const renamed = await api.renameReference(file, title)
     if (!renamed.ok && renamed.error !== 'empty-text') project.tell('reference-failed')
@@ -260,5 +271,6 @@ export const useStoryStore = defineStore('story', () => {
     createReference,
     renameReference,
     renameReferenceFile,
+    followFolders,
   }
 })

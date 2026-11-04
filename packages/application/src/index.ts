@@ -37,6 +37,7 @@ export {
   createWritingSession,
   type ConflictChoice,
   type ConflictResolved,
+  type FoldersRenamed,
   type NoProject,
   type OpenedChapter,
   type ResolveProblem,
@@ -63,6 +64,9 @@ export type { JournalEntry, JournalStep, JournalStore } from './ports/journal-st
 export type { CreateFolderProblem, ProjectFolders } from './ports/project-folders'
 export type {
   ChangeProblem,
+  FolderRenameBlock,
+  FolderRenamePlan,
+  FolderRenameUndo,
   ChapterFile,
   ChapterText,
   ContentsChange,

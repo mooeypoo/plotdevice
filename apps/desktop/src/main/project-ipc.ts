@@ -9,6 +9,11 @@ import {
   openProjectSchema,
   renameChapterFileSchema,
   kindsChangeSchema,
+  folderRenamesSchema,
+  type BackupBookResult,
+  type FolderRenamePlanResult,
+  type RenameFoldersResult,
+  type UndoFolderRenamesResult,
   renameChapterSchema,
   resolveConflictSchema,
   saveChapterSchema,
@@ -42,6 +47,10 @@ export interface ProjectIpcContext {
   compile(snapshot: ProjectSnapshot): Promise<{ text: string; missing: ProjectPath[] }>
   /** Writes a file outside the project, atomically. */
   writeOutside(path: string, text: string): Promise<boolean>
+  /** The folder picker for a backup; `null` when the author cancels. */
+  chooseBackupLocation(): Promise<string | null>
+  /** Copies the book folder into `location` under a new name; the copy's path, or `null` when it failed. */
+  copyBook(root: string, location: string): Promise<string | null>
 }
 
 export type PayloadHandler = (payload: unknown) => Promise<unknown>
@@ -98,6 +107,29 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
       changed(await session.changeContents(parsePayload(contentsChangeSchema, payload) satisfies ContentsChange)),
 
     [channels.changeKinds]: async (payload) => changed(await session.changeKinds(parsePayload(kindsChangeSchema, payload))),
+
+    [channels.planFolderRenames]: async (payload): Promise<FolderRenamePlanResult> =>
+      session.planFolderRenames(parsePayload(folderRenamesSchema, payload).renames),
+
+    [channels.renameFolders]: async (payload): Promise<RenameFoldersResult> => {
+      const renamed = await session.renameFolders(parsePayload(folderRenamesSchema, payload).renames)
+      return renamed.ok ? ok({ project: projectView(renamed.value.snapshot), linksUpdated: renamed.value.linksUpdated }) : renamed
+    },
+
+    [channels.undoFolderRenames]: async (): Promise<UndoFolderRenamesResult> => {
+      const undone = await session.undoFolderRenames()
+      return undone.ok ? ok(projectView(undone.value)) : undone
+    },
+
+    [channels.backupBook]: async (): Promise<BackupBookResult> => {
+      const project = session.project()
+      if (!project) return err('no-project')
+      await session.idle()
+      const location = await context.chooseBackupLocation()
+      if (location === null) return err('cancelled')
+      const path = await context.copyBook(project.root, location)
+      return path === null ? err('failed') : ok({ path })
+    },
 
     [channels.renameChapter]: async (payload) => {
       const { file, title } = parsePayload(renameChapterSchema, payload)
