@@ -38,8 +38,11 @@ Shades such as hover backgrounds, hairlines and the glow behind the page are mix
 
 ### Shape and chrome
 
-- One top bar: the logo and the book's title (which opens the book menu), Story | Write, the save status, **Aa** (Write only) and the app menu (☰). No native menu bar on Linux and Windows.
-- Controls that aren't needed all the time are in menus. Adding things (`+ New chapter`) is a quiet link, not a button. A row's `⋯` menu shows on hover or keyboard focus.
+- One top bar, the same in every workspace: the logo and the book's title (which opens the book menu), Story | Write, the save status, **Aa** and the app menu (☰). No native menu bar on Linux and Windows. The logo's gold line is a shade darker on the light desk (`--logo-gold`, mixed from `mark` and `text`).
+- Below it, one header row for the open item: the sidebar toggle, its name, its views and `⋯`, and its tools at the far end. Tools that act on the text sit on the page itself (Format, at its top corner).
+- Ambiguous icons get words (Format, References); an icon may drop its word only where space runs out, keeping its accessible name.
+- Controls that aren't needed all the time are in menus. Adding things (`+ New chapter`) is a quiet link, not a button. A row's, card's or column's `⋯` menu shows on hover or keyboard focus.
+- Where there is nothing yet, one plain explanation and one next step, with a small sketch.
 - Rounded corners (8–16 px), soft shadows rather than borders, and the logo's gold line as the one decorative motif.
 
 **One source of truth.** All colours are defined in a single constants file in the UI package. CSS custom properties (`--color-text`, `--color-accent`, …) are generated from it, and components use only those variables, never hex values. Changing a colour, adding a palette, or (later) letting authors choose or import their own theme means swapping that set of constants, not editing components. Any replacement set must pass the same contrast test.

@@ -11,6 +11,7 @@ import { useStoryStore } from '../stores/story'
 import { textViewKeys, useViewStore } from '../stores/view'
 import ConflictDialog from './ConflictDialog.vue'
 import FormatBubble from './FormatBubble.vue'
+import FormatButton from './FormatButton.vue'
 import { formatItem, headingKeys, HEADING_COMMANDS } from './format-items'
 import LinkBubble from './LinkBubble.vue'
 import type { MenuItem } from './menu'
@@ -56,6 +57,30 @@ const page = useChapterWriting(host, {
 })
 
 /** The bubble's ⋯: heading levels (Heading 2 is a section) and a bulleted list. */
+/** Text size and page width from Aa, as on a chapter (Milestone 17). */
+const settings = useSettingsStore()
+const pageClasses = computed(() => [
+  `size-${settings.preferences?.writingSize ?? 'medium'}`,
+  `width-${settings.preferences?.pageWidth ?? 'medium'}`,
+])
+// The save status shows in the top bar, in the same place as a chapter's (Milestone 17, decision 3).
+watch(
+  () => page.status.value,
+  (status) => (view.storySaveStatus = status),
+  { immediate: true },
+)
+onBeforeUnmount(() => (view.storySaveStatus = null))
+
+/** Format, at the page's corner: sections (Heading 2), lists, link and plain text. */
+const formatItems = computed<MenuItem[]>(() => [
+  ...HEADING_COMMANDS.map((command) => formatItem(t, command, () => page.format(command))),
+  formatItem(t, 'bulletList', () => page.format('bulletList'), 'lists'),
+  { key: 'format-link', label: t('format-link'), icon: 'link', run: () => void addLink() },
+  page.mode.value === 'plain'
+    ? { key: 'plain-text-back', label: t('plain-text-back'), group: 'mode', run: () => page.setMode('rendered') }
+    : { key: 'plain-text-edit', label: t('plain-text-edit'), group: 'mode', run: () => page.setMode('plain') },
+])
+
 const moreItems = computed<MenuItem[]>(() => [
   ...HEADING_COMMANDS.map((command) => formatItem(t, command, () => page.format(command))),
   formatItem(t, 'bulletList', () => page.format('bulletList'), 'lists'),
@@ -115,7 +140,8 @@ watch(page.status, countKept)
     <PlainTextBanner v-if="page.mode.value === 'plain'" @back="page.setMode('rendered')" />
     <p v-if="page.state.value === 'unreadable'" class="warning" role="alert">{{ t('chapter-unreadable') }}</p>
     <p v-else-if="page.state.value === 'missing'" class="warning" role="alert">{{ t('chapter-missing') }}</p>
-    <div class="paper size-medium width-medium">
+    <div class="paper" :class="pageClasses">
+      <FormatButton :items="formatItems" />
       <div
         v-show="page.state.value === 'ready' || page.state.value === 'loading'"
         ref="host"
@@ -130,7 +156,6 @@ watch(page.status, countKept)
           {{ t('outline-text-show-kept') }}
         </button>
       </span>
-      <span role="status" data-testid="outline-text-save-status">{{ page.status.value ? t(`save-${page.status.value}`) : '' }}</span>
     </p>
     <FormatBubble :place="page.selection.value" :more="moreItems" @format="page.format" @link="addLink" @back="page.focus" />
     <LinkBubble

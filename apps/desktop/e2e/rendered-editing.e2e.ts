@@ -311,7 +311,7 @@ for (const locale of ['en', 'he'] as const)
     )
   })
 
-test('plain text: from the page’s menu, every mark visible; back to normal view keeps undo', async () => {
+test('plain text: from Format on the page, every mark visible; back to normal view keeps undo', async () => {
   await writeBook('en', ['x'])
   await writeFile(join(root, 'characters/bea.md'), '---\ntitle: Bea Halmi\n---\nIlka’s **aunt**.\n')
   const page = await start()
@@ -320,7 +320,8 @@ test('plain text: from the page’s menu, every mark visible; back to normal vie
   await page.locator('[data-page="characters/bea.md"]').click()
   const text = page.getByTestId('page-editor').locator('.cm-content')
   await expect(text).toHaveText('Ilka’s aunt.')
-  await page.getByTestId('page-menu').click()
+  // Format, at the page's corner, holds it (Milestone 17); Write's own Format stays hidden behind Story.
+  await page.getByTestId('reference-page').getByTestId('format-menu').click()
   await page.getByTestId('menu-plain-text-edit').click()
   await expect(page.getByTestId('plain-text-banner')).toBeVisible()
   await expect(text).toHaveText('Ilka’s **aunt**.')

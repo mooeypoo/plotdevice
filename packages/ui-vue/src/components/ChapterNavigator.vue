@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { ChapterRef, ProjectView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
-import { nextTick, toRef } from 'vue'
+import { computed, nextTick, ref, toRef, watch } from 'vue'
 import { useNavigator } from '../composables/use-navigator'
 import { useSettingsStore } from '../stores/settings'
+import AppIcon from './AppIcon.vue'
 import MenuButton from './MenuButton.vue'
 
 const props = defineProps<{ project: ProjectView; openFile: ProjectPath | null }>()
@@ -11,6 +12,34 @@ const emit = defineEmits<{ open: [file: ProjectPath] }>()
 const settings = useSettingsStore()
 const t = settings.t
 const nav = useNavigator(toRef(props, 'project'), toRef(props, 'openFile'), (file) => emit('open', file))
+
+/**
+ * Parts fold to one line with their chapter count, for a long book (Milestone 17). The part with the
+ * open chapter always shows it. What's folded is remembered per book, in this app's own storage.
+ */
+const foldKey = computed(() => `plotdevice:folded-parts:${props.project.root}`)
+function loadFolded(): Set<string> {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(foldKey.value) ?? '[]') as string[])
+  } catch {
+    return new Set()
+  }
+}
+const folded = ref(loadFolded())
+watch(foldKey, () => (folded.value = loadFolded()))
+const isOpen = (part: { name: string; chapters: ChapterRef[] }): boolean =>
+  !folded.value.has(part.name) || part.chapters.some((chapter) => chapter.file === props.openFile)
+function toggleFold(name: string): void {
+  const next = new Set(folded.value)
+  if (next.has(name)) next.delete(name)
+  else next.add(name)
+  folded.value = next
+  try {
+    localStorage.setItem(foldKey.value, JSON.stringify([...next]))
+  } catch {
+    // Not remembered this time; the part still folds.
+  }
+}
 
 async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
   if (!event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return
@@ -34,14 +63,24 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
       <template v-for="(entry, index) in project.contents" :key="entry.kind === 'part' ? `part-${index}` : entry.file">
         <li v-if="entry.kind === 'part'" class="part">
           <div class="row part-row" :data-drop-row="`part:${index}`" :class="nav.dropClass(`part:${index}`)">
-            <span class="part-name" dir="auto" :lang="project.language">{{ entry.name }}</span>
+            <button
+              type="button"
+              class="part-name part-fold"
+              :aria-expanded="isOpen(entry)"
+              :lang="project.language"
+              @click="toggleFold(entry.name)"
+            >
+              <span dir="auto">{{ entry.name }}</span>
+              <span v-if="!isOpen(entry)" class="part-count">· {{ entry.chapters.length }}</span>
+              <AppIcon name="chevron" />
+            </button>
             <MenuButton
               :label="t('part-actions', entry.name)"
               :items="[{ key: 'rename-part', label: t('part-rename'), run: () => nav.renamePart(index, entry.name) }]"
               align="end"
             />
           </div>
-          <ol>
+          <ol v-if="isOpen(entry)">
             <li v-for="chapter in entry.chapters" :key="chapter.file">
               <div
                 class="row chapter-row"

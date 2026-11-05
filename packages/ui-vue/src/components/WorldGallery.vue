@@ -5,6 +5,8 @@ import { computed, ref } from 'vue'
 import { usePrompt } from '../composables/use-prompt'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
+import EmptyState from './EmptyState.vue'
+import ItemHeader from './ItemHeader.vue'
 import TagFilter from './TagFilter.vue'
 
 // One kind of page (characters, places or notes) as cards, A to Z, with a card to add one more.
@@ -16,6 +18,8 @@ const { ask } = usePrompt()
 const t = settings.t
 const pages = computed(() => galleryPages(story.references, props.kind, settings.locale))
 const tags = computed(() => tagRow(pages.value, settings.locale))
+/** A long list (more than 12 pages) shows compact cards: the name and one line (Milestone 17). */
+const compact = computed(() => pages.value.length > 12)
 const chosen = computed({
   get: () => story.galleryTags[props.kind] ?? [],
   set: (value: string[]) => (story.galleryTags = { ...story.galleryTags, [props.kind]: value }),
@@ -47,10 +51,21 @@ async function newPage(): Promise<void> {
 
 <template>
   <div class="world-gallery">
-    <div class="story-head">
-      <h1 class="outline-title">{{ t(`story-${kind}`) }}</h1>
+    <ItemHeader>
+      <h1 class="item-title">{{ t(`story-${kind}`) }}</h1>
+    </ItemHeader>
+    <div v-if="pages.length === 0" class="story-page">
+      <EmptyState
+        sketch="cards"
+        :title="t(`gallery-empty-${kind}`)"
+        :text="t(`gallery-empty-${kind}-text`)"
+        :action="t(`new-${kind}`)"
+        :testid="`no-${kind}`"
+        :action-testid="`new-${kind}`"
+        @act="newPage"
+      />
     </div>
-    <div class="story-page">
+    <div v-else class="story-page">
       <TagFilter v-model:chosen="chosen" :tags="tags" manage />
       <section v-for="section in sections" :key="section.key" class="gallery-group" :data-group="section.key">
         <h2 v-if="section.label && !section.folds" class="group-label" dir="auto">{{ section.label }}</h2>
@@ -67,6 +82,7 @@ async function newPage(): Promise<void> {
         <ul
           v-if="!section.folds || othersOpen"
           class="gallery"
+          :class="{ compact }"
           :aria-label="section.label ?? t(`story-${kind}`)"
           :data-testid="section.key === 'all' ? `gallery-${kind}` : undefined"
         >

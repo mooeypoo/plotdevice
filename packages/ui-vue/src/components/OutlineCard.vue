@@ -11,6 +11,7 @@ import ItemTextField from './ItemTextField.vue'
 import InlineText from './InlineText.vue'
 import KeptAsWritten from './KeptAsWritten.vue'
 import MenuButton from './MenuButton.vue'
+import { isMenuKey, openOwnMenu } from './menu'
 
 // On the board, the column takes drops and `drop` shows where one would land; elsewhere, a card
 // dropped on a card goes before it.
@@ -66,7 +67,8 @@ const detailCount = computed(() => {
     :data-item="key"
     :draggable="item.movable && !editing && !addingDetail"
     :aria-label="item.text"
-    @keydown.self="actions.onItemKey($event, at, item)"
+    @keydown.self="isMenuKey($event) ? openOwnMenu($event, ':scope > .card-head .menu-button') : actions.onItemKey($event, at, item)"
+    @contextmenu="editing || openOwnMenu($event, ':scope > .card-head .menu-button')"
     @dblclick="story.editing = { kind: 'item', key }"
     @dragstart="actions.dragStart($event, at)"
     @dragover.prevent

@@ -1,6 +1,6 @@
 import type { Direction } from '@plotdevice/domain'
 import { Compartment, EditorSelection, type Extension, type StateCommand } from '@codemirror/state'
-import { Direction as TextDirection, EditorView } from '@codemirror/view'
+import { Direction as TextDirection, EditorView, placeholder } from '@codemirror/view'
 import { chapterState } from './chapter-state'
 import { formatCommands, insertLink, type FormatCommand } from './format'
 import type { FoldedSection } from './folded-section'
@@ -187,6 +187,12 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
   const viewExtensions = [
     EditorView.lineWrapping,
     pageTheme,
+    // An empty page says where to start, in the interface's language.
+    placeholder((view) => {
+      const hint = document.createElement('span')
+      hint.textContent = view.state.facet(editorSettings).labels.startWriting ?? ''
+      return hint
+    }),
     contentAttributes.of(attributesFor(current)),
     EditorView.domEventHandlers({
       paste(event, view) {

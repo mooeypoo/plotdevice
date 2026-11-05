@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { ChapterPosition, ProjectView } from '@plotdevice/contracts'
+import type { ChapterPosition, ChapterRef, ProjectView } from '@plotdevice/contracts'
 import type { FormatCommand } from '@plotdevice/editor-codemirror'
 import type { ProjectPath } from '@plotdevice/shared'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRef, watch } from 'vue'
 import { useChapterWriting } from '../composables/use-chapter-writing'
+import { useNavigator } from '../composables/use-navigator'
 import { usePanelWidths } from '../composables/use-panel-widths'
 import { usePrompt } from '../composables/use-prompt'
 import { useProjectStore } from '../stores/project'
@@ -13,8 +14,11 @@ import { useViewStore } from '../stores/view'
 import AppIcon from './AppIcon.vue'
 import ChapterNavigator from './ChapterNavigator.vue'
 import ConflictDialog from './ConflictDialog.vue'
+import EmptyState from './EmptyState.vue'
 import FormatBubble from './FormatBubble.vue'
+import FormatButton from './FormatButton.vue'
 import { formatItem, HEADING_COMMANDS } from './format-items'
+import ItemHeader from './ItemHeader.vue'
 import LinkBubble from './LinkBubble.vue'
 import MenuButton from './MenuButton.vue'
 import PlainTextBanner from './PlainTextBanner.vue'
@@ -32,6 +36,8 @@ const t = settings.t
 const host = ref<HTMLElement | null>(null)
 const writing = useChapterWriting(host)
 const panels = usePanelWidths()
+// The open chapter's own actions, the same as on its row in the sidebar, under ⋯ in the header row.
+const chapterNav = useNavigator(toRef(props, 'project'), writing.file, (file) => void writing.open(file))
 
 async function addLink(): Promise<void> {
   const url = await ask(t('prompt-link'))
@@ -54,7 +60,7 @@ const directionItems = (): MenuItem[] => [
   { key: 'phrase-rtl', label: t('direction-phrase-rtl'), icon: 'phraseRtl', run: () => writing.setPhraseDirection('rtl') },
   { key: 'phrase-clear', label: t('direction-phrase-clear'), icon: 'phraseClear', run: () => writing.setPhraseDirection(null) },
 ]
-/** Everything, under ¶ at the page's edge: reachable without a selection, and by keyboard. */
+/** Everything, under Format at the page's corner: reachable without a selection, and by keyboard. */
 const formatItems = computed<MenuItem[]>(() => [
   item('bold'),
   item('italic'),
@@ -75,6 +81,26 @@ const moreItems = computed<MenuItem[]>(() => [
   item('sceneBreak'),
   ...directionItems(),
 ])
+
+/** The open chapter's place in the book, in the header row: "Part One · Chapter 2" (the page shows its title). */
+const openRef = computed<{ ref: ChapterRef; part: string | null } | null>(() => {
+  const file = writing.file.value
+  for (const entry of props.project.contents) {
+    if (entry.kind === 'chapter' && entry.file === file) return { ref: entry, part: null }
+    if (entry.kind === 'part') {
+      const found = entry.chapters.find((chapter) => chapter.file === file)
+      if (found) return { ref: found, part: entry.name }
+    }
+  }
+  return null
+})
+const place = computed(() => {
+  const open = openRef.value
+  if (!open) return writing.file.value ? t('navigator-not-in-book') : ''
+  const number = open.ref.number === null ? open.ref.linkText : t('chapter-number', open.ref.number)
+  return open.part ? `${open.part} · ${number}` : number
+})
+const chapterItems = computed<MenuItem[]>(() => (openRef.value ? chapterNav.chapterMenu(openRef.value.ref) : []))
 
 const chapterName = computed(() => {
   const file = writing.file.value
@@ -184,42 +210,49 @@ onBeforeUnmount(() => {
     <ResizeHandle v-if="!view.focusMode && !view.navigatorHidden" setting="navigatorWidth" grows="end" :label="t('resize-navigator')" />
 
     <section class="desk">
-      <div v-if="!view.focusMode" class="edge">
-        <button
-          type="button"
-          class="icon-button"
-          data-testid="toggle-navigator"
-          :aria-pressed="!view.navigatorHidden"
-          :aria-label="t('navigator-label')"
-          :title="t('navigator-label')"
-          @click="view.navigatorHidden = !view.navigatorHidden"
-        >
-          <AppIcon name="chapters" />
-        </button>
-        <span class="grow"></span>
-        <MenuButton :label="t('toolbar-format')" :items="formatItems" button-class="icon-button" align="end" testid="format-menu">
-          <AppIcon name="pilcrow" />
-        </MenuButton>
-        <button
-          type="button"
-          class="icon-button"
-          data-testid="toggle-shelf"
-          :aria-pressed="shelf.visible"
-          :aria-label="t('shelf')"
-          :title="t('shelf')"
-          @click="shelf.visible = !shelf.visible"
-        >
-          <AppIcon name="references" />
-        </button>
-      </div>
-      <button v-else type="button" class="leave-focus" data-testid="leave-focus" @click="view.setFocusMode(false)">
-        {{ t('focus-exit') }}
-      </button>
+      <ItemHeader>
+        <span class="item-name" dir="auto" :lang="project.language" data-testid="item-name">{{ place }}</span>
+        <MenuButton
+          v-if="chapterItems.length > 0"
+          :label="t('chapter-actions', chapterName)"
+          :items="chapterItems"
+          button-class="icon-button"
+          testid="chapter-menu"
+        />
+        <template #end>
+          <button v-if="view.focusMode" type="button" class="leave-focus" data-testid="leave-focus" @click="view.setFocusMode(false)">
+            {{ t('focus-exit') }}
+          </button>
+          <button
+            v-else
+            type="button"
+            class="tool-button"
+            data-testid="toggle-shelf"
+            :aria-pressed="shelf.visible"
+            :aria-label="t('shelf')"
+            :title="t('shelf')"
+            @click="shelf.visible = !shelf.visible"
+          >
+            <AppIcon name="references" />
+            <span class="tool-label" aria-hidden="true">{{ t('shelf') }}</span>
+          </button>
+        </template>
+      </ItemHeader>
 
       <div class="paper" :class="pageClasses" @scroll.passive="writing.refreshSelection">
+        <EmptyState
+          v-if="project.chapters.length === 0"
+          sketch="cards"
+          :title="t('write-empty-title')"
+          :text="t('write-empty-text')"
+          :action="t('navigator-new-chapter')"
+          testid="no-chapter"
+          @act="chapterNav.addChapter"
+        />
         <p v-if="writing.state.value === 'unreadable'" class="warning" role="alert">{{ t('chapter-unreadable') }}</p>
         <p v-else-if="writing.state.value === 'missing'" class="warning" role="alert">{{ t('chapter-missing') }}</p>
         <article v-show="writing.state.value === 'ready' || writing.state.value === 'loading'" class="sheet">
+          <FormatButton :items="formatItems" />
           <header v-if="heading" class="chapter-head" :lang="project.language">
             <p v-if="heading.eyebrow" class="chapter-eyebrow">{{ heading.eyebrow }}</p>
             <h1 class="chapter-title" dir="auto">{{ heading.title }}</h1>

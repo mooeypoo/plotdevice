@@ -5,6 +5,8 @@ import { Facet } from '@codemirror/state'
 export interface EditorLabels {
   chapterText: string
   sceneBreak: string
+  /** Shown on an empty page, where the cursor is (Milestone 17). */
+  startWriting?: string
 }
 
 /** What the editor needs to know about the project and the author's settings. Changing them never recreates the editor. */

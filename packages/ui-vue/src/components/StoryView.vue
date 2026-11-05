@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ProjectView, ReferenceKind } from '@plotdevice/contracts'
-import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
 import { useOutlineActions } from '../composables/use-outline-actions'
@@ -10,6 +10,9 @@ import { useVersions } from '../composables/use-versions'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
 import { textViewKeys, useViewStore, type OutlineMode } from '../stores/view'
+import AppIcon from './AppIcon.vue'
+import EmptyState from './EmptyState.vue'
+import ItemHeader from './ItemHeader.vue'
 import KeptAsWritten from './KeptAsWritten.vue'
 import ManuscriptOutline from './ManuscriptOutline.vue'
 import OutlineBoard from './OutlineBoard.vue'
@@ -32,6 +35,10 @@ const views: OutlineMode[] = ['board', 'outline', 'text']
 const kinds: ReferenceKind[] = ['character', 'place', 'note']
 const pagesOf = (kind: ReferenceKind) => story.references.filter((reference) => reference.kind === kind)
 const showingOutline = computed(() => story.showing.kind === 'outline')
+/** Plot and World fold, for a long list of kinds (Milestone 17); for this session only. */
+const plotOpen = ref(true)
+const worldOpen = ref(true)
+const sidebarShown = computed(() => !view.navigatorHidden && !view.focusMode)
 /** The World entry to mark: the gallery shown, or the kind of the page shown. */
 const currentKind = computed<ReferenceKind | null>(() => {
   const showing = story.showing
@@ -132,49 +139,59 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>
 
 <template>
-  <div class="story" data-testid="story" :style="panels.style.value">
-    <nav class="navigator" :aria-label="t('workspace-story')">
+  <div class="story" :class="{ 'navigator-hidden': !sidebarShown }" data-testid="story" :style="panels.style.value">
+    <nav v-if="sidebarShown" class="navigator" :aria-label="t('workspace-story')">
       <section class="story-group" data-testid="plot">
-        <h2 class="group-heading">{{ t('story-plot') }}</h2>
-        <ul>
-          <li
-            v-for="entry in story.outlines"
-            :key="entry.file"
-            class="row chapter-row"
-            :class="{ current: showingOutline && story.outline?.file === entry.file }"
-          >
-            <button
-              type="button"
-              class="chapter"
-              :data-outline="entry.file"
-              :aria-current="showingOutline && story.outline?.file === entry.file ? 'page' : undefined"
-              @click="story.open(entry.file)"
+        <h2 class="group-heading">
+          <button type="button" class="group-fold" :aria-expanded="plotOpen" @click="plotOpen = !plotOpen">
+            {{ t('story-plot') }}<AppIcon name="chevron" />
+          </button>
+        </h2>
+        <template v-if="plotOpen">
+          <ul>
+            <li
+              v-for="entry in story.outlines"
+              :key="entry.file"
+              class="row chapter-row"
+              :class="{ current: showingOutline && story.outline?.file === entry.file }"
             >
-              <span dir="auto">{{ entry.title ?? entry.file }}</span>
-            </button>
-          </li>
-        </ul>
-        <div class="add-links">
-          <button type="button" class="add-link" data-testid="new-outline" @click="newOutline">{{ t('story-new-outline') }}</button>
-        </div>
-        <ul>
-          <li class="row chapter-row" :class="{ current: story.showing.kind === 'manuscript' }">
-            <button
-              type="button"
-              class="chapter"
-              data-testid="show-manuscript"
-              :aria-current="story.showing.kind === 'manuscript' ? 'page' : undefined"
-              @click="story.showing = { kind: 'manuscript' }"
-            >
-              {{ t('story-manuscript') }}
-            </button>
-          </li>
-        </ul>
+              <button
+                type="button"
+                class="chapter"
+                :data-outline="entry.file"
+                :aria-current="showingOutline && story.outline?.file === entry.file ? 'page' : undefined"
+                @click="story.open(entry.file)"
+              >
+                <span dir="auto">{{ entry.title ?? entry.file }}</span>
+              </button>
+            </li>
+          </ul>
+          <div class="add-links">
+            <button type="button" class="add-link" data-testid="new-outline" @click="newOutline">{{ t('story-new-outline') }}</button>
+          </div>
+          <ul>
+            <li class="row chapter-row" :class="{ current: story.showing.kind === 'manuscript' }">
+              <button
+                type="button"
+                class="chapter"
+                data-testid="show-manuscript"
+                :aria-current="story.showing.kind === 'manuscript' ? 'page' : undefined"
+                @click="story.showing = { kind: 'manuscript' }"
+              >
+                {{ t('story-manuscript') }}
+              </button>
+            </li>
+          </ul>
+        </template>
       </section>
 
       <section class="story-group" data-testid="world">
-        <h2 class="group-heading">{{ t('story-world') }}</h2>
-        <ul>
+        <h2 class="group-heading">
+          <button type="button" class="group-fold" :aria-expanded="worldOpen" @click="worldOpen = !worldOpen">
+            {{ t('story-world') }}<AppIcon name="chevron" />
+          </button>
+        </h2>
+        <ul v-if="worldOpen">
           <li v-for="kind in kinds" :key="kind" class="row chapter-row" :class="{ current: currentKind === kind }">
             <button
               type="button"
@@ -190,14 +207,19 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         </ul>
       </section>
     </nav>
-    <ResizeHandle setting="navigatorWidth" grows="end" :label="t('resize-navigator')" />
+    <ResizeHandle v-if="sidebarShown" setting="navigatorWidth" grows="end" :label="t('resize-navigator')" />
 
     <section class="desk" @focusin="noteItem">
-      <ManuscriptOutline v-if="story.showing.kind === 'manuscript'" class="story-page" :project="project" />
+      <template v-if="story.showing.kind === 'manuscript'">
+        <ItemHeader>
+          <h1 class="item-title">{{ t('story-manuscript') }}</h1>
+        </ItemHeader>
+        <ManuscriptOutline class="story-page" :project="project" />
+      </template>
       <WorldGallery v-else-if="story.showing.kind === 'gallery'" :key="story.showing.of" :kind="story.showing.of" />
-      <ReferencePage v-else-if="story.showing.kind === 'page'" :key="story.showing.file" class="story-page" :file="story.showing.file" />
+      <ReferencePage v-else-if="story.showing.kind === 'page'" :key="story.showing.file" :file="story.showing.file" />
       <template v-else-if="story.outline">
-        <div class="story-head outline-head">
+        <ItemHeader class="outline-head">
           <button
             type="button"
             class="outline-title"
@@ -234,7 +256,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
               ✕
             </button>
           </span>
-        </div>
+        </ItemHeader>
         <div class="story-page">
           <p v-if="story.outline.invalidDetails" class="warning" role="status">{{ t('invalid-details') }}</p>
           <OutlineText
@@ -253,9 +275,19 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
           </template>
         </div>
       </template>
-      <div v-else class="story-page">
-        <p class="secondary">{{ t('story-no-outlines') }}</p>
-      </div>
+      <template v-else>
+        <ItemHeader />
+        <div class="story-page">
+          <EmptyState
+            sketch="board"
+            :title="t('story-empty-title')"
+            :text="t('story-empty-text')"
+            :action="t('story-new-outline')"
+            testid="no-outline"
+            @act="newOutline"
+          />
+        </div>
+      </template>
     </section>
   </div>
 </template>

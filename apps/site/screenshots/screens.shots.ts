@@ -281,7 +281,7 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await page.getByTestId('tag-input').fill(language.tagTyping)
       await page.locator('.tag-options').waitFor()
       await snapAround(page, lang, 'tag-add', theme, [
-        page.locator('.toolbar'),
+        page.locator('.reference-page .item-header'),
         page.getByTestId('page-tags'),
         page.locator('.tag-options'),
       ])
