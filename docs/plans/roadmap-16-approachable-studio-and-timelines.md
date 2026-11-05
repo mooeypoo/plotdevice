@@ -8,6 +8,28 @@ Owner adjustments (2026-11-04):
 - **Later ideas** (story vs. book order, several outlines on one timeline, real dates, a relationship map) are documented features, brainstormed with the owner before any plan.
 - **Kinds** need no schema version change and no migration (ADR 0011).
 
+## Change of order (owner, 2026-11-05)
+
+After Milestone 19 the roadmap changes order:
+
+1. **Next: a tightening milestone for non-technical writers.** Automatic backups (moved here from Milestone 22, decided below), a sample book to try, help inside the app, plain wording everywhere, installing and updating, and a short session with real writers.
+2. **Then two big features, each researched and designed with the owner before any plan:**
+   - **Import and export:** Word first, and which other formats (PDF, ePub, others) are worth it;
+   - **The timeline and lanes** (Milestones 20–21 below). The Milestone 20 plan (`milestone-20-timeline.md`) waits for that research.
+
+Milestone numbers below are kept as written; the new milestones are numbered when planned.
+
+### Automatic backups: the owner's decisions (2026-11-05)
+
+- **The author's choice, never forced.** The app offers it once, calmly, after the author has been writing for a while ("Keep a copy of your book somewhere safe?"). It can be turned on, off or moved later in Settings.
+- **Where:** any folder the author chooses. That can be a cloud service (Google Drive, Dropbox, OneDrive and the like) or a local folder or drive, if the author prefers.
+- **Nothing is deleted unless the author asks.** When backups are turned on, the app says plainly that it will add copies to that folder and never delete them, so the author should keep an eye on the space there.
+- **Clean-up is opt-in.** Settings offers rules the author can turn on explicitly, such as "remove backups older than N months" or "keep only the newest N". Then the app removes only automatic backups it made itself, never the newest one, and says when it has removed any.
+- **Clear names, with the date and time:** "‹Book› backup 2026-11-05 14.30". Windows can't use `:` in names.
+- **Only when something changed:** no copy is made of a book that hasn't changed since the last one.
+- **Restore** lists the backups by date, shows what would change, and saves the current state first, so a restore can be undone.
+- **Never silent:** the book menu says when the last backup ran, and the app says so if the folder is missing (a USB drive unplugged, Dropbox removed).
+
 ## Why
 
 Plot Device will be sold, first to Hebrew writers and then to non-technical English writers: people who work in Word today, who are wary of cloud tools and subscriptions, and who will never type `## ` on purpose. Technical authors are still served, the way WordPress serves developers: the everyday interface is for writers, and there are plain-text ways in for fixing things by hand.
@@ -35,7 +57,7 @@ A: M16 Rendered editing ──┐
                           │                  │
                           └──> C: M20 Timeline ──> M21 Lanes (by any kind; needs M18)
 
-D: M22 Word and backups   (independent; moves earlier if the launch date gets close)
+D: M22 Word and backups   (superseded 2026-11-05: backups move to the tightening milestone; import and export become their own researched feature)
 ```
 
 ## Product decisions this roadmap needs (owner)
