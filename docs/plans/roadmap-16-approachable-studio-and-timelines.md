@@ -14,8 +14,8 @@ After Milestone 19 the roadmap changes order:
 
 1. **Next: Milestone 20, "Ready for writers"** (`milestone-20-ready-for-writers.md`), a tightening milestone for non-technical writers. Automatic backups (moved here from Milestone 22, decided below), a sample book to try, help inside the app, plain wording everywhere, installing and updating, and a short session with real writers.
 2. **Then two big features, each researched and designed with the owner before any plan:**
-   - **Import and export:** Word first, and which other formats (PDF, ePub, others) are worth it;
-   - **The timeline and lanes** (the roadmap's Milestones 20–21 below). The draft plan (`timeline-view.md`) waits for that research.
+   - **Import and export:** Word first, and which other formats (PDF, ePub, others) are worth it. Brief: `docs/features/import-export.md`;
+   - **The timeline and lanes** (the roadmap's Milestones 20–21 below). The draft plan (`timeline-view.md`) waits for that research. Brief: `docs/features/timeline.md`.
 
 Milestone numbers below are kept as written; the new milestones are numbered when planned.
 
