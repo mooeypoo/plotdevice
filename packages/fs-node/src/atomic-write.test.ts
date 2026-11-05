@@ -110,7 +110,9 @@ describe('writeAtomically', () => {
     const target = join(dir, 'chapter.md')
     await writeFile(target, 'ORIGINAL\n')
     const versionsSeen = new Set<string>()
-    for (const delay of [15, 45, 30, 60, 20, 50, 35, 25]) {
+    // Short delays land mid-write on a fast machine; the long ones let a later write finish even on a slow
+    // one (Windows CI), so the kills land at different points either way.
+    for (const delay of [15, 45, 300, 30, 600, 20, 50, 900]) {
       const child = spawn(process.execPath, [join(import.meta.dirname, 'write-loop.fixture.ts'), target], {
         stdio: ['ignore', 'pipe', 'ignore'],
       })
