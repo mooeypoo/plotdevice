@@ -1,6 +1,6 @@
 # Milestone 20: Ready for writers
 
-Status: **Proposed** (2026-11-05), waiting for the owner's approval. Direction from the "Change of order" section of `roadmap-16-approachable-studio-and-timelines.md`, with the owner's decisions on backups, restore points and installers (2026-11-05).
+Status: **Proposed** (2026-11-05). The owner answered the open questions on 2026-11-05 (see "Owner's answers"), and the plan below is revised to match. Waiting for the go-ahead. Direction from the "Change of order" section of `roadmap-16-approachable-studio-and-timelines.md`, with the owner's decisions on backups, restore points and installers (2026-11-05).
 
 ## Goal
 
@@ -34,49 +34,62 @@ Make what's already built safe and easy for writers who are wary of technology, 
 
 ### Backups
 
-**Turning them on.** After the author has written on two different days, a calm notice offers it once:
+**Each book has its own backups,** in a folder the author chooses for that book. One book can be backed up to Dropbox and another to a USB drive. When choosing, the folder chosen for the last book is offered first.
 
-> **Keep a copy of your book somewhere safe?** Plot Device can copy your book into a folder you choose, once a day.
+**Each backup is one zip file:** "The Salt Orchard backup 2026-11-05 14.30.zip", in local time. ("14.30" because Windows can't use ":" in names.) A second backup in the same minute adds " 2". A zip is one tidy file per backup, which a sync folder uploads easily and any computer can open.
+
+**Turning them on.** The first time the author closes a book that has some content (some writing, and at least two pages under World), a calm notice offers it once:
+
+> **Keep a copy of this book somewhere safe?** Plot Device can save a backup of the book once a day, into a folder you choose.
 >
 > **Choose a folder…** · **Not now**
+>
+> You can turn backups on or off at any time from the book menu, under **Backups…**.
 
-"Not now" never asks again. Backups can be turned on, off or moved at any time in **Settings → Backups**, which says:
+"Not now" doesn't ask again for that book.
 
-- **What it does:** "Once a day, if you've changed anything, Plot Device copies your whole book into this folder. Each copy is a folder named with the book's title, the date and the time."
+**"Backups…" in the book menu** holds everything about this book's backups, and says:
+
+- **What it does:** "Once a day, if you've changed anything, Plot Device saves a backup of the whole book into this folder, as one zip file named with the book's title, the date and the time."
 - **Where to keep it:** "To keep a copy off this computer, choose a folder that already syncs online, such as your Google Drive, Dropbox, OneDrive or Obsidian Sync folder. Plot Device doesn't upload anything itself." Folders it finds on the computer are offered by name ("Google Drive", "Dropbox"), with **Choose another folder…** for anything else, including a USB drive.
-- **What it doesn't do:** "Plot Device never deletes these copies. They will add up over time, so check the space in that folder now and then, or turn on a clean-up below."
+- **What it doesn't do:** "Plot Device never deletes these backups. They will add up over time, so check the space in that folder now and then, or turn on a clean-up below."
 - **The last backup:** "Last backup: today at 14.30", with **Open the folder** and **Back up now**.
+- **Clean-up, only if the author turns it on** (off at first):
+  - the choices are "Remove backups older than [6] months" or "Keep only the newest [30] backups";
+  - it applies only to backups the app made automatically, never to the newest one, and never to a "Back up now" one;
+  - when it removes any, the app says so in a notice ("2 old backups of The Salt Orchard were removed").
 
-**Clean-up, only if the author turns it on** (off at first):
+**In the book menu**, besides **Backups…**:
 
-- "Remove backups older than [6] months", or "Keep only the newest [30] backups".
-- It applies only to copies the app made automatically, never to the newest one, and never to a "Back up now" copy.
-- When it removes any, the app says so in a notice ("2 old backups were removed from Dropbox/Plot Device backups").
-
-**Names:** "The Salt Orchard backup 2026-11-05 14.30", in local time. ("14.30" because Windows can't use ":" in names.) A second copy in the same minute adds " 2".
-
-**In the book menu:**
-
-- **Back up now**, the same as "Make a backup now", moved here from "Match folder names", where it also stays;
-- **Restore from a backup…**;
-- a quiet line under the book's name, "Backed up today at 14.30", or "Not backed up yet" while backups are off.
+- **Back up now**, which saves a zip in the book's backup folder. If the book has no backup folder yet, it asks for one first. "Match folder names" uses the same thing.
+- **Restore from a backup…**.
+- A quiet line under the book's name: "Backed up today at 14.30", or "No backups yet".
 
 **When something is wrong,** the author is told, never silently skipped:
 
-- "Your backup folder can't be found. Is the drive connected?" with **Choose a folder…**;
-- "The last backup couldn't be made: there's no space left in that folder."
+- "The backup folder for The Salt Orchard can't be found. Is the drive connected?" with **Choose a folder…**;
+- "The last backup couldn't be saved: there's no space left in that folder."
 
 ### Restore from a backup
 
-- **A list of the backups found in the backup folder,** newest first, with their dates. That includes "Back up now" copies and any copy of this book in that folder, matched by the book's id in its `project.md`.
-- **Choosing one shows what would change** before anything does: "4 chapters and 2 pages are different, 1 chapter is new since then."
-- **Restore** first backs up the book as it is now ("‹Book› before restoring 2026-11-05 14.30"), then puts the backup's files back. Restoring is therefore always reversible: the "before restoring" copy is in the list.
+- **A list of the backups in the book's backup folder,** newest first, with their dates. It includes "Back up now" backups, and any other backup of this book found there, matched by the book's id in its `project.md`.
+- **Choosing one shows what's different** before anything changes: "4 chapters and 2 pages are different, and 1 chapter is new since then."
+- **Then the author chooses how:**
+  - **Open it as a separate copy:** the backup becomes a book of its own, beside this one, named "The Salt Orchard (2026-11-05 14.30)". The current book isn't touched. This is the safest choice.
+  - **Replace this book with it:** a plain warning comes first.
+    > This replaces what's in The Salt Orchard now with the backup from 5 November at 14.30. Before it does, Plot Device saves a backup of the book as it is now, so you can go back to it from this same list. The backup you're restoring stays where it is too.
+    >
+    > **Replace** · **Cancel**
+- Either way, nothing is deleted: the backup stays, and replacing first saves the current book as a backup ("The Salt Orchard before restoring 2026-11-05 14.30.zip").
 
 ### A book to try
 
 - **"Try a sample book"** on the start screen opens "The Salt Orchard", in the interface's language.
 - It's a copy in the app's own data, so it can be explored, changed and broken. It's marked "Sample" in the top bar and in Recent projects.
-- **"Start the sample over"** in its book menu brings back the original.
+- **"Start the sample over"** in its book menu brings back the original sample, after asking, without making it sound alarming:
+  > **Start the sample over?** Everything you changed in the sample book (writing, pages, outlines) goes back to how it first was. Your own books aren't affected.
+  >
+  > **Start over** · **Cancel**
 
 ### Help where it's needed
 
@@ -97,7 +110,7 @@ A pass over every message, using the translator notes:
 
 - errors say what happened, that nothing was lost (when true), and what to do next;
 - no word an author wouldn't use ("file system", "revision", "parse", "journal");
-- the English is changed here, and the Hebrew changes go on the review list for the owner.
+- the English is rewritten now, so it can be relied on as the source when translating. The Hebrew messages it affects go on the review list for the owner's translation round.
 
 ### On a Mac (CI only)
 
@@ -113,23 +126,22 @@ A pass over every message, using the translator notes:
 
 ## Decisions (proposed)
 
-1. **Backup settings are app-wide:** one folder for all books, a subfolder per book: "Plot Device backups/The Salt Orchard/…". When the folder is chosen, the app suggests creating "Plot Device backups" inside it, so backups don't scatter among the author's own files.
-2. **"Once a day"** means that at the first moment after 24 hours since the last automatic backup when the book has changed, the app makes a copy:
+1. **Backup settings belong to each book,** kept in the app's own data by the book's id (never in the book's folder): the folder, the clean-up rule, whether the offer was shown. The folder chosen last is the default the next time a folder is chosen.
+2. **A backup is a zip of the book's folder,** written under a temporary name and renamed when complete, so a half-written zip never looks like a backup. Writing and reading zips needs a library: **`fflate`** is proposed (MIT, no dependencies, about 30 KB, used in the main process only). It goes into the third-party licence list like the others.
+3. **"Once a day"** means that at the first moment after 24 hours since the last automatic backup when the book has changed, the app saves a backup:
    - while the book is open, checked every hour;
    - or when the book closes;
    - or at the next opening, if the app was closed in between.
    "Changed" compares a fingerprint of the book's files (names and revisions) with the one recorded at the last backup.
-3. **The app keeps a record** of the automatic backups it made, in app data (`backups.json`): book id, path, time and fingerprint. Clean-up only ever removes paths in this record, and checks that each one is still a book folder with the same id before removing it.
-4. **Copies reuse `copyBook`,** extended with the time, local-time names and a progress-free background run. A copy is written under a temporary name and renamed when complete, so a half-made copy never looks like a backup.
-5. **Restore** is a journalled operation (ADR 0005, a new `restore-backup` operation):
-   - the "before restoring" copy comes first;
-   - then each file is written from the backup;
-   - files that weren't in the backup are moved into the "before restoring" copy rather than deleted;
-   - the open session reloads afterwards.
-6. **Finding sync folders:** known locations for each system (Google Drive, Dropbox, OneDrive, iCloud Drive on a Mac, Obsidian vaults the author has opened). They're offered only when they exist. Nothing is read from those services or their settings beyond the folder existing.
-7. **The sample book ships as an extra resource** and is copied into app data on first use. "Start over" replaces that copy after asking. It never goes in Documents.
-8. **The "?" links are a small component** with a message key for its accessible name ("Help: Kinds of pages") and a guide path, opened in the browser like the other guide links.
-9. **The Mac in CI:** a `mac` section in `electron-builder.yml` (dmg, `identity: null`) and `macos-latest` in the CI matrix. The release workflow is unchanged.
+4. **"Some content", for the offer:** at least one chapter with writing and at least two pages under World, checked when the book closes.
+5. **The app keeps a record** of the automatic backups it made (`backups.json` in app data): book id, path, time and fingerprint. Clean-up only ever removes paths in this record, and checks that each is still a backup of the same book (its `project.md` id) before removing it.
+6. **Restore:**
+   - **As a separate copy,** the zip is unpacked into a new folder beside the book, never over anything, and then opened. The copy keeps the book's id, which the app already handles for two copies of one book.
+   - **Replacing** is a journalled operation (ADR 0005, a new `restore-backup` operation). The "before restoring" backup is saved first. Then each file is written from the backup, and files that weren't in the backup are removed only because that backup already holds them. The open session reloads afterwards.
+7. **Finding sync folders:** known locations for each system (Google Drive, Dropbox, OneDrive, iCloud Drive on a Mac, Obsidian vaults the author has opened), offered only when they exist. Nothing is read from those services beyond the folder existing.
+8. **The sample book ships as an extra resource** and is copied into app data on first use. "Start over" replaces that copy after asking. It never goes in Documents.
+9. **The "?" links are a small component** with a message key for its accessible name ("Help: Kinds of pages") and a guide path, opened in the browser like the other guide links.
+10. **The Mac in CI:** a `mac` section in `electron-builder.yml` (dmg, `identity: null`) and `macos-latest` in the CI matrix. The release workflow is unchanged.
 
 ## Files
 
@@ -140,13 +152,13 @@ A pass over every message, using the translator notes:
   - ports for the backup folder and the backup record;
   - new `backups/backup-session.ts`: schedule, run, clean up, restore, last status.
 - **Storage:** restoring a book, through the journal.
-- **fs-node:** `copy-book.ts` (time in names, temporary name then rename); finding sync folders; the backup record file.
-- **Contracts:** backup settings and status views; restore requests and previews; preferences (the backup folder, clean-up rules, whether the offer was shown).
+- **fs-node:** `copy-book.ts` becomes `backup-book.ts` (zips with `fflate`, local time in names, temporary name then rename, unpacking); finding sync folders; the backup record and per-book settings files.
+- **Contracts:** per-book backup settings and status views; restore requests, previews and the two ways to restore.
 - **Desktop:** the backup IPC; the hourly check and the check on closing; the sample book as an extra resource; `electron-builder.yml` (mac).
 - **Interface:**
-  - `SettingsDialog.vue` (Backups);
-  - new `BackupOffer.vue`, `RestoreDialog.vue` and `HelpLink.vue`;
-  - `TopBar.vue` (Back up now, Restore, the backup line);
+  - new `BackupsDialog.vue` ("Backups…"), `BackupOffer.vue`, `RestoreDialog.vue` and `HelpLink.vue`;
+  - `TopBar.vue` (Backups…, Back up now, Restore, the backup line, Start the sample over);
+  - `MatchFolders.vue` (Back up now, as a zip);
   - `WelcomeView.vue` (Try a sample book);
   - the "?" beside the controls listed above.
 - **Words:** `en.json`, `he.json` and `qqq.json`: backups, restore, the sample, help links, the wording pass.
@@ -167,9 +179,12 @@ Stated before coding. Backups and restore are test-first.
   - local time, with " 2" for a second copy in the same minute;
   - Hebrew titles;
   - names Windows can't use are never produced.
-- **Copies:**
+- **Zips:**
   - never into the book itself, and never over anything;
-  - a copy that fails halfway leaves no folder that looks like a backup.
+  - a zip that fails halfway leaves nothing that looks like a backup;
+  - unpacking a backup gives the book back byte for byte, Hebrew names and BOMs included.
+- **Per book:** two books back up to two different folders; the last folder chosen is offered first.
+- **The offer:** shown once, on closing a book with writing and at least two World pages; never for an empty book; never again after "Not now".
 - **Clean-up:**
   - removes nothing unless a rule is on;
   - removes only recorded automatic backups of that book, never the newest one and never a "Back up now" copy;
@@ -177,16 +192,16 @@ Stated before coding. Backups and restore are test-first.
   - tells the author what it removed.
 - **Restore:**
   - the preview lists exactly the files that differ;
-  - the "before restoring" copy is made first, and restoring from it gives back the book byte for byte;
-  - a crash halfway recovers from the journal;
-  - files not in the backup end up in the "before restoring" copy, never deleted.
+  - "as a separate copy" never touches the current book or writes over anything;
+  - "replace" saves the "before restoring" backup first, and restoring from it gives back the book byte for byte;
+  - a crash halfway through replacing recovers from the journal.
 - **Missing folder:** a backup folder that's gone, or full, gives the right message and no partial copy.
-- **Sample book:** opens in both languages, shows as a sample, and "Start over" restores it byte for byte.
+- **Sample book:** opens in both languages, shows as a sample, and "Start over", after confirming, restores it byte for byte.
 - **Help links:** every "?" opens a guide page that exists, in English and Hebrew (checked against the site's pages).
 - **End to end:**
   - turn backups on from the offer;
   - write, and see a backup after a simulated day;
-  - restore it and undo that restore;
+  - restore it both ways, and undo a replace from the "before restoring" backup;
   - the sample book;
   - a "?" link;
   - Hebrew throughout.
@@ -201,10 +216,10 @@ Stated before coding. Backups and restore are test-first.
 5. Help links and the wording pass.
 6. The session guide, the user guide, screenshots, Results.
 
-## Open questions
+## Owner's answers (2026-11-05)
 
-1. **When to offer backups:** after the author has written on two different days (recommended), or the first time they close a book they've written in.
-2. **The backup folder:** one for all books, each in its own subfolder (recommended), or chosen separately for each book.
-3. **Restore puts the backup's files back in place,** after copying the current book aside (recommended). Or it never touches the current book, and opens the backup as a separate copy, which is safer but leaves two books with the same title.
-4. **The sample book is changeable,** with "Start over" (recommended), or read-only.
-5. **The wording pass changes English messages now** and lists Hebrew changes for your review (recommended). Or both wait for your translation round.
+1. **The offer** comes when the author closes a book that has some content (some writing and a couple of World pages), and says where to turn backups on later.
+2. **Each book chooses its own backup folder,** with the last folder chosen offered first. The folder holds the book's backups as zip files.
+3. **Restore asks:** open the backup as a separate copy, or replace the book, with a plain warning that says a backup of the current book is saved first and the restored backup stays.
+4. **The sample book is changeable,** with "Start over" behind an "are you sure?" that explains plainly what it does.
+5. **The English is rewritten now,** to be a reliable source for translating; the Hebrew follows in the owner's translation round.

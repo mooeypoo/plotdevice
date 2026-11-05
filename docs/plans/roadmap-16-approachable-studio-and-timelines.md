@@ -27,6 +27,7 @@ Milestone numbers below are kept as written; the new milestones are numbered whe
 - **Once a day,** when something changed since the last backup. Other schedules may come later.
 - **Nothing is deleted unless the author asks.** When backups are turned on, the app says plainly that it will add copies to that folder and never delete them, so the author should keep an eye on the space there.
 - **Clean-up is opt-in.** Settings offers rules the author can turn on explicitly, such as "remove backups older than N months" or "keep only the newest N". Then the app removes only automatic backups it made itself, never the newest one, and says when it has removed any.
+- **Each book has its own backup folder** (the last one chosen is offered first), holding the book's backups as zip files.
 - **Clear names, with the date and time:** "‹Book› backup 2026-11-05 14.30". Windows can't use `:` in names.
 - **Only when something changed:** no copy is made of a book that hasn't changed since the last one.
 - **Restore** lists the backups by date, shows what would change, and saves the current state first, so a restore can be undone.
