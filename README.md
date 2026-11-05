@@ -98,7 +98,7 @@ the-salt-orchard/
 
 ### No account. No cloud. No claim on your work.
 
-Plot Device runs on your computer and sends nothing anywhere. It's open source, under the GNU GPL, and what you write belongs to you.
+Plot Device runs on your computer and sends nothing anywhere. What you write belongs to you.
 
 ## Get started
 

@@ -7,17 +7,29 @@ import Ui from '~/components/Ui.astro'
 
 | Word | Means |
 |---|---|
-| **Book** (or project) | One novel: a folder of files. |
-| **Chapter** | The unit you write in: one file. |
+| **Book** (or project) | One novel, story or campaign: a folder of files. |
+| **Template** | What a new book starts with: a novel, a short story, a D&D campaign, or blank. Everything in it can be changed afterwards. |
+| **Chapter** | The unit you write in: one file. A book may call its chapters something else, such as sessions. |
 | **Part** | A named group of chapters. Optional. |
 | **<Ui k="navigator-not-in-book" />** | Chapters kept outside the reading order, with their text intact. |
 | **<Ui k="workspace-write" />** | Where you write chapters. |
-| **<Ui k="workspace-story" />** | Where you plan: outlines, characters, places and notes. |
+| **<Ui k="workspace-story" />** | Where you plan. It has two halves, **<Ui k="story-plot" />** and **<Ui k="story-world" />**. |
+| **<Ui k="story-plot" />** | The story's events: the outlines and the timeline. |
+| **<Ui k="story-world" />** | Who and where: the book's pages, by kind. |
 | **Outline** | A plan you can rearrange; there can be many. |
+| **Main outline** | The outline marked **<Ui k="outline-main-badge" />**. Its sections are the timeline's columns. |
 | **Section** | A heading in an outline: a column on the board. |
 | **Card** | An item in an outline. |
 | **Detail** | Something inside a card. |
-| **Page** | A character, place or note. |
+| **<Ui k="story-timeline" />** | Every outline side by side, one row each. |
+| **Storyline** | An outline as a row on the timeline. |
+| **Line up** | Say that a section of one storyline happens at the same time as a moment of another. |
+| **<Ui k="outline-set-aside" />** | An outline moved out of the way, off the timeline, without deleting anything. |
+| **Page** | A character, a place, a note, or a page of any other kind. |
+| **Kind of page** | A sort of page the book keeps, with its own folder: characters, places and notes, or one of your own, such as factions. |
+| **Relationship** | How one page connects to another, in your words: "Aunt of Ilka". |
+| **<Ui k="tags" />** | Your own words for grouping pages, such as "Varga family". |
 | **<Ui k="shelf" />** | Pages kept beside the page you're writing. |
 | **Version** | How a file was earlier, kept so you can go back. |
+| **Backup** | A copy of the whole book, kept in a folder you choose. |
 | **Export** | The whole book as one file. |
