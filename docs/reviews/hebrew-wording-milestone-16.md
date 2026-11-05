@@ -84,3 +84,21 @@ After changing a guide page, `pnpm site:translations` shows what is behind; the 
 
 - [ ] Guide pages new or changed: `planning/kinds.mdx` (new), `files/folder.mdx`, `files/pages.mdx`. „התחרטת?” in `planning/kinds.mdx` addresses the reader in the second person; check it fits the guide's voice.
 - [ ] `match-blocked-case-only` says "אותיות גדולות וקטנות", which only applies to Latin names.
+
+## Added in Milestone 19
+
+| Key or file | Hebrew now | English |
+|---|---|---|
+| `new-project-question`, `new-project-adjust-later` | מה אתם כותבים? · אפשר לשנות הכול אחר כך: סוגי הדפים, המתווים והשמות. | What are you making? · Everything can be changed later… |
+| `new-project-back`, `new-project-location-label`, `new-project-choose` | → חזרה · איפה לשמור · בחירה… | ← Back · Where to keep it · Choose… |
+| `new-project-hint` | המתווים והשמות נכתבים בשפת הספר. | Outlines and names are written in the book's language. |
+| `template-novel` | סיפור ארוך (from the mockups; „רומן” is the usual word) | Novel |
+| `template-*-description`, `-kinds`, `-outlines`, `-summary` | the four cards | |
+| `starter-*` | שלוש מערכות · נקודות מפנה · קשת של דמות · קשת המערכה · תוכנית למפגש | Three acts · Story beats · … |
+| `new-outline-start` | מתחילים מ… | Start from |
+| `outline-guide`, `outline-guide-done` | מקטעים הם הצעדים הגדולים של הסיפור, וכרטיסים הם הרגעים בכל צעד. מתחת לכרטיס אפשר להוסיף פרטים. · הבנתי | Sections are the big steps… · Got it |
+| `menu-new-project` | פרויקט חדש… | New project… |
+| `packages/templates/src/index.ts` | the campaign's kinds: דמות/דמויות (for NPCs), מקום, פלג, חפץ, ידע; מפגש/מפגשים; tags: דמות ראשית, דמות משנית, דמות שחקן, נבל, בן ברית; the novel's main outline is „העלילה” | |
+
+- [ ] **The starter outlines** in `packages/templates/starters/he/` were written in Hebrew, not translated, but by me. The main character is „הגיבורה” throughout; check that's the voice you want, or whether the beats should avoid gender.
+- [ ] Guide pages changed: `start/first-book.mdx`, `planning/outlines.mdx`, `planning/tags.mdx`, `files/folder.mdx`.

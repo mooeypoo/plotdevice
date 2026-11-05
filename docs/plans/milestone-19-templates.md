@@ -1,6 +1,6 @@
 # Milestone 19: Templates for new projects
 
-Status: **Proposed** (2026-11-05), waiting for the owner's approval. Direction from `roadmap-16-approachable-studio-and-timelines.md` (Phase B, decision D6). The picker's layout comes from the Milestone 17 mockups (the "templates" screen, Hebrew in light and English in dark). Builds on Milestone 18's kinds and chapter word (ADR 0011).
+Status: **Built** (2026-11-05). Approved by the owner on 2026-11-05 with the recommended answers to the open questions. See [Results](#results). Direction from `roadmap-16-approachable-studio-and-timelines.md` (Phase B, decision D6). The picker's layout comes from the Milestone 17 mockups (the "templates" screen, Hebrew in light and English in dark). Builds on Milestone 18's kinds and chapter word (ADR 0011).
 
 ## Goal
 
@@ -183,3 +183,48 @@ Stated before coding.
 2. **"Save the Cat beats".** "Save the Cat!" is a trademark and the name of a book, so the starter shouldn't use the name. Recommendation: call it "Story beats" („נקודות מפנה”), with the fifteen beats under plain names ("Opening image", "Catalyst", "Midpoint", …). Or drop it and keep three starters plus Session plan.
 3. **Where to keep it.** The mockup shows a "Where to keep it" field with Choose… on the picker. Today the folder is chosen in a dialog after Create. Recommendation: the field, remembering the last folder used, so everything is decided on one screen. Or keep the dialog, which is one less thing on the screen.
 4. **"New project" while a book is open.** Today the app menu has "Open project…" but no way to make a new book without restarting the app on the start screen. Recommendation: add "New project…" beside it, showing the picker. Or leave it for later.
+
+## Results
+
+### What the author can do
+
+- **Start a book from a template:** Novel, Short story, D&D campaign or Blank, on one screen with the title, the name on the cover, the book's language and "Where to keep it". The folder starts beside the last book, and "Choose…" picks another.
+- **Begin ready to work:**
+  - a short story opens in Write on its chapter;
+  - a novel opens in Story on "Main story";
+  - a campaign opens on its session plan, with five kinds of pages and "Sessions".
+- **"New project…" in the ☰ menu,** over an open book; "← Back" returns to the book as it was.
+- **"New outline" offers starters,** in the book's language: Three acts, Story beats, Character arc, Campaign arc and Session plan. Choosing one names the outline after it until the author types a name.
+- **The outline guide** shows once, above the first outline opened, and "Got it" puts it away for good.
+- **Suggested tags:** "+ Tag" offers a template's suggested tags in a new book. They're kept in `suggestedTags` in `project.md`, which any book can have.
+
+### Changed from the plan while building
+
+- **Templates are data, not folders of whole books.** Each template is a few lines in `packages/templates/src/index.ts`: its kinds, chapter word, tags, first chapter or not, and starters. The outlines are plain Markdown in `starters/en/` and `starters/he/`. One copy of each outline serves both the templates and "New outline", so the "identical to its starter" test isn't needed. The test that matters runs on the books the templates actually make: the project check, a no-op load and outlines with no warnings, in both languages.
+- **The campaign's outlines are in the order Session plan, Campaign arc,** so it opens on the session plan by the plain rule "open on the first outline".
+- **Suggested tags come after the book's own tags in "+ Tag", not before them.** In a new book, where they matter, there are no others. Once pages have tags, the ones in use are the better suggestion.
+- **The guide:** "Your first book" was rewritten rather than adding a new page. "Outlines", "Tags" and "The book's folder" gained a paragraph each.
+- **A new outline about a page of the book's own kind** (an NPC's arc) was still refused by the request schema, a gap left from Milestone 18. It now accepts a page in any kind's folder.
+
+### Found and fixed by the tests
+
+- **The book's language on the new-project form** stayed English after switching the interface to Hebrew, because it was set when the start screen first appeared. It now follows the interface's language each time the form opens.
+
+### Tests
+
+- Every template in both languages creates a book that passes the project check, reopens without a write, and has outlines with no warnings (`packages/storage/test/templates.test.ts`, 30 cases). Also covered: what each template makes, that nothing is written over an existing folder, that no ids come from a template, and that every starter in both languages reads cleanly.
+- `suggestedTags` read as a list or a single tag; "+ Tag" suggestions; a new outline from a starter; the IPC refusing a folder it didn't offer; a new book opening on its first outline; a starter outline in the story's language.
+- **End to end** (`apps/desktop/e2e/templates.e2e.ts`):
+  - a D&D campaign: five kinds, sessions, the session plan, the outline guide once, an NPC linked from a card, and a starter outline;
+  - a Hebrew novel, right to left, with Hebrew outline headings;
+  - a short story landing in Write;
+  - "New project…" and Back over an open book;
+  - Blank, as before.
+- The guide for AI assistants explains `suggestedTags`, and its test reads the example back through the app.
+
+### Known limitations
+
+- **The Hebrew template wording and starter outlines** are mine, and are on the review list for a Hebrew writer (`docs/reviews/hebrew-wording-milestone-16.md`, "Added in Milestone 19").
+- **"Where to keep it"** shows the full path. A long path is cut with an ellipsis; "Choose…" shows it in full.
+- **The later templates** (memoir, series bible, children's book, web serial) aren't built.
+

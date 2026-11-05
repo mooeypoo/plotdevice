@@ -84,10 +84,12 @@ kinds:
 manuscriptUnit:
   one: Session
   many: Sessions
+suggestedTags: [Player character, Villain, Ally]
 ```
 - `kinds` lists the kinds in sidebar order. `folder` identifies the kind and is its folder's name; `one` and `many` are the names the app shows, in any language, exactly as typed.
 - A built-in kind (`characters`, `places`, `notes`) without `one`/`many` keeps the app's English and Hebrew names.
 - `manuscriptUnit` renames "chapter" in the interface only ("New session", "Session 3"). Files, `CONTENTS.md` and export are unchanged.
+- `suggestedTags` (Milestone 19) is a one-line list of tags that "+ Tag" offers before any page uses them, as a page's `tags` are written; a single tag is read too. Without it, nothing is suggested beyond the tags pages use.
 - The app writes these keys with targeted frontmatter patches, as it does for `title`. Key order, comments and unknown keys are kept.
 - Removing a kind removes its entry only; its folder and pages stay, and show in "Not sorted yet".
 - These keys are optional additions: `schemaVersion` stays 1 and no migration is needed. An older version of the app ignores them and the folders it doesn't know; nothing is lost.
@@ -202,7 +204,9 @@ Daughter of Bea's sister.
 - Links are explicit: the app never infers one from a name, and never adds or changes links in prose by itself.
 
 ## Templates
-- A template is a bundled project skeleton, one per template and language: `project.md` (with `kinds` and `manuscriptUnit`), `CONTENTS.md`, starter outlines and, for a short story, one chapter. Creating a project copies it into a new folder; it never overwrites an existing one.
+- A template (Milestone 19) is bundled with the app, in English and Hebrew: its kinds, its word for chapters, its suggested tags, whether it starts with a chapter, and which starter outlines it begins with. The starter outlines are plain Markdown in `packages/templates/starters/<language>/`.
+- Creating a project reserves a new folder (refused if it exists), then writes `project.md` from the author's details plus the template's `kinds`, `manuscriptUnit` and `suggestedTags`, `CONTENTS.md`, the outlines and, for a short story, one empty chapter named after the book and listed in `CONTENTS.md`. Every file is written as new, never over another. Ids come from the new project, never from the template.
+- The story's language picks the template's language; any language other than Hebrew gets English.
 - Nothing records which template a project came from. Once created, it is simply the author's project.
 - Every template, in every language, passes the project check with no warnings and loads without any write.
 

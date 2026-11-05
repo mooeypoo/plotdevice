@@ -120,7 +120,15 @@ async function open(
   const copy = join(work, `${lang}-${theme}-${Date.now()}`)
   if (book) await cp(join(SAMPLES, book), join(copy, book), { recursive: true })
   if (book && extra) await writeFile(join(copy, book, extra.file), extra.text)
-  const running = await launch(join(copy, 'user-data'), {}, book ? [join(copy, book)] : [])
+  // The outline guide, shown once to a new author, would sit above every outline in the shots.
+  await mkdir(join(copy, 'user-data'), { recursive: true })
+  await writeFile(join(copy, 'user-data', 'preferences.json'), JSON.stringify({ outlineGuideSeen: true }))
+  // "Where to keep it" on the new project screen shows this, not the folder of whoever takes the shots.
+  const running = await launch(
+    join(copy, 'user-data'),
+    { PLOTDEVICE_TEST_CHOOSE_FOLDER: '/home/ines/Documents' },
+    book ? [join(copy, book)] : [],
+  )
   const { app, page } = running
   // A 1440 × 900 window drawn with twice the pixels: 2880 × 1800, zoomed to 200%.
   await page.setViewportSize({ width: 2880, height: 1800 })
@@ -330,6 +338,9 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
 
       const welcome = await open(lang, theme)
       await welcome.page.getByTestId('new-project').click()
+      await welcome.page.getByTestId('new-project-title').fill(lang === 'he' ? 'מטע המלח' : 'The Salt Orchard')
+      await welcome.page.getByTestId('new-project-title').blur()
+      await welcome.page.mouse.move(0, 0)
       await snap(welcome.page, lang, 'new-project', theme)
       await welcome.app.close()
 
