@@ -204,7 +204,7 @@ test('scenario H: theme, language and focus mode keep the same editor, the curso
   expect(sameEditor).toBe(true)
   await page.keyboard.type(' Two') // the cursor is where it was
   await expect(page.locator('.cm-content')).toContainText('Ilka asked. One Two')
-  await page.keyboard.press('Control+z')
+  await page.keyboard.press('ControlOrMeta+z')
   await expect(page.locator('.cm-content')).not.toContainText('One Two')
 })
 
@@ -238,6 +238,12 @@ test('regression: closing the window right after typing still saves the text', a
   await typeAtEnd(page, ' Typed just before closing.')
   const closed = running?.app.waitForEvent('close')
   await running?.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.close())
+  // A book with some writing and pages is offered backups once as it closes (Milestone 20); the window
+  // closes on the answer, possibly before the click has finished.
+  await page
+    .getByTestId('offer-not-now')
+    .click()
+    .catch(() => undefined)
   await closed
   running = undefined
   expect(await read(root, 'manuscript/frost.md')).toMatch(/Typed just before closing\.\n$/)

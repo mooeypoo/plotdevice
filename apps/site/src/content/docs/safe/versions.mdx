@@ -20,4 +20,19 @@ Versions are listed by time. Choose one to read it.
 - **<Ui k="versions-restore" />** puts it back. <Ui k="versions-restore-detail" />
 - **<Ui k="versions-copy" />** keeps it as a separate file instead, leaving the current text as it is.
 
-Versions are kept on your computer, outside the book's folder. See [Backups](/plotdevice/safe/backups/) for how long.
+## Where they're kept, and for how long
+
+On your computer, outside the book's folder, so your book stays clean and you can copy or sync it freely:
+
+- **Linux:** `~/.config/plotdevice/backups/`
+- **Windows:** `%APPDATA%\plotdevice\backups\`
+
+They're tidied as they age:
+
+- every version from the last 24 hours;
+- then one a day, for 30 days;
+- then one a week, for a year.
+
+A year of history for a 100-chapter book takes about 100 MB.
+
+Earlier versions protect against mistakes, not against losing the computer. For that, turn on [backups](/plotdevice/safe/backups/).

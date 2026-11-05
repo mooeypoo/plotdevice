@@ -1,5 +1,11 @@
 import { projectTemplate, starter } from '@plotdevice/templates'
-import { createOutlineSession, createRecentProjectsSession, createWritingSession, type SessionEvent } from '@plotdevice/application'
+import {
+  createBackupSession,
+  createOutlineSession,
+  createRecentProjectsSession,
+  createWritingSession,
+  type SessionEvent,
+} from '@plotdevice/application'
 import {
   channels,
   type CardLinksView,
@@ -12,7 +18,10 @@ import {
   type ReferenceSummaryView,
   type OpenProjectResult,
   type OutlineResult,
-  type BackupBookResult,
+  type BackUpNowResult,
+  type BackupStatusResult,
+  type ListBackupsResult,
+  type RestoreCopyResult,
   type FolderRenamePlanResult,
   type ProjectChangeResult,
   type RenameFoldersResult,
@@ -21,7 +30,7 @@ import {
   type ResolveConflictResult,
 } from '@plotdevice/contracts'
 import {
-  copyBook,
+  createBookBackups,
   createAppDataFile,
   createBackupStore,
   createJournalStore,
@@ -87,6 +96,13 @@ async function setup() {
   }
   let flushed = 0
   const recent = await createRecentProjectsSession(createAppDataFile(appData, 'recent'))
+  const bookBackups = createBackupSession({
+    backups: createBookBackups(),
+    records: createAppDataFile(appData, 'backups'),
+    folders: createProjectFolders(),
+    book: session,
+    now: () => clock,
+  })
   const outlines = createOutlineSession({ repository: createOutlineRepository({ folders }), root: () => session.project()?.root ?? null })
   const handlers = createIpcHandlers({
     appUrl,
@@ -111,8 +127,9 @@ async function setup() {
       onFlushed: () => flushed++,
       chooseSaveLocation: async (suggested) => ((dialogs.suggested = suggested), dialogs.saveAs),
       compile: (snapshot) => compileManuscript(createProjectFolders(), snapshot),
-      chooseBackupLocation: async () => dialogs.backup,
-      copyBook: (root, location) => copyBook(root, location),
+      leavingBook: async () => undefined,
+      sampleBook: async () => root,
+      isSample: () => false,
       writeOutside: (path, text) =>
         writeFile(path, text).then(
           () => true,
@@ -129,6 +146,16 @@ async function setup() {
       copyLabel: () => 'version 1',
     },
     updates: {} as UpdateIpcContext,
+    backups: {
+      backups: bookBackups,
+      writing: session,
+      recent,
+      chooseFolder: async () => dialogs.backup,
+      syncFolders: async () => [],
+      showFolder: async () => undefined,
+      offerAnswered: () => undefined,
+      runBackups: async () => void (await bookBackups.runIfDue()),
+    },
   })
   const call = (channel: string, payload?: unknown, sender: Sender = appPage): Promise<unknown> => {
     const handler = handlers[channel]
@@ -314,6 +341,43 @@ describe('project calls', () => {
   })
 })
 
+describe('backups (Milestone 20)', () => {
+  it('only into a folder the app offered; the first backup at once; then listed, previewed and restored', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const folder = join(context.base, 'Dropbox')
+    await mkdir(folder)
+    // A folder the page made up is refused, and nothing is saved.
+    expect(await context.call(channels.setBackupFolder, { folder })).toEqual({ ok: false, error: 'not-offered' })
+    context.dialogs.backup = folder
+    expect(await context.call(channels.chooseBackupFolder)).toBe(folder)
+    const status = (await context.call(channels.setBackupFolder, { folder })) as BackupStatusResult
+    expect(status.ok && status.value).toMatchObject({ folder, cleanup: null, problem: null })
+    expect(status.ok && status.value.lastAt).not.toBeNull()
+    const list = (await context.call(channels.listBackups)) as ListBackupsResult
+    if (!list.ok) throw new Error(list.error)
+    expect(list.value.map((entry) => entry.automatic)).toEqual([true])
+    const file = list.value[0]?.file ?? ''
+    await expect(context.call(channels.previewBackup, { file: join(context.base, 'other.zip') })).resolves.toEqual({
+      ok: false,
+      error: 'not-listed',
+    })
+    const copy = (await context.call(channels.restoreBackupAsCopy, { file })) as RestoreCopyResult
+    expect(copy.ok && (await readFile(join(copy.value.root, 'project.md'), 'utf8'))).toBe(await context.read('project.md'))
+    expect(((await context.call(channels.getRecentProjects)) as { root: string }[]).map((p) => p.root)).toContain(
+      copy.ok ? copy.value.root : '',
+    )
+  })
+
+  it('answers the offer: "Not now" never asks again for that book', async () => {
+    const context = await setup()
+    await openChosen(context)
+    await context.call(channels.answerBackupOffer, { folder: null })
+    expect(await context.call(channels.shouldOfferBackups)).toBe(false)
+    await expect(context.call(channels.answerBackupOffer, { folder: '/anywhere' })).rejects.toThrow('not-offered')
+  })
+})
+
 describe('matching folder names (Milestone 18)', () => {
   it('backs up, renames a kind’s folder with an open page and its links, and undoes it until the book closes', async () => {
     const context = await setup()
@@ -342,8 +406,8 @@ describe('matching folder names (Milestone 18)', () => {
 
     await mkdir(join(context.base, 'backups'))
     context.dialogs.backup = join(context.base, 'backups')
-    const backup = (await context.call(channels.backupBook)) as BackupBookResult
-    expect(backup.ok && (await readFile(join(backup.value.path, 'characters', 'ilka.md'), 'utf8'))).toBe('# Ilka\n')
+    const backup = (await context.call(channels.backUpNow)) as BackUpNowResult
+    expect(backup.ok && backup.value.path).toMatch(/[\\/]backups[\\/]The Salt Orchard backup \d{4}-\d\d-\d\d \d\d\.\d\d\.zip$/)
 
     const renamed = (await context.call(channels.renameFolders, { renames })) as RenameFoldersResult
     expect(renamed.ok && renamed.value.linksUpdated).toBe(1)

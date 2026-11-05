@@ -98,10 +98,10 @@ module.exports = {
     ]),
     {
       name: 'fs-node-implements-ports',
-      comment: 'fs-node: Node built-ins, shared, application port types, and chokidar for watching folders',
+      comment: 'fs-node: Node built-ins, shared, application port types, chokidar for watching folders and fflate for backup zips',
       severity: 'error',
       from: { path: pkg('fs-node'), pathNot: notTests },
-      to: { pathNot: [pkg('fs-node'), pkg('shared'), pkg('application'), npm('chokidar')], dependencyTypesNot: ['core'] },
+      to: { pathNot: [pkg('fs-node'), pkg('shared'), pkg('application'), npm('chokidar'), npm('fflate')], dependencyTypesNot: ['core'] },
     },
     {
       name: 'fs-node-uses-port-types-only',

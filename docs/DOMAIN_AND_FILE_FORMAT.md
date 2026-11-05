@@ -21,7 +21,8 @@ Version: 0.5 (2026-11-04). Project layout per ADR 0006; Markdown fidelity per AD
 - Outlines: `outlines/*.md` bodies.
 - Page text: dedicated Markdown files in their kind's folder.
 - Project details (title, author, language, numbering style, schema version, kinds, manuscript unit): `project.md` frontmatter.
-- Personal theme, locale, layout, pinned items, backups and recovery journals: OS app data, never the project folder.
+- Personal theme, locale, layout, pinned items, earlier versions (restore points) and recovery journals: OS app data, never the project folder.
+- **Backups (Milestone 20)** are zip files of the whole book folder, named "‹Book› backup YYYY-MM-DD HH.MM.zip" in local time, in a folder the author chose for that book, never inside the book. Each backup's entries sit in a folder named after the book, so unzipping it by hand gives a book folder. Which folder, the clean-up rule and the record of automatic backups are kept in OS app data, by the book's folder. Nothing is ever deleted unless the author turned on a clean-up rule.
 - Search indexes, caches and thumbnails: disposable, never authoritative.
 
 ## Files

@@ -208,6 +208,6 @@ test('Ctrl+Z in Story undoes the last outline change', async () => {
   await first.focus()
   await page.keyboard.press('Alt+ArrowDown')
   await expect(first).not.toContainText('Ilka inherits')
-  await page.keyboard.press('Control+z')
+  await page.keyboard.press('ControlOrMeta+z')
   await expect(first).toContainText('Ilka inherits')
 })

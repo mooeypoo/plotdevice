@@ -33,11 +33,14 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
   })
   // Listed in full, so widening the bridge is always a deliberate change.
   const bridge = [
-    'backupBook',
+    'answerBackupOffer',
+    'backUpNow',
+    'backupStatus',
     'cardsAbout',
     'changeContents',
     'changeKinds',
     'checkForUpdates',
+    'chooseBackupFolder',
     'chooseNewProjectLocation',
     'chooseShelfTags',
     'compileBook',
@@ -61,15 +64,19 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'getUpdate',
     'leftOff',
     'linkedFrom',
+    'listBackups',
     'listOutlines',
     'listReferences',
     'listVersions',
     'newProjectLocation',
     'onEvent',
+    'openBackupFolder',
     'openChapter',
     'openOutline',
     'openProject',
+    'openSample',
     'planFolderRenames',
+    'previewBackup',
     'readReference',
     'readVersion',
     'rememberPlace',
@@ -80,12 +87,18 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'renameReferenceFile',
     'reportTagProblems',
     'resolveConflict',
+    'restartSample',
+    'restoreBackupAsCopy',
+    'restoreBackupReplace',
     'restoreVersion',
     'retag',
     'saveChapter',
+    'setBackupCleanup',
+    'setBackupFolder',
     'setPreferences',
     'setShelf',
     'setTags',
+    'shouldOfferBackups',
     'undoFolderRenames',
     'undoOutline',
   ]
@@ -227,8 +240,10 @@ test('the start screen offers the guide to moving an existing book in, in the in
   const link = page.getByTestId('welcome-bring-in')
   await expect(page.getByText('Already have notes or a draft?')).toBeVisible()
   await expect(link).toHaveAttribute('href', 'https://mooeypoo.github.io/plotdevice/start/bring-in/')
-  // Reached by keyboard straight after the two buttons.
+  // Reached by keyboard straight after the two buttons and "Try a sample book".
   await page.getByTestId('open-project').focus()
+  await page.keyboard.press('Tab')
+  await expect(page.getByTestId('try-sample')).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(link).toBeFocused()
   // Starting a new book hides it, to keep the form calm.

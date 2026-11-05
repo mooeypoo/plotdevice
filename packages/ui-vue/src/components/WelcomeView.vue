@@ -132,6 +132,11 @@ if (creating.value) void start()
       </button>
       <button type="button" data-testid="open-project" @click="store.open('choose')">{{ settings.t('welcome-open-project') }}</button>
     </div>
+    <p v-if="!creating" class="welcome-sample">
+      <button type="button" class="link-button" data-testid="try-sample" @click="store.openSample(settings.locale)">
+        {{ settings.t('welcome-try-sample') }}
+      </button>
+    </p>
     <p v-if="!creating" class="welcome-bring-in secondary">
       {{ settings.t('welcome-bring-in-question') }}
       <a :href="bringInGuideFor(settings.locale)" target="_blank" rel="noreferrer" data-testid="welcome-bring-in">{{
@@ -152,8 +157,10 @@ if (creating.value) void start()
             data-testid="recent-project"
             @click="store.open({ recent: project.root })"
           >
-            <span class="recent-title" dir="auto">{{ project.title }}</span>
-            <span class="secondary recent-folder" dir="ltr">{{ project.root }}</span>
+            <span class="recent-title" dir="auto"
+              >{{ project.title }} <span v-if="project.sample" class="sample-badge">{{ settings.t('sample-badge') }}</span></span
+            >
+            <span v-if="!project.sample" class="secondary recent-folder" dir="ltr">{{ project.root }}</span>
           </button>
           <div v-else class="recent-project">
             <span class="recent-title" dir="auto">{{ project.title }}</span>

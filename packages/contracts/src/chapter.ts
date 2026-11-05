@@ -56,5 +56,9 @@ export type HostEvent =
   | { kind: 'open-failed'; error: 'not-a-project' | 'unreadable' | 'newer-format' }
   /** The app is closing: send any text still waiting to be saved. */
   | { kind: 'flush' }
+  /** An automatic backup ran (Milestone 20): told only when something needs saying. */
+  | { kind: 'backup-ran'; title: string; removed: number; problem: 'missing-folder' | 'no-space' | 'inside-book' | 'failed' | null }
+  /** The window is closing and this book could have backups: offer them once, then the window closes. */
+  | { kind: 'offer-backups' }
   /** A newer version is out (Milestone 15). */
   | { kind: 'update-available'; update: UpdateView }

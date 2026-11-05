@@ -61,6 +61,16 @@ Every editing surface (chapters, outline Text, every World page) shows what the 
 - **Timeline** (Milestone 20, ADR 0012): a line of moments (the outline's sections) with their cards stacked under each. Drag between moments, with the Move menu as the keyboard equivalent. Cards linked to a chapter show its name as a small label. **Lanes by…** (Milestone 21) splits it per page of any kind, all of them or those with chosen tags; a card goes in a lane only by an explicit link.
 - **First outline:** an outline never opened before shows a short, dismissible guide: "Sections are the big steps of your story. Cards are the moments in each step. Add details under a card." The outline's shape is explained, not configurable.
 
+## Keeping the book safe (Milestone 20)
+
+- **Backups are each book's own.** "Backups…" in the book menu holds the folder, a plain explanation, the last backup, **Back up now** and an opt-in clean-up. Sync folders found on the computer (Google Drive, Dropbox, OneDrive, iCloud Drive) are offered by name. The app never uploads anything itself, and never calls this a cloud backup.
+- **The one-time offer** comes when the author leaves a book with some writing and at least two World pages: on closing the window, or on opening another book. It is never shown for the sample book. The window closes on the answer, or at once if closed again.
+- **The book menu** shows "Backed up ‹date›" or "No backups yet" under the book's title. It has **Backups…**, **Back up now** and **Restore from a backup…** as their own group.
+- **Restore** lists backups newest first and shows what differs. It offers **Open as a separate copy** (safest; the copy opens from the notice), or **Replace this book…** behind a plain confirmation that explains the "before restoring" backup.
+- **Notices** say when a backup failed (folder missing, no space) and when a clean-up removed backups. Nothing happens silently.
+- **The sample book:** **Try a sample book** on the start screen opens a copy kept in app data, marked "Sample". **Start the sample over…** asks first and says plainly that the sample is erased and other books are untouched.
+- **Help links:** a small "?" beside the headings of Backups, Kinds of pages, Match folder names, Versions and Tidy tags, in the outline guide, and beside the plain-text setting. Each opens the guide page in the interface's language.
+
 ## Outline UX edge cases
 - Empty outline: guided first card or blank start, without forcing templates.
 - Heading with zero cards: empty column shown.

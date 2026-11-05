@@ -45,6 +45,17 @@ export {
   type WritingSession,
   type WritingSessionOptions,
 } from './session/writing-session'
+export type { BackupContents, BackupFileInfo, BackupProblem, BookBackups } from './ports/book-backups'
+export {
+  createBackupSession,
+  type BackupBook,
+  type BookBackupEntry,
+  type BackupRun,
+  type BackupSession,
+  type BackupStatus,
+  type ReplaceProblem,
+  type RestorePreview,
+} from './backups/backup-session'
 export type { FileStore, ReadProblem, RenameProblem, Revision, StoredText, TextToStore, WriteProblem } from './ports/file-store'
 export type { IdGenerator } from './ports/id-generator'
 export type { OutlineDocument, OutlineRepository, OutlineSummary, OutlineWriteProblem } from './ports/outline-repository'

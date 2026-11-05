@@ -102,3 +102,22 @@ After changing a guide page, `pnpm site:translations` shows what is behind; the 
 
 - [ ] **The starter outlines** in `packages/templates/starters/he/` were written in Hebrew, not translated, but by me. The main character is „הגיבורה” throughout; check that's the voice you want, or whether the beats should avoid gender.
 - [ ] Guide pages changed: `start/first-book.mdx`, `planning/outlines.mdx`, `planning/tags.mdx`, `files/folder.mdx`.
+
+## Added in Milestone 20
+
+**New messages** for backups, restoring, the sample book and the "?" links. They're written in Hebrew, and each has a translator's note in `qqq.json`:
+- `backups-*`, `backup-*`, `restore-*` and `restored-*`;
+- `welcome-try-sample` and `sample-*`;
+- `help-about` and `help-topic-*`.
+
+Worth checking:
+
+- [ ] **The clean-up sentences** are built from two halves around a number box: `backups-cleanup-older-before` + [6] + `backups-cleanup-older-after`, and the same for `-newest-`. Check they read naturally in Hebrew.
+- [ ] **`backups-sync-hint`** has a right-to-left mark (U+200F) after "Obsidian Sync." so the English names don't run together. Keep it if you rewrite the sentence.
+- [ ] **Backup file names keep the English words** "backup" and "before restoring" ("מטע המלח backup 2026-11-05 14.30.zip"), so they sort and match the same in every language. Say if you'd rather have Hebrew words in Hebrew books.
+- [ ] **`about-license`** now says „תוכנה בקוד פתוח” instead of „תוכנה חופשית”, following the rule against "free".
+- [ ] **`chapter-remove`** is „שמירה להמשך”; the English is now "Put on the side", to match "On the side".
+
+**English rewritten in the wording pass.** The Hebrew of these keys may need to follow:
+
+`new-project-hint`, `open-failed-newer-format`, `create-failed-folder-exists`, `create-failed-inside-project`, `create-failed`, `chapter-remove`, `change-failed-stale`, `change-failed-name-taken`, `change-failed-invalid-name`, `chapter-unreadable`, `chapter-missing`, `direction-paragraph-clear`, `direction-phrase-clear`, `conflict-title`, `conflict-body`, `conflict-keep-both-detail`, `conflict-failed`, `kinds-rename`, `kinds-adopt`, `kinds-folder-stays`, `kinds-not-saved`, `kinds-unit-hint`, `kinds-mismatch`, `match-hint`, `match-blocked-case-only`, `match-blocked-invalid-name`, `match-blocked-other-files`, `match-blocked-missing`, `match-backup-failed`, `folders-undo-stale`, `folders-failed`, `item-edit`, `section-rename`, `confirm-delete-item`, `kept-explanation`, `locked-item`, `invalid-details`, `outline-changed-elsewhere`, `outline-undo-refused`, `outline-refused-multiline-heading`, `reference-failed`, `relationship-changed-elsewhere`, `tags-failed`, `tags-unreadable`, `prompt-tag-rename`, `arc-start-hint`, `arc-outline-title`, `resize-navigator`, `versions-stale`, `compiled`, `compiled-missing`, `compile-failed`, `about-license`, `settings-plain-text-hint`, `backup-problem-missing-folder`, `backup-problem-no-space`, `restore-changed`

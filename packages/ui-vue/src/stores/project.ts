@@ -13,6 +13,7 @@ import type {
 import type { ProjectPath } from '@plotdevice/shared'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { beforeLeavingBook } from '../closing'
 import { useApi } from '../api'
 
 /** Something to tell the author: a message key and its parameters. */
@@ -43,6 +44,11 @@ export const useProjectStore = defineStore('project', () => {
     notice.value = { key, params, action }
   }
 
+  /** Before another book replaces this one: each step in turn, such as offering backups. */
+  async function leaving(): Promise<void> {
+    if (project.value) for (const step of beforeLeavingBook) await step()
+  }
+
   function setProject(view: ProjectView): void {
     if (opened.value) opened.value = { ...opened.value, project: view }
   }
@@ -52,6 +58,7 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   async function open(request: OpenProjectRequest): Promise<void> {
+    await leaving()
     const result = await api.openProject(request)
     if (result.ok) {
       statuses.value = {}
@@ -62,7 +69,31 @@ export const useProjectStore = defineStore('project', () => {
     await refreshRecent()
   }
 
+  /** The sample book to try, in the interface's language (Milestone 20). */
+  async function openSample(language: 'en' | 'he'): Promise<void> {
+    await leaving()
+    const result = await api.openSample(language)
+    if (result.ok) {
+      statuses.value = {}
+      opened.value = result.value
+      notice.value = null
+      renamedFolders.value = null
+    } else tell(`open-failed-${result.error === 'cancelled' || result.error === 'not-recent' ? 'unreadable' : result.error}`)
+    await refreshRecent()
+  }
+
+  /** "Start the sample over", once the author has confirmed. */
+  async function restartSample(): Promise<void> {
+    const result = await api.restartSample()
+    if (!result.ok) return tell('sample-restart-failed')
+    statuses.value = {}
+    opened.value = result.value
+    renamedFolders.value = null
+    tell('sample-restarted')
+  }
+
   async function create(details: NewProjectRequest): Promise<boolean> {
+    await leaving()
     const result = await api.createProject(details)
     if (result.ok) {
       statuses.value = {}
@@ -164,6 +195,8 @@ export const useProjectStore = defineStore('project', () => {
     offer,
     setProject,
     open,
+    openSample,
+    restartSample,
     create,
     forget,
     changeContents,

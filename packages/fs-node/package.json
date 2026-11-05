@@ -10,6 +10,7 @@
   "dependencies": {
     "@plotdevice/application": "workspace:*",
     "@plotdevice/shared": "workspace:*",
-    "chokidar": "^6.0.0"
+    "chokidar": "^6.0.0",
+    "fflate": "^0.8.3"
   }
 }

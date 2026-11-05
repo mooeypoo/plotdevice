@@ -4,6 +4,7 @@ import { useApi } from '../api'
 import { useVersions } from '../composables/use-versions'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
+import HelpLink from './HelpLink.vue'
 
 const api = useApi()
 const { current, close } = useVersions()
@@ -69,7 +70,9 @@ function onKey(event: KeyboardEvent, index: number): void {
 
 <template>
   <dialog ref="dialog" class="dialog versions" data-testid="versions" aria-labelledby="versions-title" @cancel.prevent="close">
-    <h2 id="versions-title">{{ current ? t('versions-title', current.title) : '' }}</h2>
+    <h2 id="versions-title">
+      {{ current ? t('versions-title', current.title) : '' }} <HelpLink page="safe/versions" :label="t('help-topic-versions')" />
+    </h2>
     <p v-if="versions.length === 0" class="secondary">{{ t('versions-none') }}</p>
     <div v-else class="versions-body">
       <ul role="listbox" :aria-label="t('versions')" class="versions-list">
