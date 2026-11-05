@@ -1,6 +1,6 @@
 # Milestone 20: Ready for writers
 
-Status: **Approved** (2026-11-05), with the owner's answers below and `fflate` for zips. Building. Direction from the "Change of order" section of `roadmap-16-approachable-studio-and-timelines.md`, with the owner's decisions on backups, restore points and installers (2026-11-05).
+Status: **Built** (2026-11-05). Approved with the owner's answers below and `fflate` for zips. See [Results](#results). Direction from the "Change of order" section of `roadmap-16-approachable-studio-and-timelines.md`, with the owner's decisions on backups, restore points and installers (2026-11-05).
 
 ## Goal
 
@@ -223,3 +223,62 @@ Stated before coding. Backups and restore are test-first.
 3. **Restore asks:** open the backup as a separate copy, or replace the book, with a plain warning that says a backup of the current book is saved first and the restored backup stays.
 4. **The sample book is changeable,** with "Start over" behind an "are you sure?" that explains plainly what it does.
 5. **The English is rewritten now,** to be a reliable source for translating; the Hebrew follows in the owner's translation round.
+
+## Results
+
+### What the author can do
+
+- **Keep backups of each book.**
+  - **Where:** in a folder they choose for it ("Backups…" in the book menu), with Google Drive, Dropbox, OneDrive or iCloud Drive offered by name when found.
+  - **When:** once a day, if the book changed, as one zip named with the title, date and time.
+  - **Deleting:** nothing is deleted unless the author turns on a clean-up, and then only daily backups the app made, never the newest. A notice says what was removed.
+- **Be offered backups once,** when leaving a book with some writing and pages: closing the window, or opening another book.
+- **See and save backups:** "Backed up ‹date›" under the book's title in its menu, and **Back up now** at any time.
+- **Restore,** after seeing what differs:
+  - as a separate copy, which opens from the notice;
+  - or in place, after a plain warning, with the book as it was saved first as a "before restoring" backup.
+- **Try a sample book** from the start screen, change anything, and **Start the sample over…** after a clear confirmation.
+- **A "?" beside the things that need explaining,** opening the guide in the interface's language.
+- **Read plainer English everywhere:** 57 messages rewritten, so errors say what happened and what to do next.
+- **Run on a Mac:** CI builds and tests the Mac app, unsigned.
+
+### Changed from the plan while building
+
+- **Newer files are kept when restoring in place.** A chapter added since the backup stays, outside the contents, instead of being removed. The journal needs no "delete" step, and restoring never deletes anything.
+- **Backup settings belong to the book's folder, not just its id.** A copy opened from a backup has the same id but is a book of its own, so it starts with no backups. The cost: a book moved to another folder is asked again.
+- **The restore list matches backups by name** ("‹Book› backup …", "‹Book› before restoring …") and by the app's own record. It doesn't open every zip to read its id, which would be slow with many backups. A backup made under an earlier title shows only if the app recorded making it.
+- **Obsidian isn't detected,** because that would mean reading its settings file. The explanation still names Obsidian Sync.
+- **The guide's old "Backups" page** described earlier versions. That moved into "Earlier versions", and "Backups" now describes backups: one name per concept.
+- **The "?" links** are on Backups, Kinds of pages, Match folder names, Versions, Tidy tags, the outline guide and the plain-text setting. Export has none, because nothing on screen stays open to put it beside.
+- **"Make a backup now" in Match folder names** became **Back up now**: the same zip, in the book's backup folder.
+
+### Found and fixed by the tests
+
+- **A backup's text lost its leading BOM** when read back, so restoring would have changed the file. It's kept now.
+- **A restored copy shared the original's backup settings** (see above).
+- **The sample book would have been offered backups** whenever the author left it. It never is now.
+- **On a Mac, three end-to-end tests pressed Ctrl+Z,** but undo there is ⌘Z. The tests now use the platform's key.
+
+### Tests
+
+- **Domain:** when a backup is due, fingerprints, names (local time, Hebrew, characters Windows refuses), clean-up rules and copy names.
+- **Zips:** byte-for-byte round trips with BOMs and Hebrew names; nothing written outside the new folder ("../" in a zip); never over a file; a missing folder.
+- **Restore in place:** byte-identical, brings back removed files, keeps newer ones, and recovers from a crash halfway.
+- **The backup session on real folders:** the offer, the daily schedule, clean-up only when on, a missing folder, list, preview, and both ways to restore.
+- **IPC:** only folders the host offered; only backups it listed; the offer's answer.
+- **End to end:**
+  - turning backups on;
+  - the menu note;
+  - restoring in place and back again;
+  - a separate copy that opens from the notice;
+  - the offer on switching books and on closing the window;
+  - the sample book and starting it over.
+- **CI on macos-latest,** beside Ubuntu and Windows.
+
+### Known limitations
+
+- **Backup file names use the English words** "backup" and "before restoring" in every language. This is on the Hebrew review list.
+- **Restoring in place** puts back the book's Markdown files. Other files in the book folder, such as images, are left as they are (a copy restores everything).
+- **The writer sessions** are for the owner to run, with `docs/research/writer-sessions.md`.
+- **Signing, Apple's developer programme and updates that install themselves** are still for later.
+

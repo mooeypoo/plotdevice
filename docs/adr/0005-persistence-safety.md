@@ -50,3 +50,11 @@ From roadmap decision D5 and ADR 0011.
 - **Match folder names…** (Milestone 18) is a multi-file operation like "Rename source file": the folder renames, the link updates and the `kinds` patch to `project.md` go through the journal (point 6) as one operation, with an undo.
 - **The open item above applies to it.** Before it ships, relinking covers reference-style links, `[[wikilinks]]` and links inside chapters, as well as inline links in outlines, pages and `CONTENTS.md`.
 - **"Make a backup now"** in that helper, and the backups to a folder the author chooses (Milestone 22), are copies of the book in a place the author picks. They are separate from the recovery copies and journals of point 9, which stay in OS app data and are never in the project.
+
+## Note (2026-11-05): restoring a backup in place
+
+"Replace this book" (Milestone 20) is a journalled operation, `restore-backup`.
+- **Write steps only:** one per Markdown file that differs from the backup, and one per file the backup has that the book no longer has. A write step's `before` may now be `null`, meaning a file that doesn't exist yet.
+- **Newer files stay:** files the book has and the backup doesn't are left as they are. A chapter added since the backup stays, outside the contents, so restoring never deletes anything.
+- **Undoable:** the book as it was is saved as a "before restoring" backup first, so the restore can itself be undone from the same list.
+
