@@ -1,6 +1,6 @@
 ---
 title: A tour of the window
-description: The top bar, the chapter list, the page and the references, and what each is for.
+description: The top bar, the chapter list, the page, the references and Story, and what each is for.
 ---
 
 import Ui from '~/components/Ui.astro'
@@ -10,11 +10,13 @@ import Shot from '~/components/Shot.astro'
 
 ## The top bar
 
-- **The book's title** opens the book menu: **<Ui k="export-book" />** and **<Ui k="chapter-versions" />**.
+- **The book's title** opens the book menu: **<Ui k="export-book" />**, **<Ui k="kinds-menu" />**, **<Ui k="chapter-versions" />**, and the backups: **<Ui k="backups-menu" />**, **<Ui k="backups-now" />** and **<Ui k="restore-menu" />**. Under the title, it says when the book was last backed up.
 - **<Ui k="workspace-story" /> | <Ui k="workspace-write" />** switches between planning and writing. Use them in any order; your place in each is kept.
 - **<Ui k="save-saved" />** tells you everything is on disk.
 - **Aa** changes how the page looks: text size, page width and focus mode.
-- **☰** has the rest: open another book, **<Ui k="settings-open" />**, help, and About.
+- **☰** has the rest: open another book, **<Ui k="settings-open" />**, **<Ui k="help-documentation" />**, and About.
+
+A small **?** beside some places in the app opens the page of this guide about it.
 
 <Shot name="book-menu" alt="The book menu, open under the book's title" close />
 
@@ -27,4 +29,11 @@ import Shot from '~/components/Shot.astro'
 
 ## Story
 
-**<Ui k="workspace-story" />** holds your outlines, characters, places and notes. See [Outlines](/plotdevice/planning/outlines/).
+**<Ui k="workspace-story" />** is where you plan. Its side list has two halves:
+
+- **<Ui k="story-plot" />** is the story's events: your outlines, with the main one marked **<Ui k="outline-main-badge" />**. **<Ui k="story-timeline" />**, above them, shows them all side by side. **<Ui k="story-manuscript" />**, below them, shows the book as it reads. See [Outlines](/plotdevice/planning/outlines/), [The timeline](/plotdevice/planning/timeline/) and [The book's chapters](/plotdevice/planning/book-chapters/).
+- **<Ui k="story-world" />** is who and where: **<Ui k="story-character" />**, **<Ui k="story-place" />** and **<Ui k="story-note" />**, and any [kinds of pages](/plotdevice/planning/kinds/) your book adds. See [Characters, places and notes](/plotdevice/planning/pages/).
+
+<Shot name="story" alt="Story: Plot and World at the side, and the main outline on a board" />
+
+An outline opens on a **<Ui k="view-board" />**, as a **<Ui k="view-outline" />**, or as **<Ui k="view-text" />**, from the switch beside its name.

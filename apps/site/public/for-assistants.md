@@ -41,7 +41,8 @@ The Salt Orchard/
 | Many entries of one sort that is neither a character nor a place: factions, ships, spells | a kind of its own (see "Kinds of pages") |
 | Groups: a family, a faction's members, who matters in which part | `tags` on the pages |
 | "Bea is Ilka's aunt" | one relationship, on one of the two pages (see "Relationships") |
-| A timeline of the world's or story's events | a note (`notes/timeline.md`), as a list |
+| Storylines that run side by side (who was where while something happened) | one outline per storyline, lined up with the main outline (see "The main outline" and "Lining up storylines") |
+| A chronology kept for reference: dates, eras, the world's history | a note (`notes/timeline.md`), as a list |
 | A plot synopsis, beat sheet, or chapter-by-chapter plan | an outline in `outlines/` |
 | A character's or subplot's arc | its own outline (`outlines/the-arc-of-ilka.md`) |
 | Chapters already written | one file each in `manuscript/`, listed in `CONTENTS.md` |

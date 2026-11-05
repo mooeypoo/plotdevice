@@ -1,22 +1,24 @@
 ---
 title: Characters, places and notes
-description: Keep a page for each character, place and idea, see how they connect, and find them again while you write.
+description: Keep a page for each character, place and idea, or anything else your book needs, see how they connect, and find them again while you write.
 ---
 
 import Ui from '~/components/Ui.astro'
 import Shot from '~/components/Shot.astro'
 
-**<Ui k="workspace-story" />** has two halves. **<Ui k="story-plot" />** is the story's events: its outlines. **<Ui k="story-world" />** is who and where: **<Ui k="story-character" />**, **<Ui k="story-place" />** and **<Ui k="story-note" />**. Each page is a Markdown file in its own folder.
+**<Ui k="workspace-story" />** has two halves. **<Ui k="story-plot" />** is the story's events: its outlines. **<Ui k="story-world" />** is who and where: **<Ui k="story-character" />**, **<Ui k="story-place" />** and **<Ui k="story-note" />**, and any kind of page your book adds, such as factions or ships. Each page is a Markdown file, in its kind's folder.
+
+A book made from a template may start with other kinds: a D&D campaign has NPCs, locations, factions, items and lore. Everything on this page works the same for every kind. To add, rename or remove kinds, see [Kinds of pages](/plotdevice/planning/kinds/).
 
 ## See them all
 
-Under **<Ui k="story-world" />**, choose **<Ui k="story-character" />**, **<Ui k="story-place" />** or **<Ui k="story-note" />**. They open as cards, A to Z: each with its name, other names, description, tags and first relationships.
+Under **<Ui k="story-world" />**, choose a kind, such as **<Ui k="story-character" />**. Its pages open as cards, A to Z: each with its name, other names, description, tags and first relationships. The number beside each kind is how many pages it has.
 
 <Shot name="world-gallery" alt="The characters as cards: Bea Halmi, Ilka Varga and Noël Arany" />
 
 ## Add a page
 
-The last card, **+ <Ui k="new-character" />** (or **+ <Ui k="new-place" />**, **+ <Ui k="new-note" />**), adds one. Give it a name.
+The last card, such as **+ <Ui k="new-character" />**, adds one. Give it a name.
 
 ## Write it
 
@@ -51,7 +53,7 @@ Under an outline in **<Ui k="linked-from" />**, **<Ui k="show-on-board" />** ope
 
 ## Start an arc
 
-**+ <Ui k="arc-start" />** makes a new outline for this character's story (or this place's, or this idea's), under **<Ui k="story-plot" />**. It starts with a link back to the page, so it shows under **<Ui k="linked-from" />** too.
+**+ <Ui k="arc-start" />** makes a new outline for this character's story (or this place's, or this idea's), under **<Ui k="story-plot" />**. It starts with a link back to the page, so it shows under **<Ui k="linked-from" />** too. On [the timeline](/plotdevice/planning/timeline/), it's a storyline of its own, to line up with the main story.
 
 ## Rename
 

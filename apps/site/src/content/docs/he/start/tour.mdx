@@ -1,7 +1,7 @@
 ---
-sourceHash: 7d07686eb587
+sourceHash: 6de6b517e6a8
 title: סיור בחלון
-description: הסרגל העליון, רשימת הפרקים, העמוד וחומרי העזר, ומה התפקיד של כל אחד.
+description: הסרגל העליון, רשימת הפרקים, העמוד, חומרי העזר והסיפור, ומה התפקיד של כל אחד.
 ---
 
 import Ui from '~/components/Ui.astro'
@@ -11,11 +11,13 @@ import Shot from '~/components/Shot.astro'
 
 ## הסרגל העליון
 
-- **שם הספר** פותח את תפריט הספר: **<Ui k="export-book" />** ו־**<Ui k="chapter-versions" />**.
+- **שם הספר** פותח את תפריט הספר: **<Ui k="export-book" />**, **<Ui k="kinds-menu" />**, **<Ui k="chapter-versions" />**, והגיבויים: **<Ui k="backups-menu" />**, **<Ui k="backups-now" />** ו־**<Ui k="restore-menu" />**. מתחת לשם כתוב מתי הספר גובה בפעם האחרונה.
 - **<Ui k="workspace-story" /> | <Ui k="workspace-write" />** עוברים בין תכנון לכתיבה. אפשר בכל סדר, והמקום בכל אחד נשמר.
 - **<Ui k="save-saved" />** אומר שהכול שמור בדיסק.
 - **Aa** משנה את מראה העמוד: גודל הטקסט, רוחב העמוד ומצב ריכוז.
-- **☰** מכיל את השאר: פתיחת ספר אחר, **<Ui k="settings-open" />**, עזרה, ואודות.
+- **☰** מכיל את השאר: פתיחת ספר אחר, **<Ui k="settings-open" />**, **<Ui k="help-documentation" />**, ואודות.
+
+**?** קטן ליד חלק מהמקומות באפליקציה פותח את העמוד במדריך הזה שמסביר עליהם.
 
 <Shot name="book-menu" alt="תפריט הספר, פתוח מתחת לשם הספר" close />
 
@@ -28,4 +30,11 @@ import Shot from '~/components/Shot.astro'
 
 ## סיפור
 
-**<Ui k="workspace-story" />** מכיל את המתווים, הדמויות, המקומות וההערות. ראו [מתווים](/plotdevice/he/planning/outlines/).
+**<Ui k="workspace-story" />** הוא המקום לתכנן. ברשימה שבצד יש שני חלקים:
+
+- **<Ui k="story-plot" />** היא מה שקורה בסיפור: המתווים, והמתווה הראשי מסומן **<Ui k="outline-main-badge" />**. **<Ui k="story-timeline" />**, מעליהם, מראה את כולם זה לצד זה. **<Ui k="story-manuscript" />**, מתחתם, מראה את הספר כפי שהוא נקרא. ראו [מתווים](/plotdevice/he/planning/outlines/), [ציר הזמן](/plotdevice/he/planning/timeline/) ו[פרקי הספר](/plotdevice/he/planning/book-chapters/).
+- **<Ui k="story-world" />** הוא מי ואיפה: **<Ui k="story-character" />**, **<Ui k="story-place" />** ו־**<Ui k="story-note" />**, וכל [סוג דפים](/plotdevice/he/planning/kinds/) שמוסיפים לספר. ראו [דמויות, מקומות והערות](/plotdevice/he/planning/pages/).
+
+<Shot name="story" alt="סיפור: עלילה ועולם בצד, והמתווה הראשי על לוח" />
+
+מתווה נפתח על **<Ui k="view-board" />**, כ־**<Ui k="view-outline" />** או כ־**<Ui k="view-text" />**, מהמתג שליד השם שלו.
