@@ -1,3 +1,4 @@
+import { projectTemplate, starter } from '@plotdevice/templates'
 import {
   createOutlineSession,
   createPreferencesSession,
@@ -237,6 +238,9 @@ void app.whenReady().then(async () => {
       recent,
       chooseProjectFolder: () => chooseFolder('dialog-open-project'),
       chooseNewProjectLocation: () => chooseFolder('dialog-new-project-location'),
+      // Tests never make projects in the real Documents folder.
+      defaultProjectLocation: testFolderChoice || app.getPath('documents'),
+      template: projectTemplate,
       folderExists: (path) =>
         access(path).then(
           () => true,
@@ -257,7 +261,7 @@ void app.whenReady().then(async () => {
           () => false,
         ),
     },
-    outlines: { outlines, writing, recent },
+    outlines: { outlines, writing, recent, starter: (id, language) => starter(id, language).body },
     references: { references: createReferenceRepository({ folders }), writing, recent },
     versions: {
       versions,

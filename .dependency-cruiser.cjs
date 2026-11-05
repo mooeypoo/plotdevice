@@ -88,6 +88,9 @@ module.exports = {
       pkg('shared'),
       pkg('contracts'),
     ]),
+    onlyMayImport('templates-are-data', 'templates: starter outlines and template data; imports nothing', pkg('templates'), [
+      pkg('templates'),
+    ]),
     onlyMayImport('i18n-is-framework-free', 'i18n: shared and banana-i18n; no Vue', pkg('i18n'), [
       pkg('i18n'),
       pkg('shared'),

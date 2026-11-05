@@ -41,6 +41,8 @@ export const useViewStore = defineStore('view', () => {
   const kindsAdopt = ref<string | null>(null)
   /** "Match folder names", opened from "Kinds of pages" (Milestone 18). */
   const matchFolders = ref(false)
+  /** "New project…" while a book is open: the picker shows over it until a project is made or Back (Milestone 19). */
+  const newProject = ref(false)
 
   function writeChapter(file: ProjectPath): void {
     chapterRequest.value = file
@@ -84,6 +86,7 @@ export const useViewStore = defineStore('view', () => {
     kindsDialog,
     kindsAdopt,
     matchFolders,
+    newProject,
     writeChapter,
     setFocusMode,
     toggleNavigator,

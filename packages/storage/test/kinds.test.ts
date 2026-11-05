@@ -58,6 +58,16 @@ describe('reading the kinds of pages', () => {
     expect(project.warnings).toEqual([])
   })
 
+  it('reads suggested tags as a list or a single tag, tidied, and none when absent (Milestone 19)', async () => {
+    const list = await open(await book({ 'project.md': '---\ntitle: Book\nsuggestedTags: [Villain, " Ally ", villain, 3]\n---\n' }))
+    expect(list.details.suggestedTags).toEqual(['Villain', 'Ally'])
+    const one = await open(await book({ 'project.md': '---\ntitle: Book\nsuggestedTags: נבל\n---\n' }))
+    expect(one.details.suggestedTags).toEqual(['נבל'])
+    const none = await open(await book({ 'project.md': '---\ntitle: Book\n---\n' }))
+    expect(none.details.suggestedTags).toEqual([])
+    expect(none.warnings).toEqual([])
+  })
+
   it('reads the book’s own kinds, in Hebrew too, and what it calls a chapter', async () => {
     const project = await open(await book({ 'project.md': CAMPAIGN }))
     expect(project.details.kinds).toEqual([

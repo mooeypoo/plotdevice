@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProjectView, ReferenceKind } from '@plotdevice/contracts'
+import type { ProjectView, ReferenceKind, StarterId } from '@plotdevice/contracts'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
@@ -17,6 +17,7 @@ import ItemHeader from './ItemHeader.vue'
 import KeptAsWritten from './KeptAsWritten.vue'
 import ManuscriptOutline from './ManuscriptOutline.vue'
 import OutlineBoard from './OutlineBoard.vue'
+import OutlineGuide from './OutlineGuide.vue'
 import OutlineList from './OutlineList.vue'
 import OutlineText from './OutlineText.vue'
 import ReferencePage from './ReferencePage.vue'
@@ -28,7 +29,7 @@ const story = useStoryStore()
 const settings = useSettingsStore()
 const view = useViewStore()
 const actions = useOutlineActions()
-const { ask } = usePrompt()
+const { askWithChoice } = usePrompt()
 const versions = useVersions()
 const t = settings.t
 const panels = usePanelWidths()
@@ -80,9 +81,15 @@ const outlineItems = computed<MenuItem[]>(() => {
   ]
 })
 
+const STARTERS: StarterId[] = ['three-acts', 'story-beats', 'character-arc', 'campaign-arc', 'session-plan']
+
+/** A new outline, empty or from a starter in the story's language (Milestone 19). */
 async function newOutline(): Promise<void> {
-  const title = await ask(t('prompt-outline-title'))
-  if (title) await story.create(title)
+  const answer = await askWithChoice(t('prompt-outline-title'), {
+    label: t('new-outline-start'),
+    options: [{ value: '', label: t('starter-empty') }, ...STARTERS.map((id) => ({ value: id, label: t(`starter-${id}`) }))],
+  })
+  if (answer) await story.create(answer.text, undefined, (answer.choice as StarterId) || undefined)
 }
 
 /**
@@ -288,6 +295,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         </ItemHeader>
         <div class="story-page">
           <p v-if="story.outline.invalidDetails" class="warning" role="status">{{ t('invalid-details') }}</p>
+          <OutlineGuide />
           <OutlineText
             v-if="view.outlineView === 'text'"
             :key="story.outline.file"

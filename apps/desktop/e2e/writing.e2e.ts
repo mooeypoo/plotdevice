@@ -76,6 +76,7 @@ async function selectInEditor(page: Page, phrase: string): Promise<void> {
 
 async function createProject(page: Page, title: string, language: 'en' | 'he'): Promise<void> {
   await page.getByTestId('new-project').click()
+  await page.getByTestId('template-blank').click()
   await page.getByTestId('new-project-title').fill(title)
   await page.getByTestId('new-project-language').selectOption(language)
   await page.getByTestId('new-project-create').click()

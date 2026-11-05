@@ -6,6 +6,7 @@ import type {
   ChangeProblem,
   ContentsChange,
   CreateProblem,
+  ProjectTemplate,
   FileRenamed,
   FolderRenamePlan,
   FolderRenameUndo,
@@ -57,7 +58,7 @@ export interface WritingSession {
   onEvent(listener: (event: SessionEvent) => void): () => void
   /** Finishes saving the current project's chapters first. */
   openProject(root: string): Promise<Result<ProjectSnapshot, OpenProblem>>
-  createProject(location: string, details: NewProject): Promise<Result<ProjectSnapshot, CreateProblem>>
+  createProject(location: string, details: NewProject, template?: ProjectTemplate): Promise<Result<ProjectSnapshot, CreateProblem>>
   openChapter(file: ProjectPath): Promise<Result<OpenedChapter, NoProject | 'missing' | 'unreadable'>>
   saveChapter(file: ProjectPath, text: string, generation: number): Result<void, 'not-open'>
   saveStatus(file: ProjectPath): SaveStatus | null
@@ -206,7 +207,7 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
       return () => listeners.delete(listener)
     },
     openProject: (root) => serially(() => switchProject(() => repository.open(root))),
-    createProject: (location, details) => serially(() => switchProject(() => repository.create(location, details))),
+    createProject: (location, details, template) => serially(() => switchProject(() => repository.create(location, details, template))),
 
     async openChapter(file) {
       if (!project) return err('no-project')

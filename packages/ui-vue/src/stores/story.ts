@@ -1,4 +1,5 @@
 import type {
+  StarterId,
   OutlineEditRequest,
   OutlineProblem,
   OutlineResult,
@@ -133,11 +134,11 @@ export const useStoryStore = defineStore('story', () => {
     if (outline.value) settle(await api.openOutline(outline.value.file))
   }
 
-  /** A new outline; `about` a page (a character's arc), which the outline starts by linking to. */
-  async function create(title: string, aboutPage?: ProjectPath): Promise<void> {
+  /** A new outline; `about` a page (a character's arc), which the outline starts by linking to; `starter` a starter outline. */
+  async function create(title: string, aboutPage?: ProjectPath, starter?: StarterId): Promise<void> {
     showing.value = { kind: 'outline' }
     about.value = null
-    if (settle(await api.createOutline(title, aboutPage))) await refresh()
+    if (settle(await api.createOutline(title, aboutPage, starter))) await refresh()
   }
 
   /** Opens `file` on the board with the cards that link to `page` picked out. */

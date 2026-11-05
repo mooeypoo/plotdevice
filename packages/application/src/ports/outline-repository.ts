@@ -27,11 +27,15 @@ export type OutlineWriteProblem = OutlineProblem | 'multiline-heading' | 'stale'
  */
 export interface OutlineRepository {
   listOutlines(root: string): Promise<OutlineSummary[]>
-  /** `about`: a page the outline is about (a character's arc); the outline starts with a link to it. */
+  /**
+   * `about`: a page the outline is about (a character's arc); the outline starts with a link to it.
+   * `starter`: a starter outline's text under its title (Milestone 19), which follows.
+   */
   createOutline(
     root: string,
     title: string,
     about?: ProjectPath,
+    starter?: string,
   ): Promise<Result<OutlineDocument, 'empty-text' | 'multiline-text' | 'write-failed'>>
   readOutline(root: string, file: ProjectPath): Promise<Result<OutlineDocument, 'missing' | 'unreadable'>>
   /** Applies the edit and returns the outline as now written, with the whole text it replaced (for undo). */

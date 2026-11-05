@@ -12,7 +12,16 @@ const index = z.number().int().nonnegative()
 const placementSchema = z.strictObject({ part: index.nullable(), index })
 const name = z.string().min(1).max(500)
 
-export const newProjectSchema = z.strictObject({ title: name, language: z.string().min(2).max(35), author: z.string().max(500).optional() })
+/** The app's own templates for new projects (Milestone 19); `blank` is always offered. */
+export const templateIdSchema = z.enum(['novel', 'short-story', 'campaign', 'blank'])
+/** `location`: the folder to make the project in, one the host offered (`newProjectLocation`, `chooseNewProjectLocation`). */
+export const newProjectSchema = z.strictObject({
+  title: name,
+  language: z.string().min(2).max(35),
+  author: z.string().max(500).optional(),
+  template: templateIdSchema,
+  location: z.string().min(1).max(4096),
+})
 
 export const contentsChangeSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('add-chapter'), title: name, placement: placementSchema }),
@@ -70,6 +79,7 @@ export const openProjectSchema = z.union([z.strictObject({ recent: z.string().mi
 export const forgetRecentProjectSchema = z.strictObject({ root: z.string().min(1) })
 
 export type NewProjectRequest = z.infer<typeof newProjectSchema>
+export type TemplateId = z.infer<typeof templateIdSchema>
 export type ContentsChangeRequest = z.infer<typeof contentsChangeSchema>
 export type OpenProjectRequest = z.infer<typeof openProjectSchema>
 
@@ -100,6 +110,8 @@ export interface ProjectView {
   kinds: { folder: string; one?: string; many?: string }[]
   /** What the interface calls a chapter in this book, or `null` for the app's own word. */
   manuscriptUnit: { one: string; many: string } | null
+  /** Tags "+ Tag" offers before any page uses them (Milestone 19). */
+  suggestedTags: string[]
   /** Kinds whose folder isn't named after them (yet): what "Match folder names" would rename. */
   folderMismatches: { from: string; to: string }[]
 }

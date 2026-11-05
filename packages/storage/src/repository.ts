@@ -10,6 +10,7 @@ import type {
   ProjectFolders,
   ProjectRepository,
   ProjectSnapshot,
+  ProjectTemplate,
   RenameFileProblem,
   StoredText,
   WriteProblem,
@@ -22,6 +23,7 @@ import {
   pageFolderOf,
   CURRENT_SCHEMA_VERSION,
   moveChapter,
+  outlineFileFor,
   projectFolderName,
   removeChapter,
   renameChapterLink,
@@ -41,10 +43,12 @@ import {
   formatScalar,
   newChapterFile,
   newContentsFile,
+  newOutlineFile,
   newProjectFile,
   readFrontmatter,
   rewriteLinksTo,
   setFrontmatterBlock,
+  setFrontmatterList,
   setFrontmatterValues,
   splitFrontmatter,
   type ContentsEdit,
@@ -94,23 +98,44 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
   return {
     open,
 
-    async create(location, project) {
+    async create(location, project, template) {
       const valid = validateNewProject(project)
       if (!valid.ok) return err('invalid-details')
+      const projectFile = withTemplate(
+        newProjectFile({ ...valid.value, chapterNumbering: 'continuous', id: ids.next('prj'), schemaVersion: CURRENT_SCHEMA_VERSION }),
+        template,
+      )
+      if (!projectFile.ok) return err('invalid-details')
       const folder = await folders.create(location, projectFolderName(valid.value.title), [MANUSCRIPT_FOLDER])
       if (!folder.ok) return err(folder.error === 'exists' ? 'folder-exists' : folder.error)
       const store = folders.open(folder.value)
-      const projectFile = newProjectFile({
-        ...valid.value,
-        chapterNumbering: 'continuous',
-        id: ids.next('prj'),
-        schemaVersion: CURRENT_SCHEMA_VERSION,
-      })
-      const written = [
-        await store.write(PROJECT_FILE, { text: projectFile, hasBom: false }, null),
-        await store.write(CONTENTS_FILE, { text: newContentsFile(valid.value.title), hasBom: false }, null),
-      ]
-      if (written.some((w) => !w.ok)) return err('io')
+      // The new folder is empty, so every file is written as new (`expected: null`), never over another.
+      const files: { file: ProjectPath; text: string }[] = [{ file: PROJECT_FILE, text: projectFile.value }]
+      let contents = newContentsFile(valid.value.title)
+      if (template?.firstChapter) {
+        const file = chapterFileFor(valid.value.title, [])
+        const edited = editContents(contents, {
+          kind: 'add-chapter',
+          file,
+          linkText: valid.value.title,
+          placement: { part: null, index: 0 },
+        })
+        if (!edited.ok) return err('invalid-details')
+        contents = edited.value
+        files.push({ file, text: newChapterFile(valid.value.title, ids.next('ch')) })
+      }
+      files.push({ file: CONTENTS_FILE, text: contents })
+      for (const outline of template?.outlines ?? []) {
+        const file = outlineFileFor(
+          outline.title,
+          files.map((f) => f.file),
+        )
+        files.push({ file, text: newOutlineFile(outline.title, undefined, outline.body) })
+      }
+      for (const { file, text } of files) {
+        const written = await store.write(file, { text, hasBom: false }, null)
+        if (!written.ok) return err('io')
+      }
       const opened = await open(folder.value)
       return opened.ok ? opened : err('io')
     },
@@ -497,6 +522,15 @@ function writeStep(store: FileStore, path: ProjectPath, current: StoredText, tex
     text,
     hasBom: current.hasBom,
   }
+}
+
+/** A new `project.md` with the template's kinds, chapter word and suggested tags, each only if it has one. */
+function withTemplate(projectFile: string, template: ProjectTemplate | undefined): Result<string, 'invalid'> {
+  if (!template) return ok(projectFile)
+  const kinds = setFrontmatterBlock(projectFile, 'kinds', template.kinds ? kindsLines(template.kinds) : null)
+  const unit = kinds.ok ? setFrontmatterBlock(kinds.value, 'manuscriptUnit', unitLines(template.manuscriptUnit)) : kinds
+  const tags = unit.ok ? setFrontmatterList(unit.value, 'suggestedTags', template.suggestedTags) : unit
+  return tags.ok ? tags : err('invalid')
 }
 
 /** `kinds:` as `project.md` writes it: a block list, plain values quoted only when YAML needs it; `null` for the defaults. */

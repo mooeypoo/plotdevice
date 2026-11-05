@@ -74,6 +74,7 @@ export type {
   FileRenamed,
   OpenProblem,
   ProjectRepository,
+  ProjectTemplate,
   ProjectSnapshot,
   ProjectWarning,
   RecoveryOutcome,

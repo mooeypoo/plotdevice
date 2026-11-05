@@ -6,6 +6,7 @@ import {
   outlineFileSchema,
   placeSchema,
   type OutlineResult,
+  type StarterId,
   type OutlineView,
 } from '@plotdevice/contracts'
 import { ok, type Result } from '@plotdevice/shared'
@@ -17,18 +18,21 @@ export interface OutlineIpcContext {
   outlines: OutlineSession
   writing: WritingSession
   recent: RecentProjectsSession
+  /** A starter outline's text under its title, in the story's language (Milestone 19). */
+  starter(id: StarterId, language: string): string
 }
 
 const view = <E extends string>(result: Result<OutlineState, E>): Result<OutlineView, E> =>
   result.ok ? ok(outlineView(result.value)) : result
 
 /** Outline calls. Files outside `outlines/` are refused by the schemas before anything is read. */
-export function createOutlineHandlers({ outlines, writing, recent }: OutlineIpcContext): Record<string, PayloadHandler> {
+export function createOutlineHandlers({ outlines, writing, recent, starter }: OutlineIpcContext): Record<string, PayloadHandler> {
   return {
     [channels.listOutlines]: () => outlines.list(),
     [channels.createOutline]: async (payload): Promise<OutlineResult> => {
-      const { title, about } = parsePayload(createOutlineSchema, payload)
-      return view(await outlines.create(title, about))
+      const request = parsePayload(createOutlineSchema, payload)
+      const language = writing.project()?.details.language ?? 'en'
+      return view(await outlines.create(request.title, request.about, request.starter && starter(request.starter, language)))
     },
     [channels.openOutline]: async (payload): Promise<OutlineResult> => {
       const { file } = parsePayload(outlineFileSchema, payload)

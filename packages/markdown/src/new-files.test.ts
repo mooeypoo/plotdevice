@@ -45,4 +45,13 @@ describe('a new outline', () => {
       '# הקשת של יעל\n\n[יעל \\[צעירה\\]](<../characters/my yael.md>)\n',
     )
   })
+
+  it('from a starter, continues with the starter’s sections under the author’s title (Milestone 19)', () => {
+    expect(newOutlineFile('Ilka’s beats', undefined, '## Act one\r\n\r\n- Opening image\r\n')).toBe(
+      '# Ilka’s beats\n\n## Act one\n\n- Opening image\n',
+    )
+    expect(newOutlineFile('Bea’s arc', { path: '../characters/bea.md', title: 'Bea' }, '## At first\n')).toBe(
+      '# Bea’s arc\n\n[Bea](../characters/bea.md)\n\n## At first\n',
+    )
+  })
 })

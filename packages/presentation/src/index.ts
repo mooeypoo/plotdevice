@@ -45,5 +45,5 @@ export {
   type LinkTarget,
 } from './references'
 export { menuPlacement, type Box } from './menu-placement'
-export { groupByTags, partOf, tagProblems, tagRow, tagSuggestions, type TagGroups, type TagProblems } from './tags'
+export { groupByTags, partOf, tagProblems, tagRow, tagSuggestions, withSuggestedTags, type TagGroups, type TagProblems } from './tags'
 export { builtInKindKey, kindFolderFor, kindLabels, kindOrder, unsortedFolders, type KindLabels, type Translate } from './kinds'

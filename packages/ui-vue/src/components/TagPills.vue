@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { tagRow, tagSuggestions } from '@plotdevice/presentation'
+import { tagRow, tagSuggestions, withSuggestedTags } from '@plotdevice/presentation'
 import { tagKey } from '@plotdevice/shared'
 import { computed, nextTick, ref, watch } from 'vue'
+import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
 
@@ -10,6 +11,7 @@ import { useStoryStore } from '../stores/story'
 const props = defineProps<{ tags: string[]; disabled?: boolean }>()
 const emit = defineEmits<{ change: [tags: string[]] }>()
 const story = useStoryStore()
+const project = useProjectStore()
 const settings = useSettingsStore()
 const t = settings.t
 const adding = ref(false)
@@ -24,7 +26,13 @@ watch(
   (tags) => (own.value = [...tags]),
 )
 
-const suggestions = computed(() => tagSuggestions(tagRow(story.references, settings.locale), own.value, typed.value))
+const suggestions = computed(() =>
+  tagSuggestions(
+    withSuggestedTags(tagRow(story.references, settings.locale), project.project?.suggestedTags ?? []),
+    own.value,
+    typed.value,
+  ),
+)
 /** What Enter can add: the suggestions, then the typed text as a new tag unless it is one already. */
 const options = computed(() => {
   const text = typed.value.trim()

@@ -1,4 +1,11 @@
-import type { ContentsChange, OpenProblem, ProjectSnapshot, RecentProjectsSession, WritingSession } from '@plotdevice/application'
+import type {
+  ContentsChange,
+  OpenProblem,
+  ProjectSnapshot,
+  ProjectTemplate,
+  RecentProjectsSession,
+  WritingSession,
+} from '@plotdevice/application'
 import {
   channels,
   contentsChangeSchema,
@@ -19,6 +26,7 @@ import {
   saveChapterSchema,
   type CompileResult,
   type CreateProjectResult,
+  type TemplateId,
   type OpenChapterResult,
   type OpenedProject,
   type OpenProjectResult,
@@ -26,7 +34,7 @@ import {
   type RecentProjectView,
   type ResolveConflictResult,
 } from '@plotdevice/contracts'
-import { projectFolderName } from '@plotdevice/domain'
+import { outlineFileFor, projectFolderName } from '@plotdevice/domain'
 import { dirname, join } from 'node:path'
 import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
 import { IpcRefused, parsePayload } from './payload'
@@ -38,6 +46,10 @@ export interface ProjectIpcContext {
   /** The native folder pickers; `null` when the author cancels. */
   chooseProjectFolder(): Promise<string | null>
   chooseNewProjectLocation(): Promise<string | null>
+  /** Where new projects go before the author has made one: Documents. */
+  defaultProjectLocation: string
+  /** A template in the story's language (Milestone 19). */
+  template(id: TemplateId, language: string): ProjectTemplate
   folderExists(root: string): Promise<boolean>
   /** The page has sent every text that was waiting to be saved. */
   onFlushed(): void
@@ -63,6 +75,13 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
     Promise.all(recent.current().projects.map(async ({ root, title }) => ({ root, title, available: await context.folderExists(root) })))
 
   const withPosition = (snapshot: ProjectSnapshot): OpenedProject => openedProject(snapshot, recent)
+
+  // A new project goes only into a folder this host offered: the default, or one the author chose.
+  const offered = new Set<string>()
+  const offer = (location: string): string => {
+    offered.add(location)
+    return location
+  }
 
   const opened = async (snapshot: ProjectSnapshot): Promise<OpenedProject> => {
     await recent.opened({ root: snapshot.root, title: snapshot.details.title })
@@ -96,11 +115,28 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
     },
 
     [channels.createProject]: async (payload): Promise<CreateProjectResult> => {
-      const { title, language, author } = parsePayload(newProjectSchema, payload)
+      const { title, language, author, template, location } = parsePayload(newProjectSchema, payload)
+      if (!offered.has(location)) throw new IpcRefused('not-offered')
+      const details = { title, language, ...(author ? { author } : {}) }
+      const start = context.template(template, language)
+      const result = await session.createProject(location, details, start)
+      if (!result.ok) return result
+      // A book with nothing to write in yet opens on its first outline: a campaign on its session plan.
+      const outline = result.value.chapters.length === 0 ? start.outlines[0] : undefined
+      const project = await opened(result.value)
+      return ok(outline ? { ...project, place: { workspace: 'story', outline: outlineFileFor(outline.title, []) } } : project)
+    },
+
+    // Beside the last project opened, so a writer's books stay together; Documents for the first one.
+    [channels.newProjectLocation]: async (): Promise<string> => {
+      const last = recent.current().projects[0]
+      const beside = last ? dirname(last.root) : null
+      return offer(beside !== null && (await context.folderExists(beside)) ? beside : context.defaultProjectLocation)
+    },
+
+    [channels.chooseNewProjectLocation]: async (): Promise<string | null> => {
       const location = await context.chooseNewProjectLocation()
-      if (location === null) return err('cancelled')
-      const result = await session.createProject(location, { title, language, ...(author ? { author } : {}) })
-      return result.ok ? ok(await opened(result.value)) : result
+      return location === null ? null : offer(location)
     },
 
     [channels.changeContents]: async (payload) =>

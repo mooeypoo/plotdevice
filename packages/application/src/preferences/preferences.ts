@@ -25,6 +25,7 @@ export function defaultPreferences(systemLocale: string): Preferences {
     pageWidth: 'medium',
     checkForUpdates: true,
     plainTextByDefault: false,
+    outlineGuideSeen: false,
     navigatorWidth: PANEL_WIDTHS.navigatorWidth.initial,
     shelfWidth: PANEL_WIDTHS.shelfWidth.initial,
   }
@@ -50,6 +51,7 @@ export function parsePreferences(text: string, defaults: Preferences): Result<Pr
     pageWidth: PAGE_WIDTHS.find((width) => width === record.pageWidth) ?? defaults.pageWidth,
     checkForUpdates: typeof record.checkForUpdates === 'boolean' ? record.checkForUpdates : defaults.checkForUpdates,
     plainTextByDefault: typeof record.plainTextByDefault === 'boolean' ? record.plainTextByDefault : defaults.plainTextByDefault,
+    outlineGuideSeen: typeof record.outlineGuideSeen === 'boolean' ? record.outlineGuideSeen : defaults.outlineGuideSeen,
     navigatorWidth: panelWidth('navigatorWidth', record.navigatorWidth),
     shelfWidth: panelWidth('shelfWidth', record.shelfWidth),
   })
@@ -122,6 +124,7 @@ export async function updatePreferences(
     pageWidth: patch.pageWidth ?? current.pageWidth,
     checkForUpdates: patch.checkForUpdates ?? current.checkForUpdates,
     plainTextByDefault: patch.plainTextByDefault ?? current.plainTextByDefault,
+    outlineGuideSeen: patch.outlineGuideSeen ?? current.outlineGuideSeen,
     navigatorWidth: patch.navigatorWidth ?? current.navigatorWidth,
     shelfWidth: patch.shelfWidth ?? current.shelfWidth,
   }
