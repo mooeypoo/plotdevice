@@ -12,12 +12,12 @@ import {
   forgetRecentProjectSchema,
   leftOffSchema,
   newProjectSchema,
+  sampleRequestSchema,
   openChapterSchema,
   openProjectSchema,
   renameChapterFileSchema,
   kindsChangeSchema,
   folderRenamesSchema,
-  type BackupBookResult,
   type FolderRenamePlanResult,
   type RenameFoldersResult,
   type UndoFolderRenamesResult,
@@ -59,10 +59,12 @@ export interface ProjectIpcContext {
   compile(snapshot: ProjectSnapshot): Promise<{ text: string; missing: ProjectPath[] }>
   /** Writes a file outside the project, atomically. */
   writeOutside(path: string, text: string): Promise<boolean>
-  /** The folder picker for a backup; `null` when the author cancels. */
-  chooseBackupLocation(): Promise<string | null>
-  /** Copies the book folder into `location` under a new name; the copy's path, or `null` when it failed. */
-  copyBook(root: string, location: string): Promise<string | null>
+  /** Before another book opens (or a new one is made): the open book's backup, if one is due (Milestone 20). */
+  leavingBook(): Promise<void>
+  /** The sample book's copy in app data, made from the bundled one if needed, or afresh (Milestone 20). */
+  sampleBook(language: 'en' | 'he', fresh: boolean): Promise<string>
+  /** Whether `root` is a sample book's copy. */
+  isSample(root: string): boolean
 }
 
 export type PayloadHandler = (payload: unknown) => Promise<unknown>
@@ -72,9 +74,19 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
   const { session, recent } = context
 
   const recentProjects = async (): Promise<RecentProjectView[]> =>
-    Promise.all(recent.current().projects.map(async ({ root, title }) => ({ root, title, available: await context.folderExists(root) })))
+    Promise.all(
+      recent.current().projects.map(async ({ root, title }) => ({
+        root,
+        title,
+        available: await context.folderExists(root),
+        ...(context.isSample(root) ? { sample: true as const } : {}),
+      })),
+    )
 
-  const withPosition = (snapshot: ProjectSnapshot): OpenedProject => openedProject(snapshot, recent)
+  const withPosition = (snapshot: ProjectSnapshot): OpenedProject => ({
+    ...openedProject(snapshot, recent),
+    ...(context.isSample(snapshot.root) ? { sample: true as const } : {}),
+  })
 
   // A new project goes only into a folder this host offered: the default, or one the author chose.
   const offered = new Set<string>()
@@ -110,7 +122,25 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
       if (request === 'choose') root = await context.chooseProjectFolder()
       else root = recent.current().projects.some((project) => project.root === request.recent) ? request.recent : null
       if (root === null) return err(request === 'choose' ? 'cancelled' : 'not-recent')
+      await context.leavingBook()
       const result = await session.openProject(root)
+      return result.ok ? ok(await opened(result.value)) : err(openProblem(result.error))
+    },
+
+    [channels.openSample]: async (payload): Promise<OpenProjectResult> => {
+      const { language } = parsePayload(sampleRequestSchema, payload)
+      await context.leavingBook()
+      const result = await session.openProject(await context.sampleBook(language, false))
+      return result.ok ? ok(await opened(result.value)) : err(openProblem(result.error))
+    },
+
+    // Only the open sample, and only its copy in app data: never a folder of the author's.
+    [channels.restartSample]: async (): Promise<OpenProjectResult> => {
+      const project = session.project()
+      if (!project || !context.isSample(project.root)) return err('not-recent')
+      await session.idle()
+      const language = project.details.language.startsWith('he') ? 'he' : 'en'
+      const result = await session.openProject(await context.sampleBook(language, true))
       return result.ok ? ok(await opened(result.value)) : err(openProblem(result.error))
     },
 
@@ -119,6 +149,7 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
       if (!offered.has(location)) throw new IpcRefused('not-offered')
       const details = { title, language, ...(author ? { author } : {}) }
       const start = context.template(template, language)
+      await context.leavingBook()
       const result = await session.createProject(location, details, start)
       if (!result.ok) return result
       // A book with nothing to write in yet opens on its first outline: a campaign on its session plan.
@@ -155,16 +186,6 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
     [channels.undoFolderRenames]: async (): Promise<UndoFolderRenamesResult> => {
       const undone = await session.undoFolderRenames()
       return undone.ok ? ok(projectView(undone.value)) : undone
-    },
-
-    [channels.backupBook]: async (): Promise<BackupBookResult> => {
-      const project = session.project()
-      if (!project) return err('no-project')
-      await session.idle()
-      const location = await context.chooseBackupLocation()
-      if (location === null) return err('cancelled')
-      const path = await context.copyBook(project.root, location)
-      return path === null ? err('failed') : ok({ path })
     },
 
     [channels.renameChapter]: async (payload) => {

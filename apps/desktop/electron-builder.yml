@@ -19,6 +19,9 @@ extraResources:
     to: LICENSE
   - from: build/third-party-licenses.json
     to: third-party-licenses.json
+  # The sample books to try (Milestone 20), copied into app data before they're opened.
+  - from: ../../samples
+    to: samples
 npmRebuild: false
 publish: null
 win:

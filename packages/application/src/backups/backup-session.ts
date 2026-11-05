@@ -19,7 +19,7 @@ import type { ProjectSnapshot } from '../ports/project-repository'
  * Backups of each book (Milestone 20): a zip into a folder the author chose for that book, once a day
  * when the book changed, and whenever they ask. Never deleted unless the author turned on a clean-up
  * rule; then only the automatic backups this app recorded making, never the newest. The settings and
- * records live in app data, by the book's id, never in the book's folder.
+ * records live in app data, by the book's folder, never in the book's folder itself.
  */
 export interface BackupSession {
   status(): Promise<BackupStatus | null>
@@ -91,6 +91,8 @@ export interface BackupSessionOptions {
   folders: ProjectFolders
   book: BackupBook
   now: () => number
+  /** Books never offered backups, such as the sample book to try (Milestone 20). */
+  neverOffer?: (root: string) => boolean
 }
 
 interface BookRecord {
@@ -141,8 +143,11 @@ function parseRule(value: unknown): CleanupRule | null {
   return null
 }
 
-/** A book is known by its id; a book without one, by its folder. */
-const keyOf = (snapshot: ProjectSnapshot): string => snapshot.details.id ?? `root:${snapshot.root}`
+/**
+ * A book's backups belong to its folder: a copy opened from a backup has the same id as the book, but
+ * is a book of its own, with no backups yet. A book moved elsewhere is asked again.
+ */
+const keyOf = (snapshot: ProjectSnapshot): string => `${snapshot.details.id ?? ''}@${snapshot.root}`
 const parentOf = (path: string): string => path.replace(/[\\/][^\\/]*$/, '')
 const nameOf = (path: string): string => path.replace(/^.*[\\/]/, '')
 /** "The Salt Orchard backup 2026-11-05 14.30.zip", or "… before restoring …": a backup of this book by its name. */
@@ -150,7 +155,7 @@ const isBackupOf = (title: string, name: string): boolean =>
   name.toLowerCase().endsWith('.zip') &&
   [`${projectFolderName(title)} backup `, `${projectFolderName(title)} before restoring `].some((prefix) => name.startsWith(prefix))
 
-export function createBackupSession({ backups, records, folders, book, now }: BackupSessionOptions): BackupSession {
+export function createBackupSession({ backups, records, folders, book, now, neverOffer }: BackupSessionOptions): BackupSession {
   let queue: Promise<unknown> = Promise.resolve()
   /** One change at a time, each from the records the previous one left. */
   const serially = <T>(task: () => Promise<T>): Promise<T> => {
@@ -269,7 +274,7 @@ export function createBackupSession({ backups, records, folders, book, now }: Ba
 
     async shouldOffer() {
       const snapshot = book.project()
-      if (!snapshot) return false
+      if (!snapshot || neverOffer?.(snapshot.root)) return false
       const own = (await load()).books[keyOf(snapshot)]
       if (own?.offered || own?.folder) return false
       // Some content: a chapter with writing, and at least two pages about the story's world.

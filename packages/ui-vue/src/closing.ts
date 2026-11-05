@@ -14,3 +14,6 @@ export function answerFlushRequests(api: PlotDeviceApi): void {
     void api.flushed()
   })
 }
+
+/** Steps before the open book is left for another (Milestone 20): such as offering backups once. */
+export const beforeLeavingBook = new Set<() => Promise<void>>()

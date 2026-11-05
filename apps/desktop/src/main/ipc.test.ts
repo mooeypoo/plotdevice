@@ -1,3 +1,4 @@
+import type { BackupIpcContext } from './backup-ipc'
 import { channels, type Preferences } from '@plotdevice/contracts'
 import { err, ok } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
@@ -38,6 +39,7 @@ function setup(saveError?: string) {
     outlines: {} as OutlineIpcContext,
     references: {} as ReferenceIpcContext,
     versions: {} as VersionIpcContext,
+    backups: {} as BackupIpcContext,
     updates: {} as UpdateIpcContext,
   })
   const call = (channel: string, sender: Sender, payload?: unknown) => {

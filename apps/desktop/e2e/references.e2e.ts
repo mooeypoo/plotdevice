@@ -83,7 +83,7 @@ test('scenario D: link a card to a character and a chapter, and consult them whi
   await expect(page.getByTestId('save-status')).toHaveText('Saved')
   const before = await snapshot()
 
-  await page.keyboard.press('Control+Shift+R')
+  await page.keyboard.press('ControlOrMeta+Shift+R')
   const fromOutline = page.getByTestId('from-outline')
   await expect(fromOutline).toContainText('Ilka crosses the river')
   await fromOutline.getByRole('button', { name: 'Ilka Varga' }).click()
@@ -93,7 +93,7 @@ test('scenario D: link a card to a character and a chapter, and consult them whi
   await page.locator('.cm-content').focus()
   await page.keyboard.type(' And afraid.')
   await expect(page.locator('.cm-content')).toContainText('Her hands were cold. And afraid.')
-  await page.keyboard.press('Control+z')
+  await page.keyboard.press('ControlOrMeta+z')
   await expect(page.locator('.cm-content')).not.toContainText('And afraid.')
   await expect(page.getByTestId('save-status')).toHaveText('Saved')
   expect(await snapshot()).toEqual(before) // consulting references changed no file
@@ -336,11 +336,11 @@ test('relationships and connections: added on one page, seen on the other, in th
 
   // An arc outline for Ilka starts with a link back to her page, and shows under "Linked from".
   await page.getByTestId('start-arc').click()
-  await expect(page.getByTestId('prompt-input')).toHaveValue('Ilka Varga’s arc')
+  await expect(page.getByTestId('prompt-input')).toHaveValue("Ilka Varga's arc")
   await page.getByTestId('prompt-input').press('Enter')
-  await expect(page.locator('.outline-title')).toHaveText('Ilka Varga’s arc')
+  await expect(page.locator('.outline-title')).toHaveText("Ilka Varga's arc")
   const arc = (await readdir(join(root, 'outlines'))).find((name) => name !== 'main-story.md')
-  await file(`outlines/${arc}`).toBe('# Ilka Varga’s arc\n\n[Ilka Varga](../characters/ilka.md)\n')
+  await file(`outlines/${arc}`).toBe("# Ilka Varga's arc\n\n[Ilka Varga](../characters/ilka.md)\n")
 
   // Removing it asks first, and changes only that line.
   await page.locator('[data-gallery="characters"]').click()
@@ -369,7 +369,7 @@ async function unnamedControls(page: Page): Promise<string[]> {
 
 test('accessibility: the shelf and pages are named in both languages and work by keyboard', async () => {
   const page = await start()
-  await page.keyboard.press('Control+Shift+R')
+  await page.keyboard.press('ControlOrMeta+Shift+R')
   await page.getByTestId('shelf-search').focus()
   await page.keyboard.type('loose')
   await page.keyboard.press('Enter')

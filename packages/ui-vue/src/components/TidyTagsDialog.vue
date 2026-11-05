@@ -4,6 +4,7 @@ import { nextTick, ref, watch } from 'vue'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
 import { useViewStore } from '../stores/view'
+import HelpLink from './HelpLink.vue'
 
 // "Tidy tags" (Milestone 12, decision 6): tags that look like one, to merge, and pages whose tags
 // can't be read, to open. Each fix is a button the author presses; the list follows as they go.
@@ -38,7 +39,7 @@ function openPage(file: ProjectPath): void {
 
 <template>
   <dialog ref="dialog" class="dialog tidy-tags" data-testid="tidy-tags" :aria-label="t('tidy-tags-title')" @close="story.tidying = false">
-    <h2>{{ t('tidy-tags-title') }}</h2>
+    <h2>{{ t('tidy-tags-title') }} <HelpLink page="planning/tags" :label="t('tidy-tags-title')" /></h2>
     <section v-if="story.problems.duplicates.length > 0">
       <h3 class="group-label">{{ t('tidy-duplicates') }}</h3>
       <ul class="tidy-list">

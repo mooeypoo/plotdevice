@@ -9,6 +9,7 @@ import { useStoryStore } from '../stores/story'
 import { useViewStore } from '../stores/view'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
+import HelpLink from './HelpLink.vue'
 
 // "Kinds of pages" (Milestone 18, ADR 0011): what the book keeps pages about, from a friendly screen,
 // never from a file. Renaming a kind changes only its names; its folder stays. Removing one deletes
@@ -138,7 +139,7 @@ function close(): void {
 
 <template>
   <dialog ref="dialog" class="dialog kinds-dialog" data-testid="kinds-dialog" :aria-label="t('kinds-title')" @close="close">
-    <h2>{{ t('kinds-title') }}</h2>
+    <h2>{{ t('kinds-title') }} <HelpLink page="planning/kinds" :label="t('kinds-title')" /></h2>
     <p class="secondary">{{ t('kinds-hint') }}</p>
 
     <ul class="kinds-list">

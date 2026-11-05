@@ -1,5 +1,14 @@
 import type { AboutView, AppInfo } from './app-info'
 import type {
+  BackUpNowResult,
+  BackupStatusResult,
+  CleanupRuleView,
+  ListBackupsResult,
+  PreviewBackupResult,
+  RestoreCopyResult,
+  RestoreReplaceResult,
+} from './backups'
+import type {
   HostEvent,
   LeftOffRequest,
   OpenChapterResult,
@@ -32,7 +41,6 @@ import type {
   ProjectChangeResult,
   RecentProjectView,
   KindsChangeRequest,
-  BackupBookResult,
   FolderRenamePlanResult,
   FolderRenamesRequest,
   RenameFoldersResult,
@@ -55,6 +63,10 @@ export interface PlotDeviceApi {
   getOpenProject(): Promise<OpenedProject | null>
   /** `'choose'` asks the author for a folder; a recent project is opened by its folder. */
   openProject(request: OpenProjectRequest): Promise<OpenProjectResult>
+  /** Opens the sample book to try, in `language`; a copy in the app's own data (Milestone 20). */
+  openSample(language: 'en' | 'he'): Promise<OpenProjectResult>
+  /** "Start the sample over": the open sample book back as it first was. */
+  restartSample(): Promise<OpenProjectResult>
   /** Makes a new project from a template, in a folder the host offered (Milestone 19). */
   createProject(details: NewProjectRequest): Promise<CreateProjectResult>
   /** Where a new project goes unless the author chooses: beside the last one opened, or in Documents. */
@@ -73,7 +85,25 @@ export interface PlotDeviceApi {
   renameFolders(renames: FolderRenamesRequest): Promise<RenameFoldersResult>
   undoFolderRenames(): Promise<UndoFolderRenamesResult>
   /** Copies the whole book folder to a place the author chooses. */
-  backupBook(): Promise<BackupBookResult>
+  /** This book's backups: where, when last, and any problem (Milestone 20). */
+  backupStatus(): Promise<BackupStatusResult>
+  /** The folder picker for this book's backups, starting at the last folder chosen; `null` when cancelled. */
+  chooseBackupFolder(): Promise<string | null>
+  /** Turns backups on in a folder the host offered, or off with `null`. */
+  setBackupFolder(folder: string | null): Promise<BackupStatusResult>
+  setBackupCleanup(rule: CleanupRuleView): Promise<BackupStatusResult>
+  /** A backup now, into this book's folder; asks for one first if there's none. */
+  backUpNow(): Promise<BackUpNowResult>
+  /** Shows this book's backup folder in the system's file manager. */
+  openBackupFolder(): Promise<void>
+  listBackups(): Promise<ListBackupsResult>
+  previewBackup(file: string): Promise<PreviewBackupResult>
+  restoreBackupAsCopy(file: string): Promise<RestoreCopyResult>
+  restoreBackupReplace(file: string): Promise<RestoreReplaceResult>
+  /** Before leaving a book: whether to offer backups (once per book, once it has some content). */
+  shouldOfferBackups(): Promise<boolean>
+  /** The author's answer to the offer: a folder the host offered, or `null` for "Not now". */
+  answerBackupOffer(folder: string | null): Promise<void>
   renameChapterFile(file: ProjectPath, newName: string): Promise<ProjectChangeResult>
 
   openChapter(file: ProjectPath): Promise<OpenChapterResult>
