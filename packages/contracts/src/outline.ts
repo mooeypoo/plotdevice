@@ -1,6 +1,7 @@
 import type { ProjectPath, Result } from '@plotdevice/shared'
 import { z } from 'zod'
 import { projectPathSchema } from './project'
+import { referenceFile } from './references'
 
 const index = z.number().int().nonnegative()
 const path = z.array(index).max(64)
@@ -25,11 +26,13 @@ export const outlineFileSchema = z.strictObject({
   file: projectPathSchema.refine((file) => file.startsWith('outlines/') && file.endsWith('.md')),
 })
 export const editOutlineSchema = z.strictObject({ file: outlineFileSchema.shape.file, edit: outlineEditSchema })
-/** `about`: a character, place or note the outline is about; it starts with a link to that page. */
-export const createOutlineSchema = z.strictObject({
-  title: line,
-  about: projectPathSchema.refine((file) => /^(characters|places|notes)\/.+\.md$/.test(file)).optional(),
-})
+/** The starter outlines "New outline" offers (Milestone 19); the texts live in `packages/templates`. */
+export const starterSchema = z.enum(['three-acts', 'story-beats', 'character-arc', 'campaign-arc', 'session-plan'])
+/**
+ * `about`: a page the outline is about; it starts with a link to that page. `starter`: the starter
+ * outline it begins with, in the story's language.
+ */
+export const createOutlineSchema = z.strictObject({ title: line, about: referenceFile.optional(), starter: starterSchema.optional() })
 
 /**
  * The workspace the author is in. `story` is a fixed internal ID, never shown: the workspace's name
@@ -44,6 +47,7 @@ export const placeSchema = z.strictObject({
 })
 
 export type OutlineEditRequest = z.infer<typeof outlineEditSchema>
+export type StarterId = z.infer<typeof starterSchema>
 export type Workspace = z.infer<typeof workspaceSchema>
 export type OutlineViewKind = z.infer<typeof outlineViewKindSchema>
 export type Place = z.infer<typeof placeSchema>

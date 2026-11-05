@@ -12,7 +12,9 @@ export const referenceKindSchema = z
   .max(255)
   .refine((folder) => !/[\\/]/.test(folder) && !folder.startsWith('.') && !/^(manuscript|outlines)$/i.test(folder))
 /** A page: a Markdown file inside a folder other than the book's own (`manuscript`, `outlines`). */
-const referenceFile = projectPathSchema.refine((file) => /^[^/.][^/]*\/.+\.md$/.test(file) && !/^(manuscript|outlines)\//i.test(file))
+export const referenceFile = projectPathSchema.refine(
+  (file) => /^[^/.][^/]*\/.+\.md$/.test(file) && !/^(manuscript|outlines)\//i.test(file),
+)
 const title = z.string().max(500)
 
 export const referenceFileSchema = z.strictObject({ file: referenceFile })
