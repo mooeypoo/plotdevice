@@ -1,6 +1,6 @@
 import project from '../../../tests/fixtures/projects/salt-orchard/project.md?raw'
 import { describe, expect, it } from 'vitest'
-import { readFrontmatter, setFrontmatterList, setFrontmatterValues, splitFrontmatter } from './frontmatter'
+import { readFrontmatter, setFrontmatterBlock, setFrontmatterList, setFrontmatterValues, splitFrontmatter } from './frontmatter'
 
 describe('splitFrontmatter', () => {
   it('separates frontmatter from the body, keeping both exactly', () => {
@@ -132,5 +132,63 @@ describe('setFrontmatterList: replaces only the lines of the list (ADR 0005)', (
     const tags = ['Part One: Arrival – secondary', 'a, b', "Bea's", '"quoted"', 'משפחה']
     const written = setFrontmatterList(page, 'tags', tags)
     expect(written.ok && readFrontmatter(written.value)).toMatchObject({ ok: true, value: { tags } })
+  })
+})
+
+describe('setFrontmatterBlock: replaces only the lines of one key (ADR 0011)', () => {
+  const kinds = ['kinds:', '  - folder: characters', '    one: NPC', '    many: NPCs', '  - folder: פלגים']
+
+  it('adds the key at the end of the frontmatter, keeping comments and other keys', () => {
+    const result = setFrontmatterBlock(project, 'kinds', kinds)
+    expect(result.ok).toBe(true)
+    const text = result.ok ? result.value : ''
+    expect(text).toContain(
+      '# Written by hand; the app must keep this comment and the key below.\nseries: Orchard Books\nkinds:\n  - folder: characters\n    one: NPC\n    many: NPCs\n  - folder: פלגים\n---\n',
+    )
+    expect(text.replace(/kinds:[\s\S]*?(?=---\n)/, '')).toBe(project)
+  })
+
+  it('replaces the key where it is, whatever form it had', () => {
+    const before = '---\ntitle: A\nkinds: [{folder: npcs}]\nlanguage: en\n---\nBody.\n'
+    expect(setFrontmatterBlock(before, 'kinds', ['kinds:', '  - folder: npcs', '    one: NPC'])).toEqual({
+      ok: true,
+      value: '---\ntitle: A\nkinds:\n  - folder: npcs\n    one: NPC\nlanguage: en\n---\nBody.\n',
+    })
+    const block = '---\ntitle: A\nkinds:\n  - folder: npcs # mine\n    one: NPC\nlanguage: en\n---\n'
+    expect(setFrontmatterBlock(block, 'kinds', ['kinds:', '  - folder: npcs'])).toEqual({
+      ok: true,
+      value: '---\ntitle: A\nkinds:\n  - folder: npcs\nlanguage: en\n---\n',
+    })
+  })
+
+  it('keeps a comment that belongs to the next key', () => {
+    const before = '---\nkinds:\n  - folder: npcs\n# the series, by hand\nseries: Orchard\n---\n'
+    expect(setFrontmatterBlock(before, 'kinds', ['kinds:', '  - folder: lore'])).toEqual({
+      ok: true,
+      value: '---\nkinds:\n  - folder: lore\n# the series, by hand\nseries: Orchard\n---\n',
+    })
+  })
+
+  it('removes the key when given nothing', () => {
+    const block = '---\ntitle: A\nmanuscriptUnit:\n  one: Session\n  many: Sessions\nlanguage: en\n---\n'
+    expect(setFrontmatterBlock(block, 'manuscriptUnit', null)).toEqual({ ok: true, value: '---\ntitle: A\nlanguage: en\n---\n' })
+    expect(setFrontmatterBlock('---\ntitle: A\n---\n', 'kinds', null)).toEqual({ ok: true, value: '---\ntitle: A\n---\n' })
+  })
+
+  it('keeps Windows line endings', () => {
+    expect(
+      setFrontmatterBlock('---\r\ntitle: A\r\n---\r\nBody.\r\n', 'manuscriptUnit', [
+        'manuscriptUnit:',
+        '  one: Session',
+        '  many: Sessions',
+      ]),
+    ).toEqual({
+      ok: true,
+      value: '---\r\ntitle: A\r\nmanuscriptUnit:\r\n  one: Session\r\n  many: Sessions\r\n---\r\nBody.\r\n',
+    })
+  })
+
+  it('never rewrites frontmatter it can’t read', () => {
+    expect(setFrontmatterBlock('---\ntitle: [unclosed\n---\n', 'kinds', kinds)).toEqual({ ok: false, error: 'invalid-yaml' })
   })
 })

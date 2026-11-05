@@ -1,5 +1,7 @@
 import type {
   ContentsChangeRequest,
+  FolderRenamesRequest,
+  KindsChangeRequest,
   NewProjectRequest,
   OpenedProject,
   OpenProjectRequest,
@@ -29,6 +31,8 @@ export const useProjectStore = defineStore('project', () => {
   const statuses = ref<Partial<Record<ProjectPath, SaveStatusView>>>({})
   const notice = ref<Notice | null>(null)
   const project = computed(() => opened.value?.project ?? null)
+  /** The last folder renames, which "Undo folder renames" puts back until the book closes. */
+  const renamedFolders = ref<FolderRenamesRequest | null>(null)
 
   const tell = (key: string, ...params: string[]): void => {
     notice.value = { key, params }
@@ -53,6 +57,7 @@ export const useProjectStore = defineStore('project', () => {
       statuses.value = {}
       opened.value = result.value
       notice.value = null
+      renamedFolders.value = null
     } else if (result.error !== 'cancelled') tell(`open-failed-${result.error}`)
     await refreshRecent()
   }
@@ -63,6 +68,7 @@ export const useProjectStore = defineStore('project', () => {
       statuses.value = {}
       opened.value = result.value
       notice.value = null
+      renamedFolders.value = null
       await refreshRecent()
       return true
     }
@@ -102,6 +108,34 @@ export const useProjectStore = defineStore('project', () => {
     } else if (compiled.error !== 'cancelled') tell('compile-failed')
   }
   const renameChapter = (file: ProjectPath, title: string) => change(() => api.renameChapter(file, title))
+  /** The book's kinds of pages, and what it calls a chapter (ADR 0011). */
+  const changeKinds = (request: KindsChangeRequest) => change(() => api.changeKinds(request))
+  /** Renames the kinds' folders and every link to them: how many links changed, or `null` when it couldn't. */
+  async function renameFolders(renames: FolderRenamesRequest): Promise<number | null> {
+    const result = await api.renameFolders(renames)
+    if (!result.ok) {
+      tell('folders-failed')
+      return null
+    }
+    setProject(result.value.project)
+    renamedFolders.value = renames
+    return result.value.linksUpdated
+  }
+
+  /** Puts the last folder renames back; the folders it moved back, or `null` when it couldn't. */
+  async function undoFolderRenames(): Promise<FolderRenamesRequest | null> {
+    const renames = renamedFolders.value
+    const result = await api.undoFolderRenames()
+    renamedFolders.value = null
+    if (!result.ok || !renames) {
+      tell(result.ok || result.error !== 'stale' ? 'folders-failed' : 'folders-undo-stale')
+      return null
+    }
+    setProject(result.value)
+    tell('folders-undone')
+    return renames.map(({ from, to }) => ({ from: to, to: from }))
+  }
+
   const renameChapterFile = (file: ProjectPath, newName: string) => change(() => api.renameChapterFile(file, newName))
 
   api.onEvent((event) => {
@@ -109,6 +143,7 @@ export const useProjectStore = defineStore('project', () => {
       statuses.value = {}
       opened.value = event.opened
       notice.value = null
+      renamedFolders.value = null
       void refreshRecent()
     } else if (event.kind === 'open-failed') tell(`open-failed-${event.error}`)
     else if (event.kind === 'project-changed') setProject(event.project)
@@ -132,6 +167,10 @@ export const useProjectStore = defineStore('project', () => {
     create,
     forget,
     changeContents,
+    changeKinds,
+    renamedFolders,
+    renameFolders,
+    undoFolderRenames,
     renameChapter,
     renameChapterFile,
     compile,

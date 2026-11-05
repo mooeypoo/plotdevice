@@ -1,7 +1,7 @@
 import type { FileStore, ReadProblem, Revision, StoredText, TextToStore, WriteProblem } from '@plotdevice/application'
 import { collisionKey, err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
 import { createHash } from 'node:crypto'
-import { mkdir, readdir, readFile, realpath, rename, stat } from 'node:fs/promises'
+import { mkdir, readdir, readFile, realpath, rename, rmdir, stat } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, join, relative, sep } from 'node:path'
 import { AtomicWriteError, removeStaleTempFiles, writeAtomically } from './atomic-write'
 
@@ -127,6 +127,42 @@ export function createFileStore(root: string, options: FileStoreOptions = {}): F
       }
       await walk(root, '')
       return files.sort() as ProjectPath[]
+    },
+
+    async listFiles(folder) {
+      const files: string[] = []
+      if (!(await insideProject(folder))) return files
+      const walk = async (dir: string, prefix: string): Promise<void> => {
+        const entries = await readdir(dir, { withFileTypes: true }).catch(() => [])
+        for (const entry of entries) {
+          if (entry.name.startsWith('.')) continue
+          const path = `${prefix}/${entry.name}`
+          if (entry.isDirectory()) await walk(join(dir, entry.name), path)
+          else files.push(path)
+        }
+      }
+      await walk(absolute(folder), folder)
+      return files.sort()
+    },
+
+    async removeEmptyFolder(folder) {
+      if (!(await insideProject(folder))) return
+      // Depth first: a folder goes only once everything under it has gone; anything left keeps it.
+      const remove = async (dir: string): Promise<boolean> => {
+        const entries = await readdir(dir, { withFileTypes: true }).catch(() => null)
+        if (entries === null) return false
+        let empty = true
+        for (const entry of entries) {
+          if (entry.isDirectory() && (await remove(join(dir, entry.name)))) continue
+          empty = false
+        }
+        if (!empty) return false
+        return rmdir(dir).then(
+          () => true,
+          () => false,
+        )
+      }
+      await remove(absolute(folder))
     },
 
     async tidy() {

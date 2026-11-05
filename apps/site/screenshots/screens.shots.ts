@@ -33,6 +33,8 @@ interface Language {
   /** A book in another language, for "the interface in your language, the book in its own". */
   otherBook: string
   otherCrossing: string
+  /** A kind of the book's own, with a page, then renamed (Milestone 18). */
+  kind: { one: string; many: string; folder: string; page: string; newOne: string; newMany: string }
 }
 
 const LANGUAGES: Record<string, Language> = {
@@ -50,6 +52,7 @@ const LANGUAGES: Record<string, Language> = {
     typo: { file: 'characters/josef.md', text: '---\ntitle: Josef Varga\ntags: [Varga famliy]\n---\nIlka’s brother, who never came.\n' },
     otherBook: 'מטע-המלח',
     otherCrossing: 'manuscript/המעבר.md',
+    kind: { one: 'Faction', many: 'Factions', folder: 'factions', page: 'The Ferrymen', newOne: 'Guild', newMany: 'Guilds' },
   },
   he: {
     book: 'מטע-המלח',
@@ -65,6 +68,7 @@ const LANGUAGES: Record<string, Language> = {
     typo: { file: 'characters/יוסף.md', text: '---\ntitle: יוסף ורגה\ntags: [משפחת ורגא]\n---\nהאח של אילקה, שלא הגיע אף פעם.\n' },
     otherBook: 'the-salt-orchard',
     otherCrossing: 'manuscript/the-crossing.md',
+    kind: { one: 'פלג', many: 'פלגים', folder: 'פלגים', page: 'המעבורתנים', newOne: 'גילדה', newMany: 'גילדות' },
   },
 }
 const THEMES = ['light', 'dark'] as const
@@ -265,7 +269,7 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await page.keyboard.press('Escape')
       await page.getByTestId('view-board').click()
 
-      await page.locator('[data-gallery="character"]').click()
+      await page.locator('[data-gallery="characters"]').click()
       await snap(page, lang, 'world-gallery', theme)
       const tagRow = page.locator('.world-gallery').getByTestId('tag-filter')
       for (const tag of language.tags) await tagRow.getByRole('button', { name: tag, exact: true }).click()
@@ -290,6 +294,39 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await page.getByTestId('showing-about').waitFor()
       await snap(page, lang, 'show-on-board', theme)
       await app.close()
+
+      // Kinds of pages (Milestone 18): one of the book's own, its gallery, then matching its folder.
+      const kinds = await open(lang, theme, language.book)
+      const kp = kinds.page
+      const kind = language.kind
+      await kp.getByTestId('book-menu').click()
+      await kp.getByTestId('menu-kinds').click()
+      await kp.getByTestId('kind-add').click()
+      await kp.getByTestId('kind-one').fill(kind.one)
+      await kp.getByTestId('kind-many').fill(kind.many)
+      await kp.getByTestId('kind-save').click()
+      await kp.locator(`.kinds-dialog [data-kind="${kind.folder}"]`).waitFor()
+      await snapAround(kp, lang, 'kinds-dialog', theme, [kp.getByTestId('kinds-dialog')], 0)
+      await kp.getByTestId('kinds-close').click()
+      await kp.getByTestId('workspace-story').click()
+      await kp.locator(`[data-gallery="${kind.folder}"]`).click()
+      await kp.getByTestId(`new-${kind.folder}`).click()
+      await kp.getByTestId('prompt-input').fill(kind.page)
+      await kp.getByTestId('prompt-input').press('Enter')
+      await kp.getByTestId('reference-page').waitFor()
+      await kp.locator(`[data-gallery="${kind.folder}"]`).click()
+      await snap(kp, lang, 'world-own-kind', theme)
+      await kp.getByTestId('book-menu').click()
+      await kp.getByTestId('menu-kinds').click()
+      await kp.locator(`.kinds-dialog [data-kind="${kind.folder}"] .menu-button`).click()
+      await kp.getByTestId('menu-kind-rename').click()
+      await kp.getByTestId('kind-one').fill(kind.newOne)
+      await kp.getByTestId('kind-many').fill(kind.newMany)
+      await kp.getByTestId('kind-save').click()
+      await kp.getByTestId('match-folders').click()
+      await kp.getByTestId('match-links').waitFor()
+      await snapAround(kp, lang, 'match-folders', theme, [kp.getByTestId('match-folders-dialog')], 0)
+      await kinds.app.close()
 
       const welcome = await open(lang, theme)
       await welcome.page.getByTestId('new-project').click()

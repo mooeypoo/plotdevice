@@ -1,6 +1,17 @@
-import type { Contents, NewProject, OutdatedLinkText, Placement, ProjectDetails, RelinkSuggestion } from '@plotdevice/domain'
+import type {
+  Contents,
+  FolderRename,
+  ManuscriptUnit,
+  NewProject,
+  OutdatedLinkText,
+  PageKind,
+  Placement,
+  ProjectDetails,
+  RelinkSuggestion,
+} from '@plotdevice/domain'
 import type { ProjectPath, Result } from '@plotdevice/shared'
 import type { Revision } from './file-store'
+import type { JournalEntry } from './journal-store'
 
 /** A chapter file in `manuscript/`, listed in the contents or not. */
 export interface ChapterFile {
@@ -55,6 +66,24 @@ export type OpenProblem = 'not-a-project' | 'unreadable-project-file' | 'unreada
 export type CreateProblem = 'invalid-details' | 'folder-exists' | 'inside-project' | 'io'
 /** `stale`: a file changed outside the app since the snapshot; reopen and try again. */
 export type ChangeProblem = 'stale' | 'invalid' | 'not-found' | 'unreadable' | 'write-failed'
+
+/** Why a folder can't be renamed to match its kind (ADR 0011, decision 7). */
+export type FolderRenameBlock = 'exists' | 'case-only' | 'invalid-name' | 'other-files' | 'missing'
+
+/** The preview of "Match folder names…": each folder, its pages, what stops it, and the links that will change. */
+export interface FolderRenamePlan {
+  renames: { from: string; to: string; files: number; blocked: FolderRenameBlock | null }[]
+  linksUpdated: number
+  /** Files whose links change, where they will be afterwards. */
+  filesChanged: ProjectPath[]
+}
+
+/** What "Undo folder renames" needs: the reverse operation, kept for the session only. */
+export interface FolderRenameUndo {
+  entry: JournalEntry
+  /** The renames it undoes; their new folders are removed again once empty. */
+  renames: FolderRename[]
+}
 export type RenameFileProblem = ChangeProblem | 'invalid-name' | 'name-taken'
 
 export interface FileRenamed {
@@ -87,6 +116,21 @@ export interface ProjectRepository {
    * through the recovery journal. Only a chapter's line in `CONTENTS.md` changes with it.
    */
   renameFile(snapshot: ProjectSnapshot, file: ProjectPath, newName: string): Promise<Result<FileRenamed, RenameFileProblem>>
+  /** "Match folder names…": what renaming these folders would do, changing nothing. */
+  planFolderRenames(snapshot: ProjectSnapshot, renames: readonly FolderRename[]): Promise<FolderRenamePlan>
+  /** Renames the folders, every link to them and the kinds in `project.md`, as one journalled operation (ADR 0005). */
+  renameFolders(
+    snapshot: ProjectSnapshot,
+    renames: readonly FolderRename[],
+  ): Promise<Result<{ snapshot: ProjectSnapshot; undo: FolderRenameUndo; linksUpdated: number }, ChangeProblem | 'blocked'>>
+  /** Puts every name and link back, byte for byte; refused if a file changed since. */
+  undoFolderRenames(snapshot: ProjectSnapshot, undo: FolderRenameUndo): Promise<Result<ProjectSnapshot, ChangeProblem>>
+  /** Writes the book's kinds of pages and what it calls a chapter to `project.md` (ADR 0011); nothing else changes. */
+  setKinds(
+    snapshot: ProjectSnapshot,
+    kinds: readonly PageKind[],
+    manuscriptUnit: ManuscriptUnit | null,
+  ): Promise<Result<ProjectSnapshot, ChangeProblem>>
   readChapter(root: string, file: ProjectPath): Promise<Result<ChapterText, 'missing' | 'unreadable'>>
   /** Saves the text, keeping the frontmatter as it is; refused if the file changed since `expected`. */
   saveChapter(

@@ -59,3 +59,28 @@ After changing a guide page, `pnpm site:translations` shows what is behind; the 
 | `gallery-empty-note`, `-text` | עוד אין הערות · בהערות נכנס כל השאר על העולם… | No notes yet · Notes hold everything else about the world… |
 
 - [ ] Guide pages changed for Format, the sidebar and Focus: `writing/formatting.mdx`, `start/tour.mdx`, `writing/hebrew-and-english.mdx`, `writing/the-page.mdx`, `reference/shortcuts.mdx`.
+
+## Added in Milestone 18
+
+| Key | Hebrew now | English |
+|---|---|---|
+| `kinds-menu`, `kinds-title` | סוגי דפים… · סוגי דפים | Kinds of pages… |
+| `kinds-hint` | על מה הספר שומר דפים. שינוי שם של סוג משנה רק את השם ב־Plot Device; התיקייה נשארת כפי שהיא. | What your book keeps pages about… |
+| `story-new-kind`, `kinds-add` | סוג דף · הוספת סוג | Kind of page · Add a kind |
+| `new-page-of-kind` | הוספת $1 (avoids gender agreement with the author's own name) | New $1 |
+| `story-unsorted`, `kinds-adopt` | עוד לא ממוינים · הפיכה לסוג… | Not sorted yet · Make this a kind… |
+| `kinds-field-one`, `kinds-field-many` | שם · ברבים | Name · Plural |
+| `kinds-remove-confirm` | להסיר את „$1” מסוגי הדפים? … שום דבר לא נמחק. | Remove "$1" from the kinds of pages? … |
+| `kinds-unit-title`, `kinds-unit-hint` | איך קוראים לפרקים · רק המילים ב־Plot Device משתנות… | What chapters are called · … |
+| `kinds-mismatch` | חלק משמות התיקיות כבר לא תואמים את השמות ב־Plot Device. זה חשוב רק אם פותחים את תיקיית הספר ביישומים אחרים. | Some folder names no longer match… |
+| `kinds-match-folders`, `match-title` | התאמת שמות התיקיות… | Match folder names… |
+| `match-hint` | כל תיקייה תקבל את השם של הסוג שלה. הדפים שבה יעברו איתה, וכל קישור אליהם יעודכן. | Each folder gets its kind's name… |
+| `match-links` | {{PLURAL}} קישורים {{PLURAL}} בקבצים יעודכנו. | N links in N files will be updated. |
+| `match-blocked-*` | five reasons a folder stays as it is | |
+| `match-backup-*`, `match-have-backup` | קודם כל, גיבוי · גיבוי עכשיו · הגיבוי נשמר. הוא נמצא כאן: · יש לי גיבוי | First, a backup · Make a backup now · … |
+| `match-rename`, `folders-renamed` | שינוי שמות התיקיות · שמות התיקיות שונו. N קישורים עודכנו. | Rename folders · Folders renamed… |
+| `folders-undo`, `folders-undone`, `folders-undo-stale`, `folders-failed` | ביטול שינוי שמות התיקיות · … | Undo folder renames · … |
+| `dialog-backup-location` | בחירת מיקום לגיבוי | Choose where to keep the backup |
+
+- [ ] Guide pages new or changed: `planning/kinds.mdx` (new), `files/folder.mdx`, `files/pages.mdx`. „התחרטת?” in `planning/kinds.mdx` addresses the reader in the second person; check it fits the guide's voice.
+- [ ] `match-blocked-case-only` says "אותיות גדולות וקטנות", which only applies to Latin names.

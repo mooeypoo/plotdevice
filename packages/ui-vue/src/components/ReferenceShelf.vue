@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useKinds } from '../composables/use-kinds'
 import type { LinkTargetView } from '@plotdevice/contracts'
 import type { ReferenceSummaryView } from '@plotdevice/contracts'
 import {
@@ -27,6 +28,8 @@ import TagFilter from './TagFilter.vue'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
 
+const kinds = useKinds()
+
 // Beside the page in Write: search, the outline's cards about this chapter, and opened or pinned
 // pages. Using it never moves the editor's cursor or touches its undo history.
 const props = defineProps<{ chapter: ProjectPath | null }>()
@@ -43,7 +46,7 @@ const searching = ref(false)
 const browsing = computed(() => query.value.trim() === '')
 const candidates = computed(() => {
   if (!browsing.value) return search(story.references, query.value)
-  const order = ['character', 'place', 'note']
+  const order = kinds.order.value
   return story.references
     .filter((reference) => !shelf.cards.includes(reference.file))
     .sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))
@@ -96,8 +99,7 @@ async function focusCard(file: ProjectPath): Promise<void> {
 
 function openTarget(target: LinkTargetView): void {
   if (target.kind === 'chapter') view.writeChapter(target.file)
-  else if (target.kind === 'character' || target.kind === 'place' || target.kind === 'note')
-    void shelf.open(target.file).then(() => focusCard(target.file))
+  else if (target.kind !== 'outline' && target.kind !== 'other') void shelf.open(target.file).then(() => focusCard(target.file))
 }
 
 function edit(file: ProjectPath): void {
@@ -211,7 +213,7 @@ function openResult(file: ProjectPath): void {
             <li v-for="result in section.pages" :key="result.file">
               <button type="button" class="chapter" @mousedown.prevent @click="openResult(result.file)">
                 <span dir="auto">{{ result.title }}</span
-                ><span class="secondary">{{ t(`kind-${result.kind}`) }}</span>
+                ><span class="secondary">{{ kinds.kindWord(result.kind) }}</span>
               </button>
             </li>
           </ul>
@@ -232,7 +234,7 @@ function openResult(file: ProjectPath): void {
             <button type="button" class="link-button" @click="openTarget(link)">
               <span dir="auto">{{ link.title }}</span>
             </button>
-            <span class="secondary">{{ t(`kind-${link.kind}`) }}</span>
+            <span class="secondary">{{ kinds.kindWord(link.kind) }}</span>
           </li>
         </ul>
       </article>
@@ -244,7 +246,7 @@ function openResult(file: ProjectPath): void {
         v-for="file in shelf.cards"
         :key="file"
         class="outline-card shelf-card"
-        :class="[`kind-${shelf.pages[file]?.kind ?? 'note'}`, { pinned: shelf.pinned.includes(file), reading: anyOpen(file) }]"
+        :class="[kinds.colourClass(shelf.pages[file]?.kind ?? ''), { pinned: shelf.pinned.includes(file), reading: anyOpen(file) }]"
         tabindex="0"
         :data-shelf-card="file"
         :aria-label="shelf.pages[file]?.title ?? file"

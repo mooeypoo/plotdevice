@@ -1,6 +1,6 @@
 export {
   kindOfFile,
-  REFERENCE_FOLDERS,
+  pageFolderOf,
   referenceFileFor,
   relationshipHeadingFor,
   resolveWikiLink,

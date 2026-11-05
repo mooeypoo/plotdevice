@@ -35,7 +35,8 @@ export function search<T extends Searchable>(entries: readonly T[], query: strin
 
 export interface LinkTarget {
   file: ProjectPath
-  kind: 'chapter' | 'character' | 'place' | 'note'
+  /** `chapter`, or a page's kind: its folder (ADR 0011). */
+  kind: string
   title: string
   aka: string[]
   /** A page's tags, for grouping; chapters have none. */
@@ -66,18 +67,23 @@ export function linkTargets(project: ProjectView, references: readonly Reference
   ]
 }
 
-export const LINK_KINDS: readonly LinkTarget['kind'][] = ['chapter', 'character', 'place', 'note']
-
 /**
  * What the link picker offers before anything is typed: a few of each kind, so the author sees what
- * there is. Chapters stay in reading order; pages are alphabetical. Kinds with nothing are left out.
+ * there is. Chapters first, in reading order, then each kind of page in `order` (the book's kinds, then
+ * the unsorted), alphabetical. Kinds with nothing are left out.
  */
-export function suggestedLinkTargets(targets: readonly LinkTarget[], perKind = 5): { kind: LinkTarget['kind']; targets: LinkTarget[] }[] {
-  return LINK_KINDS.map((kind) => {
-    const ofKind = targets.filter((target) => target.kind === kind)
-    const ordered = kind === 'chapter' ? ofKind : [...ofKind].sort((a, b) => a.title.localeCompare(b.title))
-    return { kind, targets: ordered.slice(0, perKind) }
-  }).filter((group) => group.targets.length > 0)
+export function suggestedLinkTargets(
+  targets: readonly LinkTarget[],
+  perKind = 5,
+  order: readonly string[] = [...new Set(targets.filter((target) => target.kind !== 'chapter').map((target) => target.kind))],
+): { kind: LinkTarget['kind']; targets: LinkTarget[] }[] {
+  return ['chapter', ...order]
+    .map((kind) => {
+      const ofKind = targets.filter((target) => target.kind === kind)
+      const ordered = kind === 'chapter' ? ofKind : [...ofKind].sort((a, b) => a.title.localeCompare(b.title))
+      return { kind, targets: ordered.slice(0, perKind) }
+    })
+    .filter((group) => group.targets.length > 0)
 }
 
 /** A relative Markdown link from a file in `fromDir` (Milestone 5, decision 2): `[Ilka](../characters/ilka.md)`. */

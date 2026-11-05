@@ -3,6 +3,7 @@ import type { ProjectView, ReferenceKind } from '@plotdevice/contracts'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
+import { useKinds } from '../composables/use-kinds'
 import { useOutlineActions } from '../composables/use-outline-actions'
 import { usePanelWidths } from '../composables/use-panel-widths'
 import { usePrompt } from '../composables/use-prompt'
@@ -32,7 +33,8 @@ const versions = useVersions()
 const t = settings.t
 const panels = usePanelWidths()
 const views: OutlineMode[] = ['board', 'outline', 'text']
-const kinds: ReferenceKind[] = ['character', 'place', 'note']
+// The book's kinds of pages (ADR 0011), and folders of pages it doesn't list ("Not sorted yet").
+const kinds = useKinds()
 const pagesOf = (kind: ReferenceKind) => story.references.filter((reference) => reference.kind === kind)
 const showingOutline = computed(() => story.showing.kind === 'outline')
 /** Plot and World fold, for a long list of kinds (Milestone 17); for this session only. */
@@ -192,16 +194,43 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
           </button>
         </h2>
         <ul v-if="worldOpen">
-          <li v-for="kind in kinds" :key="kind" class="row chapter-row" :class="{ current: currentKind === kind }">
+          <li
+            v-for="kind in kinds.kinds.value"
+            :key="kind.folder"
+            class="row chapter-row"
+            :class="{ current: currentKind === kind.folder }"
+          >
             <button
               type="button"
               class="chapter"
-              :data-gallery="kind"
-              :aria-current="story.showing.kind === 'gallery' && story.showing.of === kind ? 'page' : undefined"
-              @click="story.showing = { kind: 'gallery', of: kind }"
+              :data-gallery="kind.folder"
+              :aria-current="story.showing.kind === 'gallery' && story.showing.of === kind.folder ? 'page' : undefined"
+              @click="story.showing = { kind: 'gallery', of: kind.folder }"
             >
-              <span>{{ t(`story-${kind}`) }}</span>
-              <span class="count" :aria-label="t('gallery-pages', pagesOf(kind).length)">{{ pagesOf(kind).length }}</span>
+              <span dir="auto">{{ kinds.labels(kind.folder).many }}</span>
+              <span class="count" :aria-label="t('gallery-pages', pagesOf(kind.folder).length)">{{ pagesOf(kind.folder).length }}</span>
+            </button>
+          </li>
+        </ul>
+        <div v-if="worldOpen" class="add-links">
+          <button type="button" class="add-link" data-testid="new-kind" @click="view.kindsDialog = true">{{ t('story-new-kind') }}</button>
+        </div>
+      </section>
+
+      <!-- Pages in folders the book doesn't list as a kind: nothing is lost, and each folder can become a kind (ADR 0011). -->
+      <section v-if="kinds.unsorted.value.length > 0" class="story-group" data-testid="unsorted">
+        <h2 class="group-heading">{{ t('story-unsorted') }}</h2>
+        <ul>
+          <li v-for="folder in kinds.unsorted.value" :key="folder" class="row chapter-row" :class="{ current: currentKind === folder }">
+            <button
+              type="button"
+              class="chapter"
+              :data-gallery="folder"
+              :aria-current="story.showing.kind === 'gallery' && story.showing.of === folder ? 'page' : undefined"
+              @click="story.showing = { kind: 'gallery', of: folder }"
+            >
+              <span dir="auto">{{ folder }}/</span>
+              <span class="count" :aria-label="t('gallery-pages', pagesOf(folder).length)">{{ pagesOf(folder).length }}</span>
             </button>
           </li>
         </ul>

@@ -25,6 +25,45 @@ export const contentsChangeSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('update-link-text'), file: projectPathSchema }),
 ])
 
+/** A kind of page's folder (ADR 0011): one name, which the domain checks further. */
+const kindFolder = z.string().min(1).max(255)
+/** A change on the "Kinds of pages" screen (Milestone 18). */
+export const kindsChangeSchema = z.discriminatedUnion('kind', [
+  z.strictObject({ kind: z.literal('add'), one: name, many: name, folder: kindFolder }),
+  z.strictObject({ kind: z.literal('rename'), folder: kindFolder, one: name, many: name }),
+  z.strictObject({ kind: z.literal('move'), folder: kindFolder, index }),
+  z.strictObject({ kind: z.literal('remove'), folder: kindFolder }),
+  z.strictObject({ kind: z.literal('unit'), unit: z.strictObject({ one: name, many: name }).nullable() }),
+])
+export type KindsChangeRequest = z.infer<typeof kindsChangeSchema>
+
+/** "Match folder names" (Milestone 18): each kind's folder renamed to its plural. */
+export const folderRenamesSchema = z.strictObject({
+  renames: z
+    .array(z.strictObject({ from: kindFolder, to: kindFolder }))
+    .min(1)
+    .max(100),
+})
+export type FolderRenamesRequest = z.infer<typeof folderRenamesSchema>['renames']
+
+/** Why a folder can't be renamed: the preview says so, and nothing is renamed. */
+export type FolderRenameBlockView = 'exists' | 'case-only' | 'invalid-name' | 'other-files' | 'missing'
+
+export interface FolderRenamePlanView {
+  renames: { from: string; to: string; files: number; blocked: FolderRenameBlockView | null }[]
+  linksUpdated: number
+  /** The files whose links will change, where they will be afterwards. */
+  filesChanged: ProjectPath[]
+}
+export type FolderRenamePlanResult = Result<FolderRenamePlanView, 'no-project'>
+export type RenameFoldersResult = Result<
+  { project: ProjectView; linksUpdated: number },
+  Exclude<ProjectChangeResult, { ok: true }>['error'] | 'blocked'
+>
+export type UndoFolderRenamesResult = Result<ProjectView, Exclude<ProjectChangeResult, { ok: true }>['error'] | 'nothing-to-undo'>
+/** A copy of the whole book folder, where the author chose. */
+export type BackupBookResult = Result<{ path: string }, 'cancelled' | 'failed' | 'no-project'>
+
 export const renameChapterSchema = z.strictObject({ file: projectPathSchema, title: name })
 export const renameChapterFileSchema = z.strictObject({ file: projectPathSchema, newName: name })
 export const openProjectSchema = z.union([z.strictObject({ recent: z.string().min(1) }), z.literal('choose')])
@@ -57,6 +96,12 @@ export interface ProjectView {
   relinkSuggestions: { missing: ProjectPath; found: ProjectPath; reason: 'same-id' | 'same-title' }[]
   duplicateIds: { id: string; files: ProjectPath[] }[]
   warnings: { file: ProjectPath; code: string; line?: number }[]
+  /** The book's kinds of pages, in sidebar order: a folder and, for the author's own, its names (ADR 0011). */
+  kinds: { folder: string; one?: string; many?: string }[]
+  /** What the interface calls a chapter in this book, or `null` for the app's own word. */
+  manuscriptUnit: { one: string; many: string } | null
+  /** Kinds whose folder isn't named after them (yet): what "Match folder names" would rename. */
+  folderMismatches: { from: string; to: string }[]
 }
 
 export interface RecentProjectView {
@@ -88,7 +133,19 @@ export type OpenProjectResult = Result<OpenedProject, 'cancelled' | 'not-a-proje
 export type CreateProjectResult = Result<OpenedProject, 'cancelled' | 'invalid-details' | 'folder-exists' | 'inside-project' | 'io'>
 export type ProjectChangeResult = Result<
   ProjectView,
-  'stale' | 'invalid' | 'not-found' | 'unreadable' | 'write-failed' | 'invalid-name' | 'name-taken' | 'no-project'
+  | 'stale'
+  | 'invalid'
+  | 'not-found'
+  | 'unreadable'
+  | 'write-failed'
+  | 'invalid-name'
+  | 'name-taken'
+  | 'no-project'
+  // Kinds of pages (ADR 0011).
+  | 'empty-name'
+  | 'folder-taken'
+  | 'invalid-folder'
+  | 'invalid-kinds'
 >
 
 /** The compiled book was written to `path`; `missing` chapters couldn't be read and are not in it. */

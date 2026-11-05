@@ -102,7 +102,7 @@ test('Format sits on every page to write on, and nowhere else', async () => {
   await page.getByTestId('view-text').click()
   await expect(page.getByTestId('outline-text').getByTestId('format-menu')).toBeVisible()
   await page.getByTestId('view-board').click()
-  await page.locator('[data-gallery="note"]').click()
+  await page.locator('[data-gallery="notes"]').click()
   await expect(visible(page, 'format-menu')).toHaveCount(0) // the gallery
   await page.locator('[data-page="notes/loose-ideas.md"]').click()
   await expect(page.getByTestId('reference-page').getByTestId('format-menu')).toBeVisible()
@@ -158,9 +158,9 @@ test('a new book: the first chapter says where to start, and Story and World eac
   await expect(page.getByTestId('prompt-input')).toBeVisible()
   await page.keyboard.press('Escape')
 
-  await page.locator('[data-gallery="character"]').click()
-  await expect(page.getByTestId('no-character')).toContainText('No characters yet')
-  await page.getByTestId('new-character').click()
+  await page.locator('[data-gallery="characters"]').click()
+  await expect(page.getByTestId('no-characters')).toContainText('No characters yet')
+  await page.getByTestId('new-characters').click()
   await expect(page.getByTestId('prompt-input')).toBeVisible()
 })
 

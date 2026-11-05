@@ -1,6 +1,8 @@
 import type {
   ChangeProblem,
   ContentsChange,
+  FolderRenameBlock,
+  FolderRenamePlan,
   FileStore,
   IdGenerator,
   JournalStep,
@@ -17,7 +19,7 @@ import {
   addPart,
   chapterCopyFileFor,
   chapterFileFor,
-  kindOfFile,
+  pageFolderOf,
   CURRENT_SCHEMA_VERSION,
   moveChapter,
   projectFolderName,
@@ -27,6 +29,12 @@ import {
   replaceChapterFile,
   validateNewProject,
   type ManuscriptProblem,
+  isDefaultKinds,
+  type ManuscriptUnit,
+  type PageKind,
+  isValidKindFolder,
+  withRenamedFolders,
+  type FolderRename,
 } from '@plotdevice/domain'
 import {
   editContents,
@@ -36,6 +44,7 @@ import {
   newProjectFile,
   readFrontmatter,
   rewriteLinksTo,
+  setFrontmatterBlock,
   setFrontmatterValues,
   splitFrontmatter,
   type ContentsEdit,
@@ -154,10 +163,108 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       return reopen(snapshot.root)
     },
 
+    async planFolderRenames(snapshot, renames) {
+      const planned = await planRenames(folders.open(snapshot.root), snapshot, renames)
+      return planned.plan
+    },
+
+    async renameFolders(snapshot, renames) {
+      const store = folders.open(snapshot.root)
+      const { plan, steps, restore } = await planRenames(store, snapshot, renames)
+      if (plan.renames.some((rename) => rename.blocked !== null)) return err('blocked')
+      const project = await store.read(PROJECT_FILE)
+      if (!project.ok) return err('unreadable')
+      const kindsText = setFrontmatterBlock(project.value.text, 'kinds', kindsLines(withRenamedFolders(snapshot.details.kinds, renames)))
+      if (!kindsText.ok) return err('unreadable')
+      const projectStep = writeStep(store, PROJECT_FILE, project.value, kindsText.value)
+      const forward = [...steps, projectStep]
+      const outcome = await runJournaled(
+        store,
+        journals,
+        projectKey(snapshot),
+        { id: ids.next('jrn'), operation: 'rename-folder', steps: forward },
+        crashAt,
+      )
+      if (outcome !== 'done') return err('write-failed')
+      for (const rename of renames) await store.removeEmptyFolder(rename.from)
+
+      // The reverse: the old texts back where they are now, then each page back to its folder (ADR 0005).
+      const writes = forward.flatMap((step): JournalStep[] =>
+        step.kind === 'write'
+          ? [
+              {
+                kind: 'write',
+                path: step.path,
+                before: step.after,
+                after: step.before,
+                text: restore.get(step.path) ?? project.value.text,
+                hasBom: step.hasBom,
+              },
+            ]
+          : [],
+      )
+      const moves = forward.flatMap((step): JournalStep[] =>
+        step.kind === 'rename' ? [{ kind: 'rename', from: step.to, to: step.from, revision: step.revision }] : [],
+      )
+      const undo = {
+        entry: { id: ids.next('jrn'), operation: 'undo-rename-folder' as const, steps: [...writes, ...moves] },
+        renames: renames.map(({ from, to }) => ({ from, to })),
+      }
+      const reopened = await reopen(snapshot.root)
+      return reopened.ok ? ok({ snapshot: reopened.value, undo, linksUpdated: plan.linksUpdated }) : reopened
+    },
+
+    async undoFolderRenames(snapshot, undo) {
+      const store = folders.open(snapshot.root)
+      // Files whose links the rename rewrote must be as it left them, or their old text would replace
+      // the author's since. A page that only moved goes back as it is now, edits and all. Nothing is
+      // touched unless every check passes.
+      const written = new Set<ProjectPath>()
+      for (const step of undo.entry.steps) {
+        if (step.kind !== 'write') continue
+        const read = await store.read(step.path)
+        if (!read.ok || read.value.revision !== step.before) return err('stale')
+        written.add(step.path)
+      }
+      const steps: JournalStep[] = []
+      for (const step of undo.entry.steps) {
+        if (step.kind === 'write') steps.push(step)
+        else if (written.has(step.from)) steps.push(step)
+        else {
+          const read = await store.read(step.from)
+          if (!read.ok) return err('stale')
+          steps.push({ ...step, revision: read.value.revision })
+        }
+      }
+      // A page added to a renamed folder since would be left behind: the folder names stay.
+      const moving = new Set(steps.flatMap((step) => (step.kind === 'rename' ? [collisionKey(step.from)] : [])))
+      for (const { to } of undo.renames)
+        if ((await store.listFiles(to)).some((file) => !moving.has(collisionKey(file)))) return err('stale')
+      const outcome = await runJournaled(store, journals, projectKey(snapshot), { ...undo.entry, steps }, crashAt)
+      if (outcome !== 'done') return err('write-failed')
+      for (const { to } of undo.renames) await store.removeEmptyFolder(to)
+      return reopen(snapshot.root)
+    },
+
+    async setKinds(snapshot, kinds, manuscriptUnit) {
+      const store = folders.open(snapshot.root)
+      const current = await store.read(PROJECT_FILE)
+      if (!current.ok) return err('unreadable')
+      // Only these two keys change; back to the defaults, a key goes (ADR 0011, decision 2).
+      const withKinds = setFrontmatterBlock(current.value.text, 'kinds', kindsLines(kinds))
+      if (!withKinds.ok) return err('unreadable')
+      const withUnit = setFrontmatterBlock(withKinds.value, 'manuscriptUnit', unitLines(manuscriptUnit))
+      if (!withUnit.ok) return err('unreadable')
+      if (withUnit.value === current.value.text) return ok(snapshot)
+      const written = await store.write(PROJECT_FILE, { text: withUnit.value, hasBom: current.value.hasBom }, current.value.revision)
+      if (!written.ok) return err(writeProblem(written.error))
+      return reopen(snapshot.root)
+    },
+
     async renameFile(snapshot, file, newName) {
       const store = folders.open(snapshot.root)
       // A chapter, or a character, place or note page; pages aren't in the snapshot or the contents.
-      const chapter = snapshot.chapters.find((c) => c.file === file) ?? (kindOfFile(file) ? { revision: undefined, listed: false } : null)
+      const chapter = snapshot.chapters.find((c) => c.file === file) ?? (pageFolderOf(file) ? { revision: undefined, listed: false } : null)
       if (!chapter) return err('not-found')
       const target = targetPath(file, newName)
       if (!target.ok) return target
@@ -322,6 +429,65 @@ function targetPath(file: ProjectPath, newName: string): Result<ProjectPath, Ren
 }
 
 /** A journal step that replaces `current` with `text`, recording both revisions so recovery can tell what happened. */
+/**
+ * What renaming folders would do: each page's move, every link that would change (in every Markdown
+ * file, and in the moved pages read from their new place), and what blocks a rename. Reads only.
+ * `restore` keeps each changed file's text as it is now, for the undo.
+ */
+async function planRenames(
+  store: FileStore,
+  snapshot: ProjectSnapshot,
+  renames: readonly FolderRename[],
+): Promise<{ plan: FolderRenamePlan; steps: JournalStep[]; restore: Map<ProjectPath, string> }> {
+  const files = await store.listMarkdownFiles()
+  const targets = new Set(renames.map((rename) => collisionKey(rename.to)))
+  const rows: FolderRenamePlan['renames'] = []
+  const moves = new Map<ProjectPath, ProjectPath>()
+  for (const { from, to } of renames) {
+    const inFolder = from === '' ? [] : await store.listFiles(from)
+    const pages = files.filter((file) => file.startsWith(`${from}/`))
+    let blocked: FolderRenameBlock | null = null
+    if (!isValidKindFolder(to)) blocked = 'invalid-name'
+    else if (collisionKey(from) === collisionKey(to)) blocked = 'case-only'
+    else if (inFolder.length === 0) blocked = 'missing'
+    else if (inFolder.some((file) => !/\.md$/i.test(file))) blocked = 'other-files'
+    else if ((await store.listFiles(to)).length > 0 || renames.filter((each) => collisionKey(each.to) === collisionKey(to)).length > 1)
+      blocked = 'exists'
+    else if (targets.has(collisionKey(from)) && renames.some((each) => collisionKey(each.to) === collisionKey(from))) blocked = 'exists'
+    rows.push({ from, to, files: pages.length, blocked })
+    for (const page of pages) moves.set(page, `${to}${page.slice(from.length)}` as ProjectPath)
+  }
+
+  const steps: JournalStep[] = []
+  for (const [from, to] of moves) {
+    const read = await store.read(from)
+    if (read.ok) steps.push({ kind: 'rename', from, to, revision: read.value.revision })
+  }
+  const restore = new Map<ProjectPath, string>()
+  const changed: ProjectPath[] = []
+  let linksUpdated = 0
+  for (const file of files) {
+    const read = await store.read(file)
+    if (!read.ok) continue
+    // A moved page is read from its new place: links to its siblings stay as written.
+    const at = moves.get(file) ?? file
+    let text = read.value.text
+    let count = 0
+    for (const [from, to] of moves) {
+      // A bare [[name]] keeps meaning the same page: moving a folder doesn't change its name.
+      const rewritten = rewriteLinksTo(text, dirnameOf(at), from, to, { wikilinkNameIsUnique: false })
+      text = rewritten.text
+      count += rewritten.count
+    }
+    if (count === 0) continue
+    linksUpdated += count
+    changed.push(at)
+    restore.set(at, read.value.text)
+    steps.push(writeStep(store, at, read.value, text))
+  }
+  return { plan: { renames: rows, linksUpdated, filesChanged: changed.sort() }, steps, restore }
+}
+
 function writeStep(store: FileStore, path: ProjectPath, current: StoredText, text: string): JournalStep {
   return {
     kind: 'write',
@@ -331,6 +497,23 @@ function writeStep(store: FileStore, path: ProjectPath, current: StoredText, tex
     text,
     hasBom: current.hasBom,
   }
+}
+
+/** `kinds:` as `project.md` writes it: a block list, plain values quoted only when YAML needs it; `null` for the defaults. */
+function kindsLines(kinds: readonly PageKind[]): string[] | null {
+  if (isDefaultKinds(kinds)) return null
+  return [
+    'kinds:',
+    ...kinds.flatMap((kind) => [
+      `  - folder: ${formatScalar(kind.folder)}`,
+      ...(kind.one === undefined ? [] : [`    one: ${formatScalar(kind.one)}`]),
+      ...(kind.many === undefined ? [] : [`    many: ${formatScalar(kind.many)}`]),
+    ]),
+  ]
+}
+
+function unitLines(unit: ManuscriptUnit | null): string[] | null {
+  return unit === null ? null : ['manuscriptUnit:', `  one: ${formatScalar(unit.one)}`, `  many: ${formatScalar(unit.many)}`]
 }
 
 function writeProblem(problem: WriteProblem): ChangeProblem {

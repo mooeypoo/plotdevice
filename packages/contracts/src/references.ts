@@ -2,8 +2,17 @@ import type { ProjectPath, Result } from '@plotdevice/shared'
 import { z } from 'zod'
 import { projectPathSchema } from './project'
 
-export const referenceKindSchema = z.enum(['character', 'place', 'note'])
-const referenceFile = projectPathSchema.refine((file) => /^(characters|places|notes)\/.+\.md$/.test(file))
+/**
+ * A kind of page is its folder (ADR 0011): one folder name, never the book's own folders. Whether it is
+ * one of the book's kinds, the host checks against `project.md`.
+ */
+export const referenceKindSchema = z
+  .string()
+  .min(1)
+  .max(255)
+  .refine((folder) => !/[\\/]/.test(folder) && !folder.startsWith('.') && !/^(manuscript|outlines)$/i.test(folder))
+/** A page: a Markdown file inside a folder other than the book's own (`manuscript`, `outlines`). */
+const referenceFile = projectPathSchema.refine((file) => /^[^/.][^/]*\/.+\.md$/.test(file) && !/^(manuscript|outlines)\//i.test(file))
 const title = z.string().max(500)
 
 export const referenceFileSchema = z.strictObject({ file: referenceFile })

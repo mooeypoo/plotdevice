@@ -1,5 +1,6 @@
 import { err, ok, type ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
+import { DEFAULT_KINDS } from '@plotdevice/domain'
 import type { Revision } from '../ports/file-store'
 import type { ChapterFile, ProjectRepository, ProjectSnapshot } from '../ports/project-repository'
 import { createWritingSession, type SessionEvent } from './writing-session'
@@ -24,7 +25,14 @@ function memoryRepository(initial: Record<string, string>) {
   const writes: { file: string; text: string }[] = []
   const snapshot = (): ProjectSnapshot => ({
     root: ROOT,
-    details: { title: 'The Salt Orchard', language: 'en', chapterNumbering: 'continuous', schemaVersion: 1 },
+    details: {
+      title: 'The Salt Orchard',
+      language: 'en',
+      chapterNumbering: 'continuous',
+      schemaVersion: 1,
+      kinds: DEFAULT_KINDS,
+      manuscriptUnit: null,
+    },
     contents: { entries: [...disk.keys()].map((file) => ({ kind: 'chapter' as const, file: p(file), linkText: file })) },
     contentsRevision: 'r:contents' as Revision,
     chapters: [...disk.keys()].map((file): ChapterFile => {
@@ -44,6 +52,10 @@ function memoryRepository(initial: Record<string, string>) {
   const repository: ProjectRepository = {
     create: unknown,
     open: async () => ok(snapshot()),
+    setKinds: unknown,
+    planFolderRenames: unknown,
+    renameFolders: unknown,
+    undoFolderRenames: unknown,
     changeContents: async () => ok(snapshot()),
     async renameChapter(given, file, title) {
       const entry = disk.get(file)

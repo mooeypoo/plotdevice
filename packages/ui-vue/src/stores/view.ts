@@ -36,6 +36,11 @@ export const useViewStore = defineStore('view', () => {
   const storySaveStatus = ref<SaveStatusView | null>(null)
   /** "Edit as plain text" from the outline's menu: Text opens as plain text (ADR 0010). */
   const plainTextRequest = ref(false)
+  /** "Kinds of pages" is open (Milestone 18), and the unsorted folder it should offer to make a kind, if any. */
+  const kindsDialog = ref(false)
+  const kindsAdopt = ref<string | null>(null)
+  /** "Match folder names", opened from "Kinds of pages" (Milestone 18). */
+  const matchFolders = ref(false)
 
   function writeChapter(file: ProjectPath): void {
     chapterRequest.value = file
@@ -76,6 +81,9 @@ export const useViewStore = defineStore('view', () => {
     saveStatus,
     storySaveStatus,
     plainTextRequest,
+    kindsDialog,
+    kindsAdopt,
+    matchFolders,
     writeChapter,
     setFocusMode,
     toggleNavigator,

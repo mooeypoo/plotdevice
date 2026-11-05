@@ -10,13 +10,23 @@ describe('reference kinds', () => {
       kindOfFile(p('places/a/b.md')),
       kindOfFile(p('notes/x.md')),
       kindOfFile(p('manuscript/x.md')),
-    ]).toEqual(['character', 'place', 'note', null])
+    ]).toEqual(['characters', 'places', 'notes', null])
+  })
+
+  it('come from the book’s own kinds when it lists them (ADR 0011)', () => {
+    const kinds = [{ folder: 'npcs', one: 'NPC', many: 'NPCs' }, { folder: 'פלגים' }]
+    expect([kindOfFile(p('npcs/bea.md'), kinds), kindOfFile(p('פלגים/a.md'), kinds), kindOfFile(p('characters/ilka.md'), kinds)]).toEqual([
+      'npcs',
+      'פלגים',
+      null,
+    ])
   })
 
   it('name new pages from their titles, in their folder', () => {
-    expect(referenceFileFor('character', 'Ilka Varga', [])).toBe('characters/ilka-varga.md')
-    expect(referenceFileFor('place', 'מרו', [p('places/מרו.md')])).toBe('places/מרו-2.md')
-    expect(referenceFileFor('note', '???', [])).toBe('notes/note.md')
+    expect(referenceFileFor('characters', 'Ilka Varga', [])).toBe('characters/ilka-varga.md')
+    expect(referenceFileFor('places', 'מרו', [p('places/מרו.md')])).toBe('places/מרו-2.md')
+    expect(referenceFileFor('notes', '???', [])).toBe('notes/page.md')
+    expect(referenceFileFor('פלגים', 'הסוחרים', [])).toBe('פלגים/הסוחרים.md')
   })
 })
 

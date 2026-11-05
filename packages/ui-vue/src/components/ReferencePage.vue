@@ -2,6 +2,7 @@
 import { RELATIONSHIP_HEADINGS, type ProjectPath } from '@plotdevice/shared'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useChapterWriting } from '../composables/use-chapter-writing'
+import { useKinds } from '../composables/use-kinds'
 import { useLinkActions } from '../composables/use-link-actions'
 import { useLinkSuggestions } from '../composables/use-link-suggestions'
 import { usePrompt } from '../composables/use-prompt'
@@ -32,6 +33,7 @@ const versions = useVersions()
 const t = settings.t
 const host = ref<HTMLElement | null>(null)
 const linkActions = useLinkActions()
+const kinds = useKinds()
 // `@` or `[[` offers pages and chapters to link, as in an outline (Milestone 16).
 const links = useLinkSuggestions(
   (markdown) => page.pickLink(markdown),
@@ -116,10 +118,10 @@ watch(
         type="button"
         class="crumb"
         data-testid="back-to-gallery"
-        :aria-label="t('story-back-to', t(`story-${summary.kind}`))"
+        :aria-label="t('story-back-to', kinds.labels(summary.kind).many)"
         @click="story.showing = { kind: 'gallery', of: summary.kind }"
       >
-        {{ t(`story-${summary.kind}`) }}
+        {{ kinds.labels(summary.kind).many }}
       </button>
       <h1 class="item-title" dir="auto">{{ summary?.title ?? file }}</h1>
       <MenuButton :label="t('page-actions')" :items="pageItems" button-class="icon-button" testid="page-menu" />

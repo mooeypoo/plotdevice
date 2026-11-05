@@ -31,6 +31,12 @@ import type {
   OpenProjectResult,
   ProjectChangeResult,
   RecentProjectView,
+  KindsChangeRequest,
+  BackupBookResult,
+  FolderRenamePlanResult,
+  FolderRenamesRequest,
+  RenameFoldersResult,
+  UndoFolderRenamesResult,
 } from './project'
 import type { ProjectPath } from '@plotdevice/shared'
 
@@ -56,6 +62,14 @@ export interface PlotDeviceApi {
   /** Compiles the book into one Markdown file, asking the author where to save it. */
   compileBook(): Promise<CompileResult>
   renameChapter(file: ProjectPath, title: string): Promise<ProjectChangeResult>
+  /** A change to the book's kinds of pages, or to what it calls a chapter (ADR 0011). */
+  changeKinds(change: KindsChangeRequest): Promise<ProjectChangeResult>
+  /** "Match folder names": what would change, then the change, and its undo until the book closes. */
+  planFolderRenames(renames: FolderRenamesRequest): Promise<FolderRenamePlanResult>
+  renameFolders(renames: FolderRenamesRequest): Promise<RenameFoldersResult>
+  undoFolderRenames(): Promise<UndoFolderRenamesResult>
+  /** Copies the whole book folder to a place the author chooses. */
+  backupBook(): Promise<BackupBookResult>
   renameChapterFile(file: ProjectPath, newName: string): Promise<ProjectChangeResult>
 
   openChapter(file: ProjectPath): Promise<OpenChapterResult>

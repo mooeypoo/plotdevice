@@ -2,6 +2,7 @@
 import type { AppInfo, Workspace } from '@plotdevice/contracts'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useApi } from '../api'
+import { useFolderUndo } from '../composables/use-folder-undo'
 import { useVersions } from '../composables/use-versions'
 import { documentationFor, IDEA_FORM, problemReportFor } from '../links'
 import { useProjectStore } from '../stores/project'
@@ -21,6 +22,7 @@ import type { MenuItem } from './menu'
 const store = useProjectStore()
 const settings = useSettingsStore()
 const view = useViewStore()
+const undoFolders = useFolderUndo()
 const versions = useVersions()
 const t = settings.t
 const settingsDialog = ref<InstanceType<typeof SettingsDialog> | null>(null)
@@ -39,6 +41,8 @@ const bookItems = computed<MenuItem[]>(() => {
   const chapter = view.workspace === 'write' ? view.writingChapter : null
   return [
     { key: 'export-book', label: t('export-book'), run: () => void store.compile() },
+    { key: 'kinds', label: t('kinds-menu'), run: () => (view.kindsDialog = true) },
+    ...(store.renamedFolders ? [{ key: 'undo-folders', label: t('folders-undo'), run: () => void undoFolders() }] : []),
     ...(chapter ? [{ key: 'chapter-versions', label: t('chapter-versions'), run: () => versions.show(chapter.file, chapter.name) }] : []),
   ]
 })

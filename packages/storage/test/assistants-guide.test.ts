@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { checkProject } from '../src/index'
+import { readProject } from '../src/read-project'
 
 /**
  * The guide for AI assistants (Milestone 13) shows a small book, file by file. Each example is a
@@ -36,6 +37,22 @@ describe('the guide for AI assistants', () => {
 
     const result = await checkProject(createFileStore(root))
     expect(result.findings).toEqual([])
-    expect(result.counts).toEqual({ chapters: 3, characters: 2, places: 2, notes: 2, outlines: 1 })
+    expect(result.counts).toEqual({ chapters: 3, outlines: 1, pages: { characters: 2, places: 2, notes: 2 } })
+  })
+
+  it('lists kinds of pages the way the app reads them (Milestone 18)', async () => {
+    const guide = await readFile(GUIDE, 'utf8')
+    const kinds = /## Kinds of pages\n[\s\S]*?```yaml\n([\s\S]*?)\n```/.exec(guide)?.[1]
+    expect(kinds).toBeDefined()
+    const unit = /`(manuscriptUnit: [^`]+)`/.exec(guide)?.[1]
+    expect(unit).toBeDefined()
+    const root = await mkdtemp(join(tmpdir(), 'plotdevice-guide-'))
+    dirs.push(root)
+    await writeFile(join(root, 'project.md'), `---\ntitle: The Salt Orchard\nlanguage: en\n${kinds}\n${unit}\n---\n`)
+    await writeFile(join(root, 'CONTENTS.md'), '# The Salt Orchard\n')
+    const project = await readProject(root, createFileStore(root), [])
+    expect(project.ok && project.value.warnings).toEqual([])
+    expect(project.ok && project.value.details.kinds.map((kind) => kind.folder)).toEqual(['characters', 'factions', 'places', 'notes'])
+    expect(project.ok && project.value.details.manuscriptUnit).toEqual({ one: 'Session', many: 'Sessions' })
   })
 })

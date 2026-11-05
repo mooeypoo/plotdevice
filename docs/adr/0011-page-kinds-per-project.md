@@ -58,6 +58,13 @@ manuscriptUnit:
 - **The rename helper** is planned test-first: the preview lists exactly the links that will change; collisions, Windows reserved names and case-only renames are refused with a reason; a failure halfway rolls back from the journal; undo restores names and links byte-identical.
 - **Spec impact:** `DOMAIN_AND_FILE_FORMAT.md` (version 0.5), `UX_SPEC.md` (World, "What your world has").
 
+## Implementation note (Milestone 18)
+
+- **Built as decided.** The kinds screen is a dialog ("Kinds of pages…" in the book menu, and **+ Kind of page** under World), not a Book settings screen, since there is none yet. Rows move with Move up and Move down in their `⋯`; dragging isn't built.
+- **Matching folders** is one journal (ADR 0005): each page's move, then each changed link, then `project.md`. Links are rewritten as read from each file's new place, so links between pages of the same folder stay as written. The undo keeps the original texts in memory until the book closes. A page that only moved goes back with whatever was typed in it since; a file whose links were rewritten must be unchanged, and a page added to a renamed folder since blocks the undo, so nothing is left behind.
+- **Blocked renames** say why: a folder with that name has files; only the letter case differs; a name a system can't use, or the book's own folders; the folder holds files other than pages (images stay with their folder, so it isn't moved); the folder isn't there. A kind with no pages has nothing to move and isn't offered.
+- **The backup** copies the whole book folder as "‹book› backup ‹date›" where the author chooses, never into the book itself.
+
 ## Consequences
 
 - Templates (Milestone 19) are possible: a template is mostly a `kinds` list and a manuscript unit.

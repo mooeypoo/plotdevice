@@ -1,21 +1,31 @@
 <script setup lang="ts">
+import { useKinds } from '../composables/use-kinds'
 import type { ReferenceKind, ReferenceSummaryView } from '@plotdevice/contracts'
 import { galleryPages, groupByTags, linkTextOnly, tagRow } from '@plotdevice/presentation'
 import { computed, ref } from 'vue'
 import { usePrompt } from '../composables/use-prompt'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
+import { useViewStore } from '../stores/view'
 import EmptyState from './EmptyState.vue'
 import ItemHeader from './ItemHeader.vue'
 import TagFilter from './TagFilter.vue'
 
-// One kind of page (characters, places or notes) as cards, A to Z, with a card to add one more.
+// One kind of page as cards, A to Z, with a card to add one more: the book's kinds and its unsorted folders alike (ADR 0011).
 // Choosing tags above it groups the cards by them; the rest fold away under "All characters" (places, notes).
 const props = defineProps<{ kind: ReferenceKind }>()
 const story = useStoryStore()
 const settings = useSettingsStore()
 const { ask } = usePrompt()
 const t = settings.t
+const kinds = useKinds()
+const view = useViewStore()
+/** An unsorted folder becomes a kind from "Kinds of pages", which asks for its names (ADR 0011). */
+function makeKind(): void {
+  view.kindsAdopt = props.kind
+  view.kindsDialog = true
+}
+const labels = computed(() => kinds.labels(props.kind))
 const pages = computed(() => galleryPages(story.references, props.kind, settings.locale))
 const tags = computed(() => tagRow(pages.value, settings.locale))
 /** A long list (more than 12 pages) shows compact cards: the name and one line (Milestone 17). */
@@ -39,7 +49,7 @@ const sections = computed<Section[]>(() => {
   if (groups.length === 0) return [{ key: 'all', label: null, pages: pages.value }]
   return [
     ...groups.map((group) => ({ key: `tag:${group.tag}`, label: group.tag, pages: group.pages })),
-    ...(others.length > 0 ? [{ key: 'others', label: t(`tag-all-${props.kind}`, String(others.length)), pages: others, folds: true }] : []),
+    ...(others.length > 0 ? [{ key: 'others', label: labels.value.all(others.length), pages: others, folds: true }] : []),
   ]
 })
 
@@ -52,14 +62,17 @@ async function newPage(): Promise<void> {
 <template>
   <div class="world-gallery">
     <ItemHeader>
-      <h1 class="item-title">{{ t(`story-${kind}`) }}</h1>
+      <h1 class="item-title" dir="auto">{{ kinds.listed(kind) ? labels.many : `${kind}/` }}</h1>
+      <button v-if="!kinds.listed(kind)" type="button" class="link-button" data-testid="make-kind" @click="makeKind">
+        {{ t('kinds-adopt') }}
+      </button>
     </ItemHeader>
     <div v-if="pages.length === 0" class="story-page">
       <EmptyState
         sketch="cards"
-        :title="t(`gallery-empty-${kind}`)"
-        :text="t(`gallery-empty-${kind}-text`)"
-        :action="t(`new-${kind}`)"
+        :title="labels.empty"
+        :text="labels.emptyText"
+        :action="labels.newPage"
         :testid="`no-${kind}`"
         :action-testid="`new-${kind}`"
         @act="newPage"
@@ -83,7 +96,7 @@ async function newPage(): Promise<void> {
           v-if="!section.folds || othersOpen"
           class="gallery"
           :class="{ compact }"
-          :aria-label="section.label ?? t(`story-${kind}`)"
+          :aria-label="section.label ?? labels.many"
           :data-testid="section.key === 'all' ? `gallery-${kind}` : undefined"
         >
           <li v-for="page in section.pages" :key="page.file">
@@ -105,13 +118,13 @@ async function newPage(): Promise<void> {
             </button>
           </li>
           <li v-if="section.key === 'all'">
-            <button type="button" class="page-card new-page" :data-testid="`new-${kind}`" @click="newPage">{{ t(`new-${kind}`) }}</button>
+            <button type="button" class="page-card new-page" :data-testid="`new-${kind}`" @click="newPage">{{ labels.newPage }}</button>
           </li>
         </ul>
       </section>
       <ul v-if="sections[0]?.key !== 'all'" class="gallery">
         <li>
-          <button type="button" class="page-card new-page" :data-testid="`new-${kind}`" @click="newPage">{{ t(`new-${kind}`) }}</button>
+          <button type="button" class="page-card new-page" :data-testid="`new-${kind}`" @click="newPage">{{ labels.newPage }}</button>
         </li>
       </ul>
     </div>

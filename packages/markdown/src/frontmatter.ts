@@ -100,6 +100,34 @@ export function setFrontmatterList(text: string, key: string, values: readonly s
   return ok(applySplices(text, [{ start, end, text: line }]))
 }
 
+/**
+ * Sets one top-level key to `lines`, its whole YAML as the caller wrote it (`kinds:` and its entries),
+ * replacing only that key's lines; `null` removes the key. Every other key, comment and the body stay
+ * byte for byte (ADR 0005, ADR 0011). The caller formats the values (`formatScalar`).
+ */
+export function setFrontmatterBlock(text: string, key: string, lines: readonly string[] | null): Result<string, FrontmatterProblem> {
+  const eol = lineEndingOf(text)
+  const block = lines === null ? '' : lines.map((line) => `${line}${eol}`).join('')
+  const { frontmatter } = splitFrontmatter(text)
+  if (!frontmatter) return ok(block === '' ? text : `---${eol}${block}---${eol}${text}`)
+
+  const doc = parseDocument(text.slice(frontmatter.yamlStart, frontmatter.yamlEnd))
+  if (doc.errors.length > 0) return err('invalid-yaml')
+  const map = doc.contents
+  if (map !== null && !isMap(map)) return err('not-a-map')
+  const index = map?.items.findIndex((item) => isScalar(item.key) && item.key.value === key) ?? -1
+  const pair = index >= 0 ? map?.items[index] : undefined
+  if (!pair) return ok(block === '' ? text : applySplices(text, [{ start: frontmatter.yamlEnd, end: frontmatter.yamlEnd, text: block }]))
+
+  const keyRange = isScalar(pair.key) ? pair.key.range : null
+  if (!keyRange) return err('not-a-plain-value')
+  const start = lineStartAt(text, frontmatter.yamlStart + keyRange[0])
+  // The key's lines end with its value's last line; a comment after it belongs to what follows.
+  const valueRange = (pair.value as { range?: [number, number, number] } | null)?.range ?? keyRange
+  const end = lineEndAt(text, frontmatter.yamlStart + Math.max(valueRange[1], keyRange[1]) - 1)
+  return ok(applySplices(text, [{ start, end, text: block }]))
+}
+
 /** An entry of a flow list: plain when that is safe there too, double-quoted otherwise. */
 function formatFlowItem(value: string): string {
   const plain = formatScalar(value)

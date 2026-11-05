@@ -1,10 +1,12 @@
 import { collisionKey, RELATIONSHIP_HEADINGS, stemOf, type ProjectPath } from '@plotdevice/shared'
 import { markdownFileFor } from '../manuscript/index'
+import { DEFAULT_KINDS, type PageKind } from '../project/kinds'
 
-/** What a reference page is about. The folder decides it (DOMAIN_AND_FILE_FORMAT.md). */
-export type ReferenceKind = 'character' | 'place' | 'note'
-
-export const REFERENCE_FOLDERS: Readonly<Record<ReferenceKind, string>> = { character: 'characters', place: 'places', note: 'notes' }
+/**
+ * What a page is about: its kind, which is its folder (ADR 0011). `characters`, `places` and `notes`
+ * by default; a book can list its own kinds in `project.md`.
+ */
+export type ReferenceKind = string
 
 /** A page as lists, search and the shelf show it. */
 export interface ReferenceSummary {
@@ -32,15 +34,30 @@ export interface Relationship {
   links: ProjectPath[]
 }
 
-export function kindOfFile(file: ProjectPath): ReferenceKind | null {
+/** The kind a file belongs to: its first folder, when that folder is one of the book's kinds. */
+export function kindOfFile(file: ProjectPath, kinds: readonly PageKind[] = DEFAULT_KINDS): ReferenceKind | null {
   const folder = file.split('/')[0]
-  const entry = Object.entries(REFERENCE_FOLDERS).find(([, name]) => name === folder)
-  return entry ? (entry[0] as ReferenceKind) : null
+  return file.includes('/') && kinds.some((kind) => kind.folder === folder) ? (folder ?? null) : null
+}
+
+/** Folders that hold the book itself, never pages. */
+const BOOK_FOLDERS = new Set(['manuscript', 'outlines'])
+
+/**
+ * The folder of a page: any file in a top-level folder other than the book's own (`manuscript`,
+ * `outlines`). Whether that folder is one of the book's kinds, or "Not sorted yet", the book's kinds
+ * decide (ADR 0011, decision 5).
+ */
+export function pageFolderOf(file: ProjectPath): string | null {
+  const slash = file.indexOf('/')
+  if (slash <= 0) return null
+  const folder = file.slice(0, slash)
+  return folder.startsWith('.') || BOOK_FOLDERS.has(folder.toLowerCase()) ? null : folder
 }
 
 /** The file for a new page, from its title: a character "Ilka Varga" → `characters/ilka-varga.md`. */
 export function referenceFileFor(kind: ReferenceKind, title: string, existing: readonly ProjectPath[]): ProjectPath {
-  return markdownFileFor(REFERENCE_FOLDERS[kind], title, existing, kind)
+  return markdownFileFor(kind, title, existing, 'page')
 }
 
 /**

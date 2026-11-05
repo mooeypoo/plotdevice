@@ -7,3 +7,23 @@ export {
   type ProjectId,
   type ProjectProblem,
 } from './project-details'
+export {
+  addKind,
+  applyKindsChange,
+  DEFAULT_KINDS,
+  folderForKind,
+  folderMismatches,
+  isDefaultKinds,
+  isValidKindFolder,
+  moveKind,
+  parseKinds,
+  parseManuscriptUnit,
+  removeKind,
+  renameKind,
+  withRenamedFolders,
+  type FolderRename,
+  type KindProblem,
+  type KindsChange,
+  type ManuscriptUnit,
+  type PageKind,
+} from './kinds'

@@ -1,4 +1,4 @@
-import type { NewProject } from '@plotdevice/domain'
+import { applyKindsChange, type FolderRename, type KindProblem, type KindsChange, type NewProject } from '@plotdevice/domain'
 import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
 import { createChapterAutosave, type ChapterAutosave, type SaveStatus } from '../chapters/chapter-autosave'
 import type { Revision } from '../ports/file-store'
@@ -7,6 +7,8 @@ import type {
   ContentsChange,
   CreateProblem,
   FileRenamed,
+  FolderRenamePlan,
+  FolderRenameUndo,
   OpenProblem,
   ProjectRepository,
   ProjectSnapshot,
@@ -66,7 +68,15 @@ export interface WritingSession {
   resolveConflict(file: ProjectPath, choice: ConflictChoice): Promise<Result<ConflictResolved, ResolveProblem>>
   changeContents(change: ContentsChange): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   renameChapter(file: ProjectPath, title: string): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
+  /** A change on the "Kinds of pages" screen (ADR 0011): written to `project.md` only. */
+  changeKinds(change: KindsChange): Promise<Result<ProjectSnapshot, ChangeProblem | KindProblem | NoProject>>
   renameFile(file: ProjectPath, newName: string): Promise<Result<FileRenamed, RenameFileProblem | NoProject>>
+  /** What renaming the kinds' folders would do (Milestone 18, "Match folder names"). Reads only. */
+  planFolderRenames(renames: readonly FolderRename[]): Promise<Result<FolderRenamePlan, NoProject>>
+  /** Renames the folders and every link to them; the undo is kept until another book opens. */
+  renameFolders(renames: readonly FolderRename[]): Promise<Result<FoldersRenamed, ChangeProblem | 'blocked' | NoProject>>
+  /** Puts the last folder renames back, if nothing changed since (ADR 0005). */
+  undoFolderRenames(): Promise<Result<ProjectSnapshot, ChangeProblem | 'nothing-to-undo' | NoProject>>
   /**
    * Runs `change` on a file outside its text, such as a page's title in its frontmatter. For an open
    * file it runs between saves, and saving continues from the revision it leaves, so it never looks
@@ -81,6 +91,11 @@ export interface WritingSession {
   idle(): Promise<void>
 }
 
+export interface FoldersRenamed {
+  snapshot: ProjectSnapshot
+  linksUpdated: number
+}
+
 interface OpenChapterState {
   file: ProjectPath
   generation: number
@@ -90,6 +105,8 @@ interface OpenChapterState {
 export function createWritingSession({ repository, copyLabel }: WritingSessionOptions): WritingSession {
   let project: ProjectSnapshot | null = null
   let chapters = new Map<ProjectPath, OpenChapterState>()
+  /** The last folder renames, to undo until the book closes (Milestone 18, open question 4). */
+  let folderUndo: FolderRenameUndo | null = null
   const listeners = new Set<(event: SessionEvent) => void>()
   let operations: Promise<unknown> = Promise.resolve()
 
@@ -158,11 +175,25 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
     return current
   }
 
+  /** An open page moves with its folder; links in any open file may have changed. */
+  async function afterFolders(snapshot: ProjectSnapshot, renames: readonly FolderRename[]): Promise<void> {
+    setProject(snapshot)
+    const moved = new Map<ProjectPath, OpenChapterState>()
+    for (const state of chapters.values()) {
+      const rename = renames.find(({ from }) => state.file.startsWith(`${from}/`))
+      if (rename) state.file = `${rename.to}${state.file.slice(rename.from.length)}` as ProjectPath
+      moved.set(state.file, state)
+    }
+    chapters = moved
+    for (const state of chapters.values()) await reloadIfUnedited(state, snapshot.root)
+  }
+
   async function switchProject<P>(open: () => Promise<Result<ProjectSnapshot, P>>): Promise<Result<ProjectSnapshot, P>> {
     await idleChapters()
     const opened = await open()
     if (opened.ok) {
       chapters = new Map()
+      folderUndo = null
       setProject(opened.value)
     }
     return opened
@@ -257,6 +288,16 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
         return changed
       }),
 
+    changeKinds: (change) =>
+      serially(async () => {
+        if (!project) return err('no-project')
+        const next = applyKindsChange(project.details, change)
+        if (!next.ok) return next
+        const written = await repository.setKinds(project, next.value.kinds, next.value.manuscriptUnit)
+        if (written.ok) setProject(written.value)
+        return written
+      }),
+
     renameChapter: (file, title) =>
       serially(async () => {
         if (!project) return err('no-project')
@@ -298,6 +339,36 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
           if (open) await reloadIfUnedited(open, current.root)
         }
         return renamed
+      }),
+
+    planFolderRenames: (renames) =>
+      serially(async () => (project ? ok(await repository.planFolderRenames(project, renames)) : err('no-project'))),
+
+    renameFolders: (renames) =>
+      serially(async () => {
+        if (!project) return err('no-project')
+        await idleChapters()
+        const renamed = await repository.renameFolders(withOpenRevisions(project), renames)
+        if (!renamed.ok) return renamed
+        folderUndo = renamed.value.undo
+        await afterFolders(renamed.value.snapshot, renames)
+        return ok({ snapshot: renamed.value.snapshot, linksUpdated: renamed.value.linksUpdated })
+      }),
+
+    undoFolderRenames: () =>
+      serially(async () => {
+        if (!project) return err('no-project')
+        if (!folderUndo) return err('nothing-to-undo')
+        await idleChapters()
+        const undo = folderUndo
+        const undone = await repository.undoFolderRenames(withOpenRevisions(project), undo)
+        if (!undone.ok) return undone
+        folderUndo = null
+        await afterFolders(
+          undone.value,
+          undo.renames.map(({ from, to }) => ({ from: to, to: from })),
+        )
+        return undone
       }),
 
     // With `reload`, the change replaced the text too (restoring a version): the editor shows the new text.

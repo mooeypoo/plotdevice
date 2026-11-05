@@ -28,7 +28,7 @@ import {
   type ReferenceSummaryView,
   type RetagView,
 } from '@plotdevice/contracts'
-import { kindOfFile } from '@plotdevice/domain'
+import { pageFolderOf } from '@plotdevice/domain'
 import { err, ok, stemOf, type ProjectPath } from '@plotdevice/shared'
 import { parsePayload } from './payload'
 import type { PayloadHandler } from './project-ipc'
@@ -39,7 +39,7 @@ export interface ReferenceIpcContext {
   recent: RecentProjectsSession
 }
 
-/** Character, place and note calls; the pinned shelf. Paths outside the page folders are refused by the schemas. */
+/** Page calls, for every kind (ADR 0011); the pinned shelf. Paths in the book's own folders are refused by the schemas. */
 export function createReferenceHandlers({ references, writing, recent }: ReferenceIpcContext): Record<string, PayloadHandler> {
   const root = (): string | null => writing.project()?.root ?? null
   /** Names a linked file for display: a page by its title, a chapter by its name, anything else by its file name. */
@@ -50,7 +50,7 @@ export function createReferenceHandlers({ references, writing, recent }: Referen
       const page = pages.get(link)
       if (page) return { file: link, kind: page.kind, title: page.title }
       if (chapters.has(link)) return { file: link, kind: 'chapter', title: chapters.get(link) ?? stemOf(link) }
-      return { file: link, kind: link.startsWith('outlines/') ? 'outline' : (kindOfFile(link) ?? 'other'), title: stemOf(link) }
+      return { file: link, kind: link.startsWith('outlines/') ? 'outline' : (pageFolderOf(link) ?? 'other'), title: stemOf(link) }
     }
   }
   const summaryOf = async (projectRoot: string, file: ProjectPath): Promise<ReferenceSummaryView | null> =>

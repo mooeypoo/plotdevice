@@ -11,11 +11,22 @@ import {
   type ReferenceSummaryView,
   type OpenProjectResult,
   type OutlineResult,
+  type BackupBookResult,
+  type FolderRenamePlanResult,
   type ProjectChangeResult,
+  type RenameFoldersResult,
+  type UndoFolderRenamesResult,
   type ProjectView,
   type ResolveConflictResult,
 } from '@plotdevice/contracts'
-import { createAppDataFile, createBackupStore, createJournalStore, createProjectFolders, randomIdGenerator } from '@plotdevice/fs-node'
+import {
+  copyBook,
+  createAppDataFile,
+  createBackupStore,
+  createJournalStore,
+  createProjectFolders,
+  randomIdGenerator,
+} from '@plotdevice/fs-node'
 import {
   compileManuscript,
   createOutlineRepository,
@@ -65,7 +76,13 @@ async function setup() {
   const session = createWritingSession({ repository, copyLabel: () => 'my version' })
   const events: SessionEvent[] = []
   session.onEvent((event) => events.push(event))
-  const dialogs = { folder: null as string | null, location: null as string | null, saveAs: null as string | null, suggested: '' }
+  const dialogs = {
+    folder: null as string | null,
+    location: null as string | null,
+    saveAs: null as string | null,
+    backup: null as string | null,
+    suggested: '',
+  }
   let flushed = 0
   const recent = await createRecentProjectsSession(createAppDataFile(appData, 'recent'))
   const outlines = createOutlineSession({ repository: createOutlineRepository({ folders }), root: () => session.project()?.root ?? null })
@@ -90,6 +107,8 @@ async function setup() {
       onFlushed: () => flushed++,
       chooseSaveLocation: async (suggested) => ((dialogs.suggested = suggested), dialogs.saveAs),
       compile: (snapshot) => compileManuscript(createProjectFolders(), snapshot),
+      chooseBackupLocation: async () => dialogs.backup,
+      copyBook: (root, location) => copyBook(root, location),
       writeOutside: (path, text) =>
         writeFile(path, text).then(
           () => true,
@@ -267,6 +286,58 @@ describe('project calls', () => {
   })
 })
 
+describe('matching folder names (Milestone 18)', () => {
+  it('backs up, renames a kind’s folder with an open page and its links, and undoes it until the book closes', async () => {
+    const context = await setup()
+    await mkdir(join(context.root, 'characters'))
+    await writeFile(join(context.root, 'characters', 'ilka.md'), '# Ilka\n')
+    await writeFile(join(context.root, 'notes', 'who.md'), '# Who\n\n[Ilka](../characters/ilka.md)\n')
+    const before = await context.read('notes/who.md')
+    await openChosen(context)
+    const page = (await context.call(channels.openChapter, { file: 'characters/ilka.md' })) as OpenChapterResult
+    if (!page.ok) throw new Error(page.error)
+    const named = (await context.call(channels.changeKinds, {
+      kind: 'rename',
+      folder: 'characters',
+      one: 'Person',
+      many: 'People',
+    })) as ProjectChangeResult
+    expect(named.ok && named.value.folderMismatches).toEqual([{ from: 'characters', to: 'people' }])
+
+    const renames = [{ from: 'characters', to: 'people' }]
+    const plan = (await context.call(channels.planFolderRenames, { renames })) as FolderRenamePlanResult
+    expect(plan.ok && plan.value).toEqual({
+      renames: [{ from: 'characters', to: 'people', files: 1, blocked: null }],
+      linksUpdated: 1,
+      filesChanged: ['notes/who.md'],
+    })
+
+    await mkdir(join(context.base, 'backups'))
+    context.dialogs.backup = join(context.base, 'backups')
+    const backup = (await context.call(channels.backupBook)) as BackupBookResult
+    expect(backup.ok && (await readFile(join(backup.value.path, 'characters', 'ilka.md'), 'utf8'))).toBe('# Ilka\n')
+
+    const renamed = (await context.call(channels.renameFolders, { renames })) as RenameFoldersResult
+    expect(renamed.ok && renamed.value.linksUpdated).toBe(1)
+    expect(renamed.ok && renamed.value.project.folderMismatches).toEqual([])
+    expect(await context.read('notes/who.md')).toBe('# Who\n\n[Ilka](../people/ilka.md)\n')
+    // The open page moved with its folder: typing in it carries on.
+    await context.call(channels.saveChapter, {
+      file: 'people/ilka.md',
+      text: '# Ilka\n\nA beekeeper.\n',
+      generation: page.value.generation,
+    })
+    await context.session.idle()
+    expect(await context.read('people/ilka.md')).toBe('# Ilka\n\nA beekeeper.\n')
+
+    const undone = (await context.call(channels.undoFolderRenames)) as UndoFolderRenamesResult
+    expect(undone.ok && undone.value.kinds[0]).toEqual({ folder: 'characters', one: 'Person', many: 'People' })
+    expect(await context.read('notes/who.md')).toBe(before)
+    expect(await context.read('characters/ilka.md')).toBe('# Ilka\n\nA beekeeper.\n')
+    expect(await context.call(channels.undoFolderRenames)).toEqual({ ok: false, error: 'nothing-to-undo' })
+  })
+})
+
 describe('outline calls', () => {
   const MAIN = 'outlines/main-story.md'
 
@@ -322,7 +393,7 @@ describe('reference calls', () => {
     const context = await setup()
     await openChosen(context)
     const created = (await context.call(channels.createReference, {
-      kind: 'character',
+      kind: 'characters',
       title: 'Ilka Varga',
     })) as ReferenceResult<ReferenceSummaryView>
     expect(created.ok && created.value.file).toBe('characters/ilka-varga.md')
@@ -336,7 +407,7 @@ describe('reference calls', () => {
       outlineTitle: null,
       section: 'Ilka',
       card: 'She crosses, see [The Crossing](../manuscript/the-crossing.md) and [Ilka](../characters/ilka-varga.md)',
-      links: [{ file: 'characters/ilka-varga.md', kind: 'character', title: 'Ilka Varga' }],
+      links: [{ file: 'characters/ilka-varga.md', kind: 'characters', title: 'Ilka Varga' }],
     })
   })
 
@@ -344,7 +415,7 @@ describe('reference calls', () => {
     const context = await setup()
     await openChosen(context)
     const created = (await context.call(channels.createReference, {
-      kind: 'place',
+      kind: 'places',
       title: 'Marrow',
     })) as ReferenceResult<ReferenceSummaryView>
     if (!created.ok) throw new Error(created.error)
@@ -374,7 +445,7 @@ describe('reference calls', () => {
     const context = await setup()
     await openChosen(context)
     const created = (await context.call(channels.createReference, {
-      kind: 'character',
+      kind: 'characters',
       title: 'Noël',
     })) as ReferenceResult<ReferenceSummaryView>
     if (!created.ok) throw new Error(created.error)
@@ -430,7 +501,7 @@ describe('reference calls', () => {
   it('adds a relationship to a page open in the editor: the editor shows it, and saving carries on', async () => {
     const context = await setup()
     await openChosen(context)
-    for (const title of ['Bea Halmi', 'Ilka Varga']) await context.call(channels.createReference, { kind: 'character', title })
+    for (const title of ['Bea Halmi', 'Ilka Varga']) await context.call(channels.createReference, { kind: 'characters', title })
     const BEA = 'characters/bea-halmi.md' as ProjectPath
     const page = (await context.call(channels.openChapter, { file: BEA })) as OpenChapterResult
     if (!page.ok) throw new Error(page.error)
@@ -475,7 +546,7 @@ describe('reference calls', () => {
   it('lists what links to a page: cards, pages with their relationships to it, and chapters; never by name alone', async () => {
     const context = await setup()
     await openChosen(context)
-    for (const title of ['Bea Halmi', 'Ilka Varga']) await context.call(channels.createReference, { kind: 'character', title })
+    for (const title of ['Bea Halmi', 'Ilka Varga']) await context.call(channels.createReference, { kind: 'characters', title })
     await context.call(channels.editRelationship, {
       file: 'characters/bea-halmi.md',
       change: { kind: 'add', text: 'Aunt of [Ilka](ilka-varga.md)' },
@@ -499,7 +570,9 @@ describe('reference calls', () => {
           links: [],
         },
       ],
-      pages: [{ file: 'characters/bea-halmi.md', kind: 'character', title: 'Bea Halmi', relationships: ['Aunt of [Ilka](ilka-varga.md)'] }],
+      pages: [
+        { file: 'characters/bea-halmi.md', kind: 'characters', title: 'Bea Halmi', relationships: ['Aunt of [Ilka](ilka-varga.md)'] },
+      ],
       chapters: [{ file: 'manuscript/frost.md', title: 'Frost' }],
     })
   })

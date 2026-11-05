@@ -1,5 +1,5 @@
 import type { FileStore } from '@plotdevice/application'
-import { kindOfFile, OUTLINES_FOLDER, REFERENCE_FOLDERS, unresolvedLink, type ReferenceKind } from '@plotdevice/domain'
+import { OUTLINES_FOLDER, pageFolderOf, unresolvedLink } from '@plotdevice/domain'
 import { locateLinks, parseContents, readFrontmatter } from '@plotdevice/markdown'
 import { dirnameOf, type ProjectPath } from '@plotdevice/shared'
 import { CONTENTS_FILE, MANUSCRIPT_FOLDER, PROJECT_FILE, readProject } from './read-project'
@@ -22,6 +22,8 @@ export type CheckCode =
   | 'not-in-book'
   | 'outdated-link-text'
   | 'outside-folders'
+  /** Pages in a folder the book doesn't list as a kind: shown as "Not sorted yet" (ADR 0011). */
+  | 'unsorted-folder'
   | 'duplicate-id'
   /** Any of the contents' and project file's own warnings, by their code (`ignored-content`…). */
   | (string & {})
@@ -37,11 +39,10 @@ export interface CheckFinding {
 
 export interface ProjectCheck {
   title: string | null
-  counts: { chapters: number; characters: number; places: number; notes: number; outlines: number }
+  /** Chapters in the book, outlines, and the pages of each of the book's kinds, by folder (ADR 0011). */
+  counts: { chapters: number; outlines: number; pages: Record<string, number> }
   findings: CheckFinding[]
 }
-
-const BOOK_FOLDERS = [MANUSCRIPT_FOLDER, OUTLINES_FOLDER, ...Object.values(REFERENCE_FOLDERS)]
 
 /**
  * What the app would make of a book folder, as a list to act on: for an author or an assistant who
@@ -49,7 +50,7 @@ const BOOK_FOLDERS = [MANUSCRIPT_FOLDER, OUTLINES_FOLDER, ...Object.values(REFER
  * only reads: no file is written, repaired or created.
  */
 export async function checkProject(store: FileStore): Promise<ProjectCheck> {
-  const counts = { chapters: 0, characters: 0, places: 0, notes: 0, outlines: 0 }
+  const counts: ProjectCheck['counts'] = { chapters: 0, outlines: 0, pages: {} }
   const findings: CheckFinding[] = []
   const fix = (code: CheckCode, file: ProjectPath, more: Partial<CheckFinding> = {}) =>
     findings.push({ severity: 'fix', code, file, ...more })
@@ -93,13 +94,19 @@ export async function checkProject(store: FileStore): Promise<ProjectCheck> {
 
   const files = await store.listMarkdownFiles()
   const chapters = new Set(project.chapters.map((chapter) => chapter.file))
-  const kindCount: Record<ReferenceKind, 'characters' | 'places' | 'notes'> = { character: 'characters', place: 'places', note: 'notes' }
+  const kinds = new Set(project.details.kinds.map((kind) => kind.folder))
+  for (const kind of kinds) counts.pages[kind] = 0
+  const unsorted = new Set<string>()
   for (const file of files) {
     if (file === PROJECT_FILE || file === CONTENTS_FILE) continue
-    const kind = kindOfFile(file)
-    if (kind) counts[kindCount[kind]]++
-    else if (file.startsWith(`${OUTLINES_FOLDER}/`)) counts.outlines++
-    else if (!chapters.has(file) && !BOOK_FOLDERS.some((folder) => file.startsWith(`${folder}/`))) know('outside-folders', file)
+    const folder = pageFolderOf(file)
+    if (folder !== null && kinds.has(folder)) counts.pages[folder] = (counts.pages[folder] ?? 0) + 1
+    else if (folder !== null && !chapters.has(file)) {
+      // Once per folder: it can become a kind ("Make this a kind…"), so it isn't a mistake.
+      if (!unsorted.has(folder)) know('unsorted-folder', `${folder}/` as ProjectPath, { detail: folder })
+      unsorted.add(folder)
+    } else if (file.startsWith(`${OUTLINES_FOLDER}/`)) counts.outlines++
+    else if (!chapters.has(file) && !file.startsWith(`${MANUSCRIPT_FOLDER}/`)) know('outside-folders', file)
 
     const read = await store.read(file)
     if (!read.ok) {

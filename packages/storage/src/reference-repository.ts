@@ -1,8 +1,7 @@
 import type { CardLinks, FileLinks, ProjectFolders, ReferenceRepository } from '@plotdevice/application'
 import {
-  kindOfFile,
+  pageFolderOf,
   OUTLINES_FOLDER,
-  REFERENCE_FOLDERS,
   referenceFileFor,
   relationshipHeadingFor,
   resolveWikiLink,
@@ -23,7 +22,6 @@ import {
 } from '@plotdevice/markdown'
 import { cleanTags, dirnameOf, err, ok, RELATIONSHIP_HEADINGS, stemOf, type ProjectPath } from '@plotdevice/shared'
 
-const REFERENCE_PREFIXES = Object.values(REFERENCE_FOLDERS).map((folder) => `${folder}/`)
 const HEADINGS = Object.values(RELATIONSHIP_HEADINGS)
 
 /** The project file a link points at, if it exists; `[[name]]` only when exactly one file has that name. */
@@ -41,7 +39,8 @@ function summarize(file: ProjectPath, text: string, files: readonly ProjectPath[
   const dir = dirnameOf(file)
   return {
     file,
-    kind: kindOfFile(file) ?? 'note',
+    // The page's folder: one of the book's kinds, or a folder the book doesn't list ("Not sorted yet").
+    kind: pageFolderOf(file) ?? '',
     title: page.title,
     aka: page.aka,
     tags: cleanTags(page.tags),
@@ -57,7 +56,8 @@ function summarize(file: ProjectPath, text: string, files: readonly ProjectPath[
 }
 
 /**
- * Characters, places and notes as Markdown pages, read leniently (Milestone 5), and the links outline
+ * Pages in every folder outside the book's own: characters, places, notes, the book's own kinds, and
+ * folders it doesn't list (ADR 0011), as Markdown, read leniently (Milestone 5), and the links outline
  * cards make. Only the app's own changes write: creating a page, or setting its title, tags or relationships.
  */
 export function createReferenceRepository({ folders }: { folders: ProjectFolders }): ReferenceRepository {
@@ -65,7 +65,7 @@ export function createReferenceRepository({ folders }: { folders: ProjectFolders
     async listReferences(root) {
       const store = folders.open(root)
       const all = await store.listMarkdownFiles()
-      const files = all.filter((file) => REFERENCE_PREFIXES.some((prefix) => file.startsWith(prefix))).sort()
+      const files = all.filter((file) => pageFolderOf(file) !== null).sort()
       return Promise.all(
         files.map(async (file): Promise<ReferenceSummary> => {
           const read = await store.read(file)

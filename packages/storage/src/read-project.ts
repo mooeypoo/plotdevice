@@ -18,6 +18,9 @@ import {
   type ContentsEntry,
   type ProjectDetails,
   type ProjectId,
+  DEFAULT_KINDS,
+  parseKinds,
+  parseManuscriptUnit,
 } from '@plotdevice/domain'
 import { parseContents, readFrontmatter, type ContentsChapterItem } from '@plotdevice/markdown'
 import { collisionKey, err, ok, parseProjectPath, resolveRelative, type ProjectPath, type Result } from '@plotdevice/shared'
@@ -34,13 +37,18 @@ export async function readDetails(store: FileStore, warnings: ProjectWarning[]):
   if (!file.ok) return err(file.error === 'missing' ? 'not-a-project' : file.error === 'io' ? 'io' : 'unreadable-project-file')
   const values = readFrontmatter(file.value.text)
   if (!values.ok) return err('unreadable-project-file')
-  const { title, author, language, chapterNumbering, id, schemaVersion } = values.value
+  const { title, author, language, chapterNumbering, id, schemaVersion, kinds, manuscriptUnit } = values.value
   if (typeof title !== 'string' || title.trim() === '') return err('unreadable-project-file')
   const version = typeof schemaVersion === 'number' ? schemaVersion : 1
   if (version > CURRENT_SCHEMA_VERSION) return err('newer-format')
   const numbering = NUMBERING.find((n) => n === chapterNumbering)
   if (chapterNumbering !== undefined && !numbering)
     warnings.push({ file: PROJECT_FILE, code: 'unknown-chapter-numbering', detail: String(chapterNumbering) })
+  // Kinds the app can't use safely: the defaults instead, and the file is never rewritten to fix it (ADR 0011).
+  const readKinds = parseKinds(kinds)
+  if (!readKinds.ok) warnings.push({ file: PROJECT_FILE, code: 'unreadable-kinds' })
+  const readUnit = parseManuscriptUnit(manuscriptUnit)
+  if (!readUnit.ok) warnings.push({ file: PROJECT_FILE, code: 'unreadable-manuscript-unit' })
   return ok({
     title: title.trim(),
     ...(typeof author === 'string' && author.trim() ? { author: author.trim() } : {}),
@@ -48,6 +56,8 @@ export async function readDetails(store: FileStore, warnings: ProjectWarning[]):
     chapterNumbering: numbering ?? 'continuous',
     ...(typeof id === 'string' ? { id: id as ProjectId } : {}),
     schemaVersion: version,
+    kinds: readKinds.ok ? readKinds.value : DEFAULT_KINDS,
+    manuscriptUnit: readUnit.ok ? readUnit.value : null,
   })
 }
 

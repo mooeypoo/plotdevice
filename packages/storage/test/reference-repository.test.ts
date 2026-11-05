@@ -41,7 +41,7 @@ describe('reference pages', () => {
     expect(await repository.listReferences(root)).toEqual([
       {
         file: 'characters/ilka.md',
-        kind: 'character',
+        kind: 'characters',
         title: 'Ilka Varga',
         aka: ['Ilka'],
         tags: [],
@@ -53,7 +53,7 @@ describe('reference pages', () => {
       },
       {
         file: 'notes/crossing-notes.md',
-        kind: 'note',
+        kind: 'notes',
         title: expect.any(String) as string,
         aka: [],
         tags: [],
@@ -65,7 +65,7 @@ describe('reference pages', () => {
       },
       {
         file: 'notes/loose-ideas.md',
-        kind: 'note',
+        kind: 'notes',
         title: 'Loose ideas',
         aka: [],
         tags: [],
@@ -77,7 +77,7 @@ describe('reference pages', () => {
       },
       {
         file: 'places/marrow.md',
-        kind: 'place',
+        kind: 'places',
         title: 'Marrow',
         aka: [],
         tags: [],
@@ -168,9 +168,9 @@ describe('reference pages', () => {
 
   it('creates pages named from their titles, in Hebrew too', async () => {
     const { root, repository, text } = await setup()
-    expect(unwrap(await repository.createReference(root, 'character', 'יעל'))).toEqual({
+    expect(unwrap(await repository.createReference(root, 'characters', 'יעל'))).toEqual({
       file: 'characters/יעל.md',
-      kind: 'character',
+      kind: 'characters',
       title: 'יעל',
       aka: [],
       tags: [],
@@ -181,7 +181,7 @@ describe('reference pages', () => {
       links: [],
     })
     expect(await text('characters/יעל.md')).toBe('---\ntitle: יעל\n---\n')
-    expect(unwrap(await repository.createReference(root, 'place', 'Marrow')).file).toBe('places/marrow-2.md')
+    expect(unwrap(await repository.createReference(root, 'places', 'Marrow')).file).toBe('places/marrow-2.md')
   })
 
   it('renames a page, changing only its title and keeping its other details and comments', async () => {

@@ -16,8 +16,30 @@ A book is an ordinary folder. Everything in it is a Markdown text file that any 
 | `manuscript/` | One file per chapter. |
 | `outlines/` | One file per outline. See [Outline files](/plotdevice/files/outlines/). |
 | `characters/`, `places/`, `notes/` | One file per page. See [Character, place and note pages](/plotdevice/files/pages/). |
+| Other folders of pages | The book's own [kinds of pages](/plotdevice/planning/kinds/), such as `factions/`, written like any other page. |
 
 Plot Device keeps nothing else in the folder: no hidden database, no settings, no backups. Those live on your computer, outside the book. Copy the folder, sync it, or put it in git; it's complete.
+
+## Kinds of pages in project.md
+
+A book with kinds of its own lists them in `project.md`, in the order Plot Device shows them. [Kinds of pages](/plotdevice/planning/kinds/) changes this list for you; it's here so the file makes sense when you read it.
+
+```yaml
+kinds:
+  - folder: characters
+  - folder: factions
+    one: Faction
+    many: Factions
+  - folder: places
+  - folder: notes
+manuscriptUnit:
+  one: Session
+  many: Sessions
+```
+
+- `folder` is the kind's folder; `one` and `many` are what Plot Device calls it. Characters, places and notes need no names.
+- `manuscriptUnit` is what the book calls its chapters. Without it, they're chapters.
+- A book without `kinds` has characters, places and notes. A folder of pages that isn't listed shows as "Not sorted yet".
 
 ## Opening it elsewhere
 

@@ -46,7 +46,7 @@ describe('checking a book', () => {
   it('counts what the book has', async () => {
     const result = await check(await folder(BOOK))
     expect(result.title).toBe('The Glass Weir')
-    expect(result.counts).toEqual({ chapters: 1, characters: 1, places: 1, notes: 0, outlines: 1 })
+    expect(result.counts).toEqual({ chapters: 1, outlines: 1, pages: { characters: 1, places: 1, notes: 0 } })
     expect(result.findings).toEqual([])
   })
 
@@ -112,12 +112,27 @@ describe('checking a book', () => {
   })
 
   it('mentions Markdown files outside the book’s folders, which the app doesn’t show', async () => {
-    const root = await folder({ ...BOOK, 'README.md': '# About\n', 'world/magic.md': '# Magic\n', 'assets/map.md': '# Map\n' })
-    expect(codes((await check(root)).findings)).toEqual([
-      'know outside-folders README.md',
-      'know outside-folders assets/map.md',
-      'know outside-folders world/magic.md',
-    ])
+    const root = await folder({ ...BOOK, 'README.md': '# About\n' })
+    expect(codes((await check(root)).findings)).toEqual(['know outside-folders README.md'])
+  })
+
+  it('reports a folder of pages the book doesn’t list once, as unsorted pages, not a mistake (ADR 0011)', async () => {
+    const root = await folder({ ...BOOK, 'world/magic.md': '# Magic\n', 'world/salt.md': '# Salt\n', 'assets/map.md': '# Map\n' })
+    expect(codes((await check(root)).findings)).toEqual(['know unsorted-folder assets/', 'know unsorted-folder world/'])
+  })
+
+  it('counts the book’s own kinds (ADR 0011)', async () => {
+    const root = await folder({
+      ...BOOK,
+      'project.md':
+        '---\ntitle: The Sunken Crown\nlanguage: en\nkinds:\n  - folder: npcs\n    one: NPC\n    many: NPCs\n  - folder: פלגים\n---\n',
+      'npcs/bea.md': '# Bea\n',
+      'פלגים/הסוחרים.md': '# הסוחרים\n',
+    })
+    const result = await check(root)
+    expect(result.counts.pages).toEqual({ npcs: 1, פלגים: 1 })
+    // characters/ and places/ from the book are no longer kinds: unsorted.
+    expect(codes(result.findings)).toEqual(['know unsorted-folder characters/', 'know unsorted-folder places/'])
   })
 
   it('mentions lines in the contents that aren’t chapters or parts, and outdated link text', async () => {

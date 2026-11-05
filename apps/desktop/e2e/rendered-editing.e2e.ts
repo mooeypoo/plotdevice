@@ -316,7 +316,7 @@ test('plain text: from Format on the page, every mark visible; back to normal vi
   await writeFile(join(root, 'characters/bea.md'), '---\ntitle: Bea Halmi\n---\nIlka’s **aunt**.\n')
   const page = await start()
   await page.getByTestId('workspace-story').click()
-  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-gallery="characters"]').click()
   await page.locator('[data-page="characters/bea.md"]').click()
   const text = page.getByTestId('page-editor').locator('.cm-content')
   await expect(text).toHaveText('Ilka’s aunt.')
@@ -345,7 +345,7 @@ test('plain text when a page opens, from Settings', async () => {
   await page.getByTestId('plain-text-setting').check()
   await closeSettings(page)
   await page.getByTestId('workspace-story').click()
-  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-gallery="characters"]').click()
   await page.locator('[data-page="characters/bea.md"]').click()
   await expect(page.getByTestId('plain-text-banner')).toBeVisible()
 })
@@ -368,7 +368,7 @@ test('links: @ on a page puts one in, the popup changes and removes it, and its 
 
   // On a page: @ offers pages; the link shows as its words; erased letter by letter, it's gone.
   await page.getByTestId('workspace-story').click()
-  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-gallery="characters"]').click()
   await page.locator('[data-page="characters/bea.md"]').click()
   const text = page.getByTestId('page-editor').locator('.cm-content')
   await text.click()
@@ -395,7 +395,7 @@ test('a heading from the format bubble, in a chapter and on a page', async () =>
   await expect(writer(page)).toHaveText('The orchard')
 
   await page.getByTestId('workspace-story').click()
-  await page.locator('[data-gallery="character"]').click()
+  await page.locator('[data-gallery="characters"]').click()
   await page.locator('[data-page="characters/bea.md"]').click()
   await page.getByTestId('page-editor').locator('.cm-content').click()
   await page.keyboard.press('ControlOrMeta+Home')
