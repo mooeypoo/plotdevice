@@ -1,0 +1,13 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  // The typing budget runs the editor's rules in Node (it reads CI from the environment); the rules use DOM types.
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "emitDeclarationOnly": false,
+    "noEmit": true,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"]
+  },
+  "include": ["."]
+}

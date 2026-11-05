@@ -2,14 +2,21 @@
 import { RELATIONSHIP_HEADINGS, type ProjectPath } from '@plotdevice/shared'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useChapterWriting } from '../composables/use-chapter-writing'
+import { useLinkActions } from '../composables/use-link-actions'
+import { useLinkSuggestions } from '../composables/use-link-suggestions'
 import { usePrompt } from '../composables/use-prompt'
 import { useVersions } from '../composables/use-versions'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
 import ConflictDialog from './ConflictDialog.vue'
+import FormatBubble from './FormatBubble.vue'
+import { formatItem, HEADING_COMMANDS } from './format-items'
+import LinkBubble from './LinkBubble.vue'
+import LinkSuggestions from './LinkSuggestions.vue'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
 import PageConnections from './PageConnections.vue'
+import PlainTextBanner from './PlainTextBanner.vue'
 import TagPills from './TagPills.vue'
 
 // One character, place or note: its name, and its text in the same editor as chapters, with the same
@@ -21,11 +28,31 @@ const { ask } = usePrompt()
 const versions = useVersions()
 const t = settings.t
 const host = ref<HTMLElement | null>(null)
+const linkActions = useLinkActions()
+// `@` or `[[` offers pages and chapters to link, as in an outline (Milestone 16).
+const links = useLinkSuggestions(
+  (markdown) => page.pickLink(markdown),
+  () => props.file,
+)
 // The relationships section is listed beside the page, so in the text it folds into one line.
 const page = useChapterWriting(host, {
   remembersPosition: false,
   foldedSection: { headings: Object.values(RELATIONSHIP_HEADINGS), label: () => t('relationships-folded') },
+  links: { onLinkQuery: (found) => (links.query.value = found), onListKey: links.onListKey },
 })
+
+/** The bubble's ⋯: heading levels and a bulleted list. */
+const moreItems = computed<MenuItem[]>(() => [
+  ...HEADING_COMMANDS.map((command) => formatItem(t, command, () => page.format(command))),
+  formatItem(t, 'bulletList', () => page.format('bulletList'), 'lists'),
+])
+
+/** The bubble's link button: a page or chapter, from the picker. */
+async function addLink(): Promise<void> {
+  const target = await linkActions.choose(props.file, '')
+  if (target) page.insertLink(target)
+  else page.focus()
+}
 const summary = computed(() => story.references.find((reference) => reference.file === props.file) ?? null)
 
 async function renameFile(): Promise<void> {
@@ -43,6 +70,9 @@ const pageItems = computed<MenuItem[]>(() => [
   { key: 'rename-reference', label: t('reference-rename'), run: () => void rename() },
   { key: 'rename-page-file', label: t('reference-rename-file'), run: () => void renameFile() },
   { key: 'page-versions', label: t('versions'), run: () => versions.show(props.file, summary.value?.title ?? props.file) },
+  page.mode.value === 'plain'
+    ? { key: 'plain-text-back', label: t('plain-text-back'), group: 'mode', run: () => page.setMode('rendered') }
+    : { key: 'plain-text-edit', label: t('plain-text-edit'), group: 'mode', run: () => page.setMode('plain') },
 ])
 
 onMounted(() => void page.open(props.file))
@@ -75,6 +105,7 @@ watch(
         <p class="secondary hint">{{ t('reference-hint') }}</p>
         <p v-if="page.state.value === 'unreadable'" class="warning" role="alert">{{ t('chapter-unreadable') }}</p>
         <p v-else-if="page.state.value === 'missing'" class="warning" role="alert">{{ t('chapter-missing') }}</p>
+        <PlainTextBanner v-if="page.mode.value === 'plain'" @back="page.setMode('rendered')" />
         <div class="paper size-medium width-medium">
           <div
             v-show="page.state.value === 'ready' || page.state.value === 'loading'"
@@ -83,6 +114,22 @@ watch(
             data-testid="page-editor"
           ></div>
         </div>
+        <FormatBubble :place="page.selection.value" :more="moreItems" @format="page.format" @link="addLink" @back="page.focus" />
+        <LinkBubble
+          :link="page.link.value"
+          :from="file"
+          :hidden="page.selection.value !== null"
+          @change="page.changeLink"
+          @remove="page.removeLink"
+          @back="page.focus"
+        />
+        <LinkSuggestions
+          v-if="links.open.value && links.query.value"
+          :query="links.query.value"
+          :offered="links.offered.value"
+          :selected="links.selected.value"
+          @choose="links.choose"
+        />
         <p class="status-line">
           <span role="status" data-testid="page-save-status">{{ page.status.value ? t(`save-${page.status.value}`) : '' }}</span>
         </p>

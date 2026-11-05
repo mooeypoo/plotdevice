@@ -1,16 +1,18 @@
 import type { Direction } from '@plotdevice/domain'
-import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
-import { Compartment, EditorSelection, type StateCommand } from '@codemirror/state'
-import { EditorView } from '@codemirror/view'
-import { tags } from '@lezer/highlight'
+import { Compartment, EditorSelection, type Extension, type StateCommand } from '@codemirror/state'
+import { Direction as TextDirection, EditorView } from '@codemirror/view'
 import { chapterState } from './chapter-state'
 import { formatCommands, insertLink, type FormatCommand } from './format'
-import { foldedSection, type FoldedSection } from './folded-section'
-import { livePreview } from './live-preview'
-import { insertChosenLink, outlineText, type OutlineTextOptions } from './outline-text'
+import type { FoldedSection } from './folded-section'
+import { changeLink, linkAt, removeLink } from './links'
+import { insertChosenLink, linkSuggestions, outlineText, type LinkSuggestionOptions, type OutlineTextOptions } from './outline-text'
 import { pasteText } from './paste'
 import { setParagraphDirection, setPhraseDirection } from './paragraph-direction'
+import { rendered } from './rendered'
 import { editorSettings, type EditorSettings } from './settings'
+
+/** Rendered shows what the text means; plain text shows every mark, saved exactly as typed (ADR 0010). */
+export type EditorMode = 'rendered' | 'plain'
 
 /** The page: prose type, theme colours (CSS variables inherit into the shadow root), comfortable measure. */
 const pageTheme = EditorView.theme({
@@ -29,15 +31,14 @@ const pageTheme = EditorView.theme({
   '.cm-quote': { color: 'var(--color-text-secondary)', fontStyle: 'italic' },
   '.cm-kept': { fontFamily: 'ui-monospace, monospace', fontSize: '0.85em', color: 'var(--color-text-secondary)' },
   '.cm-scene-break': { display: 'inline-block', inlineSize: '100%', textAlign: 'center', color: 'var(--color-mark, currentColor)' },
-  '.cm-bullet': { color: 'var(--color-text-secondary)' },
+  '.cm-list-mark': { color: 'var(--color-text-secondary)', paddingInlineEnd: '0.5em' },
+  '.cm-link': {
+    color: 'var(--color-accent)',
+    textDecoration: 'underline',
+    textDecorationColor: 'var(--color-mark, currentColor)',
+    textUnderlineOffset: '0.22em',
+  },
 })
-
-const prose = HighlightStyle.define([
-  { tag: tags.emphasis, fontStyle: 'italic' },
-  { tag: tags.strong, fontWeight: '700' },
-  { tag: tags.link, color: 'var(--color-accent)', textDecoration: 'underline' },
-  { tag: tags.heading, fontWeight: '650' },
-])
 
 export interface ChapterEditorOptions {
   text: string
@@ -52,6 +53,22 @@ export interface ChapterEditorOptions {
   foldedSection?: FoldedSection
   /** An outline written as text (Milestone 14): Tab nests list lines, and `@` offers pages to link. */
   outline?: OutlineTextOptions
+  /** `@` or `[[` offers pages to link, without the outline's keys (a page, Milestone 16). */
+  links?: LinkSuggestionOptions
+  /** Rendered (the default) or plain text. */
+  mode?: EditorMode
+  /** Told where the link the cursor is in goes, and where it is on screen, for the link popup; `null` when not in one. */
+  onLink?: (link: LinkReport | null) => void
+}
+
+/** The link the cursor is in: where it goes, and where its words start on screen. */
+export interface LinkReport {
+  target: string
+  x: number
+  y: number
+  focused: boolean
+  /** The link's words run right to left, so `x` is their right edge and the popup grows leftwards. */
+  rtl: boolean
 }
 
 /**
@@ -78,7 +95,14 @@ export interface ChapterEditor {
   updateSettings(settings: EditorSettings): void
   format(command: FormatCommand): void
   insertLink(url: string): void
-  /** Outline text: puts a chosen link in place of the `@name` being typed, or at the cursor. */
+  /** Points the link the cursor is in somewhere else, keeping its words. */
+  changeLink(target: string): void
+  /** Removes the link the cursor is in, keeping its words. */
+  removeLink(): void
+  /** Switches between rendered and plain text in place: the text, cursor, selection and undo history stay. */
+  setMode(mode: EditorMode): void
+  mode(): EditorMode
+  /** Outline text and pages: puts a chosen link in place of the `@name` being typed, or at the cursor. */
   pickLink(markdown: string): void
   setParagraphDirection(direction: Direction | null): void
   setPhraseDirection(direction: Direction | null): void
@@ -107,6 +131,14 @@ function selectionPlace(view: EditorView): SelectionPlace | null {
   const oneLine = Math.abs(start.top - end.top) < 2
   const x = oneLine ? (Math.min(start.left, end.left) + Math.max(start.right, end.right)) / 2 : start.left
   return { x, y: Math.min(start.top, end.top), focused: view.hasFocus }
+}
+
+function linkReport(view: EditorView): LinkReport | null {
+  const { main } = view.state.selection
+  const link = linkAt(view.state, main.from, main.to)
+  const place = link ? view.coordsAtPos(link.wordsFrom, 1) : null
+  const rtl = link ? view.textDirectionAt(link.wordsFrom) === TextDirection.RTL : false
+  return link && place ? { target: link.target, x: place.left, y: place.bottom, focused: view.hasFocus, rtl } : null
 }
 
 const scrollToTop = (view: EditorView, top: number) =>
@@ -141,10 +173,19 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
       'aria-multiline': 'true',
     })
 
+  const mode = new Compartment()
+  let currentMode: EditorMode = options.mode ?? 'rendered'
+  const { outline } = options
+  const modeExtensions = (m: EditorMode): Extension =>
+    m === 'rendered'
+      ? rendered({
+          ...(outline ? { nestingUnit: outline.nestingUnit } : {}),
+          ...(options.foldedSection ? { foldedSection: options.foldedSection } : {}),
+        })
+      : []
+
   const viewExtensions = [
     EditorView.lineWrapping,
-    syntaxHighlighting(prose),
-    livePreview,
     pageTheme,
     contentAttributes.of(attributesFor(current)),
     EditorView.domEventHandlers({
@@ -160,14 +201,17 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
     // `load` replaces the state without an update, so every change seen here is the author's.
     EditorView.updateListener.of((update) => {
       if (update.docChanged) options.onChange()
-      if (options.onSelection && (update.selectionSet || update.focusChanged || update.geometryChanged || update.docChanged))
-        options.onSelection(selectionPlace(update.view))
+      const moved = update.selectionSet || update.focusChanged || update.geometryChanged || update.docChanged
+      if (options.onSelection && moved) options.onSelection(selectionPlace(update.view))
+      if (options.onLink && moved) options.onLink(currentMode === 'rendered' ? linkReport(update.view) : null)
     }),
   ]
-  if (options.foldedSection) viewExtensions.push(foldedSection(options.foldedSection))
-  const { outline } = options
   const stateFor = (text: string) =>
-    chapterState(text, settings, current, outline ? [viewExtensions, outlineText(outline, text)] : viewExtensions)
+    chapterState(text, settings, current, [
+      viewExtensions,
+      mode.of(modeExtensions(currentMode)),
+      outline ? outlineText(outline, text) : options.links ? linkSuggestions(options.links) : [],
+    ])
   const view = new EditorView({ parent: root, root, state: stateFor(options.text) })
 
   const run = (command: StateCommand): void => {
@@ -193,6 +237,27 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
     },
     format: (command) => run(formatCommands[command]),
     insertLink: (url) => run(insertLink(url)),
+    changeLink(target) {
+      const { main } = view.state.selection
+      const link = linkAt(view.state, main.from, main.to)
+      if (link) view.dispatch(changeLink(view.state, link, target))
+      view.focus()
+    },
+    removeLink() {
+      const { main } = view.state.selection
+      const link = linkAt(view.state, main.from, main.to)
+      if (link) view.dispatch(removeLink(view.state, link))
+      view.focus()
+    },
+    setMode(next) {
+      if (next === currentMode) return
+      currentMode = next
+      view.dispatch({ effects: mode.reconfigure(modeExtensions(next)) })
+      // Back in rendered text, a cursor left inside a mark moves to where it rests.
+      view.dispatch({ selection: view.state.selection, scrollIntoView: true })
+      options.onLink?.(next === 'rendered' ? linkReport(view) : null)
+    },
+    mode: () => currentMode,
     pickLink: (markdown) => insertChosenLink(view, markdown),
     setParagraphDirection: (direction) => run(setParagraphDirection(direction)),
     setPhraseDirection: (direction) => run(setPhraseDirection(direction)),

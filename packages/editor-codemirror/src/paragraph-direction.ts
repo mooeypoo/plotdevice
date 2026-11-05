@@ -16,6 +16,9 @@ export interface Div {
 }
 
 interface Layout {
+  /** Each line's direction: shown in plain text too. */
+  lines: DecorationSet
+  /** The markers hidden and the spans isolated: rendered editing only. */
   decorations: DecorationSet
   /** Ranges the caret skips as a unit: hidden marker lines and span brackets. */
   hidden: DecorationSet
@@ -73,7 +76,8 @@ function layout(state: EditorState): Layout {
     if (dir) lines.push(Decoration.line({ attributes: { dir } }).range(line.from))
   }
   return {
-    decorations: Decoration.set([...lines, ...hidden, ...isolates], true),
+    lines: Decoration.set(lines, true),
+    decorations: Decoration.set([...hidden, ...isolates], true),
     hidden: Decoration.set(hidden, true),
     isolates: Decoration.set(isolates, true),
     divs,
@@ -84,11 +88,7 @@ export const directionLayout = StateField.define<Layout>({
   create: layout,
   update: (value, tr) =>
     tr.docChanged || tr.startState.facet(editorSettings) !== tr.state.facet(editorSettings) ? layout(tr.state) : value,
-  provide: (field) => [
-    EditorView.decorations.from(field, (l) => l.decorations),
-    EditorView.atomicRanges.of((view) => view.state.field(field).hidden),
-    EditorView.bidiIsolatedRanges.of((view) => view.state.field(field).isolates),
-  ],
+  provide: (field) => EditorView.decorations.from(field, (l) => l.lines),
 })
 
 /**
@@ -117,7 +117,17 @@ const removeEmptyDivs = EditorState.transactionFilter.of((tr) => {
   return [tr, { changes, filter: false, sequential: true }]
 })
 
-export const paragraphDirection = [directionLayout, protectMarkers, removeEmptyDivs, EditorView.perLineTextDirection.of(true)]
+/** Each line's direction, in both modes. */
+export const paragraphDirection = [directionLayout, EditorView.perLineTextDirection.of(true)]
+
+/** Rendered editing only: the markers hidden, stepped over and protected. Plain text shows them, to edit by hand. */
+export const directionHiding = [
+  EditorView.decorations.from(directionLayout, (l) => l.decorations),
+  EditorView.atomicRanges.of((view) => view.state.field(directionLayout).hidden),
+  EditorView.bidiIsolatedRanges.of((view) => view.state.field(directionLayout).isolates),
+  protectMarkers,
+  removeEmptyDivs,
+]
 
 const LIST_OR_QUOTE = /^[ \t]*(?:>|[-+*][ \t]|\d{1,9}[.)][ \t])/
 

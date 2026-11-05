@@ -14,7 +14,7 @@
     "dev:no-sandbox": "pnpm --filter @plotdevice/desktop dev:no-sandbox",
     "build": "pnpm --filter @plotdevice/desktop build",
     "lint": "eslint . && prettier --check .",
-    "typecheck": "tsc -b && tsc --noEmit -p packages/storage/test && pnpm --filter @plotdevice/ui-vue --filter @plotdevice/desktop typecheck",
+    "typecheck": "tsc -b && tsc --noEmit -p packages/storage/test && tsc --noEmit -p packages/editor-codemirror/test && pnpm --filter @plotdevice/ui-vue --filter @plotdevice/desktop typecheck",
     "test": "vitest run",
     "arch": "vitest run --config tooling/vitest.arch.config.ts",
     "perf": "vitest run --config vitest.perf.config.ts",

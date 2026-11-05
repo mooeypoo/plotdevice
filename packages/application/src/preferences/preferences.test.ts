@@ -3,7 +3,14 @@ import { describe, expect, it } from 'vitest'
 import { createPreferencesSession, defaultPreferences, loadPreferences, parsePreferences, updatePreferences } from './preferences'
 import type { PreferencesStore, PreferencesWriteFailure } from './preferences-store'
 
-const OTHER_DEFAULTS = { writingSize: 'medium', pageWidth: 'medium', checkForUpdates: true, navigatorWidth: 272, shelfWidth: 336 } as const
+const OTHER_DEFAULTS = {
+  writingSize: 'medium',
+  pageWidth: 'medium',
+  checkForUpdates: true,
+  plainTextByDefault: false,
+  navigatorWidth: 272,
+  shelfWidth: 336,
+} as const
 
 function memoryStore(initial: string | null, failWith?: PreferencesWriteFailure) {
   const state = { text: initial, setAside: [] as string[] }
@@ -50,6 +57,8 @@ describe('reading saved settings', () => {
   it('keeps update checks turned off, and turns them on for anything but true or false', () => {
     expect(parsePreferences('{"checkForUpdates":false}', defaults)).toMatchObject({ value: { checkForUpdates: false } })
     expect(parsePreferences('{"checkForUpdates":"no"}', defaults)).toMatchObject({ value: { checkForUpdates: true } })
+    expect(parsePreferences('{"plainTextByDefault":true}', defaults)).toMatchObject({ value: { plainTextByDefault: true } })
+    expect(parsePreferences('{"plainTextByDefault":"yes"}', defaults)).toMatchObject({ value: { plainTextByDefault: false } })
   })
 
   it('keeps dragged panel widths, brought within their limits; settings saved before them get the defaults', () => {

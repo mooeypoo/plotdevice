@@ -2,13 +2,19 @@
 import { itemAt, itemStart, keptPassages, readOutline, type ParsedOutline, type TextRange } from '@plotdevice/markdown'
 import { keyOf } from '@plotdevice/presentation'
 import type { ProjectPath } from '@plotdevice/shared'
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useChapterWriting } from '../composables/use-chapter-writing'
+import { useLinkActions } from '../composables/use-link-actions'
 import { useLinkSuggestions } from '../composables/use-link-suggestions'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
-import { textViewKeys } from '../stores/view'
+import { textViewKeys, useViewStore } from '../stores/view'
 import ConflictDialog from './ConflictDialog.vue'
+import FormatBubble from './FormatBubble.vue'
+import { formatItem, headingKeys, HEADING_COMMANDS } from './format-items'
+import LinkBubble from './LinkBubble.vue'
+import type { MenuItem } from './menu'
+import PlainTextBanner from './PlainTextBanner.vue'
 import LinkSuggestions from './LinkSuggestions.vue'
 
 // The outline's Markdown, typed freely (Milestone 14). It is the same editor, autosave and conflict
@@ -16,6 +22,8 @@ import LinkSuggestions from './LinkSuggestions.vue'
 // card last focused there, and leaving it focuses the card the cursor is on.
 const props = defineProps<{ file: ProjectPath; title: string }>()
 const story = useStoryStore()
+const view = useViewStore()
+const linkActions = useLinkActions()
 const t = useSettingsStore().t
 const host = ref<HTMLElement | null>(null)
 const kept = ref<TextRange[]>([])
@@ -47,6 +55,27 @@ const page = useChapterWriting(host, {
   },
 })
 
+/** The bubble's ⋯: heading levels (Heading 2 is a section) and a bulleted list. */
+const moreItems = computed<MenuItem[]>(() => [
+  ...HEADING_COMMANDS.map((command) => formatItem(t, command, () => page.format(command))),
+  formatItem(t, 'bulletList', () => page.format('bulletList'), 'lists'),
+])
+
+/** The bubble's link button: a page or chapter, from the picker. */
+async function addLink(): Promise<void> {
+  const target = await linkActions.choose(props.file, '')
+  if (target) page.insertLink(target)
+  else page.focus()
+}
+
+/** "Edit as plain text" from the outline's menu, now or when Text opens. */
+function takePlainTextRequest(): void {
+  if (!view.plainTextRequest || page.state.value !== 'ready') return
+  view.plainTextRequest = false
+  page.setMode('plain')
+}
+watch(() => view.plainTextRequest, takePlainTextRequest)
+
 const countKept = (): void => {
   if (page.state.value === 'ready') kept.value = keptPassages(parsed())
 }
@@ -74,6 +103,7 @@ onMounted(async () => {
     if (start !== null) page.select(start)
   }
   countKept()
+  takePlainTextRequest()
 })
 // Counted again as each save is sent, not on every key.
 watch(page.status, countKept)
@@ -81,7 +111,8 @@ watch(page.status, countKept)
 
 <template>
   <div class="outline-text" data-testid="outline-text">
-    <p class="secondary hint">{{ t('outline-text-hint', textViewKeys()) }}</p>
+    <p class="secondary hint">{{ t('outline-text-hint', textViewKeys(), headingKeys(2)) }}</p>
+    <PlainTextBanner v-if="page.mode.value === 'plain'" @back="page.setMode('rendered')" />
     <p v-if="page.state.value === 'unreadable'" class="warning" role="alert">{{ t('chapter-unreadable') }}</p>
     <p v-else-if="page.state.value === 'missing'" class="warning" role="alert">{{ t('chapter-missing') }}</p>
     <div class="paper size-medium width-medium">
@@ -101,6 +132,15 @@ watch(page.status, countKept)
       </span>
       <span role="status" data-testid="outline-text-save-status">{{ page.status.value ? t(`save-${page.status.value}`) : '' }}</span>
     </p>
+    <FormatBubble :place="page.selection.value" :more="moreItems" @format="page.format" @link="addLink" @back="page.focus" />
+    <LinkBubble
+      :link="page.link.value"
+      :from="file"
+      :hidden="page.selection.value !== null"
+      @change="page.changeLink"
+      @remove="page.removeLink"
+      @back="page.focus"
+    />
     <LinkSuggestions
       v-if="links.open.value && links.query.value"
       :query="links.query.value"

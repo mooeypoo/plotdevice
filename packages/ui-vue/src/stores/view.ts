@@ -29,6 +29,8 @@ export const useViewStore = defineStore('view', () => {
   /** The chapter open in Write and its save status, for the top bar and the book menu. */
   const writingChapter = ref<{ file: ProjectPath; name: string } | null>(null)
   const saveStatus = ref<SaveStatusView | null>(null)
+  /** "Edit as plain text" from the outline's menu: Text opens as plain text (ADR 0010). */
+  const plainTextRequest = ref(false)
 
   function writeChapter(file: ProjectPath): void {
     chapterRequest.value = file
@@ -54,6 +56,7 @@ export const useViewStore = defineStore('view', () => {
     chapterRequest,
     writingChapter,
     saveStatus,
+    plainTextRequest,
     writeChapter,
     setFocusMode,
   }

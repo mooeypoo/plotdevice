@@ -54,6 +54,18 @@ defineExpose({ show: () => dialog.value?.showModal() })
         {{ t('settings-check-updates') }}
       </label>
       <p id="check-for-updates-hint" class="secondary hint">{{ t('settings-check-updates-hint') }}</p>
+      <h3 class="settings-group">{{ t('settings-advanced') }}</h3>
+      <label class="check-row">
+        <input
+          type="checkbox"
+          data-testid="plain-text-setting"
+          :checked="settings.preferences.plainTextByDefault"
+          aria-describedby="plain-text-hint"
+          @change="settings.update({ plainTextByDefault: ($event.target as HTMLInputElement).checked })"
+        />
+        {{ t('settings-plain-text') }}
+      </label>
+      <p id="plain-text-hint" class="secondary hint">{{ t('settings-plain-text-hint') }}</p>
     </template>
     <p v-if="settings.saveFailed" class="warning" role="status">⚠ {{ t('settings-save-failed') }}</p>
     <form method="dialog" class="actions">

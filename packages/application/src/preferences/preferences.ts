@@ -24,6 +24,7 @@ export function defaultPreferences(systemLocale: string): Preferences {
     writingSize: 'medium',
     pageWidth: 'medium',
     checkForUpdates: true,
+    plainTextByDefault: false,
     navigatorWidth: PANEL_WIDTHS.navigatorWidth.initial,
     shelfWidth: PANEL_WIDTHS.shelfWidth.initial,
   }
@@ -48,6 +49,7 @@ export function parsePreferences(text: string, defaults: Preferences): Result<Pr
     writingSize: WRITING_SIZES.find((size) => size === record.writingSize) ?? defaults.writingSize,
     pageWidth: PAGE_WIDTHS.find((width) => width === record.pageWidth) ?? defaults.pageWidth,
     checkForUpdates: typeof record.checkForUpdates === 'boolean' ? record.checkForUpdates : defaults.checkForUpdates,
+    plainTextByDefault: typeof record.plainTextByDefault === 'boolean' ? record.plainTextByDefault : defaults.plainTextByDefault,
     navigatorWidth: panelWidth('navigatorWidth', record.navigatorWidth),
     shelfWidth: panelWidth('shelfWidth', record.shelfWidth),
   })
@@ -119,6 +121,7 @@ export async function updatePreferences(
     writingSize: patch.writingSize ?? current.writingSize,
     pageWidth: patch.pageWidth ?? current.pageWidth,
     checkForUpdates: patch.checkForUpdates ?? current.checkForUpdates,
+    plainTextByDefault: patch.plainTextByDefault ?? current.plainTextByDefault,
     navigatorWidth: patch.navigatorWidth ?? current.navigatorWidth,
     shelfWidth: patch.shelfWidth ?? current.shelfWidth,
   }

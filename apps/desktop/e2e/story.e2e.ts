@@ -311,7 +311,7 @@ test('Story has two groups: Plot holds the outlines, World shows each kind of pa
   await expect(page.getByTestId('gallery-character')).toBeVisible()
 })
 
-test('editing a card: links show as names, and @ or the link button adds one without writing Markdown', async () => {
+test('editing a card: links show as their words, and @ or the link button adds one without writing Markdown', async () => {
   await mkdir(join(root, 'characters'))
   await writeFile(join(root, 'characters/bea.md'), '---\ntitle: Bea Halmi\naka: [Bea]\n---\nIlka’s aunt.\n')
   const page = await start()
@@ -322,7 +322,7 @@ test('editing a card: links show as names, and @ or the link button adds one wit
   // Editing an item that has a link: the link is a name, not Markdown.
   await page.locator('[data-item="0/0"] .inline-text').dblclick()
   const field = page.getByTestId('editable-text')
-  await expect(field.locator('.cm-link-chip')).toHaveText('The Crossing')
+  await expect(field.locator('.cm-link')).toHaveText('The Crossing')
   await expect(field).not.toContainText('](')
   await page.keyboard.press('Escape')
 
@@ -333,7 +333,7 @@ test('editing a card: links show as names, and @ or the link button adds one wit
   await expect(page.getByTestId('item-suggestions').getByRole('option').first()).toContainText('Bea Halmi')
   await page.keyboard.press('Enter')
   await page.keyboard.type('at the landing')
-  await expect(field.locator('.cm-link-chip')).toHaveText('Bea Halmi')
+  await expect(field.locator('.cm-link')).toHaveText('Bea Halmi')
   await page.keyboard.press('Enter')
   await file(MAIN).toContain('- Must meet [Bea Halmi](../characters/bea.md) at the landing\n')
 

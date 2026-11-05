@@ -7,13 +7,17 @@ import { linkQueryAt } from './item-text'
  * in or out a level, carrying what is nested under it, and `@` or `[[` offers pages to link, as in a
  * card's text. Everything else is the chapter editor's: Enter continues the list, undo, paste.
  */
-export interface OutlineTextOptions {
-  /** One nesting level as the file writes it, so new levels match the author's (ADR 0003). */
-  nestingUnit: (text: string) => string
+/** `@` or `[[` offering pages to link, in outline Text and on pages (Milestone 16). */
+export interface LinkSuggestionOptions {
   /** The name being typed after `@` or `[[`, and where on screen it is; `null` when none. */
   onLinkQuery: (query: { text: string; x: number; y: number } | null) => void
   /** Keys while a list of pages is offered; `true` when the app used the key. */
   onListKey: (key: 'up' | 'down' | 'pick' | 'close') => boolean
+}
+
+export interface OutlineTextOptions extends LinkSuggestionOptions {
+  /** One nesting level as the file writes it, so new levels match the author's (ADR 0003). */
+  nestingUnit: (text: string) => string
 }
 
 const LIST_LINE = /^[ \t]*(?:[-*+]|\d{1,9}[.)])(?:[ \t]|$)/
@@ -81,8 +85,23 @@ export function insertChosenLink(view: EditorView, markdown: string): void {
   view.focus()
 }
 
-export function outlineText(options: OutlineTextOptions, text: string): Extension {
-  const unit = options.nestingUnit(text)
+/** Enter at the end of a section's heading starts its first card, so no `- ` has to be typed (Milestone 16). */
+export const cardAfterSection: StateCommand = ({ state, dispatch }) => {
+  const { main } = state.selection
+  if (!main.empty) return false
+  const line = state.doc.lineAt(main.head)
+  if (main.head !== line.to || !/^ {0,3}#{1,6}[ \t]+\S/.test(line.text)) return false
+  const nl = state.lineBreak
+  const insert = `${nl}${nl}- `
+  // Positions count a line break as one, whatever the file's line ending.
+  dispatch(
+    state.update({ changes: { from: line.to, insert }, selection: { anchor: line.to + 4 }, scrollIntoView: true, userEvent: 'input' }),
+  )
+  return true
+}
+
+/** While pages are offered for `@name`, the arrows, Enter, Tab and Escape choose among them. */
+export function linkSuggestions(options: LinkSuggestionOptions): Extension {
   const list = (key: 'up' | 'down' | 'pick' | 'close') => (): boolean => options.onListKey(key)
   const report = (view: EditorView): void => {
     const found = view.hasFocus ? linkQueryIn(view.state) : null
@@ -90,18 +109,32 @@ export function outlineText(options: OutlineTextOptions, text: string): Extensio
     options.onLinkQuery(found && place ? { text: found.text, x: place.left, y: place.bottom } : null)
   }
   return [
-    // Ahead of the chapter's keys: while pages are offered, these keys choose among them.
+    // Ahead of every other key: while pages are offered, these keys choose among them.
     Prec.highest(
       keymap.of([
         { key: 'ArrowDown', run: list('down') },
         { key: 'ArrowUp', run: list('up') },
         { key: 'Enter', run: list('pick') },
         { key: 'Escape', run: list('close') },
-        { key: 'Tab', run: (view) => options.onListKey('pick') || nest('in', unit)(view), shift: nest('out', unit) },
+        { key: 'Tab', run: list('pick') },
       ]),
     ),
     EditorView.updateListener.of((update) => {
       if (update.docChanged || update.selectionSet || update.focusChanged) report(update.view)
     }),
+  ]
+}
+
+/** Outline Text: `@` links, Tab and Shift+Tab nest a line, and Enter after a section starts its first card. */
+export function outlineText(options: OutlineTextOptions, text: string): Extension {
+  const unit = options.nestingUnit(text)
+  return [
+    linkSuggestions(options),
+    Prec.highest(
+      keymap.of([
+        { key: 'Enter', run: cardAfterSection },
+        { key: 'Tab', run: nest('in', unit), shift: nest('out', unit) },
+      ]),
+    ),
   ]
 }

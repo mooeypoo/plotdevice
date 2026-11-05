@@ -1,11 +1,16 @@
 import { EditorSelection, EditorState, StateField, type Extension } from '@codemirror/state'
-import { Decoration, EditorView, keymap, placeholder, WidgetType, type DecorationSet } from '@codemirror/view'
-import { linkQueryAt, linkRanges } from './item-text'
+import { Decoration, Direction, EditorView, keymap, placeholder, type DecorationSet } from '@codemirror/view'
+import { caretKeymap, renderedRules } from './caret'
+import { hiddenIn } from './hidden'
+import { linkHidden, linkQueryAt } from './item-text'
+import { changeLink, linkAt, removeLink } from './links'
+import { decorationsFor } from './live-preview'
 
 /**
- * A card's or item's one line of text, edited in place. Links show as their names and are added by
- * choosing a page, never by typing Markdown: `@` or `[[` starts a search the app shows beside the
- * text (Milestone 11, owner feedback). The text stays ordinary Markdown underneath.
+ * A card's or item's one line of text, edited in place. Links show as their words, edited like any
+ * words (Milestone 16), and are added by choosing a page, never by typing Markdown: `@` or `[[` starts
+ * a search the app shows beside the text (Milestone 11, owner feedback). The text stays ordinary
+ * Markdown underneath.
  */
 export interface ItemEditorOptions {
   text: string
@@ -26,41 +31,42 @@ export interface ItemEditorOptions {
   onDone: (text: string | null, byEnter: boolean) => void
   /** Tab and Shift+Tab, when the line can move in or out a level. */
   onNest?: (direction: 'in' | 'out', text: string) => void
+  /** Told where the link the cursor is in goes, and where it is on screen, for the link popup; `null` when not in one. */
+  onLink?: (link: { target: string; x: number; y: number; rtl: boolean } | null) => void
 }
 
 export interface ItemEditor {
   text(): string
   /** Puts a link where the cursor is, or in place of the `@name` being typed. */
   insertLink(markdown: string): void
+  /** Points the link the cursor is in somewhere else, keeping its words. */
+  changeLink(target: string): void
+  /** Removes the link the cursor is in, keeping its words. */
+  removeLink(): void
   focus(): void
   destroy(): void
 }
 
-class LinkChip extends WidgetType {
-  constructor(readonly label: string) {
-    super()
-  }
-  override eq(other: LinkChip): boolean {
-    return other.label === this.label
-  }
-  toDOM(): HTMLElement {
-    const chip = document.createElement('span')
-    chip.className = 'cm-link-chip'
-    chip.textContent = this.label
-    return chip
+const itemHidden = (state: EditorState) => linkHidden(state.doc.toString())
+
+function draw(state: EditorState) {
+  const drawn = decorationsFor(hiddenIn(state, 0, state.doc.length), '')
+  return {
+    decorations: Decoration.set(drawn.all, true),
+    atomic: Decoration.set(drawn.atomic, true),
+    isolates: Decoration.set(drawn.links, true),
   }
 }
 
-const decorate = (state: EditorState): DecorationSet =>
-  Decoration.set(
-    linkRanges(state.doc.toString()).map((link) => Decoration.replace({ widget: new LinkChip(link.label) }).range(link.from, link.to)),
-  )
-
-/** Each link is one chip: the cursor steps over it, and Backspace removes it whole. */
-const chips = StateField.define<DecorationSet>({
-  create: decorate,
-  update: (value, transaction) => (transaction.docChanged ? decorate(transaction.state) : value),
-  provide: (field) => [EditorView.decorations.from(field), EditorView.atomicRanges.of((view) => view.state.field(field))],
+/** Links drawn as their words; the cursor steps over the hidden marks, as in a chapter (ADR 0010). */
+const links = StateField.define<{ decorations: DecorationSet; atomic: DecorationSet; isolates: DecorationSet }>({
+  create: draw,
+  update: (value, transaction) => (transaction.docChanged ? draw(transaction.state) : value),
+  provide: (field) => [
+    EditorView.decorations.from(field, (value) => value.decorations),
+    EditorView.atomicRanges.of((view) => view.state.field(field).atomic),
+    EditorView.bidiIsolatedRanges.of((view) => view.state.field(field).isolates),
+  ],
 })
 
 /**
@@ -75,10 +81,7 @@ const look = EditorView.theme({
   '.cm-content': { padding: '0', fontSize: 'var(--item-font-size, 1.05rem)', caretColor: 'var(--color-text)' },
   '.cm-line': { padding: '0' },
   '.cm-placeholder': { color: 'var(--color-text-secondary)' },
-  '.cm-link-chip': {
-    paddingInline: '0.15em',
-    borderRadius: '4px',
-    background: 'var(--color-well)',
+  '.cm-link': {
     color: 'var(--color-accent)',
     textDecoration: 'underline',
     textDecorationColor: 'var(--color-mark)',
@@ -116,7 +119,9 @@ export function createItemEditor(parent: HTMLElement, options: ItemEditorOptions
 
   const extensions: Extension[] = [
     look,
-    chips,
+    renderedRules({ source: itemHidden }),
+    links,
+    caretKeymap,
     ...(options.placeholder ? [placeholder(options.placeholder)] : []),
     oneLine,
     EditorView.lineWrapping,
@@ -162,7 +167,15 @@ export function createItemEditor(parent: HTMLElement, options: ItemEditorOptions
       },
     ]),
     EditorView.updateListener.of((update) => {
-      if (update.docChanged || update.selectionSet || update.focusChanged) report(update.view)
+      if (!(update.docChanged || update.selectionSet || update.focusChanged)) return
+      report(update.view)
+      if (options.onLink) {
+        const { main } = update.state.selection
+        const link = update.view.hasFocus ? linkAt(update.state, main.from, main.to) : null
+        const place = link ? update.view.coordsAtPos(link.wordsFrom, 1) : null
+        const rtl = link ? update.view.textDirectionAt(link.wordsFrom) === Direction.RTL : false
+        options.onLink(link && place ? { target: link.target, x: place.left, y: place.bottom, rtl } : null)
+      }
     }),
     EditorView.domEventHandlers({
       // Leaving the field keeps the text, unless focus went to something of the field's own (the list, the link button).
@@ -192,6 +205,18 @@ export function createItemEditor(parent: HTMLElement, options: ItemEditorOptions
       // A space after the link, so typing carries on as a new word.
       const insert = `${markdown} `
       view.dispatch({ changes: { from, to, insert }, selection: EditorSelection.cursor(from + insert.length) })
+      view.focus()
+    },
+    changeLink(target) {
+      const { main } = view.state.selection
+      const link = linkAt(view.state, main.from, main.to)
+      if (link) view.dispatch(changeLink(view.state, link, target))
+      view.focus()
+    },
+    removeLink() {
+      const { main } = view.state.selection
+      const link = linkAt(view.state, main.from, main.to)
+      if (link) view.dispatch(removeLink(view.state, link))
       view.focus()
     },
     focus: () => view.focus(),

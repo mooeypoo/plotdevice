@@ -7,10 +7,11 @@ import formatting from '../../../tests/fixtures/chapters/formatting.md?raw'
 import he from '../../../tests/fixtures/chapters/he.md?raw'
 import mixed from '../../../tests/fixtures/chapters/mixed.md?raw'
 import unsupported from '../../../tests/fixtures/chapters/unsupported.md?raw'
+import { renderedRules } from './caret'
 import { chapterState } from './chapter-state'
 import { formatCommands, insertLink, type FormatCommand } from './format'
 import { lineBreak, newParagraph } from './keys'
-import { directionLayout, setParagraphDirection, setPhraseDirection } from './paragraph-direction'
+import { directionHiding, directionLayout, setParagraphDirection, setPhraseDirection } from './paragraph-direction'
 import { pasteText } from './paste'
 import type { EditorSettings } from './settings'
 
@@ -23,7 +24,9 @@ const english: EditorSettings = {
 const hebrew: EditorSettings = { ...english, projectDirection: 'rtl', language: 'he' }
 
 const bodyOf = (file: string): string => file.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '')
-const stateOf = (text: string, settings = english): EditorState => chapterState(text, new Compartment(), settings)
+/** The editor as authors use it, rendered (ADR 0010); `plain` is plain text. */
+const stateOf = (text: string, settings = english, plain = false): EditorState =>
+  chapterState(text, new Compartment(), settings, plain ? [] : [renderedRules(), directionHiding])
 
 function run(state: EditorState, command: StateCommand): EditorState {
   let next = state
@@ -114,7 +117,10 @@ describe('formatting writes plain Markdown', () => {
   const expected: Record<FormatCommand, string> = {
     bold: '**Plain words** here.\n',
     italic: '*Plain words* here.\n',
-    heading: '## Plain words here.\n',
+    heading1: '# Plain words here.\n',
+    heading2: '## Plain words here.\n',
+    heading3: '### Plain words here.\n',
+    body: 'Plain words here.\n',
     quote: '> Plain words here.\n',
     bulletList: '- Plain words here.\n',
     orderedList: '1. Plain words here.\n',
@@ -130,9 +136,32 @@ describe('formatting writes plain Markdown', () => {
     expect(run(bold, formatCommands.bold).sliceDoc()).toBe('Plain words here.\n')
   })
 
-  it('applying a heading again removes it', () => {
-    const heading = run(at(stateOf('Plain words here.\n'), 'Plain'), formatCommands.heading)
-    expect(run(heading, formatCommands.heading).sliceDoc()).toBe('Plain words here.\n')
+  it('a heading level replaces another, and body text removes it', () => {
+    const two = run(at(stateOf('Plain words here.\n'), 'Plain'), formatCommands.heading2)
+    expect(run(two, formatCommands.heading3).sliceDoc()).toBe('### Plain words here.\n')
+    expect(run(two, formatCommands.body).sliceDoc()).toBe('Plain words here.\n')
+  })
+
+  it('a heading level changes only the line with the cursor, and writes nothing when it is already that level', () => {
+    const body = 'One.\n\n## Two.\n\nThree.\n'
+    expect(run(at(stateOf(body), 'Two'), formatCommands.heading2).sliceDoc()).toBe(body)
+    expect(run(at(stateOf(body), 'Two'), formatCommands.heading1).sliceDoc()).toBe('One.\n\n# Two.\n\nThree.\n')
+  })
+
+  it('headings keep the file’s line endings, in Hebrew too', () => {
+    expect(run(at(stateOf('אחת.\r\n\r\nשתיים.\r\n', hebrew), 'שתיים'), formatCommands.heading2).sliceDoc()).toBe(
+      'אחת.\r\n\r\n## שתיים.\r\n',
+    )
+  })
+
+  it('a heading level on a bullet makes it a heading, as in Word', () => {
+    expect(run(at(stateOf('- Coda\n'), 'Coda'), formatCommands.heading2).sliceDoc()).toBe('## Coda\n')
+    expect(run(at(stateOf('  - Coda\n'), 'Coda'), formatCommands.heading2).sliceDoc()).toBe('## Coda\n')
+    expect(run(at(stateOf('- Coda\n'), 'Coda'), formatCommands.body).sliceDoc()).toBe('- Coda\n')
+  })
+
+  it('a heading inside a quote keeps the quote', () => {
+    expect(run(at(stateOf('> Do not sell.\n'), 'sell'), formatCommands.heading2).sliceDoc()).toBe('> ## Do not sell.\n')
   })
 
   it('links the selection, wrapping addresses with spaces', () => {
@@ -200,6 +229,14 @@ describe('direction markers, only when needed (ADR 0004)', () => {
     const start = body.indexOf('The letter')
     const backspace = state.update({ changes: { from: start - 1, to: start }, userEvent: 'delete.backward' }).state
     expect(backspace.sliceDoc()).toBe(body)
+  })
+
+  it('in plain text, the markers can be edited by hand', () => {
+    const body = 'Before.\n\n::: {dir=ltr}\nThe letter.\n:::\n'
+    const state = stateOf(body, hebrew, true)
+    const start = body.indexOf('The letter')
+    const backspace = state.update({ changes: { from: start - 1, to: start }, userEvent: 'delete.backward' }).state
+    expect(backspace.sliceDoc()).toBe('Before.\n\n::: {dir=ltr}The letter.\n:::\n')
   })
 
   it('removes the markers when the author empties the paragraph', () => {

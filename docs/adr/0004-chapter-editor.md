@@ -58,3 +58,12 @@ Spike B built both behind one interface and compared them with 98 automated chec
 
 - **No nonce after all.** The editor sits in a shadow root. There, CodeMirror's style library uses constructed stylesheets, which a Content Security Policy doesn't restrict, instead of `<style>` tags. The strict policy (`style-src 'self'`) stays exactly as it is. A nonce baked into a public build would have been a weak guard anyway. Theme colours still reach the editor, because CSS variables inherit across the shadow boundary.
 - **Line endings.** CodeMirror normally turns every `\r\n` into `\n`. The editor sets its line separator from the chapter's own line ending and reads its text with `sliceDoc`, so Windows-ending chapters stay byte-identical. Tests cover CRLF and mixed endings.
+
+## Amendment (2026-11-04): rendered editing everywhere
+
+Accepted by the owner with roadmap decision D2 (`docs/plans/roadmap-16-approachable-studio-and-timelines.md`).
+
+- **Point 2 changes.** Headings, bold, italics and links no longer show their Markdown marks on the cursor's line: they are always rendered, and links are shown as names. The rule and the editing behaviour around hidden marks are in **ADR 0010**, which also adds a plain-text mode showing every mark.
+- What point 2 says about bullets, the scene-break ornament and "kept as written" text stays. Whether list and quote markers stay hidden on the cursor's line is decided in the Milestone 16 plan.
+- Point 4 (direction markers hidden, caret can't land inside them) already worked this way and is unchanged.
+- **The screen-reader check** listed under "Still to verify" (Orca, NVDA) is done in Milestone 16, since rendered editing changes what a screen reader meets.

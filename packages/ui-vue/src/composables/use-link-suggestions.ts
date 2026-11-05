@@ -1,5 +1,5 @@
 import { linkTargets, markdownLink, search, suggestedLinkTargets, type LinkTarget } from '@plotdevice/presentation'
-import { dirnameOf } from '@plotdevice/shared'
+import { dirnameOf, type ProjectPath } from '@plotdevice/shared'
 import { computed, ref, watch } from 'vue'
 import { useProjectStore } from '../stores/project'
 import { useStoryStore } from '../stores/story'
@@ -11,10 +11,11 @@ export interface LinkQuery {
 }
 
 /**
- * The pages and chapters offered while `@name` (or `[[name`) is typed in an outline: in a card's text
- * and in the outline's Text view. `insert` puts the chosen link's Markdown in place of the name.
+ * The pages and chapters offered while `@name` (or `[[name`) is typed: in a card's text, in the
+ * outline's Text view and on a page. `insert` puts the chosen link's Markdown in place of the name;
+ * `from` is the file the link is written in (the open outline unless said otherwise).
  */
-export function useLinkSuggestions(insert: (markdown: string) => void) {
+export function useLinkSuggestions(insert: (markdown: string) => void, from?: () => ProjectPath) {
   const project = useProjectStore()
   const story = useStoryStore()
   const query = ref<LinkQuery | null>(null)
@@ -29,8 +30,9 @@ export function useLinkSuggestions(insert: (markdown: string) => void) {
   const open = computed(() => offered.value.length > 0)
   watch(offered, () => (selected.value = 0))
 
-  /** A link from the open outline to `target`, relative to the outline's folder. */
-  const linkFor = (target: LinkTarget): string => markdownLink(dirnameOf(story.outline?.file ?? 'outlines/x.md'), target.file, target.title)
+  /** A link to `target`, relative to the folder of the file it is written in. */
+  const linkFor = (target: LinkTarget): string =>
+    markdownLink(dirnameOf(from?.() ?? story.outline?.file ?? 'outlines/x.md'), target.file, target.title)
 
   function choose(target: LinkTarget | undefined): void {
     if (!target) return

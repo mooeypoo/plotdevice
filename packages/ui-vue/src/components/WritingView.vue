@@ -14,7 +14,10 @@ import AppIcon from './AppIcon.vue'
 import ChapterNavigator from './ChapterNavigator.vue'
 import ConflictDialog from './ConflictDialog.vue'
 import FormatBubble from './FormatBubble.vue'
+import { formatItem, HEADING_COMMANDS } from './format-items'
+import LinkBubble from './LinkBubble.vue'
 import MenuButton from './MenuButton.vue'
+import PlainTextBanner from './PlainTextBanner.vue'
 import ReferenceShelf from './ReferenceShelf.vue'
 import ResizeHandle from './ResizeHandle.vue'
 import type { MenuItem } from './menu'
@@ -36,13 +39,7 @@ async function addLink(): Promise<void> {
   else writing.focus()
 }
 
-const item = (command: FormatCommand, group?: string): MenuItem => ({
-  key: `format-${command}`,
-  label: t(`format-${command}`),
-  icon: command,
-  run: () => writing.format(command),
-  ...(group ? { group } : {}),
-})
+const item = (command: FormatCommand, group?: string): MenuItem => formatItem(t, command, () => writing.format(command), group)
 const directionItems = (): MenuItem[] => [
   {
     key: 'paragraph-ltr',
@@ -59,13 +56,20 @@ const directionItems = (): MenuItem[] => [
 ]
 /** Everything, under ¶ at the page's edge: reachable without a selection, and by keyboard. */
 const formatItems = computed<MenuItem[]>(() => [
-  ...(['bold', 'italic', 'heading', 'quote', 'bulletList', 'orderedList', 'sceneBreak'] as const).map((command) => item(command)),
+  item('bold'),
+  item('italic'),
+  ...HEADING_COMMANDS.map((command, i) => item(command, i === 0 ? 'heading' : undefined)),
+  ...(['quote', 'bulletList', 'orderedList', 'sceneBreak'] as const).map((command, i) => item(command, i === 0 ? 'blocks' : undefined)),
   { key: 'format-link', label: t('format-link'), icon: 'link', run: () => void addLink() },
   ...directionItems(),
+  // Every mark visible, to fix something by hand (ADR 0010); in the page's own menu until Milestone 17.
+  writing.mode.value === 'plain'
+    ? { key: 'plain-text-back', label: t('plain-text-back'), group: 'mode', run: () => writing.setMode('rendered') }
+    : { key: 'plain-text-edit', label: t('plain-text-edit'), group: 'mode', run: () => writing.setMode('plain') },
 ])
 /** The bubble's ⋯: what its own buttons don't already offer. */
 const moreItems = computed<MenuItem[]>(() => [
-  item('heading'),
+  ...HEADING_COMMANDS.map((command) => item(command)),
   item('bulletList'),
   item('orderedList'),
   item('sceneBreak'),
@@ -220,9 +224,18 @@ onBeforeUnmount(() => {
             <p v-if="heading.eyebrow" class="chapter-eyebrow">{{ heading.eyebrow }}</p>
             <h1 class="chapter-title" dir="auto">{{ heading.title }}</h1>
           </header>
+          <PlainTextBanner v-if="writing.mode.value === 'plain'" @back="writing.setMode('rendered')" />
           <div ref="host" class="editor-host" :lang="project.language" data-testid="editor"></div>
         </article>
         <FormatBubble :place="writing.selection.value" :more="moreItems" @format="writing.format" @link="addLink" @back="writing.focus" />
+        <LinkBubble
+          :link="writing.link.value"
+          :from="writing.file.value"
+          :hidden="writing.selection.value !== null"
+          @change="writing.changeLink"
+          @remove="writing.removeLink"
+          @back="writing.focus"
+        />
       </div>
     </section>
 

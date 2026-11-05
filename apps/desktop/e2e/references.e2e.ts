@@ -313,7 +313,9 @@ test('relationships and connections: added on one page, seen on the other, in th
   await expect(folded).toHaveText('Relationships: listed beside the page')
   await expect(page.getByTestId('page-editor').locator('.cm-content')).not.toContainText('Aunt of')
   await folded.click()
-  await expect(page.getByTestId('page-editor').locator('.cm-content')).toContainText('- Aunt of [Ilka Varga](ilka.md)')
+  // Unfolded, it reads as a list with the link as its name (Milestone 16); the file keeps the Markdown.
+  await expect(page.getByTestId('page-editor').locator('.cm-content')).toContainText('Aunt of Ilka Varga')
+  await expect(page.getByTestId('page-editor').locator('.cm-link')).toHaveText('Ilka Varga')
 
   // Linked from: the card in the outline; "Show on the board" picks it out.
   await expect(page.getByTestId('linked-from')).toContainText('Ilka crosses the river')

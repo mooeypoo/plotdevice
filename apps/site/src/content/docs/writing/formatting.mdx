@@ -1,10 +1,12 @@
 ---
 title: Formatting
-description: Bold, italic, quotes, lists, headings, scene breaks and links, from the bubble, the ¶ menu or the keyboard.
+description: Bold, italic, quotes, lists, headings, scene breaks and links, from the bubble, the ¶ menu or the keyboard. What you see is the formatting, never its marks.
 ---
 
 import Ui from '~/components/Ui.astro'
 import Shot from '~/components/Shot.astro'
+
+Formatting looks like formatting: a heading is a heading, bold is bold, and a link shows as its words. The marks that make them, such as `##` and `**`, are never on the page, even where you're typing.
 
 ## Select text
 
@@ -18,7 +20,8 @@ Select some text and a small bubble appears above it: **<Ui k="format-bold" />**
 
 <Shot name="format-menu" alt="The ¶ menu: bold, italic, heading, quote, lists, scene break, link and direction" close />
 
-- **<Ui k="format-heading" />**, **<Ui k="format-quote" />**, **<Ui k="format-bulletList" />** and **<Ui k="format-orderedList" />** apply to the paragraph you're in.
+- **<Ui k="format-heading1" />**, **<Ui k="format-heading2" />** and **<Ui k="format-heading3" />** make the paragraph you're in a heading of that size; **<Ui k="format-body" />** makes it ordinary text again.
+- **<Ui k="format-quote" />**, **<Ui k="format-bulletList" />** and **<Ui k="format-orderedList" />** apply to the paragraph you're in.
 - **<Ui k="format-sceneBreak" />** inserts a break between scenes. It shows as **⁂** and is written as `* * *` in the file.
 - **<Ui k="format-link" />** asks for an address. To link a card to a chapter or a character, see [Linking](/plotdevice/planning/linking/).
 - The direction commands are explained in [Hebrew and English in one book](/plotdevice/writing/hebrew-and-english/).
@@ -29,8 +32,28 @@ Select some text and a small bubble appears above it: **<Ui k="format-bold" />**
 |---|---|
 | **Ctrl+B** (⌘B on a Mac) | Bold |
 | **Ctrl+I** (⌘I) | Italic |
+| **Ctrl+Alt+1**, **2**, **3** (⌘⌥1, 2, 3) | Heading 1, 2 or 3, as in Word and Google Docs |
+| **Ctrl+Alt+0** (⌘⌥0) | Body text |
+| **Backspace**, at the start of a heading or a bullet | Make it ordinary text (a bullet one step in moves out a step) |
 | **Enter** | Start a new paragraph |
 | **Shift+Enter** | Break the line without a new paragraph |
 | **Tab**, from the page | Reach the bubble's buttons; **Escape** returns to the page |
 
-Formatting is ordinary Markdown in the file (`**bold**`, `*italic*`, `> quote`), so the same text reads well in any other app.
+If you know Markdown, typing it works too: `## ` at the start of a line makes a heading, `- ` a bullet and `**word**` bold, and the marks disappear as soon as they're understood.
+
+## Links
+
+A link shows as its words, in the link colour. Edit them like any words: **Backspace** erases a letter at a time, and the link goes only when its last letter does. Typing right after a link is ordinary text, outside it.
+
+With the cursor in a link, a small bubble says where it goes and offers **<Ui k="link-open" />**, **<Ui k="link-change" />** (choose another page, chapter or address; the words stay) and **<Ui k="link-remove" />** (the words stay, as ordinary text).
+
+<Shot name="link-bubble" alt="A link shown as its words, with the bubble below it: Goes to Bea Halmi, Open, Change link…, Remove link" close />
+
+## Plain text
+
+Underneath, formatting is ordinary Markdown (`**bold**`, `*italic*`, `> quote`), so the same text reads well in any other app. To see and fix the marks by hand, choose **<Ui k="plain-text-edit" />**: in **¶** on a chapter, in **⋯** on a page or an outline. Every mark shows, and what you type is saved exactly as typed.
+
+<Shot name="plain-text" alt="A chapter in plain text: the links and the scene break written out as Markdown, under the plain text notice" />
+ **<Ui k="plain-text-back" />** returns, with undo and your place kept.
+
+To always open pages this way, see [Settings](/plotdevice/reference/settings/).

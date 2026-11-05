@@ -16,6 +16,8 @@ export const preferencesSchema = z.strictObject({
   pageWidth: pageWidthSchema,
   /** Whether the app asks, once a day, if a newer version is out (Milestone 15). */
   checkForUpdates: z.boolean(),
+  /** Whether pages, chapters and outline Text open as plain text, every mark showing (Milestone 16, ADR 0010). */
+  plainTextByDefault: z.boolean(),
   navigatorWidth: panelWidthSchema('navigatorWidth'),
   shelfWidth: panelWidthSchema('shelfWidth'),
 })

@@ -42,3 +42,11 @@ Writing must never silently overwrite the author's text, whether the competing e
 - A small race remains between the last check and the rename. Closing it would need OS locks that other editors don't honour.
 - If a project moves to another machine after a crash, its journal stays behind. Missing-file handling (scenario I) covers that case.
 - **Open:** before "Rename source file" ships, relinking must also cover reference-style links, `[[wikilinks]]`, and links inside chapters.
+
+## Note (2026-11-04): renaming folders of kinds
+
+From roadmap decision D5 and ADR 0011.
+
+- **Match folder names…** (Milestone 18) is a multi-file operation like "Rename source file": the folder renames, the link updates and the `kinds` patch to `project.md` go through the journal (point 6) as one operation, with an undo.
+- **The open item above applies to it.** Before it ships, relinking covers reference-style links, `[[wikilinks]]` and links inside chapters, as well as inline links in outlines, pages and `CONTENTS.md`.
+- **"Make a backup now"** in that helper, and the backups to a folder the author chooses (Milestone 22), are copies of the book in a place the author picks. They are separate from the recovery copies and journals of point 9, which stay in OS app data and are never in the project.

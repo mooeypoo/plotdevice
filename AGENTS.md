@@ -3,7 +3,7 @@
 > Read `docs/PRD.md`, `docs/UX_SPEC.md`, `docs/DOMAIN_AND_FILE_FORMAT.md`, `docs/ARCHITECTURE.md`, and `docs/IMPLEMENTATION_PLAN.md` before starting. This is a CLEAN BUILD, not a legacy refactor.
 
 ## Mission and priority
-Plot Device is an approachable writing studio for fiction authors, backed by ordinary local Markdown. Optimize for nontechnical writer experience, portability, reliability, and maintainability, in that order when tradeoffs are otherwise equal. The workspaces are **Story** (working name) and **Write**, used in any order. Planning is never required to write.
+Plot Device is an approachable writing studio for non-technical fiction writers, Hebrew and English alike, backed by ordinary local Markdown that authors never have to see. Optimize for nontechnical writer experience, portability, reliability, and maintainability, in that order when tradeoffs are otherwise equal. The workspaces are **Story** (working name) and **Write**, used in any order. Planning is never required to write.
 
 Priority of authority: explicit user decisions > current PRD/UX/file-format/architecture/ADRs > this document > agent choices. Legacy source and documentation are **not** specifications. When specs conflict, identify and record the conflict rather than silently resolving it by copying legacy behavior.
 
@@ -15,7 +15,7 @@ Priority of authority: explicit user decisions > current PRD/UX/file-format/arch
 ## Product invariants
 1. One Markdown file per **chapter**, optional parts, no required Scene entity or scene files. Scene separators inside chapter prose are formatting only in MVP.
 2. Manuscript order is in a project manifest, **not** filenames or filesystem order. Rename source files only by controlled explicit operation; IDs remain stable.
-3. Each author-created outline is ordinary Markdown: `##` sections, primary bullets as items/cards, nested bullets as details. Board and List (Outline) are **projections**, not separate data stores (Cards was removed by owner decision, Milestone 11). Multiple independent outlines are allowed.
+3. Each author-created outline is ordinary Markdown: `##` sections, primary bullets as items/cards, nested bullets as details. Board, List (Outline), Text and Timeline are **projections**, not separate data stores (Cards was removed by owner decision, Milestone 11; Timeline per ADR 0012). Multiple independent outlines are allowed.
 4. Outline headings/cards do not automatically mean manuscript chapters/scenes. Cross-references are explicit and optional; moving an outline card never moves prose.
 5. All essential author data remains legible and organized without Plot Device; avoid opaque ID-only index files as the sole means of recovering story order.
 6. The application owns UX, not authors' text. Never lose unknown Markdown/frontmatter or silently overwrite concurrent external edits.
@@ -42,7 +42,7 @@ Priority of authority: explicit user decisions > current PRD/UX/file-format/arch
 
 ## Coding conventions
 - Vue 3 Composition API with TypeScript, Electron, strict TS monorepo, Vitest, ESLint/Prettier. Select exact versions during scaffold; don't cargo-cult legacy lockfile.
-- Tiptap vs CodeMirror **undecided**: run documented spike including RTL/BiDi, Markdown fidelity, keyboard selection, accessibility, performance and pasting before standardizing.
+- The editor is CodeMirror 6 (ADR 0004). Every editing surface is rendered by default, with a plain-text mode in the same editor instance (ADR 0010). Never add a second editor library.
 - Banana-style keyed JSON localization; translator facade supports parameters, plural, gender, CLDR as needed; avoid gettext/POT. Use logical CSS properties, isolation for user content and keyboard-accessible drag alternatives.
 - Document exported domain/application interfaces concisely. Explain *why* in comments; avoid verbose boilerplate. A short README per bounded context is encouraged.
 - No new app feature, cross-context coupling, schema change or dependency without identifying which requirement it serves.

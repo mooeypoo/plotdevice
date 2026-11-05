@@ -1,15 +1,17 @@
 # Plot Device — Domain and Markdown File Format
-Version: 0.4 (2026-10-25). Project layout per ADR 0006; Markdown fidelity per ADR 0003; text direction per ADR 0004; safe writes per ADR 0005.
+Version: 0.5 (2026-11-04). Project layout per ADR 0006; Markdown fidelity per ADR 0003; text direction per ADR 0004; safe writes per ADR 0005; rendered editing per ADR 0010; page kinds per ADR 0011; timelines per ADR 0012.
 
 ## Domain vocabulary
-- Project: identity, display metadata, language, chapter numbering style and schema version.
+- Project: identity, display metadata, language, chapter numbering style, schema version, its kinds of pages and the name of its manuscript unit.
 - Manuscript: ordered chapters, optionally grouped into parts.
 - Chapter: mandatory writing unit, one `.md` file; not inherently composed of named scenes.
 - Part: optional ordered chapter grouping with a name. No file of its own in the MVP.
 - Outline: named hierarchical document persisted as Markdown, independent from manuscript hierarchy.
 - OutlineSection: heading-derived section of an outline.
 - OutlineItem: hierarchical bullet item. Display as card/detail depending on view, not inherently a scene.
-- Character / Place / Note: human readable Markdown reference documents with optional metadata.
+- Page: a human readable Markdown reference document with optional metadata, of one kind.
+- Page kind: a folder of pages plus the names the app shows for it ("Faction", "Factions"). Characters, Places and Notes are the default kinds. All kinds behave the same.
+- Manuscript unit: what the interface calls a chapter in this project ("Session"). Interface only.
 - Links: explicit references written as ordinary relative Markdown links; never inferred from display title alone.
 
 ## Authoritative information
@@ -17,8 +19,8 @@ Version: 0.4 (2026-10-25). Project layout per ADR 0006; Markdown fidelity per AD
 - Chapter prose: `manuscript/*.md` body.
 - Chapter title: the chapter's frontmatter `title`; the contents link text mirrors it.
 - Outlines: `outlines/*.md` bodies.
-- Character/place/note text: dedicated Markdown files in their folders.
-- Project details (title, author, language, numbering style, schema version): `project.md` frontmatter.
+- Page text: dedicated Markdown files in their kind's folder.
+- Project details (title, author, language, numbering style, schema version, kinds, manuscript unit): `project.md` frontmatter.
 - Personal theme, locale, layout, pinned items, backups and recovery journals: OS app data, never the project folder.
 - Search indexes, caches and thumbnails: disposable, never authoritative.
 
@@ -41,6 +43,8 @@ Novel Title/
   assets/
 ```
 - Files are recognised by folder. A frontmatter `type` key is optional and informational.
+- `characters/`, `places/` and `notes/` are the default kinds. A project that lists its own kinds (below) has a folder per kind; nothing in the app, the project check or the guide for assistants may assume there are exactly three.
+- A folder of Markdown pages that the project doesn't list as a kind is not an error: its pages appear in World's "Not sorted yet" tray.
 - No hidden app folder is created. If one is ever needed, it is `.plotdevice/` (ADR 0001).
 
 ## `project.md`
@@ -60,6 +64,33 @@ Anything the author wants to note about the project.
 - `id` identifies the project for per-user state kept in OS app data (recent projects, backups, recovery journals).
 - `schemaVersion` drives explicit, backed-up migrations.
 - The body belongs to the author; the app never rewrites it.
+
+### Kinds of pages and the manuscript unit (ADR 0011)
+Two optional keys. Without them, the project has Characters, Places and Notes, and chapters:
+```yaml
+kinds:
+  - folder: characters
+    one: NPC
+    many: NPCs
+  - folder: places
+    one: Location
+    many: Locations
+  - folder: factions
+    one: Faction
+    many: Factions
+  - folder: notes
+    one: Lore
+    many: Lore
+manuscriptUnit:
+  one: Session
+  many: Sessions
+```
+- `kinds` lists the kinds in sidebar order. `folder` identifies the kind and is its folder's name; `one` and `many` are the names the app shows, in any language, exactly as typed.
+- A built-in kind (`characters`, `places`, `notes`) without `one`/`many` keeps the app's English and Hebrew names.
+- `manuscriptUnit` renames "chapter" in the interface only ("New session", "Session 3"). Files, `CONTENTS.md` and export are unchanged.
+- The app writes these keys with targeted frontmatter patches, as it does for `title`. Key order, comments and unknown keys are kept.
+- Removing a kind removes its entry only; its folder and pages stay, and show in "Not sorted yet".
+- These keys are optional additions: `schemaVersion` stays 1 and no migration is needed. An older version of the app ignores them and the folders it doesn't know; nothing is lost.
 
 ## `CONTENTS.md`: reading order and parts
 ```markdown
@@ -135,12 +166,14 @@ The letter was written in English, and it began without a greeting.
 - The family secret is revealed
 ```
 - In default Board: H2 -> columns, first-level list item -> card, descendants -> details. Mapping and supported Markdown are defined in ADR 0003.
-- The Text view (Milestone 14) shows the outline's body as written, to type freely, and saves it like a chapter's text; frontmatter is kept as is. Board and List read the file again when they show.
+- The Text view (Milestone 14) shows the outline's body, rendered from Milestone 16 (sections as headings, cards as bullets, links as names), to type freely, and saves it like a chapter's text; frontmatter is kept as is. Board and List read the file again when they show.
+- Rendering never changes the file (ADR 0010). What the author types is written as typed; in plain text, every mark is visible and saved exactly as typed.
+- The Timeline view (ADR 0012) reads the same outline: each `##` section is a moment in file order, labelled by its heading (no dates are parsed), and each card is an event. Lanes come only from explicit links and tags. No new file, field or syntax.
 - Do not conflate board card with manuscript chapter/scene.
 - Unknown Markdown blocks: retain; if structural editing cannot round-trip safely, restrict operation with helpful explanation.
 - Cards link to chapters, characters and places with ordinary relative Markdown links. Cards themselves have no stored IDs in the MVP (ADR 0003).
 
-## Characters, places and notes
+## Pages
 ```markdown
 ---
 title: Ilka Varga
@@ -156,7 +189,8 @@ Inherits the orchard; distrusts everyone in Marrow.
 ## Family
 Daughter of Bea's sister.
 ```
-- One page per file in `characters/`, `places/` or `notes/`. The folder says what the page is; a `type` key is optional and informational.
+- One page per file in its kind's folder (`characters/`, `places/`, `notes/`, or the project's own kinds). The folder says what the page is; a `type` key is optional and informational.
+- Every kind of page has the same format and behaviour: title, other names, description, details, relationships and tags. No kind has fields of its own.
 - `title` names the page. Without one, the first `#` heading names it, then the file name, so pages written in any app work unchanged. `aka` (a list, or a single name) holds other names, used by search.
 - **Tags** (Milestone 12): `tags` (a list, or a single tag) holds the author's own words for grouping pages ("Part Two – main", "Varga family"), spaces included. Tags that differ only in case or spacing are the same tag, shown with the first spelling found. An entry YAML reads as a one-key map (`- Part Two: main`, unquoted) is read as the tag the author meant. When the author changes a page's tags, the app rewrites only the `tags:` line, as a flow list, quoting a tag only when YAML needs it; removing the last tag removes the line.
 - The first paragraph is the description; everything after it is details. Pages are read leniently and never rewritten to fit; the app changes only `title`, when the author renames a page, the `tags:` line, when the author changes its tags, and one bullet of the relationships section, when the author adds, rewords or removes a relationship.
@@ -167,11 +201,29 @@ Daughter of Bea's sister.
 - The app writes ordinary relative Markdown links: `[Ilka](../characters/ilka.md)`. They work in Obsidian, on GitHub and in VS Code without the app. It reads Obsidian's `[[ilka]]` as well, resolved only when exactly one file has that name, but never writes it.
 - Links are explicit: the app never infers one from a name, and never adds or changes links in prose by itself.
 
+## Templates
+- A template is a bundled project skeleton, one per template and language: `project.md` (with `kinds` and `manuscriptUnit`), `CONTENTS.md`, starter outlines and, for a short story, one chapter. Creating a project copies it into a new folder; it never overwrites an existing one.
+- Nothing records which template a project came from. Once created, it is simply the author's project.
+- Every template, in every language, passes the project check with no warnings and loads without any write.
+
+## Word import (Milestone 22)
+- A `.docx` manuscript becomes ordinary chapter files and `CONTENTS.md` entries, after a preview of how it splits into chapters. Chapters only; the `.docx` itself is never changed.
+- Formatting comes in as the supported prose formatting (ADR 0004, point 3). What can't come in (comments, tracked changes, footnotes) is named in the preview. Details are decided in the Milestone 22 plan.
+- Export to Word is later, designed with the owner first.
+
 ## Advanced filename synchronization (deferred)
 - Stable chapter IDs independent of title, position and file path.
 - Explicit rename source file: validate/collision-check, update the `CONTENTS.md` link and other managed Markdown links, log the transaction in the recovery journal and provide recovery (ADR 0005).
 - Optional numbered filename sync: preview all renamed files and references, then perform recoverable batch operation. Not on every drag.
 - No implicit renames on title change.
+
+### Folder names of kinds (Milestone 18, ADR 0011)
+- Renaming a kind changes only `one`/`many`. Its folder is never renamed automatically.
+- **Match folder names…** renames chosen folders to match the kinds' names, and updates every link to them in chapters, outlines, pages and `CONTENTS.md`, plus the kind's `folder` key. Reference-style links and `[[wikilinks]]` are covered too (ADR 0005, open item).
+- Preview first: each folder's old and new name, how many links change, and anything that blocks it (an existing folder with that name, a name Windows can't use, a case-only change). Blocked renames are refused with a reason.
+- Before applying: a backup step (a copy of the book folder in a place the author picks, or the author confirming they have one).
+- Applied as one journalled, recoverable operation (ADR 0005), with **Undo folder renames** restoring names and links byte-identical.
+- The same mechanism later serves "synchronize chapter filenames with manuscript order".
 
 ## External editing policy
 - Normal use is within app; closed-project external edits reread on next open.
@@ -185,4 +237,4 @@ Daughter of Bea's sister.
 - Board and contents operations mutate only supported list constructs; nonrepresentable Markdown requires a warning and non-destructive fallback.
 - UTF-8; existing line endings and BOM preserved; new files use LF.
 - Avoid unsafe HTML rendering; sanitize project content for display.
-- Every schema change requires migration, backup and fixtures.
+- Every breaking schema change requires migration, backup and fixtures. Optional keys that older versions ignore without loss are not a breaking change.
