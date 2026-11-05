@@ -423,6 +423,34 @@ describe('outline calls', () => {
     await expect(context.call(channels.setMainOutline, { file: 'characters/ilka.md' })).rejects.toThrow('invalid-payload')
   })
 
+  it('lines a section up with the main story, renames that moment, and unpins: one line under the heading (ADR 0012)', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const created = (await context.call(channels.createOutline, { title: 'Bea’s path' })) as OutlineResult
+    if (!created.ok) throw new Error(created.error)
+    const BEA = created.value.file
+    await context.call(channels.editOutline, { file: BEA, edit: { kind: 'add-section', index: 0, text: 'Hiding' } })
+    const before = await context.read(BEA)
+    const lined = (await context.call(channels.editOutline, {
+      file: BEA,
+      edit: {
+        kind: 'line-up-section',
+        section: 0,
+        lineUp: { outline: MAIN, anchor: 'ending', text: 'Ending' },
+        words: 'At the same time as ',
+      },
+    })) as OutlineResult
+    expect(lined.ok && lined.value.sections[0]?.lineUp).toEqual({ outline: MAIN, anchor: 'ending', text: 'Ending' })
+    expect(await context.read(BEA)).toContain('## Hiding\nAt the same time as [Ending](main-story.md#ending)\n')
+    await context.call(channels.openOutline, { file: MAIN })
+    await context.call(channels.editOutline, { file: MAIN, edit: { kind: 'rename-section', section: 1, text: 'The sale' } })
+    expect(await context.read(BEA)).toContain('At the same time as [The sale](main-story.md#the-sale)')
+    await context.call(channels.editOutline, { file: BEA, edit: { kind: 'unpin-section', section: 0 } })
+    expect(await context.read(BEA)).toBe(before)
+    const own = { kind: 'line-up-section', section: 0, lineUp: { outline: BEA, anchor: 'hiding', text: 'Hiding' }, words: '' }
+    expect(await context.call(channels.editOutline, { file: BEA, edit: own })).toEqual({ ok: false, error: 'same-outline' })
+  })
+
   it('remembers the workspace, outline and view for next time', async () => {
     const context = await setup()
     await openChosen(context)

@@ -8,6 +8,9 @@ const path = z.array(index).max(64)
 const line = z.string().max(2000)
 const itemPath = z.strictObject({ section: index, path: path.min(1) })
 const destination = z.strictObject({ section: index, parentPath: path, index })
+const outlineFile = projectPathSchema.refine((file) => file.startsWith('outlines/') && file.endsWith('.md'))
+/** A section of another outline (ADR 0012): its file, its heading's anchor, and the link's text. */
+const lineUp = z.strictObject({ outline: outlineFile, anchor: line.min(1), text: line.min(1) })
 
 /** One edit to an outline (ADR 0003). Text is one line; the domain checks the rest. */
 export const outlineEditSchema = z.discriminatedUnion('kind', [
@@ -20,10 +23,13 @@ export const outlineEditSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('move-section'), section: index, index }),
   z.strictObject({ kind: z.literal('delete-section'), section: index }),
   z.strictObject({ kind: z.literal('set-title'), text: line }),
+  // `words` go before the link, in the project's language: "At the same time as ".
+  z.strictObject({ kind: z.literal('line-up-section'), section: index, lineUp, words: line }),
+  z.strictObject({ kind: z.literal('unpin-section'), section: index }),
 ])
 
 export const outlineFileSchema = z.strictObject({
-  file: projectPathSchema.refine((file) => file.startsWith('outlines/') && file.endsWith('.md')),
+  file: outlineFile,
 })
 export const editOutlineSchema = z.strictObject({ file: outlineFileSchema.shape.file, edit: outlineEditSchema })
 /** The starter outlines "New outline" offers (Milestone 19); the texts live in `packages/templates`. */
@@ -68,6 +74,8 @@ export interface OutlineSectionView {
   intro: string[]
   items: OutlineItemView[]
   notes: { kind: 'group' | 'kept'; text: string; before: number }[]
+  /** The section of another outline this one is lined up with (ADR 0012), as written; `null` if none. */
+  lineUp: { outline: ProjectPath; anchor: string; text: string } | null
 }
 
 export interface OutlineView {
@@ -102,5 +110,6 @@ export type OutlineProblem =
   | 'changed-elsewhere'
   | 'nothing-to-undo'
   | 'write-failed'
+  | 'same-outline'
 
 export type OutlineResult = Result<OutlineView, OutlineProblem>

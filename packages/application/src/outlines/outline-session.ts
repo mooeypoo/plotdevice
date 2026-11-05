@@ -1,4 +1,4 @@
-import { applyOutlineEdit, type OutlineEdit } from '@plotdevice/domain'
+import { applyOutlineEdit, lineUpTarget, sectionAnchors, type Outline, type OutlineEdit } from '@plotdevice/domain'
 import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
 import type { Revision } from '../ports/file-store'
 import type { OutlineDocument, OutlineRepository, OutlineSummary, OutlineWriteProblem } from '../ports/outline-repository'
@@ -11,8 +11,11 @@ export interface OutlineState extends OutlineDocument {
 /** Sent when an open outline was changed by another program and has been read again. */
 export type OutlineEvent = { kind: 'outline-changed'; file: ProjectPath; document: OutlineState }
 
-/** `changed-elsewhere`: the file changed in another program; the outline was reloaded and nothing was written. */
-export type OutlineEditFailure = Exclude<OutlineWriteProblem, 'stale'> | 'changed-elsewhere' | 'no-project' | 'not-open'
+/**
+ * `changed-elsewhere`: the file changed in another program; the outline was reloaded and nothing was written.
+ * `same-outline`: a section can only be lined up with another outline (ADR 0012).
+ */
+export type OutlineEditFailure = Exclude<OutlineWriteProblem, 'stale'> | 'changed-elsewhere' | 'no-project' | 'not-open' | 'same-outline'
 export type UndoFailure = 'nothing-to-undo' | 'changed-elsewhere' | 'no-project' | 'not-open' | 'missing' | 'unreadable' | 'write-failed'
 
 export interface OutlineSessionOptions {
@@ -65,6 +68,43 @@ export function createOutlineSession({ repository, root }: OutlineSessionOptions
     return result
   }
 
+  /**
+   * After a section of `file` was renamed (or the rename undone), points the line-ups in other outlines
+   * that meant that section at its new anchor (ADR 0012). Each file is edited like any other, from its
+   * own revision; one changed elsewhere is left alone, and its line-up shows as "can't line up".
+   */
+  async function followRename(projectRoot: string, file: ProjectPath, before: Outline, after: Outline): Promise<void> {
+    if (renamedSection(before, after) === null) return
+    const anchors = sectionAnchors(after)
+    for (const { file: other } of await repository.listOutlines(projectRoot)) {
+      if (other === file) continue
+      const entry = open.get(other)
+      const update = async (): Promise<void> => {
+        const read = await repository.readOutline(projectRoot, other)
+        if (!read.ok) return
+        let document = read.value
+        for (const [index, section] of document.outline.sections.entries()) {
+          const lineUp = section.lineUp
+          if (lineUp?.outline !== file) continue
+          const target = lineUpTarget(before, lineUp.anchor)
+          const anchor = target === null ? null : anchors[target]
+          const name = target === null ? null : after.sections[target]?.name
+          if (target === null || !anchor || !name || lineUpTarget(after, lineUp.anchor) === target) continue
+          const edit: OutlineEdit = { kind: 'line-up-section', section: index, lineUp: { outline: file, anchor, text: name }, words: '' }
+          const written = await repository.editOutline(projectRoot, other, edit, document.revision, document.nestingUnit)
+          if (!written.ok) return
+          document = written.value.document
+        }
+        if (!entry || document.revision === read.value.revision) return
+        // Its own undo would now be refused, so it isn't offered.
+        entry.undo = []
+        entry.document = { ...document, nestingUnit: document.nestingUnit ?? entry.document.nestingUnit }
+        for (const listener of listeners) listener({ kind: 'outline-changed', file: other, document: stateOf(entry) })
+      }
+      await (entry ? serially(entry, update) : update())
+    }
+  }
+
   /** Reads the file again after a change elsewhere and tells the interface. */
   async function reload(projectRoot: string, file: ProjectPath, entry: Open): Promise<void> {
     const fresh = await repository.readOutline(projectRoot, file)
@@ -107,10 +147,12 @@ export function createOutlineSession({ repository, root }: OutlineSessionOptions
       return entry ? stateOf(entry) : null
     },
 
-    edit(file, edit) {
+    async edit(file, edit) {
       const entry = open.get(file)
-      if (!entry) return Promise.resolve(err('not-open' as const))
-      return serially(entry, async (): Promise<Result<OutlineState, OutlineEditFailure>> => {
+      if (!entry) return err('not-open' as const)
+      if (edit.kind === 'line-up-section' && edit.lineUp.outline === file) return err('same-outline')
+      const before = entry.document.outline
+      const result = await serially(entry, async (): Promise<Result<OutlineState, OutlineEditFailure>> => {
         const projectRoot = root()
         if (!projectRoot) return err('no-project')
         // The rules first: a refused edit never reaches the file.
@@ -127,12 +169,17 @@ export function createOutlineSession({ repository, root }: OutlineSessionOptions
         entry.document = { ...written.value.document, nestingUnit: written.value.document.nestingUnit ?? nestingUnit }
         return ok(stateOf(entry))
       })
+      // Outside this outline's queue, so two outlines renaming at once never wait on each other.
+      const projectRoot = root()
+      if (result.ok && projectRoot) await followRename(projectRoot, file, before, result.value.outline)
+      return result
     },
 
-    undo(file) {
+    async undo(file) {
       const entry = open.get(file)
-      if (!entry) return Promise.resolve(err('not-open' as const))
-      return serially(entry, async (): Promise<Result<OutlineState, UndoFailure>> => {
+      if (!entry) return err('not-open' as const)
+      const before = entry.document.outline
+      const result = await serially(entry, async (): Promise<Result<OutlineState, UndoFailure>> => {
         const projectRoot = root()
         if (!projectRoot) return err('no-project')
         const last = entry.undo.at(-1)
@@ -152,6 +199,9 @@ export function createOutlineSession({ repository, root }: OutlineSessionOptions
         entry.document = { ...restored.value, nestingUnit: restored.value.nestingUnit ?? entry.document.nestingUnit }
         return ok(stateOf(entry))
       })
+      const projectRoot = root()
+      if (result.ok && projectRoot) await followRename(projectRoot, file, before, result.value.outline)
+      return result
     },
 
     async fileChanged(file) {
@@ -173,4 +223,14 @@ export function createOutlineSession({ repository, root }: OutlineSessionOptions
       await Promise.all([...open.values()].map((entry) => entry.queue))
     },
   }
+}
+
+/** The one section whose name changed, all else in place: a rename, or its undo. */
+function renamedSection(before: Outline, after: Outline): number | null {
+  if (before.sections.length !== after.sections.length) return null
+  const changed = before.sections.flatMap((section, index) => (section.name === after.sections[index]?.name ? [] : [index]))
+  const [only] = changed
+  return changed.length === 1 && only !== undefined && before.sections[only]?.name !== null && after.sections[only]?.name !== null
+    ? only
+    : null
 }

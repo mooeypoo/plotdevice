@@ -201,3 +201,57 @@ describe('outline session', () => {
     expect(await session.open(MAIN)).toEqual({ ok: false, error: 'no-project' })
   })
 })
+
+describe('line-ups between outlines (ADR 0012)', () => {
+  const BEA = p('outlines/beas-path.md')
+  const ending = { outline: MAIN, anchor: 'ending', text: 'Ending' }
+  const beasPath = (): Outline => ({
+    title: 'Bea’s path',
+    preamble: [],
+    sections: [
+      { name: 'Hiding', intro: [], notes: [], lineUp: ending, items: [card('Hides the letter')] },
+      { name: 'The city', intro: [], notes: [], lineUp: { outline: MAIN, anchor: 'beginning', text: 'Beginning' }, items: [] },
+    ],
+  })
+  function withBea() {
+    const context = setup()
+    context.files.set(BEA, { outline: beasPath(), revision: 1 })
+    return context
+  }
+
+  it('refuses lining a section up with its own outline', async () => {
+    const { session } = withBea()
+    await session.open(BEA)
+    const own = { kind: 'line-up-section', section: 0, lineUp: { outline: BEA, anchor: 'the-city', text: 'The city' }, words: '' } as const
+    expect(await session.edit(BEA, own)).toEqual({ ok: false, error: 'same-outline' })
+  })
+
+  it('renaming a section updates the line-ups that point to it, in other outlines, and only those', async () => {
+    const { session, files, events } = withBea()
+    await session.open(MAIN)
+    await session.open(BEA)
+    await session.edit(MAIN, { kind: 'rename-section', section: 1, text: 'The sale' })
+    expect(files.get(BEA)?.outline.sections.map((s) => s.lineUp)).toEqual([
+      { outline: MAIN, anchor: 'the-sale', text: 'The sale' },
+      { outline: MAIN, anchor: 'beginning', text: 'Beginning' },
+    ])
+    expect(session.current(BEA)?.outline.sections[0]?.lineUp?.anchor).toBe('the-sale')
+    expect(events.at(-1)).toMatchObject({ kind: 'outline-changed', file: BEA })
+  })
+
+  it('undoing the rename points them back', async () => {
+    const { session, files } = withBea()
+    await session.open(MAIN)
+    await session.edit(MAIN, { kind: 'rename-section', section: 1, text: 'The sale' })
+    await session.undo(MAIN)
+    expect(files.get(BEA)?.outline.sections[0]?.lineUp).toEqual({ outline: MAIN, anchor: 'ending', text: 'Ending' })
+  })
+
+  it('other edits leave the other outlines alone', async () => {
+    const { session, files } = withBea()
+    await session.open(MAIN)
+    await session.edit(MAIN, { kind: 'move-section', section: 1, index: 0 })
+    await session.edit(MAIN, { kind: 'add-section', index: 0, text: 'Prologue' })
+    expect(files.get(BEA)?.revision).toBe(1)
+  })
+})
