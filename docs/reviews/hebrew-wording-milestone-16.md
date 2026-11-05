@@ -102,3 +102,24 @@ After changing a guide page, `pnpm site:translations` shows what is behind; the 
 
 - [ ] **The starter outlines** in `packages/templates/starters/he/` were written in Hebrew, not translated, but by me. The main character is „הגיבורה” throughout; check that's the voice you want, or whether the beats should avoid gender.
 - [ ] Guide pages changed: `start/first-book.mdx`, `planning/outlines.mdx`, `planning/tags.mdx`, `files/folder.mdx`.
+
+## Added in Milestone 20
+
+| Key or file | Hebrew now | English |
+|---|---|---|
+| `story-timeline`, `timeline-new-storyline`, `timeline-one-title` | ציר הזמן · קו עלילה חדש · קו עלילה אחד, בינתיים | Timeline · New storyline · One storyline so far |
+| `outline-main-badge`, `timeline-main-outline`, `outline-make-main` | ראשי · המתווה הראשי · להפוך למתווה הראשי | Main · main outline · Make this the main outline |
+| `timeline-columns-from`, `timeline-columns-hint`, `timeline-change-main` | שמות העמודות באים מהמתווה הראשי: · לחיצה על שם משנה אותו, ו־+ מוסיף מקטע. · החלפה… | Column names come from… · Click a name… · Change… |
+| `timeline-same-time-as` (**written into the author's files**) | במקביל ל־ | At the same time as |
+| `timeline-line-up`, `timeline-unpin`, `timeline-lined-up-with`, `timeline-not-lined-up` | יישור עם… · ביטול היישור · מיושר עם „…” · לא מיושר | Line up with… · Unpin · … |
+| `timeline-cant-line-up-*`, `timeline-cant-line-up-fix`, `timeline-no-choices` | אי אפשר ליישר… · אפשר ליישר מחדש או לבטל את היישור דרך ⋯. · אין רגע שמתאים בלי לשנות את סדר קו העלילה. | Can't line up… |
+| `main-swap-question`, `main-swap-action` | להפוך את „…” למתווה הראשי? העמודות בציר הזמן יקבלו… | Make "…" the main outline? … |
+| `outline-set-aside`, `outline-bring-back`, `story-set-aside`, `outline-set-aside-instead` | להניח בצד · להחזיר · בצד · להניח בצד במקום | Set aside · Bring back · Set aside · Set aside instead |
+| `outline-delete*`, `outline-deleted*`, `outline-undo-delete`, `outline-restored` | the delete question in four short paragraphs; העברה לפח; „…” נמצא בפח.; ביטול | Delete outline… · Move to Trash · … |
+| `samples/מטע-המלח/outlines/הדרך של ביה.md` | a new storyline in the Hebrew sample, and line-ups in „הקשת של אילקה” | |
+
+- [ ] **„במקביל ל־”** is written into authors' outlines, so it matters most. The literal alternative is „באותו זמן כמו”.
+- [ ] **„קו עלילה”** for a storyline (a row of the timeline), beside „מתווה” for the outline itself: is the difference clear, or should the row just be called „מתווה”?
+- [ ] **Imperatives:** the menu commands use infinitives (להניח בצד, להחזיר), as elsewhere; the delete question uses statements.
+- [ ] Guide pages new or changed: `planning/timeline.mdx` (new), `planning/outlines.mdx`, `files/outlines.mdx`, `files/folder.mdx`.
+

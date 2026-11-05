@@ -1,6 +1,6 @@
 # Milestone 20: The timeline of the book's threads
 
-Status: **Approved** (owner, 2026-11-05) after the research and design session (`timeline-design.md`, ADR 0012 as amended) and the mockups, with the main outline added the same day. The first version of this plan (one outline's timeline, then lanes by links) is replaced.
+Status: **Built** (2026-11-05) on branch `milestone-20/timeline`; see Results. Approved by the owner the same day after the research and design session (`timeline-design.md`, ADR 0012 as amended) and the mockups, with the main outline, drag and drop, and setting aside and deleting outlines added during building. The first version of this plan (one outline's timeline, then lanes by links) is replaced.
 
 ## Goal
 
@@ -149,3 +149,40 @@ Answered by the owner on 2026-11-05:
 6. **Column names** come from a **main outline** the author can see and change; a new or one-outline book's first outline is main; changing it warns of nothing because nothing in the outlines changes, and the message says so.
 
 No open questions remain.
+
+## Results
+
+### What the author can do
+
+- **Open the Timeline** at the top of Plot: every outline in use side by side, one row each, earlier moments on the reading-start side (right in Hebrew).
+- **See where the columns come from:** the main outline's sections, said in a line above the grid with **Change…**. Click a column's name to rename that section; **+** between columns adds one. The main outline is marked **Main** and listed first.
+- **Line up** a section with a moment of another storyline by dragging its name there or from its **⋯**. Only moments that keep every storyline in order light up or are offered; when none fits, the menu says so. **Unpin** removes the line. Chains line up too.
+- **See what can't line up, in words:** a section whose line-up points to something gone, or against the order, says why and how to fix it.
+- **Move cards** between moments of their own storyline, by dragging or **Move to "…"**; **+ Add a card** under any section. Cards that link to chapters show the chapter as a small tag.
+- **Make another outline main, hide a row, set an outline aside** (off the timeline, listed under **Set aside**, nothing deleted, **Bring back**), or **delete** one: only the outline, to the Trash, after a question in short paragraphs that recommends **Set aside instead**; a backup is kept and the notice offers **Undo**.
+- **On the Board,** a line-up shows as a quiet "⇄ At the same time as …" line.
+
+### Changed from the plan while building
+
+- **The main outline replaced "the ruler"** (owner): `mainOutline` in `project.md`, written for a new book's first outline, kept when an outline is added, and changed with a message that nothing in the outlines changes.
+- **Drag and drop came in this milestone** (owner), with `lineUpChoices` working out which moments keep the order; the same check filters **Line up with…**.
+- **Setting aside and deleting outlines** were added (owner). Deleting takes only the outline, never what it links to; it goes to the Trash (a test-only folder in tests, never the real Trash); a backup comes first, and Undo keeps the text in memory until another book opens. Deleting chapters and pages is the next small plan, with the same rules.
+- **A book opens on its main outline,** not the first by file name; the sample books name theirs, and each gained a lined-up storyline (Ilka's arc, now lined up, and a new Bea's path) so the sample shows the timeline.
+- **Line-up words** are written in the book's language, not the interface's.
+
+### Tests
+
+- **Markdown:** heading anchors (Hebrew, points, repeats); reading line-ups (other outlines' sections only, first paragraph that has exactly one, not in code); writing, replacing and unpinning; every outline fixture lined up and unpinned byte for byte.
+- **Domain and application:** line-up edits; which outline is main, and after setting aside, bringing back and deleting; renaming a section updates line-ups in other outlines, and undoing the rename points them back; the timeline query resolves line-ups or reports them missing; deletion waits for edits and can be brought back.
+- **Presentation:** `timelineGrid` (columns, gaps shared between storylines, chains, contradictions and cycles, missing targets, hidden rows), `lineUpChoices`, chapter chips; 12 storylines × 60 moments × 300 cards in about 10 ms against a 50 ms budget.
+- **Files:** removing to the Trash, refused when stale, without a Trash; `mainOutline` and `setAside` written without touching the rest of `project.md`; templates name their first outline.
+- **End to end** (`apps/desktop/e2e/timeline.e2e.ts`, 12 tests): the grid and chips, lining up by menu and by dragging, unpinning, renaming a column, changing the main outline, Hebrew direction, moving a card, an empty choice list, setting aside, deleting to the Trash and Undo, "Set aside instead", and deleting without a Trash.
+- **Guide:** a new page, "The timeline", and new sections in "Outlines", "Outline files" and "The book's folder", in English and Hebrew, with screenshots from the sample books.
+
+### Known limitations
+
+- **Dragging past the window's edge** on a long timeline isn't checked; the test drags in a window wide enough to show both ends.
+- **Line up with…** is one menu of every fitting moment, grouped by outline; a book with many storylines needs a better chooser.
+- **Hidden rows** are remembered on this computer only, by design.
+- **The Hebrew wording** is mine, on the review list (`docs/reviews/hebrew-wording-milestone-16.md`, "Added in Milestone 20").
+

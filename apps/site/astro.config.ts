@@ -43,6 +43,7 @@ export default defineConfig({
           translations: { he: 'תכנון' },
           items: [
             'planning/outlines',
+            'planning/timeline',
             'planning/cards',
             'planning/linking',
             'planning/pages',

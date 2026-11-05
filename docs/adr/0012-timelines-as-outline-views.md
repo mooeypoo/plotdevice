@@ -71,6 +71,13 @@ Bars for things that last across moments; eras as background bands; optional rea
 - **Accessibility:** each thread is a labelled region; cards are reachable by keyboard in moment order; the Move menu and **Line up with…** are the keyboard equivalents of dragging.
 - **Performance:** 300 cards in 12 threads and 60 moments within the existing budget.
 
+## Implementation note (Milestone 20)
+
+- **Built as decided,** with the main outline (`mainOutline`) naming the columns, `setAside` for outlines out of the way, and deleting to the Trash, as amended by the owner on 2026-11-05.
+- **The layout** joins sections that happen together, line-up by line-up in the storylines' order, refusing one that would put two sections of a storyline at one moment or create a cycle; then it places groups in time order, each gap as early as its order allows, packing gaps of different storylines into one column. `lineUpChoices` uses the same grouping to say where a section may go, for dragging and the menu.
+- **Anchors** live in the domain; the interface gets each section's anchor with the timeline, so it never computes one.
+- **Renaming a section** updates the line-ups that meant it in every other outline, after the edit and outside its queue, and again on undo; a file changed elsewhere is left alone.
+
 ## Consequences
 
 - `project.md` gains one optional key, `mainOutline`; `schemaVersion` stays 1, and an older app ignores it.

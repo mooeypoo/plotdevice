@@ -300,6 +300,8 @@ A plan of the plot, shown in the app as a board: each `##` heading is a column, 
 - Cards are plans, not chapters: a card doesn't need a chapter, and a chapter doesn't need a card. Link a card to a chapter only when the material connects them. To link without changing the author's sentence, add the link as a detail under the card: `  - [The Crossing](../manuscript/the-crossing.md)`.
 - An outline needs no frontmatter.
 - A synopsis written as paragraphs: keep each paragraph as one card, in order, under the section it belongs to. Don't break it into beats the author didn't write.
+- **The main outline:** with more than one outline, name the main plot in `project.md` as `mainOutline: outlines/main-story.md`. Its sections name the columns of the app's timeline.
+- **Lining up storylines:** only when the author's material says a subplot's step happens at the same time as a step of another outline, write one line under that section's heading, before its cards: `At the same time as [Beginning](main-story.md#beginning)` (in a Hebrew book, `במקביל ל־[התחלה](העלילה.md#התחלה)`). The part after `#` is the other heading, lowercased, spaces as `-`, punctuation left out. Never guess one: an outline without these lines is complete.
 
 ## Books in Hebrew and other right-to-left languages
 
