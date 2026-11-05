@@ -1,4 +1,5 @@
-import { err, ok, type Result } from '@plotdevice/shared'
+import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
+import { lineUpLink, readLineUp } from './line-up'
 import type {
   ItemDestination,
   ItemPath,
@@ -10,7 +11,16 @@ import type {
   TextRange,
 } from './outline-model'
 import { readOutline } from './read-outline'
-import { blankRunBefore, indentColumns, isBlankLineAt, lineEndingOf, lineStartAt, splitKeepingEndings, type Splice } from './text'
+import {
+  blankRunBefore,
+  indentColumns,
+  isBlankLineAt,
+  lineEndAt,
+  lineEndingOf,
+  lineStartAt,
+  splitKeepingEndings,
+  type Splice,
+} from './text'
 
 export interface OutlineEditOptions {
   /**
@@ -23,6 +33,8 @@ export interface OutlineEditOptions {
    * takes about 300 ms). Used only if its source is the text being edited; otherwise ignored.
    */
   parsed?: ParsedOutline
+  /** The outline's own file, which line-ups are written relative to (ADR 0012). */
+  file?: ProjectPath
 }
 
 /**
@@ -38,7 +50,7 @@ export function editOutline(source: string, edit: OutlineEdit, options: OutlineE
   const work = hasFinalNewline ? source : source + eol
   const parsed = options.parsed?.source === work ? options.parsed : readOutline(work)
   const outline = { ...parsed, nestingUnit: parsed.nestingUnit ?? options.nestingUnit ?? '  ' }
-  const splices = planSplices(outline, edit, eol)
+  const splices = planSplices(outline, edit, eol, options.file ?? DEFAULT_FILE)
   if (!splices.ok) return splices
   const edited = applySafely(work, splices.value)
   return ok(hasFinalNewline || !edited.endsWith(eol) ? edited : edited.slice(0, -eol.length))
@@ -46,9 +58,12 @@ export function editOutline(source: string, edit: OutlineEdit, options: OutlineE
 
 type Outline = ParsedOutline & { nestingUnit: string }
 
+// Every outline is in `outlines/`, so links between them don't depend on which one this is.
+const DEFAULT_FILE = 'outlines/outline.md' as ProjectPath
+
 const isMultiline = (text: string): boolean => /[\r\n]/.test(text)
 
-function planSplices(outline: Outline, edit: OutlineEdit, eol: string): Result<Splice[], OutlineRefusal> {
+function planSplices(outline: Outline, edit: OutlineEdit, eol: string, file: ProjectPath): Result<Splice[], OutlineRefusal> {
   const text = outline.source
   switch (edit.kind) {
     case 'move-item': {
@@ -111,6 +126,18 @@ function planSplices(outline: Outline, edit: OutlineEdit, eol: string): Result<S
       const start = isLast ? blankRunBefore(text, section.range.start) : section.range.start
       return ok([{ start, end: section.range.end, text: '' }])
     }
+    case 'line-up-section':
+    case 'unpin-section': {
+      const section = outline.sections[edit.section]
+      if (!section) return err('no-such-section')
+      if (!section.heading) return err('unnamed-section')
+      const current = readLineUp(text, section.intro, file)
+      if (edit.kind === 'unpin-section') return ok(current ? unpinSplices(text, current) : [])
+      if (isMultiline(edit.words) || isMultiline(edit.lineUp.text) || isMultiline(edit.lineUp.anchor)) return err('multiline-text')
+      const link = lineUpLink(edit.lineUp, file)
+      if (current) return ok([{ ...current.link, text: link }])
+      return ok([lineUpInsertion(text, section.heading.lineRange.end, `${edit.words}${link}`, eol)])
+    }
     case 'set-title': {
       if (isMultiline(edit.text)) return err('multiline-text')
       if (outline.title) return renameHeading(text, outline.title, edit.text)
@@ -118,6 +145,45 @@ function planSplices(outline: Outline, edit: OutlineEdit, eol: string): Result<S
       return ok([{ start: at, end: at, text: `# ${edit.text}${eol}${at < text.length ? eol : ''}` }])
     }
   }
+}
+
+/**
+ * A new line-up goes under the heading, after any blank lines there, as its own paragraph: a blank
+ * line keeps it apart from what follows unless that is a card, which can follow a paragraph directly.
+ * `unpinSplices` undoes exactly this, so lining up and unpinning gives the file back byte for byte.
+ */
+function lineUpInsertion(text: string, afterHeading: number, line: string, eol: string): Splice {
+  let at = afterHeading
+  while (at < text.length && isBlankLineAt(text, at)) at = lineEndAt(text, at)
+  const hadBlank = at > afterHeading
+  const next = at < text.length ? lineKind(text, at) : 'end'
+  const gap = next === 'paragraph' || (hadBlank && next === 'heading') ? eol : ''
+  return { start: at, end: at, text: `${line}${eol}${gap}` }
+}
+
+/**
+ * Removes a line-up: a one-line paragraph goes with the blank line after it where that line was only
+ * keeping it apart; in a longer paragraph only the link goes, leaving its text, so the author's own
+ * words stay.
+ */
+function unpinSplices(text: string, lineUp: { paragraph: TextRange; link: TextRange; text: string }): Splice[] {
+  const start = lineStartAt(text, lineUp.paragraph.start)
+  if (text.slice(lineUp.paragraph.start, lineUp.paragraph.end).includes('\n')) return [{ ...lineUp.link, text: lineUp.text }]
+  let end = lineEndAt(text, lineUp.paragraph.end)
+  const blankBefore = start > 0 && isBlankLineAt(text, lineStartAt(text, start - 1))
+  if (end < text.length && isBlankLineAt(text, end)) {
+    const afterBlank = lineEndAt(text, end)
+    if (blankBefore || (afterBlank < text.length && lineKind(text, afterBlank) === 'paragraph')) end = afterBlank
+  }
+  return [{ start, end, text: '' }]
+}
+
+function lineKind(text: string, lineStart: number): 'blank' | 'card' | 'heading' | 'paragraph' {
+  const line = text.slice(lineStart, lineEndAt(text, lineStart))
+  if (/^[ \t]*\r?\n?$/.test(line)) return 'blank'
+  if (/^ {0,3}(?:[-+*]|\d{1,9}[.)])(?:[ \t]|\r?\n?$)/.test(line)) return 'card'
+  if (/^ {0,3}#{1,6}(?:[ \t]|\r?\n?$)/.test(line)) return 'heading'
+  return 'paragraph'
 }
 
 function renameHeading(

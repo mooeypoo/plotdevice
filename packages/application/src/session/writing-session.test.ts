@@ -33,6 +33,7 @@ function memoryRepository(initial: Record<string, string>) {
       kinds: DEFAULT_KINDS,
       manuscriptUnit: null,
       suggestedTags: [],
+      mainOutline: null,
     },
     contents: { entries: [...disk.keys()].map((file) => ({ kind: 'chapter' as const, file: p(file), linkText: file })) },
     contentsRevision: 'r:contents' as Revision,

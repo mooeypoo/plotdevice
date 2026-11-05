@@ -19,9 +19,10 @@ const story: Outline = {
       name: 'Beginning',
       intro: [],
       notes: [],
+      lineUp: null,
       items: [item('Ilka inherits the orchard', [item('The will names Marrow')]), item('The first frost')],
     },
-    { name: 'Ending', intro: [], notes: [], items: [item('The orchard is sold')] },
+    { name: 'Ending', intro: [], notes: [], lineUp: null, items: [item('The orchard is sold')] },
   ],
 }
 
@@ -81,7 +82,7 @@ describe('editing an outline', () => {
     const loose: Outline = {
       title: null,
       preamble: [],
-      sections: [{ name: null, intro: [], notes: [], items: [item('A loose idea')] }, ...story.sections],
+      sections: [{ name: null, intro: [], notes: [], lineUp: null, items: [item('A loose idea')] }, ...story.sections],
     }
     const after = apply(loose, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 1, parentPath: [], index: 0 } })
     expect(names(after).map(([name]) => name)).toEqual(['Beginning', 'Ending'])
@@ -104,7 +105,7 @@ describe('edits the outline refuses', () => {
     const locked: Outline = {
       title: null,
       preamble: [],
-      sections: [{ name: 'S', intro: [], notes: [], items: [item('stuck', [], { movable: false }), item('free')] }],
+      sections: [{ name: 'S', intro: [], notes: [], lineUp: null, items: [item('stuck', [], { movable: false }), item('free')] }],
     }
     expect(refusal(locked, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 0, parentPath: [], index: 1 } })).toBe(
       'unmovable-item',
@@ -116,7 +117,7 @@ describe('edits the outline refuses', () => {
     const loose: Outline = {
       title: null,
       preamble: [],
-      sections: [{ name: null, intro: [], notes: [], items: [item('A loose idea')] }, ...story.sections],
+      sections: [{ name: null, intro: [], notes: [], lineUp: null, items: [item('A loose idea')] }, ...story.sections],
     }
     expect(refusal(loose, { kind: 'rename-section', section: 0, text: 'x' })).toBe('unnamed-section')
     expect(refusal(loose, { kind: 'add-section', index: 0, text: 'x' })).toBe('unnamed-section')
@@ -137,6 +138,43 @@ describe('edits the outline refuses', () => {
     expect(refusal(story, { kind: 'move-item', from: { section: 0, path: [0] }, to: { section: 1, parentPath: [], index: 3 } })).toBe(
       'index-out-of-range',
     )
+  })
+})
+
+describe('lining a section up (ADR 0012)', () => {
+  const night = { outline: 'outlines/main-story.md' as ProjectPath, anchor: 'the-night-of-the-storm', text: 'The night of the storm' }
+
+  it('lines a section up with a section of another outline, and unpins it', () => {
+    const lined = apply(story, { kind: 'line-up-section', section: 1, lineUp: night, words: 'At the same time as ' })
+    expect(lined.sections[1]?.lineUp).toEqual(night)
+    expect(lined.sections[0]?.lineUp).toBeNull()
+    expect(apply(lined, { kind: 'unpin-section', section: 1 }).sections[1]?.lineUp).toBeNull()
+  })
+
+  it('keeps one line-up per section: lining up again replaces it', () => {
+    const first = apply(story, { kind: 'line-up-section', section: 0, lineUp: night, words: '' })
+    const again = apply(first, {
+      kind: 'line-up-section',
+      section: 0,
+      lineUp: { ...night, anchor: 'the-sale', text: 'The sale' },
+      words: '',
+    })
+    expect(again.sections[0]?.lineUp?.anchor).toBe('the-sale')
+  })
+
+  it('refuses the unnamed section, a missing section and a line-up over two lines', () => {
+    const withLoose: Outline = {
+      ...story,
+      sections: [{ name: null, intro: [], notes: [], lineUp: null, items: [item('A loose idea')] }, ...story.sections],
+    }
+    const refused = (edit: Parameters<typeof applyOutlineEdit>[1], outline = story) => {
+      const result = applyOutlineEdit(outline, edit)
+      return result.ok ? null : result.error
+    }
+    expect(refused({ kind: 'line-up-section', section: 0, lineUp: night, words: '' }, withLoose)).toBe('unnamed-section')
+    expect(refused({ kind: 'unpin-section', section: 9 })).toBe('no-such-section')
+    expect(refused({ kind: 'line-up-section', section: 0, lineUp: night, words: 'At the same\ntime as ' })).toBe('multiline-text')
+    expect(refused({ kind: 'line-up-section', section: 0, lineUp: { ...night, text: ' ' }, words: '' })).toBe('empty-text')
   })
 })
 

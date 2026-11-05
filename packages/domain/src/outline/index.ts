@@ -4,6 +4,7 @@ export {
   OUTLINES_FOLDER,
   type ItemDestination,
   type ItemPath,
+  type LineUp,
   type Outline,
   type OutlineEdit,
   type OutlineItem,
@@ -11,3 +12,4 @@ export {
   type OutlineProblem,
   type OutlineSection,
 } from './outline'
+export { headingAnchor, lineUpTarget, sectionAnchors } from './line-up'

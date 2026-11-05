@@ -12,8 +12,8 @@ const story = (): Outline => ({
   title: 'Main story',
   preamble: [],
   sections: [
-    { name: 'Beginning', intro: [], notes: [], items: [card('Ilka arrives'), card('The first frost')] },
-    { name: 'Ending', intro: [], notes: [], items: [card('The sale')] },
+    { name: 'Beginning', intro: [], notes: [], lineUp: null, items: [card('Ilka arrives'), card('The first frost')] },
+    { name: 'Ending', intro: [], notes: [], lineUp: null, items: [card('The sale')] },
   ],
 })
 
@@ -122,7 +122,7 @@ describe('outline session', () => {
     elsewhere(MAIN, {
       title: 'Main story',
       preamble: [],
-      sections: [{ name: 'Rewritten', intro: [], notes: [], items: [card('Only this')] }],
+      sections: [{ name: 'Rewritten', intro: [], notes: [], lineUp: null, items: [card('Only this')] }],
     })
     expect(await session.edit(MAIN, { kind: 'delete-item', at: { section: 0, path: [0] } })).toEqual({
       ok: false,

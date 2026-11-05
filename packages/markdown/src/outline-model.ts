@@ -113,6 +113,9 @@ export type OutlineEdit =
   | { kind: 'move-section'; section: number; index: number }
   | { kind: 'delete-section'; section: number }
   | { kind: 'set-title'; text: string }
+  /** ADR 0012: `words` go before the link, in the project's language. Needs the outline's own `file`. */
+  | { kind: 'line-up-section'; section: number; lineUp: { outline: string; anchor: string; text: string }; words: string }
+  | { kind: 'unpin-section'; section: number }
 
 export type OutlineRefusal =
   | 'no-such-item'
