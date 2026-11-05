@@ -132,6 +132,9 @@ function cellMenu(row: TimelineRow, cell: TimelineCell): MenuItem[] {
       first = false
     })
   }
+  // Never an empty list: say why nothing is offered.
+  if (!items.some((item) => item.key !== 'unpin'))
+    items.push({ key: 'no-choices', label: t('timeline-no-choices'), disabled: true, group: 'none', run: () => undefined })
   return items
 }
 

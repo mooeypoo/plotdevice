@@ -243,3 +243,13 @@ test('without a Trash, asks again before deleting for good', async () => {
   await page.getByTestId('confirm-yes').click()
   await file(HISTORY).toBe('')
 })
+
+test('says so when no moment fits a section, instead of showing an empty list', async () => {
+  await rm(join(root, HISTORY))
+  const page = await start()
+  // "Staying behind" comes before Bea's section at Beginning, and the main story has nothing earlier.
+  const staying = storyline(page, BEA).locator('.timeline-cell', { hasText: 'Staying behind' })
+  await staying.hover()
+  await staying.locator('.cell-head .menu-button').click()
+  await expect(page.getByRole('menuitem', { name: 'No moment fits without changing this storyline’s order.' })).toBeDisabled()
+})
