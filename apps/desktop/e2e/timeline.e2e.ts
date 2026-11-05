@@ -137,3 +137,33 @@ test('in Hebrew, earlier moments sit on the right', async () => {
   expect(first).toBeGreaterThan(second ?? Infinity)
   await page.screenshot({ path: test.info().outputPath('timeline-he.png') })
 })
+
+test('drags a section onto a moment to line it up, and a card to another moment of its storyline', async () => {
+  const page = await start()
+  // History of Marrow's only section goes onto the main story's Ending column.
+  const salt = storyline(page, HISTORY).locator('.timeline-cell', { hasText: 'The salt years' })
+  // Wide enough to show both ends, as a drag across a scrolling timeline loses its way in a test.
+  await page.setViewportSize({ width: 1700, height: 1000 })
+  const ending = storyline(page, MAIN).locator('.timeline-cell', { hasText: 'Back to the crossing' })
+  await salt.locator('.cell-head').dragTo(ending)
+  await file(HISTORY).toContain('## The salt years\n\nAt the same time as [Ending](main-story.md#ending)\n')
+  await expect(salt).toHaveClass(/lined-up/)
+
+  // Bea's first card moves to the ledger section, in her own outline only.
+  const card = page.locator('.timeline-card', { hasText: 'Bea refuses to leave' })
+  await card.dragTo(storyline(page, BEA).locator('.timeline-cell', { hasText: 'The ledger at night' }).locator('.timeline-add-card'))
+  await file(BEA).toMatch(/## The ledger at night\n\n- Writes in the ledger.*\n- Bea refuses to leave\n/)
+  await expect(page.locator('.timeline-card', { hasText: 'Bea refuses to leave' })).toBeVisible()
+})
+
+test('offers only moments that keep the storyline’s order', async () => {
+  const page = await start()
+  // "The ledger at night" comes after "Waiting at the landing", which is lined up with Beginning:
+  // it can't go at Beginning, nor before it.
+  const ledger = storyline(page, BEA).locator('.timeline-cell', { hasText: 'The ledger at night' })
+  await ledger.hover()
+  await ledger.locator('.cell-head .menu-button').click()
+  await expect(page.getByRole('menuitem', { name: 'Ending' })).toBeVisible()
+  await expect(page.getByRole('menuitem', { name: 'Beginning' })).toHaveCount(0)
+  await page.keyboard.press('Escape')
+})

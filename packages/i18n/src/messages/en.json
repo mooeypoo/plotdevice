@@ -470,5 +470,8 @@
   "timeline-one-title": "One storyline so far",
   "timeline-one-text": "Make an outline for a character, a place or the past, and line up a few of its moments with this one. Everything else falls in between.",
   "timeline-new-storyline": "New storyline",
-  "story-open-outline": "Open the outline"
+  "story-open-outline": "Open the outline",
+  "timeline-drag-section": "Drag onto a moment to line it up",
+  "timeline-move-to": "Move to “$1”",
+  "timeline-card-actions": "Actions for card “$1”"
 }

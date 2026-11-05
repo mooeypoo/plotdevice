@@ -472,5 +472,8 @@
   "timeline-one-title": "Heading shown on the timeline when the book has only one outline.",
   "timeline-one-text": "Text under {{msg-plotdevice|timeline-one-title}}, explaining what another storyline is for.",
   "timeline-new-storyline": "Button on the timeline that creates a new outline (it opens the same dialog as {{msg-plotdevice|story-new-outline}}) and shows it as a new row.",
-  "story-open-outline": "Menu command on a timeline row: opens that outline on its own (Board, List or Text)."
+  "story-open-outline": "Menu command on a timeline row: opens that outline on its own (Board, List or Text).",
+  "timeline-drag-section": "Tooltip of a section's name in a timeline row. Dragging it onto a moment of another outline says the two happen at the same time. The same is in the section's ⋯ menu.",
+  "timeline-move-to": "Menu command on a card in a timeline row: moves the card to another section of the same outline (the keyboard's way to drag it). $1: that section's name.",
+  "timeline-card-actions": "Screen-reader-only label of the ⋯ menu button on a card in a timeline row. $1: the card's text."
 }

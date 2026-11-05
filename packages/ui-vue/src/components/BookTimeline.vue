@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ChapterRef, ProjectView, TimelineSectionView, TimelineThreadView } from '@plotdevice/contracts'
-import { chapterChips, timelineGrid, type TimelineCell, type TimelineRow } from '@plotdevice/presentation'
+import { boardDrop, chapterChips, lineUpChoices, timelineGrid, type TimelineCell, type TimelineRow } from '@plotdevice/presentation'
 import type { ProjectPath } from '@plotdevice/shared'
 import { computed, ref, watch } from 'vue'
 import { useConfirm } from '../composables/use-confirm'
@@ -109,27 +109,144 @@ function rowMenu(row: TimelineRow): MenuItem[] {
 
 /**
  * A section's menu: unpin it, or line it up with a section of another outline, the main outline's
- * first. The line is written in the book's language.
+ * first. Only moments that keep every storyline's order are offered. Built when it opens.
  */
 function cellMenu(row: TimelineRow, cell: TimelineCell): MenuItem[] {
   const own = sectionOf(row, cell)
+  const choices = story.timeline ? lineUpChoices(story.timeline, row.file, cell.section) : new Set<string>()
   const items: MenuItem[] = own?.lineUp ? [{ key: 'unpin', label: t('timeline-unpin'), run: () => void unpin(row.file, cell.section) }] : []
   for (const thread of threads.value) {
     if (thread.file === row.file) continue
+    let first = true
     thread.sections.forEach((section, index) => {
-      if (section.name === null || section.anchor === null) return
-      const name = section.name
-      const anchor = section.anchor
+      const target = targetOf(thread, index)
+      if (!target || !choices.has(`${thread.file}#${index}`)) return
+      const current = own?.lineUp?.kind === 'section' && own.lineUp.outline === thread.file && own.lineUp.section === index
       items.push({
-        key: `${thread.file}#${anchor}`,
-        label: thread === main.value ? name : `${nameOf(thread)}: ${name}`,
-        group: thread.file,
-        disabled: own?.lineUp?.kind === 'section' && own.lineUp.outline === thread.file && own.lineUp.section === index,
-        run: () => void lineUp(row.file, cell.section, { outline: thread.file, anchor, text: name }),
+        key: `${thread.file}#${target.anchor}`,
+        label: thread === main.value ? target.text : `${nameOf(thread)}: ${target.text}`,
+        ...(first ? { group: thread.file } : {}),
+        disabled: current,
+        run: () => void lineUp(row.file, cell.section, target),
       })
+      first = false
     })
   }
   return items
+}
+
+/** What a line-up to section `index` of `thread` writes; `null` for cards before the first section. */
+function targetOf(thread: TimelineThreadView | undefined, index: number): { outline: ProjectPath; anchor: string; text: string } | null {
+  const section = thread?.sections[index]
+  return thread && section?.name && section.anchor ? { outline: thread.file, anchor: section.anchor, text: section.name } : null
+}
+
+/**
+ * Dragging (with menus as the keyboard's way): a section onto a moment of another storyline lines it
+ * up there, and only moments that keep every storyline's order take it; a card moves between the
+ * moments of its own storyline, as on the Board. Cards never move to another storyline.
+ */
+type Dragging =
+  | { kind: 'section'; file: ProjectPath; section: number; choices: Set<string> }
+  | { kind: 'card'; file: ProjectPath; section: number; index: number }
+const dragging = ref<Dragging | null>(null)
+/** Where a drop would land: a section (`file#index`), and for a card, before which card. */
+const over = ref<{ key: string; before?: number } | null>(null)
+
+function startSection(event: DragEvent, row: TimelineRow, cell: TimelineCell): void {
+  if (!story.timeline) return
+  dragging.value = {
+    kind: 'section',
+    file: row.file,
+    section: cell.section,
+    choices: lineUpChoices(story.timeline, row.file, cell.section),
+  }
+  event.dataTransfer?.setData('text/plain', cell.name ?? '')
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'link'
+}
+
+function startCard(event: DragEvent, row: TimelineRow, cell: TimelineCell, index: number): void {
+  event.stopPropagation()
+  dragging.value = { kind: 'card', file: row.file, section: cell.section, index }
+  event.dataTransfer?.setData('text/plain', cell.items[index]?.text ?? '')
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
+}
+
+/** Over a moment, or a section of a storyline: lights it up when the dragged thing can land there. */
+function onOver(event: DragEvent, file: ProjectPath, section: number): void {
+  const from = dragging.value
+  if (!from) return
+  const key = `${file}#${section}`
+  if (from.kind === 'section') {
+    if (!from.choices.has(key)) return
+    event.preventDefault()
+    over.value = { key }
+    return
+  }
+  if (from.file !== file) return
+  event.preventDefault()
+  // Over a card's top half, the gap above it; past every card, the end.
+  const cards = [...(event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('.timeline-card[data-index]')]
+  const above = cards.find((card) => event.clientY < card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2)
+  const count = threads.value.find((thread) => thread.file === file)?.sections[section]?.items.length ?? 0
+  over.value = { key, before: above ? Number(above.dataset.index) : count }
+}
+
+function onLeave(event: DragEvent): void {
+  if (!(event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)) over.value = null
+}
+
+async function onDrop(file: ProjectPath, section: number): Promise<void> {
+  const from = dragging.value
+  const at = over.value
+  dragging.value = null
+  over.value = null
+  if (!from || at?.key !== `${file}#${section}`) return
+  if (from.kind === 'section') {
+    const target = targetOf(
+      threads.value.find((thread) => thread.file === file),
+      section,
+    )
+    if (target) await lineUp(from.file, from.section, target)
+    return
+  }
+  const to = boardDrop({ section: from.section, path: [from.index] }, section, at.before ?? 0)
+  if (to) await story.editIn(file, { kind: 'move-item', from: { section: from.section, path: [from.index] }, to })
+}
+
+function endDrag(): void {
+  dragging.value = null
+  over.value = null
+}
+
+const dropClass = (file: ProjectPath, section: number): string => (over.value?.key === `${file}#${section}` ? 'drop-into' : '')
+/** The gold line before a card, or after the last one, where a dragged card would land. */
+function cardDrop(row: TimelineRow, cell: TimelineCell, index: number): string {
+  const at = over.value
+  if (dragging.value?.kind !== 'card' || at?.key !== `${row.file}#${cell.section}`) return ''
+  if (at.before === index) return 'drop-before'
+  return at.before === cell.items.length && index === cell.items.length - 1 ? 'drop-after' : ''
+}
+
+/** The keyboard's way to move a card: to another moment of its own storyline. */
+function cardMenu(row: TimelineRow, cell: TimelineCell, index: number): MenuItem[] {
+  const thread = threads.value.find((each) => each.file === row.file)
+  return (thread?.sections ?? []).flatMap((section, to) =>
+    to === cell.section
+      ? []
+      : [
+          {
+            key: `move-${to}`,
+            label: t('timeline-move-to', section.name ?? t('outline-unnamed-section')),
+            run: () =>
+              void story.editIn(row.file, {
+                kind: 'move-item',
+                from: { section: cell.section, path: [index] },
+                to: { section: to, parentPath: [], index: section.items.length },
+              }),
+          },
+        ],
+  )
 }
 
 async function lineUp(file: ProjectPath, section: number, target: { outline: ProjectPath; anchor: string; text: string }): Promise<void> {
@@ -175,7 +292,15 @@ const cellLabel = (row: TimelineRow, cell: TimelineCell): string =>
       <div class="timeline-grid" :style="columnsStyle">
         <!-- The columns: the main outline's sections, and untitled gaps between them. -->
         <div class="timeline-axis" role="presentation">
-          <div v-for="(column, index) in grid.columns" :key="column.key" class="timeline-moment" :class="{ gap: column.main === null }">
+          <div
+            v-for="(column, index) in grid.columns"
+            :key="column.key"
+            class="timeline-moment"
+            :class="[{ gap: column.main === null }, main && column.main !== null ? dropClass(main.file, column.main) : '']"
+            @dragover="main && column.main !== null && onOver($event, main.file, column.main)"
+            @dragleave="onLeave"
+            @drop.prevent="main && column.main !== null && onDrop(main.file, column.main)"
+          >
             <template v-if="column.main !== null">
               <EditableText
                 v-if="renaming === column.main"
@@ -227,12 +352,30 @@ const cellLabel = (row: TimelineRow, cell: TimelineCell): string =>
             v-for="cell in row.cells"
             :key="cell.section"
             class="timeline-cell"
-            :class="[cell.state, { named: !row.isMain }]"
+            :class="[
+              cell.state,
+              {
+                named: !row.isMain,
+                lifted: dragging?.kind === 'section' && dragging.file === row.file && dragging.section === cell.section,
+              },
+              dropClass(row.file, cell.section),
+            ]"
             :style="{ gridColumn: cell.column + 1 }"
             :aria-label="cellLabel(row, cell)"
             role="group"
+            :data-section="cell.section"
+            @dragover="onOver($event, row.file, cell.section)"
+            @dragleave="onLeave"
+            @drop.prevent="onDrop(row.file, cell.section)"
           >
-            <div v-if="!row.isMain" class="cell-head">
+            <div
+              v-if="!row.isMain"
+              class="cell-head"
+              :draggable="cell.name !== null"
+              :title="cell.name !== null ? t('timeline-drag-section') : undefined"
+              @dragstart="startSection($event, row, cell)"
+              @dragend="endDrag"
+            >
               <span dir="auto">{{ cell.name ?? t('outline-unnamed-section') }}</span>
               <span
                 v-if="markOf(row, cell)"
@@ -248,11 +391,33 @@ const cellLabel = (row: TimelineRow, cell: TimelineCell): string =>
                 v-if="cell.name !== null"
                 :label="t('timeline-moment-actions', cell.name)"
                 :heading="t('timeline-line-up-title', cell.name)"
-                :items="cellMenu(row, cell)"
+                :items="() => cellMenu(row, cell)"
               />
             </div>
-            <article v-for="(item, i) in cell.items" :key="i" class="timeline-card">
-              <p><InlineText :text="item.text" /></p>
+            <article
+              v-for="(item, i) in cell.items"
+              :key="i"
+              class="timeline-card"
+              :class="[
+                cardDrop(row, cell, i),
+                {
+                  lifted:
+                    dragging?.kind === 'card' && dragging.file === row.file && dragging.section === cell.section && dragging.index === i,
+                },
+              ]"
+              :data-index="i"
+              :draggable="item.movable"
+              @dragstart="startCard($event, row, cell, i)"
+              @dragend="endDrag"
+            >
+              <div class="timeline-card-text">
+                <p><InlineText :text="item.text" /></p>
+                <MenuButton
+                  v-if="item.movable && row.cells.length > 1"
+                  :label="t('timeline-card-actions', item.text)"
+                  :items="() => cardMenu(row, cell, i)"
+                />
+              </div>
               <span v-for="chapter in chapterChips(item.text, chapters)" :key="chapter.file" class="chapter-chip" dir="auto">
                 {{ chipLabel(chapter) }}
               </span>

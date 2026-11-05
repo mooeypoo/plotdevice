@@ -470,5 +470,8 @@
   "timeline-one-title": "קו עלילה אחד, בינתיים",
   "timeline-one-text": "אפשר ליצור מתווה לדמות, למקום או לעבר, וליישר כמה מהרגעים שלו עם העלילה. כל השאר נופל בין לבין.",
   "timeline-new-storyline": "קו עלילה חדש",
-  "story-open-outline": "פתיחת המתווה"
+  "story-open-outline": "פתיחת המתווה",
+  "timeline-drag-section": "אפשר לגרור אל רגע כדי ליישר",
+  "timeline-move-to": "העברה אל „$1”",
+  "timeline-card-actions": "פעולות עבור הכרטיס „$1”"
 }

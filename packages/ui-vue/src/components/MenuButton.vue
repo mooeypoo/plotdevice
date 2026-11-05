@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { menuPlacement } from '@plotdevice/presentation'
 import AppIcon from './AppIcon.vue'
 import type { MenuItem } from './menu'
@@ -9,7 +9,8 @@ import type { MenuItem } from './menu'
 // `showFrom` opens it beside another element instead (a right-click on a tag), with no button shown.
 const props = defineProps<{
   label: string
-  items: MenuItem[]
+  /** A function builds the list only when it opens, for lists that take work to make (the timeline's). */
+  items: MenuItem[] | (() => MenuItem[])
   text?: string
   testid?: string
   buttonClass?: string
@@ -19,6 +20,8 @@ const props = defineProps<{
   buttonless?: boolean
 }>()
 const open = ref(false)
+const built = ref<MenuItem[]>([])
+const listed = computed(() => (typeof props.items === 'function' ? built.value : props.items))
 /** Where the list is, fixed to the window so no scrolling area or bar hides it; `null` until measured. */
 const place = ref<{ top: number; left: number; maxHeight: number } | null>(null)
 const button = ref<HTMLButtonElement | null>(null)
@@ -30,6 +33,7 @@ const opener = (): HTMLElement | null => anchor.value ?? button.value
 const entries = (): HTMLButtonElement[] => [...(menu.value?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])') ?? [])]
 
 async function show(): Promise<void> {
+  if (typeof props.items === 'function') built.value = props.items()
   place.value = null
   open.value = true
   await nextTick()
@@ -137,7 +141,7 @@ defineExpose({ show, showFrom })
       @keydown="onKey"
     >
       <div v-if="props.heading" class="menu-heading" dir="auto" aria-hidden="true">{{ props.heading }}</div>
-      <template v-for="(item, index) in props.items" :key="item.key">
+      <template v-for="(item, index) in listed" :key="item.key">
         <div v-if="(item.group && index > 0) || (index === 0 && props.heading)" class="menu-divider" role="separator"></div>
         <button type="button" role="menuitem" :disabled="item.disabled" :data-testid="`menu-${item.key}`" @click="choose(item)">
           <AppIcon v-if="item.icon" :name="item.icon" /><span class="label">{{ item.label }}</span

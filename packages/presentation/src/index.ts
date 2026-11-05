@@ -49,6 +49,7 @@ export { groupByTags, partOf, tagProblems, tagRow, tagSuggestions, withSuggested
 export { builtInKindKey, kindFolderFor, kindLabels, kindOrder, unsortedFolders, type KindLabels, type Translate } from './kinds'
 export {
   chapterChips,
+  lineUpChoices,
   timelineGrid,
   type TimelineCell,
   type TimelineCellState,

@@ -1,7 +1,7 @@
 import type { TimelineLineUpView, TimelineSectionView, TimelineThreadView, TimelineView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { chapterChips, timelineGrid, type TimelineGrid } from './timeline'
+import { chapterChips, lineUpChoices, timelineGrid, type TimelineGrid } from './timeline'
 
 const p = (path: string) => path as ProjectPath
 const MAIN = p('outlines/main-story.md')
@@ -169,5 +169,32 @@ describe('chapter chips', () => {
   it('gives no chip for pages, web links or chapters not in the book', () => {
     const text = '[Bea](../characters/bea.md), [site](https://example.com/manuscript/frost.md), [old](../manuscript/cut.md)'
     expect(chapterChips(text, chapters)).toEqual([])
+  })
+})
+
+describe('where a section can be lined up', () => {
+  const bea = thread(BEA, section('Landing', to(MAIN, 1)), section('Ledger'), section('Secret', to(MAIN, 3)))
+  const hist = thread(HIST, section('Harbour'), section('Storm'))
+  const choices = (file: ProjectPath, index: number) => [...lineUpChoices(view(main, bea, hist), file, index)].sort()
+
+  it('offers only moments that keep the storyline’s order: “Ledger” goes between the crossing and the sale', () => {
+    expect(choices(BEA, 1)).toEqual([`${HIST}#0`, `${HIST}#1`, `${MAIN}#2`])
+  })
+
+  it('lets a lined-up section move, its own line-up left aside', () => {
+    expect(choices(BEA, 0)).toEqual([`${HIST}#0`, `${HIST}#1`, `${MAIN}#0`, `${MAIN}#1`, `${MAIN}#2`])
+  })
+
+  it('never offers its own storyline, cards before the first section, or a moment that another of its sections holds', () => {
+    const loose = thread(HIST, section(null), section('Harbour', to(BEA, 1)))
+    const offered = [...lineUpChoices(view(main, bea, loose), HIST, 1)]
+    expect(offered.some((key) => key.startsWith(HIST))).toBe(false)
+    expect(offered).not.toContain(`${HIST}#0`)
+    // Main's crossing holds Bea's landing, so Bea's ledger can't go there.
+    expect(choices(BEA, 1)).not.toContain(`${MAIN}#1`)
+  })
+
+  it('is empty for a section that isn’t there', () => {
+    expect(lineUpChoices(view(main), BEA, 0).size).toBe(0)
   })
 })

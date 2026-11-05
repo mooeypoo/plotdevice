@@ -1,4 +1,4 @@
-import type { ChapterRef, OutlineItemView, TimelineView } from '@plotdevice/contracts'
+import type { ChapterRef, OutlineItemView, TimelineThreadView, TimelineView } from '@plotdevice/contracts'
 import { resolveRelative, type ProjectPath } from '@plotdevice/shared'
 import { inlineSpans } from './outline-views'
 
@@ -52,64 +52,9 @@ export interface TimelineGrid {
  * at one moment, is reported, never resolved by guessing. Hidden storylines still line others up.
  */
 export function timelineGrid(view: TimelineView, hidden: ReadonlySet<ProjectPath> = new Set()): TimelineGrid {
-  const threads = [...view.threads].sort((a, b) => Number(b.file === view.main) - Number(a.file === view.main))
+  const threads = inMainOrder(view)
   if (threads.length === 0) return { columns: [], rows: [] }
-  const threadIndex = new Map(threads.map((thread, index) => [thread.file, index]))
-
-  // One node per section; nodes that happen at the same moment are joined into one group.
-  const nodes: { thread: number; section: number }[] = []
-  const nodeOf = threads.map((thread, t) => thread.sections.map((_, s) => nodes.push({ thread: t, section: s }) - 1))
-  const parent = nodes.map((_, i) => i)
-  const members = new Map(nodes.map((_, i) => [i, [i]]))
-  const find = (i: number): number => {
-    let root = i
-    while (parent[root] !== root) root = parent[root] ?? root
-    while (parent[i] !== root) [parent[i], i] = [root, parent[i] ?? root]
-    return root
-  }
-  /** Whether group `to` comes after group `from` in some storyline's order, directly or through others. */
-  const reaches = (from: number, to: number): boolean => {
-    const seen = new Set([from])
-    const stack = [from]
-    for (let g = stack.pop(); g !== undefined; g = stack.pop())
-      for (const i of members.get(g) ?? []) {
-        const node = nodes[i]
-        const next = node && nodeOf[node.thread]?.[node.section + 1]
-        if (next === undefined) continue
-        const group = find(next)
-        if (group === to) return true
-        if (seen.has(group)) continue
-        seen.add(group)
-        stack.push(group)
-      }
-    return false
-  }
-  const threadsOf = (g: number) => (members.get(g) ?? []).map((i) => nodes[i]?.thread)
-  const state = new Map<number, TimelineCellState>()
-
-  for (const [t, thread] of threads.entries()) {
-    for (const [s, section] of thread.sections.entries()) {
-      const lineUp = section.lineUp
-      if (!lineUp) continue
-      const node = nodeOf[t]?.[s] ?? -1
-      const target = lineUp.kind === 'section' ? nodeOf[threadIndex.get(lineUp.outline) ?? -1]?.[lineUp.section] : undefined
-      if (target === undefined) {
-        state.set(node, 'missing')
-        continue
-      }
-      const [a, b] = [find(node), find(target)]
-      if (a === b) continue // already at the same moment, through a chain
-      // Two sections of one storyline at one moment, or one moment both before and after another.
-      const own = new Set(threadsOf(a))
-      if (threadsOf(b).some((thread) => own.has(thread)) || reaches(a, b) || reaches(b, a)) {
-        state.set(node, 'contradicts')
-        continue
-      }
-      parent[a] = b
-      members.set(b, [...(members.get(b) ?? []), ...(members.get(a) ?? [])])
-      members.delete(a)
-    }
-  }
+  const { nodes, nodeOf, find, members, state } = groupSections(threads)
 
   // Groups in time order: whatever a storyline's order allows next, gaps before the next main section.
   const groups = members
@@ -217,4 +162,115 @@ export function chapterChips(cardText: string, chapters: readonly ChapterRef[]):
     if (path) linked.add(path)
   }
   return chapters.filter((chapter) => linked.has(chapter.file))
+}
+
+/** The main outline first, then the rest in the order given. */
+function inMainOrder(view: TimelineView): TimelineThreadView[] {
+  return [...view.threads].sort((a, b) => Number(b.file === view.main) - Number(a.file === view.main))
+}
+
+/**
+ * Joins the sections that happen at the same moment, line-up by line-up in the storylines' order,
+ * refusing any that would break a storyline's order or put two of its sections at one moment.
+ * `skip`: a section whose own line-up is left out, to ask where else it could go.
+ */
+function groupSections(threads: readonly TimelineThreadView[], skip?: { thread: number; section: number }) {
+  const threadIndex = new Map(threads.map((thread, index) => [thread.file, index]))
+  // One node per section; nodes that happen at the same moment are joined into one group.
+  const nodes: { thread: number; section: number }[] = []
+  const nodeOf = threads.map((thread, t) => thread.sections.map((_, s) => nodes.push({ thread: t, section: s }) - 1))
+  const parent = nodes.map((_, i) => i)
+  const members = new Map(nodes.map((_, i) => [i, [i]]))
+  const find = (i: number): number => {
+    let root = i
+    while (parent[root] !== root) root = parent[root] ?? root
+    while (parent[i] !== root) [parent[i], i] = [root, parent[i] ?? root]
+    return root
+  }
+  /** Whether group `to` comes after group `from` in some storyline's order, directly or through others. */
+  const reaches = (from: number, to: number): boolean => {
+    const seen = new Set([from])
+    const stack = [from]
+    for (let g = stack.pop(); g !== undefined; g = stack.pop())
+      for (const i of members.get(g) ?? []) {
+        const node = nodes[i]
+        const next = node && nodeOf[node.thread]?.[node.section + 1]
+        if (next === undefined) continue
+        const group = find(next)
+        if (group === to) return true
+        if (seen.has(group)) continue
+        seen.add(group)
+        stack.push(group)
+      }
+    return false
+  }
+  const threadsOf = (g: number) => (members.get(g) ?? []).map((i) => nodes[i]?.thread)
+  const state = new Map<number, TimelineCellState>()
+
+  for (const [t, thread] of threads.entries()) {
+    for (const [s, section] of thread.sections.entries()) {
+      const lineUp = section.lineUp
+      if (!lineUp || (skip?.thread === t && skip.section === s)) continue
+      const node = nodeOf[t]?.[s] ?? -1
+      const target = lineUp.kind === 'section' ? nodeOf[threadIndex.get(lineUp.outline) ?? -1]?.[lineUp.section] : undefined
+      if (target === undefined) {
+        state.set(node, 'missing')
+        continue
+      }
+      const [a, b] = [find(node), find(target)]
+      if (a === b) continue // already at the same moment, through a chain
+      // Two sections of one storyline at one moment, or one moment both before and after another.
+      const own = new Set(threadsOf(a))
+      if (threadsOf(b).some((thread) => own.has(thread)) || reaches(a, b) || reaches(b, a)) {
+        state.set(node, 'contradicts')
+        continue
+      }
+      parent[a] = b
+      members.set(b, [...(members.get(b) ?? []), ...(members.get(a) ?? [])])
+      members.delete(a)
+    }
+  }
+
+  return { nodes, nodeOf, find, members, state, reaches, threadsOf }
+}
+
+/**
+ * The sections the section `section` of `file` can be lined up with, as `file#section`: any named
+ * section of another storyline that keeps every storyline's order, its own line-up left aside (so it
+ * can move). Dragging highlights them; "Line up with…" offers only them.
+ */
+export function lineUpChoices(view: TimelineView, file: ProjectPath, section: number): Set<string> {
+  const threads = inMainOrder(view)
+  const thread = threads.findIndex((each) => each.file === file)
+  const choices = new Set<string>()
+  if (thread === -1 || !threads[thread]?.sections[section]) return choices
+  const { nodes, nodeOf, find, members, threadsOf } = groupSections(threads, { thread, section })
+  const own = find(nodeOf[thread]?.[section] ?? 0)
+  // Everything after this moment, and everything before it, in some storyline's order.
+  const walk = (step: 1 | -1): Set<number> => {
+    const seen = new Set<number>()
+    const stack = [own]
+    for (let g = stack.pop(); g !== undefined; g = stack.pop())
+      for (const i of members.get(g) ?? []) {
+        const node = nodes[i]
+        const next = node && nodeOf[node.thread]?.[node.section + step]
+        if (next === undefined || seen.has(find(next))) continue
+        seen.add(find(next))
+        stack.push(find(next))
+      }
+    return seen
+  }
+  const after = walk(1)
+  const before = walk(-1)
+  const ownThreads = new Set(threadsOf(own))
+  threads.forEach((other, t) => {
+    if (t === thread) return
+    other.sections.forEach((candidate, s) => {
+      const group = find(nodeOf[t]?.[s] ?? 0)
+      if (candidate.name === null || after.has(group) || before.has(group)) return
+      if (group !== own && threadsOf(group).some((each) => ownThreads.has(each))) return
+      choices.add(`${other.file}#${s}`)
+    })
+  })
+  return choices
 }
