@@ -407,6 +407,22 @@ describe('outline calls', () => {
     ])
   })
 
+  it('keeps the main outline when a new outline comes first by name, and makes another main on request (ADR 0012)', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const projectFile = await context.read('project.md')
+    await context.call(channels.createOutline, { title: 'A beginning' })
+    // The sample names no main outline; "A beginning" lists first, so the current main is written down first.
+    expect(await context.read('project.md')).toBe(
+      projectFile.replace('series: Orchard Books\n', 'series: Orchard Books\nmainOutline: outlines/main-story.md\n'),
+    )
+    const switched = (await context.call(channels.setMainOutline, { file: 'outlines/a-beginning.md' })) as ProjectChangeResult
+    expect(switched.ok && switched.value.mainOutline).toBe('outlines/a-beginning.md')
+    expect(await context.read(MAIN)).toBe(await readFile(join(FIXTURE, MAIN), 'utf8'))
+    expect(await context.call(channels.setMainOutline, { file: 'outlines/missing.md' })).toEqual({ ok: false, error: 'not-found' })
+    await expect(context.call(channels.setMainOutline, { file: 'characters/ilka.md' })).rejects.toThrow('invalid-payload')
+  })
+
   it('remembers the workspace, outline and view for next time', async () => {
     const context = await setup()
     await openChosen(context)

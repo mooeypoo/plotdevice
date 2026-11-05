@@ -68,6 +68,8 @@ export interface PlotDeviceApi {
   renameChapter(file: ProjectPath, title: string): Promise<ProjectChangeResult>
   /** A change to the book's kinds of pages, or to what it calls a chapter (ADR 0011). */
   changeKinds(change: KindsChangeRequest): Promise<ProjectChangeResult>
+  /** Makes an outline the book's main outline, whose sections name the timeline's columns (ADR 0012). */
+  setMainOutline(file: ProjectPath): Promise<ProjectChangeResult>
   /** "Match folder names": what would change, then the change, and its undo until the book closes. */
   planFolderRenames(renames: FolderRenamesRequest): Promise<FolderRenamePlanResult>
   renameFolders(renames: FolderRenamesRequest): Promise<RenameFoldersResult>

@@ -112,6 +112,8 @@ export interface ProjectView {
   manuscriptUnit: { one: string; many: string } | null
   /** Tags "+ Tag" offers before any page uses them (Milestone 19). */
   suggestedTags: string[]
+  /** The outline `project.md` names as main (ADR 0012), or `null`; if it is gone, the first outline is main. */
+  mainOutline: ProjectPath | null
   /** Kinds whose folder isn't named after them (yet): what "Match folder names" would rename. */
   folderMismatches: { from: string; to: string }[]
 }

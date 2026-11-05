@@ -83,6 +83,7 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'restoreVersion',
     'retag',
     'saveChapter',
+    'setMainOutline',
     'setPreferences',
     'setShelf',
     'setTags',

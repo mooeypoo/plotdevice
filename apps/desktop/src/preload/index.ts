@@ -19,6 +19,7 @@ const api: PlotDeviceApi = {
   compileBook: () => ipcRenderer.invoke(channels.compileBook),
   renameChapter: (file, title) => ipcRenderer.invoke(channels.renameChapter, { file, title }),
   changeKinds: (change) => ipcRenderer.invoke(channels.changeKinds, change),
+  setMainOutline: (file) => ipcRenderer.invoke(channels.setMainOutline, { file }),
   planFolderRenames: (renames) => ipcRenderer.invoke(channels.planFolderRenames, { renames }),
   renameFolders: (renames) => ipcRenderer.invoke(channels.renameFolders, { renames }),
   undoFolderRenames: () => ipcRenderer.invoke(channels.undoFolderRenames),

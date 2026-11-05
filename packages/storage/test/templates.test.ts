@@ -71,8 +71,9 @@ describe('what each template makes', () => {
       'project.md',
     ])
     expect(await readFile(join(root, 'project.md'), 'utf8')).toBe(
-      '---\ntitle: The Sunken Crown\nlanguage: en\nchapterNumbering: continuous\nid: prj-t1\nschemaVersion: 1\nsuggestedTags: [Main character, Secondary]\n---\n',
+      '---\ntitle: The Sunken Crown\nlanguage: en\nchapterNumbering: continuous\nid: prj-t1\nschemaVersion: 1\nsuggestedTags: [Main character, Secondary]\nmainOutline: outlines/main-story.md\n---\n',
     )
+    expect(snapshot.details.mainOutline).toBe('outlines/main-story.md')
     expect(await readFile(join(root, 'outlines/main-story.md'), 'utf8')).toMatch(
       /^# Main story\n\n## Beginning\n\n- The hero's ordinary life\n/,
     )
@@ -107,12 +108,14 @@ describe('what each template makes', () => {
     expect(snapshot.details.kinds.map((kind) => kind.folder)).toEqual(['דמויות', 'מקומות', 'פלגים', 'חפצים', 'ידע'])
     expect(snapshot.details.manuscriptUnit).toEqual({ one: 'מפגש', many: 'מפגשים' })
     expect(await readFile(join(root, 'outlines/תוכנית-למפגש.md'), 'utf8')).toMatch(/^# תוכנית למפגש\n\n## בפעם הקודמת\n/)
+    // The template's first outline is main, though it doesn't come first by file name.
+    expect(snapshot.details.mainOutline).toBe('outlines/תוכנית-למפגש.md')
   })
 
   it('blank: exactly what a new project always had', async () => {
     const { root } = await create('blank', 'en')
     expect(Object.keys(await files(root)).sort()).toEqual(['CONTENTS.md', 'project.md'])
-    expect(await readFile(join(root, 'project.md'), 'utf8')).not.toMatch(/kinds|manuscriptUnit|suggestedTags/)
+    expect(await readFile(join(root, 'project.md'), 'utf8')).not.toMatch(/kinds|manuscriptUnit|suggestedTags|mainOutline/)
   })
 
   it('never writes over an existing folder', async () => {

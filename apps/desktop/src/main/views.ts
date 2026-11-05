@@ -23,6 +23,7 @@ export function projectView(snapshot: ProjectSnapshot): ProjectView {
     manuscriptUnit: details.manuscriptUnit ? { ...details.manuscriptUnit } : null,
     folderMismatches: folderMismatches(details.kinds),
     suggestedTags: [...details.suggestedTags],
+    mainOutline: details.mainOutline,
     contents: snapshot.contents.entries.map((entry) =>
       entry.kind === 'chapter' ? { kind: 'chapter', ...ref(entry) } : { kind: 'part', name: entry.name, chapters: entry.chapters.map(ref) },
     ),
