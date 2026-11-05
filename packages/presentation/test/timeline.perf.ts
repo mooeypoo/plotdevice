@@ -15,6 +15,7 @@ function longBook(): TimelineView {
     title: `Storyline ${t}`,
     sections: Array.from({ length: 60 }, (_, s) => ({
       name: `Moment ${s}`,
+      anchor: `moment-${s}`,
       items: Array.from({ length: (t * 60 + s) % 12 === 0 ? 5 : 0 }, (_, c) => ({
         text: `Card ${c}`,
         checked: null,

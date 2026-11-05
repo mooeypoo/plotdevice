@@ -12,6 +12,8 @@ export type TimelineLineUpView =
 export interface TimelineSectionView {
   /** `null` for cards before the first section. */
   name: string | null
+  /** The heading's anchor, which a line-up to this section links to; `null` for cards before the first section. */
+  anchor: string | null
   items: OutlineItemView[]
   lineUp: TimelineLineUpView | null
 }

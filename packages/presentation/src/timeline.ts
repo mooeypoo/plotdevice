@@ -1,5 +1,6 @@
-import type { OutlineItemView, TimelineView } from '@plotdevice/contracts'
-import type { ProjectPath } from '@plotdevice/shared'
+import type { ChapterRef, OutlineItemView, TimelineView } from '@plotdevice/contracts'
+import { resolveRelative, type ProjectPath } from '@plotdevice/shared'
+import { inlineSpans } from './outline-views'
 
 /**
  * - `main`: a section of the main outline.
@@ -195,4 +196,25 @@ export function timelineGrid(view: TimelineView, hidden: ReadonlySet<ProjectPath
         : [],
     ),
   }
+}
+
+/**
+ * The chapters a card links to, in the book's reading order: the timeline's chips, so where each event
+ * is told shows at a glance (ADR 0012, decision 7). Links are read from the card's own line, relative
+ * to `outlines/`; links to anything else, or to chapters not in the book, give no chip.
+ */
+export function chapterChips(cardText: string, chapters: readonly ChapterRef[]): ChapterRef[] {
+  const linked = new Set<string>()
+  for (const span of inlineSpans(cardText)) {
+    if (span.kind !== 'link') continue
+    const raw = span.target.replace(/^<|>$/g, '').split('#')[0] ?? ''
+    let path: string | null = null
+    try {
+      path = resolveRelative('outlines', decodeURI(raw))
+    } catch {
+      continue
+    }
+    if (path) linked.add(path)
+  }
+  return chapters.filter((chapter) => linked.has(chapter.file))
 }

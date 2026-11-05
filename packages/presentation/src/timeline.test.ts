@@ -1,7 +1,7 @@
 import type { TimelineLineUpView, TimelineSectionView, TimelineThreadView, TimelineView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { timelineGrid, type TimelineGrid } from './timeline'
+import { chapterChips, timelineGrid, type TimelineGrid } from './timeline'
 
 const p = (path: string) => path as ProjectPath
 const MAIN = p('outlines/main-story.md')
@@ -11,6 +11,7 @@ const HIST = p('outlines/history-of-marrow.md')
 const to = (outline: ProjectPath, section: number): TimelineLineUpView => ({ kind: 'section', outline, section, text: '' })
 const section = (name: string | null, lineUp: TimelineLineUpView | null = null): TimelineSectionView => ({
   name,
+  anchor: name,
   items: [{ text: `${name ?? 'loose'} card`, checked: null, children: [], keptAsWritten: [], movable: true }],
   lineUp,
 })
@@ -151,5 +152,22 @@ describe('the timeline grid (ADR 0012)', () => {
   it('is empty for a book without outlines, and gives each cell its cards', () => {
     expect(timelineGrid({ main: null, threads: [] })).toEqual({ columns: [], rows: [] })
     expect(timelineGrid(view(main)).rows[0]?.cells[0]?.items.map((item) => item.text)).toEqual(['Prologue card'])
+  })
+})
+
+describe('chapter chips', () => {
+  const chapters = [
+    { file: p('manuscript/prologue.md'), linkText: 'Prologue', number: null },
+    { file: p('manuscript/the crossing.md'), linkText: 'The Crossing', number: 1 },
+    { file: p('manuscript/frost.md'), linkText: 'Frost', number: 2 },
+  ]
+  it('names the chapters a card links to, in reading order, whatever order the links are in', () => {
+    const text = 'Bea waits, see [Frost](../manuscript/frost.md) and [the crossing](<../manuscript/the crossing.md#night>)'
+    expect(chapterChips(text, chapters).map((chapter) => chapter.linkText)).toEqual(['The Crossing', 'Frost'])
+  })
+
+  it('gives no chip for pages, web links or chapters not in the book', () => {
+    const text = '[Bea](../characters/bea.md), [site](https://example.com/manuscript/frost.md), [old](../manuscript/cut.md)'
+    expect(chapterChips(text, chapters)).toEqual([])
   })
 })

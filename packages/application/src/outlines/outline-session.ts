@@ -230,15 +230,19 @@ export function createOutlineSession({ repository, root }: OutlineSessionOptions
         const section = target ? lineUpTarget(target, lineUp.anchor) : null
         return section === null ? { kind: 'missing', ...lineUp } : { kind: 'section', outline: lineUp.outline, section, text: lineUp.text }
       }
-      const threads = outlines.map(({ file, title, outline }) => ({
-        file,
-        title,
-        sections: outline.sections.map((section) => ({
-          name: section.name,
-          items: section.items,
-          lineUp: section.lineUp && resolve(section.lineUp),
-        })),
-      }))
+      const threads = outlines.map(({ file, title, outline }) => {
+        const anchors = sectionAnchors(outline)
+        return {
+          file,
+          title,
+          sections: outline.sections.map((section, index) => ({
+            name: section.name,
+            anchor: anchors[index] ?? null,
+            items: section.items,
+            lineUp: section.lineUp && resolve(section.lineUp),
+          })),
+        }
+      })
       return ok({ main, threads: [...threads.filter((t) => t.file === main), ...threads.filter((t) => t.file !== main)] })
     },
 

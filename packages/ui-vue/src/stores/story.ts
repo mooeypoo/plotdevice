@@ -8,6 +8,7 @@ import type {
   ReferenceKind,
   ReferenceSummaryView,
   RelationshipChangeRequest,
+  TimelineView,
 } from '@plotdevice/contracts'
 import { cardKey, tagProblems, type ItemDestination } from '@plotdevice/presentation'
 import type { ProjectPath } from '@plotdevice/shared'
@@ -29,13 +30,18 @@ export type Editing =
   | null
 
 export type Showing =
-  { kind: 'outline' } | { kind: 'gallery'; of: ReferenceKind } | { kind: 'page'; file: ProjectPath } | { kind: 'manuscript' }
+  | { kind: 'outline' }
+  | { kind: 'gallery'; of: ReferenceKind }
+  | { kind: 'page'; file: ProjectPath }
+  | { kind: 'manuscript' }
+  | { kind: 'timeline' }
 
 const MESSAGE: Partial<Record<OutlineProblem, string>> = {
   'changed-elsewhere': 'outline-changed-elsewhere',
   'unmovable-item': 'locked-item',
   'unnamed-section': 'outline-refused-unnamed-section',
   'multiline-heading': 'outline-refused-multiline-heading',
+  'same-outline': 'outline-failed',
 }
 
 /** The Story workspace (working name): the project's outlines and the one open now. */
@@ -64,6 +70,13 @@ export const useStoryStore = defineStore('story', () => {
    */
   const lastItem = ref<string | null>(null)
   const focusItem = ref<string | null>(null)
+  /** The book's outlines as the timeline reads them (ADR 0012); read again whenever it shows. */
+  const timeline = ref<TimelineView | null>(null)
+  /** The main outline: the one `project.md` names, or else the first (ADR 0012). */
+  const mainOutline = computed<ProjectPath | null>(() => {
+    const named = project.project?.mainOutline ?? null
+    return outlines.value.some((entry) => entry.file === named) ? named : (outlines.value[0]?.file ?? null)
+  })
 
   async function refresh(): Promise<void> {
     ;[outlines.value, references.value] = await Promise.all([api.listOutlines(), api.listReferences()])
@@ -127,6 +140,36 @@ export const useStoryStore = defineStore('story', () => {
       lastItem.value = null
     }
     settle(await api.openOutline(file))
+  }
+
+  async function loadTimeline(): Promise<void> {
+    const read = await api.getTimeline()
+    timeline.value = read.ok ? read.value : null
+  }
+
+  async function showTimeline(): Promise<void> {
+    showing.value = { kind: 'timeline' }
+    await loadTimeline()
+  }
+
+  /**
+   * An edit to any outline, from the timeline: the outline is opened first (edits go to open outlines),
+   * then the timeline is read again, since a line-up or a rename can move other storylines.
+   */
+  async function editIn(file: ProjectPath, request: OutlineEditRequest): Promise<boolean> {
+    const opened = await api.openOutline(file)
+    if (!opened.ok) return settle(opened)
+    const result = await api.editOutline(file, JSON.parse(JSON.stringify(request)) as OutlineEditRequest)
+    const done = result.ok || result.error === 'empty-text'
+    if (result.ok && outline.value?.file === file) outline.value = result.value
+    else if (!result.ok && result.error !== 'empty-text') project.tell(MESSAGE[result.error] ?? 'outline-failed')
+    await loadTimeline()
+    return done && result.ok
+  }
+
+  /** Makes `file` the main outline; nothing in the outlines changes. */
+  async function makeMain(file: ProjectPath): Promise<void> {
+    if (await project.setMainOutline(file)) await loadTimeline()
   }
 
   /** Reads the open outline again, after it was written as text. */
@@ -240,6 +283,7 @@ export const useStoryStore = defineStore('story', () => {
   api.onEvent((event) => {
     if (event.kind === 'outline-changed' && event.outline.file === outline.value?.file) outline.value = event.outline
     else if (event.kind === 'references-changed') void refresh()
+    if (event.kind === 'outline-changed' && showing.value.kind === 'timeline') void loadTimeline()
   })
 
   return {
@@ -257,6 +301,12 @@ export const useStoryStore = defineStore('story', () => {
     about,
     lastItem,
     focusItem,
+    timeline,
+    mainOutline,
+    loadTimeline,
+    showTimeline,
+    editIn,
+    makeMain,
     reload,
     refresh,
     showOnBoard,
