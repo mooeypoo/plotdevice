@@ -12,23 +12,31 @@ Owner adjustments (2026-11-04):
 
 After Milestone 19 the roadmap changes order:
 
-1. **Next: a tightening milestone for non-technical writers.** Automatic backups (moved here from Milestone 22, decided below), a sample book to try, help inside the app, plain wording everywhere, installing and updating, and a short session with real writers.
+1. **Next: Milestone 20, "Ready for writers"** (`milestone-20-ready-for-writers.md`), a tightening milestone for non-technical writers. Automatic backups (moved here from Milestone 22, decided below), a sample book to try, help inside the app, plain wording everywhere, installing and updating, and a short session with real writers.
 2. **Then two big features, each researched and designed with the owner before any plan:**
    - **Import and export:** Word first, and which other formats (PDF, ePub, others) are worth it;
-   - **The timeline and lanes** (Milestones 20–21 below). The Milestone 20 plan (`milestone-20-timeline.md`) waits for that research.
+   - **The timeline and lanes** (the roadmap's Milestones 20–21 below). The draft plan (`timeline-view.md`) waits for that research.
 
 Milestone numbers below are kept as written; the new milestones are numbered when planned.
 
 ### Automatic backups: the owner's decisions (2026-11-05)
 
 - **The author's choice, never forced.** The app offers it once, calmly, after the author has been writing for a while ("Keep a copy of your book somewhere safe?"). It can be turned on, off or moved later in Settings.
-- **Where:** any folder the author chooses. That can be a cloud service (Google Drive, Dropbox, OneDrive and the like) or a local folder or drive, if the author prefers.
+- **Local backups, called just that.** Plot Device copies the book into a folder on the computer that the author chooses. It never uploads anything itself, so the app never calls this a cloud backup.
+- **Off the computer, through the author's own sync:** the app recommends choosing a folder that already syncs online, such as Google Drive, Dropbox, OneDrive or Obsidian Sync, and explains why. A local folder or a USB drive is fine too. Uploading to cloud services directly is a later discussion.
+- **Once a day,** when something changed since the last backup. Other schedules may come later.
 - **Nothing is deleted unless the author asks.** When backups are turned on, the app says plainly that it will add copies to that folder and never delete them, so the author should keep an eye on the space there.
 - **Clean-up is opt-in.** Settings offers rules the author can turn on explicitly, such as "remove backups older than N months" or "keep only the newest N". Then the app removes only automatic backups it made itself, never the newest one, and says when it has removed any.
 - **Clear names, with the date and time:** "‹Book› backup 2026-11-05 14.30". Windows can't use `:` in names.
 - **Only when something changed:** no copy is made of a book that hasn't changed since the last one.
 - **Restore** lists the backups by date, shows what would change, and saves the current state first, so a restore can be undone.
+- **Restore points stay as they are** (Milestone 6: the Versions of each file, in the app's own data). They're for undoing the app's own operations, not the author's backup, so limits that tidy them are reasonable. Later, a separate feature: keep a number of restore points rather than an age, so slow and fast writers both get a useful history, and let the author adjust that number ("how many steps back you can go").
 - **Never silent:** the book menu says when the last backup ran, and the app says so if the folder is missing (a USB drive unplugged, Dropbox removed).
+
+### Installers and accounts (owner, 2026-11-05)
+
+- **Later, revisited together:** anything that needs paid accounts or certificates. That means signing the Windows installer, Apple's developer programme for signed and notarised Mac builds, and with them updates that install themselves.
+- **Now:** Mac builds run in CI, unsigned, with the tests, so the app is known to work on a Mac before it's offered there.
 
 ## Why
 

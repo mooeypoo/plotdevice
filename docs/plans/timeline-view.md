@@ -1,4 +1,4 @@
-# Milestone 20: Timeline view of an outline
+# Timeline view of an outline (on hold; numbered when planned)
 
 Status: **On hold** (2026-11-05). The owner wants dedicated research and design for timelines first; this plan is the starting point once that is done. Earlier: proposed 2026-11-05. Direction from `roadmap-16-approachable-studio-and-timelines.md` (Phase C) and ADR 0012 (accepted 2026-11-04). The roadmap's Milestone 21 (lanes) follows.
 
