@@ -25,8 +25,9 @@ export function useRememberedPlace(): void {
       view.outlineView = place?.view ?? 'board'
       await story.refresh()
       void story.checkTags()
-      const outline = story.outlines.find((entry) => entry.file === place?.outline) ?? story.outlines[0]
-      if (outline) await story.open(outline.file)
+      // Where the author was, or else the main outline (ADR 0012), not whichever comes first by name.
+      const outline = story.outlines.find((entry) => entry.file === place?.outline)?.file ?? story.mainOutline
+      if (outline) await story.open(outline)
     },
     { immediate: true },
   )

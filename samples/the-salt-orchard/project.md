@@ -5,6 +5,7 @@ language: en
 chapterNumbering: continuous
 id: prj-demo5a
 schemaVersion: 1
+mainOutline: outlines/main-story.md
 ---
 A demo novel for trying Plot Device. Everything in it, the author included, is invented.
 
