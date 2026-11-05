@@ -495,5 +495,6 @@
   "outline-restored": "Notice after undoing an outline's deletion. $1: its name.",
   "outline-delete-what": "Paragraph in the delete confirmation: what goes and what stays.",
   "outline-delete-backup": "Paragraph in the delete confirmation: where the outline goes (the computer's Trash or Recycle Bin), and that a backup is kept and the deletion can be undone.",
-  "outline-delete-suggest": "Last paragraph of the delete confirmation, recommending {{msg-plotdevice|outline-set-aside-instead}}."
+  "outline-delete-suggest": "Last paragraph of the delete confirmation, recommending {{msg-plotdevice|outline-set-aside-instead}}.",
+  "timeline-cant-line-up-fix": "Follows {{msg-plotdevice|timeline-cant-line-up-missing}} or {{msg-plotdevice|timeline-cant-line-up-order}} under a section on the timeline: how to fix it, from the section's ⋯ menu."
 }

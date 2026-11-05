@@ -368,15 +368,16 @@ const cellLabel = (row: TimelineRow, cell: TimelineCell): string =>
             @dragleave="onLeave"
             @drop.prevent="onDrop(row.file, cell.section)"
           >
+            <!-- The main outline's sections are named by their column; theirs shows only to say how they line up. -->
             <div
-              v-if="!row.isMain"
+              v-if="!row.isMain || sectionOf(row, cell)?.lineUp"
               class="cell-head"
-              :draggable="cell.name !== null"
-              :title="cell.name !== null ? t('timeline-drag-section') : undefined"
+              :draggable="!row.isMain && cell.name !== null"
+              :title="!row.isMain && cell.name !== null ? t('timeline-drag-section') : undefined"
               @dragstart="startSection($event, row, cell)"
               @dragend="endDrag"
             >
-              <span dir="auto">{{ cell.name ?? t('outline-unnamed-section') }}</span>
+              <span dir="auto">{{ row.isMain ? '' : (cell.name ?? t('outline-unnamed-section')) }}</span>
               <span
                 v-if="markOf(row, cell)"
                 class="cell-mark"
@@ -394,6 +395,10 @@ const cellLabel = (row: TimelineRow, cell: TimelineCell): string =>
                 :items="() => cellMenu(row, cell)"
               />
             </div>
+            <!-- Said in words, not only by a mark: what went wrong, and that the ⋯ menu can fix it. -->
+            <p v-if="cell.state === 'missing' || cell.state === 'contradicts'" class="cell-problem" data-testid="cant-line-up">
+              {{ markOf(row, cell)?.text }} {{ t('timeline-cant-line-up-fix') }}
+            </p>
             <article
               v-for="(item, i) in cell.items"
               :key="i"

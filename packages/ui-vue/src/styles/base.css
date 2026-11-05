@@ -3325,3 +3325,11 @@ button.moment-name:hover {
 .confirm-question {
   font-weight: 600;
 }
+
+.cell-problem {
+  margin: 0;
+  padding-inline: 0.15rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--color-warning);
+}

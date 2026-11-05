@@ -211,6 +211,7 @@ test('deletes only the outline, to the Trash, after saying what will change', as
   await expect(page.getByTestId('timeline')).toBeVisible()
   // Bea's path is now the main outline; its section lined up with the deleted one can't line up.
   await expect(storyline(page, BEA).locator('.timeline-cell').nth(1)).toHaveClass(/missing/)
+  await expect(storyline(page, BEA).getByTestId('cant-line-up')).toContainText('Can’t line up: “Beginning” isn’t there any more.')
   await file('project.md').toContain('mainOutline: outlines/beas-path.md\n')
 
   // Undo, from the notice: back exactly as it was.

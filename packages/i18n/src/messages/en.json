@@ -493,5 +493,6 @@
   "outline-restored": "“$1” is back.",
   "outline-delete-what": "Only this outline is deleted, with its own sections and cards. Chapters, pages and other outlines stay as they are.",
   "outline-delete-backup": "It goes to your computer’s Trash, and Plot Device keeps a backup, so you can undo this right after.",
-  "outline-delete-suggest": "Only want it out of the way? Set it aside instead: nothing is deleted, and you can bring it back any time."
+  "outline-delete-suggest": "Only want it out of the way? Set it aside instead: nothing is deleted, and you can bring it back any time.",
+  "timeline-cant-line-up-fix": "Use ⋯ to line it up again or unpin it."
 }
