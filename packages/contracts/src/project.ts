@@ -114,6 +114,8 @@ export interface ProjectView {
   suggestedTags: string[]
   /** The outline `project.md` names as main (ADR 0012), or `null`; if it is gone, the first outline is main. */
   mainOutline: ProjectPath | null
+  /** Outlines the author set aside (Milestone 20): listed apart and off the timeline. */
+  setAside: ProjectPath[]
   /** Kinds whose folder isn't named after them (yet): what "Match folder names" would rename. */
   folderMismatches: { from: string; to: string }[]
 }
@@ -145,6 +147,9 @@ export interface OpenedProject {
 /** `cancelled`: the author closed the folder dialog. */
 export type OpenProjectResult = Result<OpenedProject, 'cancelled' | 'not-a-project' | 'unreadable' | 'newer-format' | 'not-recent'>
 export type CreateProjectResult = Result<OpenedProject, 'cancelled' | 'invalid-details' | 'folder-exists' | 'inside-project' | 'io'>
+/** Deleting an outline (Milestone 20): `no-trash` when this computer has no Trash; nothing was deleted. */
+export type DeleteOutlineResult = Result<ProjectView, Exclude<ProjectChangeResult, { ok: true }>['error'] | 'no-trash' | 'missing'>
+
 export type ProjectChangeResult = Result<
   ProjectView,
   | 'stale'

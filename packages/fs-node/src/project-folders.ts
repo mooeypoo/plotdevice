@@ -2,10 +2,10 @@ import type { CreateFolderProblem, ProjectFolders } from '@plotdevice/applicatio
 import { err, ok, type Result } from '@plotdevice/shared'
 import { access, mkdir } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
-import { createFileStore } from './file-store'
+import { createFileStore, type FileStoreOptions } from './file-store'
 
-/** Project folders on the local disk. */
-export function createProjectFolders(): ProjectFolders {
+/** Project folders on the local disk; `trash` is how deleted files reach the computer's Trash. */
+export function createProjectFolders(options: Pick<FileStoreOptions, 'trash'> = {}): ProjectFolders {
   return {
     async create(location, name, subfolders): Promise<Result<string, CreateFolderProblem>> {
       if (await isInsideProject(resolve(location))) return err('inside-project')
@@ -18,7 +18,7 @@ export function createProjectFolders(): ProjectFolders {
         return err((cause as NodeJS.ErrnoException).code === 'EEXIST' ? 'exists' : 'io')
       }
     },
-    open: (root) => createFileStore(root),
+    open: (root) => createFileStore(root, options),
   }
 }
 

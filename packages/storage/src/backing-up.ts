@@ -27,10 +27,11 @@ export function withBackups(folders: ProjectFolders, { backups, now }: BackupOpt
     return key
   }
 
-  async function backUp(root: string, store: FileStore, path: ProjectPath, expected: string): Promise<void> {
+  /** `always`: before a file is deleted, whenever the last backup was. */
+  async function backUp(root: string, store: FileStore, path: ProjectPath, expected: string, always = false): Promise<void> {
     const at = now()
     const remembered = `${root}\u0000${path}`
-    if (!isBackupDue(lastBackup.get(remembered) ?? null, at)) return
+    if (!always && !isBackupDue(lastBackup.get(remembered) ?? null, at)) return
     const current = await store.read(path)
     // Only the version the write is about to replace; if it differs, the write is refused anyway.
     if (!current.ok || current.value.revision !== expected) return
@@ -56,6 +57,10 @@ export function withBackups(folders: ProjectFolders, { backups, now }: BackupOpt
         async write(path, content, expected) {
           if (expected !== null) await backUp(root, store, path, expected)
           return store.write(path, content, expected)
+        },
+        async remove(path, expected, how) {
+          await backUp(root, store, path, expected, true)
+          return store.remove(path, expected, how)
         },
       }
     },

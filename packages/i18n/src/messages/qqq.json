@@ -475,5 +475,19 @@
   "story-open-outline": "Menu command on a timeline row: opens that outline on its own (Board, List or Text).",
   "timeline-drag-section": "Tooltip of a section's name in a timeline row. Dragging it onto a moment of another outline says the two happen at the same time. The same is in the section's ⋯ menu.",
   "timeline-move-to": "Menu command on a card in a timeline row: moves the card to another section of the same outline (the keyboard's way to drag it). $1: that section's name.",
-  "timeline-card-actions": "Screen-reader-only label of the ⋯ menu button on a card in a timeline row. $1: the card's text."
+  "timeline-card-actions": "Screen-reader-only label of the ⋯ menu button on a card in a timeline row. $1: the card's text.",
+  "outline-set-aside": "Menu command for an outline (its ⋯ menu, and its timeline row): moves it to the quiet Set aside list at the end of Plot and off the timeline. Nothing is deleted; {{msg-plotdevice|outline-bring-back}} returns it.",
+  "outline-bring-back": "Menu command for an outline that was set aside: returns it to the outlines in use and to the timeline.",
+  "story-set-aside": "Small heading at the end of the Plot group in the sidebar, above outlines the author set aside. Shown only when there are some.",
+  "outline-delete": "Menu command for an outline. Opens a confirmation ({{msg-plotdevice|outline-delete-question}}) before anything is deleted.",
+  "outline-delete-question": "Confirmation before an outline is deleted. $1: the outline's name. \"Trash\" is the computer's Trash or Recycle Bin. May be followed by {{msg-plotdevice|outline-delete-lined-up}} and {{msg-plotdevice|outline-delete-new-main}}.",
+  "outline-delete-lined-up": "Added to the delete confirmation when other outlines' sections are lined up (on the timeline) with the outline being deleted. $1: how many.",
+  "outline-delete-new-main": "Added to the delete or set-aside confirmation when the main outline goes: $1 is the outline whose sections will name the timeline's columns instead.",
+  "outline-delete-action": "Button that confirms deleting an outline: it goes to the computer's Trash (Recycle Bin).",
+  "outline-delete-for-good-question": "Second, stronger confirmation shown only when moving to the Trash failed. $1: the outline's name.",
+  "outline-delete-for-good": "Button that confirms {{msg-plotdevice|outline-delete-for-good-question}}: the outline is deleted and can't be got back.",
+  "outline-deleted": "Notice after an outline was moved to the computer's Trash. $1: its name.",
+  "outline-deleted-for-good": "Notice after an outline was deleted for good (there was no Trash). $1: its name.",
+  "outline-now-main": "Notice after the main outline was set aside or deleted: $1 is the outline whose sections now name the timeline's columns.",
+  "outline-delete-failed": "Notice when deleting an outline failed, e.g. the file changed in another program meanwhile."
 }

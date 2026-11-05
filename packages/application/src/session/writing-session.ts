@@ -73,6 +73,11 @@ export interface WritingSession {
   changeKinds(change: KindsChange): Promise<Result<ProjectSnapshot, ChangeProblem | KindProblem | NoProject>>
   /** Makes `file` the book's main outline (ADR 0012); the caller checks it is one of the book's outlines. */
   setMainOutline(file: ProjectPath): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
+  /** Which outlines are set aside, and which is main, written together (Milestone 20). */
+  setOutlineRoles(roles: {
+    setAside: readonly ProjectPath[]
+    mainOutline: ProjectPath | null
+  }): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   renameFile(file: ProjectPath, newName: string): Promise<Result<FileRenamed, RenameFileProblem | NoProject>>
   /** What renaming the kinds' folders would do (Milestone 18, "Match folder names"). Reads only. */
   planFolderRenames(renames: readonly FolderRename[]): Promise<Result<FolderRenamePlan, NoProject>>
@@ -305,6 +310,14 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
       serially(async () => {
         if (!project) return err('no-project')
         const written = await repository.setMainOutline(project, file)
+        if (written.ok) setProject(written.value)
+        return written
+      }),
+
+    setOutlineRoles: (roles) =>
+      serially(async () => {
+        if (!project) return err('no-project')
+        const written = await repository.setOutlineRoles(project, roles)
         if (written.ok) setProject(written.value)
         return written
       }),

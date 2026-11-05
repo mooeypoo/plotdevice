@@ -21,6 +21,8 @@ export interface ProjectDetails {
   suggestedTags: readonly string[]
   /** The outline `project.md` names as main (ADR 0012), as written; `mainOutlineOf` says which one is. */
   mainOutline: ProjectPath | null
+  /** Outlines the author set aside: off the timeline, listed apart, never main (Milestone 20). */
+  setAside: readonly ProjectPath[]
 }
 
 export const CURRENT_SCHEMA_VERSION = 1

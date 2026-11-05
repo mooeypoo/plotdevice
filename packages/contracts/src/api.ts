@@ -31,6 +31,7 @@ import type {
   OpenProjectRequest,
   OpenProjectResult,
   ProjectChangeResult,
+  DeleteOutlineResult,
   RecentProjectView,
   KindsChangeRequest,
   BackupBookResult,
@@ -71,6 +72,13 @@ export interface PlotDeviceApi {
   changeKinds(change: KindsChangeRequest): Promise<ProjectChangeResult>
   /** Makes an outline the book's main outline, whose sections name the timeline's columns (ADR 0012). */
   setMainOutline(file: ProjectPath): Promise<ProjectChangeResult>
+  /** Sets an outline aside, off the timeline, or brings it back; the main outline moves on if it was set aside. */
+  setOutlineAside(file: ProjectPath, aside: boolean): Promise<ProjectChangeResult>
+  /**
+   * Deletes one outline (never what it links to): to the Trash, or for good once the author agreed to
+   * that after `no-trash`. The book's details come back, with the main outline moved on if needed.
+   */
+  deleteOutline(file: ProjectPath, how: 'trash' | 'for-good'): Promise<DeleteOutlineResult>
   /** "Match folder names": what would change, then the change, and its undo until the book closes. */
   planFolderRenames(renames: FolderRenamesRequest): Promise<FolderRenamePlanResult>
   renameFolders(renames: FolderRenamesRequest): Promise<RenameFoldersResult>

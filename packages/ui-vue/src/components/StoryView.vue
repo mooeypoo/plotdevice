@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { ProjectView, ReferenceKind, StarterId } from '@plotdevice/contracts'
-import type { ProjectPath } from '@plotdevice/shared'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
-import { useConfirm } from '../composables/use-confirm'
+import { useOutlineRoles } from '../composables/use-outline-roles'
 import { useKinds } from '../composables/use-kinds'
 import { useOutlineActions } from '../composables/use-outline-actions'
 import { usePanelWidths } from '../composables/use-panel-widths'
@@ -41,15 +40,13 @@ const views: OutlineMode[] = ['board', 'outline', 'text']
 const kinds = useKinds()
 const pagesOf = (kind: ReferenceKind) => story.references.filter((reference) => reference.kind === kind)
 const showingOutline = computed(() => story.showing.kind === 'outline')
-const { confirm } = useConfirm()
-/** The main outline first, marked, since its sections name the timeline's columns (ADR 0012). */
+const roles = useOutlineRoles()
+/** The main outline first, marked, since its sections name the timeline's columns (ADR 0012); set-aside ones apart. */
 const plotOutlines = computed(() => [
-  ...story.outlines.filter((entry) => entry.file === story.mainOutline),
-  ...story.outlines.filter((entry) => entry.file !== story.mainOutline),
+  ...story.outlinesInUse.filter((entry) => entry.file === story.mainOutline),
+  ...story.outlinesInUse.filter((entry) => entry.file !== story.mainOutline),
 ])
-async function makeMain(file: ProjectPath, title: string): Promise<void> {
-  if (await confirm(t('main-swap-question', title), t('main-swap-action'))) await story.makeMain(file)
-}
+const setAsideOutlines = computed(() => story.outlines.filter((entry) => story.isSetAside(entry.file)))
 /** Plot and World fold, for a long list of kinds (Milestone 17); for this session only. */
 const plotOpen = ref(true)
 const worldOpen = ref(true)
@@ -80,15 +77,6 @@ const outlineItems = computed<MenuItem[]>(() => {
           },
         ]),
     { key: 'outline-rename', label: t('outline-rename-title'), run: () => void actions.renameOutline() },
-    ...(outline.file === story.mainOutline
-      ? []
-      : [
-          {
-            key: 'outline-make-main',
-            label: t('outline-make-main'),
-            run: () => void makeMain(outline.file, outline.title ?? outline.file),
-          },
-        ]),
     { key: 'outline-versions', label: t('outline-versions'), run: () => versions.show(outline.file, outline.title ?? outline.file) },
     {
       key: 'plain-text-edit',
@@ -99,6 +87,8 @@ const outlineItems = computed<MenuItem[]>(() => {
         view.outlineView = 'text'
       },
     },
+    // Main, set aside, delete: a group of their own, the same as on the timeline.
+    ...roles.menu(outline.file).map((item, index) => (index === 0 ? { ...item, group: 'roles' } : item)),
   ]
 })
 
@@ -214,6 +204,27 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
               </button>
             </li>
           </ul>
+          <template v-if="setAsideOutlines.length > 0">
+            <p class="set-aside-heading secondary">{{ t('story-set-aside') }}</p>
+            <ul data-testid="set-aside">
+              <li
+                v-for="entry in setAsideOutlines"
+                :key="entry.file"
+                class="row chapter-row set-aside"
+                :class="{ current: showingOutline && story.outline?.file === entry.file }"
+              >
+                <button
+                  type="button"
+                  class="chapter"
+                  :data-outline="entry.file"
+                  :aria-current="showingOutline && story.outline?.file === entry.file ? 'page' : undefined"
+                  @click="story.open(entry.file)"
+                >
+                  <span dir="auto">{{ entry.title ?? entry.file }}</span>
+                </button>
+              </li>
+            </ul>
+          </template>
           <div class="add-links">
             <button type="button" class="add-link" data-testid="new-outline" @click="newOutline">{{ t('story-new-outline') }}</button>
           </div>

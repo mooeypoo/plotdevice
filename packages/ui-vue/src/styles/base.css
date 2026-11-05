@@ -3313,3 +3313,11 @@ button.moment-name:hover {
 .timeline-card .menu-button[aria-expanded='true'] {
   opacity: 1;
 }
+.set-aside-heading {
+  margin: 0.6rem 0 0.1rem;
+  padding-inline: 0.75rem;
+  font-size: 0.8rem;
+}
+.chapter-row.set-aside .chapter {
+  color: var(--color-text-secondary);
+}

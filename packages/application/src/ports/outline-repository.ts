@@ -18,6 +18,9 @@ export interface OutlineDocument {
   invalidDetails: boolean
 }
 
+/** `no-trash`: this computer has no Trash the app can use; nothing was deleted. */
+export type OutlineDeleteProblem = 'missing' | 'no-trash' | 'write-failed'
+
 /** `multiline-heading`: a heading written over two lines can't be renamed in place. */
 export type OutlineWriteProblem = OutlineProblem | 'multiline-heading' | 'stale' | 'missing' | 'unreadable' | 'write-failed'
 
@@ -46,6 +49,11 @@ export interface OutlineRepository {
     expected: Revision,
     nestingUnit: string | null,
   ): Promise<Result<{ document: OutlineDocument; previous: string }, OutlineWriteProblem>>
+  /**
+   * Deletes the outline the author chose to delete: to the computer's Trash, or for good once they
+   * agreed to that (Milestone 20). Nothing else changes.
+   */
+  deleteOutline(root: string, file: ProjectPath, how: 'trash' | 'for-good'): Promise<Result<void, OutlineDeleteProblem>>
   /** Undo: writes `text` back, only if the file is still at `expected` (the app's own last edit). */
   restoreOutline(
     root: string,

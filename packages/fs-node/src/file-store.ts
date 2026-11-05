@@ -1,13 +1,15 @@
 import type { FileStore, ReadProblem, Revision, StoredText, TextToStore, WriteProblem } from '@plotdevice/application'
 import { collisionKey, err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
 import { createHash } from 'node:crypto'
-import { mkdir, readdir, readFile, realpath, rename, rmdir, stat } from 'node:fs/promises'
+import { mkdir, readdir, readFile, realpath, rename, rm, rmdir, stat } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, join, relative, sep } from 'node:path'
 import { AtomicWriteError, removeStaleTempFiles, writeAtomically } from './atomic-write'
 
 export interface FileStoreOptions {
   /** Test seam: runs just before a write replaces its file (where an external edit can still land). */
   beforeRename?: (path: ProjectPath) => Promise<void> | void
+  /** Moves a file to the computer's Trash; the desktop app gives Electron's. Without it, nothing goes to a Trash. */
+  trash?: (absolutePath: string) => Promise<void>
 }
 
 const encoder = new TextEncoder()
@@ -111,6 +113,23 @@ export function createFileStore(root: string, options: FileStoreOptions = {}): F
           return ok(undefined)
         } catch {
           return err('io')
+        }
+      })
+    },
+
+    remove(path, expected, how) {
+      return serialized(path, async () => {
+        if (!(await insideProject(path))) return err('outside-project')
+        const current = await diskRevision(path)
+        if (current === null) return err('missing')
+        if (current !== expected) return err('stale')
+        if (how === 'trash' && !options.trash) return err('no-trash')
+        try {
+          if (how === 'trash' && options.trash) await options.trash(absolute(path))
+          else await rm(absolute(path))
+          return ok(undefined)
+        } catch {
+          return err(how === 'trash' ? 'no-trash' : 'io')
         }
       })
     },

@@ -3,7 +3,7 @@ import type { ChapterRef, ProjectView, TimelineSectionView, TimelineThreadView }
 import { boardDrop, chapterChips, lineUpChoices, timelineGrid, type TimelineCell, type TimelineRow } from '@plotdevice/presentation'
 import type { ProjectPath } from '@plotdevice/shared'
 import { computed, ref, watch } from 'vue'
-import { useConfirm } from '../composables/use-confirm'
+import { useOutlineRoles } from '../composables/use-outline-roles'
 import { useKinds } from '../composables/use-kinds'
 import { usePrompt } from '../composables/use-prompt'
 import { useSettingsStore } from '../stores/settings'
@@ -20,7 +20,7 @@ const emit = defineEmits<{ 'new-outline': [] }>()
 const story = useStoryStore()
 const settings = useSettingsStore()
 const kinds = useKinds()
-const { confirm } = useConfirm()
+const roles = useOutlineRoles()
 const { ask } = usePrompt()
 const t = settings.t
 
@@ -48,10 +48,14 @@ const threads = computed(() => story.timeline?.threads ?? [])
 const main = computed<TimelineThreadView | null>(() => threads.value[0] ?? null)
 const nameOf = (thread: { file: ProjectPath; title: string | null } | null | undefined): string => thread?.title ?? thread?.file ?? ''
 const mainName = computed(() => nameOf(main.value))
-// The main outline is never hidden: its sections are the columns.
+// The main outline is never hidden: its sections are the columns. Set-aside outlines are off the
+// timeline too, yet still line others up through chains.
 const shownHidden = computed(() => new Set([...hidden.value].filter((file) => file !== main.value?.file)))
-const grid = computed(() => (story.timeline ? timelineGrid(story.timeline, shownHidden.value) : null))
-const hiddenCount = computed(() => threads.value.filter((thread) => shownHidden.value.has(thread.file)).length)
+const offTimeline = computed(() => new Set([...shownHidden.value, ...(props.project.setAside ?? [])]))
+const grid = computed(() => (story.timeline ? timelineGrid(story.timeline, offTimeline.value) : null))
+const hiddenCount = computed(
+  () => threads.value.filter((thread) => shownHidden.value.has(thread.file) && !story.isSetAside(thread.file)).length,
+)
 const columnsStyle = computed(() => ({
   gridTemplateColumns: (grid.value?.columns ?? [])
     .map((column) => (column.main === null ? 'minmax(9rem, 0.8fr)' : 'minmax(11rem, 1fr)'))
@@ -88,22 +92,18 @@ async function addCard(row: TimelineRow, cell: TimelineCell): Promise<void> {
     await story.editIn(row.file, { kind: 'add-item', to: { section: cell.section, parentPath: [], index: cell.items.length }, text })
 }
 
-async function makeMain(file: ProjectPath): Promise<void> {
-  const thread = threads.value.find((each) => each.file === file)
-  if (await confirm(t('main-swap-question', nameOf(thread)), t('main-swap-action'))) await story.makeMain(file)
-}
-
 const otherOutlines = computed<MenuItem[]>(() =>
-  threads.value.slice(1).map((thread) => ({ key: thread.file, label: nameOf(thread), run: () => void makeMain(thread.file) })),
+  threads.value
+    .slice(1)
+    .filter((thread) => !story.isSetAside(thread.file))
+    .map((thread) => ({ key: thread.file, label: nameOf(thread), run: () => void roles.makeMain(thread.file) })),
 )
 
 function rowMenu(row: TimelineRow): MenuItem[] {
   return [
-    ...(row.isMain ? [] : [{ key: 'make-main', label: t('outline-make-main'), run: () => void makeMain(row.file) }]),
     { key: 'open', label: t('story-open-outline'), run: () => void story.open(row.file) },
-    ...(row.isMain
-      ? []
-      : [{ key: 'hide', label: t('timeline-hide'), group: 'hide', run: () => setHidden(new Set([...hidden.value, row.file])) }]),
+    ...(row.isMain ? [] : [{ key: 'hide', label: t('timeline-hide'), run: () => setHidden(new Set([...hidden.value, row.file])) }]),
+    ...roles.menu(row.file).map((item, index) => (index === 0 ? { ...item, group: 'roles' } : item)),
   ]
 }
 
@@ -433,7 +433,7 @@ const cellLabel = (row: TimelineRow, cell: TimelineCell): string =>
       <button type="button" class="link-button" @click="setHidden(new Set())">{{ t('timeline-show-all') }}</button>
     </p>
 
-    <div v-if="threads.length === 1" class="timeline-one" data-testid="timeline-one">
+    <div v-if="story.outlinesInUse.length === 1" class="timeline-one" data-testid="timeline-one">
       <h2>{{ t('timeline-one-title') }}</h2>
       <p class="secondary">{{ t('timeline-one-text') }}</p>
       <button type="button" class="primary" @click="emit('new-outline')">{{ t('timeline-new-storyline') }}</button>

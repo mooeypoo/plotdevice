@@ -36,9 +36,9 @@ import {
   createVersionRepository,
   withBackups,
 } from '@plotdevice/storage'
-import { app, BrowserWindow, dialog, ipcMain, Menu, session } from 'electron'
-import { access, readFile, stat } from 'node:fs/promises'
-import { join } from 'node:path'
+import { app, BrowserWindow, dialog, ipcMain, Menu, session, shell } from 'electron'
+import { access, readFile, rename, stat } from 'node:fs/promises'
+import { basename, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import icon from '../../../../assets/brand/icons/512x512.png?asset'
 import { applicationMenu } from './app-menu'
@@ -106,7 +106,8 @@ void app.whenReady().then(async () => {
 
   // Every write goes through these folders, so every file is backed up before the app changes it (Milestone 6).
   const backups = createBackupStore(userData)
-  const folders = withBackups(createProjectFolders(), { backups, now: Date.now })
+  // Deleted files go to the computer's Trash, where the author can get them back.
+  const folders = withBackups(createProjectFolders({ trash: testTrash ?? ((path) => shell.trashItem(path)) }), { backups, now: Date.now })
   const versions = createVersionRepository({ folders: createProjectFolders(), backups, now: Date.now })
   const repository = withSlowChapterSaves(
     createProjectRepository({ folders, journals: createJournalStore(userData), ids: randomIdGenerator }),
@@ -310,6 +311,18 @@ const UPDATE_RECHECK_MS = 6 * 60 * 60 * 1000
 const testFolderChoice = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_CHOOSE_FOLDER
 /** Test-only (unpackaged builds): the folder a backup goes to; empty means cancelled. */
 const testBackupTo = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_BACKUP_TO
+/**
+ * Test-only (unpackaged builds): a folder that stands in for the Trash, so tests never fill the real
+ * one; `none` means this computer has no Trash.
+ */
+const testTrashFolder = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_TRASH
+const testTrash =
+  testTrashFolder === undefined
+    ? undefined
+    : async (path: string): Promise<void> => {
+        if (testTrashFolder === 'none') throw new Error('no Trash')
+        await rename(path, join(testTrashFolder, basename(path)))
+      }
 /** Test-only (unpackaged builds): the file every save dialog "chooses"; empty means cancelled. */
 const testSaveAs = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_SAVE_AS
 /** Test-only (unpackaged builds): a local server standing in for GitHub's latest.json. */

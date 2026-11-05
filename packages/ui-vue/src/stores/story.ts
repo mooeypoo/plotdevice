@@ -72,10 +72,13 @@ export const useStoryStore = defineStore('story', () => {
   const focusItem = ref<string | null>(null)
   /** The book's outlines as the timeline reads them (ADR 0012); read again whenever it shows. */
   const timeline = ref<TimelineView | null>(null)
-  /** The main outline: the one `project.md` names, or else the first (ADR 0012). */
+  const isSetAside = (file: ProjectPath): boolean => project.project?.setAside.includes(file) ?? false
+  /** The outlines in use: all but those set aside (Milestone 20). */
+  const outlinesInUse = computed(() => outlines.value.filter((entry) => !isSetAside(entry.file)))
+  /** The main outline: the one `project.md` names, or else the first in use; never one set aside (ADR 0012). */
   const mainOutline = computed<ProjectPath | null>(() => {
     const named = project.project?.mainOutline ?? null
-    return outlines.value.some((entry) => entry.file === named) ? named : (outlines.value[0]?.file ?? null)
+    return outlinesInUse.value.some((entry) => entry.file === named) ? named : (outlinesInUse.value[0]?.file ?? null)
   })
 
   async function refresh(): Promise<void> {
@@ -170,6 +173,20 @@ export const useStoryStore = defineStore('story', () => {
   /** Makes `file` the main outline; nothing in the outlines changes. */
   async function makeMain(file: ProjectPath): Promise<void> {
     if (await project.setMainOutline(file)) await loadTimeline()
+  }
+
+  /** After an outline was set aside or brought back: the timeline, if it shows, reads again. */
+  async function afterRolesChanged(): Promise<void> {
+    if (showing.value.kind === 'timeline') await loadTimeline()
+  }
+
+  /** After an outline was deleted: off the list, and if it was open, the timeline (or nothing) shows instead. */
+  async function afterOutlineDeleted(file: ProjectPath): Promise<void> {
+    await refresh()
+    if (showing.value.kind === 'outline' && outline.value?.file === file) {
+      outline.value = null
+      if (outlines.value.length > 0) await showTimeline()
+    } else await afterRolesChanged()
   }
 
   /** Reads the open outline again, after it was written as text. */
@@ -303,6 +320,10 @@ export const useStoryStore = defineStore('story', () => {
     focusItem,
     timeline,
     mainOutline,
+    outlinesInUse,
+    isSetAside,
+    afterRolesChanged,
+    afterOutlineDeleted,
     loadTimeline,
     showTimeline,
     editIn,

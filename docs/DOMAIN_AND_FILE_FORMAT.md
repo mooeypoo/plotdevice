@@ -99,7 +99,14 @@ suggestedTags: [Player character, Villain, Ally]
 mainOutline: outlines/main-story.md
 ```
 - Its sections name the timeline's columns. Optional: without it, or if that file is gone, the first outline in the Plot group is main, and nothing is written on open.
-- The app writes it when a book is created from a template (its first outline), when an outline is added to a book that doesn't have it (naming the current main, so the new one doesn't take over), when the author makes another outline main, and when the main outline is deleted in the app. Each is a targeted frontmatter patch; no outline file changes.
+- The app writes it when a book is created from a template (its first outline), when an outline is added to a book that doesn't have it (naming the current main, so the new one doesn't take over), when the author makes another outline main, and when the main outline is set aside or deleted in the app. Each is a targeted frontmatter patch; no outline file changes.
+
+### Outlines set aside (Milestone 20)
+```yaml
+setAside: [outlines/old-plan.md]
+```
+- Outlines the author set aside: listed under **Set aside** at the end of Plot and kept off the timeline (still lining others up through chains). The file stays where it is; **Bring back** removes it from the list. A set-aside outline is never main.
+- Deleting an outline (owner, 2026-11-05) moves its file to the computer's Trash, after a confirmation; a backup is kept first. Only the outline goes: chapters and pages it links to stay, and line-ups in other outlines that pointed to it show as "can't line up". Where there is no Trash, the app says so and asks before deleting for good. `mainOutline` and `setAside` are updated in the same step.
 
 ## `CONTENTS.md`: reading order and parts
 ```markdown

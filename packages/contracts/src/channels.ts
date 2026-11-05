@@ -16,6 +16,8 @@ export const channels = {
   renameChapter: 'plotdevice:rename-chapter',
   changeKinds: 'plotdevice:change-kinds',
   setMainOutline: 'plotdevice:set-main-outline',
+  setOutlineAside: 'plotdevice:set-outline-aside',
+  deleteOutline: 'plotdevice:delete-outline',
   planFolderRenames: 'plotdevice:plan-folder-renames',
   renameFolders: 'plotdevice:rename-folders',
   undoFolderRenames: 'plotdevice:undo-folder-renames',

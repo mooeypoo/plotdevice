@@ -18,6 +18,8 @@ export interface TextToStore {
 export type ReadProblem = 'missing' | 'not-utf8' | 'outside-project' | 'io'
 export type WriteProblem = { code: 'stale'; diskRevision: Revision | null } | { code: 'read-only' | 'locked' | 'outside-project' | 'io' }
 export type RenameProblem = 'stale' | 'missing' | 'exists' | 'outside-project' | 'io'
+/** `no-trash`: this computer has no Trash the app can use; nothing was removed. */
+export type RemoveProblem = 'stale' | 'missing' | 'no-trash' | 'outside-project' | 'io'
 
 /**
  * One project's files, addressed by project paths (ADR 0005, ADR 0006). Every write states the
@@ -28,6 +30,11 @@ export interface FileStore {
   read(path: ProjectPath): Promise<Result<StoredText, ReadProblem>>
   write(path: ProjectPath, content: TextToStore, expected: Revision | null): Promise<Result<Revision, WriteProblem>>
   rename(from: ProjectPath, to: ProjectPath, expected: Revision): Promise<Result<void, RenameProblem>>
+  /**
+   * Removes a file the author chose to delete: to the computer's Trash, or for good once they agreed to
+   * that. Refused if the file changed since `expected`.
+   */
+  remove(path: ProjectPath, expected: Revision, how: 'trash' | 'for-good'): Promise<Result<void, RemoveProblem>>
   /** Every Markdown file in the project, skipping hidden folders. */
   listMarkdownFiles(): Promise<ProjectPath[]>
   /** Every file in one folder and its subfolders, of any type (images too), skipping hidden ones; `[]` when it isn't there. */

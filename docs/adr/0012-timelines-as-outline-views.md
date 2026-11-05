@@ -39,6 +39,7 @@ At the same time as [The night of the storm](main-story.md#the-night-of-the-stor
 8. **Time runs from the reading-start side** (D8): earlier moments on the right in a Hebrew interface, on the left in an English one. Confirmed by the owner on 2026-11-05: earlier is the reading-start side in each language.
 9. **Highlighting, not lanes:** a page or a tag can highlight the cards that link to it or carry it (Milestone 21). Lanes built from links are dropped: a thread is an outline, and nothing else.
 10. **Where it sits on screen can change.** The timeline grid is a projection with no knowledge of where it is shown, so moving it (for example into a Plot area of its own) changes navigation, not the timeline.
+11. **An outline set aside** is off the timeline but still lines others up through chains; **deleting** one moves only it to the Trash, and line-ups that pointed to it show "can't line up" (owner, 2026-11-05).
 
 ## Rejected
 

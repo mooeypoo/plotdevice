@@ -20,6 +20,7 @@ import {
   type ProjectView,
   type ResolveConflictResult,
   type TimelineResult,
+  type DeleteOutlineResult,
 } from '@plotdevice/contracts'
 import {
   copyBook,
@@ -37,7 +38,7 @@ import {
   createVersionRepository,
   withBackups,
 } from '@plotdevice/storage'
-import { access, cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { access, cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -367,6 +368,8 @@ describe('matching folder names (Milestone 18)', () => {
   })
 })
 
+const chapterFiles = (context: { root: string }) => readdir(join(context.root, 'manuscript'))
+
 describe('outline calls', () => {
   const MAIN = 'outlines/main-story.md'
 
@@ -473,6 +476,42 @@ describe('outline calls', () => {
       [MAIN, [null, null]],
       [created.value.file, [{ kind: 'section', outline: MAIN, section: 1, text: 'Ending' }]],
     ])
+  })
+
+  it('sets an outline aside and brings it back; the main outline moves on and comes back by name', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const created = (await context.call(channels.createOutline, { title: 'Bea’s path' })) as OutlineResult
+    if (!created.ok) throw new Error(created.error)
+    const aside = (await context.call(channels.setOutlineAside, { file: MAIN, aside: true })) as ProjectChangeResult
+    expect(aside.ok && [aside.value.setAside, aside.value.mainOutline]).toEqual([[MAIN], created.value.file])
+    const timeline = (await context.call(channels.getTimeline)) as TimelineResult
+    expect(timeline.ok && timeline.value.main).not.toBe(MAIN)
+    const back = (await context.call(channels.setOutlineAside, { file: MAIN, aside: false })) as ProjectChangeResult
+    expect(back.ok && back.value.setAside).toEqual([])
+    expect(await context.read(MAIN)).toBe(await readFile(join(FIXTURE, MAIN), 'utf8'))
+  })
+
+  it('deletes only the outline, asking first where there is no Trash; line-ups to it can’t line up', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const created = (await context.call(channels.createOutline, { title: 'Bea’s path' })) as OutlineResult
+    if (!created.ok) throw new Error(created.error)
+    await context.call(channels.editOutline, { file: created.value.file, edit: { kind: 'add-section', index: 0, text: 'Hiding' } })
+    await context.call(channels.editOutline, {
+      file: created.value.file,
+      edit: { kind: 'line-up-section', section: 0, lineUp: { outline: MAIN, anchor: 'ending', text: 'Ending' }, words: '' },
+    })
+    const chapters = await chapterFiles(context)
+    // This test's computer has no Trash: nothing is deleted until the author agrees to delete for good.
+    expect(await context.call(channels.deleteOutline, { file: MAIN, how: 'trash' })).toEqual({ ok: false, error: 'no-trash' })
+    expect(await context.read(MAIN)).toBe(await readFile(join(FIXTURE, MAIN), 'utf8'))
+    const deleted = (await context.call(channels.deleteOutline, { file: MAIN, how: 'for-good' })) as DeleteOutlineResult
+    expect(deleted.ok && deleted.value.mainOutline).toBe(created.value.file)
+    await expect(context.read(MAIN)).rejects.toThrow()
+    expect(await chapterFiles(context)).toEqual(chapters)
+    const timeline = (await context.call(channels.getTimeline)) as TimelineResult
+    expect(timeline.ok && timeline.value.threads.map((thread) => thread.sections[0]?.lineUp?.kind)).toEqual(['missing'])
   })
 
   it('remembers the workspace, outline and view for next time', async () => {

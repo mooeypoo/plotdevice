@@ -214,3 +214,37 @@ describe('randomIdGenerator', () => {
     for (const id of ids) expect(id).toMatch(/^ch-[0-9a-z]{6}$/)
   })
 })
+
+describe('FileStore: removing a file the author deleted', () => {
+  it('sends it to the Trash it was given, only if it hasn’t changed', async () => {
+    const root = await tempDir()
+    await mkdir(join(root, 'outlines'))
+    await writeFile(join(root, 'outlines/old.md'), '# Old\n')
+    const trashed: string[] = []
+    const store = createFileStore(root, { trash: async (path) => void trashed.push(path) })
+    expect(await store.remove(p('outlines/old.md'), store.revisionOf(text('# Changed\n')), 'trash')).toEqual({ ok: false, error: 'stale' })
+    expect(trashed).toEqual([])
+    expect(await store.remove(p('outlines/old.md'), store.revisionOf(text('# Old\n')), 'trash')).toEqual({ ok: true, value: undefined })
+    expect(trashed).toEqual([join(root, 'outlines', 'old.md')])
+    expect(await store.remove(p('outlines/gone.md'), store.revisionOf(text('')), 'trash')).toEqual({ ok: false, error: 'missing' })
+  })
+
+  it('without a Trash, says so and removes nothing; deletes for good only when asked', async () => {
+    const root = await tempDir()
+    await writeFile(join(root, 'old.md'), 'x')
+    const store = createFileStore(root)
+    const revision = store.revisionOf(text('x'))
+    expect(await store.remove(p('old.md'), revision, 'trash')).toEqual({ ok: false, error: 'no-trash' })
+    expect(await readdir(root)).toEqual(['old.md'])
+    expect(await store.remove(p('old.md'), revision, 'for-good')).toEqual({ ok: true, value: undefined })
+    expect(await readdir(root)).toEqual([])
+  })
+
+  it('a Trash that fails leaves the file, and says there is no Trash', async () => {
+    const root = await tempDir()
+    await writeFile(join(root, 'old.md'), 'x')
+    const store = createFileStore(root, { trash: () => Promise.reject(new Error('no trash here')) })
+    expect(await store.remove(p('old.md'), store.revisionOf(text('x')), 'trash')).toEqual({ ok: false, error: 'no-trash' })
+    expect(await readdir(root)).toEqual(['old.md'])
+  })
+})

@@ -7,7 +7,7 @@ export {
   type ProjectId,
   type ProjectProblem,
 } from './project-details'
-export { mainOutlineOf, mainOutlineToKeep } from './main-outline'
+export { mainOutlineOf, mainOutlineToKeep, outlineRolesAfter, outlinesInUse, type OutlineRoleChange } from './main-outline'
 export {
   addKind,
   applyKindsChange,

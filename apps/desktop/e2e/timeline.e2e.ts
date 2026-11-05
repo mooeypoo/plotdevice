@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { closeSettings, launch, openSettings, type Launched } from './launch'
@@ -52,8 +52,8 @@ test.afterEach(async () => {
   await rm(base, { recursive: true, force: true })
 })
 
-async function start(): Promise<Page> {
-  running = await launch(join(base, 'user-data'), { PLOTDEVICE_TEST_CHOOSE_FOLDER: root })
+async function start(env: Record<string, string> = {}): Promise<Page> {
+  running = await launch(join(base, 'user-data'), { PLOTDEVICE_TEST_CHOOSE_FOLDER: root, ...env })
   const { page } = running
   await page.locator('.project-title, [data-testid="open-project"]').first().waitFor()
   if (await page.getByTestId('open-project').isVisible()) await page.getByTestId('open-project').click()
@@ -166,4 +166,59 @@ test('offers only moments that keep the storyline’s order', async () => {
   await expect(page.getByRole('menuitem', { name: 'Ending' })).toBeVisible()
   await expect(page.getByRole('menuitem', { name: 'Beginning' })).toHaveCount(0)
   await page.keyboard.press('Escape')
+})
+
+test('sets the main outline aside: it moves to “Set aside”, the next outline names the columns, and nothing is deleted', async () => {
+  const page = await start()
+  const main = storyline(page, MAIN)
+  await main.locator('.storyline-name').hover()
+  await main.locator('.storyline-name .menu-button').click()
+  await page.getByRole('menuitem', { name: 'Set aside' }).click()
+  await file('project.md').toContain('setAside: [outlines/main-story.md]\n')
+  await file('project.md').toContain('mainOutline: outlines/beas-path.md\n')
+  await expect(page.getByTestId('set-aside').locator('[data-outline]')).toHaveAttribute('data-outline', MAIN)
+  await expect(page.getByTestId('timeline-source')).toContainText('Bea’s path')
+  await expect(storyline(page, MAIN)).toHaveCount(0)
+  await expect(page.locator('.notice-toast')).toContainText('“Bea’s path” is now the main outline.')
+  expect(await read(MAIN)).toContain('## Beginning')
+
+  // Bring back: from its own ⋯ menu.
+  await page.getByTestId('set-aside').locator('[data-outline]').click()
+  await page.getByTestId('outline-menu').click()
+  await page.getByRole('menuitem', { name: 'Bring back' }).click()
+  await file('project.md').not.toContain('setAside')
+})
+
+test('deletes only the outline, to the Trash, after saying what will change', async () => {
+  const trash = join(base, 'trash')
+  await mkdir(trash)
+  const page = await start({ PLOTDEVICE_TEST_TRASH: trash })
+  const chapters = await readdir(join(root, 'manuscript'))
+  await page.locator(`[data-outline="${MAIN}"]`).click()
+  await page.getByTestId('outline-menu').click()
+  await page.getByRole('menuitem', { name: 'Delete outline…' }).click()
+  const dialog = page.locator('dialog[open]')
+  await expect(dialog).toContainText('Only this outline goes: chapters and pages stay.')
+  await expect(dialog).toContainText('One section of another outline is lined up with it')
+  await expect(dialog).toContainText('“Bea’s path” becomes the main outline.')
+  await page.getByTestId('confirm-yes').click()
+  await expect.poll(() => readdir(trash)).toEqual(['main-story.md'])
+  expect(await readdir(join(root, 'manuscript'))).toEqual(chapters)
+  await expect(page.locator(`[data-outline="${MAIN}"]`)).toHaveCount(0)
+  await expect(page.getByTestId('timeline')).toBeVisible()
+  // Bea's path is now the main outline; its section lined up with the deleted one can't line up.
+  await expect(storyline(page, BEA).locator('.timeline-cell').nth(1)).toHaveClass(/missing/)
+  await file('project.md').toContain('mainOutline: outlines/beas-path.md\n')
+})
+
+test('without a Trash, asks again before deleting for good', async () => {
+  const page = await start({ PLOTDEVICE_TEST_TRASH: 'none' })
+  await page.locator(`[data-outline="${HISTORY}"]`).click()
+  await page.getByTestId('outline-menu').click()
+  await page.getByRole('menuitem', { name: 'Delete outline…' }).click()
+  await page.getByTestId('confirm-yes').click()
+  await expect(page.locator('dialog[open]')).toContainText('This can’t be undone.')
+  expect(await read(HISTORY)).toContain('# History of Marrow')
+  await page.getByTestId('confirm-yes').click()
+  await file(HISTORY).toBe('')
 })

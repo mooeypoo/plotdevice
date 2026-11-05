@@ -31,6 +31,10 @@ export const outlineEditSchema = z.discriminatedUnion('kind', [
 export const outlineFileSchema = z.strictObject({
   file: outlineFile,
 })
+/** Set an outline aside, or bring it back (Milestone 20). */
+export const setOutlineAsideSchema = z.strictObject({ file: outlineFile, aside: z.boolean() })
+/** Delete an outline: to the computer's Trash, or for good once the author agreed to that. */
+export const deleteOutlineSchema = z.strictObject({ file: outlineFile, how: z.enum(['trash', 'for-good']) })
 export const editOutlineSchema = z.strictObject({ file: outlineFileSchema.shape.file, edit: outlineEditSchema })
 /** The starter outlines "New outline" offers (Milestone 19); the texts live in `packages/templates`. */
 export const starterSchema = z.enum(['three-acts', 'story-beats', 'character-arc', 'campaign-arc', 'session-plan'])

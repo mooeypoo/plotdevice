@@ -49,6 +49,9 @@ function memoryRepository() {
       writes++
       return ok({ document: doc(file), previous })
     },
+    async deleteOutline(_root, file) {
+      return files.delete(file) ? ok(undefined) : err('missing')
+    },
     async restoreOutline(_root, file, text, expected) {
       const entry = files.get(file)
       if (!entry) return err('missing')
@@ -283,5 +286,19 @@ describe('the timeline’s storylines (ADR 0012)', () => {
     const unnamed = await session.timeline(null)
     expect(unnamed.ok && unnamed.value.main).toBe(MAIN)
     expect(await setup(null).session.timeline(null)).toEqual({ ok: false, error: 'no-project' })
+  })
+})
+
+describe('deleting an outline', () => {
+  it('deletes it once its edits have landed, and forgets it', async () => {
+    const { session, files } = setup()
+    await session.open(MAIN)
+    const editing = session.edit(MAIN, { kind: 'set-title', text: 'Last words' })
+    const deleted = session.delete(MAIN, 'trash')
+    expect((await editing).ok).toBe(true)
+    expect(await deleted).toEqual({ ok: true, value: undefined })
+    expect(files.has(MAIN)).toBe(false)
+    expect(session.current(MAIN)).toBeNull()
+    expect(await session.delete(MAIN, 'trash')).toEqual({ ok: false, error: 'missing' })
   })
 })

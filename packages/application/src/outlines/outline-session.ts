@@ -1,8 +1,22 @@
 import type { TimelineLineUpView, TimelineView } from '@plotdevice/contracts'
-import { applyOutlineEdit, lineUpTarget, mainOutlineOf, sectionAnchors, type Outline, type OutlineEdit } from '@plotdevice/domain'
+import {
+  applyOutlineEdit,
+  lineUpTarget,
+  mainOutlineOf,
+  outlinesInUse,
+  sectionAnchors,
+  type Outline,
+  type OutlineEdit,
+} from '@plotdevice/domain'
 import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
 import type { Revision } from '../ports/file-store'
-import type { OutlineDocument, OutlineRepository, OutlineSummary, OutlineWriteProblem } from '../ports/outline-repository'
+import type {
+  OutlineDeleteProblem,
+  OutlineDocument,
+  OutlineRepository,
+  OutlineSummary,
+  OutlineWriteProblem,
+} from '../ports/outline-repository'
 
 /** An open outline, and whether the author's last edit to it can be undone. */
 export interface OutlineState extends OutlineDocument {
@@ -41,11 +55,13 @@ export interface OutlineSession {
   current(file: ProjectPath): OutlineState | null
   edit(file: ProjectPath, edit: OutlineEdit): Promise<Result<OutlineState, OutlineEditFailure>>
   undo(file: ProjectPath): Promise<Result<OutlineState, UndoFailure>>
+  /** Deletes an outline, after any edit to it has landed; it is no longer open. */
+  delete(file: ProjectPath, how: 'trash' | 'for-good'): Promise<Result<void, OutlineDeleteProblem | 'no-project'>>
   /**
    * Every outline as a storyline, the main one first, with each line-up resolved to the section it
    * points to (ADR 0012). `named` is the main outline `project.md` names. Outlines that can't be read are left out.
    */
-  timeline(named: ProjectPath | null): Promise<Result<TimelineView, 'no-project'>>
+  timeline(named: ProjectPath | null, setAside?: readonly ProjectPath[]): Promise<Result<TimelineView, 'no-project'>>
   /** A hint from the file watcher. */
   fileChanged(file: ProjectPath): Promise<void>
   onEvent(listener: (event: OutlineEvent) => void): () => void
@@ -210,7 +226,18 @@ export function createOutlineSession({ repository, root }: OutlineSessionOptions
       return result
     },
 
-    async timeline(named) {
+    async delete(file, how) {
+      const projectRoot = root()
+      if (!projectRoot) return err('no-project')
+      const entry = open.get(file)
+      const removed = await (entry
+        ? serially(entry, () => repository.deleteOutline(projectRoot, file, how))
+        : repository.deleteOutline(projectRoot, file, how))
+      if (removed.ok) open.delete(file)
+      return removed
+    },
+
+    async timeline(named, setAside = []) {
       const projectRoot = root()
       if (!projectRoot) return err('no-project')
       const read = await Promise.all(
@@ -221,9 +248,13 @@ export function createOutlineSession({ repository, root }: OutlineSessionOptions
       )
       const outlines = read.flat()
       const byFile = new Map(outlines.map((outline) => [outline.file, outline.outline]))
+      // A set-aside outline is never main; it is still read, so chains through it keep lining others up.
       const main = mainOutlineOf(
         named,
-        outlines.map((outline) => outline.file),
+        outlinesInUse(
+          outlines.map((outline) => outline.file),
+          setAside,
+        ),
       )
       const resolve = (lineUp: NonNullable<Outline['sections'][number]['lineUp']>): TimelineLineUpView => {
         const target = byFile.get(lineUp.outline)

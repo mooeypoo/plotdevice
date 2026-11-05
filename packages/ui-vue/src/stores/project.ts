@@ -168,6 +168,7 @@ export const useProjectStore = defineStore('project', () => {
     open,
     create,
     forget,
+    change,
     changeContents,
     setMainOutline,
     changeKinds,

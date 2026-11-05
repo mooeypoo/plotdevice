@@ -473,5 +473,19 @@
   "story-open-outline": "פתיחת המתווה",
   "timeline-drag-section": "אפשר לגרור אל רגע כדי ליישר",
   "timeline-move-to": "העברה אל „$1”",
-  "timeline-card-actions": "פעולות עבור הכרטיס „$1”"
+  "timeline-card-actions": "פעולות עבור הכרטיס „$1”",
+  "outline-set-aside": "להניח בצד",
+  "outline-bring-back": "להחזיר",
+  "story-set-aside": "בצד",
+  "outline-delete": "מחיקת המתווה…",
+  "outline-delete-question": "למחוק את „$1”? המתווה יעבור לפח של המחשב, ומשם אפשר להחזיר אותו. רק המתווה נמחק: הפרקים והדפים נשארים.",
+  "outline-delete-lined-up": "{{PLURAL:$1|מקטע אחד במתווה אחר מיושר איתו, והוא יסומן „אי אפשר ליישר”.|$1 מקטעים במתווים אחרים מיושרים איתו, והם יסומנו „אי אפשר ליישר”.}}",
+  "outline-delete-new-main": "„$1” יהיה המתווה הראשי.",
+  "outline-delete-action": "העברה לפח",
+  "outline-delete-for-good-question": "אין במחשב פח ש־Plot Device יכול להשתמש בו. למחוק את „$1” לצמיתות? אי אפשר לבטל את זה.",
+  "outline-delete-for-good": "מחיקה לצמיתות",
+  "outline-deleted": "„$1” נמצא בפח.",
+  "outline-deleted-for-good": "„$1” נמחק.",
+  "outline-now-main": "„$1” הוא עכשיו המתווה הראשי.",
+  "outline-delete-failed": "לא ניתן היה למחוק את המתווה. שום דבר לא השתנה."
 }

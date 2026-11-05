@@ -95,6 +95,22 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
     return read.value.revision === snapshot.contentsRevision ? ok(read.value) : err('stale' as const)
   }
 
+  /** One targeted change to `project.md`'s details, refused if the file changed meanwhile. */
+  async function patchProject(
+    snapshot: ProjectSnapshot,
+    change: (text: string) => Result<string, unknown>,
+  ): Promise<Result<ProjectSnapshot, ChangeProblem>> {
+    const store = folders.open(snapshot.root)
+    const current = await store.read(PROJECT_FILE)
+    if (!current.ok) return err('unreadable')
+    const text = change(current.value.text)
+    if (!text.ok) return err('unreadable')
+    if (text.value === current.value.text) return ok(snapshot)
+    const written = await store.write(PROJECT_FILE, { text: text.value, hasBom: current.value.hasBom }, current.value.revision)
+    if (!written.ok) return err(writeProblem(written.error))
+    return reopen(snapshot.root)
+  }
+
   return {
     open,
 
@@ -289,16 +305,15 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       return reopen(snapshot.root)
     },
 
-    async setMainOutline(snapshot, file) {
-      const store = folders.open(snapshot.root)
-      const current = await store.read(PROJECT_FILE)
-      if (!current.ok) return err('unreadable')
-      const text = setFrontmatterBlock(current.value.text, 'mainOutline', mainOutlineLines(file))
-      if (!text.ok) return err('unreadable')
-      if (text.value === current.value.text) return ok(snapshot)
-      const written = await store.write(PROJECT_FILE, { text: text.value, hasBom: current.value.hasBom }, current.value.revision)
-      if (!written.ok) return err(writeProblem(written.error))
-      return reopen(snapshot.root)
+    setMainOutline(snapshot, file) {
+      return patchProject(snapshot, (text) => setFrontmatterBlock(text, 'mainOutline', mainOutlineLines(file)))
+    },
+
+    setOutlineRoles(snapshot, { setAside, mainOutline }) {
+      return patchProject(snapshot, (text) => {
+        const aside = setFrontmatterList(text, 'setAside', setAside)
+        return aside.ok ? setFrontmatterBlock(aside.value, 'mainOutline', mainOutline && mainOutlineLines(mainOutline)) : aside
+      })
     },
 
     async renameFile(snapshot, file, newName) {
