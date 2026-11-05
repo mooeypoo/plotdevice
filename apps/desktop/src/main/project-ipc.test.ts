@@ -19,6 +19,7 @@ import {
   type UndoFolderRenamesResult,
   type ProjectView,
   type ResolveConflictResult,
+  type TimelineResult,
 } from '@plotdevice/contracts'
 import {
   copyBook,
@@ -449,6 +450,29 @@ describe('outline calls', () => {
     expect(await context.read(BEA)).toBe(before)
     const own = { kind: 'line-up-section', section: 0, lineUp: { outline: BEA, anchor: 'hiding', text: 'Hiding' }, words: '' }
     expect(await context.call(channels.editOutline, { file: BEA, edit: own })).toEqual({ ok: false, error: 'same-outline' })
+  })
+
+  it('gives the timeline every outline as a storyline, the main one first, with line-ups resolved', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const created = (await context.call(channels.createOutline, { title: 'Bea’s path' })) as OutlineResult
+    if (!created.ok) throw new Error(created.error)
+    await context.call(channels.editOutline, { file: created.value.file, edit: { kind: 'add-section', index: 0, text: 'Hiding' } })
+    await context.call(channels.editOutline, {
+      file: created.value.file,
+      edit: {
+        kind: 'line-up-section',
+        section: 0,
+        lineUp: { outline: MAIN, anchor: 'ending', text: 'Ending' },
+        words: 'At the same time as ',
+      },
+    })
+    const timeline = (await context.call(channels.getTimeline)) as TimelineResult
+    expect(timeline.ok && timeline.value.main).toBe(MAIN)
+    expect(timeline.ok && timeline.value.threads.map((thread) => [thread.file, thread.sections.map((section) => section.lineUp)])).toEqual([
+      [MAIN, [null, null]],
+      [created.value.file, [{ kind: 'section', outline: MAIN, section: 1, text: 'Ending' }]],
+    ])
   })
 
   it('remembers the workspace, outline and view for next time', async () => {

@@ -9,6 +9,7 @@ import {
   type StarterId,
   type OutlineView,
   type ProjectChangeResult,
+  type TimelineResult,
 } from '@plotdevice/contracts'
 import { mainOutlineToKeep } from '@plotdevice/domain'
 import { err, ok, type Result } from '@plotdevice/shared'
@@ -31,6 +32,11 @@ const view = <E extends string>(result: Result<OutlineState, E>): Result<Outline
 export function createOutlineHandlers({ outlines, writing, recent, starter }: OutlineIpcContext): Record<string, PayloadHandler> {
   return {
     [channels.listOutlines]: () => outlines.list(),
+    [channels.getTimeline]: async (): Promise<TimelineResult> => {
+      // Text typed in an outline's Text view lands first, as when opening an outline.
+      await writing.idle()
+      return outlines.timeline(writing.project()?.details.mainOutline ?? null)
+    },
     [channels.createOutline]: async (payload): Promise<OutlineResult> => {
       const request = parsePayload(createOutlineSchema, payload)
       const language = writing.project()?.details.language ?? 'en'

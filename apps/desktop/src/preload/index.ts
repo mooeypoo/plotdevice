@@ -31,6 +31,7 @@ const api: PlotDeviceApi = {
   leftOff: (request) => ipcRenderer.invoke(channels.leftOff, request),
   flushed: () => ipcRenderer.invoke(channels.flushed),
   listOutlines: () => ipcRenderer.invoke(channels.listOutlines),
+  getTimeline: () => ipcRenderer.invoke(channels.getTimeline),
   createOutline: (title, about, starter) =>
     ipcRenderer.invoke(channels.createOutline, { title, ...(about ? { about } : {}), ...(starter ? { starter } : {}) }),
   openOutline: (file) => ipcRenderer.invoke(channels.openOutline, { file }),

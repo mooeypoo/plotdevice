@@ -1,4 +1,5 @@
-import { applyOutlineEdit, lineUpTarget, sectionAnchors, type Outline, type OutlineEdit } from '@plotdevice/domain'
+import type { TimelineLineUpView, TimelineView } from '@plotdevice/contracts'
+import { applyOutlineEdit, lineUpTarget, mainOutlineOf, sectionAnchors, type Outline, type OutlineEdit } from '@plotdevice/domain'
 import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
 import type { Revision } from '../ports/file-store'
 import type { OutlineDocument, OutlineRepository, OutlineSummary, OutlineWriteProblem } from '../ports/outline-repository'
@@ -40,6 +41,11 @@ export interface OutlineSession {
   current(file: ProjectPath): OutlineState | null
   edit(file: ProjectPath, edit: OutlineEdit): Promise<Result<OutlineState, OutlineEditFailure>>
   undo(file: ProjectPath): Promise<Result<OutlineState, UndoFailure>>
+  /**
+   * Every outline as a storyline, the main one first, with each line-up resolved to the section it
+   * points to (ADR 0012). `named` is the main outline `project.md` names. Outlines that can't be read are left out.
+   */
+  timeline(named: ProjectPath | null): Promise<Result<TimelineView, 'no-project'>>
   /** A hint from the file watcher. */
   fileChanged(file: ProjectPath): Promise<void>
   onEvent(listener: (event: OutlineEvent) => void): () => void
@@ -202,6 +208,38 @@ export function createOutlineSession({ repository, root }: OutlineSessionOptions
       const projectRoot = root()
       if (result.ok && projectRoot) await followRename(projectRoot, file, before, result.value.outline)
       return result
+    },
+
+    async timeline(named) {
+      const projectRoot = root()
+      if (!projectRoot) return err('no-project')
+      const read = await Promise.all(
+        (await repository.listOutlines(projectRoot)).map(async ({ file, title }) => {
+          const document = await repository.readOutline(projectRoot, file)
+          return document.ok ? [{ file, title, outline: document.value.outline }] : []
+        }),
+      )
+      const outlines = read.flat()
+      const byFile = new Map(outlines.map((outline) => [outline.file, outline.outline]))
+      const main = mainOutlineOf(
+        named,
+        outlines.map((outline) => outline.file),
+      )
+      const resolve = (lineUp: NonNullable<Outline['sections'][number]['lineUp']>): TimelineLineUpView => {
+        const target = byFile.get(lineUp.outline)
+        const section = target ? lineUpTarget(target, lineUp.anchor) : null
+        return section === null ? { kind: 'missing', ...lineUp } : { kind: 'section', outline: lineUp.outline, section, text: lineUp.text }
+      }
+      const threads = outlines.map(({ file, title, outline }) => ({
+        file,
+        title,
+        sections: outline.sections.map((section) => ({
+          name: section.name,
+          items: section.items,
+          lineUp: section.lineUp && resolve(section.lineUp),
+        })),
+      }))
+      return ok({ main, threads: [...threads.filter((t) => t.file === main), ...threads.filter((t) => t.file !== main)] })
     },
 
     async fileChanged(file) {

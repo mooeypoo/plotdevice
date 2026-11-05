@@ -27,6 +27,7 @@ export const channels = {
   leftOff: 'plotdevice:left-off',
   flushed: 'plotdevice:flushed',
   listOutlines: 'plotdevice:list-outlines',
+  getTimeline: 'plotdevice:get-timeline',
   createOutline: 'plotdevice:create-outline',
   openOutline: 'plotdevice:open-outline',
   editOutline: 'plotdevice:edit-outline',

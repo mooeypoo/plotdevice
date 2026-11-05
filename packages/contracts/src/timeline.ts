@@ -1,4 +1,4 @@
-import type { ProjectPath } from '@plotdevice/shared'
+import type { ProjectPath, Result } from '@plotdevice/shared'
 import type { OutlineItemView } from './outline'
 
 /**
@@ -28,3 +28,5 @@ export interface TimelineView {
   main: ProjectPath | null
   threads: TimelineThreadView[]
 }
+
+export type TimelineResult = Result<TimelineView, 'no-project'>

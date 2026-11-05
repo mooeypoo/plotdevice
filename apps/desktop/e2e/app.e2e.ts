@@ -58,6 +58,7 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'getReportedTagProblems',
     'getShelf',
     'getShelfTags',
+    'getTimeline',
     'getUpdate',
     'leftOff',
     'linkedFrom',

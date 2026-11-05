@@ -83,7 +83,7 @@ export {
   type Place,
   type Workspace,
 } from './outline'
-export type { TimelineLineUpView, TimelineSectionView, TimelineThreadView, TimelineView } from './timeline'
+export type { TimelineLineUpView, TimelineResult, TimelineSectionView, TimelineThreadView, TimelineView } from './timeline'
 export {
   chapterLinksSchema,
   createReferenceSchema,

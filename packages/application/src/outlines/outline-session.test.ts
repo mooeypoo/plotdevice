@@ -255,3 +255,33 @@ describe('line-ups between outlines (ADR 0012)', () => {
     expect(files.get(BEA)?.revision).toBe(1)
   })
 })
+
+describe('the timeline’s storylines (ADR 0012)', () => {
+  const BEA = p('outlines/beas-path.md')
+  it('reads every outline, the main one first, with line-ups resolved to sections or missing', async () => {
+    const { session, files } = setup()
+    files.set(BEA, {
+      outline: {
+        title: 'Bea’s path',
+        preamble: [],
+        sections: [
+          { name: 'Hiding', intro: [], notes: [], lineUp: { outline: MAIN, anchor: 'Ending', text: 'Ending' }, items: [] },
+          { name: 'Lost', intro: [], notes: [], lineUp: { outline: MAIN, anchor: 'the-flood', text: 'The flood' }, items: [] },
+          { name: 'Gone', intro: [], notes: [], lineUp: { outline: p('outlines/deleted.md'), anchor: 'x', text: 'X' }, items: [] },
+        ],
+      },
+      revision: 1,
+    })
+    const timeline = await session.timeline(BEA)
+    expect(timeline.ok && timeline.value.main).toBe(BEA)
+    expect(timeline.ok && timeline.value.threads.map((thread) => thread.file)).toEqual([BEA, MAIN])
+    expect(timeline.ok && timeline.value.threads[0]?.sections.map((section) => section.lineUp)).toEqual([
+      { kind: 'section', outline: MAIN, section: 1, text: 'Ending' },
+      { kind: 'missing', outline: MAIN, anchor: 'the-flood', text: 'The flood' },
+      { kind: 'missing', outline: 'outlines/deleted.md', anchor: 'x', text: 'X' },
+    ])
+    const unnamed = await session.timeline(null)
+    expect(unnamed.ok && unnamed.value.main).toBe(MAIN)
+    expect(await setup(null).session.timeline(null)).toEqual({ ok: false, error: 'no-project' })
+  })
+})

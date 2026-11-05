@@ -8,6 +8,7 @@ import type {
   SaveChapterRequest,
 } from './chapter'
 import type { OutlineEditRequest, OutlineResult, OutlineSummaryView, Place, StarterId } from './outline'
+import type { TimelineResult } from './timeline'
 import type { Preferences, PreferencesPatch } from './preferences'
 import type { UpdateCheckView, UpdateView } from './updates'
 import type {
@@ -88,6 +89,8 @@ export interface PlotDeviceApi {
   flushed(): Promise<void>
 
   listOutlines(): Promise<OutlineSummaryView[]>
+  /** Every outline as a storyline, the main one first, line-ups resolved (ADR 0012). */
+  getTimeline(): Promise<TimelineResult>
   /** A new outline, about a page or from a starter outline (Milestone 19), or empty. */
   createOutline(title: string, about?: ProjectPath, starter?: StarterId): Promise<OutlineResult>
   openOutline(file: ProjectPath): Promise<OutlineResult>
