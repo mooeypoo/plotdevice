@@ -1,153 +1,150 @@
-# Milestone 20: Timeline view of an outline
+# Milestone 20: The timeline of the book's threads
 
-Status: **On hold** (2026-11-05). The owner wants dedicated research and design for timelines first; this plan is the starting point once that is done. Earlier: proposed 2026-11-05. Direction from `roadmap-16-approachable-studio-and-timelines.md` (Phase C) and ADR 0012 (accepted 2026-11-04). The roadmap's Milestone 21 (lanes) follows.
+Status: **Approved** (owner, 2026-11-05) after the research and design session (`timeline-design.md`, ADR 0012 as amended) and the mockups, with the main outline added the same day. The first version of this plan (one outline's timeline, then lanes by links) is replaced.
 
 ## Goal
 
-The author sees the plot laid out in time, from an outline they already have. **Timeline** is a fourth view beside Board, List and Text:
+The author keeps **parallel threads in step.** Board and List already show the plot laid out; the timeline shows the book's outlines side by side, one row each, lined up where the author says they meet:
 
-- the outline's sections are **moments** along a line, in file order, labelled by their headings;
-- the cards are the **events** at each moment;
-- no dates are parsed, and nothing new is written to the file (ADR 0012).
+```
+               Spring, 1912      The night of the storm   ┆                After the auction
+Main story     Ilka finds the    Bea leaves Marrow        ┆                The auction
+               letter  [Ch 2]    [Ch 1]                   ┆
+Bea's path     Childhood         Hiding at the boathouse  Three weeks in   ·
+               [Ch 7]            ⇄ lined up               the city
+```
+
+- each outline is a **thread**, its sections **moments** and its cards **events**;
+- a section is **lined up** with another outline's moment by one short line under its heading (`DOMAIN_AND_FILE_FORMAT.md`, "Lining up");
+- sections not lined up keep their order and sit between their lined-up neighbours;
+- no dates are parsed, and no new file is written.
 
 **Out of scope:**
 
-- **Lanes** (Milestone 21), unless open question 1 says otherwise.
-- **Tags on cards** (ADR 0012, decision 4, still open).
-- **Story order vs. book order, several outlines on one line, real dates** (ADR 0012, "Later").
+- **Highlighting a page's or a tag's cards** and **Show on the timeline** (Milestone 21).
+- **Bars, eras, real dates, a richer story-order view, lanes from links** (roadmap, Phase C "Later ideas").
+- **Plot, World and Write as three areas** (deferred; see "Placement" below).
 
 ## What I found in the code
 
-- **Story switches views with a plain list** in `StoryView.vue`: `['board', 'outline', 'text']`. Each one is its own branch in the template, and the keyboard shortcut and the ⋯ menu each check which view is showing.
-- **The view is remembered once per book, not per outline.** `rememberPlace` saves the workspace, the outline and its view (`board` or `outline`), and `use-remembered-place` restores them. The roadmap's "remembered per outline, like Board and List" describes something the app doesn't do today.
-- **The Board already lays out one column per section,** from `boardColumns` in `presentation/outline-views.ts`. A move is `boardDrop` → `actions.dropAt`, the same outline edit the Move menu uses. A Timeline move can reuse both unchanged, which is what ADR 0012 asks ("a Timeline move is a Board move").
-- **Cards don't name the chapter they tell.** A link to a chapter shows as linked text inside the card, wherever the author wrote it. Showing "where each event is told" as a label is new, but simple: the links are already parsed for "Linked from", and `references.ts` already lists chapters in reading order.
-- **Nothing on the screen says "timeline" yet.** The Milestone 17 mockups deliberately left the view switch with three views until the timeline was designed.
-
-## The main question: what a timeline adds before lanes
-
-Without lanes, a timeline shows the same thing as the Board: sections side by side, cards under each. What it adds is small:
-
-- a line with a marker per moment;
-- the chapter labels on cards;
-- a denser layout that fits a long story on one screen.
-
-Lanes (Milestone 21) are what authors asked for: each character's path, where paths cross, who disappears for half the book.
-
-Two ways to go:
-
-- **A. As planned:** Milestone 20 is the Timeline view and the view registry; Milestone 21 adds lanes. Smaller steps, but the first one gives authors little they can't already see on the Board.
-- **B. One milestone with both** (recommended): the view, the registry and lanes by a kind of page or by tag. Lanes' P2 and P3 ideas stay later. It's larger, roughly the size of Milestone 18, but it's the first version worth showing a tester.
-
-The rest of this plan is written for **B**. Under **A**, everything under "Lanes" moves to Milestone 21.
+- **Outlines already keep a section's intro paragraph** (text after the heading, before the cards; fixture `section-intro-paragraphs.md`). Lining up gives one such paragraph a meaning; the reader doesn't need a new block type.
+- **Link resolution drops the `#` part** (`markdown/src/links.ts`). Lining up needs it kept, plus a heading-anchor rule.
+- **Story switches views with a plain list** in `StoryView.vue`: `['board', 'outline', 'text']`. The timeline doesn't join that list: it is one item in the Plot group, opened like an outline.
+- **The Board's columns come from `boardColumns`** in `presentation/outline-views.ts`, and a move is `boardDrop` → `actions.dropAt`. A timeline card move reuses both, per thread.
+- **Cards don't name the chapter they tell.** The links are parsed for "Linked from", and `references.ts` lists chapters in reading order, so a chip is a small projection.
+- **Renaming a section edits one outline file.** Updating line-ups that point to it is new: a targeted edit in each outline that links there.
 
 ## Design first
 
-ADR 0012 and the Milestone 17 notes ask for a design session before building: no Timeline control appears until it's designed. So, before code:
+First mockups (2026-11-05): https://claude.ai/artifact/2u7Ab9WaYXybFJtwf7sWyW, in the Milestone 17 look, Hebrew in light and English in dark: the timeline with three storylines, **Line up with…**, a lined-up outline on its Board, and one storyline so far. Still to draw:
 
-- **Mockups** in the Milestone 17 design canvas, Hebrew in light and English in dark:
-  - the timeline with no lanes;
-  - lanes by Characters;
-  - lanes by a tag;
-  - a long book (40 moments);
-  - a narrow window;
-  - one page's timeline opened from the page.
-- **Decided there:**
-  - how a moment is drawn: a marker on a line with the heading under it, or a column header;
-  - how wide a moment is;
-  - how a card shared by two lanes is marked;
-  - how the chapter label looks;
-  - where "Lanes by…" sits in the header row.
+- lining up by dragging a section;
+- a "can't line up" section;
+- a long book (60 moments) and a narrow window.
+
+Decided there: how a moment's label sits above its column; how "not lined up" looks; the chip; the lined-up mark (⇄) on Board, List and Text; how wide a gap is.
 
 ## What the author will see
 
-### Timeline
+### The timeline
 
-- **A fourth view in the switch:** Board · List · Text · Timeline. The view is remembered like the others.
-- **A horizontal line of moments,** earlier moments on the reading-start side: right to left in a Hebrew interface (ADR 0012, decision 5). Each moment's heading is under its marker, and its cards are stacked below. Cards before the first section form a moment called "Before".
-- **Cards are compact.** They show the card's text and a small label for each chapter they link to ("Chapter 3 · The Crossing", or "Session 3" in a campaign). Details are folded; the card opens as it does on the Board.
-- **Long stories scroll sideways.** The line stays in view while the cards scroll under it.
-- **Moving a card:** drag it to another moment, or use the Move menu ("Move to: Spring, 1912"). Either way it's the same file change as moving it on the Board.
-- **Editing stays on Board, List and Text.** The timeline can add a card to a moment, but renaming sections and editing details happen in the other views.
+- **Timeline** at the top of the Plot group, above the outlines.
+- **Rows:** one per storyline, the storyline's name at the reading-start edge. Each row is a labelled region.
+- **The top row is the main outline,** with a small "Main" label (also beside it in the sidebar, where it is listed first). Its sections are the named columns, in its file order, even where nothing lines up with them.
+- **One quiet line above the grid says where the names come from:** "Column names come from the main outline, Main story. **Change…** · Click a name to rename it; + adds a section." It is always there, not a tip that disappears.
+- **Column titles are the main outline's own section headings,** nothing else: not chapters, not dates, not a separate list. Clicking one renames that section in its outline (and updates line-ups that point to it); hovering shows **+** between two columns, which adds a section there, as **Add section** does on the Board.
+- **Changing the main outline:** **Make this the main outline** in an outline's ⋯ (sidebar, header or timeline row), or **Change…** above the grid. A short message: "The timeline's columns will take the names of Bea's path's sections. Main story moves below it, and what is lined up stays lined up. Nothing in your outlines changes: not the text, not the line-ups. You can switch back at any time." Only `project.md` is written.
+- **Columns:** earlier on the reading-start side (right in Hebrew). A section lined up with a main-outline section, directly or through a chain, shares its column. Sections not lined up open a narrow, untitled column in the gap between their neighbours, show their own name in their cell, and look a little lighter.
+- **Dates, if wanted, are just headings.** An author who wants years makes an outline whose sections are "1840", "1912", "1913" and makes it the main outline; nothing in the app parses them.
+- **One outline so far:** it is the main outline, shown alone, with the invitation to add a storyline.
+- **Cards** are compact: their text and a chip per chapter they link to ("Chapter 3 · The Crossing", or "Session 3"). Details are folded; a card opens as on the Board.
+- **Long books scroll sideways;** the moment labels and thread names stay in view.
 
-### Lanes (option B)
+### Lining up
 
-- **"Lanes by…"** in the header row: nobody (one line), any kind of page in the book (Characters, NPCs, Factions…), or Tags.
-- **A card is in a page's lane when it, or one of its details, links to that page.** The links are the ones "Linked from" uses; nothing is guessed from names.
-  - A card linked to two pages shows in both lanes, marked as shared.
-  - Cards with no links go in a folded lane at the end ("No one", or the kind's own word: "No faction").
-- **Which lanes:**
-  - every page of the kind, A to Z;
-  - or only the pages with chosen tags ("main cast"), using Milestone 12's tag filter;
-  - a lane can be hidden from its own ⋯.
-- **Gaps are visible:** a moment where a lane has no card shows as an empty stretch of that lane.
-- **From a page:** "Show on the board" gains **Show on the timeline**, which opens the outline's timeline with that page's lane alone.
-- **Moving a card between moments** works in lanes too. Moving it between lanes is not offered, because a lane comes from a link, not a place in the file.
+- **Drag a section's label** onto a moment of another thread, or **Line up with…** in its menu: a list of the other threads' moments.
+- The app writes one line under the section's heading, in the project's language: "At the same time as The night of the storm" / "במקביל ל־ליל הסערה". Board, List and Text show it as a quiet ⇄ line.
+- **Unpin** in the same menu removes it.
+- **Can't line up:** a target that is gone, or a line-up that contradicts the thread's own order (lined up after a later moment). The section sits in its gap with a quiet mark; its menu offers **Line up again…** and **Unpin**. Nothing is rewritten on its own.
 
-## Decisions (proposed)
+### Moving and adding
 
-1. **A view registry,** internal only (ADR 0012, decision 6). Each view has an id, a message key for its name, whether it can be remembered, and its component. Board, List and Text move onto it now, because Timeline would otherwise be a fourth branch in each of the three places that check views. No plugin API.
-2. **`timeline` joins `outlineViewKindSchema`.** It's remembered with the book's place, like Board and List. Remembering per outline isn't built (open question 3).
-3. **Projection in presentation:**
-   - `timelineMoments(outline)` builds moments and their events from the outline view;
-   - `timelineLanes(moments, links, choice)` assigns events to lanes.
-   Both are pure, and both reuse `boardColumns`' paths, so a move is the existing `boardDrop` / `dropAt`.
-4. **Chapter labels** come from links in the card and its details to files in `manuscript/`, named as the chapter list names them, with the book's word for chapters (Milestone 18).
-5. **Lane links** come from the outline's own parsed links, resolved the way "Linked from" resolves them. A link to a missing page shows that page's lane only under "No one".
-6. **Remembered lane choice:** per book, with the outline view. It's saved by internal ids only (a kind's folder, a tag's key).
+- **Cards** move between moments of their own thread, by dragging or the Move menu: the same file change as on the Board. Cards don't move between threads.
+- **+ Add a card** at a moment of a thread.
+- **New thread** creates an outline (the existing New outline flow) and opens it on the timeline.
+- Renaming sections and editing card text happen on Board, List and Text.
+
+## Decisions
+
+1. **Which outlines are storylines:** all of the book's outlines (owner, 2026-11-05). A storyline can be hidden from its row's ⋯; hidden storylines are remembered per book with the workspace, not in the files.
+2. **The main outline** (owner, 2026-11-05) is `mainOutline` in `project.md`, a project-relative path: a book property that travels with it, unlike hiding a row.
+   - Missing key, or a file that is gone: the first outline in the Plot group (nothing is written on open).
+   - A new book from a template names its first outline. Adding an outline to a book without the key writes the key with the current main first, so a new outline never takes over by accident (outlines are listed by file name today, `outline-repository.ts`).
+   - Deleting the main outline in the app: the confirmation names the outline that becomes main, and the key is updated.
+   - Changing it writes only `project.md`. Line-ups read both ways, so none is rewritten and the grid keeps every line-up.
+3. **The lining-up rule,** exactly as in `DOMAIN_AND_FILE_FORMAT.md`: the first intro paragraph with exactly one link to another outline's section.
+4. **Anchors:** written as heading slugs; the reader also accepts the heading text. Renaming a section in the app updates every line-up that points to it, file by file, with the usual revision checks; a file that changed outside the app is left alone and its line-up shows as "can't line up".
+5. **Domain:** project: `mainOutline` and the rule that resolves it; outline: a section's `lineUp` (target outline id, anchor), and commands `LineUpSection` and `UnpinSection`. Markdown adapters add, replace or remove only that paragraph.
+6. **Presentation:** a pure `timelineGrid(main, threads, chapters)` returning columns, rows and cells, with "not lined up" and "can't line up" flags. Columns are a merge of each thread's order under its line-ups; a cycle marks the offending line-ups as "can't line up".
+7. **Placement:** the grid knows nothing of where it is shown. `BookTimeline.vue` draws a grid it is given; where it opens is one navigation entry. Moving it to a Plot area later changes that entry only.
+8. **Words:** "storyline" (the row) and "main outline" are working names, kept in i18n only, with stable internal ids, as the replaceable-names test requires.
 
 ## Files
 
-- **Contracts:** `outline.ts` (`timeline` in the view kinds; the lane choice in the remembered place).
-- **Presentation:**
-  - new `timeline.ts`: moments, events, chapter labels, lanes, and the screen-reader name of a card ("Bea, Spring 1912, Ilka finds the letter");
-  - its tests.
-- **Interface:**
-  - new `composables/outline-views.ts`: the registry;
-  - new `components/OutlineTimeline.vue` and `components/TimelineCard.vue`;
-  - `StoryView.vue`: the switch, the shortcut and the ⋯ menu from the registry;
-  - `ReferencePage.vue`: Show on the timeline;
-  - `stores/view.ts`, `use-remembered-place.ts`, `base.css`.
-- **Desktop:** the remembered place's schema.
-- **Words:** `en.json`, `he.json` and `qqq.json`: the view's name, "Before", "Lanes by…", "No one", Show on the timeline, and the accessible names.
-- **Guide:** a new page, "Timeline", in English and Hebrew; `planning/outlines.mdx` ("Four ways to see it"); screenshots.
-- **Docs:** ADR 0012 implementation note, `UX_SPEC.md`, the Hebrew review list, Results.
+- **Domain:** `project` (`mainOutline` and which outline is main), `outline/outline.ts` (line-ups, the commands' rules), their tests.
+- **Storage:** reading and patching `mainOutline` in `project.md`; template creation names the first outline.
+- **Markdown:** `links.ts` (keep the `#` part; anchors), `read-outline.ts` (line-ups from intro paragraphs), `edit-outline.ts` (add, replace, remove the line), tests and fixtures.
+- **Application:** the two commands; **Make this the main outline**; adding and deleting outlines keep the main outline; renaming a section updates line-ups elsewhere.
+- **Contracts:** the timeline in the remembered place; hidden threads.
+- **Presentation:** new `timeline.ts` (`timelineGrid`, chapter chips, accessible names such as "Bea's path, The night of the storm, Hides the letter"), its tests.
+- **Interface:** new `BookTimeline.vue`, `TimelineCard.vue`; the Plot group's Timeline item; Board, List and Text show the ⇄ line; `base.css`.
+- **Words:** `en.json`, `he.json`, `qqq.json`: Timeline, storyline, main outline, Main, the column-names line, Make this the main outline and its message, Line up with…, Unpin, Line up again…, can't line up, the written line in each language, the empty state, accessible names.
+- **Guide:** a new page, "Timeline", in English and Hebrew, opening with where the columns come from (below); `planning/outlines.mdx` (the main outline); screenshots.
+
+### What the guide says first
+
+> The timeline shows your outlines side by side, one row each. The **column names are the sections of your main outline**, the one marked *Main*. To add a column, add a section to it (the **+** between two columns does that); to rename a column, click its name. To use another outline's sections as the columns, choose **Make this the main outline** from that outline's ⋯. Nothing in your outlines changes when you do.
+- **Docs:** ADR 0012 implementation note, the Hebrew review list, Results.
 
 ## Tests
 
 Stated before coding.
 
-- **Presentation:**
-  - moments from sections in file order, with empty sections, cards before the first section ("Before"), Hebrew and English headings;
-  - chapter labels from links in cards and details, with the book's chapter word;
-  - lanes from links in cards and details, for built-in and custom kinds;
-  - shared and unlinked cards, and links to missing pages;
-  - lane order, deterministic and A to Z in the interface's language;
-  - lanes by tag.
-- **Fidelity:** a shared fixture where a Timeline move and the equivalent Board move produce byte-identical files.
-- **Performance:** 300 cards × 40 lanes projected within the existing budget (`pnpm perf`).
-- **Accessibility:**
-  - each lane is a labelled region, and each moment a labelled group;
-  - cards are reachable by keyboard in moment order;
-  - the Move menu works as the keyboard equivalent of dragging.
-- **End to end:**
-  - Board → Timeline → List with no change to the file;
-  - move a card on the Timeline and see the file change;
-  - Hebrew: earlier moments on the right;
-  - lanes by Characters, then by a tag;
-  - Show on the timeline from a page.
+- **Domain:** which outline is main (named, missing key, missing file, one outline); a section lines up with another outline only; one line-up per section; unpin.
+- **Storage:** writing `mainOutline` keeps the rest of `project.md` byte for byte; adding an outline to a book without the key writes the current main; a new book from each template names its first outline.
+- **Markdown:**
+  - reading line-ups in English and Hebrew, with the words around the link free;
+  - links to pages, chapters or the same outline line nothing up;
+  - anchors for Hebrew, punctuated and repeated headings, and heading text accepted;
+  - line up, then unpin, gives the original file byte for byte; replacing a line-up changes only that line;
+  - an older-style outline with an ordinary intro paragraph is untouched.
+- **Application:** renaming a section updates line-ups in other outlines; a stale file is refused and reported.
+- **Presentation:** the same line-ups with each outline as main give the same groups of sections in step; the grid with sections before, between and after line-ups; two threads sharing a gap; chains (A lined up with B, B with the main story); contradictions and cycles; missing targets; chips with the book's chapter word.
+- **Fidelity:** a timeline card move and the equivalent Board move produce byte-identical files.
+- **Architecture:** `timeline.ts` imports nothing from the interface or navigation.
+- **Performance:** 300 cards, 12 threads, 60 moments within the existing budget (`pnpm perf`).
+- **Accessibility:** threads as labelled regions; cards reachable by keyboard in moment order; Move and Line up with… as the keyboard equivalents of dragging.
+- **End to end:** open the timeline; read where the columns come from; rename a column; make another outline main and see only `project.md` change; line up Bea's section by menu and see the file; move a card; unpin; Hebrew: earlier moments on the right.
 
 ## Work order
 
-1. The design session and mockups, then this plan revised to match.
-2. The view registry, with Board, List and Text moved onto it, changing nothing on screen (the existing e2e tests prove it).
-3. The timeline projection and its tests; then the view, moving cards and chapter labels.
-4. Lanes, the lane choice, Show on the timeline, performance.
-5. Accessibility, Hebrew, the guide, screenshots, Results.
+1. Mockups and this plan: approved by the owner on 2026-11-05. The drag and "can't line up" mockups are drawn when step 5 starts.
+2. Anchors and line-ups in Markdown and the domain, test-first.
+3. `timelineGrid` and its tests.
+4. The timeline screen: rows, columns, cards, chips, moving cards.
+5. Lining up by menu, then by dragging; unpin; can't line up; renames.
+6. Accessibility, Hebrew, the guide, screenshots, Results.
 
 ## Open questions
 
-1. **One milestone or two?** Recommendation: **B**, the timeline and lanes together, because a timeline without lanes repeats the Board. Or **A**, as the roadmap has it.
-2. **Earlier moments on the reading-start side** (right in Hebrew) is a working rule that ADR 0012 asks to check with Hebrew testers before it ships. Recommendation: you decide from the mockups, and the testers check it after the release. Or wait for testers before shipping.
-3. **Remember the view per outline** (the roadmap's wording) or per book, as Board and List are today? Recommendation: per book, as today, so the four views behave the same. Per outline is a small change later if testers want it.
-4. **Editing on the timeline.** Recommendation: move cards, open them and add a card to a moment; editing text and sections stays on Board, List and Text. Or full editing, as on the Board.
+Answered by the owner on 2026-11-05:
+
+1. **Which outlines show:** all of them, each hideable.
+2. **What the author calls a thread:** **storyline / קו עלילה**, as a working name in i18n.
+3. **The written line:** "At the same time as [moment]" in English and "במקביל ל־[moment]" in Hebrew, written in the project's language. Wording can change later; the rule doesn't depend on it.
+4. **Direction:** earlier moments on the reading-start side, right in Hebrew and left in English, as "before" reads in each language.
+5. **Chains** (A lined up with B, B with the main story) are allowed.
+
+6. **Column names** come from a **main outline** the author can see and change; a new or one-outline book's first outline is main; changing it warns of nothing because nothing in the outlines changes, and the message says so.
+
+No open questions remain.

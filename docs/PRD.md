@@ -1,5 +1,5 @@
 # Plot Device — Product Requirements Document
-Version: 0.4 (draft, 2026-11-04). Roadmap decisions D1–D9 (`docs/plans/roadmap-16-approachable-studio-and-timelines.md`) applied.
+Version: 0.5 (draft, 2026-11-05). Roadmap decisions D1–D9 (`docs/plans/roadmap-16-approachable-studio-and-timelines.md`) applied; timeline design decided 2026-11-05 (`docs/plans/timeline-design.md`).
 
 ## 1. Product statement
 Plot Device is a local-first, multilingual writing studio for non-technical writers, including people who are wary of technology: people who work in Word today, who distrust cloud tools and subscriptions, and who will never type `## ` on purpose. It combines a distraction-minimized chapter writer with a flexible Story workspace for outlines, plots, characters, places and whatever else the project needs.
@@ -34,13 +34,13 @@ G7. No visible Markdown: in normal use an author never sees Markdown symbols. Ra
 - Editing chapters does not require outlines, characters or plots.
 
 ### Story (working label; user-testing may change it)
-- User-created outlines shown as Board, List (Outline), Text and, from Milestone 20, Timeline views. Views are presentations of one outline, not duplicated content. (Cards was removed in Milestone 11.)
+- User-created outlines shown as Board, List (Outline) and Text views. Views are presentations of one outline, not duplicated content. (Cards was removed in Milestone 11.)
 - Text shows the outline rendered (sections as headings, cards as bullets, links as names) and is typed freely (Milestone 14, rendered from Milestone 16).
 - Every page, chapter and outline can be opened as **plain text**: the same file with every mark visible, saved exactly as typed (ADR 0010).
 - Multiple independent outlines per project (`outlines/*.md`), e.g. main story, character arc, loose ideas.
 - Simple model: Markdown `##` headings map to sections/board columns; primary bullets map to cards; nested bullets map to detail hierarchy. This shape is fixed, and explained to authors rather than made configurable.
 - Drag cards within/between sections while keeping nested children; keyboard equivalents mandatory.
-- **Timeline** (Milestone 20, ADR 0012): an outline's sections as moments in time and its cards as events. Lanes per page follow (Milestone 21), chosen by kind or by tag. A view of the outline only, never a separate timeline file or engine.
+- **Timeline** (Milestone 20, ADR 0012): one per book, to keep parallel threads in step. Each thread is an outline, shown as a row; its sections are moments and its cards events. The column names are the sections of the book's main outline, which the author can see and change. The author lines up a few moments with another outline's moments, and the rest fall in between. A card linked to a chapter shows the chapter's name, so flashbacks show at a glance. A page or tag can highlight its cards (Milestone 21). Never a separate timeline file or engine, and no dates.
 - World pages are of the **kinds the project defines** (ADR 0011): Characters, Places and Notes by default; NPCs, Factions, Items or anything else when the author adds them. All kinds behave the same: title, other names, description, relationships, tags.
 - Create/edit pages as Markdown with human-friendly UI.
 - Optional links from outline items to chapters and pages. A named heading 'Chapter 3' does **not** implicitly link to manuscript Chapter 3.
@@ -82,9 +82,9 @@ G7. No visible Markdown: in normal use an author never sees Markdown symbols. Ra
 - Editor-focused layout must remain visually quieter than Story workspace.
 
 ## 9. Scope
-IN: local project management; chapter writing; optional parts; manuscript ordering; Markdown persistence; Story outlines; Board/List/Text projections; rendered editing with a plain-text mode; page kinds per project; templates for new projects; timelines and lanes as views of outlines; Word import for chapters; basic characters/places/notes; quick reference shelf; English/Hebrew; RTL/BiDi; light/dark/system; autosave and external-change guardrails; keyboard access; basic manuscript export.
+IN: local project management; chapter writing; optional parts; manuscript ordering; Markdown persistence; Story outlines; Board/List/Text projections; rendered editing with a plain-text mode; page kinds per project; templates for new projects; a timeline of the book's threads, as a view of its outlines; Word import for chapters; basic characters/places/notes; quick reference shelf; English/Hebrew; RTL/BiDi; light/dark/system; autosave and external-change guardrails; keyboard access; basic manuscript export.
 
-LATER, designed together with the owner before any plan: export to Word; backups to a folder the author chooses; story order vs. book order on the timeline; several outlines on one timeline; optional real dates on moments; tags on cards (ADR 0012); optional nikkud, possibly with a dedicated way to type it; a read-only relationship map drawn from existing relationships (ADR 0009). See the roadmap's Milestone 21 and 22 tables.
+LATER, designed together with the owner before any plan: export to Word; backups to a folder the author chooses; a richer story-order vs. book-order view on the timeline; things that last across moments (bars) and eras; optional real dates on moments; lanes built from links; tags on cards (ADR 0012); optional nikkud, possibly with a dedicated way to type it; a read-only relationship map drawn from existing relationships (ADR 0009). See the roadmap's Milestone 21 and 22 tables.
 
 OUT: cloud sync, collaboration, AI writing, full publishing suite, hand-drawn relationship webs, a separate timeline engine or timeline file, dates guessed from prose, arbitrary block database, semantic scenes, generalized board configuration language, a public plugin API and real-time multieditor merge.
 
@@ -104,6 +104,6 @@ K. Author adds a "Factions" kind, creates a faction, links it from a card, renam
 ## 11. Open product decisions
 - Final public label for 'Story' workspace.
 - Names for the rendered Text view and the plain-text mode, if "Text" and "plain text" prove confusing in testing.
-- Which way time runs in a Hebrew interface (D8): earlier on the reading-start side (right in Hebrew, left in English) is the working rule, to validate with Hebrew testers.
+- Which way time runs in a Hebrew interface (D8): earlier on the reading-start side (right in Hebrew, left in English), confirmed by the owner on 2026-11-05.
 - Optional document links and outline item stable-ID encoding after proof of concept.
 - Final color palette and theme contrast audits.

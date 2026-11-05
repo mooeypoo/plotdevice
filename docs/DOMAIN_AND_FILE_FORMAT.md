@@ -1,5 +1,5 @@
 # Plot Device — Domain and Markdown File Format
-Version: 0.5 (2026-11-04). Project layout per ADR 0006; Markdown fidelity per ADR 0003; text direction per ADR 0004; safe writes per ADR 0005; rendered editing per ADR 0010; page kinds per ADR 0011; timelines per ADR 0012.
+Version: 0.6 (2026-11-05). Project layout per ADR 0006; Markdown fidelity per ADR 0003; text direction per ADR 0004; safe writes per ADR 0005; rendered editing per ADR 0010; page kinds per ADR 0011; timelines per ADR 0012.
 
 ## Domain vocabulary
 - Project: identity, display metadata, language, chapter numbering style, schema version, its kinds of pages and the name of its manuscript unit.
@@ -20,7 +20,7 @@ Version: 0.5 (2026-11-04). Project layout per ADR 0006; Markdown fidelity per AD
 - Chapter title: the chapter's frontmatter `title`; the contents link text mirrors it.
 - Outlines: `outlines/*.md` bodies.
 - Page text: dedicated Markdown files in their kind's folder.
-- Project details (title, author, language, numbering style, schema version, kinds, manuscript unit): `project.md` frontmatter.
+- Project details (title, author, language, numbering style, schema version, kinds, manuscript unit, main outline): `project.md` frontmatter.
 - Personal theme, locale, layout, pinned items, backups and recovery journals: OS app data, never the project folder.
 - Search indexes, caches and thumbnails: disposable, never authoritative.
 
@@ -93,6 +93,13 @@ suggestedTags: [Player character, Villain, Ally]
 - The app writes these keys with targeted frontmatter patches, as it does for `title`. Key order, comments and unknown keys are kept.
 - Removing a kind removes its entry only; its folder and pages stay, and show in "Not sorted yet".
 - These keys are optional additions: `schemaVersion` stays 1 and no migration is needed. An older version of the app ignores them and the folders it doesn't know; nothing is lost.
+
+### The main outline (ADR 0012)
+```yaml
+mainOutline: outlines/main-story.md
+```
+- Its sections name the timeline's columns. Optional: without it, or if that file is gone, the first outline in the Plot group is main, and nothing is written on open.
+- The app writes it when a book is created from a template (its first outline), when an outline is added to a book that doesn't have it (naming the current main, so the new one doesn't take over), when the author makes another outline main, and when the main outline is deleted in the app. Each is a targeted frontmatter patch; no outline file changes.
 
 ## `CONTENTS.md`: reading order and parts
 ```markdown
@@ -170,7 +177,17 @@ The letter was written in English, and it began without a greeting.
 - In default Board: H2 -> columns, first-level list item -> card, descendants -> details. Mapping and supported Markdown are defined in ADR 0003.
 - The Text view (Milestone 14) shows the outline's body, rendered from Milestone 16 (sections as headings, cards as bullets, links as names), to type freely, and saves it like a chapter's text; frontmatter is kept as is. Board and List read the file again when they show.
 - Rendering never changes the file (ADR 0010). What the author types is written as typed; in plain text, every mark is visible and saved exactly as typed.
-- The Timeline view (ADR 0012) reads the same outline: each `##` section is a moment in file order, labelled by its heading (no dates are parsed), and each card is an event. Lanes come only from explicit links and tags. No new file, field or syntax.
+- The Timeline (ADR 0012) reads all the book's outlines: each outline is a thread, each `##` section a moment in file order, labelled by its heading (no dates are parsed), and each card an event. The main outline's sections are the column names.
+- **Lining up** (ADR 0012): a section's intro paragraph (after the heading, before the first card) that contains exactly one link to a section of **another** outline lines that section up with it. The words around the link are the author's own; the app writes "At the same time as" or "במקביל ל־", in the project's language.
+  ```markdown
+  ## Hiding at the boathouse
+  At the same time as [The night of the storm](main-story.md#the-night-of-the-storm)
+  - Hides the letter in the boathouse
+  ```
+  - The `#` part is the target heading's anchor: lowercase, punctuation removed, spaces as `-`, Hebrew and other letters kept, `-1`, `-2` for repeated headings. The heading's own text is accepted too.
+  - Only the first such paragraph counts. Links to pages, chapters or the same outline don't line anything up.
+  - The app adds or removes that one line when the author lines up or unpins, and updates its link when the app renames the target section. A link to a section that is gone is shown as "can't line up" and never rewritten without the author.
+  - No new file, field or syntax; an older app shows the line as the section's intro text.
 - Do not conflate board card with manuscript chapter/scene.
 - Unknown Markdown blocks: retain; if structural editing cannot round-trip safely, restrict operation with helpful explanation.
 - Cards link to chapters, characters and places with ordinary relative Markdown links. Cards themselves have no stored IDs in the MVP (ADR 0003).
