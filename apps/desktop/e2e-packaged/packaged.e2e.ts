@@ -1,13 +1,19 @@
 import { _electron as electron, expect, test, type ElectronApplication, type Page } from '@playwright/test'
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 const FIXTURE = join(import.meta.dirname, '../../../tests/fixtures/projects/salt-orchard')
-const executable =
-  process.env.PLOTDEVICE_PACKAGED ??
-  join(import.meta.dirname, '..', 'dist', process.platform === 'win32' ? 'win-unpacked/plotdevice.exe' : 'linux-unpacked/plotdevice')
+const dist = join(import.meta.dirname, '..', 'dist')
+/** The unpacked app electron-builder leaves in `dist`; on a Mac, its folder is named after the architecture. */
+function unpacked(): string {
+  if (process.platform === 'win32') return join(dist, 'win-unpacked/plotdevice.exe')
+  if (process.platform !== 'darwin') return join(dist, 'linux-unpacked/plotdevice')
+  const folder = ['mac-arm64', 'mac', 'mac-universal'].find((name) => existsSync(join(dist, name))) ?? 'mac-arm64'
+  return join(dist, folder, 'Plot Device.app/Contents/MacOS/Plot Device')
+}
+const executable = process.env.PLOTDEVICE_PACKAGED ?? unpacked()
 
 function sandboxBlocked(): boolean {
   if (process.platform !== 'linux') return false

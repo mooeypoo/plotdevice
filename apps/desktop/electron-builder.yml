@@ -33,6 +33,14 @@ nsis:
   uninstallDisplayName: Plot Device
   createDesktopShortcut: always
   license: ../../LICENSE
+# Built and tested in CI only, unsigned, until Apple's developer programme is decided (owner, 2026-11-05).
+mac:
+  target: dmg
+  identity: null
+  icon: ../../assets/brand/icons/512x512.png
+  category: public.app-category.productivity
+dmg:
+  artifactName: plotdevice-${version}-${arch}.${ext}
 linux:
   target:
     - AppImage
