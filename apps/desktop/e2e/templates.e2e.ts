@@ -1,0 +1,117 @@
+import { expect, test, type Page } from '@playwright/test'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { closeSettings, launch, openSettings, type Launched } from './launch'
+
+// Templates for new projects (Milestone 19): the picker, what each template makes and where it opens,
+// starter outlines, the outline guide, and "New project…" over an open book. In English and Hebrew.
+let base = ''
+let running: Launched | undefined
+
+test.beforeEach(async () => {
+  base = await mkdtemp(join(tmpdir(), 'plotdevice-templates-'))
+})
+test.afterEach(async () => {
+  await running?.app.close()
+  running = undefined
+  await rm(base, { recursive: true, force: true })
+})
+
+async function start(locale: 'en' | 'he'): Promise<Page> {
+  running = await launch(join(base, 'user-data'), { PLOTDEVICE_TEST_CHOOSE_FOLDER: base })
+  const { page } = running
+  if (locale === 'he') {
+    await openSettings(page)
+    await page.getByTestId('language').selectOption('he')
+    await closeSettings(page)
+  }
+  return page
+}
+
+async function create(page: Page, template: string, title: string): Promise<void> {
+  await expect(page.getByTestId('new-project-location')).toHaveText(base)
+  await page.getByTestId(`template-${template}`).click()
+  await page.getByTestId('new-project-title').fill(title)
+  await page.getByTestId('new-project-create').click()
+  await page.locator('.project-title').waitFor()
+}
+
+const file = (path: string) => expect.poll(() => readFile(join(base, path), 'utf8').then(decodeURI, () => ''))
+
+test('a D&D campaign: five kinds, sessions, the session plan, an NPC linked from it, and a starter outline', async () => {
+  const page = await start('en')
+  await page.getByTestId('new-project').click()
+  await expect(page.getByTestId('template-novel').locator('input')).toBeChecked()
+  await create(page, 'campaign', 'The Sunken Crown')
+
+  // It opens on the session plan, with the outline guide above it, once.
+  await expect(page.getByTestId('outline-title')).toHaveText('Session plan')
+  await expect(page.getByTestId('board').locator('h3', { hasText: 'Opening scene' })).toBeVisible()
+  await expect(page.getByTestId('outline-guide')).toBeVisible()
+  await page.getByTestId('outline-guide-done').click()
+  await expect(page.getByTestId('outline-guide')).toHaveCount(0)
+  for (const folder of ['npcs', 'locations', 'factions', 'items', 'lore'])
+    await expect(page.locator(`[data-gallery="${folder}"]`)).toBeVisible()
+
+  // An NPC, linked from a card in the session plan.
+  await page.locator('[data-gallery="npcs"]').click()
+  await page.getByTestId('new-npcs').click()
+  await page.getByTestId('prompt-input').fill('Captain Vey')
+  await page.getByTestId('prompt-input').press('Enter')
+  await page.locator('[data-outline="outlines/session-plan.md"]').click()
+  await expect(page.getByTestId('outline-guide')).toHaveCount(0)
+  const card = page.locator('.outline-card', { hasText: 'A messenger is waiting at the inn' })
+  await card.locator('.menu-button').first().click()
+  await page.getByTestId('menu-link-to').click()
+  await page.getByTestId('link-search').fill('Captain Vey')
+  await page.getByTestId('link-search').press('Enter')
+  await file('The Sunken Crown/outlines/session-plan.md').toContain('(../npcs/captain-vey.md)')
+  await file('The Sunken Crown/project.md').toContain('manuscriptUnit:\n  one: Session\n  many: Sessions\n')
+
+  // A new outline from a starter takes the starter's name until the author types one.
+  await page.getByTestId('new-outline').click()
+  await page.getByTestId('prompt-choice-story-beats').click()
+  await expect(page.getByTestId('prompt-input')).toHaveValue('Story beats')
+  await page.getByTestId('prompt-input').press('Enter')
+  await expect(page.getByTestId('outline-title')).toHaveText('Story beats')
+  await file('The Sunken Crown/outlines/story-beats.md').toContain('## Act one\n\n- Opening image\n')
+
+  // Write calls chapters sessions.
+  await page.getByTestId('workspace-write').click()
+  await expect(page.getByTestId('new-chapter').filter({ visible: true })).toHaveText('New Session')
+})
+
+test('a Hebrew novel opens on its outline, in Hebrew and right to left', async () => {
+  const page = await start('he')
+  await page.getByTestId('new-project').click()
+  await expect(page.getByTestId('new-project-language')).toHaveValue('he')
+  await create(page, 'novel', 'מטע המלח')
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+  await expect(page.getByTestId('outline-title')).toHaveText('העלילה')
+  await expect(page.getByTestId('board').locator('h3', { hasText: 'התחלה' })).toBeVisible()
+  await expect(page.getByTestId('outline-guide')).toContainText('מקטעים הם הצעדים הגדולים')
+  await file('מטע המלח/project.md').toContain('suggestedTags: [דמות ראשית, דמות משנית]')
+})
+
+test('a short story opens in Write on its chapter; "New project…" over a book, and Back to it', async () => {
+  const page = await start('en')
+  await page.getByTestId('new-project').click()
+  await create(page, 'short-story', 'Salt')
+  await expect(page.getByTestId('workspace-write')).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.locator('[aria-current="page"]')).toContainText('Salt')
+
+  await page.getByTestId('app-menu').click()
+  await page.getByTestId('menu-new-project').click()
+  await expect(page.getByTestId('new-project-form')).toBeVisible()
+  await page.getByTestId('new-project-back').click()
+  await expect(page.getByTestId('new-project-form')).toHaveCount(0)
+  await expect(page.locator('[aria-current="page"]')).toContainText('Salt')
+
+  // Blank is what a new project always was.
+  await page.getByTestId('app-menu').click()
+  await page.getByTestId('menu-new-project').click()
+  await create(page, 'blank', 'Notebook')
+  await expect(page.locator('.project-title')).toHaveText('Notebook')
+  await file('Notebook/project.md').not.toMatch(/kinds|manuscriptUnit|suggestedTags/)
+})

@@ -142,6 +142,7 @@ test('a new book: the first chapter says where to start, and Story and World eac
   root = base
   const page = await start()
   await page.getByTestId('new-project').click()
+  await page.getByTestId('template-blank').click()
   await page.getByTestId('new-project-title').fill('A New Book')
   await page.getByTestId('new-project-create').click()
   await page.getByTestId('navigator').waitFor()

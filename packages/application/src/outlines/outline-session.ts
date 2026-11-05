@@ -28,7 +28,11 @@ export interface OutlineSessionOptions {
  */
 export interface OutlineSession {
   list(): Promise<OutlineSummary[]>
-  create(title: string, about?: ProjectPath): Promise<Result<OutlineState, 'no-project' | 'empty-text' | 'multiline-text' | 'write-failed'>>
+  create(
+    title: string,
+    about?: ProjectPath,
+    starter?: string,
+  ): Promise<Result<OutlineState, 'no-project' | 'empty-text' | 'multiline-text' | 'write-failed'>>
   open(file: ProjectPath): Promise<Result<OutlineState, 'no-project' | 'missing' | 'unreadable'>>
   current(file: ProjectPath): OutlineState | null
   edit(file: ProjectPath, edit: OutlineEdit): Promise<Result<OutlineState, OutlineEditFailure>>
@@ -75,10 +79,10 @@ export function createOutlineSession({ repository, root }: OutlineSessionOptions
       return projectRoot ? repository.listOutlines(projectRoot) : []
     },
 
-    async create(title, about) {
+    async create(title, about, starter) {
       const projectRoot = root()
       if (!projectRoot) return err('no-project')
-      const created = await repository.createOutline(projectRoot, title, about)
+      const created = await repository.createOutline(projectRoot, title, about, starter)
       if (!created.ok) return created
       const entry: Open = { document: created.value, undo: [], queue: Promise.resolve() }
       open.set(created.value.file, entry)

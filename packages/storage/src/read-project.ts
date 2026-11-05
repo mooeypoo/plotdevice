@@ -23,7 +23,7 @@ import {
   parseManuscriptUnit,
 } from '@plotdevice/domain'
 import { parseContents, readFrontmatter, type ContentsChapterItem } from '@plotdevice/markdown'
-import { collisionKey, err, ok, parseProjectPath, resolveRelative, type ProjectPath, type Result } from '@plotdevice/shared'
+import { cleanTags, collisionKey, err, ok, parseProjectPath, resolveRelative, type ProjectPath, type Result } from '@plotdevice/shared'
 
 export const PROJECT_FILE = 'project.md' as ProjectPath
 export const CONTENTS_FILE = 'CONTENTS.md' as ProjectPath
@@ -37,7 +37,7 @@ export async function readDetails(store: FileStore, warnings: ProjectWarning[]):
   if (!file.ok) return err(file.error === 'missing' ? 'not-a-project' : file.error === 'io' ? 'io' : 'unreadable-project-file')
   const values = readFrontmatter(file.value.text)
   if (!values.ok) return err('unreadable-project-file')
-  const { title, author, language, chapterNumbering, id, schemaVersion, kinds, manuscriptUnit } = values.value
+  const { title, author, language, chapterNumbering, id, schemaVersion, kinds, manuscriptUnit, suggestedTags } = values.value
   if (typeof title !== 'string' || title.trim() === '') return err('unreadable-project-file')
   const version = typeof schemaVersion === 'number' ? schemaVersion : 1
   if (version > CURRENT_SCHEMA_VERSION) return err('newer-format')
@@ -58,6 +58,8 @@ export async function readDetails(store: FileStore, warnings: ProjectWarning[]):
     schemaVersion: version,
     kinds: readKinds.ok ? readKinds.value : DEFAULT_KINDS,
     manuscriptUnit: readUnit.ok ? readUnit.value : null,
+    // A list or a single tag, as on a page; anything else suggests nothing.
+    suggestedTags: cleanTags((Array.isArray(suggestedTags) ? suggestedTags : [suggestedTags]).filter((tag) => typeof tag === 'string')),
   })
 }
 

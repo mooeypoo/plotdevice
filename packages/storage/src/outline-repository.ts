@@ -41,7 +41,7 @@ export function createOutlineRepository({ folders }: { folders: ProjectFolders }
       )
     },
 
-    async createOutline(root, title, about) {
+    async createOutline(root, title, about, starter) {
       const name = title.trim()
       if (name === '') return err('empty-text')
       if (/[\r\n]/.test(name)) return err('multiline-text')
@@ -52,7 +52,7 @@ export function createOutlineRepository({ folders }: { folders: ProjectFolders }
         path: relativePath(OUTLINES_FOLDER, about),
         title: page?.ok ? readReferencePage(page.value.text, stemOf(about)).title : stemOf(about),
       }
-      const content = { text: newOutlineFile(name, link ?? undefined), hasBom: false }
+      const content = { text: newOutlineFile(name, link ?? undefined, starter), hasBom: false }
       // A name taken between listing and writing is refused (`expected: null`), so look again.
       for (let attempt = 0; attempt < 3; attempt++) {
         const file = outlineFileFor(name, await store.listMarkdownFiles())

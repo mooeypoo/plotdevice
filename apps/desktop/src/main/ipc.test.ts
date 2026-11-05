@@ -13,6 +13,7 @@ const OTHER_DEFAULTS = {
   pageWidth: 'medium',
   checkForUpdates: true,
   plainTextByDefault: false,
+  outlineGuideSeen: false,
   navigatorWidth: 272,
   shelfWidth: 336,
 } as const

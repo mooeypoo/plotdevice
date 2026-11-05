@@ -109,6 +109,15 @@ input {
 input::placeholder {
   color: var(--color-text-secondary);
 }
+/* Read by screen readers, not shown: a radio inside a card, a legend the cards already explain. */
+.visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .link-button {
   border: none;
   background: none;
@@ -504,12 +513,150 @@ label {
   color: var(--color-accent);
   text-underline-offset: 0.2em;
 }
-.welcome-view .new-project {
-  inline-size: min(28rem, 100%);
-  padding: 1.5rem;
+/* The outline guide, once, above the first outline opened (Milestone 19) */
+.outline-guide {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-block-end: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
   background: var(--color-card);
-  border-radius: 16px;
   box-shadow: var(--shadow-soft);
+}
+.outline-guide p {
+  flex: 1;
+  margin: 0;
+}
+.outline-guide-board {
+  inline-size: 4.5rem;
+  flex: none;
+}
+.guide-section {
+  fill: var(--color-text-secondary);
+  opacity: 0.5;
+}
+.guide-card {
+  fill: var(--hover);
+  stroke: var(--hair);
+}
+.prompt-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border: none;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+.prompt-choices legend {
+  padding: 0;
+  margin-block-end: 0.35rem;
+}
+.prompt-choice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* The template picker (Milestone 19): the question, four cards, then the details. */
+.welcome-view.picking {
+  align-items: stretch;
+  padding-block-start: 2rem;
+}
+.welcome-view.over-book {
+  grid-row: 2;
+  grid-column: 1;
+  z-index: 5;
+  background-color: var(--color-app);
+}
+.welcome-view .new-project {
+  inline-size: min(72rem, 100%);
+  margin-inline: auto;
+}
+.new-project-back {
+  padding-inline: 0;
+}
+.new-project-question {
+  font:
+    400 2.2rem/1.2 var(--font-prose),
+    serif;
+  margin-block: 1rem 0.4rem;
+}
+.new-project-later {
+  margin-block: 0 1.5rem;
+}
+.templates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+  border: none;
+  padding: 0;
+  margin: 0 0 1.75rem;
+}
+.template-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.1rem 1.2rem;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  background: var(--color-card);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+}
+.template-card:hover {
+  border-color: var(--hair);
+}
+.template-card.chosen {
+  border-color: var(--color-accent);
+}
+.template-card:has(:focus-visible) {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+.template-name {
+  font:
+    500 1.25rem/1.25 var(--font-prose),
+    serif;
+}
+.template-peek {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  background: var(--hover);
+  font-size: 0.85rem;
+}
+.template-description {
+  font-size: 0.92rem;
+  flex: 1;
+}
+.template-summary {
+  font-size: 0.8rem;
+}
+.new-project-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0 1rem;
+}
+/* Not a <label>: it names a read-only folder and its Choose… button, but looks like the labels beside it. */
+.location-label {
+  color: var(--color-text-secondary);
+}
+.location-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.location {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
 }
 .recent {
   inline-size: min(30rem, 100%);

@@ -38,6 +38,7 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'changeContents',
     'changeKinds',
     'checkForUpdates',
+    'chooseNewProjectLocation',
     'chooseShelfTags',
     'compileBook',
     'copyVersion',
@@ -63,6 +64,7 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'listOutlines',
     'listReferences',
     'listVersions',
+    'newProjectLocation',
     'onEvent',
     'openChapter',
     'openOutline',
@@ -232,7 +234,7 @@ test('the start screen offers the guide to moving an existing book in, in the in
   // Starting a new book hides it, to keep the form calm.
   await page.getByTestId('new-project').click()
   await expect(link).toBeHidden()
-  await page.getByRole('button', { name: 'Cancel' }).click()
+  await page.getByTestId('new-project-back').click()
 
   await openSettings(page)
   await page.getByTestId('language').selectOption('he')

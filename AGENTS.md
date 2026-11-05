@@ -43,6 +43,7 @@ Priority of authority: explicit user decisions > current PRD/UX/file-format/arch
 ## Coding conventions
 - Vue 3 Composition API with TypeScript, Electron, strict TS monorepo, Vitest, ESLint/Prettier. Select exact versions during scaffold; don't cargo-cult legacy lockfile.
 - The editor is CodeMirror 6 (ADR 0004). Every editing surface is rendered by default, with a plain-text mode in the same editor instance (ADR 0010). Never add a second editor library.
+- Every new UI message gets a translator's note in `packages/i18n/src/messages/qqq.json` (what it is, where it shows, its parameters).
 - Banana-style keyed JSON localization; translator facade supports parameters, plural, gender, CLDR as needed; avoid gettext/POT. Use logical CSS properties, isolation for user content and keyboard-accessible drag alternatives.
 - Document exported domain/application interfaces concisely. Explain *why* in comments; avoid verbose boilerplate. A short README per bounded context is encouraged.
 - No new app feature, cross-context coupling, schema change or dependency without identifying which requirement it serves.

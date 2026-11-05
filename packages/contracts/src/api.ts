@@ -7,7 +7,7 @@ import type {
   ResolveConflictResult,
   SaveChapterRequest,
 } from './chapter'
-import type { OutlineEditRequest, OutlineResult, OutlineSummaryView, Place } from './outline'
+import type { OutlineEditRequest, OutlineResult, OutlineSummaryView, Place, StarterId } from './outline'
 import type { Preferences, PreferencesPatch } from './preferences'
 import type { UpdateCheckView, UpdateView } from './updates'
 import type {
@@ -55,8 +55,12 @@ export interface PlotDeviceApi {
   getOpenProject(): Promise<OpenedProject | null>
   /** `'choose'` asks the author for a folder; a recent project is opened by its folder. */
   openProject(request: OpenProjectRequest): Promise<OpenProjectResult>
-  /** Asks the author where to put the new project's folder. */
+  /** Makes a new project from a template, in a folder the host offered (Milestone 19). */
   createProject(details: NewProjectRequest): Promise<CreateProjectResult>
+  /** Where a new project goes unless the author chooses: beside the last one opened, or in Documents. */
+  newProjectLocation(): Promise<string>
+  /** Asks the author for a folder to keep a new project in; `null` when they cancel. */
+  chooseNewProjectLocation(): Promise<string | null>
 
   changeContents(change: ContentsChangeRequest): Promise<ProjectChangeResult>
   /** Compiles the book into one Markdown file, asking the author where to save it. */
@@ -82,7 +86,8 @@ export interface PlotDeviceApi {
   flushed(): Promise<void>
 
   listOutlines(): Promise<OutlineSummaryView[]>
-  createOutline(title: string, about?: ProjectPath): Promise<OutlineResult>
+  /** A new outline, about a page or from a starter outline (Milestone 19), or empty. */
+  createOutline(title: string, about?: ProjectPath, starter?: StarterId): Promise<OutlineResult>
   openOutline(file: ProjectPath): Promise<OutlineResult>
   editOutline(file: ProjectPath, edit: OutlineEditRequest): Promise<OutlineResult>
   undoOutline(file: ProjectPath): Promise<OutlineResult>

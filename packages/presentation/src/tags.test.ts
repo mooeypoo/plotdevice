@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { ProjectView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
-import { groupByTags, partOf, tagProblems, tagRow, tagSuggestions } from './tags'
+import { groupByTags, partOf, tagProblems, tagRow, tagSuggestions, withSuggestedTags } from './tags'
 
 const pages = [
   { title: 'Bea', tags: ['Main', 'Varga family'] },
@@ -37,6 +37,18 @@ describe('tag suggestions', () => {
     expect(tagSuggestions(tags, [], 'ma')).toEqual(['Main', 'Marrow folk', 'Part Two – main'])
     expect(tagSuggestions(tags, [], 'family')).toEqual(['Varga family'])
     expect(tagSuggestions(tags, [], 'nothing like it')).toEqual([])
+  })
+})
+
+describe('suggested tags (Milestone 19)', () => {
+  it('are offered after the book’s own tags until a page uses them, each once', () => {
+    const tags = withSuggestedTags(tagRow(pages, 'en'), ['Villain', 'main', 'Ally', 'villain'])
+    expect(tags.slice(-2)).toEqual([
+      { tag: 'Villain', pages: 0 },
+      { tag: 'Ally', pages: 0 },
+    ])
+    expect(tagSuggestions(tags, [], 'vi')).toEqual(['Villain'])
+    expect(tagSuggestions(withSuggestedTags([], ['Player character', 'Villain']), [], '')).toEqual(['Player character', 'Villain'])
   })
 })
 

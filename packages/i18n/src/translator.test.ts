@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import en from './messages/en.json'
 import he from './messages/he.json'
+import qqq from './messages/qqq.json'
 import { catalogs, createTranslator, uiDirection } from './translator'
 
 describe('translate', () => {
@@ -34,6 +35,14 @@ describe('the real catalogs', () => {
 
   it('have the same keys in English and Hebrew', () => {
     expect(keys(he)).toEqual(keys(en))
+  })
+
+  // `qqq.json` tells translators what each message is and where it shows (banana-i18n's convention),
+  // so a translation tool can show it beside the message.
+  it('document every English key for translators, and nothing else', () => {
+    expect(keys(qqq)).toEqual(keys(en))
+    const thin = Object.entries(qqq).filter(([key, note]) => key !== '@metadata' && (typeof note !== 'string' || note.trim().length < 15))
+    expect(thin).toEqual([])
   })
 
   it('translate every key into Hebrew, except the product name', () => {

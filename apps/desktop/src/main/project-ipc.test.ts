@@ -1,3 +1,4 @@
+import { projectTemplate, starter } from '@plotdevice/templates'
 import { createOutlineSession, createRecentProjectsSession, createWritingSession, type SessionEvent } from '@plotdevice/application'
 import {
   channels,
@@ -49,6 +50,7 @@ const OTHER_DEFAULTS = {
   pageWidth: 'medium',
   checkForUpdates: true,
   plainTextByDefault: false,
+  outlineGuideSeen: false,
   navigatorWidth: 272,
   shelfWidth: 336,
 } as const
@@ -99,6 +101,8 @@ async function setup() {
       recent,
       chooseProjectFolder: async () => dialogs.folder,
       chooseNewProjectLocation: async () => dialogs.location,
+      defaultProjectLocation: join(base, 'Documents'),
+      template: projectTemplate,
       folderExists: (path) =>
         access(path).then(
           () => true,
@@ -115,7 +119,7 @@ async function setup() {
           () => false,
         ),
     },
-    outlines: { outlines, writing: session, recent },
+    outlines: { outlines, writing: session, recent, starter: (id, language) => starter(id, language).body },
     references: { references: createReferenceRepository({ folders }), writing: session, recent },
     versions: {
       versions: createVersionRepository({ folders: createProjectFolders(), backups, now }),
@@ -271,12 +275,36 @@ describe('project calls', () => {
     expect(order(current)).toEqual(original)
   })
 
-  it('creates a project where the author chooses, or not at all', async () => {
+  it('creates a project from a template, only in a folder it offered (Milestone 19)', async () => {
     const context = await setup()
-    expect(await context.call(channels.createProject, { title: 'מטע המלח', language: 'he' })).toEqual({ ok: false, error: 'cancelled' })
+    const details = { title: 'מטע המלח', language: 'he', template: 'novel' }
+    // Nothing offered yet: a folder the page made up is refused.
+    await expect(context.call(channels.createProject, { ...details, location: context.base })).rejects.toThrow('not-offered')
+    expect(await context.call(channels.chooseNewProjectLocation)).toBeNull()
     context.dialogs.location = context.base
-    const created = (await context.call(channels.createProject, { title: 'מטע המלח', language: 'he' })) as OpenProjectResult
+    expect(await context.call(channels.chooseNewProjectLocation)).toBe(context.base)
+    const created = (await context.call(channels.createProject, { ...details, location: context.base })) as OpenProjectResult
     expect(created.ok && created.value.project).toMatchObject({ title: 'מטע המלח', root: join(context.base, 'מטע המלח') })
+    // A book with no chapter opens on its first outline.
+    expect(created.ok && created.value.place).toEqual({ workspace: 'story', outline: 'outlines/העלילה.md' })
+    // The next one goes beside it, without asking.
+    expect(await context.call(channels.newProjectLocation)).toBe(context.base)
+    const story = (await context.call(channels.createProject, {
+      title: 'Salt',
+      language: 'en',
+      template: 'short-story',
+      location: context.base,
+    })) as OpenProjectResult
+    expect(story.ok && story.value.place).toBeUndefined()
+    expect(story.ok && story.value.project.chapters.map((chapter) => chapter.file)).toEqual(['manuscript/salt.md'])
+  })
+
+  it('starts a new outline from a starter, in the story’s language', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const created = (await context.call(channels.createOutline, { title: 'Ilka’s beats', starter: 'story-beats' })) as OutlineResult
+    expect(created.ok && created.value.file).toBe('outlines/ilka’s-beats.md')
+    expect(await context.read('outlines/ilka’s-beats.md')).toMatch(/^# Ilka’s beats\n\n## Act one\n\n- Opening image\n/)
   })
 
   it('passes on that the page has flushed its text', async () => {

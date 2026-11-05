@@ -17,6 +17,8 @@ export interface ProjectDetails {
   kinds: readonly PageKind[]
   /** What the interface calls a chapter; `null` for the app's own word. */
   manuscriptUnit: ManuscriptUnit | null
+  /** Tags "+ Tag" offers before any page uses them (Milestone 19); empty when `project.md` lists none. */
+  suggestedTags: readonly string[]
 }
 
 export const CURRENT_SCHEMA_VERSION = 1

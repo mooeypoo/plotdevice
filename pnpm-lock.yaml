@@ -223,6 +223,9 @@ importers:
       '@plotdevice/storage':
         specifier: workspace:*
         version: link:../../packages/storage
+      '@plotdevice/templates':
+        specifier: workspace:*
+        version: link:../../packages/templates
       '@plotdevice/ui-vue':
         specifier: workspace:*
         version: link:../../packages/ui-vue
@@ -423,6 +426,11 @@ importers:
       '@plotdevice/fs-node':
         specifier: workspace:*
         version: link:../fs-node
+      '@plotdevice/templates':
+        specifier: workspace:*
+        version: link:../templates
+
+  packages/templates: {}
 
   packages/ui-vue:
     dependencies:

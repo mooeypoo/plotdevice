@@ -34,6 +34,7 @@ export {
   forgetRecentProjectSchema,
   newProjectSchema,
   openProjectSchema,
+  templateIdSchema,
   projectPathSchema,
   renameChapterFileSchema,
   kindsChangeSchema,
@@ -44,6 +45,7 @@ export {
   type ContentsChangeRequest,
   type CreateProjectResult,
   type NewProjectRequest,
+  type TemplateId,
   type ChapterPosition,
   type OpenedProject,
   type OpenProjectRequest,
@@ -62,6 +64,8 @@ export {
 } from './project'
 export {
   createOutlineSchema,
+  starterSchema,
+  type StarterId,
   editOutlineSchema,
   outlineEditSchema,
   outlineFileSchema,

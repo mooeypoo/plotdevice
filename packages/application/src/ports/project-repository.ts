@@ -95,6 +95,21 @@ export interface FileRenamed {
   filesChanged: ProjectPath[]
 }
 
+/**
+ * What a new project starts with besides its details (Milestone 19): a template's kinds, chapter word,
+ * suggested tags, first chapter and outlines. Nothing records which template it was.
+ */
+export interface ProjectTemplate {
+  /** `null` for the three default kinds. */
+  kinds: readonly PageKind[] | null
+  manuscriptUnit: ManuscriptUnit | null
+  suggestedTags: readonly string[]
+  /** One empty chapter, named after the book. */
+  firstChapter: boolean
+  /** Each outline's title, and its text under the title line. */
+  outlines: readonly { title: string; body: string }[]
+}
+
 export interface ChapterText {
   /** The chapter's text without its frontmatter. */
   text: string
@@ -106,7 +121,8 @@ export interface ChapterText {
  * 0005, 0006). Implemented by `storage`. Domain rules are checked before anything is written.
  */
 export interface ProjectRepository {
-  create(location: string, project: NewProject): Promise<Result<ProjectSnapshot, CreateProblem>>
+  /** Makes the folder, never over an existing one, then the template's files, if any. */
+  create(location: string, project: NewProject, template?: ProjectTemplate): Promise<Result<ProjectSnapshot, CreateProblem>>
   open(root: string): Promise<Result<ProjectSnapshot, OpenProblem>>
   changeContents(snapshot: ProjectSnapshot, change: ContentsChange): Promise<Result<ProjectSnapshot, ChangeProblem>>
   /** Writes the chapter's frontmatter first, then its line in `CONTENTS.md` (Milestone 2, decision 3). */

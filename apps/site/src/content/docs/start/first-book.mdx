@@ -1,6 +1,6 @@
 ---
 title: Your first book
-description: Start a new book, add a chapter, and write. No outline or setup needed.
+description: Start a new book from a template or blank, add a chapter, and write. No setup needed.
 ---
 
 import Ui from '~/components/Ui.astro'
@@ -10,16 +10,24 @@ You can start writing within a minute. Planning is there when you want it, never
 
 ## Start a book
 
-1. On the welcome screen, choose **<Ui k="welcome-new-project" />**.
-2. Give the book a **<Ui k="new-project-title-label" />**. The **<Ui k="new-project-author-label" />** is optional.
-3. Choose the **<Ui k="new-project-language-label" />**. It sets the direction your paragraphs run: Hebrew right to left, English left to right. You can still mix languages inside the book.
-4. Choose **<Ui k="new-project-create" />**, then the place on your computer to keep the book's folder.
+1. On the welcome screen, choose **<Ui k="welcome-new-project" />**. With a book already open, it's in the menu at the top corner.
+2. Choose what you're making:
+   - **<Ui k="template-novel" />:** characters, places and notes, a three-act outline called "Main story", and one for loose ideas.
+   - **<Ui k="template-short-story" />:** characters and notes, one chapter ready to write, and a short outline.
+   - **<Ui k="template-campaign" />:** NPCs, locations, factions, items and lore, sessions instead of chapters, a session plan and a campaign arc.
+   - **<Ui k="template-blank" />:** characters, places and notes, and nothing else.
+3. Give the book a **<Ui k="new-project-title-label" />**. The **<Ui k="new-project-author-label" />** is optional.
+4. Choose the **<Ui k="new-project-language-label" />**. It sets the direction your paragraphs run: Hebrew right to left, English left to right, and the language the outlines are written in. You can still mix languages inside the book.
+5. **<Ui k="new-project-location-label" />** starts beside your last book. **<Ui k="new-project-choose" />** picks another place.
+6. Choose **<Ui k="new-project-create" />**.
 
-<Shot name="new-project" alt="The welcome screen with the new book form: title, name on the cover and language" />
+<Shot name="new-project" alt="What are you making? Four cards: Novel, Short story, D&D campaign and Blank, then the title, language and where to keep it" />
+
+A template is only a start. Everything in it can be changed afterwards: the [kinds of pages](/plotdevice/planning/kinds/), the outlines, the names. Nothing in the book remembers which template it came from.
 
 ## Write
 
-The book opens in **<Ui k="workspace-write" />**. Choose **+ <Ui k="navigator-new-chapter" />** at the side, give the chapter a title, and start typing.
+A short story opens in **<Ui k="workspace-write" />** on its chapter. A novel or a campaign opens in **<Ui k="workspace-story" />** on its outline; switch to **<Ui k="workspace-write" />** when you're ready. Choose **+ <Ui k="navigator-new-chapter" />** at the side, give the chapter a title, and start typing.
 
 There is no save button. Plot Device saves a moment after you stop typing, and whenever you switch chapters or leave the window. The top bar says **<Ui k="save-saved" />** when everything is on disk.
 

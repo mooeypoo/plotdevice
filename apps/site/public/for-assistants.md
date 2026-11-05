@@ -90,6 +90,7 @@ kinds:
 - Pages of every kind are written the same way (see "Characters, places and notes"), and link to each other the same way: `[the Merchants](../factions/merchants.md)`.
 - Don't make a kind for two or three entries: notes are fine for those. A folder of pages not listed in `kinds` still shows in the app, as "Not sorted yet".
 - If the book calls its chapters something else (sessions, episodes), say so too: `manuscriptUnit: { one: Session, many: Sessions }`, or as a block like `kinds`.
+- A book may also have `suggestedTags: [Player character, Villain, Ally]`: tags the app offers before any page uses them. Keep them if they're there; add them only if the author asks.
 
 ## CONTENTS.md
 

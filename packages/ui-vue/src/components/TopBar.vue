@@ -48,6 +48,7 @@ const bookItems = computed<MenuItem[]>(() => {
 })
 
 const appItems = computed<MenuItem[]>(() => [
+  { key: 'new-project', label: t('menu-new-project'), run: () => (view.newProject = true) },
   { key: 'open-project', label: t('welcome-open-project'), hint: `${mod}O`, run: () => void store.open('choose') },
   { key: 'settings', label: t('settings-open'), hint: `${mod},`, group: 'app', run: () => settingsDialog.value?.show() },
   { key: 'documentation', label: t('help-documentation'), run: () => openInBrowser(documentationFor(settings.locale)) },

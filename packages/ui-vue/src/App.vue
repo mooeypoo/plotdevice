@@ -60,6 +60,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
       <StoryView v-if="view.workspace === 'story'" :project="store.project" />
     </template>
     <WelcomeView v-else />
+    <!-- "New project…" with a book open: the book stays mounted underneath, so Back finds it as it was. -->
+    <WelcomeView v-if="store.project && view.newProject" class="over-book" />
 
     <p v-if="appInfo && !store.project" class="secondary app-version">{{ settings.t('app-version', appInfo.version) }}</p>
     <p v-if="store.project && store.notice" class="notice-toast" role="alert">

@@ -40,19 +40,22 @@ describe('the guide for AI assistants', () => {
     expect(result.counts).toEqual({ chapters: 3, outlines: 1, pages: { characters: 2, places: 2, notes: 2 } })
   })
 
-  it('lists kinds of pages the way the app reads them (Milestone 18)', async () => {
+  it('lists kinds of pages and suggested tags the way the app reads them (Milestones 18 and 19)', async () => {
     const guide = await readFile(GUIDE, 'utf8')
     const kinds = /## Kinds of pages\n[\s\S]*?```yaml\n([\s\S]*?)\n```/.exec(guide)?.[1]
     expect(kinds).toBeDefined()
     const unit = /`(manuscriptUnit: [^`]+)`/.exec(guide)?.[1]
     expect(unit).toBeDefined()
+    const tags = /`(suggestedTags: [^`]+)`/.exec(guide)?.[1]
+    expect(tags).toBeDefined()
     const root = await mkdtemp(join(tmpdir(), 'plotdevice-guide-'))
     dirs.push(root)
-    await writeFile(join(root, 'project.md'), `---\ntitle: The Salt Orchard\nlanguage: en\n${kinds}\n${unit}\n---\n`)
+    await writeFile(join(root, 'project.md'), `---\ntitle: The Salt Orchard\nlanguage: en\n${kinds}\n${unit}\n${tags}\n---\n`)
     await writeFile(join(root, 'CONTENTS.md'), '# The Salt Orchard\n')
     const project = await readProject(root, createFileStore(root), [])
     expect(project.ok && project.value.warnings).toEqual([])
     expect(project.ok && project.value.details.kinds.map((kind) => kind.folder)).toEqual(['characters', 'factions', 'places', 'notes'])
     expect(project.ok && project.value.details.manuscriptUnit).toEqual({ one: 'Session', many: 'Sessions' })
+    expect(project.ok && project.value.details.suggestedTags).toEqual(['Player character', 'Villain', 'Ally'])
   })
 })

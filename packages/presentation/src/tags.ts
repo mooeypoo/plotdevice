@@ -1,5 +1,13 @@
 import type { ProjectView } from '@plotdevice/contracts'
-import { nearDuplicateTags, projectTags, tagKey, type NearDuplicate, type ProjectPath, type ProjectTag } from '@plotdevice/shared'
+import {
+  cleanTags,
+  nearDuplicateTags,
+  projectTags,
+  tagKey,
+  type NearDuplicate,
+  type ProjectPath,
+  type ProjectTag,
+} from '@plotdevice/shared'
 
 /** The tags on `pages`, A to Z in the interface's language, for the row of tags above a list. */
 export function tagRow(pages: readonly { tags: readonly string[] }[], locale: string): ProjectTag[] {
@@ -26,6 +34,20 @@ export function tagSuggestions(tags: readonly ProjectTag[], onPage: readonly str
     .sort((a, b) => a.rank - b.rank || b.tag.pages - a.tag.pages)
     .slice(0, limit)
     .map(({ tag }) => tag.tag)
+}
+
+/**
+ * The book's tags with its suggested ones (Milestone 19) added after them, on no pages yet, so "+ Tag"
+ * offers them in a new book. Once a page uses one, it's simply one of the book's tags.
+ */
+export function withSuggestedTags(tags: readonly ProjectTag[], suggested: readonly string[]): ProjectTag[] {
+  const known = new Set(tags.map((tag) => tagKey(tag.tag)))
+  return [
+    ...tags,
+    ...cleanTags(suggested)
+      .filter((tag) => !known.has(tagKey(tag)))
+      .map((tag) => ({ tag, pages: 0 })),
+  ]
 }
 
 export interface TagGroups<T> {
