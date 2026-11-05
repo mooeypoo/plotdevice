@@ -132,6 +132,15 @@ export interface ProjectRepository {
    * through the recovery journal. Only a chapter's line in `CONTENTS.md` changes with it.
    */
   renameFile(snapshot: ProjectSnapshot, file: ProjectPath, newName: string): Promise<Result<FileRenamed, RenameFileProblem>>
+  /**
+   * Puts a backup's Markdown files back in the book (Milestone 20), through the recovery journal: each
+   * file that differs is written, and a file the book no longer has is written anew. Files the backup
+   * doesn't have are left as they are. The caller backs up the book as it is first.
+   */
+  restoreFiles(
+    snapshot: ProjectSnapshot,
+    files: readonly { path: ProjectPath; text: string; hasBom: boolean }[],
+  ): Promise<Result<ProjectSnapshot, ChangeProblem>>
   /** "Match folder names…": what renaming these folders would do, changing nothing. */
   planFolderRenames(snapshot: ProjectSnapshot, renames: readonly FolderRename[]): Promise<FolderRenamePlan>
   /** Renames the folders, every link to them and the kinds in `project.md`, as one journalled operation (ADR 0005). */

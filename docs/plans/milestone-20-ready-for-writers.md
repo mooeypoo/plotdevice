@@ -1,6 +1,6 @@
 # Milestone 20: Ready for writers
 
-Status: **Proposed** (2026-11-05). The owner answered the open questions on 2026-11-05 (see "Owner's answers"), and the plan below is revised to match. Waiting for the go-ahead. Direction from the "Change of order" section of `roadmap-16-approachable-studio-and-timelines.md`, with the owner's decisions on backups, restore points and installers (2026-11-05).
+Status: **Approved** (2026-11-05), with the owner's answers below and `fflate` for zips. Building. Direction from the "Change of order" section of `roadmap-16-approachable-studio-and-timelines.md`, with the owner's decisions on backups, restore points and installers (2026-11-05).
 
 ## Goal
 
@@ -87,7 +87,7 @@ Make what's already built safe and easy for writers who are wary of technology, 
 - **"Try a sample book"** on the start screen opens "The Salt Orchard", in the interface's language.
 - It's a copy in the app's own data, so it can be explored, changed and broken. It's marked "Sample" in the top bar and in Recent projects.
 - **"Start the sample over"** in its book menu brings back the original sample, after asking, without making it sound alarming:
-  > **Start the sample over?** Everything you changed in the sample book (writing, pages, outlines) goes back to how it first was. Your own books aren't affected.
+  > **Start the sample over?** This erases everything in the sample book, including what you wrote and any pages and outlines you added or changed, and puts back the original sample. Your other books stay exactly as they are.
   >
   > **Start over** · **Cancel**
 

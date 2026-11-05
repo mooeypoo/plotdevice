@@ -76,6 +76,13 @@ export interface WritingSession {
   planFolderRenames(renames: readonly FolderRename[]): Promise<Result<FolderRenamePlan, NoProject>>
   /** Renames the folders and every link to them; the undo is kept until another book opens. */
   renameFolders(renames: readonly FolderRename[]): Promise<Result<FoldersRenamed, ChangeProblem | 'blocked' | NoProject>>
+  /**
+   * Puts a backup's files back in the book (Milestone 20), after every open chapter has saved; open
+   * chapters then show the restored text. The caller backs up the book as it is first.
+   */
+  restoreFiles(
+    files: readonly { path: ProjectPath; text: string; hasBom: boolean }[],
+  ): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   /** Puts the last folder renames back, if nothing changed since (ADR 0005). */
   undoFolderRenames(): Promise<Result<ProjectSnapshot, ChangeProblem | 'nothing-to-undo' | NoProject>>
   /**
@@ -340,6 +347,18 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
           if (open) await reloadIfUnedited(open, current.root)
         }
         return renamed
+      }),
+
+    restoreFiles: (files) =>
+      serially(async () => {
+        if (!project) return err('no-project')
+        await idleChapters()
+        const restored = await repository.restoreFiles(project, files)
+        if (!restored.ok) return restored
+        folderUndo = null
+        setProject(restored.value)
+        for (const state of chapters.values()) await reloadIfUnedited(state, restored.value.root)
+        return restored
       }),
 
     planFolderRenames: (renames) =>
