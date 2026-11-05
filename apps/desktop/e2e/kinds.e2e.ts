@@ -92,6 +92,8 @@ for (const locale of ['en', 'he'] as const) {
     await expect(page.getByTestId('reference-page').locator('.item-title')).toHaveText(words.page)
     await page.locator('[data-outline="outlines/main-story.md"]').click()
     const card = page.locator('.outline-card', { hasText: 'Ilka crosses the river' })
+    // Its ⋯ shows on hover or focus (Milestone 17), so point at the card first, as an author would.
+    await card.hover()
     await card.locator('.menu-button').first().click()
     await page.getByTestId('menu-link-to').click()
     await page.getByTestId('link-search').fill(words.page)
