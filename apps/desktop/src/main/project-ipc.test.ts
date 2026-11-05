@@ -28,6 +28,8 @@ import {
   type UndoFolderRenamesResult,
   type ProjectView,
   type ResolveConflictResult,
+  type TimelineResult,
+  type DeleteOutlineResult,
 } from '@plotdevice/contracts'
 import {
   createBookBackups,
@@ -45,7 +47,7 @@ import {
   createVersionRepository,
   withBackups,
 } from '@plotdevice/storage'
-import { access, cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { access, cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -430,6 +432,8 @@ describe('matching folder names (Milestone 18)', () => {
   })
 })
 
+const chapterFiles = (context: { root: string }) => readdir(join(context.root, 'manuscript'))
+
 describe('outline calls', () => {
   const MAIN = 'outlines/main-story.md'
 
@@ -469,6 +473,116 @@ describe('outline calls', () => {
       { file: 'outlines/main-story.md', title: 'Main story' },
       { file: 'outlines/קשתות-דמויות.md', title: 'קשתות דמויות' },
     ])
+  })
+
+  it('keeps the main outline when a new outline comes first by name, and makes another main on request (ADR 0012)', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const projectFile = await context.read('project.md')
+    await context.call(channels.createOutline, { title: 'A beginning' })
+    // The sample names no main outline; "A beginning" lists first, so the current main is written down first.
+    expect(await context.read('project.md')).toBe(
+      projectFile.replace('series: Orchard Books\n', 'series: Orchard Books\nmainOutline: outlines/main-story.md\n'),
+    )
+    const switched = (await context.call(channels.setMainOutline, { file: 'outlines/a-beginning.md' })) as ProjectChangeResult
+    expect(switched.ok && switched.value.mainOutline).toBe('outlines/a-beginning.md')
+    expect(await context.read(MAIN)).toBe(await readFile(join(FIXTURE, MAIN), 'utf8'))
+    expect(await context.call(channels.setMainOutline, { file: 'outlines/missing.md' })).toEqual({ ok: false, error: 'not-found' })
+    await expect(context.call(channels.setMainOutline, { file: 'characters/ilka.md' })).rejects.toThrow('invalid-payload')
+  })
+
+  it('lines a section up with the main story, renames that moment, and unpins: one line under the heading (ADR 0012)', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const created = (await context.call(channels.createOutline, { title: 'Bea’s path' })) as OutlineResult
+    if (!created.ok) throw new Error(created.error)
+    const BEA = created.value.file
+    await context.call(channels.editOutline, { file: BEA, edit: { kind: 'add-section', index: 0, text: 'Hiding' } })
+    const before = await context.read(BEA)
+    const lined = (await context.call(channels.editOutline, {
+      file: BEA,
+      edit: {
+        kind: 'line-up-section',
+        section: 0,
+        lineUp: { outline: MAIN, anchor: 'ending', text: 'Ending' },
+        words: 'At the same time as ',
+      },
+    })) as OutlineResult
+    expect(lined.ok && lined.value.sections[0]?.lineUp).toEqual({ outline: MAIN, anchor: 'ending', text: 'Ending' })
+    expect(await context.read(BEA)).toContain('## Hiding\nAt the same time as [Ending](main-story.md#ending)\n')
+    await context.call(channels.openOutline, { file: MAIN })
+    await context.call(channels.editOutline, { file: MAIN, edit: { kind: 'rename-section', section: 1, text: 'The sale' } })
+    expect(await context.read(BEA)).toContain('At the same time as [The sale](main-story.md#the-sale)')
+    await context.call(channels.editOutline, { file: BEA, edit: { kind: 'unpin-section', section: 0 } })
+    expect(await context.read(BEA)).toBe(before)
+    const own = { kind: 'line-up-section', section: 0, lineUp: { outline: BEA, anchor: 'hiding', text: 'Hiding' }, words: '' }
+    expect(await context.call(channels.editOutline, { file: BEA, edit: own })).toEqual({ ok: false, error: 'same-outline' })
+  })
+
+  it('gives the timeline every outline as a storyline, the main one first, with line-ups resolved', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const created = (await context.call(channels.createOutline, { title: 'Bea’s path' })) as OutlineResult
+    if (!created.ok) throw new Error(created.error)
+    await context.call(channels.editOutline, { file: created.value.file, edit: { kind: 'add-section', index: 0, text: 'Hiding' } })
+    await context.call(channels.editOutline, {
+      file: created.value.file,
+      edit: {
+        kind: 'line-up-section',
+        section: 0,
+        lineUp: { outline: MAIN, anchor: 'ending', text: 'Ending' },
+        words: 'At the same time as ',
+      },
+    })
+    const timeline = (await context.call(channels.getTimeline)) as TimelineResult
+    expect(timeline.ok && timeline.value.main).toBe(MAIN)
+    expect(timeline.ok && timeline.value.threads.map((thread) => [thread.file, thread.sections.map((section) => section.lineUp)])).toEqual([
+      [MAIN, [null, null]],
+      [created.value.file, [{ kind: 'section', outline: MAIN, section: 1, text: 'Ending' }]],
+    ])
+  })
+
+  it('sets an outline aside and brings it back; the main outline moves on and comes back by name', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const created = (await context.call(channels.createOutline, { title: 'Bea’s path' })) as OutlineResult
+    if (!created.ok) throw new Error(created.error)
+    const aside = (await context.call(channels.setOutlineAside, { file: MAIN, aside: true })) as ProjectChangeResult
+    expect(aside.ok && [aside.value.setAside, aside.value.mainOutline]).toEqual([[MAIN], created.value.file])
+    const timeline = (await context.call(channels.getTimeline)) as TimelineResult
+    expect(timeline.ok && timeline.value.main).not.toBe(MAIN)
+    const back = (await context.call(channels.setOutlineAside, { file: MAIN, aside: false })) as ProjectChangeResult
+    expect(back.ok && back.value.setAside).toEqual([])
+    expect(await context.read(MAIN)).toBe(await readFile(join(FIXTURE, MAIN), 'utf8'))
+  })
+
+  it('deletes only the outline, asking first where there is no Trash; line-ups to it can’t line up', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const created = (await context.call(channels.createOutline, { title: 'Bea’s path' })) as OutlineResult
+    if (!created.ok) throw new Error(created.error)
+    await context.call(channels.editOutline, { file: created.value.file, edit: { kind: 'add-section', index: 0, text: 'Hiding' } })
+    await context.call(channels.editOutline, {
+      file: created.value.file,
+      edit: { kind: 'line-up-section', section: 0, lineUp: { outline: MAIN, anchor: 'ending', text: 'Ending' }, words: '' },
+    })
+    const chapters = await chapterFiles(context)
+    // This test's computer has no Trash: nothing is deleted until the author agrees to delete for good.
+    expect(await context.call(channels.deleteOutline, { file: MAIN, how: 'trash' })).toEqual({ ok: false, error: 'no-trash' })
+    expect(await context.read(MAIN)).toBe(await readFile(join(FIXTURE, MAIN), 'utf8'))
+    const deleted = (await context.call(channels.deleteOutline, { file: MAIN, how: 'for-good' })) as DeleteOutlineResult
+    expect(deleted.ok && deleted.value.mainOutline).toBe(created.value.file)
+    await expect(context.read(MAIN)).rejects.toThrow()
+    expect(await chapterFiles(context)).toEqual(chapters)
+    const timeline = (await context.call(channels.getTimeline)) as TimelineResult
+    expect(timeline.ok && timeline.value.threads.map((thread) => thread.sections[0]?.lineUp?.kind)).toEqual(['missing'])
+    // Undo puts it back byte for byte, and project.md as it was.
+    const projectFile = await context.read('project.md')
+    const undone = (await context.call(channels.undoDeleteOutline)) as ProjectChangeResult
+    expect(undone.ok && undone.value.mainOutline).toBe(MAIN)
+    expect(await context.read(MAIN)).toBe(await readFile(join(FIXTURE, MAIN), 'utf8'))
+    expect(await context.read('project.md')).not.toBe(projectFile)
+    expect(await context.call(channels.undoDeleteOutline)).toEqual({ ok: false, error: 'not-found' })
   })
 
   it('remembers the workspace, outline and view for next time', async () => {

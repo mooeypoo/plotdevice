@@ -128,6 +128,8 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   const changeContents = (request: ContentsChangeRequest) => change(() => api.changeContents(request))
+  /** Makes an outline the book's main outline, whose sections name the timeline's columns (ADR 0012). */
+  const setMainOutline = (file: ProjectPath) => change(() => api.setMainOutline(file))
 
   /** Compiles the book where the author chooses, and says where it went and what was missing. */
   async function compile(): Promise<void> {
@@ -199,7 +201,9 @@ export const useProjectStore = defineStore('project', () => {
     restartSample,
     create,
     forget,
+    change,
     changeContents,
+    setMainOutline,
     changeKinds,
     renamedFolders,
     renameFolders,

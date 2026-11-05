@@ -2,17 +2,23 @@ import type { OutlineSession, OutlineState, RecentProjectsSession, WritingSessio
 import {
   channels,
   createOutlineSchema,
+  deleteOutlineSchema,
+  setOutlineAsideSchema,
   editOutlineSchema,
   outlineFileSchema,
   placeSchema,
   type OutlineResult,
   type StarterId,
   type OutlineView,
+  type ProjectChangeResult,
+  type TimelineResult,
 } from '@plotdevice/contracts'
-import { ok, type Result } from '@plotdevice/shared'
+import { mainOutlineToKeep, outlineRolesAfter, outlinesInUse, type OutlineRoleChange } from '@plotdevice/domain'
+import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
+import type { TextToStore } from '@plotdevice/application'
 import { parsePayload } from './payload'
 import type { PayloadHandler } from './project-ipc'
-import { outlineView } from './views'
+import { outlineView, projectView } from './views'
 
 export interface OutlineIpcContext {
   outlines: OutlineSession
@@ -26,12 +32,47 @@ const view = <E extends string>(result: Result<OutlineState, E>): Result<Outline
   result.ok ? ok(outlineView(result.value)) : result
 
 /** Outline calls. Files outside `outlines/` are refused by the schemas before anything is read. */
+function rolesHelper(outlines: OutlineSession, writing: WritingSession) {
+  /** What `project.md` says about main and set-aside outlines after `change`; `null` if there's no such outline. */
+  return async (change: OutlineRoleChange) => {
+    const details = writing.project()?.details
+    const files = (await outlines.list()).map((outline) => outline.file)
+    if (!details || !files.includes(change.file)) return null
+    return outlineRolesAfter(details, files, change)
+  }
+}
+
 export function createOutlineHandlers({ outlines, writing, recent, starter }: OutlineIpcContext): Record<string, PayloadHandler> {
+  const rolesAfter = rolesHelper(outlines, writing)
+  /** The last outline deleted, as it was, for Undo until another book opens (the backup stays on disk too). */
+  let lastDeleted: {
+    root: string
+    file: ProjectPath
+    content: TextToStore
+    roles: { setAside: readonly ProjectPath[]; mainOutline: ProjectPath | null }
+  } | null = null
   return {
     [channels.listOutlines]: () => outlines.list(),
+    [channels.getTimeline]: async (): Promise<TimelineResult> => {
+      // Text typed in an outline's Text view lands first, as when opening an outline.
+      await writing.idle()
+      const details = writing.project()?.details
+      return outlines.timeline(details?.mainOutline ?? null, details?.setAside ?? [])
+    },
     [channels.createOutline]: async (payload): Promise<OutlineResult> => {
       const request = parsePayload(createOutlineSchema, payload)
       const language = writing.project()?.details.language ?? 'en'
+      // Outlines are listed by file name, so a new one could come first and become main: write down the
+      // current main before adding it (ADR 0012).
+      const details = writing.project()?.details
+      const keep = mainOutlineToKeep(
+        details?.mainOutline ?? null,
+        outlinesInUse(
+          (await outlines.list()).map((outline) => outline.file),
+          details?.setAside ?? [],
+        ),
+      )
+      if (keep) await writing.setMainOutline(keep)
       return view(await outlines.create(request.title, request.about, request.starter && starter(request.starter, language)))
     },
     [channels.openOutline]: async (payload): Promise<OutlineResult> => {
@@ -43,6 +84,46 @@ export function createOutlineHandlers({ outlines, writing, recent, starter }: Ou
     [channels.editOutline]: async (payload): Promise<OutlineResult> => {
       const { file, edit } = parsePayload(editOutlineSchema, payload)
       return view(await outlines.edit(file, edit))
+    },
+    [channels.setMainOutline]: async (payload): Promise<ProjectChangeResult> => {
+      const { file } = parsePayload(outlineFileSchema, payload)
+      if (!(await outlines.list()).some((outline) => outline.file === file)) return err('not-found')
+      const written = await writing.setMainOutline(file)
+      return written.ok ? ok(projectView(written.value)) : written
+    },
+    [channels.setOutlineAside]: async (payload): Promise<ProjectChangeResult> => {
+      const { file, aside } = parsePayload(setOutlineAsideSchema, payload)
+      const roles = await rolesAfter({ kind: aside ? 'set-aside' : 'bring-back', file })
+      if (!roles) return err('not-found')
+      const written = await writing.setOutlineRoles(roles)
+      return written.ok ? ok(projectView(written.value)) : written
+    },
+    [channels.deleteOutline]: async (payload) => {
+      const { file, how } = parsePayload(deleteOutlineSchema, payload)
+      // Worked out before the file goes, from the outlines as they are now.
+      const roles = await rolesAfter({ kind: 'delete', file })
+      if (!roles) return err('not-found')
+      const project = writing.project()
+      const deleted = await outlines.delete(file, how)
+      if (!deleted.ok) return deleted
+      if (project)
+        lastDeleted = {
+          root: project.root,
+          file,
+          content: deleted.value,
+          roles: { setAside: project.details.setAside, mainOutline: project.details.mainOutline },
+        }
+      const written = await writing.setOutlineRoles(roles)
+      return written.ok ? ok(projectView(written.value)) : written
+    },
+    [channels.undoDeleteOutline]: async (): Promise<ProjectChangeResult> => {
+      const deleted = lastDeleted
+      if (!deleted || deleted.root !== writing.project()?.root) return err('not-found')
+      const back = await outlines.bringBack(deleted.file, deleted.content)
+      if (!back.ok) return err(back.error === 'no-project' ? 'no-project' : 'write-failed')
+      lastDeleted = null
+      const written = await writing.setOutlineRoles(deleted.roles)
+      return written.ok ? ok(projectView(written.value)) : written
     },
     [channels.undoOutline]: async (payload): Promise<OutlineResult> =>
       view(await outlines.undo(parsePayload(outlineFileSchema, payload).file)),

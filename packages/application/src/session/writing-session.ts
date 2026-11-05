@@ -71,6 +71,13 @@ export interface WritingSession {
   renameChapter(file: ProjectPath, title: string): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   /** A change on the "Kinds of pages" screen (ADR 0011): written to `project.md` only. */
   changeKinds(change: KindsChange): Promise<Result<ProjectSnapshot, ChangeProblem | KindProblem | NoProject>>
+  /** Makes `file` the book's main outline (ADR 0012); the caller checks it is one of the book's outlines. */
+  setMainOutline(file: ProjectPath): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
+  /** Which outlines are set aside, and which is main, written together (Milestone 21). */
+  setOutlineRoles(roles: {
+    setAside: readonly ProjectPath[]
+    mainOutline: ProjectPath | null
+  }): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   renameFile(file: ProjectPath, newName: string): Promise<Result<FileRenamed, RenameFileProblem | NoProject>>
   /** What renaming the kinds' folders would do (Milestone 18, "Match folder names"). Reads only. */
   planFolderRenames(renames: readonly FolderRename[]): Promise<Result<FolderRenamePlan, NoProject>>
@@ -302,6 +309,22 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
         const next = applyKindsChange(project.details, change)
         if (!next.ok) return next
         const written = await repository.setKinds(project, next.value.kinds, next.value.manuscriptUnit)
+        if (written.ok) setProject(written.value)
+        return written
+      }),
+
+    setMainOutline: (file) =>
+      serially(async () => {
+        if (!project) return err('no-project')
+        const written = await repository.setMainOutline(project, file)
+        if (written.ok) setProject(written.value)
+        return written
+      }),
+
+    setOutlineRoles: (roles) =>
+      serially(async () => {
+        if (!project) return err('no-project')
+        const written = await repository.setOutlineRoles(project, roles)
         if (written.ok) setProject(written.value)
         return written
       }),

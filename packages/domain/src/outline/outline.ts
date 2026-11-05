@@ -1,6 +1,19 @@
 import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
 import { markdownFileFor } from '../manuscript/index'
 
+/**
+ * A section lined up with a section of another outline (ADR 0012): written as a link in the section's
+ * intro paragraph, `At the same time as [The night of the storm](main-story.md#the-night-of-the-storm)`.
+ */
+export interface LineUp {
+  /** The other outline's file. */
+  outline: ProjectPath
+  /** The target section's anchor, or its heading text, as the link writes it (decoded). */
+  anchor: string
+  /** The link's text as written. */
+  text: string
+}
+
 /** A card or a detail: one line of text, with details nested at any depth (ADR 0003). */
 export interface OutlineItem {
   text: string
@@ -27,6 +40,8 @@ export interface OutlineSection {
   intro: string[]
   items: OutlineItem[]
   notes: OutlineNote[]
+  /** The section of another outline this one happens at the same time as (ADR 0012); `null` when not lined up. */
+  lineUp: LineUp | null
 }
 
 /**
@@ -64,6 +79,9 @@ export type OutlineEdit =
   | { kind: 'move-section'; section: number; index: number }
   | { kind: 'delete-section'; section: number }
   | { kind: 'set-title'; text: string }
+  /** `words` go before the link, in the project's language: "At the same time as ". */
+  | { kind: 'line-up-section'; section: number; lineUp: LineUp; words: string }
+  | { kind: 'unpin-section'; section: number }
 
 export type OutlineProblem =
   | 'no-such-item'
@@ -80,7 +98,7 @@ export type OutlineProblem =
  * after an edit is written, the outline is read again, which also places notes where they now are.
  */
 export function applyOutlineEdit(outline: Outline, edit: OutlineEdit): Result<Outline, OutlineProblem> {
-  const textProblem = 'text' in edit ? checkText(edit.text) : null
+  const textProblem = 'text' in edit ? checkText(edit.text) : edit.kind === 'line-up-section' ? checkLineUp(edit) : null
   if (textProblem) return err(textProblem)
   const next: Outline = structuredCopy(outline)
   const problem = applyInPlace(next, edit)
@@ -93,6 +111,11 @@ export function applyOutlineEdit(outline: Outline, edit: OutlineEdit): Result<Ou
 function checkText(text: string): OutlineProblem | null {
   if (/[\r\n]/.test(text)) return 'multiline-text'
   return text.trim() === '' ? 'empty-text' : null
+}
+
+function checkLineUp(edit: { lineUp: LineUp; words: string }): OutlineProblem | null {
+  if (/[\r\n]/.test(edit.words) || /[\r\n]/.test(edit.lineUp.anchor)) return 'multiline-text'
+  return checkText(edit.lineUp.text)
 }
 
 function applyInPlace(outline: Outline, edit: OutlineEdit): OutlineProblem | null {
@@ -143,7 +166,7 @@ function applyInPlace(outline: Outline, edit: OutlineEdit): OutlineProblem | nul
       if (edit.index < 0 || edit.index > sections.length) return 'index-out-of-range'
       // A heading above the unnamed section would capture its cards.
       if (sections[edit.index]?.name === null) return 'unnamed-section'
-      sections.splice(edit.index, 0, { name: edit.text, intro: [], items: [], notes: [] })
+      sections.splice(edit.index, 0, { name: edit.text, intro: [], items: [], notes: [], lineUp: null })
       return null
     }
     case 'move-section': {
@@ -167,6 +190,14 @@ function applyInPlace(outline: Outline, edit: OutlineEdit): OutlineProblem | nul
     case 'set-title':
       outline.title = edit.text
       return null
+    case 'line-up-section':
+    case 'unpin-section': {
+      const section = sections[edit.section]
+      if (!section) return 'no-such-section'
+      if (section.name === null) return 'unnamed-section'
+      section.lineUp = edit.kind === 'line-up-section' ? { ...edit.lineUp } : null
+      return null
+    }
   }
 }
 

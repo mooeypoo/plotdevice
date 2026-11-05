@@ -81,7 +81,7 @@ function rewriteDestination(destination: string, fileDir: string, from: string, 
 }
 
 /** Where code is (fenced, indented, inline): links there are text, not links. */
-function codeRanges(text: string): { start: number; end: number }[] {
+export function codeRanges(text: string): { start: number; end: number }[] {
   const ranges: { start: number; end: number }[] = []
   const visit = (node: Nodes): void => {
     if ((node.type === 'code' || node.type === 'inlineCode' || node.type === 'html') && node.position) {

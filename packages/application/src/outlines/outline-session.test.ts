@@ -12,8 +12,8 @@ const story = (): Outline => ({
   title: 'Main story',
   preamble: [],
   sections: [
-    { name: 'Beginning', intro: [], notes: [], items: [card('Ilka arrives'), card('The first frost')] },
-    { name: 'Ending', intro: [], notes: [], items: [card('The sale')] },
+    { name: 'Beginning', intro: [], notes: [], lineUp: null, items: [card('Ilka arrives'), card('The first frost')] },
+    { name: 'Ending', intro: [], notes: [], lineUp: null, items: [card('The sale')] },
   ],
 })
 
@@ -48,6 +48,17 @@ function memoryRepository() {
       files.set(file, { outline: applied.value, revision: entry.revision + 1 })
       writes++
       return ok({ document: doc(file), previous })
+    },
+    async deleteOutline(_root, file) {
+      const entry = files.get(file)
+      if (!entry) return err('missing')
+      files.delete(file)
+      return ok({ text: JSON.stringify(entry.outline), hasBom: false })
+    },
+    async restoreDeletedOutline(_root, file, content) {
+      if (files.has(file)) return err('write-failed')
+      files.set(file, { outline: JSON.parse(content.text) as Outline, revision: 1 })
+      return ok(undefined)
     },
     async restoreOutline(_root, file, text, expected) {
       const entry = files.get(file)
@@ -122,7 +133,7 @@ describe('outline session', () => {
     elsewhere(MAIN, {
       title: 'Main story',
       preamble: [],
-      sections: [{ name: 'Rewritten', intro: [], notes: [], items: [card('Only this')] }],
+      sections: [{ name: 'Rewritten', intro: [], notes: [], lineUp: null, items: [card('Only this')] }],
     })
     expect(await session.edit(MAIN, { kind: 'delete-item', at: { section: 0, path: [0] } })).toEqual({
       ok: false,
@@ -199,5 +210,107 @@ describe('outline session', () => {
   it('needs an open project', async () => {
     const { session } = setup(null)
     expect(await session.open(MAIN)).toEqual({ ok: false, error: 'no-project' })
+  })
+})
+
+describe('line-ups between outlines (ADR 0012)', () => {
+  const BEA = p('outlines/beas-path.md')
+  const ending = { outline: MAIN, anchor: 'ending', text: 'Ending' }
+  const beasPath = (): Outline => ({
+    title: 'Bea’s path',
+    preamble: [],
+    sections: [
+      { name: 'Hiding', intro: [], notes: [], lineUp: ending, items: [card('Hides the letter')] },
+      { name: 'The city', intro: [], notes: [], lineUp: { outline: MAIN, anchor: 'beginning', text: 'Beginning' }, items: [] },
+    ],
+  })
+  function withBea() {
+    const context = setup()
+    context.files.set(BEA, { outline: beasPath(), revision: 1 })
+    return context
+  }
+
+  it('refuses lining a section up with its own outline', async () => {
+    const { session } = withBea()
+    await session.open(BEA)
+    const own = { kind: 'line-up-section', section: 0, lineUp: { outline: BEA, anchor: 'the-city', text: 'The city' }, words: '' } as const
+    expect(await session.edit(BEA, own)).toEqual({ ok: false, error: 'same-outline' })
+  })
+
+  it('renaming a section updates the line-ups that point to it, in other outlines, and only those', async () => {
+    const { session, files, events } = withBea()
+    await session.open(MAIN)
+    await session.open(BEA)
+    await session.edit(MAIN, { kind: 'rename-section', section: 1, text: 'The sale' })
+    expect(files.get(BEA)?.outline.sections.map((s) => s.lineUp)).toEqual([
+      { outline: MAIN, anchor: 'the-sale', text: 'The sale' },
+      { outline: MAIN, anchor: 'beginning', text: 'Beginning' },
+    ])
+    expect(session.current(BEA)?.outline.sections[0]?.lineUp?.anchor).toBe('the-sale')
+    expect(events.at(-1)).toMatchObject({ kind: 'outline-changed', file: BEA })
+  })
+
+  it('undoing the rename points them back', async () => {
+    const { session, files } = withBea()
+    await session.open(MAIN)
+    await session.edit(MAIN, { kind: 'rename-section', section: 1, text: 'The sale' })
+    await session.undo(MAIN)
+    expect(files.get(BEA)?.outline.sections[0]?.lineUp).toEqual({ outline: MAIN, anchor: 'ending', text: 'Ending' })
+  })
+
+  it('other edits leave the other outlines alone', async () => {
+    const { session, files } = withBea()
+    await session.open(MAIN)
+    await session.edit(MAIN, { kind: 'move-section', section: 1, index: 0 })
+    await session.edit(MAIN, { kind: 'add-section', index: 0, text: 'Prologue' })
+    expect(files.get(BEA)?.revision).toBe(1)
+  })
+})
+
+describe('the timeline’s storylines (ADR 0012)', () => {
+  const BEA = p('outlines/beas-path.md')
+  it('reads every outline, the main one first, with line-ups resolved to sections or missing', async () => {
+    const { session, files } = setup()
+    files.set(BEA, {
+      outline: {
+        title: 'Bea’s path',
+        preamble: [],
+        sections: [
+          { name: 'Hiding', intro: [], notes: [], lineUp: { outline: MAIN, anchor: 'Ending', text: 'Ending' }, items: [] },
+          { name: 'Lost', intro: [], notes: [], lineUp: { outline: MAIN, anchor: 'the-flood', text: 'The flood' }, items: [] },
+          { name: 'Gone', intro: [], notes: [], lineUp: { outline: p('outlines/deleted.md'), anchor: 'x', text: 'X' }, items: [] },
+        ],
+      },
+      revision: 1,
+    })
+    const timeline = await session.timeline(BEA)
+    expect(timeline.ok && timeline.value.main).toBe(BEA)
+    expect(timeline.ok && timeline.value.threads.map((thread) => thread.file)).toEqual([BEA, MAIN])
+    expect(timeline.ok && timeline.value.threads[0]?.sections.map((section) => section.lineUp)).toEqual([
+      { kind: 'section', outline: MAIN, section: 1, text: 'Ending' },
+      { kind: 'missing', outline: MAIN, anchor: 'the-flood', text: 'The flood' },
+      { kind: 'missing', outline: 'outlines/deleted.md', anchor: 'x', text: 'X' },
+    ])
+    const unnamed = await session.timeline(null)
+    expect(unnamed.ok && unnamed.value.main).toBe(MAIN)
+    expect(await setup(null).session.timeline(null)).toEqual({ ok: false, error: 'no-project' })
+  })
+})
+
+describe('deleting an outline', () => {
+  it('deletes it once its edits have landed, and forgets it', async () => {
+    const { session, files } = setup()
+    await session.open(MAIN)
+    const editing = session.edit(MAIN, { kind: 'set-title', text: 'Last words' })
+    const deleted = session.delete(MAIN, 'trash')
+    expect((await editing).ok).toBe(true)
+    const removed = await deleted
+    expect(removed.ok).toBe(true)
+    expect(files.has(MAIN)).toBe(false)
+    expect(session.current(MAIN)).toBeNull()
+    expect(await session.delete(MAIN, 'trash')).toEqual({ ok: false, error: 'missing' })
+    // Undo: back as it was, edit and all.
+    if (removed.ok) expect(await session.bringBack(MAIN, removed.value)).toEqual({ ok: true, value: undefined })
+    expect(files.get(MAIN)?.outline.title).toBe('Last words')
   })
 })

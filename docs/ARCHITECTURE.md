@@ -7,6 +7,7 @@ Hexagonal architecture + DDD-inspired bounded contexts; **domain must not depend
 - Application: use cases/command and query handlers, transaction boundaries, abstract ports; framework-neutral TypeScript.
 - Infrastructure: Markdown parser/serializer, filesystem repositories, OS storage, version/checksum checks, backups.
 - Presentation: view models/projections for Board, List (Outline), Timeline, manuscript, galleries and references; framework-neutral where possible.
+  - Projections don't know where they are shown. The Timeline grid (ADR 0012) is drawn by a component that only renders it, and opened from one navigation entry, so moving it (for example into a separate Plot area) changes navigation, not the timeline.
 - UI: Vue components and editor integration only; invoke application-facing transport contracts and present view models.
 - Platform: Electron main and restricted preload typed IPC; replaceable by HTTP/mobile hosts.
 

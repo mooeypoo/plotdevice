@@ -17,6 +17,7 @@ import type {
   SaveChapterRequest,
 } from './chapter'
 import type { OutlineEditRequest, OutlineResult, OutlineSummaryView, Place, StarterId } from './outline'
+import type { TimelineResult } from './timeline'
 import type { Preferences, PreferencesPatch } from './preferences'
 import type { UpdateCheckView, UpdateView } from './updates'
 import type {
@@ -39,6 +40,7 @@ import type {
   OpenProjectRequest,
   OpenProjectResult,
   ProjectChangeResult,
+  DeleteOutlineResult,
   RecentProjectView,
   KindsChangeRequest,
   FolderRenamePlanResult,
@@ -80,6 +82,17 @@ export interface PlotDeviceApi {
   renameChapter(file: ProjectPath, title: string): Promise<ProjectChangeResult>
   /** A change to the book's kinds of pages, or to what it calls a chapter (ADR 0011). */
   changeKinds(change: KindsChangeRequest): Promise<ProjectChangeResult>
+  /** Makes an outline the book's main outline, whose sections name the timeline's columns (ADR 0012). */
+  setMainOutline(file: ProjectPath): Promise<ProjectChangeResult>
+  /** Sets an outline aside, off the timeline, or brings it back; the main outline moves on if it was set aside. */
+  setOutlineAside(file: ProjectPath, aside: boolean): Promise<ProjectChangeResult>
+  /**
+   * Deletes one outline (never what it links to): to the Trash, or for good once the author agreed to
+   * that after `no-trash`. The book's details come back, with the main outline moved on if needed.
+   */
+  deleteOutline(file: ProjectPath, how: 'trash' | 'for-good'): Promise<DeleteOutlineResult>
+  /** Puts the last deleted outline back as it was, main and set-aside included, until the book closes. */
+  undoDeleteOutline(): Promise<ProjectChangeResult>
   /** "Match folder names": what would change, then the change, and its undo until the book closes. */
   planFolderRenames(renames: FolderRenamesRequest): Promise<FolderRenamePlanResult>
   renameFolders(renames: FolderRenamesRequest): Promise<RenameFoldersResult>
@@ -116,6 +129,8 @@ export interface PlotDeviceApi {
   flushed(): Promise<void>
 
   listOutlines(): Promise<OutlineSummaryView[]>
+  /** Every outline as a storyline, the main one first, line-ups resolved (ADR 0012). */
+  getTimeline(): Promise<TimelineResult>
   /** A new outline, about a page or from a starter outline (Milestone 19), or empty. */
   createOutline(title: string, about?: ProjectPath, starter?: StarterId): Promise<OutlineResult>
   openOutline(file: ProjectPath): Promise<OutlineResult>

@@ -5,5 +5,6 @@ language: he
 chapterNumbering: continuous
 id: prj-demo7h
 schemaVersion: 1
+mainOutline: outlines/העלילה.md
 ---
 רומן לדוגמה, כדי לנסות את Plot Device. הכול בו בדוי, גם הסופרת.

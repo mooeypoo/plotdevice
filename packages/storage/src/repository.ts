@@ -95,15 +95,41 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
     return read.value.revision === snapshot.contentsRevision ? ok(read.value) : err('stale' as const)
   }
 
+  /** One targeted change to `project.md`'s details, refused if the file changed meanwhile. */
+  async function patchProject(
+    snapshot: ProjectSnapshot,
+    change: (text: string) => Result<string, unknown>,
+  ): Promise<Result<ProjectSnapshot, ChangeProblem>> {
+    const store = folders.open(snapshot.root)
+    const current = await store.read(PROJECT_FILE)
+    if (!current.ok) return err('unreadable')
+    const text = change(current.value.text)
+    if (!text.ok) return err('unreadable')
+    if (text.value === current.value.text) return ok(snapshot)
+    const written = await store.write(PROJECT_FILE, { text: text.value, hasBom: current.value.hasBom }, current.value.revision)
+    if (!written.ok) return err(writeProblem(written.error))
+    return reopen(snapshot.root)
+  }
+
   return {
     open,
 
     async create(location, project, template) {
       const valid = validateNewProject(project)
       if (!valid.ok) return err('invalid-details')
+      // The outlines' files first: the template's first outline is the book's main outline (ADR 0012).
+      const outlines: { file: ProjectPath; text: string }[] = []
+      for (const outline of template?.outlines ?? []) {
+        const file = outlineFileFor(
+          outline.title,
+          outlines.map((o) => o.file),
+        )
+        outlines.push({ file, text: newOutlineFile(outline.title, undefined, outline.body) })
+      }
       const projectFile = withTemplate(
         newProjectFile({ ...valid.value, chapterNumbering: 'continuous', id: ids.next('prj'), schemaVersion: CURRENT_SCHEMA_VERSION }),
         template,
+        outlines[0]?.file ?? null,
       )
       if (!projectFile.ok) return err('invalid-details')
       const folder = await folders.create(location, projectFolderName(valid.value.title), [MANUSCRIPT_FOLDER])
@@ -124,14 +150,7 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
         contents = edited.value
         files.push({ file, text: newChapterFile(valid.value.title, ids.next('ch')) })
       }
-      files.push({ file: CONTENTS_FILE, text: contents })
-      for (const outline of template?.outlines ?? []) {
-        const file = outlineFileFor(
-          outline.title,
-          files.map((f) => f.file),
-        )
-        files.push({ file, text: newOutlineFile(outline.title, undefined, outline.body) })
-      }
+      files.push({ file: CONTENTS_FILE, text: contents }, ...outlines)
       for (const { file, text } of files) {
         const written = await store.write(file, { text, hasBom: false }, null)
         if (!written.ok) return err('io')
@@ -315,6 +334,17 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       const written = await store.write(PROJECT_FILE, { text: withUnit.value, hasBom: current.value.hasBom }, current.value.revision)
       if (!written.ok) return err(writeProblem(written.error))
       return reopen(snapshot.root)
+    },
+
+    setMainOutline(snapshot, file) {
+      return patchProject(snapshot, (text) => setFrontmatterBlock(text, 'mainOutline', mainOutlineLines(file)))
+    },
+
+    setOutlineRoles(snapshot, { setAside, mainOutline }) {
+      return patchProject(snapshot, (text) => {
+        const aside = setFrontmatterList(text, 'setAside', setAside)
+        return aside.ok ? setFrontmatterBlock(aside.value, 'mainOutline', mainOutline && mainOutlineLines(mainOutline)) : aside
+      })
     },
 
     async renameFile(snapshot, file, newName) {
@@ -555,13 +585,22 @@ function writeStep(store: FileStore, path: ProjectPath, current: StoredText, tex
   }
 }
 
-/** A new `project.md` with the template's kinds, chapter word and suggested tags, each only if it has one. */
-function withTemplate(projectFile: string, template: ProjectTemplate | undefined): Result<string, 'invalid'> {
+/** A new `project.md` with the template's kinds, chapter word, suggested tags and main outline, each only if it has one. */
+function withTemplate(
+  projectFile: string,
+  template: ProjectTemplate | undefined,
+  mainOutline: ProjectPath | null,
+): Result<string, 'invalid'> {
   if (!template) return ok(projectFile)
   const kinds = setFrontmatterBlock(projectFile, 'kinds', template.kinds ? kindsLines(template.kinds) : null)
   const unit = kinds.ok ? setFrontmatterBlock(kinds.value, 'manuscriptUnit', unitLines(template.manuscriptUnit)) : kinds
   const tags = unit.ok ? setFrontmatterList(unit.value, 'suggestedTags', template.suggestedTags) : unit
-  return tags.ok ? tags : err('invalid')
+  const main = tags.ok ? setFrontmatterBlock(tags.value, 'mainOutline', mainOutline && mainOutlineLines(mainOutline)) : tags
+  return main.ok ? main : err('invalid')
+}
+
+function mainOutlineLines(file: ProjectPath): string[] {
+  return [`mainOutline: ${formatScalar(file)}`]
 }
 
 /** `kinds:` as `project.md` writes it: a block list, plain values quoted only when YAML needs it; `null` for the defaults. */

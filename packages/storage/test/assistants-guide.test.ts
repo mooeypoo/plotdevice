@@ -1,9 +1,10 @@
-import { createFileStore } from '@plotdevice/fs-node'
+import { createFileStore, createProjectFolders } from '@plotdevice/fs-node'
+import type { ProjectPath } from '@plotdevice/shared'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { checkProject } from '../src/index'
+import { checkProject, createOutlineRepository } from '../src/index'
 import { readProject } from '../src/read-project'
 
 /**
@@ -57,5 +58,29 @@ describe('the guide for AI assistants', () => {
     expect(project.ok && project.value.details.kinds.map((kind) => kind.folder)).toEqual(['characters', 'factions', 'places', 'notes'])
     expect(project.ok && project.value.details.manuscriptUnit).toEqual({ one: 'Session', many: 'Sessions' })
     expect(project.ok && project.value.details.suggestedTags).toEqual(['Player character', 'Villain', 'Ally'])
+  })
+
+  it('names the main outline and writes a line-up the way the app reads them (Milestone 21)', async () => {
+    const guide = await readFile(GUIDE, 'utf8')
+    const main = /`(mainOutline: [^`]+)`/.exec(guide)?.[1]
+    const line = /`(At the same time as [^`]+)`/.exec(guide)?.[1]
+    expect(main && line).toBeTruthy()
+    const root = await mkdtemp(join(tmpdir(), 'plotdevice-guide-'))
+    dirs.push(root)
+    await writeFile(join(root, 'project.md'), `---\ntitle: The Salt Orchard\nlanguage: en\n${main}\n---\n`)
+    await writeFile(join(root, 'CONTENTS.md'), '# The Salt Orchard\n')
+    await mkdir(join(root, 'outlines'))
+    await writeFile(join(root, 'outlines/main-story.md'), '# Main story\n\n## Beginning\n\n- Ilka arrives\n')
+    await writeFile(join(root, 'outlines/beas-path.md'), `# Bea’s path\n\n## Waiting\n${line}\n\n- Bea waits\n`)
+    const project = await readProject(root, createFileStore(root), [])
+    expect(project.ok && project.value.details.mainOutline).toBe('outlines/main-story.md')
+    const outlines = createOutlineRepository({ folders: createProjectFolders() })
+    const bea = await outlines.readOutline(root, 'outlines/beas-path.md' as ProjectPath)
+    expect(bea.ok && bea.value.outline.sections[0]?.lineUp).toEqual({
+      outline: 'outlines/main-story.md',
+      anchor: 'beginning',
+      text: 'Beginning',
+    })
+    expect((await checkProject(createFileStore(root))).findings).toEqual([])
   })
 })

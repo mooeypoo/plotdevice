@@ -3,6 +3,7 @@ import type { ProjectView, ReferenceKind, StarterId } from '@plotdevice/contract
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
+import { useOutlineRoles } from '../composables/use-outline-roles'
 import { useKinds } from '../composables/use-kinds'
 import { useOutlineActions } from '../composables/use-outline-actions'
 import { usePanelWidths } from '../composables/use-panel-widths'
@@ -12,6 +13,7 @@ import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
 import { textViewKeys, useViewStore, type OutlineMode } from '../stores/view'
 import AppIcon from './AppIcon.vue'
+import BookTimeline from './BookTimeline.vue'
 import EmptyState from './EmptyState.vue'
 import ItemHeader from './ItemHeader.vue'
 import KeptAsWritten from './KeptAsWritten.vue'
@@ -38,6 +40,13 @@ const views: OutlineMode[] = ['board', 'outline', 'text']
 const kinds = useKinds()
 const pagesOf = (kind: ReferenceKind) => story.references.filter((reference) => reference.kind === kind)
 const showingOutline = computed(() => story.showing.kind === 'outline')
+const roles = useOutlineRoles()
+/** The main outline first, marked, since its sections name the timeline's columns (ADR 0012); set-aside ones apart. */
+const plotOutlines = computed(() => [
+  ...story.outlinesInUse.filter((entry) => entry.file === story.mainOutline),
+  ...story.outlinesInUse.filter((entry) => entry.file !== story.mainOutline),
+])
+const setAsideOutlines = computed(() => story.outlines.filter((entry) => story.isSetAside(entry.file)))
 /** Plot and World fold, for a long list of kinds (Milestone 17); for this session only. */
 const plotOpen = ref(true)
 const worldOpen = ref(true)
@@ -78,6 +87,8 @@ const outlineItems = computed<MenuItem[]>(() => {
         view.outlineView = 'text'
       },
     },
+    // Main, set aside, delete: a group of their own, the same as on the timeline.
+    ...roles.menu(outline.file).map((item, index) => (index === 0 ? { ...item, group: 'roles' } : item)),
   ]
 })
 
@@ -89,7 +100,11 @@ async function newOutline(): Promise<void> {
     label: t('new-outline-start'),
     options: [{ value: '', label: t('starter-empty') }, ...STARTERS.map((id) => ({ value: id, label: t(`starter-${id}`) }))],
   })
-  if (answer) await story.create(answer.text, undefined, (answer.choice as StarterId) || undefined)
+  if (!answer) return
+  // From the timeline, the new storyline shows there as a new row.
+  const fromTimeline = story.showing.kind === 'timeline'
+  await story.create(answer.text, undefined, (answer.choice as StarterId) || undefined)
+  if (fromTimeline) await story.showTimeline()
 }
 
 /**
@@ -158,8 +173,19 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         </h2>
         <template v-if="plotOpen">
           <ul>
+            <li v-if="story.outlines.length > 0" class="row chapter-row" :class="{ current: story.showing.kind === 'timeline' }">
+              <button
+                type="button"
+                class="chapter"
+                data-testid="show-timeline"
+                :aria-current="story.showing.kind === 'timeline' ? 'page' : undefined"
+                @click="story.showTimeline()"
+              >
+                {{ t('story-timeline') }}
+              </button>
+            </li>
             <li
-              v-for="entry in story.outlines"
+              v-for="entry in plotOutlines"
               :key="entry.file"
               class="row chapter-row"
               :class="{ current: showingOutline && story.outline?.file === entry.file }"
@@ -172,9 +198,33 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
                 @click="story.open(entry.file)"
               >
                 <span dir="auto">{{ entry.title ?? entry.file }}</span>
+                <span v-if="entry.file === story.mainOutline && story.outlines.length > 1" class="main-badge" data-testid="main-badge">{{
+                  t('outline-main-badge')
+                }}</span>
               </button>
             </li>
           </ul>
+          <template v-if="setAsideOutlines.length > 0">
+            <p class="set-aside-heading secondary">{{ t('story-set-aside') }}</p>
+            <ul data-testid="set-aside">
+              <li
+                v-for="entry in setAsideOutlines"
+                :key="entry.file"
+                class="row chapter-row set-aside"
+                :class="{ current: showingOutline && story.outline?.file === entry.file }"
+              >
+                <button
+                  type="button"
+                  class="chapter"
+                  :data-outline="entry.file"
+                  :aria-current="showingOutline && story.outline?.file === entry.file ? 'page' : undefined"
+                  @click="story.open(entry.file)"
+                >
+                  <span dir="auto">{{ entry.title ?? entry.file }}</span>
+                </button>
+              </li>
+            </ul>
+          </template>
           <div class="add-links">
             <button type="button" class="add-link" data-testid="new-outline" @click="newOutline">{{ t('story-new-outline') }}</button>
           </div>
@@ -251,6 +301,15 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
           <h1 class="item-title">{{ t('story-manuscript') }}</h1>
         </ItemHeader>
         <ManuscriptOutline class="story-page" :project="project" />
+      </template>
+      <template v-else-if="story.showing.kind === 'timeline'">
+        <ItemHeader>
+          <h1 class="item-title">{{ t('story-timeline') }}</h1>
+          <button type="button" class="add-link" data-testid="new-storyline" @click="newOutline">
+            {{ t('timeline-new-storyline') }}
+          </button>
+        </ItemHeader>
+        <BookTimeline class="story-page" :project="project" @new-outline="newOutline" />
       </template>
       <WorldGallery v-else-if="story.showing.kind === 'gallery'" :key="story.showing.of" :kind="story.showing.of" />
       <ReferencePage v-else-if="story.showing.kind === 'page'" :key="story.showing.file" :file="story.showing.file" />

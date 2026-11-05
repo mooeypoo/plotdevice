@@ -6,6 +6,7 @@ import { useOutlineActions } from '../composables/use-outline-actions'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
 import EditableText from './EditableText.vue'
+import InlineText from './InlineText.vue'
 import ItemTextField from './ItemTextField.vue'
 import KeptAsWritten from './KeptAsWritten.vue'
 import MenuButton from './MenuButton.vue'
@@ -55,6 +56,17 @@ function picked(section: string | null, text: string): 'out' | 'faded' | null {
   return about.cards.has(cardKey(section, text)) ? 'out' : 'faded'
 }
 
+/**
+ * Whether an intro paragraph is the section's line-up (ADR 0012), shown with a quiet ⇄. All outlines
+ * are in one folder, so the link names the other outline's file.
+ */
+function isLineUp(section: number, intro: string): boolean {
+  const lineUp = props.outline.sections[section]?.lineUp
+  if (!lineUp) return false
+  const name = lineUp.outline.slice(lineUp.outline.lastIndexOf('/') + 1)
+  return intro.includes(`${name}#`) || intro.includes(`${encodeURI(name)}#`)
+}
+
 /** Which side of this card shows the line: above it for its own gap, below the last card for the end. */
 function dropSide(section: number, index: number): 'before' | 'after' | null {
   const at = target.value
@@ -89,7 +101,9 @@ function dropSide(section: number, index: number): 'before' | 'after' | null {
         </h3>
         <MenuButton v-if="column.name !== null" :label="t('section-actions', column.name)" :items="actions.sectionMenu(index)" />
       </header>
-      <p v-for="(intro, i) in column.intro" :key="`intro-${i}`" class="column-intro secondary" dir="auto">{{ intro }}</p>
+      <p v-for="(intro, i) in column.intro" :key="`intro-${i}`" class="column-intro secondary" dir="auto">
+        <span v-if="isLineUp(index, intro)" class="line-up-mark" aria-hidden="true">⇄ </span><InlineText :text="intro" />
+      </p>
       <template v-for="(entry, i) in column.entries" :key="i">
         <OutlineCard
           v-if="entry.kind === 'card'"

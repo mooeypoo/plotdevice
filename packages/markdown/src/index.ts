@@ -44,6 +44,7 @@ export type {
 } from './outline-model'
 export { itemAt, itemStart, keptPassages } from './outline-places'
 export { readOutline } from './read-outline'
+export { lineUpLink, readLineUp, type LineUpSource } from './line-up'
 export { newReferencePage, readReferencePage, type ReferencePage } from './reference-page'
 export {
   editRelationships,

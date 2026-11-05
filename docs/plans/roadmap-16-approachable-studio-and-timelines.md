@@ -5,7 +5,7 @@ Status: **Direction accepted** (owner, 2026-11-04): decisions D1–D9 as recomme
 Owner adjustments (2026-11-04):
 - **D1:** the audience is non-technical, even technophobe, writers. Hebrew leads, but English must work and be tested just as well.
 - **D9:** reading `.docx` for chapters only. Export to Word is later, designed together first.
-- **Later ideas** (story vs. book order, several outlines on one timeline, real dates, a relationship map) are documented features, brainstormed with the owner before any plan.
+- **Later ideas** (story vs. book order, several outlines on one timeline, real dates, a relationship map) are documented features, brainstormed with the owner before any plan. The first two were designed on 2026-11-05 (`timeline-design.md`).
 - **Kinds** need no schema version change and no migration (ADR 0011).
 
 ## Change of order (owner, 2026-11-05)
@@ -15,7 +15,7 @@ After Milestone 19 the roadmap changes order:
 1. **Next: Milestone 20, "Ready for writers"** (`milestone-20-ready-for-writers.md`), a tightening milestone for non-technical writers. Automatic backups (moved here from Milestone 22, decided below), a sample book to try, help inside the app, plain wording everywhere, installing and updating, and a short session with real writers.
 2. **Then two big features, each researched and designed with the owner before any plan:**
    - **Import and export:** Word first, and which other formats (PDF, ePub, others) are worth it. Brief: `docs/features/import-export.md`;
-   - **The timeline and lanes** (the roadmap's Milestones 20–21 below). The draft plan (`timeline-view.md`) waits for that research. Brief: `docs/features/timeline.md`.
+   - **The timeline** (the roadmap's Milestones 20–21 below). Researched and designed on 2026-11-05 (`timeline-design.md`), then planned and built as **Milestone 21** (`milestone-21-timeline.md`). Brief: `docs/features/timeline.md`.
 
 Milestone numbers below are kept as written; the new milestones are numbered when planned.
 
@@ -57,14 +57,14 @@ One milestone at a time, as `AGENTS.md` says. Each milestone below gets its own 
 | --- | --- | --- | --- |
 | A. A calm studio | M16 Rendered editing · M17 Main screen | No Markdown symbols in sight; a layout that looks finished | 0.4 |
 | B. Your kind of project | M18 Page kinds per project · M19 Templates | Start a novel, short story or campaign from a template; add or rename kinds of pages | 0.5 |
-| C. Story in time | M20 Timeline · M21 Lanes | The plot in time, and each character's (or faction's) path through it | 0.6 |
+| C. Story in time | M20 Timeline · M21 Highlighting | Parallel threads kept in step, and where each character or place appears | 0.6 |
 | D. Coming from Word | M22 Word in and out, backups | Bring a manuscript in, send chapters out, trust the backups | 0.7, then 1.0 |
 
 ```
 A: M16 Rendered editing ──┐
    M17 Main screen ───────┼──> B: M18 Page kinds ──> M19 Templates
                           │                  │
-                          └──> C: M20 Timeline ──> M21 Lanes (by any kind; needs M18)
+                          └──> C: M20 Timeline ──> M21 Highlighting (by any kind; needs M18)
 
 D: M22 Word and backups   (superseded 2026-11-05: backups move to the tightening milestone; import and export become their own researched feature)
 ```
@@ -270,80 +270,78 @@ Outlines have one fixed shape, so the app explains it the first time an author m
 
 # Phase C: Story in time
 
-## Milestone 20: Timeline view of an outline
+Designed with the owner on 2026-11-05: `timeline-design.md` (research, decisions and the options considered) and ADR 0012 (amended). This replaces the earlier "timeline view of one outline, then lanes by links" plan.
+
+## Milestone 20: The timeline of the book's threads
+
+Planned and built as **Milestone 21** (`milestone-21-timeline.md`, 2026-11-05); this section keeps the roadmap's numbering.
 
 ### Goal
 
-The author sees the plot laid out in time, using an outline they already have. **Timeline** is a fourth view beside Board · List · Text: the outline's sections are moments along a line, and their cards are the events at each moment.
+Board and List already show the plot laid out. The timeline keeps **parallel threads in step**: where Bea is while Ilka finds the letter, and what happened in Marrow before the story begins.
 
-### How it reads the outline
+### How it reads the outlines
 
-The same file and mapping (ADR 0003). No new file, field or syntax:
+Each outline is a **thread**, one row each. Its `##` sections are **moments**, in file order, labelled by their headings, and its cards are the **events**. No dates are parsed, so "Day 3", "Before the war" and invented calendars all work.
+
+A section is **lined up** with a moment of another outline by one short line under its heading. The section keeps its own name:
 
 ```markdown
-# Main story
+# Bea's path
 
-## Spring, 1912
-- Ilka finds the letter
-- The auction is announced
+## Childhood in Marrow
+- Learns to sail
 
-## The night of the storm
-- [Bea](../characters/bea.md) leaves Marrow
+## Hiding at the boathouse
+At the same time as [The night of the storm](main-story.md#the-night-of-the-storm)
+- Hides the letter in the boathouse
 ```
 
-- Each `##` section is a **moment**, in file order, labelled by its heading. No dates are parsed, so "Day 3", "Before the war" and invented calendars all work.
-- Each card is an **event** at that moment, with its details folded under it.
-- Moving a card to another moment is the same operation as moving it to another column on the Board.
+Sections not lined up keep their file order and sit between their lined-up neighbours.
 
 ### What the author will see
 
-- A line of moments with their cards stacked under each, earlier moments on the reading-start side (D8).
-- Drag between moments, with the existing Move menu as the keyboard equivalent.
-- Cards linked to a chapter (or session) show its name as a small label, so the author sees where each event is told.
-- Any outline can be shown as a timeline. The view is remembered per outline, like Board and List.
+- **Timeline** in the Plot group of the sidebar: one per book. Each outline's Board · List · Text switch is unchanged.
+- One row per thread, earlier moments on the reading-start side (D8). Sections not lined up are a little lighter, so nothing looks in step that isn't.
+- **Lining up:** drag a section onto a moment of another thread, or **Line up with…** from its menu. **Unpin** removes the line. The author never types a link.
+- **Moving cards** between moments of their own thread, by dragging or with the Move menu: the same file change as on the Board.
+- **Where each event is told:** a card linked to a chapter shows a small chip with its name, so a flashback shows at a glance.
+- **Empty and first use:** with one outline, the timeline says in one line what a thread is, with **New thread** beside it.
 
 ### Architecture note
 
-Timeline is the first view added since the architecture settled. It registers itself with an **internal view registry** (id, name, icon, the projection it needs, its component), rather than as another branch in `StoryView.vue`. Board, List and Text move onto the registry when they are next touched. The registry is internal only; there is no public plugin API.
+The timeline is placement-independent, so the deferred Plot | World | Write question can be answered later without a rewrite: a pure `timelineGrid` projection in presentation, a component that only draws a grid it is given, and one navigation entry for where it opens. Lining up is an outline-domain command with targeted Markdown edits.
 
 ### Tests
 
-- **Presentation:** the projection from outline to moments and events, with empty sections, cards before the first section (a moment called "Before"), Hebrew and English headings.
-- **Fidelity:** dragging on Timeline produces the same file change as the equivalent Board move (shared fixture).
-- **End to end:** Board → Timeline → List with no change to the file; move a card on Timeline; Hebrew direction.
+- **Presentation:** the grid from threads and line-ups, with sections before the first line-up, between line-ups and after the last; contradictions and missing targets; Hebrew and English headings; chapter chips.
+- **Markdown:** reading and writing the lining-up line; anchors for Hebrew, repeated and punctuated headings; line up then unpin returns the file byte for byte; renaming a section updates the line-ups that point to it.
+- **Fidelity:** a timeline card move and the equivalent Board move produce identical files.
+- **End to end:** line up Bea's section with the main story; move a card; Hebrew direction.
 
-## Milestone 21: Lanes, and each one's path
+## Milestone 21: Highlighting a page's cards
 
 ### Goal
 
-The timeline splits into **lanes**, one per page of a chosen kind or per tag, so the author sees each character's, faction's or location's path through the story, where paths cross, and where someone disappears for half the book.
+A small follow-up: the author sees where a character, place or tag appears across all threads, without a second way to make threads.
 
 ### What the author will see
 
-- **"Lanes by…"** on Timeline: nothing, **any kind in the project** (Characters, Factions, Locations…), or Tags.
-- **A card goes in a lane** when it, or one of its details, links to that page or carries that tag: the same links "Linked from" uses. Nothing is guessed from names.
-  - A card linked to two pages appears in both lanes, marked as shared.
-  - Cards with no links go in a folded lane ("No one", "Nowhere", "Untagged").
-- **Choosing lanes:** all pages of the kind, picked by hand, or by tag ("main cast", "party"), reusing Milestone 12's tag filter.
-- **From a page:** "show the page's cards on the board" gains **Show on the timeline**, opening the timeline with that page's lane alone.
-- **Gaps are visible:** a moment where a lane has no card shows as an empty stretch.
+- **Highlight…** on the timeline: a page of any kind, or a tag. Cards that link to it, or carry the tag, stand out; the rest fade.
+- **Show on the timeline** on a page, beside "show the page's cards on the board", opens the timeline with that page highlighted.
 
-### Priority and later ideas
+### Later ideas
 
 | Priority | Feature | Notes |
 | --- | --- | --- |
-| P1 (this milestone) | Lanes by any kind or tag; one page's timeline from the page | Projection only |
-| P2 | **Story order vs. book order:** chapters in reading order, each joined to the moments it tells | For non-linear novels and flashbacks; uses existing card-to-chapter links |
-| P2 | Several outlines on one timeline (main plot plus subplot), aligned by moment names | Needs a matching rule; design first |
+| P2 | Things that last across moments, drawn as bars ("lives in the city") | Needs a way to say "until"; lining up the start covers most cases |
+| P2 | Eras as soft background bands | Design first |
+| P2 | A richer story-order vs. book-order view | Only if the chapter chips aren't enough |
 | P3 | Optional real dates on moments, calendar spacing | Only if testers ask; ADR first |
+| P3 | Lanes built from links to pages | Dropped from M21; only if writers ask |
 | P3 | Read-only relationship map from ADR 0009 relationships | Milestone 11 allowed it "drawn from existing links" |
+| Deferred | **Plot, World and Write as three areas** instead of Story and Write | Owner, 2026-11-05: try the timeline inside Story first, then decide; the architecture keeps the move cheap |
 | Not planned | Hand-drawn webs, a separate timeline file, dates guessed from prose | Against the invariants and the Milestone 11 survey |
-
-### Tests
-
-- **Presentation:** lane assignment from links in cards and details, for built-in and custom kinds; shared and unlinked cards; links to missing pages; deterministic lane order.
-- **Performance:** 300 cards × 40 lanes within the existing perf budget.
-- **Accessibility:** each lane a labelled region; cards reachable by keyboard in moment order; screen-reader name "Bea, Spring 1912, Ilka finds the letter".
 
 ---
 

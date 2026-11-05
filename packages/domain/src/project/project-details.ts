@@ -1,4 +1,4 @@
-import { err, ok, type Brand, type Result } from '@plotdevice/shared'
+import { err, ok, type Brand, type ProjectPath, type Result } from '@plotdevice/shared'
 import type { ChapterNumbering } from '../manuscript/index'
 import type { ManuscriptUnit, PageKind } from './kinds'
 
@@ -19,6 +19,10 @@ export interface ProjectDetails {
   manuscriptUnit: ManuscriptUnit | null
   /** Tags "+ Tag" offers before any page uses them (Milestone 19); empty when `project.md` lists none. */
   suggestedTags: readonly string[]
+  /** The outline `project.md` names as main (ADR 0012), as written; `mainOutlineOf` says which one is. */
+  mainOutline: ProjectPath | null
+  /** Outlines the author set aside: off the timeline, listed apart, never main (Milestone 21). */
+  setAside: readonly ProjectPath[]
 }
 
 export const CURRENT_SCHEMA_VERSION = 1

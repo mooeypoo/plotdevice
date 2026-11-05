@@ -1,6 +1,6 @@
 # Feature brief: the timeline
 
-Status: **waiting for research and design** (owner, 2026-11-05). The owner wants dedicated research and a design session before building. This is the starting point for a dedicated conversation.
+Status: **Done.** Researched and designed with the owner on 2026-11-05 (`docs/plans/timeline-design.md`), then planned and built as Milestone 21 (`docs/plans/milestone-21-timeline.md`). This brief was the starting point; what follows is kept as it was written.
 
 ## Where it's documented
 
@@ -12,7 +12,7 @@ Status: **waiting for research and design** (owner, 2026-11-05). The owner wants
   - Time runs from the reading-start side: right in Hebrew, to be validated.
   - Views register themselves.
 - **`docs/plans/roadmap-16-approachable-studio-and-timelines.md`, Phase C:** the roadmap's Milestones 20 (Timeline) and 21 (Lanes), including the priority table of later ideas (story vs. book order, several outlines, real dates, a relationship map).
-- **`docs/plans/timeline-view.md`:** a draft milestone plan from 2026-11-05, on hold. It has what was found in the code (the view switch, how views are remembered, the Board's projection and moves), proposed decisions, files and tests, and four open questions.
+- **`docs/plans/timeline-view.md`** (since replaced by `milestone-21-timeline.md`): a draft milestone plan from 2026-11-05, on hold. It has what was found in the code (the view switch, how views are remembered, the Board's projection and moves), proposed decisions, files and tests, and four open questions.
 - **`PRD.md` and `UX_SPEC.md`** mention the timeline as a view of outlines; `UX_SPEC.md` has the RTL rule.
 
 ## Still open, for the research

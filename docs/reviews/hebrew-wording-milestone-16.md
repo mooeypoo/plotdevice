@@ -121,3 +121,24 @@ Worth checking:
 **English rewritten in the wording pass.** The Hebrew of these keys may need to follow:
 
 `new-project-hint`, `open-failed-newer-format`, `create-failed-folder-exists`, `create-failed-inside-project`, `create-failed`, `chapter-remove`, `change-failed-stale`, `change-failed-name-taken`, `change-failed-invalid-name`, `chapter-unreadable`, `chapter-missing`, `direction-paragraph-clear`, `direction-phrase-clear`, `conflict-title`, `conflict-body`, `conflict-keep-both-detail`, `conflict-failed`, `kinds-rename`, `kinds-adopt`, `kinds-folder-stays`, `kinds-not-saved`, `kinds-unit-hint`, `kinds-mismatch`, `match-hint`, `match-blocked-case-only`, `match-blocked-invalid-name`, `match-blocked-other-files`, `match-blocked-missing`, `match-backup-failed`, `folders-undo-stale`, `folders-failed`, `item-edit`, `section-rename`, `confirm-delete-item`, `kept-explanation`, `locked-item`, `invalid-details`, `outline-changed-elsewhere`, `outline-undo-refused`, `outline-refused-multiline-heading`, `reference-failed`, `relationship-changed-elsewhere`, `tags-failed`, `tags-unreadable`, `prompt-tag-rename`, `arc-start-hint`, `arc-outline-title`, `resize-navigator`, `versions-stale`, `compiled`, `compiled-missing`, `compile-failed`, `about-license`, `settings-plain-text-hint`, `backup-problem-missing-folder`, `backup-problem-no-space`, `restore-changed`
+
+## Added with the timeline
+
+| Key or file | Hebrew now | English |
+|---|---|---|
+| `story-timeline`, `timeline-new-storyline`, `timeline-one-title` | ציר הזמן · קו עלילה חדש · קו עלילה אחד, בינתיים | Timeline · New storyline · One storyline so far |
+| `outline-main-badge`, `timeline-main-outline`, `outline-make-main` | ראשי · המתווה הראשי · להפוך למתווה הראשי | Main · main outline · Make this the main outline |
+| `timeline-columns-from`, `timeline-columns-hint`, `timeline-change-main` | שמות העמודות באים מהמתווה הראשי: · לחיצה על שם משנה אותו, ו־+ מוסיף מקטע. · החלפה… | Column names come from… · Click a name… · Change… |
+| `timeline-same-time-as` (**written into the author's files**) | במקביל ל־ | At the same time as |
+| `timeline-line-up`, `timeline-unpin`, `timeline-lined-up-with`, `timeline-not-lined-up` | יישור עם… · ביטול היישור · מיושר עם „…” · לא מיושר | Line up with… · Unpin · … |
+| `timeline-cant-line-up-*`, `timeline-cant-line-up-fix`, `timeline-no-choices` | אי אפשר ליישר… · אפשר ליישר מחדש או לבטל את היישור דרך ⋯. · אין רגע שמתאים בלי לשנות את סדר קו העלילה. | Can't line up… |
+| `main-swap-question`, `main-swap-action` | להפוך את „…” למתווה הראשי? העמודות בציר הזמן יקבלו… | Make "…" the main outline? … |
+| `outline-set-aside`, `outline-bring-back`, `story-set-aside`, `outline-set-aside-instead` | להניח בצד · להחזיר · בצד · להניח בצד במקום | Set aside · Bring back · Set aside · Set aside instead |
+| `outline-delete*`, `outline-deleted*`, `outline-undo-delete`, `outline-restored` | the delete question in four short paragraphs; העברה לפח; „…” נמצא בפח.; ביטול | Delete outline… · Move to Trash · … |
+| `samples/מטע-המלח/outlines/הדרך של ביה.md` | a new storyline in the Hebrew sample, and line-ups in „הקשת של אילקה” | |
+
+- [ ] **„במקביל ל־”** is written into authors' outlines, so it matters most. The literal alternative is „באותו זמן כמו”.
+- [ ] **„קו עלילה”** for a storyline (a row of the timeline), beside „מתווה” for the outline itself: is the difference clear, or should the row just be called „מתווה”?
+- [ ] **Imperatives:** the menu commands use infinitives (להניח בצד, להחזיר), as elsewhere; the delete question uses statements.
+- [ ] Guide pages new or changed: `planning/timeline.mdx` (new), `planning/outlines.mdx`, `files/outlines.mdx`, `files/folder.mdx`.
+

@@ -277,6 +277,24 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await page.keyboard.press('Escape')
       await page.getByTestId('view-board').click()
 
+      // The timeline (Milestone 21): the storylines side by side, a section's line-up menu, and the
+      // question before an outline is deleted, answered with Cancel.
+      await page.getByTestId('show-timeline').click()
+      await page.locator('.timeline-row').nth(2).waitFor()
+      await snap(page, lang, 'timeline', theme)
+      // Bea's path's second section: lined up, so its menu offers Unpin and the moments it could move to.
+      const loose = page.locator('.timeline-row').nth(1).locator('.timeline-cell.lined-up').first()
+      await loose.hover()
+      await loose.locator('.cell-head .menu-button').click()
+      await snapAround(page, lang, 'timeline-line-up', theme, [loose, menu])
+      await page.keyboard.press('Escape')
+      const lastRow = page.locator('.timeline-row').last()
+      await lastRow.locator('.storyline-name').hover()
+      await lastRow.locator('.storyline-name .menu-button').click()
+      await page.getByTestId('menu-outline-delete').click()
+      await snapAround(page, lang, 'outline-delete', theme, [page.getByTestId('confirm')], 0)
+      await page.getByTestId('confirm').getByRole('button').first().click()
+
       await page.locator('[data-gallery="characters"]').click()
       await snap(page, lang, 'world-gallery', theme)
       const tagRow = page.locator('.world-gallery').getByTestId('tag-filter')

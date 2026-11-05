@@ -156,6 +156,13 @@ export interface ProjectRepository {
     kinds: readonly PageKind[],
     manuscriptUnit: ManuscriptUnit | null,
   ): Promise<Result<ProjectSnapshot, ChangeProblem>>
+  /** Writes which outline is main to `project.md` (ADR 0012); nothing else changes, no outline is touched. */
+  setMainOutline(snapshot: ProjectSnapshot, file: ProjectPath): Promise<Result<ProjectSnapshot, ChangeProblem>>
+  /** Writes which outlines are set aside, and which is main (`null`: not named), in one change to `project.md`. */
+  setOutlineRoles(
+    snapshot: ProjectSnapshot,
+    roles: { setAside: readonly ProjectPath[]; mainOutline: ProjectPath | null },
+  ): Promise<Result<ProjectSnapshot, ChangeProblem>>
   readChapter(root: string, file: ProjectPath): Promise<Result<ChapterText, 'missing' | 'unreadable'>>
   /** Saves the text, keeping the frontmatter as it is; refused if the file changed since `expected`. */
   saveChapter(

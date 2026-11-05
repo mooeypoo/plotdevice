@@ -15,4 +15,4 @@ Significant decisions and their reasons; minor tooling preferences are not recor
 | [0009](0009-relationships.md) | Relationships between characters, places and notes | Accepted |
 | [0010](0010-rendered-editing-and-plain-text.md) | Rendered editing and plain text | Accepted |
 | [0011](0011-page-kinds-per-project.md) | Kinds of pages per project | Accepted |
-| [0012](0012-timelines-as-outline-views.md) | Timelines as views of an outline | Accepted |
+| [0012](0012-timelines-as-outline-views.md) | Timelines as views of outlines | Accepted (amended 2026-11-05: threads and lining up) |

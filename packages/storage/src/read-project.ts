@@ -19,6 +19,7 @@ import {
   type ProjectDetails,
   type ProjectId,
   DEFAULT_KINDS,
+  OUTLINES_FOLDER,
   parseKinds,
   parseManuscriptUnit,
 } from '@plotdevice/domain'
@@ -37,7 +38,8 @@ export async function readDetails(store: FileStore, warnings: ProjectWarning[]):
   if (!file.ok) return err(file.error === 'missing' ? 'not-a-project' : file.error === 'io' ? 'io' : 'unreadable-project-file')
   const values = readFrontmatter(file.value.text)
   if (!values.ok) return err('unreadable-project-file')
-  const { title, author, language, chapterNumbering, id, schemaVersion, kinds, manuscriptUnit, suggestedTags } = values.value
+  const { title, author, language, chapterNumbering, id, schemaVersion, kinds, manuscriptUnit, suggestedTags, mainOutline, setAside } =
+    values.value
   if (typeof title !== 'string' || title.trim() === '') return err('unreadable-project-file')
   const version = typeof schemaVersion === 'number' ? schemaVersion : 1
   if (version > CURRENT_SCHEMA_VERSION) return err('newer-format')
@@ -60,7 +62,16 @@ export async function readDetails(store: FileStore, warnings: ProjectWarning[]):
     manuscriptUnit: readUnit.ok ? readUnit.value : null,
     // A list or a single tag, as on a page; anything else suggests nothing.
     suggestedTags: cleanTags((Array.isArray(suggestedTags) ? suggestedTags : [suggestedTags]).filter((tag) => typeof tag === 'string')),
+    mainOutline: outlinePath(mainOutline),
+    setAside: (Array.isArray(setAside) ? setAside : [setAside]).flatMap((value) => outlinePath(value) ?? []),
   })
+}
+
+/** `mainOutline` if it names a Markdown file in `outlines/`; anything else counts as not set (ADR 0012). */
+function outlinePath(value: unknown): ProjectPath | null {
+  if (typeof value !== 'string') return null
+  const path = parseProjectPath(value.trim())
+  return path.ok && path.value.startsWith(`${OUTLINES_FOLDER}/`) && /\.md$/i.test(path.value) ? path.value : null
 }
 
 /** `CONTENTS.md` as domain contents, with warnings for anything that isn't a chapter or a part. */

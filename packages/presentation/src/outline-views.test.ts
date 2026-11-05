@@ -34,14 +34,16 @@ const outline: OutlineView = {
       intro: ['Before anyone speaks.'],
       items: [item('Ilka arrives', [item('With one suitcase', [item("Her mother's")])]), item('The frost')],
       notes: [{ kind: 'group', text: 'Act two', before: 1 }],
+      lineUp: null,
     },
     {
       name: 'Middle',
       intro: [],
       items: [item('Stuck', [], { movable: false }), item('The ledger')],
       notes: [{ kind: 'kept', text: '| a | b |', before: 2 }],
+      lineUp: null,
     },
-    { name: 'Ending', intro: [], items: [], notes: [] },
+    { name: 'Ending', intro: [], items: [], notes: [], lineUp: null },
   ],
 }
 
@@ -134,7 +136,7 @@ describe('moving a card with the keyboard', () => {
   it('moves a detail only among its siblings', () => {
     const outlineWithSiblings: OutlineView = {
       ...outline,
-      sections: [{ name: 'Beginning', intro: [], notes: [], items: [item('Card', [item('one'), item('two')])] }],
+      sections: [{ name: 'Beginning', intro: [], notes: [], lineUp: null, items: [item('Card', [item('one'), item('two')])] }],
     }
     expect(cardMoves(outlineWithSiblings, at(0, 0, 1)).earlier).toEqual({ section: 0, parentPath: [0], index: 0 })
     expect(cardMoves(outlineWithSiblings, at(0, 0, 1)).later).toBeNull()

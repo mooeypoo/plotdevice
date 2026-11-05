@@ -53,6 +53,7 @@ export {
   type OpenProjectResult,
   type KindsChangeRequest,
   type ProjectChangeResult,
+  type DeleteOutlineResult,
   type FolderRenameBlockView,
   type FolderRenamePlanResult,
   type FolderRenamePlanView,
@@ -69,6 +70,8 @@ export {
   editOutlineSchema,
   outlineEditSchema,
   outlineFileSchema,
+  setOutlineAsideSchema,
+  deleteOutlineSchema,
   outlineViewKindSchema,
   placeSchema,
   workspaceSchema,
@@ -83,6 +86,7 @@ export {
   type Place,
   type Workspace,
 } from './outline'
+export type { TimelineLineUpView, TimelineResult, TimelineSectionView, TimelineThreadView, TimelineView } from './timeline'
 export {
   chapterLinksSchema,
   createReferenceSchema,

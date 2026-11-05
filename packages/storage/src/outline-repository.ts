@@ -1,9 +1,10 @@
 import type { OutlineDocument, OutlineRepository, ProjectFolders, Revision } from '@plotdevice/application'
-import { OUTLINES_FOLDER, outlineFileFor, type Outline, type OutlineItem, type OutlineNote } from '@plotdevice/domain'
+import { OUTLINES_FOLDER, outlineFileFor, type LineUp, type Outline, type OutlineItem, type OutlineNote } from '@plotdevice/domain'
 import {
   editOutline,
   newOutlineFile,
   readOutline,
+  readLineUp,
   readReferencePage,
   type OutlineItemSource,
   type ParsedOutline,
@@ -22,7 +23,7 @@ export function createOutlineRepository({ folders }: { folders: ProjectFolders }
     lastRead.set(`${root}\u0000${file}`, parsed)
     return {
       file,
-      outline: outlineOf(parsed),
+      outline: outlineOf(parsed, file),
       revision,
       nestingUnit: parsed.nestingUnit,
       invalidDetails: parsed.frontmatter?.valid === false,
@@ -75,11 +76,26 @@ export function createOutlineRepository({ folders }: { folders: ProjectFolders }
       if (!current.ok) return err(current.error === 'missing' ? 'missing' : 'unreadable')
       if (current.value.revision !== expected) return err('stale')
       const parsed = lastRead.get(`${root}\u0000${file}`)
-      const edited = editOutline(current.value.text, edit, { ...(nestingUnit ? { nestingUnit } : {}), ...(parsed ? { parsed } : {}) })
+      const edited = editOutline(current.value.text, edit, { file, ...(nestingUnit ? { nestingUnit } : {}), ...(parsed ? { parsed } : {}) })
       if (!edited.ok) return err(edited.error)
       const written = await store.write(file, { text: edited.value, hasBom: current.value.hasBom }, expected)
       if (!written.ok) return err(written.error.code === 'stale' ? 'stale' : 'write-failed')
       return ok({ document: documentOf(root, file, edited.value, written.value), previous: current.value.text })
+    },
+
+    async deleteOutline(root, file, how) {
+      const store = folders.open(root)
+      const current = await store.read(file)
+      if (!current.ok) return err(current.error === 'missing' ? 'missing' : 'write-failed')
+      const removed = await store.remove(file, current.value.revision, how)
+      if (!removed.ok) return err(removed.error === 'no-trash' || removed.error === 'missing' ? removed.error : 'write-failed')
+      lastRead.delete(`${root}\u0000${file}`)
+      return ok({ text: current.value.text, hasBom: current.value.hasBom })
+    },
+
+    async restoreDeletedOutline(root, file, content) {
+      const written = await folders.open(root).write(file, content, null)
+      return written.ok ? ok(undefined) : err('write-failed')
     },
 
     async restoreOutline(root, file, text, expected) {
@@ -94,8 +110,8 @@ export function createOutlineRepository({ folders }: { folders: ProjectFolders }
   }
 }
 
-/** The markdown package's source model, as the domain's outline (ADR 0003, point 7). */
-export function outlineOf(parsed: ParsedOutline): Outline {
+/** The markdown package's source model, as the domain's outline (ADR 0003, point 7); `file` is where it is. */
+export function outlineOf(parsed: ParsedOutline, file: ProjectPath): Outline {
   const slice = (range: { start: number; end: number }): string => parsed.source.slice(range.start, range.end)
   const item = (source: OutlineItemSource): OutlineItem => ({
     text: source.text,
@@ -110,6 +126,7 @@ export function outlineOf(parsed: ParsedOutline): Outline {
     sections: parsed.sections.map((section) => ({
       name: section.heading?.text ?? null,
       intro: section.intro.map(slice),
+      lineUp: lineUpOf(parsed.source, section.intro, file),
       items: section.items.map(item),
       notes: section.kept.map((block): OutlineNote => ({
         kind: block.reason === 'subheading' ? 'group' : 'kept',
@@ -118,4 +135,9 @@ export function outlineOf(parsed: ParsedOutline): Outline {
       })),
     })),
   }
+}
+
+function lineUpOf(source: string, intro: readonly { start: number; end: number }[], file: ProjectPath): LineUp | null {
+  const found = readLineUp(source, intro, file)
+  return found && { outline: found.outline, anchor: found.anchor, text: found.text }
 }

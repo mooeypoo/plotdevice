@@ -1,4 +1,5 @@
 import { createJournalStore, createProjectFolders } from '@plotdevice/fs-node'
+import type { ProjectPath } from '@plotdevice/shared'
 import { findLinks } from '@plotdevice/markdown'
 import { cp, mkdtemp, readdir, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -51,7 +52,8 @@ const demos = [
     chapters: 7,
     notInBook: ['manuscript/a-scene-for-later.md'],
     pages: { characters: 3, places: 3, notes: 3 },
-    outlines: ['outlines/main-story.md', 'outlines/the-arc-of-ilka.md'],
+    outlines: ['outlines/beas-path.md', 'outlines/main-story.md', 'outlines/the-arc-of-ilka.md'],
+    mainOutline: 'outlines/main-story.md',
   },
   {
     name: 'מטע-המלח',
@@ -59,7 +61,8 @@ const demos = [
     chapters: 5,
     notInBook: [],
     pages: { characters: 3, places: 2, notes: 2 },
-    outlines: ['outlines/העלילה.md', 'outlines/הקשת של אילקה.md'],
+    outlines: ['outlines/הדרך של ביה.md', 'outlines/העלילה.md', 'outlines/הקשת של אילקה.md'],
+    mainOutline: 'outlines/העלילה.md',
   },
 ]
 
@@ -86,8 +89,17 @@ describe.each(demos)('the demo novel $name', (demo) => {
         kind,
       ).toHaveLength(count)
     expect(pages.filter((page) => !page.description)).toEqual([])
-    // The main story opens first; a character's arc outline comes after it.
+    // The main story is named the main outline, so it opens first and names the timeline's columns;
+    // a character's arc and Bea's path line up with it (Milestone 21).
     expect((await outlines.listOutlines(root)).map((outline) => outline.file)).toEqual(demo.outlines)
+    const details = await readFile(join(root, 'project.md'), 'utf8')
+    expect(details).toContain(`mainOutline: ${demo.mainOutline}\n`)
+    for (const file of demo.outlines.filter((file) => file !== demo.mainOutline)) {
+      const read = await outlines.readOutline(root, file as ProjectPath)
+      expect(
+        read.ok && read.value.outline.sections.filter((section) => section.lineUp?.outline === demo.mainOutline).length,
+      ).toBeGreaterThan(1)
+    }
     expect(pages.filter((page) => page.kind === 'characters' && page.relationships.length === 0)).toEqual([])
     const linked = (await references.cardLinks(root)).flatMap((card) => card.links)
     expect(linked.some((file) => file.startsWith('characters/'))).toBe(true)

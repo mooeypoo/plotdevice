@@ -18,10 +18,20 @@ watch(current, async (request) => {
 
 <template>
   <dialog ref="dialog" class="dialog" data-testid="confirm" @cancel.prevent="current?.resolve(false)">
-    <p>{{ current?.message }}</p>
+    <!-- A blank line in the message starts a new paragraph; the first, the question, stands out. -->
+    <p
+      v-for="(paragraph, index) in current?.message.split('\n\n') ?? []"
+      :key="index"
+      :class="{ 'confirm-question': index === 0 && current?.instead }"
+    >
+      {{ paragraph }}
+    </p>
     <div class="actions">
       <button ref="cancel" type="button" @click="current?.resolve(false)">{{ settings.t('prompt-cancel') }}</button>
       <button type="button" class="danger" data-testid="confirm-yes" @click="current?.resolve(true)">{{ current?.action }}</button>
+      <button v-if="current?.instead" type="button" class="primary" data-testid="confirm-instead" @click="current?.resolve('instead')">
+        {{ current.instead }}
+      </button>
     </div>
   </dialog>
 </template>
