@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useSettingsStore } from '../stores/settings'
+import HelpLink from './HelpLink.vue'
 
 // Outlines have one fixed shape, so the app explains it once, above the first outline the author opens,
 // instead of making it configurable (Milestone 19). A guide in the app, never text in the file.
@@ -16,7 +17,7 @@ const settings = useSettingsStore()
         <rect v-if="column === 1" y="37" width="30" height="10" rx="2.5" class="guide-card" />
       </g>
     </svg>
-    <p>{{ settings.t('outline-guide') }}</p>
+    <p>{{ settings.t('outline-guide') }} <HelpLink page="planning/outlines" :label="settings.t('help-topic-outlines')" /></p>
     <button type="button" data-testid="outline-guide-done" @click="settings.update({ outlineGuideSeen: true })">
       {{ settings.t('outline-guide-done') }}
     </button>

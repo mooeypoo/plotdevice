@@ -3,7 +3,7 @@ import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
 import { timelineGrid } from '../src/index'
 
-// The timeline's budget (Milestone 20): a long book of 12 storylines with 60 moments each and 300
+// The timeline's budget (Milestone 21): a long book of 12 storylines with 60 moments each and 300
 // cards, nearly every moment lined up, is laid out again on every outline change. CI allows twice.
 const SLACK = process.env.CI ? 2 : 1
 const LIMIT = 50

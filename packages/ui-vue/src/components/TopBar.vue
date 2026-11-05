@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import type { AppInfo, Workspace } from '@plotdevice/contracts'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useApi } from '../api'
 import { useFolderUndo } from '../composables/use-folder-undo'
 import { useVersions } from '../composables/use-versions'
 import { documentationFor, IDEA_FORM, problemReportFor } from '../links'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
+import { useConfirm } from '../composables/use-confirm'
+import { useBackupsStore } from '../stores/backups'
 import { useViewStore } from '../stores/view'
 import AboutDialog from './AboutDialog.vue'
 import AppIcon from './AppIcon.vue'
@@ -22,6 +24,8 @@ import type { MenuItem } from './menu'
 const store = useProjectStore()
 const settings = useSettingsStore()
 const view = useViewStore()
+const backups = useBackupsStore()
+const { confirm } = useConfirm()
 const undoFolders = useFolderUndo()
 const versions = useVersions()
 const t = settings.t
@@ -37,6 +41,23 @@ const openInBrowser = (url: string): void => void window.open(url, '_blank', 'no
 // The names come only from the catalogs (`workspace-story`, `workspace-write`): the Story label is a working name.
 const workspaces: Workspace[] = ['story', 'write']
 
+/** Erases every change to the sample book, after saying so plainly (Milestone 20). */
+async function restartSample(): Promise<void> {
+  if (await confirm(t('sample-restart-confirm'), t('sample-restart-action'))) await store.restartSample()
+}
+
+/** "Backed up today at 14.30", or "No backups yet", under the book's name in its menu (Milestone 20). */
+const backupNote = computed(() => {
+  const at = backups.status?.lastAt
+  if (!at) return t('backups-note-none')
+  return t('backups-note', new Intl.DateTimeFormat(settings.locale, { dateStyle: 'medium', timeStyle: 'short' }).format(at))
+})
+watch(
+  () => store.project?.root,
+  () => void backups.refresh(),
+  { immediate: true },
+)
+
 const bookItems = computed<MenuItem[]>(() => {
   const chapter = view.workspace === 'write' ? view.writingChapter : null
   return [
@@ -44,6 +65,12 @@ const bookItems = computed<MenuItem[]>(() => {
     { key: 'kinds', label: t('kinds-menu'), run: () => (view.kindsDialog = true) },
     ...(store.renamedFolders ? [{ key: 'undo-folders', label: t('folders-undo'), run: () => void undoFolders() }] : []),
     ...(chapter ? [{ key: 'chapter-versions', label: t('chapter-versions'), run: () => versions.show(chapter.file, chapter.name) }] : []),
+    { key: 'backups', label: t('backups-menu'), group: 'backups', run: () => (backups.dialog = true) },
+    { key: 'back-up-now', label: t('backups-now'), run: () => void backups.backUpNow() },
+    { key: 'restore', label: t('restore-menu'), run: () => (backups.restoring = true) },
+    ...(store.opened?.sample
+      ? [{ key: 'restart-sample', label: t('sample-restart'), group: 'sample', run: () => void restartSample() }]
+      : []),
   ]
 })
 
@@ -85,10 +112,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         :label="t('book-menu')"
         :items="bookItems"
         :heading="store.project.title"
+        :note="backupNote"
         button-class="title-button"
         testid="book-menu"
       >
         <span class="project-title" dir="auto" :lang="store.project.language">{{ store.project.title }}</span>
+        <span v-if="store.opened?.sample" class="sample-badge" data-testid="sample-badge">{{ t('sample-badge') }}</span>
         <AppIcon name="chevron" />
       </MenuButton>
       <span v-else class="app-name">{{ t('app-name') }}</span>

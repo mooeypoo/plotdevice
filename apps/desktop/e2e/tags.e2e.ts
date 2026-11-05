@@ -125,7 +125,7 @@ test('while writing, the shelf groups by the tags chosen for each part, and reme
   const group = (tag: string) => shelf().locator(`[data-group="tag:${tag}"] button span[dir]`)
 
   await writeIn('the-crossing')
-  await page.keyboard.press('Control+Shift+R')
+  await page.keyboard.press('ControlOrMeta+Shift+R')
   await shelf().getByTestId('shelf-search').focus()
   await shelf().getByTestId('tag-filter').getByRole('button', { name: 'Part One – main' }).click()
   await expect(group('Part One – main')).toHaveText(['Bea Halmi', 'Ilka Varga'])
@@ -158,7 +158,7 @@ test('while writing, the shelf groups by the tags chosen for each part, and reme
   page = running.page
   await page.locator('.project-title').waitFor()
   await writeIn('frost')
-  if (!(await shelf().isVisible())) await page.keyboard.press('Control+Shift+R')
+  if (!(await shelf().isVisible())) await page.keyboard.press('ControlOrMeta+Shift+R')
   await shelf().getByTestId('shelf-search').focus()
   await expect(shelf().getByTestId('tag-filter').locator('[aria-pressed="true"]')).toHaveText(['Part Two – main'])
 })

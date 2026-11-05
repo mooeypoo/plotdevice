@@ -31,7 +31,7 @@ export const outlineEditSchema = z.discriminatedUnion('kind', [
 export const outlineFileSchema = z.strictObject({
   file: outlineFile,
 })
-/** Set an outline aside, or bring it back (Milestone 20). */
+/** Set an outline aside, or bring it back (Milestone 21). */
 export const setOutlineAsideSchema = z.strictObject({ file: outlineFile, aside: z.boolean() })
 /** Delete an outline: to the computer's Trash, or for good once the author agreed to that. */
 export const deleteOutlineSchema = z.strictObject({ file: outlineFile, how: z.enum(['trash', 'for-good']) })

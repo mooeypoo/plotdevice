@@ -73,7 +73,7 @@ export const useStoryStore = defineStore('story', () => {
   /** The book's outlines as the timeline reads them (ADR 0012); read again whenever it shows. */
   const timeline = ref<TimelineView | null>(null)
   const isSetAside = (file: ProjectPath): boolean => project.project?.setAside.includes(file) ?? false
-  /** The outlines in use: all but those set aside (Milestone 20). */
+  /** The outlines in use: all but those set aside (Milestone 21). */
   const outlinesInUse = computed(() => outlines.value.filter((entry) => !isSetAside(entry.file)))
   /** The main outline: the one `project.md` names, or else the first in use; never one set aside (ADR 0012). */
   const mainOutline = computed<ProjectPath | null>(() => {

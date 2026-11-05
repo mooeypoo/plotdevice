@@ -1,6 +1,6 @@
 # Timeline: research and design decisions
 
-Status: **Decided** (owner, 2026-11-05), after a research and brainstorm session. Mockups: https://claude.ai/artifact/2u7Ab9WaYXybFJtwf7sWyW. Recorded in ADR 0012 (amended), `DOMAIN_AND_FILE_FORMAT.md` 0.6, `PRD.md` 0.5, `UX_SPEC.md`, the roadmap (Phase C) and `milestone-20-timeline.md`.
+Status: **Decided** (owner, 2026-11-05), after a research and brainstorm session. Mockups: https://claude.ai/artifact/2u7Ab9WaYXybFJtwf7sWyW. Recorded in ADR 0012 (amended), `DOMAIN_AND_FILE_FORMAT.md` 0.6, `PRD.md` 0.5, `UX_SPEC.md`, the roadmap (Phase C) and `milestone-21-timeline.md`.
 
 ## In short
 
@@ -30,7 +30,7 @@ Craft advice agrees with lining up only some moments: parallel threads don't nee
 
 1. **The job: parallel threads in step.** Board, List and Text keep showing the plot laid out. The timeline doesn't repeat them.
 2. **One timeline per book,** opened as **Timeline** in the Plot group of the sidebar. It is not a fourth view in each outline's Board · List · Text switch, which stays as it is.
-3. **A thread is an outline, and nothing else.** One row per outline on the timeline. Lanes built from links (the earlier Milestone 21) are dropped: a second way to make a character's thread would confuse. A page's cards can be **highlighted** on the timeline instead (Milestone 21).
+3. **A thread is an outline, and nothing else.** One row per outline on the timeline. Lanes built from links (the roadmap's earlier Milestone 21) are dropped: a second way to make a character's thread would confuse. A page's cards can be **highlighted** on the timeline instead (Milestone 21).
 4. **Lining up** (option c below): a short line under a section's heading, linking to a section of another outline:
 
    ```markdown

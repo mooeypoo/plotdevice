@@ -9,6 +9,7 @@ import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
 import { useViewStore } from '../stores/view'
+import HelpLink from './HelpLink.vue'
 
 // "Match folder names" (Milestone 18, ADR 0011 decision 7): each renamed kind's folder takes its new
 // name, with every link to its pages. First what will change, then a backup, then the rename; the book
@@ -53,7 +54,8 @@ watch(
 
 async function makeBackup(): Promise<void> {
   working.value = true
-  const made = await api.backupBook()
+  // The book's own backup (Milestone 20): into its backup folder, choosing one first if it has none.
+  const made = await api.backUpNow()
   working.value = false
   if (made.ok) backup.value = made.value
   else if (made.error !== 'cancelled') backup.value = 'failed'
@@ -78,7 +80,7 @@ function close(): void {
 
 <template>
   <dialog ref="dialog" class="dialog match-folders" data-testid="match-folders-dialog" :aria-label="t('match-title')" @close="close">
-    <h2>{{ t('match-title') }}</h2>
+    <h2>{{ t('match-title') }} <HelpLink page="planning/kinds" :label="t('match-title')" /></h2>
     <p class="secondary">{{ t('match-hint') }}</p>
 
     <template v-if="plan">

@@ -34,7 +34,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        # macOS is built and tested unsigned, so it's known to work before it's offered (owner, 2026-11-05).
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -64,8 +65,8 @@ jobs:
       - name: End-to-end tests (Linux)
         if: runner.os == 'Linux'
         run: xvfb-run --auto-servernum pnpm exec playwright test
-      - name: End-to-end tests (Windows)
-        if: runner.os == 'Windows'
+      - name: End-to-end tests (Windows and macOS)
+        if: runner.os != 'Linux'
         run: pnpm exec playwright test
 
       # Installers (Milestone 7), tested as an author would install and remove them.
@@ -75,8 +76,8 @@ jobs:
       - name: End-to-end tests on the packaged app (Linux)
         if: runner.os == 'Linux'
         run: xvfb-run --auto-servernum pnpm e2e:packaged
-      - name: End-to-end tests on the packaged app (Windows)
-        if: runner.os == 'Windows'
+      - name: End-to-end tests on the packaged app (Windows and macOS)
+        if: runner.os != 'Linux'
         run: pnpm e2e:packaged
       - name: Install, check and remove the .deb
         if: runner.os == 'Linux'
@@ -109,6 +110,7 @@ jobs:
             apps/desktop/dist/*.AppImage
             apps/desktop/dist/*.deb
             apps/desktop/dist/*-setup.exe
+            apps/desktop/dist/*.dmg
           retention-days: 14
       - uses: actions/upload-artifact@v4
         if: failure()

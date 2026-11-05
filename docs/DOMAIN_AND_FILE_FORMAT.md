@@ -20,8 +20,9 @@ Version: 0.6 (2026-11-05). Project layout per ADR 0006; Markdown fidelity per AD
 - Chapter title: the chapter's frontmatter `title`; the contents link text mirrors it.
 - Outlines: `outlines/*.md` bodies.
 - Page text: dedicated Markdown files in their kind's folder.
-- Project details (title, author, language, numbering style, schema version, kinds, manuscript unit, main outline): `project.md` frontmatter.
-- Personal theme, locale, layout, pinned items, backups and recovery journals: OS app data, never the project folder.
+- Project details (title, author, language, numbering style, schema version, kinds, manuscript unit, main outline and outlines set aside): `project.md` frontmatter.
+- Personal theme, locale, layout, pinned items, earlier versions (restore points) and recovery journals: OS app data, never the project folder.
+- **Backups (Milestone 20)** are zip files of the whole book folder, named "‹Book› backup YYYY-MM-DD HH.MM.zip" in local time, in a folder the author chose for that book, never inside the book. Each backup's entries sit in a folder named after the book, so unzipping it by hand gives a book folder. Which folder, the clean-up rule and the record of automatic backups are kept in OS app data, by the book's folder. Nothing is ever deleted unless the author turned on a clean-up rule.
 - Search indexes, caches and thumbnails: disposable, never authoritative.
 
 ## Files
@@ -101,7 +102,7 @@ mainOutline: outlines/main-story.md
 - Its sections name the timeline's columns. Optional: without it, or if that file is gone, the first outline in the Plot group is main, and nothing is written on open.
 - The app writes it when a book is created from a template (its first outline), when an outline is added to a book that doesn't have it (naming the current main, so the new one doesn't take over), when the author makes another outline main, and when the main outline is set aside or deleted in the app. Each is a targeted frontmatter patch; no outline file changes.
 
-### Outlines set aside (Milestone 20)
+### Outlines set aside (Milestone 21)
 ```yaml
 setAside: [outlines/old-plan.md]
 ```

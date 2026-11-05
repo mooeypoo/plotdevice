@@ -411,6 +411,101 @@ label {
   color: var(--color-text-secondary);
   font-size: 0.82rem;
 }
+.menu-note {
+  padding-inline: 0.75rem;
+  padding-block-end: 0.4rem;
+  font-size: 0.8rem;
+}
+/* A small "?" beside something that needs explaining (Milestone 20), opening the guide. */
+.help-link {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  border-radius: 50%;
+  border: 1px solid var(--hair);
+  color: var(--color-text-secondary);
+  font: 600 0.75rem/1 var(--font-ui, inherit);
+  text-decoration: none;
+  vertical-align: middle;
+  margin-inline-start: 0.35rem;
+}
+.help-link:hover,
+.help-link:focus-visible {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+/* The sample book (Milestone 20) */
+.welcome-sample {
+  margin-block: 0.6rem 0;
+}
+.sample-badge {
+  display: inline-block;
+  margin-inline-start: 0.4rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--hover);
+  color: var(--color-text-secondary);
+  font: 500 0.72rem/1.4 var(--font-ui, inherit);
+  font-style: normal;
+  vertical-align: middle;
+}
+/* Backups and restoring (Milestone 20) */
+.backups-dialog,
+.restore-dialog,
+.backup-offer {
+  inline-size: min(36rem, 100%);
+}
+.backups-dialog section,
+.backups-cleanup {
+  margin-block: 1rem;
+}
+.backup-folder {
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.backup-choices {
+  margin-block: 0.5rem;
+}
+.backups-cleanup {
+  border: none;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.backups-cleanup .number {
+  inline-size: 4.5rem;
+}
+.restore-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  max-block-size: 16rem;
+  overflow: auto;
+}
+.restore-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  inline-size: 100%;
+  text-align: start;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  padding: 0.5rem 0.65rem;
+}
+.restore-entry[aria-pressed='true'] {
+  background: var(--hover);
+  outline: 2px solid var(--color-accent);
+}
+.restore-entry .secondary {
+  font-size: 0.78rem;
+}
+.restore-changes {
+  margin: 0 0 0.5rem;
+  padding-inline-start: 1.2rem;
+}
 .menu-heading {
   padding-block: 0.55rem 0.35rem;
   padding-inline: 0.75rem;
@@ -3007,7 +3102,7 @@ button.inline-link {
   gap: 0.5rem;
 }
 
-/* The timeline (Milestone 20, ADR 0012): one row per outline, the main outline's sections as columns.
+/* The timeline (Milestone 21, ADR 0012): one row per outline, the main outline's sections as columns.
    Grid columns follow the interface's direction, so earlier moments sit on the reading-start side. */
 .main-badge {
   margin-inline-start: 0.5rem;

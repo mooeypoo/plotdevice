@@ -233,8 +233,9 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       for (const rename of renames) await store.removeEmptyFolder(rename.from)
 
       // The reverse: the old texts back where they are now, then each page back to its folder (ADR 0005).
+      // Every write here replaced an existing file (`before` is never null), so each can be written back.
       const writes = forward.flatMap((step): JournalStep[] =>
-        step.kind === 'write'
+        step.kind === 'write' && step.before !== null
           ? [
               {
                 kind: 'write',
@@ -287,6 +288,36 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       const outcome = await runJournaled(store, journals, projectKey(snapshot), { ...undo.entry, steps }, crashAt)
       if (outcome !== 'done') return err('write-failed')
       for (const { to } of undo.renames) await store.removeEmptyFolder(to)
+      return reopen(snapshot.root)
+    },
+
+    async restoreFiles(snapshot, files) {
+      const store = folders.open(snapshot.root)
+      const steps: JournalStep[] = []
+      for (const file of files) {
+        const path = parseProjectPath(file.path)
+        if (!path.ok) continue
+        const current = await store.read(path.value)
+        if (current.ok && current.value.text === file.text && current.value.hasBom === file.hasBom) continue
+        if (!current.ok && current.error !== 'missing') return err('unreadable')
+        steps.push({
+          kind: 'write',
+          path: path.value,
+          before: current.ok ? current.value.revision : null,
+          after: store.revisionOf({ text: file.text, hasBom: file.hasBom }),
+          text: file.text,
+          hasBom: file.hasBom,
+        })
+      }
+      if (steps.length === 0) return reopen(snapshot.root)
+      const outcome = await runJournaled(
+        store,
+        journals,
+        projectKey(snapshot),
+        { id: ids.next('jrn'), operation: 'restore-backup', steps },
+        crashAt,
+      )
+      if (outcome !== 'done') return err('write-failed')
       return reopen(snapshot.root)
     },
 

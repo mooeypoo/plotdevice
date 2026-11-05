@@ -90,7 +90,7 @@ describe.each(demos)('the demo novel $name', (demo) => {
       ).toHaveLength(count)
     expect(pages.filter((page) => !page.description)).toEqual([])
     // The main story is named the main outline, so it opens first and names the timeline's columns;
-    // a character's arc and Bea's path line up with it (Milestone 20).
+    // a character's arc and Bea's path line up with it (Milestone 21).
     expect((await outlines.listOutlines(root)).map((outline) => outline.file)).toEqual(demo.outlines)
     const details = await readFile(join(root, 'project.md'), 'utf8')
     expect(details).toContain(`mainOutline: ${demo.mainOutline}\n`)

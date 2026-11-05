@@ -51,7 +51,7 @@ export interface OutlineRepository {
   ): Promise<Result<{ document: OutlineDocument; previous: string }, OutlineWriteProblem>>
   /**
    * Deletes the outline the author chose to delete: to the computer's Trash, or for good once they
-   * agreed to that (Milestone 20). Nothing else changes.
+   * agreed to that (Milestone 21). Nothing else changes.
    */
   deleteOutline(root: string, file: ProjectPath, how: 'trash' | 'for-good'): Promise<Result<TextToStore, OutlineDeleteProblem>>
   /** Undoing a delete: writes the outline back as it was, only where no file has taken its place. */

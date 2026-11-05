@@ -58,6 +58,7 @@ function memoryRepository(initial: Record<string, string>) {
     setKinds: unknown,
     setMainOutline: unknown,
     setOutlineRoles: unknown,
+    restoreFiles: unknown,
     planFolderRenames: unknown,
     renameFolders: unknown,
     undoFolderRenames: unknown,

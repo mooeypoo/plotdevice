@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { closeSettings, launch, openSettings, type Launched } from './launch'
 
-// The timeline (Milestone 20, ADR 0012): the sample novel's outlines side by side, lined up.
+// The timeline (Milestone 21, ADR 0012): the sample novel's outlines side by side, lined up.
 const FIXTURES = join(import.meta.dirname, '../../../tests/fixtures')
 const MAIN = 'outlines/main-story.md'
 const BEA = 'outlines/beas-path.md'

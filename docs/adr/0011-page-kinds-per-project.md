@@ -68,5 +68,5 @@ manuscriptUnit:
 ## Consequences
 
 - Templates (Milestone 19) are possible: a template is mostly a `kinds` list and a manuscript unit.
-- Highlighting on the timeline (Milestone 21) works for any kind, because it works on links, not on kinds (lanes by links were dropped on 2026-11-05; ADR 0012).
+- Highlighting on the timeline (a later milestone) works for any kind, because it works on links, not on kinds (lanes by links were dropped on 2026-11-05; ADR 0012).
 - The guide for AI assistants and the project check change with Milestone 18.

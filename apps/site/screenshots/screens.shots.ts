@@ -277,7 +277,7 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await page.keyboard.press('Escape')
       await page.getByTestId('view-board').click()
 
-      // The timeline (Milestone 20): the storylines side by side, a section's line-up menu, and the
+      // The timeline (Milestone 21): the storylines side by side, a section's line-up menu, and the
       // question before an outline is deleted, answered with Cancel.
       await page.getByTestId('show-timeline').click()
       await page.locator('.timeline-row').nth(2).waitFor()
@@ -352,6 +352,14 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await kp.getByTestId('match-folders').click()
       await kp.getByTestId('match-links').waitFor()
       await snapAround(kp, lang, 'match-folders', theme, [kp.getByTestId('match-folders-dialog')], 0)
+      // Close "Match folder names", then "Kinds of pages" beneath it.
+      await kp.keyboard.press('Escape')
+      await kp.getByTestId('kinds-close').click()
+      // Backups (Milestone 20), before a folder is chosen: what they do, and that nothing is deleted.
+      await kp.getByTestId('book-menu').click()
+      await kp.getByTestId('menu-backups').click()
+      await kp.getByTestId('backups-off-note').waitFor()
+      await snapAround(kp, lang, 'backups-dialog', theme, [kp.getByTestId('backups-dialog')], 0)
       await kinds.app.close()
 
       const welcome = await open(lang, theme)

@@ -60,7 +60,7 @@ describe('the guide for AI assistants', () => {
     expect(project.ok && project.value.details.suggestedTags).toEqual(['Player character', 'Villain', 'Ally'])
   })
 
-  it('names the main outline and writes a line-up the way the app reads them (Milestone 20)', async () => {
+  it('names the main outline and writes a line-up the way the app reads them (Milestone 21)', async () => {
     const guide = await readFile(GUIDE, 'utf8')
     const main = /`(mainOutline: [^`]+)`/.exec(guide)?.[1]
     const line = /`(At the same time as [^`]+)`/.exec(guide)?.[1]

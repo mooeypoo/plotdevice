@@ -70,8 +70,6 @@ export type RenameFoldersResult = Result<
   Exclude<ProjectChangeResult, { ok: true }>['error'] | 'blocked'
 >
 export type UndoFolderRenamesResult = Result<ProjectView, Exclude<ProjectChangeResult, { ok: true }>['error'] | 'nothing-to-undo'>
-/** A copy of the whole book folder, where the author chose. */
-export type BackupBookResult = Result<{ path: string }, 'cancelled' | 'failed' | 'no-project'>
 
 export const renameChapterSchema = z.strictObject({ file: projectPathSchema, title: name })
 export const renameChapterFileSchema = z.strictObject({ file: projectPathSchema, newName: name })
@@ -79,6 +77,8 @@ export const openProjectSchema = z.union([z.strictObject({ recent: z.string().mi
 export const forgetRecentProjectSchema = z.strictObject({ root: z.string().min(1) })
 
 export type NewProjectRequest = z.infer<typeof newProjectSchema>
+/** The sample book in the interface's language (Milestone 20). */
+export const sampleRequestSchema = z.strictObject({ language: z.enum(['en', 'he']) })
 export type TemplateId = z.infer<typeof templateIdSchema>
 export type ContentsChangeRequest = z.infer<typeof contentsChangeSchema>
 export type OpenProjectRequest = z.infer<typeof openProjectSchema>
@@ -114,7 +114,7 @@ export interface ProjectView {
   suggestedTags: string[]
   /** The outline `project.md` names as main (ADR 0012), or `null`; if it is gone, the first outline is main. */
   mainOutline: ProjectPath | null
-  /** Outlines the author set aside (Milestone 20): listed apart and off the timeline. */
+  /** Outlines the author set aside (Milestone 21): listed apart and off the timeline. */
   setAside: ProjectPath[]
   /** Kinds whose folder isn't named after them (yet): what "Match folder names" would rename. */
   folderMismatches: { from: string; to: string }[]
@@ -125,6 +125,8 @@ export interface RecentProjectView {
   title: string
   /** False when the folder has moved or is gone: shown with "Find…" and "Remove from list". */
   available: boolean
+  /** The sample book to try (Milestone 20), shown as such. */
+  sample?: true
 }
 
 /** Where the author was in a chapter: offsets in its text, never pixels. */
@@ -136,6 +138,8 @@ export interface ChapterPosition {
 
 export interface OpenedProject {
   project: ProjectView
+  /** The sample book to try (Milestone 20): a copy in the app's own data, with "Start the sample over". */
+  sample?: true
   /** Where the author stopped writing last time, to reopen there. */
   leftOff?: { file: ProjectPath } & ChapterPosition
   /** Where the author was in each chapter. */
@@ -147,7 +151,7 @@ export interface OpenedProject {
 /** `cancelled`: the author closed the folder dialog. */
 export type OpenProjectResult = Result<OpenedProject, 'cancelled' | 'not-a-project' | 'unreadable' | 'newer-format' | 'not-recent'>
 export type CreateProjectResult = Result<OpenedProject, 'cancelled' | 'invalid-details' | 'folder-exists' | 'inside-project' | 'io'>
-/** Deleting an outline (Milestone 20): `no-trash` when this computer has no Trash; nothing was deleted. */
+/** Deleting an outline (Milestone 21): `no-trash` when this computer has no Trash; nothing was deleted. */
 export type DeleteOutlineResult = Result<ProjectView, Exclude<ProjectChangeResult, { ok: true }>['error'] | 'no-trash' | 'missing'>
 
 export type ProjectChangeResult = Result<

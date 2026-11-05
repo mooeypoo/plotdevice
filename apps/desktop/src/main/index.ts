@@ -1,5 +1,6 @@
 import { projectTemplate, starter } from '@plotdevice/templates'
 import {
+  createBackupSession,
   createOutlineSession,
   createPreferencesSession,
   createRecentProjectsSession,
@@ -25,7 +26,9 @@ import {
   watchProject,
   type ProjectWatcher,
   writeAtomically,
-  copyBook,
+  createBookBackups,
+  findSyncFolders,
+  prepareSampleBook,
 } from '@plotdevice/fs-node'
 import { catalogs, createTranslator } from '@plotdevice/i18n'
 import {
@@ -38,7 +41,7 @@ import {
 } from '@plotdevice/storage'
 import { app, BrowserWindow, dialog, ipcMain, Menu, session, shell } from 'electron'
 import { access, readFile, rename, stat } from 'node:fs/promises'
-import { basename, join } from 'node:path'
+import { basename, join, resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import icon from '../../../../assets/brand/icons/512x512.png?asset'
 import { applicationMenu } from './app-menu'
@@ -115,6 +118,16 @@ void app.whenReady().then(async () => {
   const writing = createWritingSession({ repository, copyLabel: () => translate('conflict-copy-label') })
   const outlines = createOutlineSession({ repository: createOutlineRepository({ folders }), root: () => writing.project()?.root ?? null })
   const recent = await createRecentProjectsSession(createAppDataFile(userData, 'recent'))
+  const isSampleBook = (root: string): boolean => resolve(root).startsWith(join(userData, 'sample') + sep)
+  // Each book's own backups, as zips in a folder the author chose for it (Milestone 20).
+  const bookBackups = createBackupSession({
+    backups: createBookBackups(),
+    records: createAppDataFile(userData, 'backups'),
+    folders: createProjectFolders(),
+    book: writing,
+    now: Date.now,
+    neverOffer: (root) => isSampleBook(root),
+  })
   const updates = await createUpdateSession({
     source: createUpdateSource(
       testUpdateUrl
@@ -133,11 +146,21 @@ void app.whenReady().then(async () => {
     () => recent.idle(),
     () => outlines.idle(),
     () => updates.idle(),
+    // Quitting is leaving the book: today's backup, if one is due.
+    () => runBackups(),
   )
   // The watcher can start before the window exists (reopening the last project); events wait for it.
   let tellPage: (event: HostEvent) => void = () => undefined
   const stopWatching = watchOpenProject(writing, outlines, () => tellPage({ kind: 'references-changed' }))
   pendingWork.push(stopWatching)
+  /** An automatic backup if one is due, telling the page only when something needs saying. */
+  async function runBackups(): Promise<void> {
+    const title = writing.project()?.details.title ?? ''
+    const run = await bookBackups.runIfDue()
+    if (run.problem !== null || run.removed.length > 0)
+      tellPage({ kind: 'backup-ran', title, removed: run.removed.length, problem: run.problem })
+  }
+  setInterval(() => void runBackups(), BACKUP_CHECK_MS).unref()
   /** Opens a folder given at launch ("Open with", or the command line), and remembers it. */
   const openFolder = async (folder: string): Promise<HostEvent> => {
     const isFolder = await stat(folder).then(
@@ -145,6 +168,7 @@ void app.whenReady().then(async () => {
       () => false,
     )
     if (!isFolder) return { kind: 'open-failed', error: 'not-a-project' }
+    await runBackups()
     const opened = await writing.openProject(folder)
     if (!opened.ok) return { kind: 'open-failed', error: openProblem(opened.error) }
     await recent.opened({ root: opened.value.root, title: opened.value.details.title })
@@ -205,16 +229,30 @@ void app.whenReady().then(async () => {
     })
     pageFlushed = true
   }
+  // Closing the window is leaving the book: its text is saved, today's backup made if due, and, once per
+  // book with some content, backups are offered; the window closes when the author answers. Closing
+  // again while the offer shows closes at once.
+  let answerOffer: () => void = () => undefined
   window.on('close', (event) => {
     if (pageFlushed) return
     event.preventDefault()
-    void flushPage().then(() => window.close())
+    void flushPage()
+      .then(() => runBackups())
+      .then(async () => {
+        if (!(await bookBackups.shouldOffer())) return
+        await new Promise<void>((resolve) => {
+          answerOffer = resolve
+          tellPage({ kind: 'offer-backups' })
+        })
+      })
+      .finally(() => window.close())
   })
 
-  const chooseFolder = async (titleKey: string): Promise<string | null> => {
+  const chooseFolder = async (titleKey: string, start?: string): Promise<string | null> => {
     if (testFolderChoice !== undefined) return testFolderChoice || null
     const chosen = await dialog.showOpenDialog(window, {
       title: translate(titleKey),
+      ...(start ? { defaultPath: start } : {}),
       buttonLabel: translate('dialog-choose'),
       properties: ['openDirectory', 'createDirectory'],
     })
@@ -254,8 +292,12 @@ void app.whenReady().then(async () => {
         return chosen.canceled || !chosen.filePath ? null : chosen.filePath
       },
       compile: (snapshot) => compileManuscript(createProjectFolders(), snapshot),
-      chooseBackupLocation: async () => (testBackupTo !== undefined ? testBackupTo || null : chooseFolder('dialog-backup-location')),
-      copyBook,
+      leavingBook: () => runBackups(),
+      sampleBook: (language, fresh) => {
+        const name = SAMPLE_BOOKS[language]
+        return prepareSampleBook(join(samplesFolder(), name), join(userData, 'sample', name), fresh)
+      },
+      isSample: (root) => isSampleBook(root),
       writeOutside: (path, text) =>
         writeAtomically(path, new TextEncoder().encode(text)).then(
           () => true,
@@ -278,6 +320,18 @@ void app.whenReady().then(async () => {
         ),
     },
     updates: { updates },
+    backups: {
+      backups: bookBackups,
+      writing,
+      recent,
+      chooseFolder: async (start) =>
+        testBackupTo !== undefined ? testBackupTo || null : chooseFolder('dialog-backup-location', start ?? undefined),
+      syncFolders: () =>
+        testBackupTo !== undefined ? Promise.resolve([]) : findSyncFolders(app.getPath('home'), process.platform, process.env),
+      showFolder: async (path) => void (await shell.openPath(path)),
+      offerAnswered: () => answerOffer(),
+      runBackups,
+    },
   })
   for (const [channel, handle] of Object.entries(handlers)) {
     ipcMain.handle(channel, (event, payload: unknown) =>
@@ -303,6 +357,8 @@ void app.whenReady().then(async () => {
 })
 
 const FLUSH_TIMEOUT_MS = 2000
+/** How often an open book is checked for its daily backup (Milestone 20). */
+const BACKUP_CHECK_MS = 60 * 60 * 1000
 const UPDATE_FIRST_CHECK_MS = 5000
 /** How often a long-open app looks again; the check itself still asks GitHub at most once a day. */
 const UPDATE_RECHECK_MS = 6 * 60 * 60 * 1000
@@ -338,6 +394,10 @@ async function announceUpdate(updates: UpdateSession, tell: (event: HostEvent) =
  * The licence and the credits list: shipped as resources in an installed app, and found in the
  * repository (where `pnpm build` generates the list) during development.
  */
+/** The sample books to try (Milestone 20), one per interface language, bundled with the app. */
+const SAMPLE_BOOKS = { en: 'the-salt-orchard', he: 'מטע-המלח' } as const
+const samplesFolder = (): string => (app.isPackaged ? join(process.resourcesPath, 'samples') : join(app.getAppPath(), '../../samples'))
+
 async function readAbout(appInfo: AppInfo): Promise<AboutView> {
   const [licensePath, creditsPath] = app.isPackaged
     ? [join(process.resourcesPath, 'LICENSE'), join(process.resourcesPath, 'third-party-licenses.json')]

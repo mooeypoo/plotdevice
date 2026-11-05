@@ -1,6 +1,6 @@
-# Milestone 20: The timeline of the book's threads
+# Milestone 21: The timeline of the book's threads
 
-Status: **Built** (2026-11-05) on branch `milestone-20/timeline`; see Results. Approved by the owner the same day after the research and design session (`timeline-design.md`, ADR 0012 as amended) and the mockups, with the main outline, drag and drop, and setting aside and deleting outlines added during building. The first version of this plan (one outline's timeline, then lanes by links) is replaced.
+Status: **Built** (2026-11-05) on branch `milestone-20/timeline`; see Results. Numbered 21 when it was planned, as the roadmap does, since Milestone 20 became "Ready for writers"; the branch kept its first name. Approved by the owner the same day after the research and design session (`timeline-design.md`, ADR 0012 as amended) and the mockups, with the main outline, drag and drop, and setting aside and deleting outlines added during building. The first version of this plan (one outline's timeline, then lanes by links) is replaced.
 
 ## Goal
 
@@ -21,7 +21,7 @@ Bea's path     Childhood         Hiding at the boathouse  Three weeks in   ·
 
 **Out of scope:**
 
-- **Highlighting a page's or a tag's cards** and **Show on the timeline** (Milestone 21).
+- **Highlighting a page's or a tag's cards** and **Show on the timeline** (a later milestone, numbered when planned).
 - **Bars, eras, real dates, a richer story-order view, lanes from links** (roadmap, Phase C "Later ideas").
 - **Plot, World and Write as three areas** (deferred; see "Placement" below).
 
@@ -184,5 +184,5 @@ No open questions remain.
 - **Dragging past the window's edge** on a long timeline isn't checked; the test drags in a window wide enough to show both ends.
 - **Line up with…** is one menu of every fitting moment, grouped by outline; a book with many storylines needs a better chooser.
 - **Hidden rows** are remembered on this computer only, by design.
-- **The Hebrew wording** is mine, on the review list (`docs/reviews/hebrew-wording-milestone-16.md`, "Added in Milestone 20").
+- **The Hebrew wording** is mine, on the review list (`docs/reviews/hebrew-wording-milestone-16.md`, "Added with the timeline").
 

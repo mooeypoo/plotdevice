@@ -4,11 +4,12 @@ import type { Revision } from './file-store'
 /** One step of a multi-file operation; each can tell from revisions alone whether it is done (ADR 0005). */
 export type JournalStep =
   | { kind: 'rename'; from: ProjectPath; to: ProjectPath; revision: Revision }
-  | { kind: 'write'; path: ProjectPath; before: Revision; after: Revision; text: string; hasBom: boolean }
+  /** `before: null`: a file that doesn't exist yet, such as one a restored backup brings back. */
+  | { kind: 'write'; path: ProjectPath; before: Revision | null; after: Revision; text: string; hasBom: boolean }
 
 export interface JournalEntry {
   id: string
-  operation: 'rename-chapter-file' | 'rename-folder' | 'undo-rename-folder'
+  operation: 'rename-chapter-file' | 'rename-folder' | 'undo-rename-folder' | 'restore-backup'
   steps: JournalStep[]
 }
 

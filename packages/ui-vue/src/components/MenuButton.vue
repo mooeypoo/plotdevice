@@ -16,6 +16,8 @@ const props = defineProps<{
   buttonClass?: string
   align?: 'start' | 'end'
   heading?: string
+  /** A quiet line under the heading, such as when the book was last backed up. */
+  note?: string
   /** No button of its own: the list only opens through `showFrom`. */
   buttonless?: boolean
 }>()
@@ -141,6 +143,7 @@ defineExpose({ show, showFrom })
       @keydown="onKey"
     >
       <div v-if="props.heading" class="menu-heading" dir="auto" aria-hidden="true">{{ props.heading }}</div>
+      <div v-if="props.note" class="menu-note secondary" data-testid="menu-note">{{ props.note }}</div>
       <template v-for="(item, index) in listed" :key="item.key">
         <div v-if="(item.group && index > 0) || (index === 0 && props.heading)" class="menu-divider" role="separator"></div>
         <button type="button" role="menuitem" :disabled="item.disabled" :data-testid="`menu-${item.key}`" @click="choose(item)">

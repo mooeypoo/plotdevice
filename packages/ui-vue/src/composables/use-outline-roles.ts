@@ -7,7 +7,7 @@ import type { MenuItem } from '../components/menu'
 import { useConfirm } from './use-confirm'
 
 /**
- * An outline's place in the book (Milestone 20): main, in use, set aside, or deleted. The sidebar,
+ * An outline's place in the book (Milestone 21): main, in use, set aside, or deleted. The sidebar,
  * the outline's own ⋯ and its timeline row all offer the same commands with the same words.
  */
 export function useOutlineRoles() {

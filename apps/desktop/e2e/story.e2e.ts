@@ -180,7 +180,7 @@ test('switching between Story and Write keeps the editor, the cursor and undo; t
       document.querySelector('[data-testid="editor"]')?.shadowRoot?.querySelector('.cm-editor'),
   )
   expect(sameEditor).toBe(true)
-  await page.keyboard.press('Control+z')
+  await page.keyboard.press('ControlOrMeta+z')
   await expect(page.locator('.cm-content')).not.toContainText('One Two')
 
   await page.getByTestId('workspace-story').click()

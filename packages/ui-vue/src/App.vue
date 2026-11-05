@@ -6,6 +6,9 @@ import { useApi } from './api'
 import ConfirmDialog from './components/ConfirmDialog.vue'
 import KindsDialog from './components/KindsDialog.vue'
 import MatchFolders from './components/MatchFolders.vue'
+import BackupOffer from './components/BackupOffer.vue'
+import BackupsDialog from './components/BackupsDialog.vue'
+import RestoreDialog from './components/RestoreDialog.vue'
 import LinkPicker from './components/LinkPicker.vue'
 import VersionsDialog from './components/VersionsDialog.vue'
 import PromptDialog from './components/PromptDialog.vue'
@@ -78,5 +81,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
     <TidyTagsDialog />
     <KindsDialog v-if="store.project" />
     <MatchFolders v-if="store.project" />
+    <BackupsDialog v-if="store.project" />
+    <RestoreDialog v-if="store.project" />
+    <BackupOffer />
   </div>
 </template>
