@@ -90,6 +90,7 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'setPreferences',
     'setShelf',
     'setTags',
+    'undoDeleteOutline',
     'undoFolderRenames',
     'undoOutline',
   ]

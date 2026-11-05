@@ -198,7 +198,10 @@ test('deletes only the outline, to the Trash, after saying what will change', as
   await page.getByTestId('outline-menu').click()
   await page.getByRole('menuitem', { name: 'Delete outline…' }).click()
   const dialog = page.locator('dialog[open]')
-  await expect(dialog).toContainText('Only this outline goes: chapters and pages stay.')
+  await expect(dialog).toContainText('Only this outline is deleted')
+  await expect(dialog).toContainText('Plot Device keeps a backup, so you can undo this right after.')
+  await expect(dialog.getByTestId('confirm-instead')).toHaveText('Set aside instead')
+  await page.screenshot({ path: test.info().outputPath('delete-question.png') })
   await expect(dialog).toContainText('One section of another outline is lined up with it')
   await expect(dialog).toContainText('“Bea’s path” becomes the main outline.')
   await page.getByTestId('confirm-yes').click()
@@ -209,6 +212,23 @@ test('deletes only the outline, to the Trash, after saying what will change', as
   // Bea's path is now the main outline; its section lined up with the deleted one can't line up.
   await expect(storyline(page, BEA).locator('.timeline-cell').nth(1)).toHaveClass(/missing/)
   await file('project.md').toContain('mainOutline: outlines/beas-path.md\n')
+
+  // Undo, from the notice: back exactly as it was.
+  await expect(page.locator('.notice-toast')).toContainText('“Main story” is in the Trash.')
+  await page.getByTestId('notice-action').click()
+  await file(MAIN).toContain('## Beginning')
+  await expect(page.locator(`[data-outline="${MAIN}"]`)).toHaveCount(1)
+  await file('project.md').toContain('mainOutline: outlines/main-story.md\n')
+})
+
+test('the delete question offers to set the outline aside instead, deleting nothing', async () => {
+  const page = await start()
+  await page.locator(`[data-outline="${HISTORY}"]`).click()
+  await page.getByTestId('outline-menu').click()
+  await page.getByRole('menuitem', { name: 'Delete outline…' }).click()
+  await page.getByTestId('confirm-instead').click()
+  await file('project.md').toContain('setAside: [outlines/history-of-marrow.md]\n')
+  expect(await read(HISTORY)).toContain('# History of Marrow')
 })
 
 test('without a Trash, asks again before deleting for good', async () => {
@@ -217,7 +237,7 @@ test('without a Trash, asks again before deleting for good', async () => {
   await page.getByTestId('outline-menu').click()
   await page.getByRole('menuitem', { name: 'Delete outline…' }).click()
   await page.getByTestId('confirm-yes').click()
-  await expect(page.locator('dialog[open]')).toContainText('This can’t be undone.')
+  await expect(page.locator('dialog[open]')).toContainText('Your computer has no Trash')
   expect(await read(HISTORY)).toContain('# History of Marrow')
   await page.getByTestId('confirm-yes').click()
   await file(HISTORY).toBe('')

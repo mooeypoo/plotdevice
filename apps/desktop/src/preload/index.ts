@@ -22,6 +22,7 @@ const api: PlotDeviceApi = {
   setMainOutline: (file) => ipcRenderer.invoke(channels.setMainOutline, { file }),
   setOutlineAside: (file, aside) => ipcRenderer.invoke(channels.setOutlineAside, { file, aside }),
   deleteOutline: (file, how) => ipcRenderer.invoke(channels.deleteOutline, { file, how }),
+  undoDeleteOutline: () => ipcRenderer.invoke(channels.undoDeleteOutline),
   planFolderRenames: (renames) => ipcRenderer.invoke(channels.planFolderRenames, { renames }),
   renameFolders: (renames) => ipcRenderer.invoke(channels.renameFolders, { renames }),
   undoFolderRenames: () => ipcRenderer.invoke(channels.undoFolderRenames),

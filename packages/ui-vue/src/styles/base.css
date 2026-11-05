@@ -3321,3 +3321,7 @@ button.moment-name:hover {
 .chapter-row.set-aside .chapter {
   color: var(--color-text-secondary);
 }
+
+.confirm-question {
+  font-weight: 600;
+}

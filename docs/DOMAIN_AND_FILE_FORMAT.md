@@ -106,7 +106,7 @@ mainOutline: outlines/main-story.md
 setAside: [outlines/old-plan.md]
 ```
 - Outlines the author set aside: listed under **Set aside** at the end of Plot and kept off the timeline (still lining others up through chains). The file stays where it is; **Bring back** removes it from the list. A set-aside outline is never main.
-- Deleting an outline (owner, 2026-11-05) moves its file to the computer's Trash, after a confirmation; a backup is kept first. Only the outline goes: chapters and pages it links to stay, and line-ups in other outlines that pointed to it show as "can't line up". Where there is no Trash, the app says so and asks before deleting for good. `mainOutline` and `setAside` are updated in the same step.
+- Deleting an outline (owner, 2026-11-05) moves its file to the computer's Trash, after a confirmation that recommends setting it aside instead; a backup is kept first, and Undo puts it back as it was until another book opens. Only the outline goes: chapters and pages it links to stay, and line-ups in other outlines that pointed to it show as "can't line up". Where there is no Trash, the app says so and asks before deleting for good. `mainOutline` and `setAside` are updated in the same step.
 
 ## `CONTENTS.md`: reading order and parts
 ```markdown

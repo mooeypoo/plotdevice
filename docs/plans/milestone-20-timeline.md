@@ -88,7 +88,7 @@ Decided there: how a moment's label sits above its column; how "not lined up" lo
 6. **Presentation:** a pure `timelineGrid(main, threads, chapters)` returning columns, rows and cells, with "not lined up" and "can't line up" flags. Columns are a merge of each thread's order under its line-ups; a cycle marks the offending line-ups as "can't line up".
 7. **Placement:** the grid knows nothing of where it is shown. `BookTimeline.vue` draws a grid it is given; where it opens is one navigation entry. Moving it to a Plot area later changes that entry only.
 8. **Words:** "storyline" (the row) and "main outline" are working names, kept in i18n only, with stable internal ids, as the replaceable-names test requires.
-9. **Set aside and delete** (owner, 2026-11-05): an outline can be set aside (`setAside` in `project.md`, off the timeline, **Bring back**) or deleted to the computer's Trash with a clear confirmation. Deleting takes only the outline, never the chapters or pages it links to; a backup is kept first; without a Trash, the app asks before deleting for good. Deleting chapters and pages follows as its own small plan, with the same rules.
+9. **Set aside and delete** (owner, 2026-11-05): an outline can be set aside (`setAside` in `project.md`, off the timeline, **Bring back**) or deleted to the computer's Trash with a clear confirmation. Deleting takes only the outline, never the chapters or pages it links to, and the question recommends **Set aside instead**; a backup is kept first and the notice after it offers **Undo**; without a Trash, the app asks again before deleting. Deleting chapters and pages follows as its own small plan, with the same rules.
 
 ## Files
 

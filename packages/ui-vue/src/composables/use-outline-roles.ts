@@ -15,7 +15,7 @@ export function useOutlineRoles() {
   const project = useProjectStore()
   const story = useStoryStore()
   const t = useSettingsStore().t
-  const { confirm } = useConfirm()
+  const { confirm, confirmOrInstead } = useConfirm()
 
   const titleOf = (file: ProjectPath): string => story.outlines.find((entry) => entry.file === file)?.title ?? file
   /** Who takes over if `file` stops being in use: the first other outline in use. */
@@ -33,7 +33,11 @@ export function useOutlineRoles() {
     if (next) project.tell('outline-now-main', titleOf(next))
   }
 
-  /** Deletes one outline after a plain confirmation, to the Trash; without a Trash, only after a stronger one. */
+  /**
+   * Deletes one outline, never what it links to, after saying what that means and offering to set it
+   * aside instead. It goes to the Trash (without a Trash, only after a second question); a backup is
+   * kept, and the notice after it offers Undo.
+   */
   async function remove(file: ProjectPath): Promise<void> {
     const title = titleOf(file)
     const next = nextMain(file)
@@ -47,11 +51,32 @@ export function useOutlineRoles() {
       ...(linedUp > 0 ? [t('outline-delete-lined-up', linedUp)] : []),
       ...(next ? [t('outline-delete-new-main', titleOf(next))] : []),
     ]
-    if (!(await confirm([t('outline-delete-question', title), ...extra].join(' '), t('outline-delete-action')))) return
+    // Short paragraphs: the question, what goes and stays, the safety net, what changes, the gentler way.
+    const choice = await confirmOrInstead(
+      [
+        t('outline-delete-question', title),
+        t('outline-delete-what'),
+        t('outline-delete-backup'),
+        extra.join(' '),
+        t('outline-delete-suggest'),
+      ]
+        .filter(Boolean)
+        .join('\n\n'),
+      t('outline-delete-action'),
+      t('outline-set-aside-instead'),
+    )
+    if (choice === 'instead') return setAside(file, true)
+    if (choice !== 'action') return
     let deleted = await api.deleteOutline(file, 'trash')
     let how: 'trash' | 'for-good' = 'trash'
     if (!deleted.ok && deleted.error === 'no-trash') {
-      if (!(await confirm([t('outline-delete-for-good-question', title), ...extra].join(' '), t('outline-delete-for-good')))) return
+      if (
+        !(await confirm(
+          [t('outline-delete-for-good-question', title), extra.join(' ')].filter(Boolean).join('\n\n'),
+          t('outline-delete-for-good'),
+        ))
+      )
+        return
       how = 'for-good'
       deleted = await api.deleteOutline(file, how)
     }
@@ -62,7 +87,23 @@ export function useOutlineRoles() {
     project.setProject(deleted.value)
     await story.afterOutlineDeleted(file)
     // Who became main was said in the confirmation.
-    project.tell(how === 'trash' ? 'outline-deleted' : 'outline-deleted-for-good', title)
+    project.offer(how === 'trash' ? 'outline-deleted' : 'outline-deleted-for-good', [title], {
+      key: 'outline-undo-delete',
+      run: () => void undoDelete(title),
+    })
+  }
+
+  /** Puts the deleted outline back as it was, and the main and set-aside outlines with it. */
+  async function undoDelete(title: string): Promise<void> {
+    const back = await api.undoDeleteOutline()
+    if (!back.ok) {
+      project.tell('change-failed')
+      return
+    }
+    project.setProject(back.value)
+    await story.refresh()
+    await story.afterRolesChanged()
+    project.tell('outline-restored', title)
   }
 
   /** The commands for one outline's ⋯ menu. */

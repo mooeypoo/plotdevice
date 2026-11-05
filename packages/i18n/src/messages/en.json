@@ -478,14 +478,20 @@
   "outline-bring-back": "Bring back",
   "story-set-aside": "Set aside",
   "outline-delete": "Delete outline…",
-  "outline-delete-question": "Delete “$1”? It goes to your computer’s Trash, where you can get it back. Only this outline goes: chapters and pages stay.",
+  "outline-delete-question": "Delete “$1”?",
   "outline-delete-lined-up": "{{PLURAL:$1|One section of another outline is lined up with it; it will show “can’t line up”.|$1 sections of other outlines are lined up with it; they will show “can’t line up”.}}",
   "outline-delete-new-main": "“$1” becomes the main outline.",
   "outline-delete-action": "Move to Trash",
-  "outline-delete-for-good-question": "Your computer has no Trash that Plot Device can use. Delete “$1” for good? This can’t be undone.",
+  "outline-delete-for-good-question": "Your computer has no Trash that Plot Device can use. Delete “$1” anyway? Plot Device keeps a backup, so you can undo this right after; once the book is closed, it can only come back from that backup.",
   "outline-delete-for-good": "Delete for good",
   "outline-deleted": "“$1” is in the Trash.",
   "outline-deleted-for-good": "“$1” was deleted.",
   "outline-now-main": "“$1” is now the main outline.",
-  "outline-delete-failed": "The outline couldn’t be deleted. Nothing was changed."
+  "outline-delete-failed": "The outline couldn’t be deleted. Nothing was changed.",
+  "outline-set-aside-instead": "Set aside instead",
+  "outline-undo-delete": "Undo",
+  "outline-restored": "“$1” is back.",
+  "outline-delete-what": "Only this outline is deleted, with its own sections and cards. Chapters, pages and other outlines stay as they are.",
+  "outline-delete-backup": "It goes to your computer’s Trash, and Plot Device keeps a backup, so you can undo this right after.",
+  "outline-delete-suggest": "Only want it out of the way? Set it aside instead: nothing is deleted, and you can bring it back any time."
 }

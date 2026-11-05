@@ -480,7 +480,7 @@
   "outline-bring-back": "Menu command for an outline that was set aside: returns it to the outlines in use and to the timeline.",
   "story-set-aside": "Small heading at the end of the Plot group in the sidebar, above outlines the author set aside. Shown only when there are some.",
   "outline-delete": "Menu command for an outline. Opens a confirmation ({{msg-plotdevice|outline-delete-question}}) before anything is deleted.",
-  "outline-delete-question": "Confirmation before an outline is deleted. $1: the outline's name. \"Trash\" is the computer's Trash or Recycle Bin. May be followed by {{msg-plotdevice|outline-delete-lined-up}} and {{msg-plotdevice|outline-delete-new-main}}.",
+  "outline-delete-question": "First line (the question) of the confirmation before an outline is deleted. $1: the outline's name. Followed by {{msg-plotdevice|outline-delete-what}}, {{msg-plotdevice|outline-delete-backup}}, and {{msg-plotdevice|outline-delete-suggest}}, each as its own short paragraph.",
   "outline-delete-lined-up": "Added to the delete confirmation when other outlines' sections are lined up (on the timeline) with the outline being deleted. $1: how many.",
   "outline-delete-new-main": "Added to the delete or set-aside confirmation when the main outline goes: $1 is the outline whose sections will name the timeline's columns instead.",
   "outline-delete-action": "Button that confirms deleting an outline: it goes to the computer's Trash (Recycle Bin).",
@@ -489,5 +489,11 @@
   "outline-deleted": "Notice after an outline was moved to the computer's Trash. $1: its name.",
   "outline-deleted-for-good": "Notice after an outline was deleted for good (there was no Trash). $1: its name.",
   "outline-now-main": "Notice after the main outline was set aside or deleted: $1 is the outline whose sections now name the timeline's columns.",
-  "outline-delete-failed": "Notice when deleting an outline failed, e.g. the file changed in another program meanwhile."
+  "outline-delete-failed": "Notice when deleting an outline failed, e.g. the file changed in another program meanwhile.",
+  "outline-set-aside-instead": "Button in the delete confirmation, shown as the recommended choice: sets the outline aside rather than deleting it (nothing is deleted).",
+  "outline-undo-delete": "Button beside {{msg-plotdevice|outline-deleted}}: puts the deleted outline back exactly as it was.",
+  "outline-restored": "Notice after undoing an outline's deletion. $1: its name.",
+  "outline-delete-what": "Paragraph in the delete confirmation: what goes and what stays.",
+  "outline-delete-backup": "Paragraph in the delete confirmation: where the outline goes (the computer's Trash or Recycle Bin), and that a backup is kept and the deletion can be undone.",
+  "outline-delete-suggest": "Last paragraph of the delete confirmation, recommending {{msg-plotdevice|outline-set-aside-instead}}."
 }

@@ -512,6 +512,13 @@ describe('outline calls', () => {
     expect(await chapterFiles(context)).toEqual(chapters)
     const timeline = (await context.call(channels.getTimeline)) as TimelineResult
     expect(timeline.ok && timeline.value.threads.map((thread) => thread.sections[0]?.lineUp?.kind)).toEqual(['missing'])
+    // Undo puts it back byte for byte, and project.md as it was.
+    const projectFile = await context.read('project.md')
+    const undone = (await context.call(channels.undoDeleteOutline)) as ProjectChangeResult
+    expect(undone.ok && undone.value.mainOutline).toBe(MAIN)
+    expect(await context.read(MAIN)).toBe(await readFile(join(FIXTURE, MAIN), 'utf8'))
+    expect(await context.read('project.md')).not.toBe(projectFile)
+    expect(await context.call(channels.undoDeleteOutline)).toEqual({ ok: false, error: 'not-found' })
   })
 
   it('remembers the workspace, outline and view for next time', async () => {

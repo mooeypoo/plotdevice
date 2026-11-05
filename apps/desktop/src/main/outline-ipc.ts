@@ -14,7 +14,8 @@ import {
   type TimelineResult,
 } from '@plotdevice/contracts'
 import { mainOutlineToKeep, outlineRolesAfter, outlinesInUse, type OutlineRoleChange } from '@plotdevice/domain'
-import { err, ok, type Result } from '@plotdevice/shared'
+import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
+import type { TextToStore } from '@plotdevice/application'
 import { parsePayload } from './payload'
 import type { PayloadHandler } from './project-ipc'
 import { outlineView, projectView } from './views'
@@ -43,6 +44,13 @@ function rolesHelper(outlines: OutlineSession, writing: WritingSession) {
 
 export function createOutlineHandlers({ outlines, writing, recent, starter }: OutlineIpcContext): Record<string, PayloadHandler> {
   const rolesAfter = rolesHelper(outlines, writing)
+  /** The last outline deleted, as it was, for Undo until another book opens (the backup stays on disk too). */
+  let lastDeleted: {
+    root: string
+    file: ProjectPath
+    content: TextToStore
+    roles: { setAside: readonly ProjectPath[]; mainOutline: ProjectPath | null }
+  } | null = null
   return {
     [channels.listOutlines]: () => outlines.list(),
     [channels.getTimeline]: async (): Promise<TimelineResult> => {
@@ -95,9 +103,26 @@ export function createOutlineHandlers({ outlines, writing, recent, starter }: Ou
       // Worked out before the file goes, from the outlines as they are now.
       const roles = await rolesAfter({ kind: 'delete', file })
       if (!roles) return err('not-found')
+      const project = writing.project()
       const deleted = await outlines.delete(file, how)
       if (!deleted.ok) return deleted
+      if (project)
+        lastDeleted = {
+          root: project.root,
+          file,
+          content: deleted.value,
+          roles: { setAside: project.details.setAside, mainOutline: project.details.mainOutline },
+        }
       const written = await writing.setOutlineRoles(roles)
+      return written.ok ? ok(projectView(written.value)) : written
+    },
+    [channels.undoDeleteOutline]: async (): Promise<ProjectChangeResult> => {
+      const deleted = lastDeleted
+      if (!deleted || deleted.root !== writing.project()?.root) return err('not-found')
+      const back = await outlines.bringBack(deleted.file, deleted.content)
+      if (!back.ok) return err(back.error === 'no-project' ? 'no-project' : 'write-failed')
+      lastDeleted = null
+      const written = await writing.setOutlineRoles(deleted.roles)
       return written.ok ? ok(projectView(written.value)) : written
     },
     [channels.undoOutline]: async (payload): Promise<OutlineResult> =>

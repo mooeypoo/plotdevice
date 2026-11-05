@@ -90,7 +90,12 @@ export function createOutlineRepository({ folders }: { folders: ProjectFolders }
       const removed = await store.remove(file, current.value.revision, how)
       if (!removed.ok) return err(removed.error === 'no-trash' || removed.error === 'missing' ? removed.error : 'write-failed')
       lastRead.delete(`${root}\u0000${file}`)
-      return ok(undefined)
+      return ok({ text: current.value.text, hasBom: current.value.hasBom })
+    },
+
+    async restoreDeletedOutline(root, file, content) {
+      const written = await folders.open(root).write(file, content, null)
+      return written.ok ? ok(undefined) : err('write-failed')
     },
 
     async restoreOutline(root, file, text, expected) {

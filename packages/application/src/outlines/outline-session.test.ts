@@ -50,7 +50,15 @@ function memoryRepository() {
       return ok({ document: doc(file), previous })
     },
     async deleteOutline(_root, file) {
-      return files.delete(file) ? ok(undefined) : err('missing')
+      const entry = files.get(file)
+      if (!entry) return err('missing')
+      files.delete(file)
+      return ok({ text: JSON.stringify(entry.outline), hasBom: false })
+    },
+    async restoreDeletedOutline(_root, file, content) {
+      if (files.has(file)) return err('write-failed')
+      files.set(file, { outline: JSON.parse(content.text) as Outline, revision: 1 })
+      return ok(undefined)
     },
     async restoreOutline(_root, file, text, expected) {
       const entry = files.get(file)
@@ -296,9 +304,13 @@ describe('deleting an outline', () => {
     const editing = session.edit(MAIN, { kind: 'set-title', text: 'Last words' })
     const deleted = session.delete(MAIN, 'trash')
     expect((await editing).ok).toBe(true)
-    expect(await deleted).toEqual({ ok: true, value: undefined })
+    const removed = await deleted
+    expect(removed.ok).toBe(true)
     expect(files.has(MAIN)).toBe(false)
     expect(session.current(MAIN)).toBeNull()
     expect(await session.delete(MAIN, 'trash')).toEqual({ ok: false, error: 'missing' })
+    // Undo: back as it was, edit and all.
+    if (removed.ok) expect(await session.bringBack(MAIN, removed.value)).toEqual({ ok: true, value: undefined })
+    expect(files.get(MAIN)?.outline.title).toBe('Last words')
   })
 })

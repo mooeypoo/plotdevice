@@ -79,6 +79,8 @@ export interface PlotDeviceApi {
    * that after `no-trash`. The book's details come back, with the main outline moved on if needed.
    */
   deleteOutline(file: ProjectPath, how: 'trash' | 'for-good'): Promise<DeleteOutlineResult>
+  /** Puts the last deleted outline back as it was, main and set-aside included, until the book closes. */
+  undoDeleteOutline(): Promise<ProjectChangeResult>
   /** "Match folder names": what would change, then the change, and its undo until the book closes. */
   planFolderRenames(renames: FolderRenamesRequest): Promise<FolderRenamePlanResult>
   renameFolders(renames: FolderRenamesRequest): Promise<RenameFoldersResult>

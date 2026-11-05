@@ -9,7 +9,7 @@ import {
   type OutlineEdit,
 } from '@plotdevice/domain'
 import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
-import type { Revision } from '../ports/file-store'
+import type { Revision, TextToStore } from '../ports/file-store'
 import type {
   OutlineDeleteProblem,
   OutlineDocument,
@@ -56,7 +56,9 @@ export interface OutlineSession {
   edit(file: ProjectPath, edit: OutlineEdit): Promise<Result<OutlineState, OutlineEditFailure>>
   undo(file: ProjectPath): Promise<Result<OutlineState, UndoFailure>>
   /** Deletes an outline, after any edit to it has landed; it is no longer open. */
-  delete(file: ProjectPath, how: 'trash' | 'for-good'): Promise<Result<void, OutlineDeleteProblem | 'no-project'>>
+  delete(file: ProjectPath, how: 'trash' | 'for-good'): Promise<Result<TextToStore, OutlineDeleteProblem | 'no-project'>>
+  /** Undoing a delete: the outline's text, as it was, back in its place. */
+  bringBack(file: ProjectPath, content: TextToStore): Promise<Result<void, 'write-failed' | 'no-project'>>
   /**
    * Every outline as a storyline, the main one first, with each line-up resolved to the section it
    * points to (ADR 0012). `named` is the main outline `project.md` names. Outlines that can't be read are left out.
@@ -235,6 +237,12 @@ export function createOutlineSession({ repository, root }: OutlineSessionOptions
         : repository.deleteOutline(projectRoot, file, how))
       if (removed.ok) open.delete(file)
       return removed
+    },
+
+    async bringBack(file, content) {
+      const projectRoot = root()
+      if (!projectRoot) return err('no-project')
+      return repository.restoreDeletedOutline(projectRoot, file, content)
     },
 
     async timeline(named, setAside = []) {

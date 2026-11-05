@@ -1,6 +1,6 @@
 import type { Outline, OutlineEdit, OutlineProblem } from '@plotdevice/domain'
 import type { ProjectPath, Result } from '@plotdevice/shared'
-import type { Revision } from './file-store'
+import type { Revision, TextToStore } from './file-store'
 
 export interface OutlineSummary {
   file: ProjectPath
@@ -53,7 +53,9 @@ export interface OutlineRepository {
    * Deletes the outline the author chose to delete: to the computer's Trash, or for good once they
    * agreed to that (Milestone 20). Nothing else changes.
    */
-  deleteOutline(root: string, file: ProjectPath, how: 'trash' | 'for-good'): Promise<Result<void, OutlineDeleteProblem>>
+  deleteOutline(root: string, file: ProjectPath, how: 'trash' | 'for-good'): Promise<Result<TextToStore, OutlineDeleteProblem>>
+  /** Undoing a delete: writes the outline back as it was, only where no file has taken its place. */
+  restoreDeletedOutline(root: string, file: ProjectPath, content: TextToStore): Promise<Result<void, 'write-failed'>>
   /** Undo: writes `text` back, only if the file is still at `expected` (the app's own last edit). */
   restoreOutline(
     root: string,

@@ -18,6 +18,7 @@ export const channels = {
   setMainOutline: 'plotdevice:set-main-outline',
   setOutlineAside: 'plotdevice:set-outline-aside',
   deleteOutline: 'plotdevice:delete-outline',
+  undoDeleteOutline: 'plotdevice:undo-delete-outline',
   planFolderRenames: 'plotdevice:plan-folder-renames',
   renameFolders: 'plotdevice:rename-folders',
   undoFolderRenames: 'plotdevice:undo-folder-renames',
