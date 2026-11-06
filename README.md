@@ -52,6 +52,15 @@ Plan in outlines that are simply Markdown lists, shown as a board or a list, or 
   <img src="assets/readme/story-light.webp" alt="An outline on a board: Beginning, Middle and End, with cards linked to chapters and characters">
 </picture>
 
+### Every storyline, side by side
+
+Give each storyline an outline of its own, and see them all on the timeline: who was where, while it happened. Drag a moment onto another to say they happen at the same time, and everything else falls into place. It's still your outlines, in your files: lining up writes one short line under a heading, and nothing is drawn by hand. See [the timeline](https://mooeypoo.github.io/plotdevice/planning/timeline/) in the guide.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/timeline-dark.webp">
+  <img src="assets/readme/timeline-light.webp" alt="The timeline: the main story on top, with Bea's path and Ilka's arc lined up under its moments">
+</picture>
+
 ### Keep your world close
 
 Characters, places and notes live in the book too, with tags to group them. While you write, they sit beside the page: search, pin the ones you need, and never lose your place in the chapter.
