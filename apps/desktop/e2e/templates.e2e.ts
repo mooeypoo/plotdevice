@@ -96,9 +96,11 @@ test('a Hebrew novel opens on its outline, in Hebrew and right to left', async (
   await file('מטע המלח/project.md').toContain('suggestedTags: [דמות ראשית, דמות משנית]')
 })
 
-test('a short story opens in Write on its chapter; "New project…" over a book, and Back to it', async () => {
+test('a short story opens in Write on its chapter; "New project…" over a book, and Back or Cancel to it', async () => {
   const page = await start('en')
   await page.getByTestId('new-project').click()
+  // From the start screen there is no book to go back to, so only "← Back".
+  await expect(page.getByTestId('new-project-cancel')).toHaveCount(0)
   await create(page, 'short-story', 'Salt')
   await expect(page.getByTestId('workspace-write')).toHaveAttribute('aria-pressed', 'true')
   await expect(page.locator('[aria-current="page"]')).toContainText('Salt')
@@ -106,9 +108,34 @@ test('a short story opens in Write on its chapter; "New project…" over a book,
   await page.getByTestId('app-menu').click()
   await page.getByTestId('menu-new-project').click()
   await expect(page.getByTestId('new-project-form')).toBeVisible()
+  // The bar's buttons belong to the book underneath, so the bar steps aside and the picker covers the whole window.
+  await expect(page.getByTestId('app-menu')).toBeHidden()
+  await expect(page.getByTestId('workspace-write')).toBeHidden()
+  const picker = await page.locator('.welcome-view.over-book').boundingBox()
+  const height = await page.evaluate(() => window.innerHeight)
+  expect(picker && picker.y <= 1 && picker.height > height * 0.9).toBe(true)
   await page.getByTestId('new-project-back').click()
   await expect(page.getByTestId('new-project-form')).toHaveCount(0)
+  await expect(page.getByTestId('app-menu')).toBeVisible()
   await expect(page.locator('[aria-current="page"]')).toContainText('Salt')
+
+  // Cancel, beside Create, does the same.
+  await page.getByTestId('app-menu').click()
+  await page.getByTestId('menu-new-project').click()
+  await page.getByTestId('new-project-cancel').click()
+  await expect(page.getByTestId('new-project-form')).toHaveCount(0)
+  await expect(page.locator('[aria-current="page"]')).toContainText('Salt')
+
+  // Settings opens over the picker (to change the app's language, say); Ctrl+O puts the picker away to open a book.
+  await page.getByTestId('app-menu').click()
+  await page.getByTestId('menu-new-project').click()
+  await page.keyboard.press('Control+,')
+  await expect(page.getByTestId('settings')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByTestId('new-project-form')).toBeVisible()
+  await page.keyboard.press('Control+o')
+  await expect(page.getByTestId('new-project-form')).toHaveCount(0)
+  await expect(page.getByTestId('app-menu')).toBeVisible()
 
   // Blank is what a new project always was.
   await page.getByTestId('app-menu').click()

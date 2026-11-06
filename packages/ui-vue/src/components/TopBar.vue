@@ -76,7 +76,7 @@ const bookItems = computed<MenuItem[]>(() => {
 
 const appItems = computed<MenuItem[]>(() => [
   { key: 'new-project', label: t('menu-new-project'), run: () => (view.newProject = true) },
-  { key: 'open-project', label: t('welcome-open-project'), hint: `${mod}O`, run: () => void store.open('choose') },
+  { key: 'open-project', label: t('welcome-open-project'), hint: `${mod}O`, run: openProject },
   { key: 'settings', label: t('settings-open'), hint: `${mod},`, group: 'app', run: () => settingsDialog.value?.show() },
   { key: 'documentation', label: t('help-documentation'), run: () => openInBrowser(documentationFor(settings.locale)) },
   {
@@ -92,10 +92,16 @@ const appItems = computed<MenuItem[]>(() => [
 const status = computed(() => (view.workspace === 'write' ? view.saveStatus : (view.storySaveStatus ?? 'saved')))
 const problem = computed(() => status.value === 'conflict' || status.value === 'failed')
 
+/** Opening a book puts "New project…" away: the author has chosen to do something else. */
+function openProject(): void {
+  view.newProject = false
+  void store.open('choose')
+}
+
 function onKey(event: KeyboardEvent): void {
   if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey) return
   if (event.key === ',') settingsDialog.value?.show()
-  else if (event.key.toLowerCase() === 'o') void store.open('choose')
+  else if (event.key.toLowerCase() === 'o') openProject()
   else return
   event.preventDefault()
 }

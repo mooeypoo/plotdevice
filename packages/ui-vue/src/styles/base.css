@@ -658,9 +658,23 @@ label {
   align-items: stretch;
   padding-block-start: 2rem;
 }
-.welcome-view.over-book {
+/* Every view sits in the row under the bar. Placing only the picker there would push
+   the open book into an extra row below and squeeze the picker to nothing. */
+.shell > .writing,
+.shell > .story,
+.shell > .welcome-view {
   grid-row: 2;
   grid-column: 1;
+  min-block-size: 0;
+}
+/* "New project…" over a book: the bar's buttons step aside; Settings and About can still open. */
+.top-bar.aside {
+  display: contents;
+}
+.top-bar.aside > :not(dialog) {
+  display: none;
+}
+.welcome-view.over-book {
   z-index: 5;
   background-color: var(--color-app);
 }

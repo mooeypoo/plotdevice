@@ -120,6 +120,10 @@ if (creating.value) void start()
       </div>
       <p class="secondary">{{ settings.t('new-project-hint') }}</p>
       <div class="actions">
+        <!-- Only over an open book: from the start screen there is nothing to go back to but "← Back". -->
+        <button v-if="store.project" type="button" data-testid="new-project-cancel" @click="back">
+          {{ settings.t('prompt-cancel') }}
+        </button>
         <button type="submit" class="primary" data-testid="new-project-create" :disabled="location === ''">
           {{ settings.t('new-project-create') }}
         </button>
