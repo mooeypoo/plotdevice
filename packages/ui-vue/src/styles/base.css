@@ -2925,6 +2925,14 @@ button.inline-link {
 .format-button[aria-expanded='true'] {
   background: color-mix(in srgb, var(--color-well) 70%, var(--color-text) 12%);
 }
+/* Plain text and back (Settings → Advanced): pressed while every mark shows. */
+.format-button.plain-switch[aria-pressed='true'] {
+  background: var(--color-text);
+  color: var(--color-app);
+}
+.format-button.plain-switch[aria-pressed='true']:hover {
+  background: color-mix(in srgb, var(--color-text) 85%, var(--color-app));
+}
 .format-b {
   font:
     700 0.9rem/1 var(--font-prose),

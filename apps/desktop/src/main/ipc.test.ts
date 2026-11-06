@@ -14,6 +14,7 @@ const OTHER_DEFAULTS = {
   pageWidth: 'medium',
   checkForUpdates: true,
   plainTextByDefault: false,
+  plainTextSwitch: false,
   outlineGuideSeen: false,
   navigatorWidth: 272,
   shelfWidth: 336,

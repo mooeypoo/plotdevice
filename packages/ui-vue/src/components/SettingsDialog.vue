@@ -3,6 +3,7 @@ import type { Locale, ThemePreference } from '@plotdevice/contracts'
 import { ref } from 'vue'
 import { useSettingsStore } from '../stores/settings'
 import HelpLink from './HelpLink.vue'
+import { plainTextKeys } from './format-items'
 
 // Settings for the whole app, opened from the app menu or Ctrl+,. How the page looks is in Aa instead.
 const settings = useSettingsStore()
@@ -69,6 +70,17 @@ defineExpose({ show: () => dialog.value?.showModal() })
       <p id="plain-text-hint" class="secondary hint">
         {{ t('settings-plain-text-hint') }} <HelpLink page="writing/formatting" :label="t('help-topic-plain-text')" />
       </p>
+      <label class="check-row">
+        <input
+          type="checkbox"
+          data-testid="plain-text-switch-setting"
+          :checked="settings.preferences.plainTextSwitch"
+          aria-describedby="plain-text-switch-hint"
+          @change="settings.update({ plainTextSwitch: ($event.target as HTMLInputElement).checked })"
+        />
+        {{ t('settings-plain-text-switch') }}
+      </label>
+      <p id="plain-text-switch-hint" class="secondary hint">{{ t('settings-plain-text-switch-hint', plainTextKeys()) }}</p>
     </template>
     <p v-if="settings.saveFailed" class="warning" role="status">⚠ {{ t('settings-save-failed') }}</p>
     <form method="dialog" class="actions">

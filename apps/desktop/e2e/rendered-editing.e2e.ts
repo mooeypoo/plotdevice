@@ -350,6 +350,48 @@ test('plain text when a page opens, from Settings', async () => {
   await expect(page.getByTestId('plain-text-banner')).toBeVisible()
 })
 
+test('plain text and back with Ctrl+Shift+M; the switch beside Format only once turned on in Settings', async () => {
+  await writeBook('en', ['The **orchard** at dusk'])
+  const page = await start()
+  await openChapter(page, 0)
+  // Off by default: no switch, but the keys work and the Format menu shows them.
+  await expect(page.getByTestId('plain-text-switch')).toHaveCount(0)
+  await page.keyboard.press('ControlOrMeta+Shift+M')
+  await expect(page.getByTestId('plain-text-banner')).toBeVisible()
+  await expect(writer(page)).toHaveText('The **orchard** at dusk')
+  // The cursor stays in the editor: typing goes on.
+  await page.keyboard.type('!')
+  await page.keyboard.press('ControlOrMeta+Shift+M')
+  await expect(page.getByTestId('plain-text-banner')).toBeHidden()
+  await expect(writer(page)).not.toContainText('**')
+  await page.getByTestId('format-menu').click()
+  await expect(page.getByTestId('menu-plain-text-edit')).toContainText(process.platform === 'darwin' ? '⌘⇧M' : 'Ctrl+Shift+M')
+  await page.keyboard.press('Escape')
+
+  await openSettings(page)
+  await page.getByTestId('plain-text-switch-setting').check()
+  await closeSettings(page)
+  const toggle = page.getByTestId('plain-text-switch').filter({ visible: true })
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false')
+  await toggle.click()
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true')
+  await expect(writer(page)).toContainText('**orchard**')
+  await toggle.click()
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false')
+  await expect(page.getByTestId('plain-text-banner')).toBeHidden()
+
+  // On a page too, and the keys switch only the editor being typed in.
+  await page.getByTestId('workspace-story').click()
+  await page.locator('[data-gallery="characters"]').click()
+  await page.locator('[data-page="characters/bea.md"]').click()
+  const pageToggle = page.getByTestId('reference-page').getByTestId('plain-text-switch')
+  await page.getByTestId('page-editor').locator('.cm-content').click()
+  await page.keyboard.press('ControlOrMeta+Shift+M')
+  await expect(pageToggle).toHaveAttribute('aria-pressed', 'true')
+  await page.getByTestId('workspace-write').click()
+  await expect(page.getByTestId('plain-text-banner').filter({ visible: true })).toHaveCount(0)
+})
+
 test('links: @ on a page puts one in, the popup changes and removes it, and its words are erased letter by letter', async () => {
   await writeBook('en', ['See [the ledger](../notes/ledger.md) first.'])
   const page = await start()
@@ -401,7 +443,14 @@ test('a heading from the format bubble, in a chapter and on a page', async () =>
   await page.keyboard.press('ControlOrMeta+Home')
   await page.keyboard.press('Shift+End')
   const bubble = page.getByTestId('format-bubble').filter({ visible: true })
-  await bubble.getByRole('button', { name: 'More formatting' }).click()
+  const more = bubble.getByRole('button', { name: 'More formatting' })
+  await more.click()
+  // The list opens just under its ⋯, not wherever the bubble's own position would put it.
+  const button = await more.boundingBox()
+  const list = await page.locator('.menu-list.placed').boundingBox()
+  expect(button && list && Math.abs(list.x + list.width - (button.x + button.width)) < 2 && list.y - (button.y + button.height) < 12).toBe(
+    true,
+  )
   await page.getByTestId('menu-format-heading3').click()
   await file('characters/bea.md').toBe('---\ntitle: Bea Halmi\n---\n### Ilka’s aunt.\n')
 })

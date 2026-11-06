@@ -44,6 +44,7 @@ Every editing surface (chapters, outline Text, every World page) shows what the 
 - **Backspace works the way it looks:** at the start of a heading it makes body text; at the start of a bullet it moves a detail out a step, or ends the list. A heading level on a bullet makes it a heading. In outline Text, Enter at the end of a section starts its first card.
 - **"Kept as written"** passages (tables, code, unusual Markdown) show as written, with their quiet style and count. Pointed out, never changed.
 - **Plain text, one step away.** **Format** on each page (Milestone 17; on the board, the outline's `⋯`) has **Edit as plain text**: the same file in the same editor, every mark visible, links as written, under a quiet banner, "Plain text. Changes here are saved exactly as typed.", with **Back to normal view**. Settings → Advanced has **Show plain text when I open a page** (off by default). Switching never loses undo history or the selection.
+- **A quicker switch, for authors who know Markdown** (2026-11-06): **Ctrl+Shift+M** (⌘⇧M) switches the editor being typed in, and the Format menu shows the keys. Settings → Advanced → **Show the plain-text switch beside Format** (off by default) adds a **Plain text** toggle beside Format, pressed while plain text is on. Off by default so writers who don't know Markdown never meet it.
 - "Text" (the rendered outline view) and "plain text" are working names, kept in the message catalogs only, to revisit if testers confuse them.
 
 ## Story layout

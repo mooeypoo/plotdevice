@@ -8,6 +8,7 @@ const OTHER_DEFAULTS = {
   pageWidth: 'medium',
   checkForUpdates: true,
   plainTextByDefault: false,
+  plainTextSwitch: false,
   outlineGuideSeen: false,
   navigatorWidth: 272,
   shelfWidth: 336,
@@ -60,6 +61,8 @@ describe('reading saved settings', () => {
     expect(parsePreferences('{"checkForUpdates":"no"}', defaults)).toMatchObject({ value: { checkForUpdates: true } })
     expect(parsePreferences('{"plainTextByDefault":true}', defaults)).toMatchObject({ value: { plainTextByDefault: true } })
     expect(parsePreferences('{"plainTextByDefault":"yes"}', defaults)).toMatchObject({ value: { plainTextByDefault: false } })
+    expect(parsePreferences('{"plainTextSwitch":true}', defaults)).toMatchObject({ value: { plainTextSwitch: true } })
+    expect(parsePreferences('{}', defaults)).toMatchObject({ value: { plainTextSwitch: false } })
   })
 
   it('keeps dragged panel widths, brought within their limits; settings saved before them get the defaults', () => {

@@ -125,7 +125,7 @@ for (const locale of ['en', 'he'] as const) {
     await page.getByTestId('book-menu').click()
     await page.getByTestId('menu-undo-folders').click()
     await file('outlines/main-story.md').toContain(`(../${words.folder}/${pageFile})`)
-    expect(await readdir(root)).not.toContain(words.newFolder)
+    await expect.poll(() => readdir(root)).not.toContain(words.newFolder)
     await page.getByTestId('book-menu').click()
     await expect(page.getByTestId('menu-undo-folders')).toHaveCount(0)
     await page.keyboard.press('Escape')

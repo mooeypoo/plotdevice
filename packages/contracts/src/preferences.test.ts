@@ -11,6 +11,7 @@ describe('preferences on the wire', () => {
         pageWidth: 'narrow',
         checkForUpdates: false,
         plainTextByDefault: false,
+        plainTextSwitch: false,
         outlineGuideSeen: true,
         navigatorWidth: 300,
         shelfWidth: 480,
