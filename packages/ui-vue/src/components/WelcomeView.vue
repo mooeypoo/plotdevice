@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TemplateId } from '@plotdevice/contracts'
-import { nextTick, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useApi } from '../api'
 import { bringInGuideFor } from '../links'
 import { useProjectStore } from '../stores/project'
@@ -41,6 +41,18 @@ function back(): void {
   creating.value = false
   view.newProject = false
 }
+
+/** Esc is "← Back" (or Cancel, over a book), unless a dialog or menu on top takes it first.
+ *  Heard first and kept from the book underneath, so Esc doesn't also change the book (Story's filter, Focus). */
+function onKey(event: KeyboardEvent): void {
+  if (event.key !== 'Escape' || !creating.value || event.isComposing) return
+  if (document.querySelector('[role="menu"], dialog[open]')) return
+  event.preventDefault()
+  event.stopPropagation()
+  back()
+}
+onMounted(() => window.addEventListener('keydown', onKey, true))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKey, true))
 
 async function choose(): Promise<void> {
   const chosen = await api.chooseNewProjectLocation()

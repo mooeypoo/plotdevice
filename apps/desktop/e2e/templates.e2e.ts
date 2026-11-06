@@ -120,6 +120,10 @@ test('a short story opens in Write on its chapter; "New project…" over a book,
   await page.getByTestId('new-project').click()
   // From the start screen there is no book to go back to, so only "← Back".
   await expect(page.getByTestId('new-project-cancel')).toHaveCount(0)
+  // Esc goes back to the start screen, as "← Back" does.
+  await page.keyboard.press('Escape')
+  await expect(page.getByTestId('new-project-form')).toHaveCount(0)
+  await page.getByTestId('new-project').click()
   await create(page, 'short-story', 'Salt')
   await expect(page.getByTestId('workspace-write')).toHaveAttribute('aria-pressed', 'true')
   await expect(page.locator('[aria-current="page"]')).toContainText('Salt')
@@ -150,8 +154,18 @@ test('a short story opens in Write on its chapter; "New project…" over a book,
   await page.getByTestId('menu-new-project').click()
   await page.keyboard.press('Control+,')
   await expect(page.getByTestId('settings')).toBeVisible()
+  // Esc closes Settings first; the picker stays.
   await page.keyboard.press('Escape')
+  await expect(page.getByTestId('settings')).toBeHidden()
   await expect(page.getByTestId('new-project-form')).toBeVisible()
+  // Then Esc is Cancel: back to the book.
+  await page.getByTestId('new-project-title').fill('Half a thought')
+  await page.keyboard.press('Escape')
+  await expect(page.getByTestId('new-project-form')).toHaveCount(0)
+  await expect(page.locator('[aria-current="page"]')).toContainText('Salt')
+
+  await page.getByTestId('app-menu').click()
+  await page.getByTestId('menu-new-project').click()
   await page.keyboard.press('Control+o')
   await expect(page.getByTestId('new-project-form')).toHaveCount(0)
   await expect(page.getByTestId('app-menu')).toBeVisible()
