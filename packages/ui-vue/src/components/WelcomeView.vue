@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TemplateId } from '@plotdevice/contracts'
-import { nextTick, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useApi } from '../api'
 import { bringInGuideFor } from '../links'
 import { useProjectStore } from '../stores/project'
@@ -42,6 +42,18 @@ function back(): void {
   view.newProject = false
 }
 
+/** Esc is "← Back" (or Cancel, over a book), unless a dialog or menu on top takes it first.
+ *  Heard first and kept from the book underneath, so Esc doesn't also change the book (Story's filter, Focus). */
+function onKey(event: KeyboardEvent): void {
+  if (event.key !== 'Escape' || !creating.value || event.isComposing) return
+  if (document.querySelector('[role="menu"], dialog[open]')) return
+  event.preventDefault()
+  event.stopPropagation()
+  back()
+}
+onMounted(() => window.addEventListener('keydown', onKey, true))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKey, true))
+
 async function choose(): Promise<void> {
   const chosen = await api.chooseNewProjectLocation()
   if (chosen) location.value = chosen
@@ -77,14 +89,27 @@ if (creating.value) void start()
       <h1 class="new-project-question">{{ settings.t('new-project-question') }}</h1>
       <p class="secondary new-project-later">{{ settings.t('new-project-adjust-later') }}</p>
 
+      <!-- The book's language first: the cards below show what each template brings, in it. -->
+      <div class="new-project-language">
+        <label class="field">
+          <span>{{ settings.t('new-project-language-label') }}</span>
+          <select v-model="language" data-testid="new-project-language">
+            <option v-for="option in bookLanguages" :key="option.value" :value="option.value" :lang="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </label>
+        <p class="secondary">{{ settings.t('new-project-hint') }}</p>
+      </div>
+
       <fieldset class="templates">
         <legend class="visually-hidden">{{ settings.t('new-project-templates') }}</legend>
         <label v-for="id in templates" :key="id" class="template-card" :class="{ chosen: template === id }" :data-testid="`template-${id}`">
           <input v-model="template" type="radio" name="template" :value="id" class="visually-hidden" />
           <span class="template-name">{{ settings.t(`template-${id}`) }}</span>
-          <span class="template-peek" aria-hidden="true">
-            <span>{{ settings.t(`template-${id}-kinds`) }}</span>
-            <span v-if="id !== 'blank'">{{ settings.t(`template-${id}-outlines`) }}</span>
+          <span class="template-peek" aria-hidden="true" :lang="language" dir="auto" data-testid="template-peek">
+            <span dir="auto">{{ settings.tIn(language, `template-${id}-kinds`) }}</span>
+            <span v-if="id !== 'blank'" dir="auto">{{ settings.tIn(language, `template-${id}-outlines`) }}</span>
           </span>
           <span class="template-description">{{ settings.t(`template-${id}-description`) }}</span>
           <span class="secondary template-summary">{{ settings.t(`template-${id}-summary`) }}</span>
@@ -100,14 +125,6 @@ if (creating.value) void start()
           <span>{{ settings.t('new-project-author-label') }}</span>
           <input v-model="author" type="text" dir="auto" />
         </label>
-        <label class="field">
-          <span>{{ settings.t('new-project-language-label') }}</span>
-          <select v-model="language" data-testid="new-project-language">
-            <option v-for="option in bookLanguages" :key="option.value" :value="option.value" :lang="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-        </label>
         <div class="field">
           <span id="new-project-location" class="location-label">{{ settings.t('new-project-location-label') }}</span>
           <span class="location-row">
@@ -118,8 +135,11 @@ if (creating.value) void start()
           </span>
         </div>
       </div>
-      <p class="secondary">{{ settings.t('new-project-hint') }}</p>
       <div class="actions">
+        <!-- Only over an open book: from the start screen there is nothing to go back to but "← Back". -->
+        <button v-if="store.project" type="button" data-testid="new-project-cancel" @click="back">
+          {{ settings.t('prompt-cancel') }}
+        </button>
         <button type="submit" class="primary" data-testid="new-project-create" :disabled="location === ''">
           {{ settings.t('new-project-create') }}
         </button>

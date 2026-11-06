@@ -54,8 +54,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 
 <template>
   <div v-if="settings.preferences" class="shell" :class="{ 'focus-mode': view.focusMode }">
-    <!-- In Focus the bar stays, quiet until the pointer or keyboard reaches it (Milestone 17, decision 2). -->
-    <TopBar :class="{ quiet: view.focusMode }" />
+    <!-- In Focus the bar stays, quiet until the pointer or keyboard reaches it (Milestone 17, decision 2).
+         "New project…" over a book hides its buttons, which belong to the book underneath; its dialogs stay. -->
+    <TopBar :class="{ quiet: view.focusMode, aside: store.project && view.newProject }" />
 
     <template v-if="store.project">
       <!-- Write stays mounted while Story is shown, so the editor, cursor and undo history survive the switch. -->
