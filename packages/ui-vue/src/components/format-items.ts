@@ -1,4 +1,4 @@
-import type { FormatCommand } from '@plotdevice/editor-codemirror'
+import type { EditorMode, FormatCommand } from '@plotdevice/editor-codemirror'
 import type { IconName } from './AppIcon.vue'
 import type { MenuItem } from './menu'
 
@@ -26,3 +26,15 @@ export function formatItem(t: (key: string) => string, command: FormatCommand, r
 
 /** Heading levels and body text, for the bubble's ⋯ and the ¶ menu. */
 export const HEADING_COMMANDS = ['heading1', 'heading2', 'heading3', 'body'] as const
+
+/** Plain text and back, from the editor (Ctrl+Shift+M, ⌘⇧M). By key position, so it works in a Hebrew layout too. */
+export const plainTextKeys = (): string => (navigator.platform.startsWith('Mac') ? '⌘⇧M' : 'Ctrl+Shift+M')
+export const isPlainTextKey = (event: KeyboardEvent): boolean =>
+  (event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.code === 'KeyM'
+
+/** Plain text, or back to normal view, as the Format menu's last item, with its keys (ADR 0010). */
+export function plainTextItem(t: (key: string) => string, mode: EditorMode, setMode: (mode: EditorMode) => void): MenuItem {
+  return mode === 'plain'
+    ? { key: 'plain-text-back', label: t('plain-text-back'), group: 'mode', hint: plainTextKeys(), run: () => setMode('rendered') }
+    : { key: 'plain-text-edit', label: t('plain-text-edit'), group: 'mode', hint: plainTextKeys(), run: () => setMode('plain') }
+}

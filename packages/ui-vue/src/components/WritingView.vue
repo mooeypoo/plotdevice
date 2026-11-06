@@ -18,7 +18,7 @@ import ConflictDialog from './ConflictDialog.vue'
 import EmptyState from './EmptyState.vue'
 import FormatBubble from './FormatBubble.vue'
 import FormatButton from './FormatButton.vue'
-import { formatItem, HEADING_COMMANDS } from './format-items'
+import { formatItem, HEADING_COMMANDS, isPlainTextKey, plainTextItem } from './format-items'
 import ItemHeader from './ItemHeader.vue'
 import LinkBubble from './LinkBubble.vue'
 import MenuButton from './MenuButton.vue'
@@ -70,11 +70,20 @@ const formatItems = computed<MenuItem[]>(() => [
   ...(['quote', 'bulletList', 'orderedList', 'sceneBreak'] as const).map((command, i) => item(command, i === 0 ? 'blocks' : undefined)),
   { key: 'format-link', label: t('format-link'), icon: 'link', run: () => void addLink() },
   ...directionItems(),
-  // Every mark visible, to fix something by hand (ADR 0010); in the page's own menu until Milestone 17.
-  writing.mode.value === 'plain'
-    ? { key: 'plain-text-back', label: t('plain-text-back'), group: 'mode', run: () => writing.setMode('rendered') }
-    : { key: 'plain-text-edit', label: t('plain-text-edit'), group: 'mode', run: () => writing.setMode('plain') },
+  // Every mark visible, to fix something by hand (ADR 0010).
+  plainTextItem(t, writing.mode.value, writing.setMode),
 ])
+/** The switch beside Format, and Ctrl+Shift+M in the editor: plain text and back, the cursor kept. */
+function togglePlain(): void {
+  writing.setMode(writing.mode.value === 'plain' ? 'rendered' : 'plain')
+  writing.focus()
+}
+function onEditorKey(event: KeyboardEvent): void {
+  if (!isPlainTextKey(event)) return
+  event.preventDefault()
+  togglePlain()
+}
+
 /** The bubble's ⋯: what its own buttons don't already offer. */
 const moreItems = computed<MenuItem[]>(() => [
   ...HEADING_COMMANDS.map((command) => item(command)),
@@ -254,13 +263,13 @@ onBeforeUnmount(() => {
         <p v-if="writing.state.value === 'unreadable'" class="warning" role="alert">{{ t('chapter-unreadable') }}</p>
         <p v-else-if="writing.state.value === 'missing'" class="warning" role="alert">{{ t('chapter-missing') }}</p>
         <article v-show="writing.state.value === 'ready' || writing.state.value === 'loading'" class="sheet">
-          <FormatButton :items="formatItems" />
+          <FormatButton :items="formatItems" :plain="writing.mode.value === 'plain'" @plain="togglePlain" />
           <header v-if="heading" class="chapter-head" :lang="project.language">
             <p v-if="heading.eyebrow" class="chapter-eyebrow">{{ heading.eyebrow }}</p>
             <h1 class="chapter-title" dir="auto">{{ heading.title }}</h1>
           </header>
           <PlainTextBanner v-if="writing.mode.value === 'plain'" @back="writing.setMode('rendered')" />
-          <div ref="host" class="editor-host" :lang="project.language" data-testid="editor"></div>
+          <div ref="host" class="editor-host" :lang="project.language" data-testid="editor" @keydown="onEditorKey"></div>
         </article>
         <FormatBubble :place="writing.selection.value" :more="moreItems" @format="writing.format" @link="addLink" @back="writing.focus" />
         <LinkBubble

@@ -12,7 +12,7 @@ import { textViewKeys, useViewStore } from '../stores/view'
 import ConflictDialog from './ConflictDialog.vue'
 import FormatBubble from './FormatBubble.vue'
 import FormatButton from './FormatButton.vue'
-import { formatItem, headingKeys, HEADING_COMMANDS } from './format-items'
+import { formatItem, HEADING_COMMANDS, headingKeys, isPlainTextKey, plainTextItem } from './format-items'
 import LinkBubble from './LinkBubble.vue'
 import type { MenuItem } from './menu'
 import PlainTextBanner from './PlainTextBanner.vue'
@@ -76,10 +76,19 @@ const formatItems = computed<MenuItem[]>(() => [
   ...HEADING_COMMANDS.map((command) => formatItem(t, command, () => page.format(command))),
   formatItem(t, 'bulletList', () => page.format('bulletList'), 'lists'),
   { key: 'format-link', label: t('format-link'), icon: 'link', run: () => void addLink() },
-  page.mode.value === 'plain'
-    ? { key: 'plain-text-back', label: t('plain-text-back'), group: 'mode', run: () => page.setMode('rendered') }
-    : { key: 'plain-text-edit', label: t('plain-text-edit'), group: 'mode', run: () => page.setMode('plain') },
+  plainTextItem(t, page.mode.value, page.setMode),
 ])
+
+/** The switch beside Format, and Ctrl+Shift+M in the editor: plain text and back, the cursor kept. */
+function togglePlain(): void {
+  page.setMode(page.mode.value === 'plain' ? 'rendered' : 'plain')
+  page.focus()
+}
+function onEditorKey(event: KeyboardEvent): void {
+  if (!isPlainTextKey(event)) return
+  event.preventDefault()
+  togglePlain()
+}
 
 const moreItems = computed<MenuItem[]>(() => [
   ...HEADING_COMMANDS.map((command) => formatItem(t, command, () => page.format(command))),
@@ -141,10 +150,11 @@ watch(page.status, countKept)
     <p v-if="page.state.value === 'unreadable'" class="warning" role="alert">{{ t('chapter-unreadable') }}</p>
     <p v-else-if="page.state.value === 'missing'" class="warning" role="alert">{{ t('chapter-missing') }}</p>
     <div class="paper" :class="pageClasses">
-      <FormatButton :items="formatItems" />
+      <FormatButton :items="formatItems" :plain="page.mode.value === 'plain'" @plain="togglePlain" />
       <div
         v-show="page.state.value === 'ready' || page.state.value === 'loading'"
         ref="host"
+        @keydown="onEditorKey"
         class="editor-host outline-text-editor"
         data-testid="outline-text-editor"
       ></div>

@@ -18,6 +18,8 @@ export const preferencesSchema = z.strictObject({
   checkForUpdates: z.boolean(),
   /** Whether pages, chapters and outline Text open as plain text, every mark showing (Milestone 16, ADR 0010). */
   plainTextByDefault: z.boolean(),
+  /** Whether a "Plain text" switch shows beside Format, for authors who know Markdown (off by default). */
+  plainTextSwitch: z.boolean(),
   /** Whether the author closed the outline guide, which shows above the first outline they open (Milestone 19). */
   outlineGuideSeen: z.boolean(),
   navigatorWidth: panelWidthSchema('navigatorWidth'),
