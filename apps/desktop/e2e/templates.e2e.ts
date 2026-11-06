@@ -96,7 +96,7 @@ test('a Hebrew novel opens on its outline, in Hebrew and right to left', async (
   await file('מטע המלח/project.md').toContain('suggestedTags: [דמות ראשית, דמות משנית]')
 })
 
-test('the book\'s language comes first, and the cards show what a template brings in it', async () => {
+test("the book's language comes first, and the cards show what a template brings in it", async () => {
   const page = await start('en')
   await page.getByTestId('new-project').click()
   // Chosen above the cards, so it's chosen before them.
