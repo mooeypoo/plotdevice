@@ -365,7 +365,7 @@ test('plain text and back with Ctrl+Shift+M; the switch beside Format only once 
   await expect(page.getByTestId('plain-text-banner')).toBeHidden()
   await expect(writer(page)).not.toContainText('**')
   await page.getByTestId('format-menu').click()
-  await expect(page.getByTestId('menu-plain-text-edit')).toContainText('Ctrl+Shift+M')
+  await expect(page.getByTestId('menu-plain-text-edit')).toContainText(process.platform === 'darwin' ? '⌘⇧M' : 'Ctrl+Shift+M')
   await page.keyboard.press('Escape')
 
   await openSettings(page)
