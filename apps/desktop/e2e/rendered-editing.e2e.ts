@@ -401,7 +401,14 @@ test('a heading from the format bubble, in a chapter and on a page', async () =>
   await page.keyboard.press('ControlOrMeta+Home')
   await page.keyboard.press('Shift+End')
   const bubble = page.getByTestId('format-bubble').filter({ visible: true })
-  await bubble.getByRole('button', { name: 'More formatting' }).click()
+  const more = bubble.getByRole('button', { name: 'More formatting' })
+  await more.click()
+  // The list opens just under its ⋯, not wherever the bubble's own position would put it.
+  const button = await more.boundingBox()
+  const list = await page.locator('.menu-list.placed').boundingBox()
+  expect(button && list && Math.abs(list.x + list.width - (button.x + button.width)) < 2 && list.y - (button.y + button.height) < 12).toBe(
+    true,
+  )
   await page.getByTestId('menu-format-heading3').click()
   await file('characters/bea.md').toBe('---\ntitle: Bea Halmi\n---\n### Ilka’s aunt.\n')
 })

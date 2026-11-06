@@ -59,7 +59,12 @@ function keepInWindow(): void {
     { width: window.innerWidth, height: window.innerHeight },
     { align: props.align ?? 'start', rtl },
   )
-  place.value = { top, left, maxHeight }
+  // Inside something moved with `translate` (the format bubble), "fixed" counts from that, not the
+  // window: see where 0,0 lands and allow for it.
+  list.style.top = '0px'
+  list.style.left = '0px'
+  const origin = list.getBoundingClientRect()
+  place.value = { top: top - origin.top, left: left - origin.left, maxHeight }
 }
 
 /** The page moved under an open list (scrolling, a resized window): the list follows its button. */
