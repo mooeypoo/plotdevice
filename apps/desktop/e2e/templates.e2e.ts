@@ -96,6 +96,25 @@ test('a Hebrew novel opens on its outline, in Hebrew and right to left', async (
   await file('מטע המלח/project.md').toContain('suggestedTags: [דמות ראשית, דמות משנית]')
 })
 
+test('the book\'s language comes first, and the cards show what a template brings in it', async () => {
+  const page = await start('en')
+  await page.getByTestId('new-project').click()
+  // Chosen above the cards, so it's chosen before them.
+  const language = await page.getByTestId('new-project-language').boundingBox()
+  const cards = await page.getByTestId('template-novel').boundingBox()
+  expect(language && cards && language.y < cards.y).toBe(true)
+
+  const campaign = page.getByTestId('template-campaign')
+  await expect(campaign.getByTestId('template-peek')).toContainText('NPCs · Locations')
+  await page.getByTestId('new-project-language').selectOption('he')
+  // The app's words stay in English; what goes into the book is shown in Hebrew.
+  await expect(campaign).toContainText('D&D campaign')
+  await expect(campaign.getByTestId('template-peek')).toContainText('דמויות · מקומות · פלגים')
+  await expect(campaign.getByTestId('template-peek')).toHaveAttribute('lang', 'he')
+  await create(page, 'campaign', 'Salt Isles')
+  await file('Salt Isles/project.md').toContain('מפגשים')
+})
+
 test('a short story opens in Write on its chapter; "New project…" over a book, and Back or Cancel to it', async () => {
   const page = await start('en')
   await page.getByTestId('new-project').click()
