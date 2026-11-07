@@ -80,9 +80,9 @@ module.exports = {
     },
     onlyMayImport(
       'export-writes-bytes',
-      'export: book blocks in, file bytes out. Markdown types, shared and its file-format libraries; no file access',
+      'export: book blocks in, file bytes out. Markdown types, shared, fflate (zips) and docx (Word); no file access',
       pkg('export'),
-      [pkg('export'), pkg('shared'), pkg('markdown'), npm('fflate')],
+      [pkg('export'), pkg('shared'), pkg('markdown'), npm('fflate'), npm('docx')],
     ),
     {
       name: 'storage-uses-port-types-only',
@@ -182,7 +182,8 @@ module.exports = {
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
-    exclude: { path: ['(^|/)\\.tsbuild/', '(^|/)dist/', '(^|/)out/', '(^|/)\\.astro/'] },
+    // The project's own build output only: libraries' `dist/` folders must still be judged by the rules.
+    exclude: { path: '^(apps|packages)/[^/]+/(\\.tsbuild|dist|out|\\.astro)/' },
     tsPreCompilationDeps: true,
     combinedDependencies: true,
     enhancedResolveOptions: {

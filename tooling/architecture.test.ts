@@ -33,6 +33,11 @@ describe('architecture rules', () => {
     expect(found.map((v) => v.rule)).toContain('ui-stays-in-the-renderer')
   })
 
+  it('judge libraries whose code is in their own dist folder', async () => {
+    const found = await violatedRules(['tooling/arch-fixtures/domain-is-pure/packages/domain/src/library-in-dist.ts'])
+    expect(found.some((v) => v.rule === 'domain-is-pure' && v.to.includes('/dist/'))).toBe(true)
+  })
+
   it.each(ruleNames)('%s catches its fixture', async (rule) => {
     // Forward slashes on every OS: dependency-cruiser reports and matches POSIX-style paths.
     const found = await violatedRules([`tooling/arch-fixtures/${rule}`])
