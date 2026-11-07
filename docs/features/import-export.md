@@ -1,6 +1,6 @@
 # Feature brief: importing and exporting
 
-Status: **waiting for research and design** (owner, 2026-11-05). This is the starting point for a dedicated conversation: what's decided, what exists, and what to research before a plan. It replaces the roadmap's Milestone 22 for import and export (backups were built in Milestone 20).
+Status: **export planned** as Milestone 22 (`docs/plans/milestone-22-export.md`, 2026-11-07), waiting for approval; import comes after (owner, 2026-11-05, 2026-11-07). This is the starting point for a dedicated conversation: what's decided, what exists, and what to research before a plan. It replaces the roadmap's Milestone 22 for import and export (backups were built in Milestone 20).
 
 ## Why it matters
 
@@ -10,6 +10,25 @@ The audience is non-technical writers who mostly work in Word today (`PRD.md` §
 - **Sending a book out** is how they work with editors, publishers and readers. They need a file those people can open: Word, PDF, maybe an e-book.
 
 ## What's decided
+
+**Order and scope (owner, 2026-11-07):**
+- **Export first, import second.** They share one table of "Word formatting ↔ our formatting", designed once; export is built first because it only reads the book.
+- **Export formats:** Word (`.docx`) and a manuscript PDF for sending the book to editors, publishers and readers; EPUB for e-books. Markdown (Milestone 6) stays. Other small extras (plain text) only if they cost little.
+- **Print-ready PDF is out of scope** (trim sizes, mirrored margins, typesetting for print). Dedicated services do it better; the manuscript PDF is for reading, not printing a book.
+- **Skipped:** `.doc`, RTF, MOBI/KPF, ODT (unless writers ask).
+
+**The Export window (owner, 2026-11-07):**
+- One **Export…** window with the choices, shown only where they apply: format (Word, PDF, E-book, Markdown); title page (title, author, show word count); the whole book or chosen chapters; double-spaced for editors (Word and PDF); an optional cover picture (E-book).
+- **Include a title page** is a switch, on by default.
+- A missing title (empty, or still the fallback "Untitled project") is pointed out in the window, not a block. **Typing a title or author there saves it to the book's details** (`project.md`), so there's one title, not an export title.
+- The word count is rounded ("about 84,000 words").
+- Choices are remembered per book. Problems, such as a chapter that can't be read, are named before saving.
+- Page headers (author / title / page number) are always on for Word and PDF; no switch.
+- **Chapter headings** are a choice: "Chapter 1" and its name, or only its name.
+- **Choose chapters…** has three shortcuts: First three (for a sample), All, None.
+- **Scene breaks** (`* * *`) stay `* * *` in every format. **Headings inside a chapter** stay headings, one level below the chapter's title; no warning.
+- **Fonts:** Word uses common manuscript fonts (Times New Roman; David Libre for Hebrew). The PDF uses the app's own fonts (Literata, Noto Serif Hebrew), bundled into the file.
+- Text is aligned to the book language's side (right for Hebrew, left for English), never centred, except headings and scene breaks.
 
 - **Reading `.docx` is in scope, for chapters only** (D9). Characters, places and notes are still moved in by hand or with an assistant (Milestone 13's guide for AI assistants).
 - **The import shows a preview first:**
