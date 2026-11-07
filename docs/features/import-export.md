@@ -22,6 +22,11 @@ The audience is non-technical writers who mostly work in Word today (`PRD.md` §
   - **New book from a Word file** always makes a new book. The author chooses an empty folder and fills in the book's details; the title and author are pre-filled from the Word file when it has them.
   - **Add chapters from a Word file…** (book menu) adds the chapters at the end of the open book and never changes its details. If the Word file names a title or author that differs, a note at the end offers to use it.
 - **Splitting:** Plot Device guesses (headings, then "Chapter N" lines, then page breaks), shows the guess in the preview, and the author can change how it splits.
+- **The preview (owner, 2026-11-07, after the mockup):**
+  - The three split choices stay. Any paragraph can start a new chapter ("＋ New chapter here").
+  - No free-text prefix for "Chapter" lines for now; splitting by hand covers other words.
+  - **Added chapters go into a new part at the end** of the book, so they're easy to find and move. Nothing more elaborate for now.
+  - **The title page isn't imported.** It's used to fill in the book's title and author.
 - **Chapter names:** "Chapter 3: The Crossing" becomes "The Crossing", since Plot Device numbers chapters itself. A bigger heading above chapters becomes a part.
 - **What can't come in:**
   - tracked changes: the text as it reads with them accepted;
