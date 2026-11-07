@@ -9,6 +9,7 @@ import MatchFolders from './components/MatchFolders.vue'
 import BackupOffer from './components/BackupOffer.vue'
 import BackupsDialog from './components/BackupsDialog.vue'
 import ExportDialog from './components/ExportDialog.vue'
+import ImportDialog from './components/ImportDialog.vue'
 import RestoreDialog from './components/RestoreDialog.vue'
 import LinkPicker from './components/LinkPicker.vue'
 import VersionsDialog from './components/VersionsDialog.vue'
@@ -85,6 +86,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
     <MatchFolders v-if="store.project" />
     <BackupsDialog v-if="store.project" />
     <ExportDialog v-if="store.project" />
+    <ImportDialog />
     <RestoreDialog v-if="store.project" />
     <BackupOffer />
   </div>
