@@ -45,6 +45,7 @@ import { pathToFileURL } from 'node:url'
 import icon from '../../../../assets/brand/icons/512x512.png?asset'
 import { applicationMenu } from './app-menu'
 import { dataHome, integrateAppImage } from './appimage-desktop'
+import { createImportState, MAX_WORD_FILE_BYTES } from './import-state'
 import { PRINT_FAMILIES, PRINT_FONTS, printToPdf } from './print-to-pdf'
 import { createIpcHandlers } from './ipc'
 import { folderFromArgs } from './launch-folder'
@@ -100,6 +101,7 @@ void app.whenReady().then(async () => {
       console.warn('Could not add Plot Device to the applications menu.', error),
     )
   const userData = app.getPath('userData')
+  const importState = createImportState()
   const store = withSlowPreferences(createPreferencesFileStore(userData))
   const loaded = await loadPreferences(store, app.getLocale())
   if (loaded.notice) console.warn('The settings file could not be read. Defaults are in use; the old file was kept.')
@@ -292,6 +294,7 @@ void app.whenReady().then(async () => {
         return prepareSampleBook(join(samplesFolder(), name), join(userData, 'sample', name), fresh)
       },
       isSample: (root) => isSampleBook(root),
+      importState,
     },
     outlines: { outlines, writing, recent, starter: (id, language) => starter(id, language).body },
     references: { references: createReferenceRepository({ folders }), writing, recent },
@@ -320,6 +323,31 @@ void app.whenReady().then(async () => {
       showFolder: async (path) => void (await shell.openPath(path)),
       offerAnswered: () => answerOffer(),
       runBackups,
+    },
+    imports: {
+      writing,
+      state: importState,
+      chooseWordFile: async () => {
+        if (testWordFile !== undefined) return testWordFile || null
+        const chosen = await dialog.showOpenDialog(window, {
+          title: translate('dialog-import-word'),
+          filters: [{ name: translate('dialog-import-word-files'), extensions: ['docx'] }],
+          properties: ['openFile'],
+        })
+        return chosen.canceled ? null : (chosen.filePaths[0] ?? null)
+      },
+      readWordFile: async (path) => {
+        const size = await stat(path).then(
+          (s) => s.size,
+          () => null,
+        )
+        if (size === null) return null
+        if (size > MAX_WORD_FILE_BYTES) return 'too-big'
+        return readFile(path).then(
+          (bytes) => new Uint8Array(bytes),
+          () => null,
+        )
+      },
     },
     exports: {
       writing,
@@ -432,6 +460,8 @@ const testTrash =
       }
 /** Test-only (unpackaged builds): the file every save dialog "chooses"; empty means cancelled. */
 const testSaveAs = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_SAVE_AS
+/** Test-only (unpackaged builds): the Word file the import's picker "chooses"; empty means cancelled. */
+const testWordFile = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_WORD_FILE
 /** Test-only (unpackaged builds): the picture the cover picker "chooses"; empty means cancelled. */
 const testCover = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_COVER
 /** Test-only (unpackaged builds): a local server standing in for GitHub's latest.json. */

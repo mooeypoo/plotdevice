@@ -9,6 +9,7 @@ import type {
   RestoreReplaceResult,
 } from './backups'
 import type { ChooseCoverResult, ExportBookResult, ExportRequest, ExportWindowResult } from './export'
+import type { AddImportedResult, ImportPlanRequest, ImportPlanResult, ImportStartResult } from './import'
 import type {
   HostEvent,
   LeftOffRequest,
@@ -77,6 +78,16 @@ export interface PlotDeviceApi {
   chooseNewProjectLocation(): Promise<string | null>
 
   changeContents(change: ContentsChangeRequest): Promise<ProjectChangeResult>
+  /** Picks a Word file and reads it, for a new book or for chapters added to this one (Milestone 23). */
+  startImport(purpose: 'new' | 'add'): Promise<ImportStartResult>
+  /** The chapters again, as the author changes how the file splits. */
+  planImport(plan: ImportPlanRequest): Promise<ImportPlanResult>
+  /** Adds the chapters the author kept, in a new part at the end of the open book. */
+  addImported(plan: ImportPlanRequest, partName: string): Promise<AddImportedResult>
+  /** Uses the Word file's title and author for the book, when the author chooses to. */
+  useImportedDetails(): Promise<ProjectChangeResult>
+  /** Forgets the Word file being imported. */
+  cancelImport(): Promise<void>
   /** What the Export window opens with: the remembered choices, the word count and any problems (Milestone 22). */
   exportWindow(): Promise<ExportWindowResult>
   /** The picture picker for an e-book's cover. */

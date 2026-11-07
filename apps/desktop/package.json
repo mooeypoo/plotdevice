@@ -25,6 +25,7 @@
     "@plotdevice/export": "workspace:*",
     "@plotdevice/fs-node": "workspace:*",
     "@plotdevice/i18n": "workspace:*",
+    "@plotdevice/import": "workspace:*",
     "@plotdevice/markdown": "workspace:*",
     "@plotdevice/presentation": "workspace:*",
     "@plotdevice/shared": "workspace:*",
