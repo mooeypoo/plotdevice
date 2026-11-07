@@ -1,5 +1,6 @@
 import { parseProjectPath, type ProjectPath, type Result } from '@plotdevice/shared'
 import { z } from 'zod'
+import { importPlanSchema } from './import-plan'
 
 /** A path inside the project, checked like any path from the page (no `..`, no absolute paths). */
 export const projectPathSchema = z.string().transform((raw, context): ProjectPath => {
@@ -21,6 +22,8 @@ export const newProjectSchema = z.strictObject({
   author: z.string().max(500).optional(),
   template: templateIdSchema,
   location: z.string().min(1).max(4096),
+  /** A book made from the Word file being imported, split as the author chose (Milestone 23). */
+  fromImport: importPlanSchema.optional(),
 })
 
 export const contentsChangeSchema = z.discriminatedUnion('kind', [

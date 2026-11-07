@@ -9,6 +9,7 @@ import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import { useConfirm } from '../composables/use-confirm'
 import { useBackupsStore } from '../stores/backups'
+import { useImportStore } from '../stores/import'
 import { useViewStore } from '../stores/view'
 import AboutDialog from './AboutDialog.vue'
 import AppIcon from './AppIcon.vue'
@@ -24,6 +25,7 @@ import type { MenuItem } from './menu'
 const store = useProjectStore()
 const settings = useSettingsStore()
 const view = useViewStore()
+const imports = useImportStore()
 const backups = useBackupsStore()
 const { confirm } = useConfirm()
 const undoFolders = useFolderUndo()
@@ -62,6 +64,7 @@ const bookItems = computed<MenuItem[]>(() => {
   const chapter = view.workspace === 'write' ? view.writingChapter : null
   return [
     { key: 'export-book', label: t('export-book'), run: () => (view.exportDialog = true) },
+    { key: 'import-add', label: t('import-add-menu'), run: () => void imports.start('add') },
     { key: 'kinds', label: t('kinds-menu'), run: () => (view.kindsDialog = true) },
     ...(store.renamedFolders ? [{ key: 'undo-folders', label: t('folders-undo'), run: () => void undoFolders() }] : []),
     ...(chapter ? [{ key: 'chapter-versions', label: t('chapter-versions'), run: () => versions.show(chapter.file, chapter.name) }] : []),

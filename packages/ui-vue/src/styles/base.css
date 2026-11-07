@@ -716,6 +716,24 @@ label {
   padding: 0;
   margin: 0 0 1.75rem;
 }
+/* A new book from a Word file (Milestone 23): the choice under the templates, and what was chosen. */
+.from-word-offer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  align-items: baseline;
+  margin: 0;
+}
+.from-word {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.1rem 1.2rem;
+  border-radius: 16px;
+  border: 2px solid var(--color-mark);
+  background: var(--color-card);
+  box-shadow: var(--shadow-soft);
+}
 .template-card {
   display: flex;
   flex-direction: column;

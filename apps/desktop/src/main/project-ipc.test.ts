@@ -16,7 +16,11 @@ import {
   type ReferenceResult,
   type ReferencePageView,
   type ReferenceSummaryView,
+  type AddImportedResult,
+  type CreateProjectResult,
   type ExportBookResult,
+  type ImportPlanResult,
+  type ImportStartResult,
   type ExportWindowResult,
   type OpenProjectResult,
   type OutlineResult,
@@ -55,6 +59,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { moveDown, moveUp } from '@plotdevice/presentation'
 import type { ProjectPath } from '@plotdevice/shared'
 import type { UpdateIpcContext } from './update-ipc'
+import { createImportState } from './import-state'
+import { ENGLISH_BOOK, HEBREW_BOOK } from '../../../../packages/import/src/docx-fixtures.test-support'
 import { createIpcHandlers, type Sender } from './ipc'
 
 const OTHER_DEFAULTS = {
@@ -100,6 +106,8 @@ async function setup() {
     suggested: '',
     format: '',
   }
+  const importState = createImportState()
+  const word = { file: null as Uint8Array | 'too-big' | null, name: 'Salt.docx' as string | null }
   const printed: string[] = []
   const shown: string[] = []
   let flushed = 0
@@ -136,6 +144,7 @@ async function setup() {
       leavingBook: async () => undefined,
       sampleBook: async () => root,
       isSample: () => false,
+      importState,
     },
     outlines: { outlines, writing: session, recent, starter: (id, language) => starter(id, language).body },
     references: { references: createReferenceRepository({ folders }), writing: session, recent },
@@ -156,6 +165,12 @@ async function setup() {
       showFolder: async () => undefined,
       offerAnswered: () => undefined,
       runBackups: async () => void (await bookBackups.runIfDue()),
+    },
+    imports: {
+      writing: session,
+      state: importState,
+      chooseWordFile: async () => (word.name === null ? null : join(base, word.name)),
+      readWordFile: async () => word.file,
     },
     exports: {
       writing: session,
@@ -195,7 +210,7 @@ async function setup() {
   }
   const read = (path: string) => readFile(join(root, path), 'utf8')
   const advance = (ms: number) => (clock += ms)
-  return { base, root, appData, call, read, dialogs, session, events, flushed: () => flushed, advance, printed, shown }
+  return { base, root, appData, call, read, dialogs, session, events, flushed: () => flushed, advance, printed, shown, word }
 }
 
 async function openChosen(context: Awaited<ReturnType<typeof setup>>): Promise<ProjectView> {
@@ -999,5 +1014,99 @@ describe('exporting the book (Milestone 22)', () => {
     await context.call(channels.exportBook, request())
     await context.call(channels.showExportedFile, { path: join(context.base, 'out.docx') })
     expect(context.shown).toEqual([join(context.base, 'out.docx')])
+  })
+})
+
+describe('bringing in a Word file (Milestone 23)', () => {
+  const plan = (split: string, edits: Record<string, unknown> = {}) => ({
+    split,
+    edits: { starts: [], joins: [], names: {}, leftOut: [], ...edits },
+  })
+
+  it('reads the file the host picked, with its first guess at the chapters, and what won’t come in', async () => {
+    const context = await setup()
+    context.word.file = HEBREW_BOOK
+    const started = (await context.call(channels.startImport, { purpose: 'new' })) as ImportStartResult
+    if (!started.ok) throw new Error(started.error)
+    expect(started.value).toMatchObject({
+      fileName: 'Salt.docx',
+      title: 'מטע המלח',
+      author: 'אינס ורגה',
+      language: 'he',
+      footnotes: 2,
+      leftOut: { comments: 2, pictures: 1, tables: 1 },
+    })
+    expect(started.value.plan.split).toBe('headings')
+    expect(started.value.plan.chapters.map((c) => c.name)).toEqual(['המעבר', 'רוח מלוחה'])
+  })
+
+  it('splits again as the author changes it, and says plainly when a file can’t be read', async () => {
+    const context = await setup()
+    context.word.file = ENGLISH_BOOK
+    await context.call(channels.startImport, { purpose: 'new' })
+    const again = (await context.call(
+      channels.planImport,
+      plan('page-breaks', { names: { '2': 'The Crossing, again' } }),
+    )) as ImportPlanResult
+    expect(again.ok && again.value.chapters.map((c) => c.name)).toEqual([
+      'The Crossing, again',
+      'Chapter Two',
+      'A page that starts with no…',
+    ])
+    context.word.file = 'too-big'
+    expect(await context.call(channels.startImport, { purpose: 'new' })).toEqual({ ok: false, error: 'too-big' })
+    context.word.file = new TextEncoder().encode('not a docx')
+    expect(await context.call(channels.startImport, { purpose: 'new' })).toEqual({ ok: false, error: 'not-a-word-file' })
+    context.word.name = null
+    expect(await context.call(channels.startImport, { purpose: 'new' })).toEqual({ ok: false, error: 'cancelled' })
+  })
+
+  it('makes a new book from it, through New project, in a folder made for it', async () => {
+    const context = await setup()
+    context.word.file = HEBREW_BOOK
+    await context.call(channels.startImport, { purpose: 'new' })
+    context.dialogs.location = context.base
+    const location = await context.call(channels.chooseNewProjectLocation)
+    const made = (await context.call(channels.createProject, {
+      title: 'מטע המלח',
+      language: 'he',
+      template: 'blank',
+      location,
+      fromImport: plan('headings'),
+    })) as CreateProjectResult
+    if (!made.ok) throw new Error(made.error)
+    expect(made.value.project.contents.map((e) => (e.kind === 'part' ? e.name : e.linkText))).toEqual(['חלק ראשון: הגעה', 'חלק שני: מלח'])
+    expect(made.value.project.chapters).toHaveLength(2) // no empty first chapter from the blank template
+    // The import is finished: it can't make a second book.
+    await expect(
+      context.call(channels.createProject, { title: 'Again', language: 'en', template: 'blank', location, fromImport: plan('headings') }),
+    ).rejects.toThrow('no-import')
+  })
+
+  it('adds chapters at the end of the open book, in a new part, and only offers the file’s different title', async () => {
+    const context = await setup()
+    await openChosen(context)
+    context.word.file = ENGLISH_BOOK // no parts of its own
+    await context.call(channels.startImport, { purpose: 'add' })
+    const added = (await context.call(channels.addImported, {
+      plan: plan('chapter-lines'),
+      partName: 'From Salt.docx',
+    })) as AddImportedResult
+    if (!added.ok) throw new Error(added.error)
+    expect(added.value.added).toBe(2)
+    expect(added.value.project.title).toBe('The Salt Orchard') // not changed
+    expect(added.value.fileDetails).toEqual({ title: 'THE SALT ORCHARD', author: 'Ines Varga' }) // from its title page
+    expect(added.value.project.contents.at(-1)).toMatchObject({ kind: 'part', name: 'From Salt.docx' })
+    const used = await context.call(channels.useImportedDetails)
+    expect(used).toMatchObject({ ok: true, value: { title: 'THE SALT ORCHARD', author: 'Ines Varga' } })
+    await expect(context.call(channels.useImportedDetails)).rejects.toThrow('not-offered')
+  })
+
+  it('refuses to finish an import it didn’t start', async () => {
+    const context = await setup()
+    await openChosen(context)
+    expect(await context.call(channels.planImport, plan('headings'))).toEqual({ ok: false, error: 'no-import' })
+    expect(await context.call(channels.addImported, { plan: plan('headings'), partName: 'X' })).toEqual({ ok: false, error: 'no-import' })
+    await expect(context.call(channels.useImportedDetails)).rejects.toThrow('not-offered')
   })
 })
