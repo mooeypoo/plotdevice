@@ -47,6 +47,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
+      # EPUBCheck, the standard e-book validator, checks the sample books' e-books (Milestone 22). On Linux
+      # only: an e-book is the same file on every system. Java comes with GitHub's Ubuntu runners.
+      - name: Download EPUBCheck
+        if: runner.os == 'Linux'
+        run: |
+          curl -sSL -o "$RUNNER_TEMP/epubcheck.zip" https://github.com/w3c/epubcheck/releases/download/v5.1.0/epubcheck-5.1.0.zip
+          unzip -q "$RUNNER_TEMP/epubcheck.zip" -d "$RUNNER_TEMP"
+          echo "EPUBCHECK_JAR=$RUNNER_TEMP/epubcheck-5.1.0/epubcheck.jar" >> "$GITHUB_ENV"
       - run: pnpm test
       - run: pnpm arch
       - name: Performance limits (alone, so other tests don't skew the timings)

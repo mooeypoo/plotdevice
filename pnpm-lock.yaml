@@ -205,6 +205,9 @@ importers:
       '@plotdevice/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@plotdevice/export':
+        specifier: workspace:*
+        version: link:../../packages/export
       '@plotdevice/fs-node':
         specifier: workspace:*
         version: link:../../packages/fs-node
@@ -342,6 +345,18 @@ importers:
         specifier: workspace:*
         version: link:../shared
 
+  packages/export:
+    dependencies:
+      '@plotdevice/markdown':
+        specifier: workspace:*
+        version: link:../markdown
+      '@plotdevice/shared':
+        specifier: workspace:*
+        version: link:../shared
+      fflate:
+        specifier: ^0.8.3
+        version: 0.8.3
+
   packages/fs-node:
     dependencies:
       '@plotdevice/application':
@@ -419,6 +434,9 @@ importers:
       '@plotdevice/domain':
         specifier: workspace:*
         version: link:../domain
+      '@plotdevice/export':
+        specifier: workspace:*
+        version: link:../export
       '@plotdevice/markdown':
         specifier: workspace:*
         version: link:../markdown

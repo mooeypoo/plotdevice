@@ -1,6 +1,16 @@
 import type { ProjectFolders, ProjectSnapshot } from '@plotdevice/application'
-import { compiledBook, directionOfLanguage } from '@plotdevice/domain'
-import { formatScalar, splitFrontmatter } from '@plotdevice/markdown'
+import {
+  bookOutline,
+  compiledBook,
+  countWords,
+  directionOfLanguage,
+  naturalDirection,
+  type ChapterHeadings,
+  type Direction,
+  type DirectionMode,
+} from '@plotdevice/domain'
+import type { ExportedBook, ExportedEntry } from '@plotdevice/export'
+import { formatScalar, plainTextOf, readChapterForExport, splitFrontmatter, type ExportBlock } from '@plotdevice/markdown'
 import type { ProjectPath } from '@plotdevice/shared'
 
 export interface CompiledText {
@@ -41,4 +51,100 @@ export async function compileManuscript(folders: ProjectFolders, snapshot: Proje
     blocks.push(body === '' ? entry.heading : `${entry.heading}\n\n${body}`)
   }
   return { text: `${blocks.join('\n\n')}\n`, missing }
+}
+
+export interface ExportReading {
+  /** The chapters to export, or `undefined` for the whole book. */
+  chapters: ReadonlySet<ProjectPath> | undefined
+  headings: ChapterHeadings
+  /** The author's setting for paragraphs without a direction mark (ADR 0004). */
+  directionMode: DirectionMode
+  /** "Chapter 3", in the book's language and its word for chapters. */
+  chapterLabel: (number: number) => string
+  /** When the file is made, as an ISO date and time. */
+  made: string
+}
+
+export interface BookForExport {
+  book: ExportedBook
+  /** Words in the whole book, whatever chapters are chosen. */
+  wordCount: number
+  /** Chosen chapters in the contents that couldn't be read; reported, never silently left out. */
+  missing: ProjectPath[]
+}
+
+/**
+ * The book read for export (Milestone 22): the chosen chapters as blocks, every paragraph's direction
+ * resolved as the editor shows it, headings as the author chose, and the whole book's word count.
+ * Nothing in the project is changed.
+ */
+export async function readBookForExport(
+  folders: ProjectFolders,
+  snapshot: ProjectSnapshot,
+  reading: ExportReading,
+): Promise<BookForExport> {
+  const store = folders.open(snapshot.root)
+  const { details } = snapshot
+  const direction = directionOfLanguage(details.language)
+  const titles = new Map(snapshot.chapters.flatMap((chapter) => (chapter.title ? [[chapter.file, chapter.title] as const] : [])))
+  const chosen = reading.chapters
+  const entries: ExportedEntry[] = []
+  const missing: ProjectPath[] = []
+  let wordCount = 0
+  for (const entry of bookOutline(snapshot.contents, details.chapterNumbering, titles)) {
+    if (entry.kind === 'part') {
+      entries.push(entry)
+      continue
+    }
+    const wanted = chosen === undefined || chosen.has(entry.file)
+    const read = await store.read(entry.file)
+    if (!read.ok) {
+      if (wanted) missing.push(entry.file)
+      continue
+    }
+    const blocks = readChapterForExport(splitFrontmatter(read.value.text).body)
+    wordCount += countWords(plainTextOf(blocks))
+    if (!wanted) continue
+    const label = entry.number !== null && reading.headings === 'number-and-name' ? reading.chapterLabel(entry.number) : null
+    entries.push({
+      kind: 'chapter',
+      label,
+      name: entry.name,
+      blocks: blocks.map((block) => resolveDirection(block, reading.directionMode, direction)),
+    })
+  }
+  return {
+    book: {
+      title: details.title,
+      author: details.author?.trim() ? details.author.trim() : null,
+      language: details.language,
+      direction,
+      id: details.id ?? details.title,
+      made: reading.made,
+      entries: keepChosenParts(entries, chosen !== undefined),
+    },
+    wordCount,
+    missing,
+  }
+}
+
+/** Without a mark, a block takes its direction as the editor shows it: the book's, or its own first letters'. */
+function resolveDirection(block: ExportBlock, mode: DirectionMode, book: Direction): ExportBlock {
+  if (block.type === 'scene-break') return block
+  const direction = block.direction ?? naturalDirection(plainTextOf([block]), mode, book)
+  if (block.type === 'quote')
+    return { ...block, direction, children: block.children.map((child) => resolveDirection(child, mode, direction)) }
+  if (block.type === 'list')
+    return { ...block, direction, items: block.items.map((item) => item.map((child) => resolveDirection(child, mode, direction))) }
+  return { ...block, direction }
+}
+
+/** With chosen chapters, a part stays only when one of its chapters is exported. */
+function keepChosenParts(entries: ExportedEntry[], chosen: boolean): ExportedEntry[] {
+  if (!chosen) return entries
+  return entries.filter((entry, index) => {
+    if (entry.kind !== 'part') return true
+    const next = entries[index + 1]
+    return next !== undefined && next.kind === 'chapter'
+  })
 }

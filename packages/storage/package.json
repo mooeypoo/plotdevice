@@ -10,6 +10,7 @@
   "dependencies": {
     "@plotdevice/application": "workspace:*",
     "@plotdevice/domain": "workspace:*",
+    "@plotdevice/export": "workspace:*",
     "@plotdevice/markdown": "workspace:*",
     "@plotdevice/shared": "workspace:*"
   },

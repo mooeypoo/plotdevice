@@ -1,0 +1,15 @@
+{
+  "name": "@plotdevice/export",
+  "version": "0.0.0",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@plotdevice/markdown": "workspace:*",
+    "@plotdevice/shared": "workspace:*",
+    "fflate": "^0.8.3"
+  }
+}

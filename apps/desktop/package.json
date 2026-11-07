@@ -20,6 +20,7 @@
     "@plotdevice/application": "workspace:*",
     "@plotdevice/contracts": "workspace:*",
     "@plotdevice/domain": "workspace:*",
+    "@plotdevice/export": "workspace:*",
     "@plotdevice/fs-node": "workspace:*",
     "@plotdevice/i18n": "workspace:*",
     "@plotdevice/markdown": "workspace:*",
