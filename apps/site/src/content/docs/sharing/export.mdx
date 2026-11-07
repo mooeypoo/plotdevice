@@ -1,26 +1,58 @@
 ---
 title: Exporting the book
-description: Put the whole book together as one Markdown file, ready to share or convert.
+description: Save the book as a Word file for editors, a PDF for reading, or an e-book, in a few choices.
 ---
 
 import Ui from '~/components/Ui.astro'
+import Shot from '~/components/Shot.astro'
 
-The book menu (the book's title in the top bar) → **<Ui k="export-book" />** puts every chapter together, in reading order, as one Markdown file. Choose where to save it; by default, outside the book's folder.
+When you're ready to send your book to an editor, a publisher or a reader, save it as a file they can open. Choose the book's title at the top, then **<Ui k="export-book" />**.
 
-## What's in it
+<Shot name="export-dialog" alt="The Export window: the kind of file, the title page, the chapters, and how the pages look" />
 
-- Parts become `#` headings, and chapters `##` headings, numbered as Plot Device shows them.
-- Each chapter's text follows, unchanged.
-- Chapters under **<Ui k="navigator-not-in-book" />** aren't included. If a chapter's file is missing, the book is exported without it, and Plot Device tells you which.
+Make your choices, then press **<Ui k="export-go" />** and choose where to save the file. Plot Device suggests a place beside the book's folder, never inside it. Your book itself doesn't change.
 
-```markdown
-# Part One: Arrival
+## Which kind of file
 
-## 2. The Crossing
+- **<Ui k="export-format-word" />**: for editors and publishers. They can edit it and mark their changes. It opens in Word, Google Docs, LibreOffice and Pages.
+- **<Ui k="export-format-pdf" />**: for anyone to read on any device. It looks the same everywhere, and can't be edited.
+- **<Ui k="export-format-epub" />**: for e-book readers and e-book stores (an EPUB file).
+- **<Ui k="export-format-markdown" />**: one plain text file of the whole book, for other writing tools.
 
-The ferry left Szeged an hour late. …
-```
+The window only shows the choices that apply to the kind of file you picked.
 
-## Word, EPUB and PDF
+## The title page
 
-The exported file is standard Markdown, including Hebrew and English directions, so [Pandoc](https://pandoc.org) can turn it into Word, EPUB or PDF. For example: `pandoc book.md -o book.docx`.
+Word files and PDFs start with a title page: your name and the word count at the top, then the title and "by" your name. Turn off **<Ui k="export-title-page" />** if you don't want one, or **<Ui k="export-word-count" />** to leave out the count. The count is rounded, as editors expect: "about 84,000 words".
+
+If your book doesn't have a title yet, the window says so. A title or author name you type here is saved with the book, so it's the same everywhere.
+
+## Some chapters, or the whole book
+
+Agents and publishers often ask for a sample. Choose **<Ui k="export-choose-chapters" />**, then tick the chapters to send. **<Ui k="export-first-three" />** ticks the first three in one go. Chapters keep their numbers: chapter 7 sent alone is still chapter 7.
+
+## Chapter headings
+
+Each chapter can be headed by its number and its name ("Chapter 3" above "The Crossing"), or by its name only. If your book doesn't number its chapters, it's always the name.
+
+## How the pages look
+
+Word files and PDFs use the standard look for manuscripts:
+
+- 12pt text, double-spaced (or 1.5 lines if you turn off **<Ui k="export-double" />**);
+- wide margins, and each chapter starting on a new page;
+- your surname, the title and the page number at the top of each page.
+
+**<Ui k="export-paper" />** starts as the size used where you live: A4 in most of the world, Letter in the US and Canada.
+
+Hebrew books are right to left throughout. Hebrew text in a Word file uses the David Libre font, packed into the file so it looks right on an editor's computer.
+
+## E-books
+
+An e-book has its own table of contents, built from your parts and chapters. Hebrew e-books turn their pages right to left. You can add a cover picture with **<Ui k="export-cover-choose" />**. If the picture is later moved, the window tells you, and you can choose it again or export without it.
+
+## What's in the file
+
+Your chapters, in reading order, with their parts. Italics, bold, quotes, lists, headings inside chapters and scene breaks (`* * *`) are kept. Chapters under **<Ui k="navigator-not-in-book" />**, and everything under **<Ui k="workspace-story" />**, aren't included. If a chapter can't be read, the window names it before you export, and the book is exported without it.
+
+Plot Device makes these files on your computer. It doesn't send your book anywhere.

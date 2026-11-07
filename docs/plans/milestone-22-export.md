@@ -1,6 +1,6 @@
 # Milestone 22: Export
 
-Status: **Proposed** (2026-11-07), waiting for the owner's approval. Direction from `docs/features/import-export.md` ("What's decided", owner, 2026-11-07) and the Export window mockup (https://claude.ai/artifact/WDPasrrPNB4RgsKoas9sxU). This number replaces the roadmap's old Milestone 22 ("Word in and out, and backups"): backups were built in Milestone 20, and import becomes its own milestone after this one.
+Status: **Built** (2026-11-07), as draft PR #52. Approved by the owner the same day; see [Owner's answers](#owners-answers-2026-11-07) and [Results](#results). Direction from `docs/features/import-export.md` ("What's decided", owner, 2026-11-07) and the Export window mockup (https://claude.ai/artifact/WDPasrrPNB4RgsKoas9sxU). This number replaces the roadmap's old Milestone 22 ("Word in and out, and backups"): backups were built in Milestone 20, and import becomes its own milestone after this one.
 
 ## Goal
 
@@ -217,3 +217,50 @@ Each step is a commit on one branch. There's one draft PR for the milestone, as 
 2. **Paper size:** a choice in the window (A4 or US Letter), with the default from the computer's region.
 3. **Cover picture:** remember where it is on the computer; show it as missing if it moved. Copying it into the book may come later.
 4. **"First three"** stays, for sending sample chapters.
+
+## Results
+
+### What the author can do
+
+- **Export…** in the book menu opens the Export window: Word, PDF, E-book or Markdown, showing only the choices that apply.
+- **Word:** a standard manuscript in Word's own styles, with a title page (name, rounded word count, title, byline), "Surname / TITLE / page" on every page after it, double or 1.5 spacing, A4 or Letter. Hebrew paragraphs are right to left, and Hebrew text uses David Libre, packed into the file, with David named as the fallback. The font is packed only when the book has Hebrew text.
+- **PDF:** the same manuscript in the app's own fonts (Literata, Noto Serif Hebrew), printed by Electron. It has a document outline (bookmarks) and is tagged for accessibility. The title page isn't counted, so the book starts at page 1, as in Word.
+- **E-book:** EPUB 3 with a title page, a table of contents (chapters inside their parts), an optional cover, and right-to-left page turning for Hebrew.
+- **Markdown:** as before, with the new chapter and heading choices.
+- **Choosing chapters:** with First three, All and None. Chapters keep their whole-book numbers.
+- **Title and author** typed in the window are saved to `project.md` (two lines, nothing else changes).
+- **Remembered:** the choices are kept for each book, in app data. A cover that has moved shows as missing, and export still works without it.
+- **Safe:** files are written beside the book, never inside it. Book files are byte-for-byte unchanged, except `project.md` when the title or author was typed.
+
+### Changed from the plan while building
+
+- **Links** in Word and PDF stay clickable rather than written out with their address. Only web and email links become links; anything else (a link to a page in the book, `javascript:`, files) stays text.
+- **Direction setting:** there's no per-author direction setting in the preferences yet, so unmarked paragraphs follow the book's language, as the editor shows them. The reading code supports the "first letters" mode for when the setting exists.
+- **The old Export book… flow** (`compileBook`) is gone. Markdown goes through the window, and its headings use the book's word for chapters ("Chapter 4: Frost").
+- **Paper regions:** Letter for the regions CLDR lists as using it (the US, Canada, Mexico, parts of Central and South America, the Philippines), A4 elsewhere.
+- **Fonts for the PDF** come from the font packages the app already bundles, so no new font files were needed. David Libre (OFL 1.1) is a new file in `apps/desktop/resources/fonts`, listed in About.
+
+### Found and fixed along the way
+
+- **The layer rules skipped every `dist/` folder,** libraries' own included, so imports of libraries kept there (such as `docx`, or `vitest`) were never judged. Now only the project's own build output is skipped, with a regression test.
+- **A Mac CI failure on main:** the file-watching test expected exact events, and macOS reports a file written just before watching began a moment late.
+- **Vue's reactive objects can't be sent over IPC;** the window sends a plain copy (found by the end-to-end tests).
+- **Chromium counted the title page** in the page numbers; `@page title { counter-increment: page 0 }` fixes it.
+
+### Tests
+
+- Domain: word count (English, Hebrew prefixes, maqaf, gershayim, niqqud, mixed text) and rounding; the book's outline with chosen chapters; the export choices and paper by region.
+- Markdown: chapters read into blocks, every kind of formatting, direction marks (paragraphs, phrases, list items, unfinished and crossing marks), and that code, tables and HTML stay text.
+- Export: HTML escaping and safe links; EPUB structure, order, contents and cover; Word paragraphs, runs split by script, styles, lists, headers, paper, spacing and the packed font; the print page's CSS, escaping and page rules.
+- Storage, on real files: reading for export, directions, chosen chapters, missing chapters, nothing changed; saving the title and author.
+- **EPUBCheck** checks both sample books' e-books, and **LibreOffice** opens both sample books' Word files, in CI on Linux. The Hebrew one is checked for the packed David Libre font.
+- IPC: each format, cancelling, saving details, remembered choices, cover rules, refusing what the host didn't offer.
+- End to end (packaged-style app): Word, PDF (real printing, page size checked), e-book with a title typed in, chosen chapters and remembered choices, options per format, cancelling.
+- Commands: `pnpm lint`, `pnpm typecheck`, `pnpm test` (1,465 passed; EPUBCheck and LibreOffice run in CI), `pnpm arch` (179 passed), `pnpm build`, and the export end-to-end tests.
+
+### Known limitations
+
+- **Word itself** isn't in CI. LibreOffice stands in, and Google Docs' handling of the packed font (it falls back to its own Hebrew font) is untested.
+- The **Hebrew wording** (window, notices and guide page) is a first draft for the owner's review.
+- The guide's **screenshot of the window** is taken by the docs workflow; it can't be seen locally until `pnpm site:screenshots` runs.
+- The Hebrew guide page `start/first-book.mdx` was already behind its English page before this milestone; it's left flagged.
