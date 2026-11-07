@@ -10,6 +10,7 @@
   "dependencies": {
     "@plotdevice/markdown": "workspace:*",
     "@plotdevice/shared": "workspace:*",
+    "docx": "^9.15.2",
     "fflate": "^0.8.3"
   }
 }

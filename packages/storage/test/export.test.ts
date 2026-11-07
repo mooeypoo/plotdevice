@@ -1,5 +1,5 @@
 import type { ProjectSnapshot } from '@plotdevice/application'
-import { writeEpub } from '@plotdevice/export'
+import { writeDocx, writeEpub } from '@plotdevice/export'
 import { createJournalStore, createProjectFolders, randomIdGenerator } from '@plotdevice/fs-node'
 import type { ProjectPath } from '@plotdevice/shared'
 import { execFile } from 'node:child_process'
@@ -152,5 +152,36 @@ describe.skipIf(!epubcheck)('the sample books as e-books, checked by EPUBCheck',
       expect(`${run.stdout}${run.stderr}`.trim()).toBe('')
     },
     60_000,
+  )
+})
+
+// LibreOffice opens each sample book's Word file and prints it to PDF; the PDF must hold the book's
+// text, in the packed Hebrew font. CI sets SOFFICE (Linux); elsewhere this is skipped.
+const soffice = process.env['SOFFICE']
+const FONTS = join(import.meta.dirname, '../../../apps/desktop/resources/fonts')
+describe.skipIf(!soffice)('the sample books as Word files, opened by LibreOffice', () => {
+  it.each([
+    ['the-salt-orchard', 'by', (n: number) => `Chapter ${n}`, 'The Crossing'],
+    ['מטע-המלח', 'מאת', (n: number) => `פרק ${n}`, 'המעבר'],
+  ])(
+    '%s',
+    async (sample, by, chapterLabel, chapter) => {
+      const { base, folders, open } = await setup(join(SAMPLES, sample))
+      const { book } = await readBookForExport(folders, await open(), reading({ chapterLabel }))
+      const font = {
+        name: 'David Libre',
+        regular: await readFile(join(FONTS, 'DavidLibre-Regular.ttf')),
+        bold: await readFile(join(FONTS, 'DavidLibre-Bold.ttf')),
+        fallback: 'David',
+      }
+      const options = { titlePage: true, wordCount: '84,000', doubleSpaced: true, paper: 'a4', by, hebrewFont: font } as const
+      await writeFile(join(base, 'book.docx'), await writeDocx(book, options))
+      const run = promisify(execFile)
+      await run(soffice as string, ['--headless', '--convert-to', 'pdf', '--outdir', base, join(base, 'book.docx')], { timeout: 120_000 })
+      const { stdout: text } = await run('pdftotext', ['-layout', join(base, 'book.pdf'), '-'])
+      expect(text).toContain(chapter)
+      if (book.direction === 'rtl') expect((await run('pdffonts', [join(base, 'book.pdf')])).stdout).toContain('DavidLibre')
+    },
+    180_000,
   )
 })
