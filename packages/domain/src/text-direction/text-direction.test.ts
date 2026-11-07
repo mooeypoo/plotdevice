@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { directionOfLanguage, firstStrongDirection, naturalDirection } from './text-direction'
+import { directionOfLanguage, firstStrongDirection, naturalDirection, onlyDirection } from './text-direction'
 
 describe('firstStrongDirection: what dir="auto" decides', () => {
   it.each([
@@ -44,5 +44,17 @@ describe('directionOfLanguage', () => {
     ['', 'ltr'],
   ])('%s → %s', (language, expected) => {
     expect(directionOfLanguage(language)).toBe(expected)
+  })
+})
+
+describe('onlyDirection: when every letter runs one way', () => {
+  it.each([
+    ['The letter was sent.', 'ltr'],
+    ['יעל קראה את המכתב.', 'rtl'],
+    ['שָׁלוֹם', 'rtl'],
+    ['Ilka אמרה שלא.', null], // both
+    ['1904 — 12:30', null], // neither
+  ])('%s → %s', (text, expected) => {
+    expect(onlyDirection(text)).toBe(expected)
   })
 })

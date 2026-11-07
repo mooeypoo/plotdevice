@@ -1,5 +1,6 @@
 export * from './backups/index'
 export * from './compile/index'
+export * from './import/index'
 export * from './manuscript/index'
 export * from './outline/index'
 export * from './project/index'
@@ -7,6 +8,7 @@ export * from './references/index'
 export {
   directionOfLanguage,
   firstStrongDirection,
+  onlyDirection,
   naturalDirection,
   type Direction,
   type DirectionMode,

@@ -55,3 +55,4 @@ export {
   type RelationshipSource,
 } from './relationships'
 export { plainTextOf, readChapterForExport, type ExportBlock, type ExportInline, type TextDirection } from './exported-chapter'
+export { importedChapterMarkdown, importedText, type ImportedBlock, type ImportedInline, type ImportedParagraph } from './imported-chapter'

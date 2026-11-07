@@ -24,6 +24,22 @@ export function firstStrongDirection(text: string): Direction | null {
 }
 
 /**
+ * The one direction all of a text's letters run in, or `null` when it has letters of both, or none. An
+ * imported paragraph with no letters in the book's direction gets a direction mark (Milestone 23).
+ */
+export function onlyDirection(text: string): Direction | null {
+  let found: Direction | null = null
+  for (const char of text) {
+    if (MARK.test(char)) continue
+    const direction = STRONG_RTL.test(char) ? 'rtl' : LETTER.test(char) ? 'ltr' : null
+    if (direction === null) continue
+    if (found !== null && found !== direction) return null
+    found = direction
+  }
+  return found
+}
+
+/**
  * The direction a paragraph shows without an override. An override is written only when the author
  * wants something different from this ("only when needed", ADR 0004).
  */

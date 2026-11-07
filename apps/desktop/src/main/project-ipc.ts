@@ -36,6 +36,7 @@ import {
 import { outlineFileFor } from '@plotdevice/domain'
 import { dirname } from 'node:path'
 import { err, ok, type Result } from '@plotdevice/shared'
+import { chaptersFromImport, type ImportState } from './import-state'
 import { IpcRefused, parsePayload } from './payload'
 import { projectView, saveStatusView } from './views'
 
@@ -52,6 +53,8 @@ export interface ProjectIpcContext {
   folderExists(root: string): Promise<boolean>
   /** The page has sent every text that was waiting to be saved. */
   onFlushed(): void
+  /** The Word file being imported, if any (Milestone 23): a new book can be made from it. */
+  importState: ImportState
   /** Before another book opens (or a new one is made): the open book's backup, if one is due (Milestone 20). */
   leavingBook(): Promise<void>
   /** The sample book's copy in app data, made from the bundled one if needed, or afresh (Milestone 20). */
@@ -138,13 +141,17 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
     },
 
     [channels.createProject]: async (payload): Promise<CreateProjectResult> => {
-      const { title, language, author, template, location } = parsePayload(newProjectSchema, payload)
+      const { title, language, author, template, location, fromImport } = parsePayload(newProjectSchema, payload)
       if (!offered.has(location)) throw new IpcRefused('not-offered')
       const details = { title, language, ...(author ? { author } : {}) }
-      const start = context.template(template, language)
+      // From a Word file (Milestone 23): a blank book with the chapters the author kept, and no empty first chapter.
+      const chapters = fromImport ? chaptersFromImport(context.importState, fromImport, language) : undefined
+      if (chapters === null) throw new IpcRefused('no-import')
+      const start = fromImport ? { ...context.template('blank', language), firstChapter: false } : context.template(template, language)
       await context.leavingBook()
-      const result = await session.createProject(location, details, start)
+      const result = await session.createProject(location, details, start, chapters)
       if (!result.ok) return result
+      if (fromImport) context.importState.current = null
       // A book with nothing to write in yet opens on its first outline: a campaign on its session plan.
       const outline = result.value.chapters.length === 0 ? start.outlines[0] : undefined
       const project = await opened(result.value)

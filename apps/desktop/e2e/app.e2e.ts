@@ -33,9 +33,11 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
   })
   // Listed in full, so widening the bridge is always a deliberate change.
   const bridge = [
+    'addImported',
     'answerBackupOffer',
     'backUpNow',
     'backupStatus',
+    'cancelImport',
     'cardsAbout',
     'changeContents',
     'changeKinds',
@@ -80,6 +82,7 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'openProject',
     'openSample',
     'planFolderRenames',
+    'planImport',
     'previewBackup',
     'readReference',
     'readVersion',
@@ -106,9 +109,11 @@ test('the page is isolated: no Node, no require, only the typed bridge', async (
     'setTags',
     'shouldOfferBackups',
     'showExportedFile',
+    'startImport',
     'undoDeleteOutline',
     'undoFolderRenames',
     'undoOutline',
+    'useImportedDetails',
   ]
   expect(exposed).toEqual({ process: 'undefined', require: 'undefined', bridge })
 })

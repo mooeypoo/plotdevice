@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { TemplateId } from '@plotdevice/contracts'
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useApi } from '../api'
 import { bringInGuideFor } from '../links'
+import { useImportStore } from '../stores/import'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import { useViewStore } from '../stores/view'
@@ -12,6 +13,7 @@ const api = useApi()
 const store = useProjectStore()
 const settings = useSettingsStore()
 const view = useViewStore()
+const imports = useImportStore()
 // "New project…" from the app menu opens straight on the picker, over the open book (Milestone 19).
 const creating = ref(view.newProject)
 const template = ref<TemplateId>('novel')
@@ -40,7 +42,20 @@ async function start(): Promise<void> {
 function back(): void {
   creating.value = false
   view.newProject = false
+  imports.forgetNewBook()
 }
+
+// A Word file chosen for a new book (Milestone 23): its details fill in the form.
+watch(
+  () => imports.forNewBook,
+  async (from) => {
+    if (!from) return
+    if (!creating.value) await start()
+    title.value = from.title
+    author.value = from.author
+    language.value = from.language
+  },
+)
 
 /** Esc is "← Back" (or Cancel, over a book), unless a dialog or menu on top takes it first.
  *  Heard first and kept from the book underneath, so Esc doesn't also change the book (Story's filter, Focus). */
@@ -61,14 +76,20 @@ async function choose(): Promise<void> {
 
 async function create(): Promise<void> {
   if (title.value.trim() === '' || location.value === '') return
+  const from = imports.forNewBook
   const created = await store.create({
     title: title.value.trim(),
     language: language.value,
-    template: template.value,
+    template: from ? 'blank' : template.value,
     location: location.value,
     ...(author.value.trim() ? { author: author.value.trim() } : {}),
+    // A plain copy: Vue's reactive objects can't be sent to the host.
+    ...(from ? { fromImport: JSON.parse(JSON.stringify(from.plan)) as typeof from.plan } : {}),
   })
-  if (created) back()
+  if (created) {
+    imports.forNewBook = null // used: the host has finished with the file
+    back()
+  }
 }
 
 if (creating.value) void start()
@@ -102,7 +123,19 @@ if (creating.value) void start()
         <p class="secondary">{{ settings.t('new-project-hint') }}</p>
       </div>
 
-      <fieldset class="templates">
+      <div v-if="imports.forNewBook" class="from-word" data-testid="from-word">
+        <span class="template-name">{{ settings.t('import-new-from', imports.forNewBook.fileName) }}</span>
+        <span class="secondary">{{ settings.t('import-new-chapters', String(imports.forNewBook.chapters)) }}</span>
+        <span class="actions start">
+          <button type="button" class="link-button" data-testid="from-word-again" @click="imports.start('new')">
+            {{ settings.t('import-new-other-file') }}
+          </button>
+          <button type="button" class="link-button" data-testid="from-word-forget" @click="imports.forgetNewBook()">
+            {{ settings.t('import-new-use-template') }}
+          </button>
+        </span>
+      </div>
+      <fieldset v-else class="templates">
         <legend class="visually-hidden">{{ settings.t('new-project-templates') }}</legend>
         <label v-for="id in templates" :key="id" class="template-card" :class="{ chosen: template === id }" :data-testid="`template-${id}`">
           <input v-model="template" type="radio" name="template" :value="id" class="visually-hidden" />
@@ -115,6 +148,12 @@ if (creating.value) void start()
           <span class="secondary template-summary">{{ settings.t(`template-${id}-summary`) }}</span>
         </label>
       </fieldset>
+      <p v-if="!imports.forNewBook" class="from-word-offer">
+        <button type="button" class="link-button" data-testid="from-word-file" @click="imports.start('new')">
+          {{ settings.t('import-new-menu') }}
+        </button>
+        <span class="secondary">{{ settings.t('import-new-hint') }}</span>
+      </p>
 
       <div class="new-project-details">
         <label class="field">
@@ -141,7 +180,7 @@ if (creating.value) void start()
           {{ settings.t('prompt-cancel') }}
         </button>
         <button type="submit" class="primary" data-testid="new-project-create" :disabled="location === ''">
-          {{ settings.t('new-project-create') }}
+          {{ imports.forNewBook ? settings.t('import-new-create', String(imports.forNewBook.chapters)) : settings.t('new-project-create') }}
         </button>
       </div>
     </form>

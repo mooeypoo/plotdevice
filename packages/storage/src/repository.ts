@@ -7,6 +7,7 @@ import type {
   IdGenerator,
   JournalStep,
   JournalStore,
+  NewChapter,
   ProjectFolders,
   ProjectRepository,
   ProjectSnapshot,
@@ -45,6 +46,7 @@ import {
   newContentsFile,
   newOutlineFile,
   newProjectFile,
+  parseContents,
   readFrontmatter,
   rewriteLinksTo,
   setFrontmatterBlock,
@@ -89,6 +91,44 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
   }
 
   /** Reads `CONTENTS.md`, refusing if it changed since the snapshot. */
+  /**
+   * Chapters added at the end of `CONTENTS.md` (Milestone 23): a part line when their part changes,
+   * then each chapter's line, with a new file named after its title that collides with no other.
+   */
+  function withChapters(
+    contents: string,
+    existing: readonly ProjectPath[],
+    chapters: readonly NewChapter[],
+  ): Result<{ contents: string; files: { file: ProjectPath; text: string }[] }, 'invalid'> {
+    let text = contents
+    const taken = [...existing]
+    const files: { file: ProjectPath; text: string }[] = []
+    let part: string | null = null
+    for (const chapter of chapters) {
+      let entries = parseContents(text).entries
+      if (chapter.part !== null && chapter.part !== part) {
+        const withPart = editContents(text, { kind: 'add-part', name: chapter.part, index: entries.length })
+        if (!withPart.ok) return err('invalid')
+        text = withPart.value
+        entries = parseContents(text).entries
+      }
+      part = chapter.part
+      const last = entries.length - 1
+      const lastEntry = entries[last]
+      const placement =
+        chapter.part !== null && lastEntry?.kind === 'part'
+          ? { part: last, index: lastEntry.chapters.length }
+          : { part: null, index: entries.length }
+      const file = chapterFileFor(chapter.title, taken)
+      taken.push(file)
+      const withChapter = editContents(text, { kind: 'add-chapter', file, linkText: chapter.title, placement })
+      if (!withChapter.ok) return err('invalid')
+      text = withChapter.value
+      files.push({ file, text: newChapterFile(chapter.title, ids.next('ch'), chapter.body) })
+    }
+    return ok({ contents: text, files })
+  }
+
   async function freshContents(store: FileStore, snapshot: ProjectSnapshot) {
     const read = await store.read(CONTENTS_FILE)
     if (!read.ok) return err('unreadable' as const)
@@ -114,7 +154,7 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
   return {
     open,
 
-    async create(location, project, template) {
+    async create(location, project, template, chapters) {
       const valid = validateNewProject(project)
       if (!valid.ok) return err('invalid-details')
       // The outlines' files first: the template's first outline is the book's main outline (ADR 0012).
@@ -149,6 +189,12 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
         if (!edited.ok) return err('invalid-details')
         contents = edited.value
         files.push({ file, text: newChapterFile(valid.value.title, ids.next('ch')) })
+      }
+      if (chapters && chapters.length > 0) {
+        const added = withChapters(contents, [], chapters)
+        if (!added.ok) return err('invalid-details')
+        contents = added.value.contents
+        files.push(...added.value.files)
       }
       files.push({ file: CONTENTS_FILE, text: contents }, ...outlines)
       for (const { file, text } of files) {
@@ -332,6 +378,27 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       if (!withUnit.ok) return err('unreadable')
       if (withUnit.value === current.value.text) return ok(snapshot)
       const written = await store.write(PROJECT_FILE, { text: withUnit.value, hasBom: current.value.hasBom }, current.value.revision)
+      if (!written.ok) return err(writeProblem(written.error))
+      return reopen(snapshot.root)
+    },
+
+    async addChapters(snapshot, chapters) {
+      const store = folders.open(snapshot.root)
+      const contents = await freshContents(store, snapshot)
+      if (!contents.ok) return contents
+      const added = withChapters(contents.value.text, await store.listMarkdownFiles(), chapters)
+      if (!added.ok) return err('invalid')
+      // The chapters' files first, each as a new file: if CONTENTS.md can't be changed after, they're
+      // still there, "not in the book", and nothing is lost.
+      for (const { file, text } of added.value.files) {
+        const written = await store.write(file, { text, hasBom: false }, null)
+        if (!written.ok) return err('write-failed')
+      }
+      const written = await store.write(
+        CONTENTS_FILE,
+        { text: added.value.contents, hasBom: contents.value.hasBom },
+        contents.value.revision,
+      )
       if (!written.ok) return err(writeProblem(written.error))
       return reopen(snapshot.root)
     },

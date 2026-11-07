@@ -17,6 +17,43 @@ The audience is non-technical writers who mostly work in Word today (`PRD.md` §
 - **Print-ready PDF is out of scope** (trim sizes, mirrored margins, typesetting for print). Dedicated services do it better; the manuscript PDF is for reading, not printing a book.
 - **Skipped:** `.doc`, RTF, MOBI/KPF, ODT (unless writers ask).
 
+**Import (owner, 2026-11-07):**
+- **Two operations:**
+  - **New book from a Word file** always makes a new book. The author chooses an empty folder and fills in the book's details; the title and author are pre-filled from the Word file when it has them.
+  - **Add chapters from a Word file…** (book menu) adds the chapters at the end of the open book and never changes its details. If the Word file names a title or author that differs, a note at the end offers to use it.
+- **Splitting:** Plot Device guesses (headings, then "Chapter N" lines, then page breaks), shows the guess in the preview, and the author can change how it splits.
+- **The preview (owner, 2026-11-07, after the mockup):**
+  - The three split choices stay. Any paragraph can start a new chapter ("＋ New chapter here").
+  - No free-text prefix for "Chapter" lines for now; splitting by hand covers other words.
+  - **Added chapters go into a new part at the end** of the book, so they're easy to find and move. Nothing more elaborate for now.
+  - **The title page isn't imported.** It's used to fill in the book's title and author.
+- **Chapter names:** "Chapter 3: The Crossing" becomes "The Crossing", since Plot Device numbers chapters itself. A bigger heading above chapters becomes a part.
+- **What can't come in:**
+  - tracked changes: the text as it reads with them accepted;
+  - comments, pictures and tables: left out.
+
+  The preview says what's left out before anything is created.
+- **Footnotes** keep their mark in the text, with the notes listed at the end of the chapter (Markdown footnotes: `[^1]` and `[^1]: …`).
+- **Round trips** (bringing an editor's changes back into existing chapters) are out of scope.
+- **Formats:** `.docx` only. Google Docs and LibreOffice users save as `.docx`; Scrivener may come later.
+- **Library:** the owner leans towards Mammoth (no rewriting what exists); a spike checks it's good enough, especially for page breaks and right-to-left paragraphs.
+
+**Spike: Mammoth (2026-11-07).** Mammoth 1.13 (BSD-2-Clause) is good enough, with three small additions of our own. It was tested on Word-style Hebrew and English files and on Plot Device's own Word export; the full notes are in `docs/spikes/word-import.md`, kept locally like the other spikes.
+- **Comes through well:**
+  - Hebrew and mixed text, italic and bold;
+  - heading styles (including localized style ids) and the Title style;
+  - page breaks (with a style map), even mid-paragraph;
+  - tracked changes, read as accepted;
+  - footnotes with their references;
+  - lists and quotes.
+- **Ours to add:**
+  - **Counts for the preview:** Mammoth drops comments silently and keeps tables and pictures. A small pass over the zip (fflate) counts comments, tables and pictures for the preview, and reads the title and author from `docProps/core.xml`.
+  - **Direction:** right-to-left paragraph marks aren't read. Direction is inferred from the text: a paragraph with no letters in the book's direction gets a direction mark.
+  - **Scene breaks:** `* * *` and `#` lines are recognised as scene breaks.
+- **Not a split point:** "next page" section breaks are ignored. "Chapter N" lines usually mark those chapters too, and otherwise the author splits in the preview.
+- **Footnotes in the editor:** they show as plain text marks there today (`[^1]`), readable and kept exactly.
+- **Still needed:** real files saved by Word, Google Docs and LibreOffice for the milestone's tests; the spike's files were written to match Word's format.
+
 **The Export window (owner, 2026-11-07):**
 - One **Export…** window with the choices, shown only where they apply: format (Word, PDF, E-book, Markdown); title page (title, author, show word count); the whole book or chosen chapters; double-spaced for editors (Word and PDF); an optional cover picture (E-book).
 - **Include a title page** is a switch, on by default.

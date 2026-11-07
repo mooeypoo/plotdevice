@@ -6,6 +6,7 @@ import type {
   ChangeProblem,
   ContentsChange,
   CreateProblem,
+  NewChapter,
   ProjectTemplate,
   FileRenamed,
   FolderRenamePlan,
@@ -58,7 +59,14 @@ export interface WritingSession {
   onEvent(listener: (event: SessionEvent) => void): () => void
   /** Finishes saving the current project's chapters first. */
   openProject(root: string): Promise<Result<ProjectSnapshot, OpenProblem>>
-  createProject(location: string, details: NewProject, template?: ProjectTemplate): Promise<Result<ProjectSnapshot, CreateProblem>>
+  createProject(
+    location: string,
+    details: NewProject,
+    template?: ProjectTemplate,
+    chapters?: readonly NewChapter[],
+  ): Promise<Result<ProjectSnapshot, CreateProblem>>
+  /** Chapters from a Word file, at the end of the open book (Milestone 23). */
+  addChapters(chapters: readonly NewChapter[]): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   openChapter(file: ProjectPath): Promise<Result<OpenedChapter, NoProject | 'missing' | 'unreadable'>>
   saveChapter(file: ProjectPath, text: string, generation: number): Result<void, 'not-open'>
   saveStatus(file: ProjectPath): SaveStatus | null
@@ -223,7 +231,16 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
       return () => listeners.delete(listener)
     },
     openProject: (root) => serially(() => switchProject(() => repository.open(root))),
-    createProject: (location, details, template) => serially(() => switchProject(() => repository.create(location, details, template))),
+    createProject: (location, details, template, chapters) =>
+      serially(() => switchProject(() => repository.create(location, details, template, chapters))),
+
+    addChapters: (chapters) =>
+      serially(async () => {
+        if (!project) return err('no-project')
+        const written = await repository.addChapters(project, chapters)
+        if (written.ok) setProject(written.value)
+        return written
+      }),
 
     async openChapter(file) {
       if (!project) return err('no-project')
