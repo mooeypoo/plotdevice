@@ -1,6 +1,6 @@
 # Milestone 23: Import from Word
 
-Status: **Approved** (2026-11-07). The new book's folder is made as for any new project (owner). Direction from `docs/features/import-export.md` (owner's decisions on import, the Mammoth spike, and the preview), and the mockup at https://claude.ai/artifact/JXTWUgYXoq6igbURxgcFoy.
+Status: **Built** (2026-11-07), as a draft PR on top of Milestone 22's. Approved the same day; the new book's folder is made as for any new project (owner). See [Results](#results). Direction from `docs/features/import-export.md` (owner's decisions on import, the Mammoth spike, and the preview), and the mockup at https://claude.ai/artifact/JXTWUgYXoq6igbURxgcFoy.
 
 ## Goal
 
@@ -163,3 +163,58 @@ Each step is a commit on `milestone-23/import`. There's one draft PR, on top of 
 
 1. **The new book's folder:** ~~a location and a new folder, or an existing empty folder?~~ Answered (2026-11-07): just like a new project.
 2. **Real test files:** a short test document saved from Word (and Google Docs or LibreOffice if you use them), with a few Hebrew paragraphs, two chapters, a footnote, a comment and a tracked change. Not your novel.
+
+## Results
+
+### What the author can do
+
+- **New project → From a Word file…** reads a `.docx` and opens the preview. **Next** returns to New project's form, with the title, author and language filled in from the Word file. The button reads "Make the book with 12 chapters". It makes a blank book with those chapters and parts, and no empty first chapter, in a new folder as for any new book.
+- **Book menu → Add chapters from a Word file…** opens the same preview, then adds the chapters at the end. Chapters the file doesn't put in a part go into a new part, named in the preview after the file. A differing title or author is only offered, on the notice, with **Use that title and author**.
+- **The preview:**
+  - split by headings, "Chapter" lines or page breaks, guessed first;
+  - rename, untick, **Join with the chapter above**, and **＋ New chapter here** on any paragraph;
+  - word counts;
+  - what won't come in, said plainly.
+- **Chapters** come in as Plot Device writes Markdown. Footnotes are numbered per chapter, scene breaks are recognised, and direction marks appear only on paragraphs whose letters all run against the book.
+- **Never changed:** the Word file, and nothing in the book besides the new chapters, their part and `CONTENTS.md`. The book's details change only when the author chooses.
+
+### Changed from the plan while building
+
+- **Test files are built in code** (`packages/import/src/docx-fixtures.test-support.ts`), not written by a script. The real files from Word, Google Docs and LibreOffice the owner may provide are still to add.
+- **The new book goes through New project's own form,** with a card in place of the templates, rather than a separate details step. It reuses the location picker and every safety of making a book.
+- **The import state** lives in the main process (`import-state.ts`), shared by the import handlers and New project's handler.
+
+### Found and fixed along the way
+
+- **No-loss checks:** a seeded test of the splitting found three ways text could go missing or misplace:
+  - joining away a part's only chapter dropped the part's heading;
+  - "join with the chapter above" on the first chapter folded it into the title page;
+  - a manual split in a file with nothing to split by lost the text above it.
+
+  All three are fixed, and every paragraph is now accounted for in every split.
+- **A book with exactly one chapter per part** wasn't seen as having parts.
+- **Vue's reactive objects can't be sent to the host,** again: the plan sent to New project is a plain copy. A general fix in the API layer is a possible follow-up.
+- **PR #52's CI** failed on the page's bridge list, which hadn't been updated for the Export window. Fixed on that branch.
+
+### Tests
+
+- Domain: chapter, part, byline and scene-break lines in English and Hebrew (digits, number words, Hebrew ordinals and letters); the three ways of splitting; the title page; starts, joins, renames and leaving out; and a seeded check that no paragraph is lost or doubled.
+- Import: reading the Hebrew and English fixtures (tracked changes, footnotes, page breaks mid-paragraph, links, counts, the file's details); refusing non-Word, old or protected, and broken files.
+- Markdown: house style, escaping, footnotes per chapter, direction marks, lists and quotes, and reading back through export's table.
+- Storage, on real folders:
+  - a new book from the Hebrew fixture passes the project check;
+  - added chapters change no other file;
+  - a stale `CONTENTS.md` writes nothing;
+  - chapters are kept outside the book if `CONTENTS.md` can't be written;
+  - **round trip:** both sample books, exported to Word and imported back, give the same chapters, parts and text.
+- IPC: start, re-split, a new book through New project, adding with a part and the offered details, refusing what wasn't started.
+- End to end: a new book from the Hebrew file (renamed chapter, the Word file byte-for-byte unchanged), changing splits with a manual start and a join, adding to the open book with the details offer, and a file that isn't Word.
+- Commands: `pnpm lint`, `pnpm typecheck`, `pnpm test` (1,566 passed), `pnpm arch` (184 passed), `pnpm build`, and the import, export, look, app and templates end-to-end tests (37 passed).
+
+### Known limitations
+
+- **Where a part ends:** a chapter after a part's last chapter (an epilogue) comes back inside that part, because a Word file doesn't mark where a part ends. The guide says so.
+- **Section breaks** ("next page") don't split chapters on their own.
+- **Real files:** the tests use files built to match Word's format. Files saved by Word, Google Docs and LibreOffice are still to add.
+- **Footnotes** show as plain `[^1]` marks in the editor, and as text in exports.
+- **The Hebrew wording** (window, notices, guide page) is a first draft for the owner's review. The guide's screenshot of the preview is taken by the docs workflow.

@@ -2,6 +2,7 @@ import { test, type ElectronApplication, type Locator, type Page } from '@playwr
 import { cp, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { ENGLISH_BOOK, HEBREW_BOOK } from '../../../packages/import/src/docx-fixtures.test-support'
 import { closeSettings, launch, openSettings } from '../../desktop/e2e/launch'
 
 // Every screenshot the site shows, from the real app on the demo novels, in each language and theme.
@@ -123,10 +124,13 @@ async function open(
   // The outline guide, shown once to a new author, would sit above every outline in the shots.
   await mkdir(join(copy, 'user-data'), { recursive: true })
   await writeFile(join(copy, 'user-data', 'preferences.json'), JSON.stringify({ outlineGuideSeen: true }))
+  // A Word manuscript for "From a Word file…" (Milestone 23), named as an author would name it.
+  const wordFile = join(copy, lang === 'he' ? 'מטע המלח.docx' : 'The Salt Orchard.docx')
+  await writeFile(wordFile, lang === 'he' ? HEBREW_BOOK : ENGLISH_BOOK)
   // "Where to keep it" on the new project screen shows this, not the folder of whoever takes the shots.
   const running = await launch(
     join(copy, 'user-data'),
-    { PLOTDEVICE_TEST_CHOOSE_FOLDER: '/home/ines/Documents' },
+    { PLOTDEVICE_TEST_CHOOSE_FOLDER: '/home/ines/Documents', PLOTDEVICE_TEST_WORD_FILE: wordFile },
     book ? [join(copy, book)] : [],
   )
   const { app, page } = running
@@ -374,6 +378,11 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await welcome.page.getByTestId('new-project-title').blur()
       await welcome.page.mouse.move(0, 0)
       await snap(welcome.page, lang, 'new-project', theme)
+      // Bringing in a Word file (Milestone 23): the preview of its chapters.
+      await welcome.page.getByTestId('from-word-file').click()
+      await welcome.page.getByTestId('import-next').waitFor()
+      await welcome.page.mouse.move(0, 0)
+      await snapAround(welcome.page, lang, 'import-dialog', theme, [welcome.page.getByTestId('import-dialog')], 0)
       await welcome.app.close()
 
       // A misspelled tag: the notice when the book opens, then "Tidy tags".
