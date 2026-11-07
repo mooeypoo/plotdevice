@@ -1,0 +1,21 @@
+{
+  "name": "@plotdevice/import",
+  "version": "0.0.0",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@plotdevice/domain": "workspace:*",
+    "@plotdevice/markdown": "workspace:*",
+    "@plotdevice/shared": "workspace:*",
+    "fflate": "^0.8.3",
+    "hast-util-from-html": "^2.0.3",
+    "mammoth": "^1.13.0"
+  },
+  "devDependencies": {
+    "@types/hast": "^3.0.5"
+  }
+}
