@@ -1,8 +1,7 @@
 import { test, type ElectronApplication, type Locator, type Page } from '@playwright/test'
-import { cp, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { copyFile, cp, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { ENGLISH_BOOK, HEBREW_BOOK } from '../../../packages/import/src/docx-fixtures.test-support'
 import { closeSettings, launch, openSettings } from '../../desktop/e2e/launch'
 
 // Every screenshot the site shows, from the real app on the demo novels, in each language and theme.
@@ -125,8 +124,9 @@ async function open(
   await mkdir(join(copy, 'user-data'), { recursive: true })
   await writeFile(join(copy, 'user-data', 'preferences.json'), JSON.stringify({ outlineGuideSeen: true }))
   // A Word manuscript for "From a Word file…" (Milestone 23), named as an author would name it.
+  // Kept beside this script (word/README.md): the site reads nothing from the app's code but its words and colours.
   const wordFile = join(copy, lang === 'he' ? 'מטע המלח.docx' : 'The Salt Orchard.docx')
-  await writeFile(wordFile, lang === 'he' ? HEBREW_BOOK : ENGLISH_BOOK)
+  await copyFile(join(import.meta.dirname, 'word', `${lang === 'he' ? 'he' : 'en'}.docx`), wordFile)
   // "Where to keep it" on the new project screen shows this, not the folder of whoever takes the shots.
   const running = await launch(
     join(copy, 'user-data'),
