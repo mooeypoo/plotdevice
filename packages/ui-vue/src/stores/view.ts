@@ -38,6 +38,8 @@ export const useViewStore = defineStore('view', () => {
   const plainTextRequest = ref(false)
   /** "Kinds of pages" is open (Milestone 18), and the unsorted folder it should offer to make a kind, if any. */
   const kindsDialog = ref(false)
+  /** The Export window is open (Milestone 22). */
+  const exportDialog = ref(false)
   const kindsAdopt = ref<string | null>(null)
   /** "Match folder names", opened from "Kinds of pages" (Milestone 18). */
   const matchFolders = ref(false)
@@ -84,6 +86,7 @@ export const useViewStore = defineStore('view', () => {
     storySaveStatus,
     plainTextRequest,
     kindsDialog,
+    exportDialog,
     kindsAdopt,
     matchFolders,
     newProject,

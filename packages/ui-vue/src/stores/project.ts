@@ -1,5 +1,6 @@
 import type {
   ContentsChangeRequest,
+  ExportRequest,
   FolderRenamesRequest,
   KindsChangeRequest,
   NewProjectRequest,
@@ -131,14 +132,23 @@ export const useProjectStore = defineStore('project', () => {
   /** Makes an outline the book's main outline, whose sections name the timeline's columns (ADR 0012). */
   const setMainOutline = (file: ProjectPath) => change(() => api.setMainOutline(file))
 
-  /** Compiles the book where the author chooses, and says where it went and what was missing. */
-  async function compile(): Promise<void> {
-    const compiled = await api.compileBook()
-    if (compiled.ok) {
-      const { path, missing } = compiled.value
-      if (missing.length === 0) tell('compiled', path)
-      else tell('compiled-missing', path, missing.map((chapter) => chapter.title).join(', '))
-    } else if (compiled.error !== 'cancelled') tell('compile-failed')
+  /**
+   * Exports the book from the Export window (Milestone 22): the title and author typed there are saved
+   * to the book first. Says where the file went, with "Show in folder", and what couldn't be read.
+   * Whether the window can close: `false` when the author cancelled the save dialog or something failed.
+   */
+  async function exportBook(request: ExportRequest): Promise<boolean> {
+    const result = await api.exportBook(request)
+    if (!result.ok) {
+      if (result.error !== 'cancelled') tell(`export-failed-${result.error}`)
+      return false
+    }
+    const { path, missing, project: updated } = result.value
+    if (updated) setProject(updated)
+    const show = { key: 'export-show', run: () => void api.showExportedFile(path) }
+    if (missing.length === 0) offer('exported', [path], show)
+    else offer('exported-missing', [path, missing.map((chapter) => chapter.title).join(', ')], show)
+    return true
   }
   const renameChapter = (file: ProjectPath, title: string) => change(() => api.renameChapter(file, title))
   /** The book's kinds of pages, and what it calls a chapter (ADR 0011). */
@@ -210,6 +220,6 @@ export const useProjectStore = defineStore('project', () => {
     undoFolderRenames,
     renameChapter,
     renameChapterFile,
-    compile,
+    exportBook,
   }
 })

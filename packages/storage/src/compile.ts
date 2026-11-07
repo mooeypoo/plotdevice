@@ -20,12 +20,25 @@ export interface CompiledText {
   missing: ProjectPath[]
 }
 
+export interface MarkdownExport {
+  /** The chapters to export, or `undefined` for the whole book. */
+  chapters?: ReadonlySet<ProjectPath> | undefined
+  /** With `chapterLabel`, chapters are headed "Chapter 3: The Crossing" or by name only (Milestone 22). */
+  headings?: ChapterHeadings
+  chapterLabel?: (number: number) => string
+}
+
 /**
  * The whole book as one Markdown file (Milestone 6, decision 4). Chapter text is kept as written,
  * direction markers included, which Pandoc understands; chapter frontmatter is left out. The result
- * is a new file, so it uses `\n` line endings throughout. Nothing in the project is changed.
+ * is a new file, so it uses `\n` line endings throughout. Nothing in the project is changed. The Export
+ * window (Milestone 22) can choose chapters, and head them with the book's word for chapters.
  */
-export async function compileManuscript(folders: ProjectFolders, snapshot: ProjectSnapshot): Promise<CompiledText> {
+export async function compileManuscript(
+  folders: ProjectFolders,
+  snapshot: ProjectSnapshot,
+  options: MarkdownExport = {},
+): Promise<CompiledText> {
   const store = folders.open(snapshot.root)
   const { details } = snapshot
   const titles = new Map(snapshot.chapters.flatMap((chapter) => (chapter.title ? [[chapter.file, chapter.title] as const] : [])))
@@ -37,7 +50,28 @@ export async function compileManuscript(folders: ProjectFolders, snapshot: Proje
   ]
   const blocks: string[] = [`---\n${metadata.join('\n')}\n---`]
   const missing: ProjectPath[] = []
-  for (const entry of compiledBook(snapshot.contents, details.chapterNumbering, titles)) {
+  const { chapterLabel } = options
+  const entries =
+    chapterLabel === undefined && options.chapters === undefined
+      ? compiledBook(snapshot.contents, details.chapterNumbering, titles)
+      : bookOutline(snapshot.contents, details.chapterNumbering, titles, options.chapters).map((entry) =>
+          entry.kind === 'part'
+            ? { kind: 'part' as const, heading: `# ${escapeHeading(entry.name)}` }
+            : {
+                kind: 'chapter' as const,
+                file: entry.file,
+                heading: `## ${
+                  entry.number === null
+                    ? ''
+                    : chapterLabel === undefined
+                      ? `${entry.number}. `
+                      : options.headings === 'name'
+                        ? ''
+                        : `${chapterLabel(entry.number)}: `
+                }${escapeHeading(entry.name)}`,
+              },
+        )
+  for (const entry of entries) {
     if (entry.kind === 'part') {
       blocks.push(entry.heading)
       continue
@@ -52,6 +86,8 @@ export async function compileManuscript(folders: ProjectFolders, snapshot: Proje
   }
   return { text: `${blocks.join('\n\n')}\n`, missing }
 }
+
+const escapeHeading = (text: string): string => text.replace(/^#/, '\\#')
 
 export interface ExportReading {
   /** The chapters to export, or `undefined` for the whole book. */

@@ -103,3 +103,19 @@ describe('compiling the book', () => {
     expect(await snapshotOf()).toEqual(before)
   })
 })
+
+describe('the Markdown export’s choices (Milestone 22)', () => {
+  it('keeps only the chosen chapters, and heads them with the book’s word for chapters, or by name', async () => {
+    const { folders, open } = await setup()
+    const snapshot = await open()
+    const chapters = new Set(['manuscript/frost.md' as ProjectPath])
+    const labelled = await compileManuscript(folders, snapshot, {
+      chapters,
+      headings: 'number-and-name',
+      chapterLabel: (n) => `Chapter ${n}`,
+    })
+    expect(headings(labelled.text)).toEqual(['# Part Two: Salt', '## Chapter 4: Frost'])
+    const named = await compileManuscript(folders, snapshot, { headings: 'name', chapterLabel: (n) => `פרק ${n}` })
+    expect(headings(named.text).slice(0, 3)).toEqual(['## Prologue', '# Part One: Arrival', '## The Crossing'])
+  })
+})

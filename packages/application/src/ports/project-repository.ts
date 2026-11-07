@@ -156,6 +156,11 @@ export interface ProjectRepository {
     kinds: readonly PageKind[],
     manuscriptUnit: ManuscriptUnit | null,
   ): Promise<Result<ProjectSnapshot, ChangeProblem>>
+  /**
+   * Writes the book's title and author to `project.md` (Milestone 22, from the Export window), each only
+   * when given; other keys, comments and the folder's name don't change.
+   */
+  setDetails(snapshot: ProjectSnapshot, details: { title?: string; author?: string }): Promise<Result<ProjectSnapshot, ChangeProblem>>
   /** Writes which outline is main to `project.md` (ADR 0012); nothing else changes, no outline is touched. */
   setMainOutline(snapshot: ProjectSnapshot, file: ProjectPath): Promise<Result<ProjectSnapshot, ChangeProblem>>
   /** Writes which outlines are set aside, and which is main (`null`: not named), in one change to `project.md`. */

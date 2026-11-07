@@ -8,6 +8,7 @@ import {
 } from '@plotdevice/contracts'
 import type { Result } from '@plotdevice/shared'
 import { createBackupHandlers, type BackupIpcContext } from './backup-ipc'
+import { createExportHandlers, type ExportIpcContext } from './export-ipc'
 import { IpcRefused, parsePayload } from './payload'
 import { createOutlineHandlers, type OutlineIpcContext } from './outline-ipc'
 import { createProjectHandlers, type PayloadHandler, type ProjectIpcContext } from './project-ipc'
@@ -35,6 +36,7 @@ export interface IpcContext {
   versions: VersionIpcContext
   updates: UpdateIpcContext
   backups: BackupIpcContext
+  exports: ExportIpcContext
 }
 
 export type IpcHandler = (sender: Sender, payload: unknown) => Promise<unknown>
@@ -59,6 +61,7 @@ export function createIpcHandlers(context: IpcContext): Record<string, IpcHandle
     ...createVersionHandlers(context.versions),
     ...createUpdateHandlers(context.updates),
     ...createBackupHandlers(context.backups),
+    ...createExportHandlers(context.exports),
   }
   return Object.fromEntries(
     Object.entries(handlers).map(([channel, handle]) => [

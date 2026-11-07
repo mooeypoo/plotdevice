@@ -4,5 +4,12 @@ export { createOutlineRepository, outlineOf } from './outline-repository'
 export { createReferenceRepository } from './reference-repository'
 export { backupKeyOf, withBackups, type BackupOptions } from './backing-up'
 export { createVersionRepository } from './versions'
-export { compileManuscript, readBookForExport, type BookForExport, type CompiledText, type ExportReading } from './compile'
+export {
+  compileManuscript,
+  readBookForExport,
+  type BookForExport,
+  type CompiledText,
+  type ExportReading,
+  type MarkdownExport,
+} from './compile'
 export { checkProject, type CheckCode, type CheckFinding, type CheckSeverity, type ProjectCheck } from './check-project'

@@ -93,16 +93,18 @@ test('scenario E: move a chapter, compile the book, and the order changed with n
     .toBe(true)
   await page.getByTestId('book-menu').click()
   await page.getByTestId('menu-export-book').click()
+  await page.getByTestId('export-format-markdown').click()
+  await page.getByTestId('export-go').click()
   await expect(page.getByRole('alert')).toContainText('compiled.md')
   const book = await readFile(savedAs, 'utf8')
   expect(book.split('\n').filter((line) => line.startsWith('#'))).toEqual([
-    '## 1. Prologue',
+    '## Chapter 1: Prologue',
     '# Part One: Arrival',
-    '## 2. The Crossing',
-    '## 3. The Orchard Gate',
-    '## 4. Frost',
+    '## Chapter 2: The Crossing',
+    '## Chapter 3: The Orchard Gate',
+    '## Chapter 4: Frost',
     '# Part Two: Salt',
-    '## 5. Epilogue',
+    '## Chapter 5: Epilogue',
   ])
   expect(await readdir(join(root, 'manuscript'))).toEqual(files)
 })

@@ -6,6 +6,7 @@ import { createIpcHandlers, isAppUrl, type Sender } from './ipc'
 import type { OutlineIpcContext } from './outline-ipc'
 import type { ProjectIpcContext } from './project-ipc'
 import type { ReferenceIpcContext } from './reference-ipc'
+import type { ExportIpcContext } from './export-ipc'
 import type { UpdateIpcContext } from './update-ipc'
 import type { VersionIpcContext } from './version-ipc'
 
@@ -42,6 +43,7 @@ function setup(saveError?: string) {
     versions: {} as VersionIpcContext,
     backups: {} as BackupIpcContext,
     updates: {} as UpdateIpcContext,
+    exports: {} as ExportIpcContext,
   })
   const call = (channel: string, sender: Sender, payload?: unknown) => {
     const handler = handlers[channel]

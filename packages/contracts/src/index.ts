@@ -42,7 +42,6 @@ export {
   folderRenamesSchema,
   renameChapterSchema,
   type ChapterRef,
-  type CompileResult,
   type ContentsChangeRequest,
   type CreateProjectResult,
   type NewProjectRequest,
@@ -146,3 +145,14 @@ export {
   type RestorePreviewView,
   type RestoreReplaceResult,
 } from './backups'
+export {
+  exportChoicesSchema,
+  exportedFileSchema,
+  exportRequestSchema,
+  type ChooseCoverResult,
+  type ExportBookResult,
+  type ExportChoicesView,
+  type ExportRequest,
+  type ExportWindowResult,
+  type ExportWindowView,
+} from './export'
