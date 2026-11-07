@@ -108,7 +108,7 @@ function headingMarkers(paragraphs: readonly ManuscriptParagraph[]): Marker[] {
     return paragraphs[after]?.heading === next
   }
   const partsLevel =
-    next !== undefined && tops.length < headings.filter((h) => h.level === next).length && tops.every((h) => opensOnto(h.index))
+    next !== undefined && tops.length <= headings.filter((h) => h.level === next).length && tops.every((h) => opensOnto(h.index))
       ? top
       : null
   const chapterLevel = partsLevel === null ? top : (next as number)

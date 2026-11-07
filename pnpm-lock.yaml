@@ -481,6 +481,9 @@ importers:
       '@plotdevice/fs-node':
         specifier: workspace:*
         version: link:../fs-node
+      '@plotdevice/import':
+        specifier: workspace:*
+        version: link:../import
       '@plotdevice/templates':
         specifier: workspace:*
         version: link:../templates

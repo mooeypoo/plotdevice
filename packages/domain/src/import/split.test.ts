@@ -87,6 +87,14 @@ describe('splitting by headings', () => {
       { part: 'Part One: Arrival', name: 'The Crossing', body: [7], included: true },
     ])
   })
+
+  it('sees parts when each has a single chapter', () => {
+    const oneEach = [h(1, 'Part One'), h(2, 'Chapter 1: A'), p('Text.'), h(1, 'Part Two'), h(2, 'Chapter 2: B'), p('More.')]
+    expect(summary(oneEach, 'headings').map((c) => [c.part, c.name])).toEqual([
+      ['Part One', 'A'],
+      ['Part Two', 'B'],
+    ])
+  })
 })
 
 describe('splitting by “Chapter” lines', () => {

@@ -99,6 +99,13 @@ export interface FileRenamed {
  * What a new project starts with besides its details (Milestone 19): a template's kinds, chapter word,
  * suggested tags, first chapter and outlines. Nothing records which template it was.
  */
+/** A chapter brought in from a Word file (Milestone 23): its title, its part (or none), and its text as Markdown. */
+export interface NewChapter {
+  title: string
+  part: string | null
+  body: string
+}
+
 export interface ProjectTemplate {
   /** `null` for the three default kinds. */
   kinds: readonly PageKind[] | null
@@ -122,7 +129,19 @@ export interface ChapterText {
  */
 export interface ProjectRepository {
   /** Makes the folder, never over an existing one, then the template's files, if any. */
-  create(location: string, project: NewProject, template?: ProjectTemplate): Promise<Result<ProjectSnapshot, CreateProblem>>
+  /** A new book in a new folder; with `chapters`, a book made from a Word file (Milestone 23), in their order and parts. */
+  create(
+    location: string,
+    project: NewProject,
+    template?: ProjectTemplate,
+    chapters?: readonly NewChapter[],
+  ): Promise<Result<ProjectSnapshot, CreateProblem>>
+  /**
+   * Adds chapters at the end of the book (Milestone 23): their files first, each as a new file, then
+   * their parts and lines in `CONTENTS.md`. If that last step fails, the chapters are still there, not
+   * in the book, and nothing is lost. The book's details don't change.
+   */
+  addChapters(snapshot: ProjectSnapshot, chapters: readonly NewChapter[]): Promise<Result<ProjectSnapshot, ChangeProblem>>
   open(root: string): Promise<Result<ProjectSnapshot, OpenProblem>>
   changeContents(snapshot: ProjectSnapshot, change: ContentsChange): Promise<Result<ProjectSnapshot, ChangeProblem>>
   /** Writes the chapter's frontmatter first, then its line in `CONTENTS.md` (Milestone 2, decision 3). */

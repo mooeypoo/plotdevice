@@ -8,6 +8,7 @@ export * from './references/index'
 export {
   directionOfLanguage,
   firstStrongDirection,
+  onlyDirection,
   naturalDirection,
   type Direction,
   type DirectionMode,

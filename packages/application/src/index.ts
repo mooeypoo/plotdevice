@@ -85,6 +85,7 @@ export type {
   FileRenamed,
   OpenProblem,
   ProjectRepository,
+  NewChapter,
   ProjectTemplate,
   ProjectSnapshot,
   ProjectWarning,
