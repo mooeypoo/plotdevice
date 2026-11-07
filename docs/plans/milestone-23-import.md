@@ -1,6 +1,6 @@
 # Milestone 23: Import from Word
 
-Status: **Proposed** (2026-11-07), waiting for the owner's approval. Direction from `docs/features/import-export.md` (owner's decisions on import, the Mammoth spike, and the preview), and the mockup at https://claude.ai/artifact/JXTWUgYXoq6igbURxgcFoy.
+Status: **Approved** (2026-11-07). The new book's folder is made as for any new project (owner). Direction from `docs/features/import-export.md` (owner's decisions on import, the Mammoth spike, and the preview), and the mockup at https://claude.ai/artifact/JXTWUgYXoq6igbURxgcFoy.
 
 ## Goal
 
@@ -107,7 +107,7 @@ The new book is like a "Blank book" from the templates: chapters, the default ki
 - `apps/desktop`: `import-ipc.ts` (the file picker, the import kept in the main process, finishing), wiring, and the 50 MB limit.
 - `packages/ui-vue`: `ImportDialog.vue` (preview and details), the start screen's new choice, the book menu item, and the notice about a differing title.
 - `packages/i18n`: English, Hebrew and translator notes.
-- `tests/fixtures/word/`: `.docx` files written by a script in `tooling/` (Hebrew with headings and parts, English with "Chapter" lines and page breaks, sections, our own export), plus real files from Word, Google Docs and LibreOffice once the owner provides them.
+- `packages/import/src/docx-fixtures.test-support.ts`: `.docx` files built in the tests themselves (Hebrew with headings and parts, English with "Chapter" lines and page breaks, sections, our own export), plus real files from Word, Google Docs and LibreOffice once the owner provides them.
 - `apps/site`: a guide page, "Bringing in a Word file", in English and Hebrew, with a screenshot, and a link from "Moving an existing book in".
 
 ## Tests
@@ -161,5 +161,5 @@ Each step is a commit on `milestone-23/import`. There's one draft PR, on top of 
 
 ## Questions for the owner
 
-1. **The new book's folder:** the plan uses the usual new-project steps: choose a location, and Plot Device makes a new folder there named after the title, so it's always empty. Is that what you meant by "into an empty folder"? Or should the author be able to pick an existing empty folder?
+1. **The new book's folder:** ~~a location and a new folder, or an existing empty folder?~~ Answered (2026-11-07): just like a new project.
 2. **Real test files:** a short test document saved from Word (and Google Docs or LibreOffice if you use them), with a few Hebrew paragraphs, two chapters, a footnote, a comment and a tracked change. Not your novel.
