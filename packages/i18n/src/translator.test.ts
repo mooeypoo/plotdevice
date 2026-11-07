@@ -45,8 +45,18 @@ describe('the real catalogs', () => {
     expect(thin).toEqual([])
   })
 
-  it('translate every key into Hebrew, except the product name', () => {
-    const untranslated = keys(en).filter((key) => key !== 'app-name' && catalogs.he?.[key] === catalogs.en?.[key])
+  it('translate every key into Hebrew, except names Hebrew keeps as they are', () => {
+    // The product's name, and file formats and a paper size that Hebrew writes the same way (Milestone 22).
+    const names = new Set([
+      'app-name',
+      'export-format-word',
+      'export-format-pdf',
+      'export-format-markdown',
+      'export-paper-a4',
+      'dialog-export-pdf',
+      'dialog-export-markdown',
+    ])
+    const untranslated = keys(en).filter((key) => !names.has(key) && catalogs.he?.[key] === catalogs.en?.[key])
     expect(untranslated).toEqual([])
   })
 

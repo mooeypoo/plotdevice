@@ -17,9 +17,12 @@
     "package:dir": "pnpm build && electron-builder --dir"
   },
   "devDependencies": {
+    "@fontsource-variable/literata": "^5.3.0",
+    "@fontsource-variable/noto-serif-hebrew": "^5.3.0",
     "@plotdevice/application": "workspace:*",
     "@plotdevice/contracts": "workspace:*",
     "@plotdevice/domain": "workspace:*",
+    "@plotdevice/export": "workspace:*",
     "@plotdevice/fs-node": "workspace:*",
     "@plotdevice/i18n": "workspace:*",
     "@plotdevice/markdown": "workspace:*",

@@ -71,6 +71,8 @@ export interface WritingSession {
   renameChapter(file: ProjectPath, title: string): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   /** A change on the "Kinds of pages" screen (ADR 0011): written to `project.md` only. */
   changeKinds(change: KindsChange): Promise<Result<ProjectSnapshot, ChangeProblem | KindProblem | NoProject>>
+  /** The book's title and author, typed in the Export window (Milestone 22). */
+  setDetails(details: { title?: string; author?: string }): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   /** Makes `file` the book's main outline (ADR 0012); the caller checks it is one of the book's outlines. */
   setMainOutline(file: ProjectPath): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   /** Which outlines are set aside, and which is main, written together (Milestone 21). */
@@ -309,6 +311,14 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
         const next = applyKindsChange(project.details, change)
         if (!next.ok) return next
         const written = await repository.setKinds(project, next.value.kinds, next.value.manuscriptUnit)
+        if (written.ok) setProject(written.value)
+        return written
+      }),
+
+    setDetails: (details) =>
+      serially(async () => {
+        if (!project) return err('no-project')
+        const written = await repository.setDetails(project, details)
         if (written.ok) setProject(written.value)
         return written
       }),

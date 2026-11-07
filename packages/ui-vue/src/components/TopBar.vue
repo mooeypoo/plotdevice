@@ -61,7 +61,7 @@ watch(
 const bookItems = computed<MenuItem[]>(() => {
   const chapter = view.workspace === 'write' ? view.writingChapter : null
   return [
-    { key: 'export-book', label: t('export-book'), run: () => void store.compile() },
+    { key: 'export-book', label: t('export-book'), run: () => (view.exportDialog = true) },
     { key: 'kinds', label: t('kinds-menu'), run: () => (view.kindsDialog = true) },
     ...(store.renamedFolders ? [{ key: 'undo-folders', label: t('folders-undo'), run: () => void undoFolders() }] : []),
     ...(chapter ? [{ key: 'chapter-versions', label: t('chapter-versions'), run: () => versions.show(chapter.file, chapter.name) }] : []),

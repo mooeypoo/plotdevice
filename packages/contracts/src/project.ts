@@ -170,9 +170,3 @@ export type ProjectChangeResult = Result<
   | 'invalid-folder'
   | 'invalid-kinds'
 >
-
-/** The compiled book was written to `path`; `missing` chapters couldn't be read and are not in it. */
-export type CompileResult = Result<
-  { path: string; missing: { file: ProjectPath; title: string }[] },
-  'cancelled' | 'no-project' | 'write-failed'
->

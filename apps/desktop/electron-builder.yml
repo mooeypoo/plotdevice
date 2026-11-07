@@ -19,6 +19,9 @@ extraResources:
     to: LICENSE
   - from: build/third-party-licenses.json
     to: third-party-licenses.json
+  # Packed into exported Word manuscripts for Hebrew text (Milestone 22).
+  - from: resources/fonts
+    to: fonts
   # The sample books to try (Milestone 20), copied into app data before they're opened.
   - from: ../../samples
     to: samples

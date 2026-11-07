@@ -24,7 +24,6 @@ import {
   renameChapterSchema,
   resolveConflictSchema,
   saveChapterSchema,
-  type CompileResult,
   type CreateProjectResult,
   type TemplateId,
   type OpenChapterResult,
@@ -34,9 +33,9 @@ import {
   type RecentProjectView,
   type ResolveConflictResult,
 } from '@plotdevice/contracts'
-import { outlineFileFor, projectFolderName } from '@plotdevice/domain'
-import { dirname, join } from 'node:path'
-import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
+import { outlineFileFor } from '@plotdevice/domain'
+import { dirname } from 'node:path'
+import { err, ok, type Result } from '@plotdevice/shared'
 import { IpcRefused, parsePayload } from './payload'
 import { projectView, saveStatusView } from './views'
 
@@ -53,12 +52,6 @@ export interface ProjectIpcContext {
   folderExists(root: string): Promise<boolean>
   /** The page has sent every text that was waiting to be saved. */
   onFlushed(): void
-  /** The native save dialog, suggesting `suggested`; `null` when the author cancels. */
-  chooseSaveLocation(suggested: string): Promise<string | null>
-  /** Puts the book together; written by the caller where the author chose. */
-  compile(snapshot: ProjectSnapshot): Promise<{ text: string; missing: ProjectPath[] }>
-  /** Writes a file outside the project, atomically. */
-  writeOutside(path: string, text: string): Promise<boolean>
   /** Before another book opens (or a new one is made): the open book's backup, if one is due (Milestone 20). */
   leavingBook(): Promise<void>
   /** The sample book's copy in app data, made from the bundled one if needed, or afresh (Milestone 20). */
@@ -225,22 +218,6 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
     },
 
     [channels.flushed]: async () => context.onFlushed(),
-
-    [channels.compileBook]: async (): Promise<CompileResult> => {
-      const project = session.project()
-      if (!project) return err('no-project')
-      // Suggested next to the project folder, never inside it, so the novel's folder stays the author's.
-      const path = await context.chooseSaveLocation(join(dirname(project.root), `${projectFolderName(project.details.title)}.md`))
-      if (path === null) return err('cancelled')
-      const { text, missing } = await context.compile(project)
-      if (!(await context.writeOutside(path, text))) return err('write-failed')
-      const titles = new Map(
-        project.contents.entries
-          .flatMap((entry) => (entry.kind === 'chapter' ? [entry] : entry.chapters))
-          .map((chapter) => [chapter.file, chapter.linkText]),
-      )
-      return ok({ path, missing: missing.map((file) => ({ file, title: titles.get(file) ?? file })) })
-    },
   }
 }
 

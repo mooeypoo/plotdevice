@@ -16,6 +16,8 @@ import {
   type ReferenceResult,
   type ReferencePageView,
   type ReferenceSummaryView,
+  type ExportBookResult,
+  type ExportWindowResult,
   type OpenProjectResult,
   type OutlineResult,
   type BackUpNowResult,
@@ -40,7 +42,6 @@ import {
   randomIdGenerator,
 } from '@plotdevice/fs-node'
 import {
-  compileManuscript,
   createOutlineRepository,
   createProjectRepository,
   createReferenceRepository,
@@ -95,8 +96,12 @@ async function setup() {
     location: null as string | null,
     saveAs: null as string | null,
     backup: null as string | null,
+    cover: null as string | null,
     suggested: '',
+    format: '',
   }
+  const printed: string[] = []
+  const shown: string[] = []
   let flushed = 0
   const recent = await createRecentProjectsSession(createAppDataFile(appData, 'recent'))
   const bookBackups = createBackupSession({
@@ -128,16 +133,9 @@ async function setup() {
           () => false,
         ),
       onFlushed: () => flushed++,
-      chooseSaveLocation: async (suggested) => ((dialogs.suggested = suggested), dialogs.saveAs),
-      compile: (snapshot) => compileManuscript(createProjectFolders(), snapshot),
       leavingBook: async () => undefined,
       sampleBook: async () => root,
       isSample: () => false,
-      writeOutside: (path, text) =>
-        writeFile(path, text).then(
-          () => true,
-          () => false,
-        ),
     },
     outlines: { outlines, writing: session, recent, starter: (id, language) => starter(id, language).body },
     references: { references: createReferenceRepository({ folders }), writing: session, recent },
@@ -159,6 +157,36 @@ async function setup() {
       offerAnswered: () => undefined,
       runBackups: async () => void (await bookBackups.runIfDue()),
     },
+    exports: {
+      writing: session,
+      folders: createProjectFolders(),
+      remembered: createAppDataFile(appData, 'export'),
+      region: 'US',
+      directionMode: () => 'project',
+      words: (language) =>
+        language.startsWith('he')
+          ? { chapter: (n) => `פרק ${n}`, about: (count) => `כ־${count} מילים`, by: 'מאת', contents: 'תוכן העניינים' }
+          : { chapter: (n) => `Chapter ${n}`, about: (count) => `about ${count} words`, by: 'by', contents: 'Contents' },
+      chooseSaveLocation: async (suggested, format) => ((dialogs.suggested = suggested), (dialogs.format = format), dialogs.saveAs),
+      chooseCover: async () => dialogs.cover,
+      readFile: (path) =>
+        readFile(path).then(
+          (bytes) => new Uint8Array(bytes),
+          () => null,
+        ),
+      writeOutside: (path, bytes) =>
+        writeFile(path, bytes).then(
+          () => true,
+          () => false,
+        ),
+      // Printing needs Electron; here the page that would be printed is kept, and stands in for the PDF.
+      printToPdf: async (html) => (printed.push(html), new TextEncoder().encode('%PDF-fake')),
+      printFonts: [],
+      printFamilies: ['Literata'],
+      hebrewFont: async () => null,
+      showFile: async (path) => void shown.push(path),
+      now: () => new Date(clock),
+    },
   })
   const call = (channel: string, payload?: unknown, sender: Sender = appPage): Promise<unknown> => {
     const handler = handlers[channel]
@@ -167,7 +195,7 @@ async function setup() {
   }
   const read = (path: string) => readFile(join(root, path), 'utf8')
   const advance = (ms: number) => (clock += ms)
-  return { base, root, appData, call, read, dialogs, session, events, flushed: () => flushed, advance }
+  return { base, root, appData, call, read, dialogs, session, events, flushed: () => flushed, advance, printed, shown }
 }
 
 async function openChosen(context: Awaited<ReturnType<typeof setup>>): Promise<ProjectView> {
@@ -856,14 +884,120 @@ describe('version calls', () => {
   })
 })
 
-describe('compiling the book', () => {
-  it('suggests a file next to the project folder, writes the book there, and leaves the project alone', async () => {
+describe('exporting the book (Milestone 22)', () => {
+  const FROST = 'manuscript/frost.md'
+  const choices = (changes: Record<string, unknown> = {}) => ({
+    format: 'word',
+    titlePage: true,
+    wordCount: true,
+    headings: 'number-and-name',
+    doubleSpaced: true,
+    paper: 'letter',
+    chapters: 'all',
+    cover: null,
+    ...changes,
+  })
+  const request = (changes: Record<string, unknown> = {}, details = { title: 'The Salt Orchard', author: 'Ines Varga' }) => ({
+    choices: choices(changes),
+    ...details,
+  })
+
+  it('opens the window with the first choices, paper from the region, and the rounded word count', async () => {
     const context = await setup()
     await openChosen(context)
-    expect(await context.call(channels.compileBook)).toEqual({ ok: false, error: 'cancelled' })
-    expect(context.dialogs.suggested).toBe(join(context.base, 'The Salt Orchard.md'))
-    context.dialogs.saveAs = join(context.base, 'book.md')
-    expect(await context.call(channels.compileBook)).toEqual({ ok: true, value: { path: join(context.base, 'book.md'), missing: [] } })
-    expect(await readFile(join(context.base, 'book.md'), 'utf8')).toContain('## 4. Frost')
+    const opened = (await context.call(channels.exportWindow)) as ExportWindowResult
+    if (!opened.ok) throw new Error(opened.error)
+    expect(opened.value).toMatchObject({ choices: choices(), numbered: true, coverName: null, coverMissing: false, unreadable: [] })
+    expect(opened.value.wordCount).toMatch(/^[\d,]+$/)
+  })
+
+  it('suggests a file beside the book, of the chosen kind, and writes it there; cancelling writes nothing', async () => {
+    const context = await setup()
+    await openChosen(context)
+    expect(await context.call(channels.exportBook, request())).toEqual({ ok: false, error: 'cancelled' })
+    expect(context.dialogs.suggested).toBe(join(context.base, 'The Salt Orchard.docx'))
+    expect(context.dialogs.format).toBe('word')
+    context.dialogs.saveAs = join(context.base, 'out.docx')
+    const saved = (await context.call(channels.exportBook, request())) as ExportBookResult
+    expect(saved).toEqual({ ok: true, value: { path: join(context.base, 'out.docx'), project: null, missing: [] } })
+    expect((await readFile(join(context.base, 'out.docx'))).subarray(0, 2).toString()).toBe('PK')
+  })
+
+  it('writes each format: an e-book, a Markdown file with the chosen chapters, and a PDF printed from the manuscript page', async () => {
+    const context = await setup()
+    await openChosen(context)
+    context.dialogs.saveAs = join(context.base, 'out.epub')
+    expect(((await context.call(channels.exportBook, request({ format: 'epub' }))) as ExportBookResult).ok).toBe(true)
+    expect((await readFile(join(context.base, 'out.epub'))).subarray(30, 38).toString()).toBe('mimetype')
+    context.dialogs.saveAs = join(context.base, 'out.md')
+    await context.call(channels.exportBook, request({ format: 'markdown', chapters: [FROST] }))
+    expect(await readFile(join(context.base, 'out.md'), 'utf8')).toContain('## Chapter 4: Frost')
+    expect(await readFile(join(context.base, 'out.md'), 'utf8')).not.toContain('Prologue')
+    context.dialogs.saveAs = join(context.base, 'out.pdf')
+    await context.call(channels.exportBook, request({ format: 'pdf', titlePage: false }))
+    expect(context.printed[0]).toContain('size: letter;')
+    expect(context.printed[0]).not.toContain('class="title-page"')
+  })
+
+  it('saves a title and author typed in the window to the book, and returns the book as it is now', async () => {
+    const context = await setup()
+    await openChosen(context)
+    context.dialogs.saveAs = join(context.base, 'out.docx')
+    const saved = (await context.call(
+      channels.exportBook,
+      request({}, { title: 'Salt and Frost', author: 'I. Varga' }),
+    )) as ExportBookResult
+    if (!saved.ok) throw new Error(saved.error)
+    expect(saved.value.project).toMatchObject({ title: 'Salt and Frost', author: 'I. Varga' })
+    expect(await context.read('project.md')).toContain('title: Salt and Frost\nauthor: I. Varga\n')
+    expect(context.dialogs.suggested).toBe(join(context.base, 'Salt and Frost.docx'))
+  })
+
+  it('remembers the choices for the book', async () => {
+    const context = await setup()
+    await openChosen(context)
+    context.dialogs.saveAs = join(context.base, 'out.epub')
+    await context.call(channels.exportBook, request({ format: 'epub', paper: 'a4', chapters: [FROST] }))
+    const opened = (await context.call(channels.exportWindow)) as ExportWindowResult
+    expect(opened.ok && opened.value.choices).toEqual(choices({ format: 'epub', paper: 'a4', chapters: [FROST] }))
+  })
+
+  it('says when no chapter is chosen, and refuses a cover or a file the host didn’t offer', async () => {
+    const context = await setup()
+    await openChosen(context)
+    context.dialogs.saveAs = join(context.base, 'out.docx')
+    expect(await context.call(channels.exportBook, request({ chapters: [] }))).toEqual({ ok: false, error: 'no-chapters' })
+    await expect(context.call(channels.exportBook, request({ format: 'epub', cover: '/etc/passwd' }))).rejects.toThrow('not-offered')
+    await expect(context.call(channels.showExportedFile, { path: '/etc/passwd' })).rejects.toThrow('not-saved')
+  })
+
+  it('packs a chosen cover into the e-book, and shows a missing one when it has moved', async () => {
+    const context = await setup()
+    await openChosen(context)
+    const picture = join(context.base, 'cover.png')
+    await writeFile(
+      picture,
+      Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64'),
+    )
+    context.dialogs.cover = picture
+    expect(await context.call(channels.chooseExportCover)).toEqual({ ok: true, value: { path: picture, name: 'cover.png' } })
+    context.dialogs.saveAs = join(context.base, 'out.epub')
+    expect(((await context.call(channels.exportBook, request({ format: 'epub', cover: picture }))) as ExportBookResult).ok).toBe(true)
+    await rm(picture)
+    const opened = (await context.call(channels.exportWindow)) as ExportWindowResult
+    expect(opened.ok && opened.value).toMatchObject({ coverName: 'cover.png', coverMissing: true })
+    expect(await context.call(channels.exportBook, request({ format: 'epub', cover: picture }))).toEqual({
+      ok: false,
+      error: 'cover-unreadable',
+    })
+  })
+
+  it('shows a file it saved in the file manager', async () => {
+    const context = await setup()
+    await openChosen(context)
+    context.dialogs.saveAs = join(context.base, 'out.docx')
+    await context.call(channels.exportBook, request())
+    await context.call(channels.showExportedFile, { path: join(context.base, 'out.docx') })
+    expect(context.shown).toEqual([join(context.base, 'out.docx')])
   })
 })

@@ -23,6 +23,8 @@ const packages = Object.values(report)
 const electronManifest = createRequire(join(repository, 'apps/desktop/package.json')).resolve('electron/package.json')
 const electron = JSON.parse(readFileSync(electronManifest, 'utf8'))
 packages.push({ name: 'electron', version: electron.version, license: electron.license, homepage: 'https://www.electronjs.org' })
+// Packed into Word manuscripts for Hebrew text (Milestone 22): a font file, not an npm package.
+packages.push({ name: 'David Libre (font)', version: '1.100', license: 'OFL-1.1', homepage: 'https://github.com/meirsadan/david-libre' })
 
 const list = packages
   .filter((entry) => !entry.name.startsWith('@plotdevice/'))

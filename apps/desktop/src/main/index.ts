@@ -32,7 +32,6 @@ import {
 } from '@plotdevice/fs-node'
 import { catalogs, createTranslator } from '@plotdevice/i18n'
 import {
-  compileManuscript,
   createOutlineRepository,
   createProjectRepository,
   createReferenceRepository,
@@ -46,6 +45,7 @@ import { pathToFileURL } from 'node:url'
 import icon from '../../../../assets/brand/icons/512x512.png?asset'
 import { applicationMenu } from './app-menu'
 import { dataHome, integrateAppImage } from './appimage-desktop'
+import { PRINT_FAMILIES, PRINT_FONTS, printToPdf } from './print-to-pdf'
 import { createIpcHandlers } from './ipc'
 import { folderFromArgs } from './launch-folder'
 import { openedProject, openProblem } from './project-ipc'
@@ -286,23 +286,12 @@ void app.whenReady().then(async () => {
           () => false,
         ),
       onFlushed: () => flushWaiters.splice(0).forEach((resolve) => resolve()),
-      chooseSaveLocation: async (suggested) => {
-        if (testSaveAs !== undefined) return testSaveAs || null
-        const chosen = await dialog.showSaveDialog(window, { defaultPath: suggested, filters: [{ name: 'Markdown', extensions: ['md'] }] })
-        return chosen.canceled || !chosen.filePath ? null : chosen.filePath
-      },
-      compile: (snapshot) => compileManuscript(createProjectFolders(), snapshot),
       leavingBook: () => runBackups(),
       sampleBook: (language, fresh) => {
         const name = SAMPLE_BOOKS[language]
         return prepareSampleBook(join(samplesFolder(), name), join(userData, 'sample', name), fresh)
       },
       isSample: (root) => isSampleBook(root),
-      writeOutside: (path, text) =>
-        writeAtomically(path, new TextEncoder().encode(text)).then(
-          () => true,
-          () => false,
-        ),
     },
     outlines: { outlines, writing, recent, starter: (id, language) => starter(id, language).body },
     references: { references: createReferenceRepository({ folders }), writing, recent },
@@ -331,6 +320,68 @@ void app.whenReady().then(async () => {
       showFolder: async (path) => void (await shell.openPath(path)),
       offerAnswered: () => answerOffer(),
       runBackups,
+    },
+    exports: {
+      writing,
+      folders: createProjectFolders(),
+      remembered: createAppDataFile(userData, 'export'),
+      region: app.getLocaleCountryCode() || null,
+      // Paragraphs without a mark follow the book's language, as the editor shows them (ADR 0004).
+      directionMode: () => 'project',
+      words: (language) => {
+        const locale = language.startsWith('he') ? 'he' : 'en'
+        return {
+          chapter: (number) => t(locale, 'export-file-chapter', number),
+          about: (count) => t(locale, 'export-file-word-count', count),
+          by: t(locale, 'export-file-by'),
+          contents: t(locale, 'export-file-contents'),
+        }
+      },
+      chooseSaveLocation: async (suggested, format) => {
+        if (testSaveAs !== undefined) return testSaveAs || null
+        const filter = EXPORT_FILTERS[format]
+        const chosen = await dialog.showSaveDialog(window, {
+          defaultPath: suggested,
+          filters: [{ name: translate(filter.name), extensions: [filter.extension] }],
+        })
+        return chosen.canceled || !chosen.filePath ? null : chosen.filePath
+      },
+      chooseCover: async () => {
+        if (testCover !== undefined) return testCover || null
+        const chosen = await dialog.showOpenDialog(window, {
+          title: translate('dialog-export-cover'),
+          filters: [{ name: translate('dialog-export-cover-pictures'), extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'] }],
+          properties: ['openFile'],
+        })
+        return chosen.canceled ? null : (chosen.filePaths[0] ?? null)
+      },
+      readFile: (path) =>
+        readFile(path).then(
+          (bytes) => new Uint8Array(bytes),
+          () => null,
+        ),
+      writeOutside: (path, bytes) =>
+        writeAtomically(path, bytes).then(
+          () => true,
+          () => false,
+        ),
+      printToPdf,
+      printFonts: PRINT_FONTS,
+      printFamilies: PRINT_FAMILIES,
+      hebrewFont: async () => {
+        const folder = fontsFolder()
+        const [regular, bold] = await Promise.all(
+          ['DavidLibre-Regular.ttf', 'DavidLibre-Bold.ttf'].map((name) =>
+            readFile(join(folder, name)).then(
+              (bytes) => new Uint8Array(bytes),
+              () => null,
+            ),
+          ),
+        )
+        return regular ? { name: 'David Libre', regular, ...(bold ? { bold } : {}), fallback: 'David' } : null
+      },
+      showFile: async (path) => shell.showItemInFolder(path),
+      now: () => new Date(),
     },
   })
   for (const [channel, handle] of Object.entries(handlers)) {
@@ -381,6 +432,8 @@ const testTrash =
       }
 /** Test-only (unpackaged builds): the file every save dialog "chooses"; empty means cancelled. */
 const testSaveAs = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_SAVE_AS
+/** Test-only (unpackaged builds): the picture the cover picker "chooses"; empty means cancelled. */
+const testCover = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_COVER
 /** Test-only (unpackaged builds): a local server standing in for GitHub's latest.json. */
 const testUpdateUrl = app.isPackaged ? undefined : process.env.PLOTDEVICE_TEST_UPDATE_URL
 
@@ -397,6 +450,15 @@ async function announceUpdate(updates: UpdateSession, tell: (event: HostEvent) =
 /** The sample books to try (Milestone 20), one per interface language, bundled with the app. */
 const SAMPLE_BOOKS = { en: 'the-salt-orchard', he: 'מטע-המלח' } as const
 const samplesFolder = (): string => (app.isPackaged ? join(process.resourcesPath, 'samples') : join(app.getAppPath(), '../../samples'))
+/** Fonts packed into exported Word files (Milestone 22). */
+const fontsFolder = (): string => (app.isPackaged ? join(process.resourcesPath, 'fonts') : join(app.getAppPath(), 'resources/fonts'))
+/** What each export format's save dialog offers. */
+const EXPORT_FILTERS = {
+  word: { name: 'dialog-export-word', extension: 'docx' },
+  pdf: { name: 'dialog-export-pdf', extension: 'pdf' },
+  epub: { name: 'dialog-export-epub', extension: 'epub' },
+  markdown: { name: 'dialog-export-markdown', extension: 'md' },
+} as const
 
 async function readAbout(appInfo: AppInfo): Promise<AboutView> {
   const [licensePath, creditsPath] = app.isPackaged

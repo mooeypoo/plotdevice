@@ -8,6 +8,7 @@ import type {
   RestoreCopyResult,
   RestoreReplaceResult,
 } from './backups'
+import type { ChooseCoverResult, ExportBookResult, ExportRequest, ExportWindowResult } from './export'
 import type {
   HostEvent,
   LeftOffRequest,
@@ -32,7 +33,6 @@ import type {
 } from './references'
 import type { CopyVersionResult, VersionResult, VersionsView } from './versions'
 import type {
-  CompileResult,
   ContentsChangeRequest,
   CreateProjectResult,
   NewProjectRequest,
@@ -77,8 +77,14 @@ export interface PlotDeviceApi {
   chooseNewProjectLocation(): Promise<string | null>
 
   changeContents(change: ContentsChangeRequest): Promise<ProjectChangeResult>
-  /** Compiles the book into one Markdown file, asking the author where to save it. */
-  compileBook(): Promise<CompileResult>
+  /** What the Export window opens with: the remembered choices, the word count and any problems (Milestone 22). */
+  exportWindow(): Promise<ExportWindowResult>
+  /** The picture picker for an e-book's cover. */
+  chooseExportCover(): Promise<ChooseCoverResult>
+  /** Saves the title and author typed, then exports the book where the author chooses. */
+  exportBook(request: ExportRequest): Promise<ExportBookResult>
+  /** Shows a file the export just saved in the system's file manager. */
+  showExportedFile(path: string): Promise<void>
   renameChapter(file: ProjectPath, title: string): Promise<ProjectChangeResult>
   /** A change to the book's kinds of pages, or to what it calls a chapter (ADR 0011). */
   changeKinds(change: KindsChangeRequest): Promise<ProjectChangeResult>

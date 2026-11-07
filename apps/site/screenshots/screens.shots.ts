@@ -360,6 +360,12 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await kp.getByTestId('menu-backups').click()
       await kp.getByTestId('backups-off-note').waitFor()
       await snapAround(kp, lang, 'backups-dialog', theme, [kp.getByTestId('backups-dialog')], 0)
+      await kp.getByTestId('backups-close').click()
+      // The Export window (Milestone 22), as it first opens: Word, with a title page.
+      await kp.getByTestId('book-menu').click()
+      await kp.getByTestId('menu-export-book').click()
+      await kp.getByTestId('export-go').waitFor()
+      await snapAround(kp, lang, 'export-dialog', theme, [kp.getByTestId('export-dialog')], 0)
       await kinds.app.close()
 
       const welcome = await open(lang, theme)

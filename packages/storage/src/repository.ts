@@ -336,6 +336,16 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       return reopen(snapshot.root)
     },
 
+    setDetails(snapshot, { title, author }) {
+      // One line each, trimmed; an empty value leaves the key as it is rather than clearing it.
+      const values: Record<string, string> = {}
+      const clean = (text: string | undefined) => text?.replace(/[\r\n]+/g, ' ').trim() ?? ''
+      if (clean(title) !== '') values['title'] = clean(title)
+      if (clean(author) !== '') values['author'] = clean(author)
+      if (Object.keys(values).length === 0) return Promise.resolve(ok(snapshot))
+      return patchProject(snapshot, (text) => setFrontmatterValues(text, values))
+    },
+
     setMainOutline(snapshot, file) {
       return patchProject(snapshot, (text) => setFrontmatterBlock(text, 'mainOutline', mainOutlineLines(file)))
     },

@@ -69,7 +69,20 @@ module.exports = {
       'storage-reaches-files-through-ports',
       'storage: domain, markdown, shared, and application port types; files only via ports',
       pkg('storage'),
-      [pkg('storage'), pkg('application'), pkg('domain'), pkg('markdown'), pkg('shared')],
+      [pkg('storage'), pkg('application'), pkg('domain'), pkg('markdown'), pkg('shared'), pkg('export')],
+    ),
+    {
+      name: 'storage-uses-export-types-only',
+      comment: 'storage reads the book for export; writing the files is the export package’s, called by the desktop app',
+      severity: 'error',
+      from: { path: pkg('storage'), pathNot: notTests },
+      to: { path: pkg('export'), dependencyTypesNot: ['type-only'] },
+    },
+    onlyMayImport(
+      'export-writes-bytes',
+      'export: book blocks in, file bytes out. Markdown types, shared, fflate (zips) and docx (Word); no file access',
+      pkg('export'),
+      [pkg('export'), pkg('shared'), pkg('markdown'), npm('fflate'), npm('docx')],
     ),
     {
       name: 'storage-uses-port-types-only',
@@ -129,6 +142,7 @@ module.exports = {
           pkg('contracts'),
           pkg('markdown'),
           pkg('storage'),
+          pkg('export'),
           pkg('presentation'),
           pkg('editor-codemirror'),
           pkg('i18n'),
@@ -168,7 +182,8 @@ module.exports = {
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
-    exclude: { path: ['(^|/)\\.tsbuild/', '(^|/)dist/', '(^|/)out/', '(^|/)\\.astro/'] },
+    // The project's own build output only: libraries' `dist/` folders must still be judged by the rules.
+    exclude: { path: '^(apps|packages)/[^/]+/(\\.tsbuild|dist|out|\\.astro)/' },
     tsPreCompilationDeps: true,
     combinedDependencies: true,
     enhancedResolveOptions: {

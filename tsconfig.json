@@ -26,6 +26,9 @@
       "path": "packages/markdown"
     },
     {
+      "path": "packages/export"
+    },
+    {
       "path": "packages/storage"
     },
     {

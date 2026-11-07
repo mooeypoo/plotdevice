@@ -57,6 +57,7 @@ function memoryRepository(initial: Record<string, string>) {
     open: async () => ok(snapshot()),
     setKinds: unknown,
     setMainOutline: unknown,
+    setDetails: unknown,
     setOutlineRoles: unknown,
     restoreFiles: unknown,
     planFolderRenames: unknown,

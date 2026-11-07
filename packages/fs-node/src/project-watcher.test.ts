@@ -54,6 +54,10 @@ describe('watching a project folder', () => {
     await writeFile(join(dir, 'cover.png'), 'x')
     await writeFile(join(dir, 'manuscript/marker.md'), 'x')
     await next((c) => c.path === 'manuscript/marker.md')
-    expect(changes.map((c) => c.path)).toEqual(['manuscript/marker.md'])
+    // macOS can also report frost.md, written just before watching began, a moment late. Events are
+    // hints (ADR 0005), so that's harmless; what matters is that the ignored files never appear.
+    const reported = changes.map((c) => c.path)
+    expect(reported).toContain('manuscript/marker.md')
+    expect(reported.filter((path) => path !== 'manuscript/marker.md' && path !== 'manuscript/frost.md')).toEqual([])
   })
 })
