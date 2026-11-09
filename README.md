@@ -12,15 +12,15 @@ A calm writing studio for novelists, in English and Hebrew.</p>
 
 <p align="center">
   <a href="https://github.com/mooeypoo/plotdevice/actions/workflows/ci.yml"><img src="https://github.com/mooeypoo/plotdevice/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://mooeypoo.github.io/plotdevice/"><img src="https://img.shields.io/badge/guide-mooeypoo.github.io%2Fplotdevice-8a6a2f" alt="The guide"></a>
+  <a href="https://plotdevice.app/"><img src="https://img.shields.io/badge/site-plotdevice.app-8a6a2f" alt="The website"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="License: GPL-3.0-or-later"></a>
   <a href="https://buymeacoffee.com/mooeypoo"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-ffdd00?logo=buymeacoffee&logoColor=black" alt="Buy me a coffee"></a>
 </p>
 
 <p align="center">
   <a href="https://github.com/mooeypoo/plotdevice/releases"><strong>Download</strong></a> ·
-  <a href="https://mooeypoo.github.io/plotdevice/">Read the guide</a> ·
-  <a href="https://mooeypoo.github.io/plotdevice/he/">המדריך בעברית</a>
+  <a href="https://plotdevice.app/docs/">Read the guide</a> ·
+  <a href="https://plotdevice.app/he/docs/">המדריך בעברית</a>
 </p>
 
 <picture>
@@ -54,7 +54,7 @@ Plan in outlines that are simply Markdown lists, shown as a board or a list, or 
 
 ### Every storyline, side by side
 
-Give each storyline an outline of its own, and see them all on the timeline: who was where, while it happened. Drag a moment onto another to say they happen at the same time, and everything else falls into place. It's still your outlines, in your files: lining up writes one short line under a heading, and nothing is drawn by hand. See [the timeline](https://mooeypoo.github.io/plotdevice/planning/timeline/) in the guide.
+Give each storyline an outline of its own, and see them all on the timeline: who was where, while it happened. Drag a moment onto another to say they happen at the same time, and everything else falls into place. It's still your outlines, in your files: lining up writes one short line under a heading, and nothing is drawn by hand. See [the timeline](https://plotdevice.app/docs/planning/timeline/) in the guide.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/readme/timeline-dark.webp">
@@ -77,7 +77,7 @@ Characters, places and notes live in the book too, with tags to group them. Whil
 
 ### Multilingual
 
-The interface in your language, the book in its own. Plot Device speaks English and Hebrew today, right to left included, and is built to take more languages: each new one is a translation, not a rewrite. Write a Hebrew novel with English names, or an English one in a Hebrew interface: every paragraph runs the right way, and punctuation lands where it belongs. Want Plot Device in your language? [Help translate it](https://mooeypoo.github.io/plotdevice/about/translate/).
+The interface in your language, the book in its own. Plot Device speaks English and Hebrew today, right to left included, and is built to take more languages: each new one is a translation, not a rewrite. Write a Hebrew novel with English names, or an English one in a Hebrew interface: every paragraph runs the right way, and punctuation lands where it belongs. Want Plot Device in your language? [Help translate it](https://plotdevice.app/docs/about/translate/).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/readme/bilingual-dark.webp">
@@ -86,7 +86,7 @@ The interface in your language, the book in its own. Plot Device speaks English 
 
 ### Your files, yours for good
 
-Every chapter is a Markdown file, the book's order is a readable list, and outlines are ordinary lists. Open the same folder in Obsidian, a text editor or git: Plot Device is a lens on your files, not a place that locks them in. Already have notes or a draft? You can [move them in](https://mooeypoo.github.io/plotdevice/start/bring-in/).
+Every chapter is a Markdown file, the book's order is a readable list, and outlines are ordinary lists. Open the same folder in Obsidian, a text editor or git: Plot Device is a lens on your files, not a place that locks them in. Already have notes or a draft? You can [move them in](https://plotdevice.app/docs/start/bring-in/).
 
 ```
 the-salt-orchard/
@@ -114,11 +114,11 @@ Plot Device runs on your computer and sends nothing anywhere. What you write bel
 | | |
 |---|---|
 | **Download** | [The releases page](https://github.com/mooeypoo/plotdevice/releases): an AppImage or `.deb` for Linux, an installer for Windows |
-| **Install and open your first book** | [Install Plot Device](https://mooeypoo.github.io/plotdevice/start/install/) |
-| **A tour of the app** | [A tour of the window](https://mooeypoo.github.io/plotdevice/start/tour/) |
-| **Bring in a book you already have** | [Moving an existing book in](https://mooeypoo.github.io/plotdevice/start/bring-in/) |
-| **How your files are kept** | [The book's folder](https://mooeypoo.github.io/plotdevice/files/folder/) |
-| **Everything else** | [The full guide](https://mooeypoo.github.io/plotdevice/), in [English](https://mooeypoo.github.io/plotdevice/) and [Hebrew](https://mooeypoo.github.io/plotdevice/he/) |
+| **Install and open your first book** | [Install Plot Device](https://plotdevice.app/docs/start/install/) |
+| **A tour of the app** | [A tour of the window](https://plotdevice.app/docs/start/tour/) |
+| **Bring in a book you already have** | [Moving an existing book in](https://plotdevice.app/docs/start/bring-in/) |
+| **How your files are kept** | [The book's folder](https://plotdevice.app/docs/files/folder/) |
+| **Everything else** | [The full guide](https://plotdevice.app/docs/), in [English](https://plotdevice.app/docs/) and [Hebrew](https://plotdevice.app/he/docs/) |
 
 Found a problem or have an idea? [Open an issue](https://github.com/mooeypoo/plotdevice/issues).
 

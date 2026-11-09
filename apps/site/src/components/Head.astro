@@ -1,8 +1,42 @@
 ---
-// Starlight's head, plus the app's colours as CSS variables (one source: packages/ui-vue's tokens).
+// Starlight's head, plus the app's colours as CSS variables (one source: packages/ui-vue's tokens), and
+// the reader's language (Milestone 24, owner 2026-11-09):
+// - English is the default, at `/`. A first visit to `/` from a browser that prefers Hebrew goes to
+//   `/he/` instead; search engines and everyone else get the English page.
+// - Choosing a language (the language menu, or a language link) is remembered in this browser, and
+//   from then on `/` follows that choice, not the browser's.
 import Default from '@astrojs/starlight/components/Head.astro'
 import { themeCss } from '../app-bridge'
 ---
 
 <Default><slot /></Default>
 <style is:inline set:html={themeCss}></style>
+<script is:inline>
+  ;(() => {
+    const KEY = 'plotdevice-language'
+    const remember = (lang) => {
+      try {
+        localStorage.setItem(KEY, lang)
+      } catch {}
+    }
+    if (location.pathname === '/') {
+      let chosen = null
+      try {
+        chosen = localStorage.getItem(KEY)
+      } catch {}
+      const preferred = (navigator.languages || [navigator.language])
+        .map((tag) => String(tag).toLowerCase().split('-')[0])
+        .find((code) => code === 'en' || code === 'he' || code === 'iw')
+      // `iw` is an old code for Hebrew that some browsers still give.
+      const lang = chosen ?? (preferred === 'iw' ? 'he' : preferred)
+      if (lang === 'he') location.replace('/he/')
+    }
+    const langOf = (address) => (/^\/he(\/|$)/.test(address) ? 'he' : 'en')
+    // Capturing, so the choice is kept before the page changes.
+    addEventListener('change', (event) => event.target.closest?.('starlight-lang-select') && remember(langOf(event.target.value)), true)
+    addEventListener('click', (event) => {
+      const link = event.target.closest?.('a[hreflang]')
+      if (link) remember(link.hreflang)
+    }, true)
+  })()
+</script>

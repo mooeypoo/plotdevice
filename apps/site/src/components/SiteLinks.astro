@@ -1,0 +1,38 @@
+---
+// The site's own pages in the header, on every page, guide included, before Starlight's social links.
+// (Replaces Starlight's SocialIcons component; on narrow screens Starlight moves these into its menu,
+// and the site's pages also repeat them in their footer.)
+import Default from '@astrojs/starlight/components/SocialIcons.astro'
+import { isLang, path, words } from '../site'
+
+const found = Astro.locals.starlightRoute.lang
+const lang = isLang(found) ? found : 'en'
+const links = [
+  { href: path(lang), text: words(lang, 'nav-why') },
+  { href: path(lang, 'docs/'), text: words(lang, 'nav-guide') },
+  { href: path(lang, 'support/'), text: words(lang, 'nav-support') },
+]
+---
+
+<nav class="site-links" aria-label={words(lang, 'nav-label')}>
+  {links.map(({ href, text }) => <a {href}>{text}</a>)}
+</nav>
+<Default />
+
+<style>
+  .site-links {
+    display: flex;
+    gap: 1.25rem;
+    margin-inline-end: 0.5rem;
+  }
+  .site-links a {
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .site-links a:hover {
+    color: var(--color-accent);
+  }
+</style>

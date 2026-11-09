@@ -1,0 +1,6 @@
+# Netlify's rules for plotdevice.app (Milestone 24). English is the default, at the root; a first visit
+# from a Hebrew-language browser is sent to /he/ by the page itself (src/components/Head.astro), so a
+# reader's own choice of language always wins.
+
+# A missing Hebrew page answers with the Hebrew not-found page; anything else gets /404.html.
+/he/*  /he/404/  404

@@ -1,6 +1,7 @@
 ---
 // The front page's opening: the logo's line drawing itself, the promise, and the two ways in.
 import Shot from '../Shot.astro'
+import { DOWNLOAD } from '../../site'
 
 interface Props {
   title: string
@@ -31,7 +32,7 @@ const { title, lede, download, guide, guideHref, platforms, shotAlt } = Astro.pr
   <h1>{title}</h1>
   <p class="lede">{lede}</p>
   <div class="actions">
-    <a class="button primary" href="https://github.com/mooeypoo/plotdevice/releases">{download}</a>
+    <a class="button primary" href={DOWNLOAD}>{download}</a>
     <a class="button" href={guideHref}>{guide}</a>
   </div>
   <p class="platforms">{platforms}</p>

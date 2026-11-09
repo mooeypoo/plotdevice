@@ -1,0 +1,81 @@
+---
+title: 'Outlines: board, list and text'
+description: Plan the story in outlines, and see each one as a board, a list or text.
+---
+
+import Ui from '~/components/Ui.astro'
+import Shot from '~/components/Shot.astro'
+
+An outline is a plan you can rearrange: the main plot, one character's arc, a list of loose ideas. A book can have as many as you like, and none at all is fine. Outlines are under **<Ui k="story-plot" />**, the first half of **<Ui k="workspace-story" />**; characters, places and notes are under **<Ui k="story-world" />** (see [Characters, places and notes](/docs/planning/pages/)).
+
+<Shot name="story" alt="An outline on a board: Beginning, Middle and End" />
+
+## Start an outline
+
+In **<Ui k="workspace-story" />**, choose **+ <Ui k="story-new-outline" />** and give it a title. Click the title at any time to rename it.
+
+To start from a shape instead of an empty page, choose one under **<Ui k="new-outline-start" />**: **<Ui k="starter-three-acts" />**, **<Ui k="starter-story-beats" />**, **<Ui k="starter-character-arc" />**, **<Ui k="starter-campaign-arc" />** or **<Ui k="starter-session-plan" />**. The outline begins with its sections and a few example cards, in the book's language, ready to rewrite as your own.
+
+The first time you open an outline, a short guide above it explains sections and cards. **<Ui k="outline-guide-done" />** puts it away for good.
+
+## Three ways to see it
+
+- **<Ui k="view-board" />**: each section is a column of cards.
+- **<Ui k="view-outline" />**: everything as one indented list, with details folded in and out.
+- **<Ui k="view-text" />**: the outline as text, to type freely. See [Type it as text](#type-it-as-text) below.
+
+They are three views of the same outline. A change in one is a change in both. The switch is beside the outline's title, because it belongs to the outline.
+
+## Add in the list
+
+<Shot name="story-list" alt="The outline as a list, with + Add item under each section" />
+
+- Every row has a bullet, and where the bullet is says what it is: items **●**, and their details **○**, one step in, with a thin line down from their item. A folded item's bullet has a halo; its arrow opens it.
+- **+ <Ui k="outline-add-item" />**, under a section, starts a new item at its end. The quiet **+** beside the section's name does the same. **+ <Ui k="outline-add-section" />** is at the bottom.
+- Hover an item (or reach it with the keyboard) for **+ <Ui k="outline-detail" />**, which adds a detail to it.
+- A new line shows its bullet where it will land, and says what it is: "New item", or "New detail of …". The line under it says what **Tab** would make it.
+- While typing a new line: **Enter** keeps it and starts the next one, **Tab** makes it a detail of the line above, **Shift+Tab** brings it back out, and **Esc** stops.
+- To link a character, place, note or chapter while typing, type **@** and the start of its name, then choose it. See [Linking](/docs/planning/linking/).
+
+## Type it as text
+
+For a first draft of the plan, or a quick change, **<Ui k="view-text" />** lets you type without clicking each item. **Ctrl+Shift+E** (**⌘⇧E** on a Mac) switches to it and back.
+
+- Sections show as headings, cards as bullets, details one step in under them, and links as names. No Markdown marks show.
+- **Enter** on a card starts the next one, and **Enter** at the end of a section starts its first card. **Tab** makes a line a detail of the one above, with its own details; **Shift+Tab** brings it back out.
+- **Ctrl+Alt+2** (**⌘⌥2**) makes a line a section, as a heading in a chapter.
+- To see the outline's Markdown itself, choose **<Ui k="plain-text-edit" />** in the outline's **⋯**.
+- Type **@** and the start of a name to link a character, place, note or chapter, as on a card.
+- It opens on the card you were on, and going back to the board or list takes you to the card you were typing.
+- Anything else you write, such as a paragraph between cards or a table, is kept. The board shows it "kept as written"; under the text, Plot Device says how many such passages there are, and **<Ui k="outline-text-show-kept" />** finds each one.
+
+It saves as you type, like a chapter. Undo in the text works by the keystroke; back on the board, there is nothing from the text to undo there.
+
+## The main outline
+
+One outline is the book's **main outline**, marked **<Ui k="outline-main-badge" />** and listed first. Its sections name the columns of the [timeline](/docs/planning/timeline/). A new book's first outline is its main outline; **<Ui k="outline-make-main" />**, in another outline's **⋯**, changes that, and nothing in your outlines changes with it.
+
+## Set aside or delete an outline
+
+An outline you don't need right now can be **set aside**: **<Ui k="outline-set-aside" />** in its **⋯** moves it to a quiet **<Ui k="story-set-aside" />** list at the end of **<Ui k="story-plot" />**, and off the timeline. Nothing is deleted. It opens as before, and **<Ui k="outline-bring-back" />** in its **⋯** returns it. If it was the main outline, the next outline takes over, and Plot Device tells you which.
+
+**<Ui k="outline-delete" />**, in the same menu, deletes the outline after saying exactly what that means:
+
+- Only this outline goes, with its own sections and cards. **Chapters, pages and other outlines are never deleted with it**, even the ones its cards link to.
+- It goes to your computer's Trash, and Plot Device keeps a backup first.
+- If other outlines are lined up with it on the timeline, those sections will show "can't line up".
+- The question offers **<Ui k="outline-set-aside-instead" />** as the gentler choice.
+
+<Shot name="outline-delete" alt="The question before an outline is deleted, with Set aside instead as the main button" close />
+
+Right after deleting, the message at the bottom of the window has **<Ui k="outline-undo-delete" />**, which puts the outline back exactly as it was. On a computer without a Trash, Plot Device asks a second time before deleting.
+
+## Undo, rename and versions
+
+**⋯** beside the views has **<Ui k="outline-undo" />** (also **Ctrl+Z**), **<Ui k="outline-rename-title" />**, and **<Ui k="outline-versions" />**.
+
+## What an outline is, on disk
+
+An ordinary Markdown file in the book's `outlines` folder: `##` headings are sections, list items are cards, and the items under them are details. See [Outline files](/docs/files/outlines/).
+
+An outline is a plan, not the book. Moving a card never moves a chapter.

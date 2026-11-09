@@ -1,0 +1,70 @@
+---
+// Plot Device in your language (Milestone 24): the languages it speaks, a form to ask for another, and the
+// way to help translate. The form is sent by Netlify Forms, which emails it to the owner: no database, and
+// no GitHub account needed. Netlify finds the form by its name in the built page.
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro'
+import SiteFooter from '../SiteFooter.astro'
+import { LANGUAGES, path, words, type Lang } from '../../site'
+
+const { lang } = Astro.props as { lang: Lang }
+const t = (key: string) => words(lang, key)
+---
+
+<StarlightPage frontmatter={{ title: t('languages-title'), description: t('languages-description'), template: 'splash', tableOfContents: false, editUrl: false }}>
+  <div class="landing page">
+    <header class="page-head">
+      <h1>{t('languages-title')}</h1>
+      <p class="lede">{t('languages-lede')}</p>
+    </header>
+
+    <section>
+      <h2>{t('languages-today-title')}</h2>
+      <p>{t('languages-today-text')}</p>
+      <ul class="language-list">
+        {LANGUAGES.map(({ lang: code, name, dir }) => <li lang={code} {dir}>{name}</li>)}
+      </ul>
+      <p>{t('languages-today-book')}</p>
+    </section>
+
+    <section>
+      <h2 id="ask">{t('languages-ask-title')}</h2>
+      <p>{t('languages-ask-text')}</p>
+      <form
+        class="ask card"
+        name="language-request"
+        method="POST"
+        action={path(lang, 'languages/thanks/')}
+        data-netlify="true"
+        netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="language-request" />
+        <input type="hidden" name="site-language" value={lang} />
+        <p class="trap">
+          <label>{t('languages-form-trap')} <input name="bot-field" tabindex="-1" autocomplete="off" /></label>
+        </p>
+        <p>
+          <label for="language">{t('languages-form-language')}</label>
+          <input id="language" name="language" required autocomplete="off" aria-describedby="language-hint" />
+          <span class="hint" id="language-hint">{t('languages-form-language-hint')}</span>
+        </p>
+        <p>
+          <label for="email">{t('languages-form-email')}</label>
+          <input id="email" name="email" type="email" autocomplete="email" dir="ltr" aria-describedby="email-hint" />
+          <span class="hint" id="email-hint">{t('languages-form-email-hint')}</span>
+        </p>
+        <p>
+          <label for="note">{t('languages-form-note')}</label>
+          <textarea id="note" name="note" rows="3"></textarea>
+        </p>
+        <button class="button primary" type="submit">{t('languages-form-send')}</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>{t('languages-translate-title')}</h2>
+      <p>{t('languages-translate-text')}</p>
+      <p><a href={path(lang, 'docs/about/translate/')}>{t('languages-translate-link')}</a></p>
+    </section>
+
+    <SiteFooter {lang} page="languages/" />
+  </div>
+</StarlightPage>

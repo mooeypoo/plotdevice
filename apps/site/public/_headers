@@ -1,0 +1,14 @@
+# Netlify's headers for plotdevice.app (Milestone 24).
+
+# Built files are named by their contents, so they never change.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# The app will ask for this; a new release should reach it within minutes.
+/updates/*
+  Cache-Control: public, max-age=300
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY

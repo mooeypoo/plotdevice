@@ -1,0 +1,74 @@
+---
+// Why Plot Device: the front page in each language (Milestone 24). Its words are in src/i18n.
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro'
+import Hero from '../landing/Hero.astro'
+import Promise from '../landing/Promise.astro'
+import Folder from '../landing/Folder.astro'
+import Shot from '../Shot.astro'
+import SiteFooter from '../SiteFooter.astro'
+import { DOWNLOAD, SAMPLE, path, words, type Lang } from '../../site'
+
+const { lang } = Astro.props as { lang: Lang }
+const t = (key: string, ...params: string[]) => words(lang, key, ...params)
+const promises = [
+  { key: 'write', shot: 'formatting' },
+  { key: 'story', shot: 'story' },
+  { key: 'timeline', shot: 'timeline' },
+  { key: 'references', shot: 'references' },
+]
+const supportLink = `<a href="${path(lang, 'support/')}">${t('closing-support-link')}</a>`
+---
+
+<StarlightPage frontmatter={{ title: t('home-title'), description: t('home-description'), template: 'splash', tableOfContents: false, editUrl: false }}>
+  <div class="landing">
+    <Hero
+      title={t('hero-title')}
+      lede={t('hero-lede')}
+      download={t('download')}
+      guide={t('read-guide')}
+      guideHref={path(lang, 'docs/')}
+      platforms={t('platforms')}
+      shotAlt={t('hero-shot-alt')}
+    />
+
+    {
+      promises.map(({ key, shot }) => (
+        <Promise eyebrow={t(`${key}-eyebrow`)} title={t(`${key}-title`)} {shot} alt={t(`${key}-alt`)}>
+          <p>{t(`${key}-text`)}</p>
+        </Promise>
+      ))
+    }
+
+    <section class="story-band">
+      <p class="eyebrow">{t('bilingual-eyebrow')}</p>
+      <h2>{t('bilingual-title')}</h2>
+      <p>{t('bilingual-text')}</p>
+      <Shot name="bilingual" alt={t('bilingual-alt')} />
+      <p class="more"><a href={path(lang, 'languages/')}>{t('bilingual-more')}</a></p>
+    </section>
+
+    <section class="story-band">
+      <p class="eyebrow">{t('files-eyebrow')}</p>
+      <h2>{t('files-title')}</h2>
+      <p>{t('files-text')}</p>
+      <Folder book={SAMPLE[lang].book} chapter={SAMPLE[lang].chapter} />
+    </section>
+
+    <section class="yours">
+      <p class="eyebrow">{t('yours-eyebrow')}</p>
+      <h2>{t('yours-title')}</h2>
+      <p>{t('yours-text')}</p>
+    </section>
+
+    <section class="closing">
+      <h2>{t('closing-title')}</h2>
+      <div class="actions">
+        <a class="button primary" href={DOWNLOAD}>{t('download')}</a>
+        <a class="button" href={path(lang, 'docs/')}>{t('read-guide')}</a>
+      </div>
+      <p class="credit" set:html={t('closing-support', supportLink)} />
+    </section>
+
+    <SiteFooter {lang} />
+  </div>
+</StarlightPage>
