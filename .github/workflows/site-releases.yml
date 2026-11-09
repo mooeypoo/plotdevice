@@ -1,0 +1,47 @@
+name: Download page
+
+# The website's download page (Milestone 26) lists every published release from
+# apps/site/src/releases.json. When the owner publishes a release (or edits, unpublishes or deletes one),
+# this rewrites that file from GitHub's list and commits it to main; Netlify sees the commit and rebuilds
+# the site. Drafts never appear, so the page changes only when the files are public. No secrets: the
+# workflow's own token commits.
+#
+# "Run workflow" on the Actions page does the same by hand, for instance if a run failed.
+on:
+  release:
+    types: [published, edited, unpublished, deleted]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-releases
+  cancel-in-progress: false
+
+jobs:
+  list:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: List the published releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tooling/site-releases.mjs
+      - name: Commit the list, if it changed
+        run: |
+          if git diff --quiet -- apps/site/src/releases.json; then
+            echo "The download page already lists every release."
+            exit 0
+          fi
+          newest="$(node -p "require('./apps/site/src/releases.json').releases[0]?.version ?? 'none'")"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/site/src/releases.json
+          git commit -m "docs: the download page lists the published releases (newest: ${newest})"
+          git push origin HEAD:main
