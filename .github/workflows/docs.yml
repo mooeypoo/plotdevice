@@ -93,4 +93,11 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        run: npx --yes netlify-cli@27.14.2 deploy --dir site --prod --no-build --message "${GITHUB_SHA::7}"
+        # Until the Netlify site exists and its secrets are added, the site is built and checked but not
+        # sent anywhere.
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
+            echo "::notice::No Netlify secrets yet (NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID); the site wasn't published."
+            exit 0
+          fi
+          npx --yes netlify-cli@27.14.2 deploy --dir site --prod --no-build --message "${GITHUB_SHA::7}"
