@@ -30,7 +30,8 @@ const files = (dir) =>
     return /\.mdx?$/.test(entry.name) ? [path] : []
   })
 const hash = (path) => createHash('sha256').update(readFileSync(path)).digest('hex').slice(0, 12)
-const sourceHashOf = (text) => /^sourceHash:\s*(\S+)/m.exec(text.split(/^---$/m)[1] ?? '')?.[1]
+// Quoted when written: a hash like `665561e05599` would otherwise be read as a number (665561 × 10^5599).
+const sourceHashOf = (text) => /^sourceHash:\s*'?([0-9a-f]+)'?\s*$/m.exec(text.split(/^---$/m)[1] ?? '')?.[1]
 
 const english = files(docs).map((path) => relative(docs, path))
 const stamp = process.argv.includes('--stamp') ? process.argv[process.argv.indexOf('--stamp') + 1] : null
@@ -51,8 +52,8 @@ for (const locale of locales) {
     const current = hash(join(docs, page))
     if (stamp === locale) {
       const withHash = sourceHashOf(text)
-        ? text.replace(/^sourceHash:.*$/m, `sourceHash: ${current}`)
-        : text.replace(/^---\n/, `---\nsourceHash: ${current}\n`)
+        ? text.replace(/^sourceHash:.*$/m, `sourceHash: '${current}'`)
+        : text.replace(/^---\n/, `---\nsourceHash: '${current}'\n`)
       writeFileSync(translated, withHash)
     } else if (sourceHashOf(text) !== current) outdated.push(page)
   }
