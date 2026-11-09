@@ -1,0 +1,13 @@
+---
+title: For AI assistants
+description: The guide Plot Device publishes for AI assistants that move an author's material into a book, and where it lives.
+---
+
+Plot Device has no AI of its own. Some authors use an AI assistant that can make files on their computer, and ask it to move a world bible, notes or a draft into a new book. For that, the site publishes a guide written for the assistant, not for people:
+
+- **[plotdevice.app/for-assistants.md](https://plotdevice.app/for-assistants.md)**: the book's file format, where each kind of material goes, the rules to follow (keep the author's words exactly, invent nothing, leave nothing out, never change the originals), a worked example, and a checklist.
+- **[plotdevice.app/llms.txt](https://plotdevice.app/llms.txt)**: a short index that points assistants to it.
+
+Both are in the repository, in `apps/site/public/`. A test (`packages/storage/test/assistants-guide.test.ts`) checks that the guide's example book opens in Plot Device as it describes, so a change to the file format that breaks the guide fails the build.
+
+For writers, the guide's page [Moving an existing book in](/docs/start/bring-in/) explains how to ask an assistant to do this. For the format itself, see [The book's folder](/docs/technical/files/folder/).

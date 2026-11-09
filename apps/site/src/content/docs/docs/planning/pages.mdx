@@ -6,7 +6,7 @@ description: Keep a page for each character, place and idea, or anything else yo
 import Ui from '~/components/Ui.astro'
 import Shot from '~/components/Shot.astro'
 
-**<Ui k="workspace-story" />** has two halves. **<Ui k="story-plot" />** is the story's events: its outlines. **<Ui k="story-world" />** is who and where: **<Ui k="story-character" />**, **<Ui k="story-place" />** and **<Ui k="story-note" />**, and any kind of page your book adds, such as factions or ships. Each page is a Markdown file, in its kind's folder.
+**<Ui k="workspace-story" />** has two halves. **<Ui k="story-plot" />** is the story's events: its outlines. **<Ui k="story-world" />** is who and where: **<Ui k="story-character" />**, **<Ui k="story-place" />** and **<Ui k="story-note" />**, and any kind of page your book adds, such as factions or ships. Each page is an ordinary text file, in its kind's folder.
 
 A book made from a template may start with other kinds: a D&D campaign has NPCs, locations, factions, items and lore. Everything on this page works the same for every kind. To add, rename or remove kinds, see [Kinds of pages](/docs/planning/kinds/).
 
@@ -35,7 +35,7 @@ Beside the page, **<Ui k="relationships" />** lists how it connects to other pag
 - **+ <Ui k="relationship-add" />**: pick a page, then say how they're related, such as "Sister of".
 - A relationship's **⋯** changes its words or removes it.
 
-A relationship goes one way: Bea is Ilka's aunt. Ilka's page shows it under **<Ui k="linked-from" />**, and her file isn't changed. In the page's text, the relationships are one quiet line, so they aren't shown twice; click it to see them as written. See [Character, place and note pages](/docs/files/pages/) for how they look in the file.
+A relationship goes one way: Bea is Ilka's aunt. Ilka's page shows it under **<Ui k="linked-from" />**, and her file isn't changed. In the page's text, the relationships are one quiet line, so they aren't shown twice; click it to see them as written. For how they're written, see [Character, place and note pages](/docs/technical/files/pages/) in the technical docs.
 
 ## Tags
 
@@ -61,4 +61,4 @@ The page's **⋯** has **<Ui k="reference-rename" />** for its name, **<Ui k="re
 
 ## Other names
 
-A character called "Bea Halmi" may be "Aunt Bea" in the text. Add the other names to the page's file as `aka: [Aunt Bea, Bea]`, and searching for any of them finds the page. See [Character, place and note pages](/docs/files/pages/).
+A character called "Bea Halmi" may be "Aunt Bea" in the text. Other names can be added to the page in plain text, and searching for any of them then finds the page. For how, see [Character, place and note pages](/docs/technical/files/pages/) in the technical docs.

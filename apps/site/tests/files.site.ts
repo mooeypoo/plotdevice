@@ -81,3 +81,15 @@ test('the guide’s own address is a redirect on the server, never a page in bet
     .map((file) => relative(dist, file))
   expect(through).toEqual([])
 })
+
+test('the guide speaks to writers: no format or tool words outside the technical docs', () => {
+  const docs = join(site, 'src/content/docs')
+  const technical = /(^|\/)docs\/technical\//
+  const words = /\bmarkdown\b|frontmatter|\byaml\b|pandoc|\bgit\b|`[^`]*\.md`/i
+  const found = files(docs)
+    .filter((file) => /\.mdx?$/.test(file) && !technical.test(relative(docs, file)))
+    // The app's own button names (<Ui k="…" />) are its words, not the guide's.
+    .filter((file) => words.test(readFileSync(file, 'utf8').replace(/<Ui k="[^"]*" \/>/g, '')))
+    .map((file) => relative(docs, file))
+  expect(found).toEqual([])
+})

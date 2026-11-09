@@ -398,3 +398,263 @@ body:has(.landing) .content-panel:has(h1#_top) {
   margin-block: 0.5rem;
   font-size: 0.95rem;
 }
+
+/* How Plot Device compares (Milestone 25): an honest pitch. The promise, four promise cards, two
+   screenshot rows (the front page's), then the table as proof, importing, a
+   closing band, and the sources folded away. */
+.landing.page.compare {
+  --measure: 66rem;
+}
+.landing.page.compare section {
+  max-inline-size: var(--measure);
+  margin-block-end: 5.5rem;
+}
+.compare .page-head {
+  max-inline-size: 56rem;
+  margin-block-end: 4rem;
+}
+.compare .page-head .lede {
+  max-inline-size: 42rem;
+  margin-inline: auto;
+}
+.compare .page-head .eyebrow {
+  margin-block-end: 1rem;
+}
+.compare .page-head h1 {
+  font-size: clamp(2.4rem, 5.5vw, 3.8rem);
+  text-wrap: balance;
+}
+.compare h2 {
+  text-wrap: balance;
+}
+
+/* The four promises: an icon in a soft accent circle, a serif headline, two lines. */
+.strengths-section > h2 {
+  text-align: center;
+  margin-block-end: 2.5rem !important;
+}
+.strengths {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1.25rem;
+}
+.landing .strength {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 1.75rem 1.5rem 1.6rem;
+  border-radius: 18px;
+  background: var(--color-card);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-text) 9%, transparent),
+    0 14px 34px -22px rgb(0 0 0 / 0.35);
+}
+.strength-icon {
+  display: grid;
+  place-items: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+.strength-icon svg {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.landing .strength h3 {
+  margin: 0.25rem 0 0;
+  font: 400 1.3rem/1.25 var(--font-prose);
+  color: var(--color-text);
+}
+.landing .strength p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+.compare .promise {
+  margin-block-end: 5rem;
+}
+.pitch-actions {
+  margin-block: 0 6rem;
+}
+
+/* The table: Plot Device first and lightly set apart; four apps at first, the rest behind "Show all". */
+.side-by-side > h2 {
+  margin-block-end: 0.5rem !important;
+}
+.compare .checked,
+.compare .table-note {
+  font-size: 0.95rem !important;
+  color: var(--color-text-secondary);
+}
+.compare .checked {
+  margin-block: 0 1.5rem;
+}
+.compare-scroll {
+  overflow-x: auto;
+  border-radius: 16px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-text) 12%, transparent);
+  background: var(--color-card);
+}
+.compare-scroll:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.compare-scroll.collapsed .extra {
+  display: none;
+}
+.compare-scroll table {
+  display: table;
+  inline-size: 100%;
+  min-inline-size: 40rem;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.compare-scroll:not(.collapsed) table {
+  min-inline-size: 60rem;
+}
+.compare-scroll :is(th, td) {
+  padding: 0.75rem 0.85rem;
+  border: none;
+  border-block-end: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+  text-align: start;
+  vertical-align: top;
+  background: var(--color-card);
+}
+.compare-scroll tbody:last-of-type tr:last-child :is(th, td) {
+  border-block-end: none;
+}
+.compare-scroll thead th {
+  padding-block: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+.compare-scroll tbody th[scope='row'] {
+  font-weight: 600;
+  color: var(--color-text);
+}
+/* The row names stay in view while the answers scroll. */
+.compare-scroll :is(thead td, tbody th[scope='row']) {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+  min-inline-size: 11rem;
+  box-shadow: 1px 0 0 color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+.compare-scroll tr.group th {
+  padding-block-start: 1.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+:lang(he) .compare-scroll tr.group th {
+  letter-spacing: 0.03em;
+  font-size: 0.9rem;
+}
+.compare-scroll .ours {
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-card));
+}
+.compare-scroll thead th.ours {
+  color: var(--color-accent);
+}
+/* Positioned, so the screen-reader word stays inside the scrolling table, not out past the page. */
+.compare-scroll .mark {
+  position: relative;
+  display: inline-block;
+}
+/* A check (in the accent) and a cross (muted): each row is worded so that a check is good for the writer. */
+.compare-scroll .mark svg {
+  display: block;
+  inline-size: 1.35rem;
+  block-size: 1.35rem;
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.compare-scroll .mark.yes svg {
+  stroke: var(--color-accent);
+}
+.compare-scroll .mark.no svg {
+  stroke: var(--color-text-secondary);
+  stroke-width: 2;
+  opacity: 0.75;
+}
+/* "Not documented" is set apart in italics, since it isn't an answer. */
+.compare-scroll td.nd {
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+.compare .table-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem 0 0;
+}
+.compare .show-all {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.6rem 1.1rem;
+}
+.compare .show-all[hidden] {
+  display: none;
+}
+
+.landing.page.compare .move {
+  max-inline-size: 46rem;
+  text-align: center;
+}
+.compare .closing {
+  padding-block: 3.5rem;
+}
+.compare .closing > p {
+  max-inline-size: 34rem;
+  margin: 0 auto 2rem;
+}
+
+/* The sources: folded away, one line each. */
+.compare .sources {
+  max-inline-size: 46rem;
+  margin: 0 auto 3rem;
+  font-size: 0.88rem;
+}
+.compare .sources summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.sources dl {
+  text-align: start;
+}
+.sources dt {
+  margin-block-start: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.sources dd {
+  margin: 0.2rem 0 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 40rem) {
+  .compare-scroll :is(thead td, tbody th[scope='row']) {
+    min-inline-size: 8rem;
+  }
+}

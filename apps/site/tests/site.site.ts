@@ -6,6 +6,7 @@ const PAGES = [
   { name: 'the front page', path: '' },
   { name: 'the support page', path: 'support/' },
   { name: 'the languages page', path: 'languages/' },
+  { name: 'the comparison page', path: 'compare/' },
   { name: 'a guide page', path: 'docs/writing/formatting/' },
 ]
 
@@ -48,7 +49,7 @@ for (const { name, path } of PAGES) {
 }
 
 test('Hebrew pages run right to left, with code and file names left to right', async ({ page }) => {
-  await page.goto('/he/docs/files/chapters/')
+  await page.goto('/he/docs/technical/files/chapters/')
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
   await expect(page.locator('html')).toHaveAttribute('lang', 'he')
   expect(
@@ -164,4 +165,67 @@ test.describe('a browser that prefers Hebrew', () => {
     await page.goto('/support/')
     await expect(page.locator('html')).toHaveAttribute('lang', 'en')
   })
+})
+
+test('the guide’s sidebar lists only guide pages; the technical docs have their own, with a way back', async ({ page }) => {
+  await page.goto('/docs/writing/formatting/')
+  const guide = page.locator('#starlight__sidebar')
+  await expect(guide.getByRole('link', { name: 'Formatting' })).toBeVisible()
+  await expect(guide.locator('a[href*="/technical/"]')).toHaveCount(0)
+  await expect(page.locator('.starlight-sidebar-topics')).toHaveCount(0)
+
+  await page.goto('/he/docs/technical/files/folder/')
+  const technical = page.locator('#starlight__sidebar')
+  await expect(technical.locator('a[href*="/writing/"]')).toHaveCount(0)
+  await technical.getByRole('link', { name: '→ חזרה למדריך' }).click()
+  await expect(page).toHaveURL(/\/he\/docs\/start\/install\/$/)
+})
+
+test('the technical docs are reached from the footer, not the header', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('.site-links a[href*="/technical/"]')).toHaveCount(0)
+  await page.locator('.site-footer').getByRole('link', { name: 'Technical docs' }).click()
+  await expect(page).toHaveURL(/\/docs\/technical\/files\/folder\/$/)
+})
+
+test('the comparison table keeps its row names in view while it scrolls on a phone', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 800 })
+  await page.goto('/compare/')
+  const box = page.getByRole('region', { name: /compared/ })
+  await expect(box).toBeVisible()
+  const rowName = box.locator('tbody th[scope="row"]').first()
+  const before = await rowName.boundingBox()
+  await box.evaluate((element) => element.scrollBy(400, 0))
+  expect((await rowName.boundingBox())?.x).toBe(before?.x)
+  await expect(page.getByRole('columnheader', { name: 'Plot Device' })).toBeAttached()
+})
+
+test('in the comparison, Yes and No show as a check and a cross, and screen readers still hear the word', async ({ page }) => {
+  await page.goto('/he/compare/')
+  const ours = page.locator('td.ours .mark.yes')
+  expect(await ours.count()).toBeGreaterThan(4)
+  await expect(ours.first().locator('svg')).toHaveAttribute('aria-hidden', 'true')
+  await expect(ours.first().locator('.sr-only')).toHaveText('כן')
+  // Every row is worded so a check is good for the writer: Plot Device's column has no cross.
+  await expect(page.locator('td.ours .mark.no')).toHaveCount(0)
+})
+
+test('the comparison starts with the apps writers most likely use, and shows the rest on request', async ({ page }) => {
+  await page.goto('/compare/')
+  const headers = page.locator('.compare-scroll thead th:visible')
+  await expect(headers).toHaveText(['Plot Device', 'Google Docs', 'Microsoft Word', 'Scrivener', 'Dabble'])
+  const button = page.getByRole('button', { name: 'Show all 7 apps' })
+  await expect(button).toHaveAttribute('aria-expanded', 'false')
+  await button.click()
+  await expect(headers).toHaveCount(8)
+  await expect(page.getByRole('button', { name: 'Show fewer apps' })).toHaveAttribute('aria-expanded', 'true')
+})
+
+test('without JavaScript, the comparison shows every app', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false })
+  const page = await context.newPage()
+  await page.goto('/compare/')
+  await expect(page.locator('.compare-scroll thead th:visible')).toHaveCount(8)
+  await expect(page.locator('.show-all')).toBeHidden()
+  await context.close()
 })

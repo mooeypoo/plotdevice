@@ -77,7 +77,7 @@ Characters, places and notes live in the book too, with tags to group them. Whil
 
 ### Multilingual
 
-The interface in your language, the book in its own. Plot Device speaks English and Hebrew today, right to left included, and is built to take more languages: each new one is a translation, not a rewrite. Write a Hebrew novel with English names, or an English one in a Hebrew interface: every paragraph runs the right way, and punctuation lands where it belongs. Want Plot Device in your language? [Help translate it](https://plotdevice.app/docs/about/translate/).
+The interface in your language, the book in its own. Plot Device speaks English and Hebrew today, right to left included, and is built to take more languages: each new one is a translation, not a rewrite. Write a Hebrew novel with English names, or an English one in a Hebrew interface: every paragraph runs the right way, and punctuation lands where it belongs. Want Plot Device in your language? [Help translate it](https://plotdevice.app/docs/technical/translate/).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/readme/bilingual-dark.webp">
@@ -117,7 +117,7 @@ Plot Device runs on your computer and sends nothing anywhere. What you write bel
 | **Install and open your first book** | [Install Plot Device](https://plotdevice.app/docs/start/install/) |
 | **A tour of the app** | [A tour of the window](https://plotdevice.app/docs/start/tour/) |
 | **Bring in a book you already have** | [Moving an existing book in](https://plotdevice.app/docs/start/bring-in/) |
-| **How your files are kept** | [The book's folder](https://plotdevice.app/docs/files/folder/) |
+| **How your files are kept** | [The book's folder](https://plotdevice.app/docs/technical/files/folder/) |
 | **Everything else** | [The full guide](https://plotdevice.app/docs/), in [English](https://plotdevice.app/docs/) and [Hebrew](https://plotdevice.app/he/docs/) |
 
 Found a problem or have an idea? [Open an issue](https://github.com/mooeypoo/plotdevice/issues).

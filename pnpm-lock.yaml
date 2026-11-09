@@ -299,6 +299,9 @@ importers:
       starlight-links-validator:
         specifier: 0.27.0
         version: 0.27.0(@astrojs/starlight@0.42.6(astro@7.3.8(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))(supports-color@7.2.0)(typescript@6.0.3))(astro@7.3.8(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))(supports-color@7.2.0)
+      starlight-sidebar-topics:
+        specifier: 0.9.0
+        version: 0.9.0(@astrojs/starlight@0.42.6(astro@7.3.8(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))(supports-color@7.2.0)(typescript@6.0.3))(astro@7.3.8(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))
 
   packages/application:
     dependencies:
@@ -3584,6 +3587,13 @@ packages:
     peerDependencies:
       '@astrojs/starlight': '>=0.42.0'
       astro: '>=7.2.10'
+
+  starlight-sidebar-topics@0.9.0:
+    resolution: {integrity: sha512-xFwMAAtTVyqsO5DZ8Ldk0vN+2QoPdtjtDi8fbrzvQATIJvIvfaBLL9JzfXAjNHI9vMkj35VMWMd8tTICeO6RIA==}
+    engines: {node: '>=22.12.0'}
+    peerDependencies:
+      '@astrojs/starlight': '>=0.42.0'
+      astro: ^7.2.10
 
   stat-mode@1.0.0:
     resolution: {integrity: sha512-jH9EhtKIjuXZ2cWxmXS8ZP80XyC3iasQxMDV8jzhNJpfDb7VbQLVW4Wvsxz9QZvzV+G4YoSfBUVKDOyxLzi/sg==}
@@ -7781,6 +7791,12 @@ snapshots:
       yaml: 2.9.1
     transitivePeerDependencies:
       - supports-color
+
+  starlight-sidebar-topics@0.9.0(@astrojs/starlight@0.42.6(astro@7.3.8(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))(supports-color@7.2.0)(typescript@6.0.3))(astro@7.3.8(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)):
+    dependencies:
+      '@astrojs/starlight': 0.42.6(astro@7.3.8(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))(supports-color@7.2.0)(typescript@6.0.3)
+      astro: 7.3.8(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)
+      picomatch: 4.0.7
 
   stat-mode@1.0.0: {}
 
