@@ -1,0 +1,60 @@
+---
+sourceHash: c90641072ab6
+title: התקנת Plot Device
+description: הורדת Plot Device ל־Windows או ל־Linux, ופתיחת הספר הראשון.
+---
+
+import { TabItem, Tabs } from '@astrojs/starlight/components'
+import Ui from '~/components/Ui.astro'
+
+Plot Device זמינה בגרסאות מוקדמות ל־**Windows** ול־**Linux**. גרסה ל־macOS תגיע בהמשך. לא צריך בשבילה חשבון או חיבור לאינטרנט.
+
+## הורדה
+
+בוחרים את המחשב שלכם. הכול נמצא ב[דף הגרסאות](https://github.com/mooeypoo/plotdevice/releases).
+
+<Tabs syncKey="system">
+<TabItem label="Windows">
+
+מורידים את **קובץ ה־`-setup.exe`** ופותחים אותו. הוא מתקין את Plot Device ומוסיף אותה לתפריט התחל.
+
+תוכנת ההתקנה עוד לא חתומה, ולכן Windows עשויה להציג את ההודעה **Windows protected your PC**. בוחרים **More info**, ואז **Run anyway**.
+
+**Windows בגרסת בטא מוקדמת.** כל שינוי נבדק אוטומטית גם ב־Windows, כולל התקנה והסרה של האפליקציה, אבל עוד לא השתמשו בה במחשבי Windows אמיתיים. יכול להיות שיהיו דברים לא מלוטשים, ונשמח לשמוע עליהם: **☰ ← <Ui k="report-problem" />**.
+
+</TabItem>
+<TabItem label="Linux">
+
+מורידים אחד מאלה:
+
+- **קובץ ה־`.AppImage`** רץ כמו שהוא, אחרי שמרשים לו: ראו בהמשך.
+- **קובץ ה־`.deb`**, ב־Ubuntu או ב־Debian, מתקין את Plot Device לצד שאר האפליקציות.
+
+**מרשים ל־AppImage לרוץ.** קבצים שהורדו לא רשאים לרוץ עד שמרשים להם, ולכן בהתחלה לחיצה כפולה על ה־AppImage לא עושה כלום, או פותחת אותו כדיסק. פעם אחת, אחרי ההורדה:
+
+- **בקבצים (Files):** לחיצה ימנית על ה־AppImage ← **Properties** ← מפעילים את **Executable as Program**.
+- **או בטרמינל:** `chmod +x ~/Downloads/plotdevice-*.AppImage`
+
+אחר כך לחיצה כפולה פותחת את Plot Device. גרסה חדשה היא הורדה חדשה, אז מרשים לה שוב, פעם אחת.
+
+</TabItem>
+<TabItem label="macOS">
+
+**בקרוב.** גרסה ל־Mac בדרך. כדי לחתום עליה צריך חשבון מפתחים של Apple, ולכן [תמיכה ב־Plot Device](/he/support/) עוזרת לה להגיע מהר יותר.
+
+</TabItem>
+</Tabs>
+
+הספר שלכם בטוח בכל מקרה: אלה קבצים רגילים, כל שמירה מחליפה את הקובץ בעותק שלם וחדש, וגרסאות קודמות נשמרות מחוץ לספר. ראו [שמירה](/he/docs/safe/saving/) ו[גיבויים](/he/docs/safe/backups/).
+
+## גרסאות חדשות
+
+כשיוצאת גרסה חדשה, Plot Device מציינת זאת בשקט בסרגל העליון: **<Ui k="update-available" />**. משם יש קישור למה שחדש ולדף הזה; שום דבר לא מורד או מותקן מעצמו. כדי לבדוק בעצמכם, פותחים **☰ ← <Ui k="about" />** ובוחרים **<Ui k="update-check" />**.
+
+לשם כך Plot Device שואלת את GitHub פעם ביום אם יצאה גרסה חדשה. שום מידע על הכותבים או על הכתיבה לא נשלח. אפשר לכבות את זה ב[הגדרות](/he/docs/reference/settings/).
+
+## פתיחה
+
+בפעם הראשונה, Plot Device מציעה שתי אפשרויות: **<Ui k="welcome-new-project" />** פותח ספר חדש בתיקייה שבוחרים, ו־**<Ui k="welcome-open-project" />** פותח תיקיית ספר שכבר קיימת.
+
+הספר הוא תיקייה רגילה של קובצי Markdown. ההגדרות של Plot Device עצמה, כמו השפה וערכת הצבעים, נשמרות במחשב, אף פעם לא בתוך הספר.

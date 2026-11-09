@@ -1,0 +1,22 @@
+---
+// Where the language request form lands once Netlify has it (Milestone 24).
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro'
+import SiteFooter from '../SiteFooter.astro'
+import { path, words, type Lang } from '../../site'
+
+const { lang } = Astro.props as { lang: Lang }
+const t = (key: string) => words(lang, key)
+---
+
+<StarlightPage
+  frontmatter={{ title: t('thanks-title'), description: t('thanks-description'), template: 'splash', tableOfContents: false, editUrl: false, pagefind: false }}
+  head={[{ tag: 'meta', attrs: { name: 'robots', content: 'noindex' } }]}>
+  <div class="landing page">
+    <header class="page-head">
+      <h1>{t('thanks-title')}</h1>
+      <p class="lede">{t('thanks-text')}</p>
+      <p><a class="button" href={path(lang)}>{t('thanks-back')}</a></p>
+    </header>
+    <SiteFooter {lang} page="languages/thanks/" />
+  </div>
+</StarlightPage>

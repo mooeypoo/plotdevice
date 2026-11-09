@@ -1,8 +1,8 @@
 # Plot Device: moving an author's material into a book
 
-This guide is for an AI assistant helping an author move material they already have (a world bible, a draft, notes, a timeline, a plot synopsis) into the files of a [Plot Device](https://mooeypoo.github.io/plotdevice/) book. Plot Device is a writing app for novelists. A book is an ordinary folder of Markdown files, so you can write it directly; the app opens it as it is.
+This guide is for an AI assistant helping an author move material they already have (a world bible, a draft, notes, a timeline, a plot synopsis) into the files of a [Plot Device](https://plotdevice.app/) book. Plot Device is a writing app for novelists. A book is an ordinary folder of Markdown files, so you can write it directly; the app opens it as it is.
 
-This guide is only about the files. It doesn't explain how to use the app; the author can read the [user guide](https://mooeypoo.github.io/plotdevice/) for that.
+This guide is only about the files. It doesn't explain how to use the app; the author can read the [user guide](https://plotdevice.app/docs/) for that.
 
 ## Rules
 

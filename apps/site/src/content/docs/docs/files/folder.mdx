@@ -1,0 +1,62 @@
+---
+title: The book's folder
+description: What's in a Plot Device book, and why it reads well without Plot Device.
+---
+
+import Folder from '~/components/landing/Folder.astro'
+
+A book is an ordinary folder. Everything in it is a Markdown text file that any app can open, and the folder still makes sense if Plot Device is gone.
+
+<Folder book="the-salt-orchard" chapter="CONTENTS.md" />
+
+| File or folder | What it holds |
+|---|---|
+| `project.md` | The book's title, author, language and a few settings. Anything you write under them is yours. |
+| `CONTENTS.md` | The reading order and the parts. See [Chapters and the contents](/docs/files/chapters/). |
+| `manuscript/` | One file per chapter. |
+| `outlines/` | One file per outline. See [Outline files](/docs/files/outlines/). |
+| `characters/`, `places/`, `notes/` | One file per page. See [Character, place and note pages](/docs/files/pages/). |
+| Other folders of pages | The book's own [kinds of pages](/docs/planning/kinds/), such as `factions/`, written like any other page. |
+
+Plot Device keeps nothing else in the folder: no hidden database, no settings, no backups. Those live on your computer, outside the book. Copy the folder, sync it, or put it in git; it's complete.
+
+## Kinds of pages in project.md
+
+A book with kinds of its own lists them in `project.md`, in the order Plot Device shows them. [Kinds of pages](/docs/planning/kinds/) changes this list for you; it's here so the file makes sense when you read it.
+
+```yaml
+kinds:
+  - folder: characters
+  - folder: factions
+    one: Faction
+    many: Factions
+  - folder: places
+  - folder: notes
+manuscriptUnit:
+  one: Session
+  many: Sessions
+suggestedTags: [Player character, Villain, Ally]
+```
+
+- `folder` is the kind's folder; `one` and `many` are what Plot Device calls it. Characters, places and notes need no names.
+- `manuscriptUnit` is what the book calls its chapters. Without it, they're chapters.
+- A book without `kinds` has characters, places and notes. A folder of pages that isn't listed shows as "Not sorted yet".
+- `suggestedTags` are offered by **+ Tag** before any page uses them. A book from a template may have some; any book can.
+
+## The main outline and outlines set aside
+
+```yaml
+mainOutline: outlines/main-story.md
+setAside: [outlines/old-plan.md]
+```
+
+- `mainOutline` is the outline whose sections name the [timeline](/docs/planning/timeline/)'s columns. Without it, the first outline is.
+- `setAside` lists outlines you set aside: off the timeline, listed apart, and never deleted.
+
+## Opening it elsewhere
+
+- **Obsidian:** open the folder as a vault. Links between pages work there too.
+- **A text editor, GitHub, or VS Code:** every file reads as plain Markdown.
+- **git:** each change is a small, readable difference in a text file.
+
+To bring in notes or a draft you wrote elsewhere, see [Moving an existing book in](/docs/start/bring-in/).

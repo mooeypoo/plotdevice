@@ -234,8 +234,8 @@ h1#_top {
   }
 }
 
-/* The front page draws its own title in the hero. */
-body:has(.landing) h1#_top {
+/* The site's own pages draw their own titles, so Starlight's title and the band it sits in go. */
+body:has(.landing) .content-panel:has(h1#_top) {
   display: none;
 }
 
@@ -260,4 +260,141 @@ body:has(.landing) h1#_top {
 .sl-markdown-content :not(pre) > code {
   direction: ltr;
   unicode-bidi: isolate;
+}
+
+/* The site's own pages (Milestone 24): support, languages, thanks, and the footer they share. */
+.landing.page {
+  --measure: 46rem;
+}
+.landing.page section {
+  max-inline-size: var(--measure);
+  margin: 0 auto 4rem;
+}
+.page-head {
+  max-inline-size: var(--measure);
+  margin: 2rem auto 4rem;
+  text-align: center;
+}
+.page-head h1 {
+  margin: 0 0 1.25rem;
+  font: 300 clamp(2.2rem, 5vw, 3.4rem) / 1.1 var(--font-prose);
+  color: var(--color-text);
+}
+.page-head .lede {
+  font: italic 400 1.3rem/1.5 var(--font-prose);
+  color: var(--color-text-secondary);
+}
+:lang(he) .page-head .lede {
+  font-style: normal;
+}
+.landing h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  color: var(--color-text);
+}
+.card {
+  padding: 1.5rem;
+  border-radius: 14px;
+  background: var(--color-card);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-text) 12%, transparent);
+}
+.card p {
+  margin-block: 0 1rem;
+}
+.cards {
+  display: grid;
+  align-items: start;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1rem;
+  margin-block-start: 1rem;
+}
+.coffee {
+  text-align: center;
+}
+/* Starlight spaces out neighbours in its content; cards in a grid are spaced by the grid. */
+.cards > .card {
+  margin: 0;
+}
+.makes li {
+  margin-block: 0.4rem;
+  font-size: 1.08rem;
+}
+.no-pressure,
+.landing .more {
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+.language-list {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0;
+  list-style: none;
+  font: 400 1.6rem var(--font-prose);
+  color: var(--color-text);
+}
+.ask {
+  display: grid;
+  gap: 0.25rem;
+}
+.ask label {
+  display: block;
+  margin-block-end: 0.35rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.ask :is(input, textarea) {
+  box-sizing: border-box;
+  inline-size: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--color-text) 25%, transparent);
+  border-radius: 10px;
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-app);
+}
+.ask :is(input, textarea):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+.ask .hint {
+  display: block;
+  margin-block-start: 0.35rem;
+  font-size: 0.92rem;
+  color: var(--color-text-secondary);
+}
+.ask button {
+  justify-self: start;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+/* The spam trap: no person sees or reaches it. */
+.ask .trap {
+  display: none;
+}
+
+.site-footer {
+  max-inline-size: var(--measure);
+  margin: 2rem auto 0;
+  padding-block: 2rem 1rem;
+  border-block-start: 1px solid var(--sl-color-hairline);
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+.site-footer ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1.5rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+.site-footer li {
+  margin: 0;
+}
+.landing .site-footer p {
+  margin-block: 0.5rem;
+  font-size: 0.95rem;
 }

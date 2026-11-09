@@ -2,7 +2,7 @@
   "name": "@plotdevice/site",
   "version": "0.0.0",
   "private": true,
-  "description": "Plot Device's documentation site, in English and Hebrew (Milestone 10).",
+  "description": "Plot Device's website at plotdevice.app: its own pages and the guide, in Hebrew and English (Milestones 10 and 24).",
   "license": "GPL-3.0-or-later",
   "type": "module",
   "scripts": {

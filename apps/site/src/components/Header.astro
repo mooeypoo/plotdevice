@@ -1,0 +1,100 @@
+---
+// Starlight's header, with one change (Milestone 24, owner 2026-11-09): the language menu is always in
+// the top bar. Starlight hides its whole right-hand group on narrow screens, and on the site's own pages
+// (which have no sidebar menu) a phone would have no way to change language; so a second copy of the
+// language menu shows on narrow screens only.
+import LanguageSelect from '@astrojs/starlight/components/LanguageSelect.astro'
+import Search from '@astrojs/starlight/components/Search.astro'
+import SiteTitle from '@astrojs/starlight/components/SiteTitle.astro'
+import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro'
+import SiteLinks from './SiteLinks.astro'
+---
+
+<div class="header">
+  <div class="title-wrapper sl-flex">
+    <SiteTitle />
+  </div>
+  <div class="sl-flex print:hidden search">
+    <Search />
+    <div class="narrow-language">
+      <LanguageSelect />
+    </div>
+  </div>
+  <div class="sl-hidden md:sl-flex print:hidden right-group">
+    <div class="sl-flex social-icons">
+      <SiteLinks />
+    </div>
+    <ThemeSelect />
+    <LanguageSelect />
+  </div>
+</div>
+
+<style>
+  /* Starlight's own header layout (components/Header.astro), unchanged. */
+  .header {
+    display: flex;
+    gap: var(--sl-nav-gap);
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+  }
+  .title-wrapper {
+    overflow: clip;
+    padding: 0.25rem;
+    margin: -0.25rem;
+    min-width: 0;
+  }
+  .right-group,
+  .social-icons {
+    gap: 1rem;
+    align-items: center;
+  }
+  .social-icons::after {
+    content: '';
+    height: 2rem;
+    border-inline-end: 1px solid var(--sl-color-gray-5);
+  }
+  .search {
+    align-items: center;
+    gap: 0.5rem;
+  }
+  /* Narrow: the language's name and a caret, in the smaller type the wide header uses, so the title
+     keeps its room. Starlight sets the width inline, hence !important. */
+  .narrow-language :global(label) {
+    --sl-select-width: 5.75em !important;
+    --sl-label-icon-size: 0rem;
+  }
+  .narrow-language :global(.label-icon) {
+    display: none;
+  }
+  .narrow-language :global(select) {
+    font-size: var(--sl-text-sm);
+  }
+  @media (min-width: 50rem) {
+    .narrow-language {
+      display: none;
+    }
+    :global(:root[data-has-sidebar]) {
+      --__sidebar-pad: calc(2 * var(--sl-nav-pad-x));
+    }
+    :global(:root:not([data-has-toc])) {
+      --__toc-width: 0rem;
+    }
+    .header {
+      --__sidebar-width: max(0rem, var(--sl-content-inline-start, 0rem) - var(--sl-nav-pad-x));
+      --__main-column-fr: calc(
+        (
+            100% + var(--__sidebar-pad, 0rem) - var(--__toc-width, var(--sl-sidebar-width)) -
+              (2 * var(--__toc-width, var(--sl-nav-pad-x))) - var(--sl-content-inline-start, 0rem) -
+              var(--sl-content-width)
+          ) / 2
+      );
+      display: grid;
+      grid-template-columns:
+        minmax(calc(var(--__sidebar-width) + max(0rem, var(--__main-column-fr) - var(--sl-nav-gap))), auto)
+        1fr
+        auto;
+      align-content: center;
+    }
+  }
+</style>

@@ -1,0 +1,61 @@
+---
+title: Formatting
+description: Bold, italic, quotes, lists, headings, scene breaks and links, from the bubble, Format or the keyboard. What you see is the formatting, never its marks.
+---
+
+import Ui from '~/components/Ui.astro'
+import Shot from '~/components/Shot.astro'
+
+Formatting looks like formatting: a heading is a heading, bold is bold, and a link shows as its words. The marks that make them, such as `##` and `**`, are never on the page, even where you're typing.
+
+## Select text
+
+Select some text and a small bubble appears above it: **<Ui k="format-bold" />**, **<Ui k="format-italic" />**, **<Ui k="format-link" />**, **<Ui k="format-quote" />**, and **⋯** for the rest.
+
+<Shot name="formatting" alt="Selected text with the formatting bubble above it" />
+
+## Format
+
+**<Ui k="toolbar-format" />**, at the top corner of the page, has every command, with or without a selection. It's on every page you write on: chapters, characters, places and notes, and an outline in Text.
+
+<Shot name="format-menu" alt="Format: bold, italic, headings, quote, lists, scene break, link, direction and plain text" close />
+
+- **<Ui k="format-heading1" />**, **<Ui k="format-heading2" />** and **<Ui k="format-heading3" />** make the paragraph you're in a heading of that size; **<Ui k="format-body" />** makes it ordinary text again.
+- **<Ui k="format-quote" />**, **<Ui k="format-bulletList" />** and **<Ui k="format-orderedList" />** apply to the paragraph you're in.
+- **<Ui k="format-sceneBreak" />** inserts a break between scenes. It shows as **⁂** and is written as `* * *` in the file.
+- **<Ui k="format-link" />** asks for an address. To link a card to a chapter or a character, see [Linking](/docs/planning/linking/).
+- The direction commands are explained in [Hebrew and English in one book](/docs/writing/hebrew-and-english/).
+
+## Keyboard
+
+| Press | To |
+|---|---|
+| **Ctrl+B** (⌘B on a Mac) | Bold |
+| **Ctrl+I** (⌘I) | Italic |
+| **Ctrl+Alt+1**, **2**, **3** (⌘⌥1, 2, 3) | Heading 1, 2 or 3, as in Word and Google Docs |
+| **Ctrl+Alt+0** (⌘⌥0) | Body text |
+| **Backspace**, at the start of a heading or a bullet | Make it ordinary text (a bullet one step in moves out a step) |
+| **Enter** | Start a new paragraph |
+| **Shift+Enter** | Break the line without a new paragraph |
+| **Tab**, from the page | Reach the bubble's buttons; **Escape** returns to the page |
+
+If you know Markdown, typing it works too: `## ` at the start of a line makes a heading, `- ` a bullet and `**word**` bold, and the marks disappear as soon as they're understood.
+
+## Links
+
+A link shows as its words, in the link colour. Edit them like any words: **Backspace** erases a letter at a time, and the link goes only when its last letter does. Typing right after a link is ordinary text, outside it.
+
+With the cursor in a link, a small bubble says where it goes and offers **<Ui k="link-open" />**, **<Ui k="link-change" />** (choose another page, chapter or address; the words stay) and **<Ui k="link-remove" />** (the words stay, as ordinary text).
+
+<Shot name="link-bubble" alt="A link shown as its words, with the bubble below it: Goes to Bea Halmi, Open, Change link…, Remove link" close />
+
+## Plain text
+
+Underneath, formatting is ordinary Markdown (`**bold**`, `*italic*`, `> quote`), so the same text reads well in any other app. To see and fix the marks by hand, choose **<Ui k="plain-text-edit" />** in **<Ui k="toolbar-format" />**, or in an outline's **⋯** on the board. Every mark shows, and what you type is saved exactly as typed.
+
+<Shot name="plain-text" alt="A chapter in plain text: the links and the scene break written out as Markdown, under the plain text notice" />
+ **<Ui k="plain-text-back" />** returns, with undo and your place kept.
+
+If you know Markdown, **Ctrl+Shift+M** (⌘⇧M) switches the page you're typing in to plain text and back. To keep a **<Ui k="plain-text-switch" />** button beside **<Ui k="toolbar-format" />**, turn on **<Ui k="settings-plain-text-switch" />** in [Settings](/docs/reference/settings/).
+
+To always open pages this way, see [Settings](/docs/reference/settings/).

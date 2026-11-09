@@ -1,5 +1,17 @@
 {
   "sourceLocale": "en",
   "targetLocale": "he",
-  "documentFormat": "format-starlight"
+  "documentFormat": "format-starlight",
+  "catalogFormat": "catalog-banana",
+  "formatOptions": {
+    "format-starlight": {
+      "localeFolders": {
+        "en": "",
+        "he": "he"
+      }
+    },
+    "catalog-banana": {
+      "dirs": ["src/i18n"]
+    }
+  }
 }

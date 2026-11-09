@@ -2,11 +2,18 @@ import starlight from '@astrojs/starlight'
 import { defineConfig } from 'astro/config'
 import starlightLinksValidator from 'starlight-links-validator'
 
-// Plot Device's documentation (Milestone 10). English at the root, Hebrew at /he/; a new language is
-// one more entry in `locales`, and its untranslated pages fall back to English with a notice.
+// Plot Device's website (Milestone 24): the pages about Plot Device (src/pages) and the guide under docs/.
+// English is the default, at the root; Hebrew is under /he/ (owner, 2026-11-09). A new language is one more
+// entry in `locales` (and in LANGUAGES, src/site.ts); its untranslated guide pages fall back to English
+// with a notice.
 export default defineConfig({
-  site: 'https://mooeypoo.github.io',
-  base: '/plotdevice',
+  site: 'https://plotdevice.app',
+  trailingSlash: 'always',
+  // The guide has no front page of its own: it starts at installing.
+  redirects: {
+    '/docs': '/docs/start/install/',
+    '/he/docs': '/he/docs/start/install/',
+  },
   integrations: [
     starlight({
       title: 'Plot Device',
@@ -19,66 +26,72 @@ export default defineConfig({
       },
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/mooeypoo/plotdevice' }],
       customCss: ['./src/styles/fonts.css', './src/styles/site.css'],
-      components: { Head: './src/components/Head.astro' },
+      components: {
+        Head: './src/components/Head.astro',
+        Header: './src/components/Header.astro',
+        SocialIcons: './src/components/SiteLinks.astro',
+      },
       sidebar: [
         {
           label: 'Start here',
           translations: { he: 'מתחילים' },
-          items: ['start/install', 'start/first-book', 'start/tour', 'start/bring-in', 'start/from-word'],
+          items: ['docs/start/install', 'docs/start/first-book', 'docs/start/tour', 'docs/start/bring-in', 'docs/start/from-word'],
         },
         {
           label: 'Writing',
           translations: { he: 'כתיבה' },
           items: [
-            'writing/chapters-and-parts',
-            'writing/moving-chapters',
-            'writing/formatting',
-            'writing/hebrew-and-english',
-            'writing/the-page',
-            'writing/references',
+            'docs/writing/chapters-and-parts',
+            'docs/writing/moving-chapters',
+            'docs/writing/formatting',
+            'docs/writing/hebrew-and-english',
+            'docs/writing/the-page',
+            'docs/writing/references',
           ],
         },
         {
           label: 'Planning',
           translations: { he: 'תכנון' },
           items: [
-            'planning/outlines',
-            'planning/timeline',
-            'planning/cards',
-            'planning/linking',
-            'planning/pages',
-            'planning/kinds',
-            'planning/tags',
-            'planning/book-chapters',
+            'docs/planning/outlines',
+            'docs/planning/timeline',
+            'docs/planning/cards',
+            'docs/planning/linking',
+            'docs/planning/pages',
+            'docs/planning/kinds',
+            'docs/planning/tags',
+            'docs/planning/book-chapters',
           ],
         },
         {
           label: 'Keeping it safe',
           translations: { he: 'שמירה על הכתוב' },
-          items: ['safe/saving', 'safe/versions', 'safe/other-apps', 'safe/backups'],
+          items: ['docs/safe/saving', 'docs/safe/versions', 'docs/safe/other-apps', 'docs/safe/backups'],
         },
         {
           label: 'Sharing',
           translations: { he: 'שיתוף' },
-          items: ['sharing/export'],
+          items: ['docs/sharing/export'],
         },
         {
           label: 'Your files',
           translations: { he: 'הקבצים שלך' },
-          items: ['files/folder', 'files/chapters', 'files/outlines', 'files/pages'],
+          items: ['docs/files/folder', 'docs/files/chapters', 'docs/files/outlines', 'docs/files/pages'],
         },
         {
           label: 'Reference',
           translations: { he: 'עיון' },
-          items: ['reference/shortcuts', 'reference/settings', 'reference/questions', 'reference/words'],
+          items: ['docs/reference/shortcuts', 'docs/reference/settings', 'docs/reference/questions', 'docs/reference/words'],
         },
         {
           label: 'About',
           translations: { he: 'אודות' },
-          items: ['about/credits', 'about/translate', 'about/problems'],
+          items: ['docs/about/credits', 'docs/about/translate', 'docs/about/problems'],
         },
       ],
-      plugins: [starlightLinksValidator()],
+      // The site's own pages (src/pages) aren't Starlight's, so the link checker can't see them; the site
+      // tests check their links instead.
+      plugins: [starlightLinksValidator({ exclude: ['/', '/{support,languages}/', '/he/', '/he/{support,languages}/'] })],
     }),
   ],
 })

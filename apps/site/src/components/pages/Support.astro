@@ -1,0 +1,55 @@
+---
+// Support Plot Device (Milestone 24): who makes it, what support makes possible, and the ways to help.
+// An invitation, never a guilt trip; the one place the site may say Plot Device is free to use.
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro'
+import SiteFooter from '../SiteFooter.astro'
+import { BUY_ME_A_COFFEE, path, words, type Lang } from '../../site'
+
+const { lang } = Astro.props as { lang: Lang }
+const t = (key: string) => words(lang, key)
+const makes = ['time', 'mac', 'languages', 'calm']
+const ways = [
+  { key: 'tell' },
+  { key: 'report', href: path(lang, 'docs/about/problems/') },
+  { key: 'translate', href: path(lang, 'languages/') },
+]
+---
+
+<StarlightPage frontmatter={{ title: t('support-title'), description: t('support-description'), template: 'splash', tableOfContents: false, editUrl: false }}>
+  <div class="landing page">
+    <header class="page-head">
+      <h1>{t('support-title')}</h1>
+      <p class="lede">{t('support-lede')}</p>
+      <p>{t('support-cost')}</p>
+    </header>
+
+    <section class="makes">
+      <h2>{t('support-makes-title')}</h2>
+      <ul>{makes.map((key) => <li>{t(`support-makes-${key}`)}</li>)}</ul>
+    </section>
+
+    <section class="ways">
+      <h2>{t('support-ways-title')}</h2>
+      <div class="coffee card">
+        <h3>{t('support-coffee-title')}</h3>
+        <p>{t('support-coffee-text')}</p>
+        <a class="button primary" href={BUY_ME_A_COFFEE}>{t('support-coffee-button')}</a>
+      </div>
+      <div class="cards">
+        {
+          ways.map(({ key, href }) => (
+            <div class="card">
+              <h3>{t(`support-${key}-title`)}</h3>
+              <p>{t(`support-${key}-text`)}</p>
+              {href && <a {href}>{t(`support-${key}-link`)}</a>}
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <p class="no-pressure">{t('support-no-pressure')}</p>
+
+    <SiteFooter {lang} page="support/" />
+  </div>
+</StarlightPage>
