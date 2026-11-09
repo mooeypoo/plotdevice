@@ -61,6 +61,9 @@ async function setup(files: Record<string, string> = BOOK) {
   }
 }
 
+/** These write real zip files, several per test; Windows runners are slow at that (one ran past 5s). */
+const ZIPS = { timeout: 30_000 }
+
 describe('the offer', () => {
   it('comes once, and only when the book has some writing and two pages about its world', async () => {
     const { session, write } = await setup()
@@ -75,7 +78,7 @@ describe('the offer', () => {
   })
 })
 
-describe('automatic backups', () => {
+describe('automatic backups', ZIPS, () => {
   it('none until a folder is chosen; then at once, and once a day when the book changed', async () => {
     const { session, folder, later, write, zips } = await setup()
     expect((await session.runIfDue()).saved).toBeNull()
@@ -131,7 +134,7 @@ describe('automatic backups', () => {
   })
 })
 
-describe('restoring', () => {
+describe('restoring', ZIPS, () => {
   it('lists the book’s backups, previews the difference, and opens one as a copy without touching the book', async () => {
     const { session, folder, write, root } = await setup()
     await session.setFolder(folder)
