@@ -62,9 +62,11 @@ test('a D&D campaign: five kinds, sessions, the session plan, an NPC linked from
   await page.locator('[data-outline="outlines/session-plan.md"]').click()
   await expect(page.getByTestId('outline-guide')).toHaveCount(0)
   const card = page.locator('.outline-card', { hasText: 'A messenger is waiting at the inn' })
-  // Its ⋯ shows on hover or focus (Milestone 17), so point at the card first, as an author would.
+  // Its ⋯ shows on hover or focus (Milestone 17), so point at the card first, as an author would, then
+  // wait for the menu to settle before choosing from it (it was re-drawn under the click on Windows).
   await card.hover()
-  await card.locator('.menu-button').first().click()
+  await card.getByRole('button', { name: /^Actions for/ }).click()
+  await expect(page.getByTestId('menu-link-to')).toBeVisible()
   await page.getByTestId('menu-link-to').click()
   await page.getByTestId('link-search').fill('Captain Vey')
   await page.getByTestId('link-search').press('Enter')
