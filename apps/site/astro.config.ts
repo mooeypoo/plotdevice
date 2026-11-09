@@ -119,7 +119,16 @@ export default defineConfig({
         // The site's own pages (src/pages) aren't Starlight's, so the link checker can't see them; the site
         // tests check their links instead.
         starlightLinksValidator({
-          exclude: ['/', '/{support,languages}/', '/he/', '/he/{support,languages}/', '/compare/', '/he/compare/'],
+          exclude: [
+            '/',
+            '/{support,languages}/',
+            '/he/',
+            '/he/{support,languages}/',
+            '/compare/',
+            '/he/compare/',
+            '/download/',
+            '/he/download/',
+          ],
         }),
       ],
     }),

@@ -1,0 +1,169 @@
+---
+// Download Plot Device (Milestone 26): the newest version for each computer, in plain words, with the
+// reader's own computer first; older versions folded away. Every Download button on the site comes here,
+// so a writer never lands on GitHub's release page with its notes and files they don't need. The files
+// come from releases.json, which updates itself when a release is published (see src/downloads.ts).
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro'
+import SiteFooter from '../SiteFooter.astro'
+import { ALL_RELEASES, LATEST, PREVIOUS, megabytes, type File, type Kind, type Release } from '../../downloads'
+import { GUIDE, path, words, type Lang } from '../../site'
+
+const { lang } = Astro.props as { lang: Lang }
+const t = (key: string, ...params: string[]) => words(lang, key, ...params)
+const date = (release: Release) =>
+  new Intl.DateTimeFormat(lang, { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(`${release.date}T12:00:00Z`))
+const size = (file: File) => t('download-size', megabytes(file))
+const support = `<a href="${path(lang, 'support/')}">${t('download-support-link')}</a>`
+const files = (release: Release) => Object.entries(release.files) as [Kind, File][]
+---
+
+<StarlightPage frontmatter={{ title: t('download'), description: t('download-description'), template: 'splash', tableOfContents: false, editUrl: false }}>
+  <div class="landing page download">
+    <header class="page-head">
+      <h1>{t('download')}</h1>
+      {
+        LATEST ? (
+          <>
+            <p class="lede">{t('download-lede', LATEST.version, date(LATEST))}</p>
+            <p class="whats-new">
+              <a href={LATEST.notes}>{t('download-whats-new')}</a>
+            </p>
+          </>
+        ) : (
+          <p class="lede">
+            <a href={ALL_RELEASES}>{t('download-none')}</a>
+          </p>
+        )
+      }
+    </header>
+
+    <p class="on-phone" hidden>{t('download-on-phone')}</p>
+
+    {
+      LATEST && (
+        <div class="systems">
+          <article class="system" data-system="windows">
+            <p class="yours" hidden>
+              {t('download-yours')}
+            </p>
+            <h2>Windows</h2>
+            {LATEST.files.windows ? (
+              <div class="choice">
+                <a class="button primary" href={LATEST.files.windows.url}>
+                  {t('download-windows-button')}
+                </a>
+                <p class="size">{size(LATEST.files.windows)}</p>
+              </div>
+            ) : (
+              <p class="soon">{t('download-soon')}</p>
+            )}
+            <p class="note">{t('download-windows-note')}</p>
+          </article>
+
+          <article class="system" data-system="linux">
+            <p class="yours" hidden>
+              {t('download-yours')}
+            </p>
+            <h2>Linux</h2>
+            {LATEST.files.appimage || LATEST.files.deb ? (
+              <>
+                {LATEST.files.appimage && (
+                  <div class="choice">
+                    <a class="button primary" href={LATEST.files.appimage.url}>
+                      {t('download-appimage-button')}
+                    </a>
+                    <p class="size">{size(LATEST.files.appimage)}</p>
+                    <p class="note">{t('download-appimage-note')}</p>
+                  </div>
+                )}
+                {LATEST.files.deb && (
+                  <div class="choice">
+                    <a class="button" href={LATEST.files.deb.url}>
+                      {t('download-deb-button')}
+                    </a>
+                    <p class="size">{size(LATEST.files.deb)}</p>
+                    <p class="note">{t('download-deb-note')}</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p class="soon">{t('download-soon')}</p>
+            )}
+          </article>
+
+          <article class="system" data-system="mac">
+            <p class="yours" hidden>
+              {t('download-yours')}
+            </p>
+            <h2>Mac</h2>
+            {LATEST.files.mac ? (
+              <div class="choice">
+                <a class="button primary" href={LATEST.files.mac.url}>
+                  {t('download-mac-button')}
+                </a>
+                <p class="size">{size(LATEST.files.mac)}</p>
+              </div>
+            ) : (
+              <>
+                <p class="soon">{t('download-soon')}</p>
+                <p class="note" set:html={t('download-mac-note', support)} />
+              </>
+            )}
+          </article>
+        </div>
+      )
+    }
+
+    <section class="after">
+      <h2>{t('download-after-title')}</h2>
+      <p>{t('download-after-text')}</p>
+      <p><a href={path(lang, GUIDE)}>{t('download-after-link')}</a></p>
+    </section>
+
+    {
+      PREVIOUS.length > 0 && (
+        <details class="previous">
+          <summary>{t('download-previous-title')}</summary>
+          <p>{t('download-previous-text')}</p>
+          <ul>
+            {PREVIOUS.map((release) => (
+              <li>
+                <span class="version">
+                  <strong>{release.version}</strong> · {date(release)} · <a href={release.notes}>{t('download-previous-notes')}</a>
+                </span>
+                <span class="files">
+                  {files(release).map(([kind, file]) => (
+                    <a href={file.url}>{t(`download-file-${kind}`)}</a>
+                  ))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )
+    }
+
+    <p class="no-pressure" set:html={t('download-support', support)} />
+
+    <SiteFooter {lang} page="download/" />
+  </div>
+</StarlightPage>
+
+<script>
+  // The reader's own computer comes first, marked "Your computer". On a phone or tablet, a line says
+  // Plot Device is for computers. Without this script, every computer shows in the same order.
+  const agent = navigator.userAgent
+  const phone = /Android|iPhone|iPad|iPod/.test(agent) || (/Macintosh/.test(agent) && navigator.maxTouchPoints > 1)
+  const system = phone ? null : /Windows/.test(agent) ? 'windows' : /Macintosh|Mac OS X/.test(agent) ? 'mac' : /Linux|X11|CrOS/.test(agent) ? 'linux' : null
+  if (phone) {
+    const note = document.querySelector<HTMLElement>('.download .on-phone')
+    if (note) note.hidden = false
+  }
+  const card = system ? document.querySelector<HTMLElement>(`.download .system[data-system="${system}"]`) : null
+  if (card) {
+    card.classList.add('mine')
+    const badge = card.querySelector<HTMLElement>('.yours')
+    if (badge) badge.hidden = false
+    card.parentElement?.prepend(card)
+  }
+</script>

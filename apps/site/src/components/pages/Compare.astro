@@ -65,7 +65,7 @@ const STRENGTHS: { key: string; icon: string }[] = [
     </Promise>
 
     <div class="actions pitch-actions">
-      <a class="button primary" href={DOWNLOAD}>{t('download')}</a>
+      <a class="button primary" href={path(lang, DOWNLOAD)}>{t('download')}</a>
       <a class="button" href={path(lang, GUIDE)}>{t('read-guide')}</a>
     </div>
 
@@ -138,7 +138,7 @@ const STRENGTHS: { key: string; icon: string }[] = [
       <h2>{t('compare-closing-title')}</h2>
       <p>{t('compare-closing-text')}</p>
       <div class="actions">
-        <a class="button primary" href={DOWNLOAD}>{t('download')}</a>
+        <a class="button primary" href={path(lang, DOWNLOAD)}>{t('download')}</a>
         <a class="button" href={path(lang, GUIDE)}>{t('read-guide')}</a>
       </div>
     </section>
