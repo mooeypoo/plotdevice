@@ -6,7 +6,7 @@ import Promise from '../landing/Promise.astro'
 import Folder from '../landing/Folder.astro'
 import Shot from '../Shot.astro'
 import SiteFooter from '../SiteFooter.astro'
-import { DOWNLOAD, SAMPLE, path, words, type Lang } from '../../site'
+import { DOWNLOAD, GUIDE, SAMPLE, path, words, type Lang } from '../../site'
 
 const { lang } = Astro.props as { lang: Lang }
 const t = (key: string, ...params: string[]) => words(lang, key, ...params)
@@ -26,7 +26,7 @@ const supportLink = `<a href="${path(lang, 'support/')}">${t('closing-support-li
       lede={t('hero-lede')}
       download={t('download')}
       guide={t('read-guide')}
-      guideHref={path(lang, 'docs/')}
+      guideHref={path(lang, GUIDE)}
       platforms={t('platforms')}
       shotAlt={t('hero-shot-alt')}
     />
@@ -64,7 +64,7 @@ const supportLink = `<a href="${path(lang, 'support/')}">${t('closing-support-li
       <h2>{t('closing-title')}</h2>
       <div class="actions">
         <a class="button primary" href={DOWNLOAD}>{t('download')}</a>
-        <a class="button" href={path(lang, 'docs/')}>{t('read-guide')}</a>
+        <a class="button" href={path(lang, GUIDE)}>{t('read-guide')}</a>
       </div>
       <p class="credit" set:html={t('closing-support', supportLink)} />
     </section>

@@ -3,13 +3,13 @@
 // (Replaces Starlight's SocialIcons component; on narrow screens Starlight moves these into its menu,
 // and the site's pages also repeat them in their footer.)
 import Default from '@astrojs/starlight/components/SocialIcons.astro'
-import { isLang, path, words } from '../site'
+import { GUIDE, isLang, path, words } from '../site'
 
 const found = Astro.locals.starlightRoute.lang
 const lang = isLang(found) ? found : 'en'
 const links = [
   { href: path(lang), text: words(lang, 'nav-why') },
-  { href: path(lang, 'docs/'), text: words(lang, 'nav-guide') },
+  { href: path(lang, GUIDE), text: words(lang, 'nav-guide') },
   { href: path(lang, 'support/'), text: words(lang, 'nav-support') },
 ]
 ---

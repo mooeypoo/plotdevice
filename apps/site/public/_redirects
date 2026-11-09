@@ -2,5 +2,10 @@
 # from a Hebrew-language browser is sent to /he/ by the page itself (src/components/Head.astro), so a
 # reader's own choice of language always wins.
 
+# The guide has no front page of its own: it starts at installing. A redirect on the server, so the
+# browser goes straight there without a page in between. (The site's own links go there directly.)
+/docs     /docs/start/install/     301
+/he/docs  /he/docs/start/install/  301
+
 # A missing Hebrew page answers with the Hebrew not-found page; anything else gets /404.html.
 /he/*  /he/404/  404
