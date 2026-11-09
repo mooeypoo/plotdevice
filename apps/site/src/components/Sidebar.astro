@@ -1,0 +1,8 @@
+---
+// Starlight's own sidebar, without the sidebar plugin's switcher between the Guide and the Technical docs
+// (Milestone 25, owner 2026-11-09): writers never see a way into the technical side from the guide. The
+// plugin still gives each side its own list of pages; the technical side has a "Back to the guide" link.
+import Default from '@astrojs/starlight/components/Sidebar.astro'
+---
+
+<Default><slot /></Default>
