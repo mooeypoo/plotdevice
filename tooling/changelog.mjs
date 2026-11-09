@@ -114,7 +114,8 @@ export function compareVersions(a, b) {
 }
 
 export const REPOSITORY = 'https://github.com/mooeypoo/plotdevice'
-const DOCUMENTATION = 'https://mooeypoo.github.io/plotdevice/'
+/** The website, where every download link goes (Milestone 26). */
+const SITE = 'https://plotdevice.app/'
 
 /**
  * `latest.json`, attached to every release. The app asks for it at
@@ -128,7 +129,7 @@ export function latestJson({ version, date }) {
     version,
     date,
     notes: `${REPOSITORY}/releases/tag/v${version}`,
-    download: { en: `${DOCUMENTATION}start/install/`, he: `${DOCUMENTATION}he/start/install/` },
+    download: { en: `${SITE}download/`, he: `${SITE}he/download/` },
   }
 }
 
