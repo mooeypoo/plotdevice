@@ -19,7 +19,7 @@ Status: **Built** (2026-11-09). Approved by the owner the same day (decisions be
 3. **The comparison page.** Apps: Google Docs, Microsoft Word, Scrivener, Dabble, Novelcrafter, Campfire and Obsidian; more may be added later.
    - **Language:** general language support and right-to-left writing, not only Hebrew.
    - **How it's written:** short plain words, with yes and no as a check and a cross (owner, after the first build; rows are worded so a check is good for the writer: "Works without an account", "No AI built in"); a "checked on" date; a source for every competitor answer; and "Not documented" where a company's pages say nothing, never a guessed "No".
-   - **Honest both ways:** a section on when another app may suit a writer better, and Plot Device's own gaps shown in its column.
+   - **Honest both ways:** Plot Device's own gaps shown in its column. (A section on when another app may suit a writer better was built, then removed by the owner.)
    - **No prices.**
 4. **AI and privacy.**
    - The table has "AI built in" and "Where your writing is kept".
@@ -52,10 +52,11 @@ Status: **Built** (2026-11-09). Approved by the owner the same day (decisions be
 2. **Four promise cards,** each with a line icon: your book stays with you, no AI reads it, files that outlast any app, backups that are yours.
 3. **Two screenshot rows,** as on the front page: every language in both directions, and made for novels. Then Download.
 4. **"Side by side":** the table, showing Google Docs, Word, Scrivener and Dabble at first. "Show all 7 apps" adds Novelcrafter, Campfire and Obsidian; without JavaScript, all of them show.
-5. **"When another app may suit you better":** short cards.
-6. **"Bring your book with you":** Word import.
-7. **A closing band** with Download.
-8. **Sources,** folded away.
+5. **"Work on the book you already have":** importing from Word. (Named so it doesn't sound like sync.)
+6. **A closing band** with Download.
+7. **Sources,** folded away.
+
+The owner later removed the "When another app may suit you better" cards.
 
 **A tooling fix:** the translation report now writes `sourceHash` in quotes. A hash like `665561e05599` was being read as a number.
 

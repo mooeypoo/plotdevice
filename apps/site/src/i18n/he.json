@@ -180,12 +180,6 @@
   "compare-different-languages": "התפריטים קיימים בעברית ובאנגלית, וכל שפה חדשה היא רק עניין של תרגום. כתיבה מימין לשמאל, בעברית, בערבית או בפרסית, עובדת פסקה אחרי פסקה, גם עם אנגלית באמצע משפט.",
   "compare-different-novels-title": "נבנתה בשביל רומנים",
   "compare-different-novels": "מתווים על לוח, ציר זמן של כל קווי העלילה, ודפים לדמויות ולמקומות, לצד העמוד בזמן הכתיבה.",
-  "compare-better-title": "מתי אפליקציה אחרת עשויה להתאים יותר",
-  "compare-better-devices": "כותבים היום במק, בטלפון או בטאבלט. בינתיים Plot Device עובדת על Windows (גרסה מוקדמת) ועל Linux; ‏Scrivener, ‏Obsidian והאפליקציות המקוונות זמינות ביותר מכשירים.",
-  "compare-better-together": "כותבים באותו מסמך עם אחרים, באותו זמן. ‏Google Docs ו־Word נבנו בשביל זה.",
-  "compare-better-ai": "רוצים עזרה מבינה מלאכותית בטיוטות. ‏Novelcrafter בנויה סביב זה, ו־Word ו־Google Docs מציעות את זה.",
-  "compare-better-mature": "רוצים שנים של ליטוש וכל אפשרות הפקה. ‏Scrivener משתפרת כבר הרבה זמן.",
-  "compare-better-world": "בונים עולם גדול עם מפות. ל־Campfire יש כלים בשביל זה.",
   "compare-sources-title": "מקורות",
   "compare-sources-text": "כל תשובה מגיעה מהדפים של החברה עצמה, ונבדקה בתאריך שלמעלה.",
   "compare-date": "9 בנובמבר 2026",
@@ -196,12 +190,7 @@
   "compare-show-fewer": "הצגת פחות אפליקציות",
   "compare-closing-title": "לנסות עם הספר שלך.",
   "compare-closing-text": "להביא קובץ Word, או להתחיל ספר חדש. הקבצים נשארים שלך, לא משנה מה תחליטו.",
-  "compare-better-devices-title": "במק, בטלפון או בטאבלט",
-  "compare-better-together-title": "כתיבה עם אחרים בו־זמנית",
-  "compare-better-ai-title": "עזרה מבינה מלאכותית בטיוטות",
-  "compare-better-mature-title": "שנים של ליטוש",
-  "compare-better-world-title": "מפות לעולם גדול",
-  "compare-move-title": "להביא את הספר איתך",
-  "compare-move-text": "כבר כותבים ב־Word או ב־Google Docs? ‏Plot Device מביאה פנימה קובץ Word פרק אחרי פרק, ומראה איך הוא מתחלק לפני שמשהו נוצר. קובץ ה־Word עצמו אף פעם לא משתנה.",
-  "compare-move-link": "איך מביאים פנימה קובץ Word"
+  "compare-move-title": "ממשיכים לעבוד על הספר שכבר כתבתם",
+  "compare-move-text": "כבר כותבים ב־Word או ב־Google Docs? מייבאים את כתב היד כקובץ Word, ו־Plot Device מחלקת אותו לפרקים ומראה איך לפני שמשהו נוצר. קובץ ה־Word עצמו אף פעם לא משתנה.",
+  "compare-move-link": "איך מייבאים קובץ Word"
 }

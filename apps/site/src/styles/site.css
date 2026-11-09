@@ -400,7 +400,7 @@ body:has(.landing) .content-panel:has(h1#_top) {
 }
 
 /* How Plot Device compares (Milestone 25): an honest pitch. The promise, four promise cards, two
-   screenshot rows (the front page's), then the table as proof, where others fit better, moving in, a
+   screenshot rows (the front page's), then the table as proof, importing, a
    closing band, and the sources folded away. */
 .landing.page.compare {
   --measure: 66rem;
@@ -616,31 +616,6 @@ body:has(.landing) .content-panel:has(h1#_top) {
 }
 .compare .show-all[hidden] {
   display: none;
-}
-
-/* Where another app may suit a writer better: short cards, each a situation and the app for it. */
-.landing.page.compare .better ul {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
-  gap: 1rem;
-  margin: 1.5rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-.landing.page.compare .better li {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  margin: 0;
-  padding: 1.1rem 1.25rem;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
-  font-size: 0.98rem;
-  line-height: 1.55;
-  color: var(--color-text-secondary);
-}
-.landing.page.compare .better li strong {
-  color: var(--color-text);
 }
 
 .landing.page.compare .move {

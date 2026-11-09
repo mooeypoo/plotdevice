@@ -181,12 +181,6 @@
   "compare-different-languages": "Text of one strength on the comparison page.",
   "compare-different-novels-title": "Heading of one strength on the comparison page.",
   "compare-different-novels": "Text of one strength on the comparison page.",
-  "compare-better-title": "Heading of the comparison page's honest section on where other apps are a better fit.",
-  "compare-better-devices": "One item in the list of situations where another app may suit the writer better. Fair and plain: no sarcasm.",
-  "compare-better-together": "One item in the list of situations where another app may suit the writer better. Fair and plain: no sarcasm.",
-  "compare-better-ai": "One item in the list of situations where another app may suit the writer better. Fair and plain: no sarcasm.",
-  "compare-better-mature": "One item in the list of situations where another app may suit the writer better. Fair and plain: no sarcasm.",
-  "compare-better-world": "One item in the list of situations where another app may suit the writer better. Fair and plain: no sarcasm.",
   "compare-sources-title": "Heading of the list of the companies' own pages the comparison is based on.",
   "compare-sources-text": "Line above the list of sources on the comparison page.",
   "compare-date": "The date the comparison was checked, written out. Shown inside compare-checked.",
@@ -197,12 +191,7 @@
   "compare-show-fewer": "Button under the comparison table that hides the less common apps again.",
   "compare-closing-title": "Heading of the closing section of the comparison page, above the Download button.",
   "compare-closing-text": "Line under the comparison page's closing heading.",
-  "compare-better-devices-title": "Short heading of one situation where another app may suit the writer better, on the comparison page.",
-  "compare-better-together-title": "Short heading of one situation where another app may suit the writer better, on the comparison page.",
-  "compare-better-ai-title": "Short heading of one situation where another app may suit the writer better, on the comparison page.",
-  "compare-better-mature-title": "Short heading of one situation where another app may suit the writer better, on the comparison page.",
-  "compare-better-world-title": "Short heading of one situation where another app may suit the writer better, on the comparison page.",
-  "compare-move-title": "Heading of the comparison page's section on moving a book in from another app.",
-  "compare-move-text": "Text of the comparison page's section on moving a book in.",
-  "compare-move-link": "Link to the guide page on bringing in a Word file."
+  "compare-move-title": "Heading of the comparison page's section on importing a book the writer already has, as a Word file. Should not suggest syncing.",
+  "compare-move-text": "Text of the comparison page's section on importing an existing manuscript from a Word file.",
+  "compare-move-link": "Link to the guide page on importing a Word file."
 }

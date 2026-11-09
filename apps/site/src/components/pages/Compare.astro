@@ -1,8 +1,8 @@
 ---
 // How Plot Device compares (Milestone 25), as an honest pitch: the promise, what Plot Device does
-// differently, a way to try it, then the table as proof, where another app may suit a writer better, and
-// the sources. Fair by design: dated, sourced, "Not documented" rather than a guess, and honest about
-// Plot Device's own gaps. The table shows four well-known apps at first; "Show all" reveals the rest
+// differently, a way to try it, then the table as proof, importing a book from Word, and the sources.
+// Fair by design: dated, sourced, "Not documented" rather than a guess, and honest about Plot Device's
+// own gaps. The table shows four well-known apps at first; "Show all" reveals the rest
 // (without JavaScript, all of them show).
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro'
 import Promise from '../landing/Promise.astro'
@@ -13,7 +13,6 @@ import { DOWNLOAD, GUIDE, path, words, type Lang } from '../../site'
 const { lang } = Astro.props as { lang: Lang }
 const t = (key: string, ...params: string[]) => words(lang, key, ...params)
 const report = `<a href="${path(lang, 'docs/about/problems/')}">${t('compare-checked-link')}</a>`
-const better = ['devices', 'together', 'ai', 'mature', 'world']
 const tone = (key: string) => (key === 'compare-nd' ? 'nd' : undefined)
 // Yes and No show as a check and a cross; screen readers read the word.
 const mark = (key: string) => (key === 'compare-yes' ? 'yes' : key === 'compare-no' ? 'no' : undefined)
@@ -128,19 +127,6 @@ const STRENGTHS: { key: string; icon: string }[] = [
       </p>
     </section>
 
-    <section class="better" aria-labelledby="better">
-      <h2 id="better">{t('compare-better-title')}</h2>
-      <ul>
-        {
-          better.map((key) => (
-            <li>
-              <strong>{t(`compare-better-${key}-title`)}</strong>
-              <span>{t(`compare-better-${key}`)}</span>
-            </li>
-          ))
-        }
-      </ul>
-    </section>
 
     <section class="move">
       <h2>{t('compare-move-title')}</h2>

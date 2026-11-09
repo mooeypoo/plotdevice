@@ -181,12 +181,6 @@
   "compare-different-languages": "The menus come in English and Hebrew, and each new language is a translation away. Right-to-left writing, in Hebrew, Arabic or Persian, works paragraph by paragraph, even with English in the middle of a sentence.",
   "compare-different-novels-title": "Made for novels",
   "compare-different-novels": "Outlines on a board, a timeline of every storyline, and pages for your characters and places, beside the page while you write.",
-  "compare-better-title": "When another app may suit you better",
-  "compare-better-devices": "You write on a Mac, a phone or a tablet today. Plot Device runs on Windows (early) and Linux for now; Scrivener, Obsidian and the online apps reach more devices.",
-  "compare-better-together": "You write in the same document with others, at the same time. Google Docs and Word are made for that.",
-  "compare-better-ai": "You want AI help with your drafts. Novelcrafter is built around it, and Word and Google Docs offer it.",
-  "compare-better-mature": "You want years of polish and every compiling option. Scrivener has been refined for a long time.",
-  "compare-better-world": "You are building a large world with maps. Campfire has tools for that.",
   "compare-sources-title": "Sources",
   "compare-sources-text": "Each answer comes from the company's own pages, checked on the date above.",
   "compare-date": "9 November 2026",
@@ -197,12 +191,7 @@
   "compare-show-fewer": "Show fewer apps",
   "compare-closing-title": "Try it with your own book.",
   "compare-closing-text": "Bring in a Word file, or start a new book. Your files stay yours, whatever you decide.",
-  "compare-better-devices-title": "On a Mac, phone or tablet",
-  "compare-better-together-title": "Writing with others at once",
-  "compare-better-ai-title": "AI help with drafts",
-  "compare-better-mature-title": "Years of polish",
-  "compare-better-world-title": "Maps for a big world",
-  "compare-move-title": "Bring your book with you",
-  "compare-move-text": "Already writing in Word or Google Docs? Plot Device brings in a Word file chapter by chapter, and shows you how it splits before anything is made. Your Word file is never changed.",
-  "compare-move-link": "How bringing in a Word file works"
+  "compare-move-title": "Work on the book you already have",
+  "compare-move-text": "Already writing in Word or Google Docs? Import your manuscript as a Word file, and Plot Device splits it into chapters, showing you how before anything is made. Your Word file is never changed.",
+  "compare-move-link": "How importing a Word file works"
 }
