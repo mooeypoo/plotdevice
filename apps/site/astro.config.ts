@@ -9,11 +9,6 @@ import starlightLinksValidator from 'starlight-links-validator'
 export default defineConfig({
   site: 'https://plotdevice.app',
   trailingSlash: 'always',
-  // The guide has no front page of its own: it starts at installing.
-  redirects: {
-    '/docs': '/docs/start/install/',
-    '/he/docs': '/he/docs/start/install/',
-  },
   integrations: [
     starlight({
       title: 'Plot Device',

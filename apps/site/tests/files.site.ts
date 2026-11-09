@@ -47,7 +47,7 @@ test('a missing Hebrew page answers with the Hebrew not-found page (Netlify)', (
     .split('\n')
     .filter((line) => line.trim() && !line.startsWith('#'))
     .map((line) => line.trim().split(/\s+/))
-  expect(rules).toEqual([['/he/*', '/he/404/', '404']])
+  expect(rules.at(-1)).toEqual(['/he/*', '/he/404/', '404'])
   expect(existsSync(join(dist, 'he/404/index.html'))).toBe(true)
   expect(existsSync(join(dist, '404.html'))).toBe(true)
 })
@@ -69,4 +69,15 @@ test('Netlify builds the site itself, with the update file, from the repository 
   expect(readFileSync(join(dist, '_headers'), 'utf8')).toContain('/_astro/*')
   // Building never runs the app: the screenshots are in the repository.
   expect(readFileSync(join(site, '.gitignore'), 'utf8')).not.toContain('screens')
+})
+
+test('the guide’s own address is a redirect on the server, never a page in between, and the site links past it', () => {
+  const rules = readFileSync(join(dist, '_redirects'), 'utf8')
+  expect(rules).toMatch(/^\/docs\s+\/docs\/start\/install\/\s+301$/m)
+  expect(rules).toMatch(/^\/he\/docs\s+\/he\/docs\/start\/install\/\s+301$/m)
+  expect(existsSync(join(dist, 'docs/index.html'))).toBe(false)
+  const through = files(dist)
+    .filter((file) => file.endsWith('.html') && /href="(\/he)?\/docs\/"/.test(readFileSync(file, 'utf8')))
+    .map((file) => relative(dist, file))
+  expect(through).toEqual([])
 })

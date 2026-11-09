@@ -7,6 +7,8 @@ import he from './i18n/he.json'
 
 /** Where the installers are. Today GitHub's releases page (owner, 2026-11-09). */
 export const DOWNLOAD = 'https://github.com/mooeypoo/plotdevice/releases'
+/** The guide's first page, where the site's Guide links go (`docs/` itself is a redirect, in public/_redirects). */
+export const GUIDE = 'docs/start/install/'
 export const BUY_ME_A_COFFEE = 'https://buymeacoffee.com/mooeypoo'
 export const MAKER = { name: 'Moriel Schottlender', href: 'https://moriel.tech' }
 
