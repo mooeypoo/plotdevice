@@ -1,0 +1,13 @@
+# Plot Device's website, plotdevice.app (Milestone 24).
+#
+# GitHub Actions builds the site (.github/workflows/docs.yml), because the guide's screenshots are taken
+# from the real app, which needs Electron. The workflow then sends the finished site here with
+# `netlify deploy`. Netlify itself never builds it: `ignore` skips every build Netlify would start from a
+# push, so linking the site to the repository is harmless.
+#
+# Redirects and headers are in apps/site/public (_redirects, _headers), so they travel with the site.
+
+[build]
+  publish = "apps/site/dist"
+  command = "echo 'Built by GitHub Actions; see .github/workflows/docs.yml'"
+  ignore = "exit 0"
