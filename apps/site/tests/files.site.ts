@@ -62,9 +62,11 @@ test('the update file is in the site, in the shape the app reads', () => {
   expect(latest.download.en).toMatch(/^https:\/\//)
 })
 
-test('Netlify publishes what GitHub Actions built, and never builds the site itself', () => {
+test('Netlify builds the site itself, with the update file, from the repository alone', () => {
   const config = readFileSync(join(site, '../../netlify.toml'), 'utf8')
   expect(config).toMatch(/^\s*publish = "apps\/site\/dist"$/m)
-  expect(config).toMatch(/^\s*ignore = "exit 0"$/m)
+  expect(config).toMatch(/^\s*command = "pnpm site:build && pnpm site:updates"$/m)
   expect(readFileSync(join(dist, '_headers'), 'utf8')).toContain('/_astro/*')
+  // Building never runs the app: the screenshots are in the repository.
+  expect(readFileSync(join(site, '.gitignore'), 'utf8')).not.toContain('screens')
 })

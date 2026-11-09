@@ -1,26 +1,27 @@
 name: Website
 
-# The site at https://plotdevice.app (Milestone 10; on Netlify since Milestone 24). Pull requests that
-# touch it are built and checked, without publishing. A change that reaches main publishes it (owner decision,
-# 2026-10-26): the guide, the app's words or its look, or the demo novels the screenshots show. It can
-# also be run by hand, from the Actions tab.
+# Checks the site at https://plotdevice.app (Milestones 10 and 24) on every pull request and push that
+# touches it: the build (every link and every button name), the translation report, and the site tests.
+# Netlify builds and publishes the site itself, from netlify.toml; this workflow publishes nothing.
 on:
   push:
     branches: [main]
     paths:
       - 'apps/site/**'
-      - 'apps/desktop/**'
-      - 'packages/**'
+      - 'packages/i18n/**'
+      - 'packages/ui-vue/src/theme/**'
       - 'samples/**'
       - 'tooling/site-translations.mjs'
+      - 'netlify.toml'
       - '.github/workflows/docs.yml'
   pull_request:
     paths:
       - 'apps/site/**'
-      - 'apps/desktop/**'
-      - 'packages/**'
+      - 'packages/i18n/**'
+      - 'packages/ui-vue/src/theme/**'
       - 'samples/**'
       - 'tooling/site-translations.mjs'
+      - 'netlify.toml'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
 
@@ -32,8 +33,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
+    env:
+      # The site never runs the app; its screenshots are in the repository (`pnpm site:screenshots`).
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -42,62 +46,11 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-
-      # The site's screenshots come from the real app, in every language and theme.
-      - name: Download Electron
-        working-directory: apps/desktop
-        run: node -e "require('electron')"
-      - name: Allow Chromium's sandbox
-        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-      - name: Take the screenshots
-        run: xvfb-run --auto-servernum pnpm site:screenshots
-
-      - name: Build the site (checks every link and every button name)
-        run: pnpm site:build
-      # The app's update notices will read plotdevice.app/updates/latest.json: a copy of the newest
-      # release's, made by the release workflow, so there's still one source.
-      - name: Copy the newest release's update file
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release download --repo "$GITHUB_REPOSITORY" --pattern latest.json --dir apps/site/dist/updates
+      - name: Build the site, as Netlify does (checks every link and every button name)
+        run: pnpm site:build && pnpm site:updates
       - name: Translation report
         run: pnpm site:translations
       - name: Browser for the site tests
         run: pnpm exec playwright install --with-deps chromium
       - name: Accessibility, right-to-left and the site's files
         run: pnpm site:test
-      - uses: actions/upload-artifact@v4
-        with:
-          name: site
-          path: apps/site/dist
-
-  # The site is built here, where the app can run for its screenshots, and only sent to Netlify, which
-  # serves it and keeps the language request form. Needs the NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID
-  # repository secrets.
-  deploy:
-    if: github.event_name != 'pull_request'
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: netlify
-      url: https://plotdevice.app
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: site
-          path: site
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-      - name: Publish to Netlify
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        # Until the Netlify site exists and its secrets are added, the site is built and checked but not
-        # sent anywhere.
-        run: |
-          if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
-            echo "::notice::No Netlify secrets yet (NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID); the site wasn't published."
-            exit 0
-          fi
-          npx --yes netlify-cli@27.14.2 deploy --dir site --prod --no-build --message "${GITHUB_SHA::7}"

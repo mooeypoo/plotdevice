@@ -1,13 +1,18 @@
-# Plot Device's website, plotdevice.app (Milestone 24).
+# Plot Device's website, plotdevice.app (Milestone 24). Netlify builds it from this repository: connect
+# the repository in Netlify, and these settings do the rest. No secrets are needed.
 #
-# GitHub Actions builds the site (.github/workflows/docs.yml), because the guide's screenshots are taken
-# from the real app, which needs Electron. The workflow then sends the finished site here with
-# `netlify deploy`. Netlify itself never builds it: `ignore` skips every build Netlify would start from a
-# push, so linking the site to the repository is harmless.
-#
-# Redirects and headers are in apps/site/public (_redirects, _headers), so they travel with the site.
+# The guide's screenshots are in the repository (apps/site/src/assets/screens), made from the real app
+# with `pnpm site:screenshots`, so building the site never runs the app. Redirects and headers are in
+# apps/site/public (_redirects, _headers), so they travel with the site.
 
 [build]
   publish = "apps/site/dist"
-  command = "echo 'Built by GitHub Actions; see .github/workflows/docs.yml'"
-  ignore = "exit 0"
+  # The site, then a copy of the newest release's update file at /updates/latest.json.
+  command = "pnpm site:build && pnpm site:updates"
+  # Builds only when something the site is made from changed: its pages, the app's words and colours,
+  # the sample books it shows, or these settings. Pull requests get a preview either way.
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- apps/site packages/i18n packages/ui-vue/src/theme samples netlify.toml package.json pnpm-lock.yaml"
+
+[build.environment]
+  # The site never runs the app, so the install skips Electron's download.
+  ELECTRON_SKIP_BINARY_DOWNLOAD = "1"

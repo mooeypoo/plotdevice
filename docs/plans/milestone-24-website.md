@@ -54,7 +54,9 @@ When a Hebrew guide page is missing, the English one shows, with Starlight's "no
 - **A landing page already exists,** as a Starlight "splash" page ([src/content/docs/index.mdx](../../apps/site/src/content/docs/index.mdx)), with `Hero`, `Promise` and `Folder` pieces in [src/components/landing/](../../apps/site/src/components/landing/). These move into the new pages instead of being rewritten.
 - **The guide already has a "help translate" page** (`about/translate`). The new languages page links to it for people who want to translate. It doesn't repeat it.
 - **The address `/plotdevice/` is written into the guide's links** (about 20 places) and into the Download and guide buttons. All of them change.
-- **The screenshots are taken from the real app during the build** ([.github/workflows/docs.yml](../../.github/workflows/docs.yml)), with Electron running in CI. Netlify's own build machines can't easily do that, so **the site keeps building in GitHub Actions and is then sent to Netlify** (the `netlify deploy` command, with a token kept as a repository secret).
+- **The screenshots were taken from the real app during each build** (`pnpm site:screenshots`, with Electron running in CI), and weren't kept in the repository. Netlify's build machines can't run the app.
+  - **Change (owner, 2026-11-09):** the screenshots are now **kept in the repository** (22 MB, 136 images). Netlify then builds the site itself from Git with `netlify.toml`, with no secrets and no deploy step. When the app's look changes, run `pnpm site:screenshots` and commit the new screenshots.
+  - The first build of this milestone built the site in GitHub Actions and uploaded it with a Netlify token; the owner found that unnecessary work for a docs site.
 - **The update file `latest.json` is made by the release workflow** and attached to each GitHub release. The site's build copies the newest one into `/updates/latest.json`, so there's still a single source.
 
 ## Why Netlify, now that the repository stays public
@@ -122,7 +124,10 @@ GitHub Pages could serve plotdevice.app too, but Netlify adds two things this si
 - `apps/site/public/_redirects` (new): the Hebrew not-found rule.
 - `apps/site/src/components/Head.astro` and `Header.astro`: the reader's language (first visit, and remembering a choice), and the language menu in the top bar at every width.
 - `apps/site/tests/site.site.ts`: covers the new pages and addresses.
-- `.github/workflows/docs.yml`: deploys to Netlify instead of GitHub Pages, and copies `latest.json` from the newest release into the site.
+- `.github/workflows/docs.yml`: only checks the site (build, translation report, site tests); it no longer takes screenshots or publishes to GitHub Pages.
+- `netlify.toml` (new): Netlify's build. It builds only when the site's sources change, and makes pull request previews.
+- `package.json`: `pnpm site:updates` copies the newest release's `latest.json` into the built site.
+- `apps/site/src/assets/screens/` (now in the repository): the screenshots.
 - `README.md`: links point to plotdevice.app.
 - `tooling/site-translations.mjs`: English in its own folder, and the site's messages in the report.
 - `apps/site/paperl10n.config.json`: the language folders, and the catalog for Paper Lion.
@@ -145,7 +150,7 @@ GitHub Pages could serve plotdevice.app too, but Netlify adds two things this si
 
 ## What the owner sets up (outside the code)
 
-1. A Netlify site, with form notifications sent to your email. Then add two repository secrets: `NETLIFY_AUTH_TOKEN` and `NETLIFY_SITE_ID`.
+1. A Netlify site, made by connecting this repository (Netlify reads `netlify.toml`; no secrets). Turn on form detection, with form notifications sent to your email.
 2. Point plotdevice.app at Netlify, and add getplotdevice.com as a domain alias that forwards to plotdevice.app.
 3. Auto-renew on both domains.
 
@@ -183,7 +188,7 @@ Built on branch `milestone-24/website`, draft PR #54.
 - `pnpm arch`
 - `pnpm test`: 1566 passed, 4 skipped (as before).
 - `pnpm site:build`, with the link checker.
-- `pnpm site:test`: 41 passed, 1 skipped. The skipped test is the update file, which the workflow copies in. Run after copying `latest.json` as the workflow does, it passes too.
+- `pnpm site:test`: 43 passed, after `pnpm site:updates` (as Netlify and the workflow build it). Without the update file, its one test is skipped.
 
 **What the site tests cover**
 
