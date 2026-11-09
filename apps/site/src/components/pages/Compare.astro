@@ -1,0 +1,96 @@
+---
+// How Plot Device compares (Milestone 25): a plain-words table beside seven other writing apps, what Plot
+// Device does differently, where another app may suit a writer better, and the sources. Fair by design:
+// dated, sourced, "Not documented" rather than a guess, and honest about Plot Device's own gaps.
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro'
+import SiteFooter from '../SiteFooter.astro'
+import { APPS, CHECKED, GROUPS, NAMES, SOURCES } from '../../compare'
+import { path, words, type Lang } from '../../site'
+
+const { lang } = Astro.props as { lang: Lang }
+const t = (key: string, ...params: string[]) => words(lang, key, ...params)
+const report = `<a href="${path(lang, 'docs/about/problems/')}">${t('compare-checked-link')}</a>`
+const different = ['stays', 'ai', 'files', 'backups', 'languages', 'novels']
+const better = ['devices', 'together', 'ai', 'mature', 'world']
+const tone = (key: string) => (key === 'compare-nd' ? 'nd' : undefined)
+---
+
+<StarlightPage frontmatter={{ title: t('compare-title'), description: t('compare-description'), template: 'splash', tableOfContents: false, editUrl: false }}>
+  <div class="landing page compare">
+    <header class="page-head">
+      <h1>{t('compare-title')}</h1>
+      <p class="lede">{t('compare-lede')}</p>
+      <p class="checked" set:html={t('compare-checked', t(CHECKED), report)} />
+    </header>
+
+    <div class="compare-scroll" role="region" aria-label={t('compare-table-caption')} tabindex="0">
+      <table>
+        <caption class="sr-only">{t('compare-table-caption')}</caption>
+        <thead>
+          <tr>
+            <td></td>
+            {APPS.map((app) => <th scope="col" class:list={{ ours: app === 'plotdevice' }} dir="ltr">{NAMES[app]}</th>)}
+          </tr>
+        </thead>
+        {
+          GROUPS.map((group) => (
+            <tbody>
+              <tr class="group">
+                <th scope="colgroup" colspan={APPS.length + 1}>{t(`compare-group-${group.key}`)}</th>
+              </tr>
+              {group.rows.map((row) => (
+                <tr>
+                  <th scope="row">{t(`compare-row-${row.key}`)}</th>
+                  {APPS.map((app) => (
+                    <td class:list={[tone(row.answers[app]), { ours: app === 'plotdevice' }]}>{t(row.answers[app])}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          ))
+        }
+      </table>
+    </div>
+    <p class="table-note">{t('compare-not-documented-note')}</p>
+
+    <section>
+      <h2>{t('compare-different-title')}</h2>
+      <div class="strengths">
+        {
+          different.map((key) => (
+            <div>
+              <h3>{t(`compare-different-${key}-title`)}</h3>
+              <p>{t(`compare-different-${key}`)}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="better">
+      <h2>{t('compare-better-title')}</h2>
+      <ul>{better.map((key) => <li>{t(`compare-better-${key}`)}</li>)}</ul>
+    </section>
+
+    <section class="sources">
+      <h2>{t('compare-sources-title')}</h2>
+      <p>{t('compare-sources-text')}</p>
+      <dl dir="ltr">
+        {
+          Object.entries(SOURCES).map(([app, urls]) => (
+            <>
+              <dt>{NAMES[app as keyof typeof NAMES]}</dt>
+              {urls.map((url) => (
+                <dd>
+                  <a href={url}>{url.replace(/^https:\/\/(www\.)?/, '')}</a>
+                </dd>
+              ))}
+            </>
+          ))
+        }
+      </dl>
+    </section>
+
+    <SiteFooter {lang} page="compare/" />
+  </div>
+</StarlightPage>

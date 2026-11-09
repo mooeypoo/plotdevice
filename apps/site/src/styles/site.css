@@ -398,3 +398,122 @@ body:has(.landing) .content-panel:has(h1#_top) {
   margin-block: 0.5rem;
   font-size: 0.95rem;
 }
+
+/* How Plot Device compares (Milestone 25). The table scrolls sideways inside its own box on narrow
+   screens, with the row names kept in view; Plot Device's column is lightly set apart. */
+.landing.page.compare {
+  --measure: 72rem;
+}
+.compare .checked,
+.compare .table-note {
+  font-size: 0.95rem !important;
+  color: var(--color-text-secondary);
+}
+.compare-scroll {
+  max-inline-size: var(--measure);
+  margin-inline: auto;
+  overflow-x: auto;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-text) 14%, transparent);
+  background: var(--color-card);
+}
+.compare-scroll:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.compare-scroll table {
+  display: table;
+  inline-size: 100%;
+  min-inline-size: 60rem;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+.compare-scroll :is(th, td) {
+  padding: 0.65rem 0.75rem;
+  border: none;
+  border-block-end: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+  text-align: start;
+  vertical-align: top;
+  background: var(--color-card);
+}
+.compare-scroll thead th {
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+.compare-scroll tbody th[scope='row'] {
+  font-weight: 600;
+  color: var(--color-text);
+}
+/* The row names stay in view while the answers scroll. */
+.compare-scroll :is(thead td, tbody th[scope='row']) {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+  min-inline-size: 11rem;
+  box-shadow: 1px 0 0 color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+.compare-scroll tr.group th {
+  padding-block-start: 1.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+:lang(he) .compare-scroll tr.group th {
+  letter-spacing: 0.03em;
+  font-size: 0.9rem;
+}
+.compare-scroll .ours {
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-card));
+}
+/* Answers are plain words. Only "Not documented" is set apart, since it isn't an answer; "No" is often
+   the good answer (no account, no AI), so yes and no look alike. */
+.compare-scroll td.nd {
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+.compare .table-note {
+  max-inline-size: var(--measure);
+  margin: 0.75rem auto 4rem;
+}
+.strengths {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1.5rem 2rem;
+}
+.strengths > * {
+  margin: 0;
+}
+.strengths p {
+  margin: 0;
+}
+.landing.page.compare .better,
+.landing.page.compare .sources {
+  max-inline-size: 46rem;
+}
+.better li {
+  margin-block: 0.5rem;
+}
+@media (max-width: 40rem) {
+  .compare-scroll :is(thead td, tbody th[scope='row']) {
+    min-inline-size: 8rem;
+  }
+}
+.sources dl {
+  font-size: 0.88rem;
+  text-align: start;
+}
+.sources dt {
+  margin-block-start: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.sources dd {
+  margin: 0.2rem 0 0;
+  overflow-wrap: anywhere;
+}
