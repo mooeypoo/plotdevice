@@ -1,5 +1,7 @@
-// Serves the built site as GitHub Pages does: under /plotdevice/, `index.html` for folders, and the
-// site's 404 page for anything missing. For the site tests only.
+// Serves the built site as Netlify does (Milestone 24): from the root, `index.html` for folders, and a
+// not-found page for anything missing. A form is "sent" by answering with the page it posts to, as
+// Netlify does once it has kept the form. For the site tests only; the language rule at `/` (in
+// public/_redirects) is Netlify's own and is checked as a file.
 import { createServer } from 'node:http'
 import { readFile, stat } from 'node:fs/promises'
 import { extname, join, normalize } from 'node:path'
@@ -16,14 +18,17 @@ const types = {
   '.webp': 'image/webp',
   '.woff2': 'font/woff2',
   '.xml': 'application/xml',
+  '.md': 'text/markdown; charset=utf-8',
 }
 
 createServer(async (request, response) => {
+  request.resume()
   const path = decodeURIComponent(new URL(request.url ?? '/', 'http://localhost').pathname)
-  let file = path.startsWith('/plotdevice/') ? normalize(join(root, path.slice('/plotdevice/'.length))) : ''
-  if (file && !file.startsWith(root)) file = ''
+  let file = normalize(join(root, path))
+  if (!file.startsWith(root)) file = ''
   if (file && (await stat(file).catch(() => null))?.isDirectory()) file = join(file, 'index.html')
   const body = file ? await readFile(file).catch(() => null) : null
-  response.writeHead(body ? 200 : 404, { 'content-type': types[extname(body ? file : '.html')] ?? 'application/octet-stream' })
-  response.end(body ?? (await readFile(join(root, '404.html'))))
+  const notFound = path.startsWith('/he/') ? 'he/404/index.html' : '404.html'
+  response.writeHead(body ? 200 : 404, { 'content-type': types[body ? extname(file) : '.html'] ?? 'application/octet-stream' })
+  response.end(body ?? (await readFile(join(root, notFound))))
 }).listen(port, '127.0.0.1')
