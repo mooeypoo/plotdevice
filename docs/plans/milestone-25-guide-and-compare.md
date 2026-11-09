@@ -18,7 +18,7 @@ Status: **Built** (2026-11-09). Approved by the owner the same day (decisions be
    - Where a reader might want the details, one plain sentence and a link to the technical docs.
 3. **The comparison page.** Apps: Google Docs, Microsoft Word, Scrivener, Dabble, Novelcrafter, Campfire and Obsidian; more may be added later.
    - **Language:** general language support and right-to-left writing, not only Hebrew.
-   - **How it's written:** plain words, not ticks; a "checked on" date; a source for every competitor answer; and "Not documented" where a company's pages say nothing, never a guessed "No".
+   - **How it's written:** short plain words, with yes and no as a check and a cross (owner, after the first build; rows are worded so a check is good for the writer: "Works without an account", "No AI built in"); a "checked on" date; a source for every competitor answer; and "Not documented" where a company's pages say nothing, never a guessed "No".
    - **Honest both ways:** a section on when another app may suit a writer better, and Plot Device's own gaps shown in its column.
    - **No prices.**
 4. **AI and privacy.**
@@ -56,7 +56,7 @@ Status: **Built** (2026-11-09). Approved by the owner the same day (decisions be
 - **The technical docs are reached** from the footer, never from the header.
 - **No format or tool words on guide pages.** The app's own button names don't count.
 
-**Results:** `pnpm site:test` 54 passed. Lint and typecheck pass.
+**Results:** `pnpm site:test` 55 passed. Lint and typecheck pass.
 
 ## Known limits
 
