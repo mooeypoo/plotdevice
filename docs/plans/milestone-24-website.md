@@ -1,6 +1,6 @@
 # Milestone 24: The website at plotdevice.app
 
-Status: **Built** (2026-11-09), not yet committed or published; see [Results](#results). Approved 2026-11-09 with the owner's [decisions](#decisions-owner-2026-11-09).
+Status: **Built** (2026-11-09) as draft PR #54; see [Results](#results). Approved 2026-11-09 with the owner's [decisions](#decisions-owner-2026-11-09).
 
 Background: on 2026-11-09 the owner decided to keep Plot Device open source for now and to ask for nothing to download it. A later paid version may come; the current one would then stay as it is. Support comes from people who choose to give (Buy Me a Coffee). The site moves to the owner's own domain, plotdevice.app, with pages that explain why to use Plot Device and how to support it, in front of the guide.
 
@@ -160,7 +160,7 @@ GitHub Pages could serve plotdevice.app too, but Netlify adds two things this si
 
 ## Results
 
-Built on branch `milestone-24/website` (stacked on Milestone 23's), not yet committed.
+Built on branch `milestone-24/website`, draft PR #54.
 
 **What a visitor gets**
 
