@@ -12,6 +12,9 @@ export const CHECKED = 'compare-date'
 export const APPS = ['plotdevice', 'gdocs', 'word', 'scrivener', 'dabble', 'novelcrafter', 'campfire', 'obsidian'] as const
 export type App = (typeof APPS)[number]
 
+/** The apps the table shows at first: the ones writers most likely use today. "Show all" adds the rest. */
+export const FIRST = ['plotdevice', 'gdocs', 'word', 'scrivener', 'dabble'] as const satisfies readonly App[]
+
 /** Product names: never translated. */
 export const NAMES: Record<App, string> = {
   plotdevice: 'Plot Device',

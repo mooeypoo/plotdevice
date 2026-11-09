@@ -209,3 +209,23 @@ test('in the comparison, Yes and No show as a check and a cross, and screen read
   // Every row is worded so a check is good for the writer: Plot Device's column has no cross.
   await expect(page.locator('td.ours .mark.no')).toHaveCount(0)
 })
+
+test('the comparison starts with the apps writers most likely use, and shows the rest on request', async ({ page }) => {
+  await page.goto('/compare/')
+  const headers = page.locator('.compare-scroll thead th:visible')
+  await expect(headers).toHaveText(['Plot Device', 'Google Docs', 'Microsoft Word', 'Scrivener', 'Dabble'])
+  const button = page.getByRole('button', { name: 'Show all 7 apps' })
+  await expect(button).toHaveAttribute('aria-expanded', 'false')
+  await button.click()
+  await expect(headers).toHaveCount(8)
+  await expect(page.getByRole('button', { name: 'Show fewer apps' })).toHaveAttribute('aria-expanded', 'true')
+})
+
+test('without JavaScript, the comparison shows every app', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false })
+  const page = await context.newPage()
+  await page.goto('/compare/')
+  await expect(page.locator('.compare-scroll thead th:visible')).toHaveCount(8)
+  await expect(page.locator('.show-all')).toBeHidden()
+  await context.close()
+})

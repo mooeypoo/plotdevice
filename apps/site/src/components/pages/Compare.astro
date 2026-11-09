@@ -1,92 +1,164 @@
 ---
-// How Plot Device compares (Milestone 25): a plain-words table beside seven other writing apps, what Plot
-// Device does differently, where another app may suit a writer better, and the sources. Fair by design:
-// dated, sourced, "Not documented" rather than a guess, and honest about Plot Device's own gaps.
+// How Plot Device compares (Milestone 25), as an honest pitch: the promise, what Plot Device does
+// differently, a way to try it, then the table as proof, where another app may suit a writer better, and
+// the sources. Fair by design: dated, sourced, "Not documented" rather than a guess, and honest about
+// Plot Device's own gaps. The table shows four well-known apps at first; "Show all" reveals the rest
+// (without JavaScript, all of them show).
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro'
+import Promise from '../landing/Promise.astro'
 import SiteFooter from '../SiteFooter.astro'
-import { APPS, CHECKED, GROUPS, NAMES, SOURCES } from '../../compare'
-import { path, words, type Lang } from '../../site'
+import { APPS, CHECKED, FIRST, GROUPS, NAMES, SOURCES } from '../../compare'
+import { DOWNLOAD, GUIDE, path, words, type Lang } from '../../site'
 
 const { lang } = Astro.props as { lang: Lang }
 const t = (key: string, ...params: string[]) => words(lang, key, ...params)
 const report = `<a href="${path(lang, 'docs/about/problems/')}">${t('compare-checked-link')}</a>`
-const different = ['stays', 'ai', 'files', 'backups', 'languages', 'novels']
 const better = ['devices', 'together', 'ai', 'mature', 'world']
 const tone = (key: string) => (key === 'compare-nd' ? 'nd' : undefined)
 // Yes and No show as a check and a cross; screen readers read the word.
 const mark = (key: string) => (key === 'compare-yes' ? 'yes' : key === 'compare-no' ? 'no' : undefined)
+const extra = (app: string) => !FIRST.includes(app as (typeof FIRST)[number])
+const others = APPS.length - 1
+
+// The promises a screenshot can't show get a simple line drawing each, in the site's accent; the two
+// that a screenshot proves (languages, novels) follow as screenshot rows, as on the front page.
+const STRENGTHS: { key: string; icon: string }[] = [
+  { key: 'stays', icon: '<rect x="3" y="5" width="18" height="11" rx="2"/><path d="M1.5 19.5h21"/>' },
+  {
+    key: 'ai',
+    icon: '<path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 20 20 4"/>',
+  },
+  { key: 'files', icon: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/>' },
+  { key: 'backups', icon: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/>' },
+]
 ---
 
 <StarlightPage frontmatter={{ title: t('compare-title'), description: t('compare-description'), template: 'splash', tableOfContents: false, editUrl: false }}>
   <div class="landing page compare">
     <header class="page-head">
-      <h1>{t('compare-title')}</h1>
-      <p class="lede">{t('compare-lede')}</p>
-      <p class="checked" set:html={t('compare-checked', t(CHECKED), report)} />
+      <p class="eyebrow">{t('compare-title')}</p>
+      <h1>{t('compare-hero-title')}</h1>
+      <p class="lede">{t('compare-hero-lede')}</p>
     </header>
 
-    <div class="compare-scroll" role="region" aria-label={t('compare-table-caption')} tabindex="0">
-      <table>
-        <caption class="sr-only">{t('compare-table-caption')}</caption>
-        <thead>
-          <tr>
-            <td></td>
-            {APPS.map((app) => <th scope="col" class:list={{ ours: app === 'plotdevice' }} dir="ltr">{NAMES[app]}</th>)}
-          </tr>
-        </thead>
-        {
-          GROUPS.map((group) => (
-            <tbody>
-              <tr class="group">
-                <th scope="colgroup" colspan={APPS.length + 1}>{t(`compare-group-${group.key}`)}</th>
-              </tr>
-              {group.rows.map((row) => (
-                <tr>
-                  <th scope="row">{t(`compare-row-${row.key}`)}</th>
-                  {APPS.map((app) => (
-                    <td class:list={[tone(row.answers[app]), { ours: app === 'plotdevice' }]}>
-                      {mark(row.answers[app]) ? (
-                        <span class:list={['mark', mark(row.answers[app])]}>
-                          <svg viewBox="0 0 20 20" aria-hidden="true">
-                            {mark(row.answers[app]) === 'yes' ? <path d="M4.5 10.5l3.5 3.5 7.5-8" /> : <path d="M6 6l8 8M14 6l-8 8" />}
-                          </svg>
-                          <span class="sr-only">{t(row.answers[app])}</span>
-                        </span>
-                      ) : (
-                        t(row.answers[app])
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          ))
-        }
-      </table>
-    </div>
-    <p class="table-note">{t('compare-not-documented-note')}</p>
-
-    <section>
-      <h2>{t('compare-different-title')}</h2>
+    <section class="strengths-section" aria-labelledby="different">
+      <h2 id="different">{t('compare-different-title')}</h2>
       <div class="strengths">
         {
-          different.map((key) => (
-            <div>
+          STRENGTHS.map(({ key, icon }) => (
+            <article class="strength">
+              <span class="strength-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true" set:html={icon} />
+              </span>
               <h3>{t(`compare-different-${key}-title`)}</h3>
               <p>{t(`compare-different-${key}`)}</p>
-            </div>
+            </article>
           ))
         }
       </div>
     </section>
 
-    <section class="better">
-      <h2>{t('compare-better-title')}</h2>
-      <ul>{better.map((key) => <li>{t(`compare-better-${key}`)}</li>)}</ul>
+    <Promise eyebrow={t('bilingual-eyebrow')} title={t('compare-different-languages-title')} shot="bilingual" alt={t('bilingual-alt')}>
+      <p>{t('compare-different-languages')}</p>
+    </Promise>
+    <Promise eyebrow={t('timeline-eyebrow')} title={t('compare-different-novels-title')} shot="timeline" alt={t('timeline-alt')}>
+      <p>{t('compare-different-novels')}</p>
+    </Promise>
+
+    <div class="actions pitch-actions">
+      <a class="button primary" href={DOWNLOAD}>{t('download')}</a>
+      <a class="button" href={path(lang, GUIDE)}>{t('read-guide')}</a>
+    </div>
+
+    <section class="side-by-side" aria-labelledby="side-by-side">
+      <h2 id="side-by-side">{t('compare-table-title')}</h2>
+      <p class="checked" set:html={t('compare-checked', t(CHECKED), report)} />
+      <div class="compare-scroll" role="region" aria-label={t('compare-table-caption')} tabindex="0">
+        <table>
+          <caption class="sr-only">{t('compare-table-caption')}</caption>
+          <thead>
+            <tr>
+              <td></td>
+              {
+                APPS.map((app) => (
+                  <th scope="col" class:list={{ ours: app === 'plotdevice', extra: extra(app) }} dir="ltr">
+                    {NAMES[app]}
+                  </th>
+                ))
+              }
+            </tr>
+          </thead>
+          {
+            GROUPS.map((group) => (
+              <tbody>
+                <tr class="group">
+                  <th scope="colgroup" colspan={APPS.length + 1}>
+                    {t(`compare-group-${group.key}`)}
+                  </th>
+                </tr>
+                {group.rows.map((row) => (
+                  <tr>
+                    <th scope="row">{t(`compare-row-${row.key}`)}</th>
+                    {APPS.map((app) => (
+                      <td class:list={[tone(row.answers[app]), { ours: app === 'plotdevice', extra: extra(app) }]}>
+                        {mark(row.answers[app]) ? (
+                          <span class:list={['mark', mark(row.answers[app])]}>
+                            <svg viewBox="0 0 20 20" aria-hidden="true">
+                              {mark(row.answers[app]) === 'yes' ? <path d="M4.5 10.5l3.5 3.5 7.5-8" /> : <path d="M6 6l8 8M14 6l-8 8" />}
+                            </svg>
+                            <span class="sr-only">{t(row.answers[app])}</span>
+                          </span>
+                        ) : (
+                          t(row.answers[app])
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            ))
+          }
+        </table>
+      </div>
+      <p class="table-note">
+        <button type="button" class="show-all button" hidden data-more={t('compare-show-all', String(others))} data-fewer={t('compare-show-fewer')}
+          >{t('compare-show-all', String(others))}</button
+        >
+        <span>{t('compare-not-documented-note')}</span>
+      </p>
     </section>
 
-    <section class="sources">
-      <h2>{t('compare-sources-title')}</h2>
+    <section class="better" aria-labelledby="better">
+      <h2 id="better">{t('compare-better-title')}</h2>
+      <ul>
+        {
+          better.map((key) => (
+            <li>
+              <strong>{t(`compare-better-${key}-title`)}</strong>
+              <span>{t(`compare-better-${key}`)}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="move">
+      <h2>{t('compare-move-title')}</h2>
+      <p>{t('compare-move-text')}</p>
+      <p><a href={path(lang, 'docs/start/from-word/')}>{t('compare-move-link')}</a></p>
+    </section>
+
+    <section class="closing">
+      <h2>{t('compare-closing-title')}</h2>
+      <p>{t('compare-closing-text')}</p>
+      <div class="actions">
+        <a class="button primary" href={DOWNLOAD}>{t('download')}</a>
+        <a class="button" href={path(lang, GUIDE)}>{t('read-guide')}</a>
+      </div>
+    </section>
+
+    <details class="sources">
+      <summary>{t('compare-sources-title')}</summary>
       <p>{t('compare-sources-text')}</p>
       <dl dir="ltr">
         {
@@ -102,8 +174,25 @@ const mark = (key: string) => (key === 'compare-yes' ? 'yes' : key === 'compare-
           ))
         }
       </dl>
-    </section>
+    </details>
 
     <SiteFooter {lang} page="compare/" />
   </div>
 </StarlightPage>
+
+<script>
+  // The table starts with four well-known apps; "Show all" reveals the rest. Without this script, every
+  // app shows.
+  for (const button of document.querySelectorAll<HTMLButtonElement>('.compare .show-all')) {
+    const table = button.closest('.side-by-side')?.querySelector('.compare-scroll')
+    if (!table) continue
+    table.classList.add('collapsed')
+    button.hidden = false
+    button.setAttribute('aria-expanded', 'false')
+    button.addEventListener('click', () => {
+      const collapsed = table.classList.toggle('collapsed')
+      button.setAttribute('aria-expanded', String(!collapsed))
+      button.textContent = (collapsed ? button.dataset.more : button.dataset.fewer) ?? ''
+    })
+  }
+</script>

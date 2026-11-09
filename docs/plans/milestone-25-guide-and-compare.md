@@ -46,6 +46,17 @@ Status: **Built** (2026-11-09). Approved by the owner the same day (decisions be
 - **The sources** are on the page, and in [docs/research/comparison-2026-11.md](../research/comparison-2026-11.md).
 - **Links to it:** from the front page's privacy section and from the site footer.
 
+**The page as a pitch** (owner, after the first build; from a design critique and research on "why us" pages such as Plausible, Ghost, Obsidian and iA Writer):
+
+1. **The promise:** "Your book. Your computer. Your language."
+2. **Four promise cards,** each with a line icon: your book stays with you, no AI reads it, files that outlast any app, backups that are yours.
+3. **Two screenshot rows,** as on the front page: every language in both directions, and made for novels. Then Download.
+4. **"Side by side":** the table, showing Google Docs, Word, Scrivener and Dabble at first. "Show all 7 apps" adds Novelcrafter, Campfire and Obsidian; without JavaScript, all of them show.
+5. **"When another app may suit you better":** short cards.
+6. **"Bring your book with you":** Word import.
+7. **A closing band** with Download.
+8. **Sources,** folded away.
+
 **A tooling fix:** the translation report now writes `sourceHash` in quotes. A hash like `665561e05599` was being read as a number.
 
 ## Tests
@@ -56,7 +67,7 @@ Status: **Built** (2026-11-09). Approved by the owner the same day (decisions be
 - **The technical docs are reached** from the footer, never from the header.
 - **No format or tool words on guide pages.** The app's own button names don't count.
 
-**Results:** `pnpm site:test` 55 passed. Lint and typecheck pass.
+**Results:** `pnpm site:test` 57 passed. Lint and typecheck pass.
 
 ## Known limits
 
