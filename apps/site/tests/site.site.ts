@@ -199,3 +199,13 @@ test('the comparison table keeps its row names in view while it scrolls on a pho
   expect((await rowName.boundingBox())?.x).toBe(before?.x)
   await expect(page.getByRole('columnheader', { name: 'Plot Device' })).toBeAttached()
 })
+
+test('in the comparison, Yes and No show as a check and a cross, and screen readers still hear the word', async ({ page }) => {
+  await page.goto('/he/compare/')
+  const ours = page.locator('td.ours .mark.yes')
+  expect(await ours.count()).toBeGreaterThan(4)
+  await expect(ours.first().locator('svg')).toHaveAttribute('aria-hidden', 'true')
+  await expect(ours.first().locator('.sr-only')).toHaveText('כן')
+  // Every row is worded so a check is good for the writer: Plot Device's column has no cross.
+  await expect(page.locator('td.ours .mark.no')).toHaveCount(0)
+})

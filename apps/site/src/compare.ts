@@ -3,6 +3,8 @@
  * checked on CHECKED (see SOURCES, and docs/research/comparison-2026-11.md). An answer is a message key in
  * src/i18n: `compare-yes`, `compare-no`, `compare-nd` (not documented), or a `compare-cell-…` message.
  * When an app's pages say nothing, the answer is "Not documented", never "No" (owner, 2026-11-09).
+ * Yes and No show as a check and a cross, so every row is worded so that a check is good for the writer
+ * ("Works without an account", "No AI built in").
  */
 
 export const CHECKED = 'compare-date'
@@ -99,7 +101,7 @@ export const GROUPS: Group[] = [
       },
       {
         key: 'account',
-        answers: { plotdevice: N, gdocs: Y, word: c('account-word'), scrivener: N, dabble: Y, novelcrafter: Y, campfire: Y, obsidian: N },
+        answers: { plotdevice: Y, gdocs: N, word: c('account-word'), scrivener: Y, dabble: N, novelcrafter: N, campfire: N, obsidian: Y },
       },
       {
         key: 'offline',
@@ -117,11 +119,11 @@ export const GROUPS: Group[] = [
       {
         key: 'ai',
         answers: {
-          plotdevice: N,
+          plotdevice: Y,
           gdocs: c('ai-gdocs'),
           word: c('ai-word'),
-          scrivener: N,
-          dabble: N,
+          scrivener: Y,
+          dabble: Y,
           novelcrafter: c('ai-novelcrafter'),
           campfire: ND,
           obsidian: c('ai-obsidian'),

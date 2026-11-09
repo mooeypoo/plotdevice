@@ -471,8 +471,30 @@ body:has(.landing) .content-panel:has(h1#_top) {
 .compare-scroll .ours {
   background: color-mix(in srgb, var(--color-accent) 9%, var(--color-card));
 }
-/* Answers are plain words. Only "Not documented" is set apart, since it isn't an answer; "No" is often
-   the good answer (no account, no AI), so yes and no look alike. */
+/* "Not documented" is set apart in italics, since it isn't an answer. */
+/* A check (in the accent) and a cross (muted): each row is worded so that a check is good for the writer. */
+/* Positioned, so the screen-reader word stays inside the scrolling table, not out past the page. */
+.compare-scroll .mark {
+  position: relative;
+  display: inline-block;
+}
+.compare-scroll .mark svg {
+  display: block;
+  inline-size: 1.35rem;
+  block-size: 1.35rem;
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.compare-scroll .mark.yes svg {
+  stroke: var(--color-accent);
+}
+.compare-scroll .mark.no svg {
+  stroke: var(--color-text-secondary);
+  stroke-width: 2;
+  opacity: 0.75;
+}
 .compare-scroll td.nd {
   font-style: italic;
   color: var(--color-text-secondary);

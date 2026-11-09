@@ -13,6 +13,8 @@ const report = `<a href="${path(lang, 'docs/about/problems/')}">${t('compare-che
 const different = ['stays', 'ai', 'files', 'backups', 'languages', 'novels']
 const better = ['devices', 'together', 'ai', 'mature', 'world']
 const tone = (key: string) => (key === 'compare-nd' ? 'nd' : undefined)
+// Yes and No show as a check and a cross; screen readers read the word.
+const mark = (key: string) => (key === 'compare-yes' ? 'yes' : key === 'compare-no' ? 'no' : undefined)
 ---
 
 <StarlightPage frontmatter={{ title: t('compare-title'), description: t('compare-description'), template: 'splash', tableOfContents: false, editUrl: false }}>
@@ -42,7 +44,18 @@ const tone = (key: string) => (key === 'compare-nd' ? 'nd' : undefined)
                 <tr>
                   <th scope="row">{t(`compare-row-${row.key}`)}</th>
                   {APPS.map((app) => (
-                    <td class:list={[tone(row.answers[app]), { ours: app === 'plotdevice' }]}>{t(row.answers[app])}</td>
+                    <td class:list={[tone(row.answers[app]), { ours: app === 'plotdevice' }]}>
+                      {mark(row.answers[app]) ? (
+                        <span class:list={['mark', mark(row.answers[app])]}>
+                          <svg viewBox="0 0 20 20" aria-hidden="true">
+                            {mark(row.answers[app]) === 'yes' ? <path d="M4.5 10.5l3.5 3.5 7.5-8" /> : <path d="M6 6l8 8M14 6l-8 8" />}
+                          </svg>
+                          <span class="sr-only">{t(row.answers[app])}</span>
+                        </span>
+                      ) : (
+                        t(row.answers[app])
+                      )}
+                    </td>
                   ))}
                 </tr>
               ))}
