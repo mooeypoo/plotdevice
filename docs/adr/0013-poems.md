@@ -196,6 +196,17 @@ A new band, **"One app, many kinds of writing"**: a novel, a short story, a poet
 - **Tests:** round-trip fixtures for poems in English and Hebrew with niqqud, CRLF, direction marks; toggle on/off is a one-line diff; Enter, Enter twice, Backspace and paste behaviours; export snapshots for each format; template creation in both languages.
 - **Spec impact:** `DOMAIN_AND_FILE_FORMAT.md` (Chapters: `form`; Project: `partUnit`, `chapterForm`; version 0.7), `UX_SPEC.md` (Format menu, book menu, template picker), ADR 0004 (Enter in poems), ADR 0006 and 0011 (new optional keys).
 
+## Implementation note (Milestone 27)
+
+- **Built as decided**, with these details:
+- **Word:** each line of a poem is its own paragraph, not one paragraph with `w:br` breaks as the engineering notes first said. A hanging indent applies to every line after a break inside a paragraph, so with breaks every poem line but the first would have been indented. A stanza's lines keep together on a page, and its last line is followed by one line's space.
+- **The form reaches the editor through its settings**, which change in place, so switching never remounts the editor (as theme and language changes). A chapter's new form is applied before its text loads.
+- **Untitled poems:** a new poem's file and its line in `CONTENTS.md` are named with the book's word for a poem ("Poem", „שיר”; „poem.md”, „שיר.md”), or "Poem"/„שיר” by the book's language. Above the page an untitled poem says "Untitled poem"; the sidebar shows its first line, as it is typed. The poetry collection's first poem is untitled, not named after the book.
+- **An unknown form** (`form: screenplay`) reads as prose and stays in the file when the author switches the Poem item off.
+- **The label beside the chapter's number** appears only when a chapter's form differs from the book's new chapters ("Poem" in a novel, "Prose" in a poetry collection), so a poetry collection doesn't say "Poem" above every poem.
+- **The template cards** fit five in a row on an ordinary window.
+- **The niqqud picker** is offered in chapters and pages (not in outline text). It works on the letter before the cursor, where marks may already be in any order; a vowel replaces another vowel and a shin dot the sin dot.
+
 ## Consequences
 
 - Plot Device supports four kinds of writing out of the box: novels, short stories, poetry collections and campaigns. That's worth showing on the front page.

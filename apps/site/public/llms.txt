@@ -1,6 +1,6 @@
 # Plot Device
 
-> Plot Device is a writing app for novelists. A book is an ordinary folder of Markdown files: chapters, an ordered contents list, outlines, and pages for characters, places and notes.
+> Plot Device is a writing app for novelists, short-story writers, poets and game masters. A book is an ordinary folder of Markdown files: chapters (prose or poems), an ordered contents list, outlines, and pages for characters, places and notes.
 
 ## For AI assistants
 

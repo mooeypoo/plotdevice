@@ -1,10 +1,11 @@
 # Plot Device — Domain and Markdown File Format
-Version: 0.6 (2026-11-05). Project layout per ADR 0006; Markdown fidelity per ADR 0003; text direction per ADR 0004; safe writes per ADR 0005; rendered editing per ADR 0010; page kinds per ADR 0011; timelines per ADR 0012.
+Version: 0.7 (2026-11-10). Project layout per ADR 0006; Markdown fidelity per ADR 0003; text direction per ADR 0004; safe writes per ADR 0005; rendered editing per ADR 0010; page kinds per ADR 0011; timelines per ADR 0012; poems per ADR 0013.
 
 ## Domain vocabulary
 - Project: identity, display metadata, language, chapter numbering style, schema version, its kinds of pages and the name of its manuscript unit.
 - Manuscript: ordered chapters, optionally grouped into parts.
-- Chapter: mandatory writing unit, one `.md` file; not inherently composed of named scenes.
+- Chapter: mandatory writing unit, one `.md` file; not inherently composed of named scenes. Prose, or a poem (ADR 0013).
+- Chapter form: prose (the default) or a poem, which keeps its lines and stanzas. Changing it never changes the text.
 - Part: optional ordered chapter grouping with a name. No file of its own in the MVP.
 - Outline: named hierarchical document persisted as Markdown, independent from manuscript hierarchy.
 - OutlineSection: heading-derived section of an outline.
@@ -12,6 +13,7 @@ Version: 0.6 (2026-11-05). Project layout per ADR 0006; Markdown fidelity per AD
 - Page: a human readable Markdown reference document with optional metadata, of one kind.
 - Page kind: a folder of pages plus the names the app shows for it ("Faction", "Factions"). Characters, Places and Notes are the default kinds. All kinds behave the same.
 - Manuscript unit: what the interface calls a chapter in this project ("Session"). Interface only.
+- Part unit: what the interface calls a part in this project ("Section"). Interface only (ADR 0013).
 - Links: explicit references written as ordinary relative Markdown links; never inferred from display title alone.
 
 ## Authoritative information
@@ -20,7 +22,8 @@ Version: 0.6 (2026-11-05). Project layout per ADR 0006; Markdown fidelity per AD
 - Chapter title: the chapter's frontmatter `title`; the contents link text mirrors it.
 - Outlines: `outlines/*.md` bodies.
 - Page text: dedicated Markdown files in their kind's folder.
-- Project details (title, author, language, numbering style, schema version, kinds, manuscript unit, main outline and outlines set aside): `project.md` frontmatter.
+- Project details (title, author, language, numbering style, schema version, kinds, manuscript and part units, the form of new chapters, main outline and outlines set aside): `project.md` frontmatter.
+- A chapter's form: its frontmatter `form` (ADR 0013).
 - Personal theme, locale, layout, pinned items, earlier versions (restore points) and recovery journals: OS app data, never the project folder.
 - **Backups (Milestone 20)** are zip files of the whole book folder, named "‹Book› backup YYYY-MM-DD HH.MM.zip" in local time, in a folder the author chose for that book, never inside the book. Each backup's entries sit in a folder named after the book, so unzipping it by hand gives a book folder. Which folder, the clean-up rule and the record of automatic backups are kept in OS app data, by the book's folder. Nothing is ever deleted unless the author turned on a clean-up rule.
 - Search indexes, caches and thumbnails: disposable, never authoritative.
@@ -95,6 +98,21 @@ suggestedTags: [Player character, Villain, Ally]
 - Removing a kind removes its entry only; its folder and pages stay, and show in "Not sorted yet".
 - These keys are optional additions: `schemaVersion` stays 1 and no migration is needed. An older version of the app ignores them and the folders it doesn't know; nothing is lost.
 
+### Parts' name and the form of new chapters (ADR 0013)
+Two more optional keys, written by the Poetry collection template:
+```yaml
+manuscriptUnit:
+  one: Poem
+  many: Poems
+partUnit:
+  one: Section
+  many: Sections
+chapterForm: poem
+```
+- `partUnit` renames "part" in the interface only ("New section"), as `manuscriptUnit` renames "chapter". `CONTENTS.md` is unchanged. Set on the "Kinds of pages" screen; both names, or none.
+- `chapterForm: poem` means new chapters are written with `form: poem` (and a template's first chapter too). Existing chapters don't change. Absent, or any other value: new chapters are prose. Set with "Start new chapters as poems" in the book menu.
+- Both are optional additions: `schemaVersion` stays 1. An older version ignores them.
+
 ### The main outline (ADR 0012)
 ```yaml
 mainOutline: outlines/main-story.md
@@ -140,10 +158,26 @@ The letter arrived on a Tuesday.
 
 Three hours later, Daniel called.
 ```
-- `title` is the chapter's name. File names never change automatically when it changes.
+- `title` is the chapter's name. File names never change automatically when it changes. Only a poem may have an empty title (`title: ""`, ADR 0013): the app then shows its first line, and its line in `CONTENTS.md` keeps whatever it says (the book's word for a poem when the app wrote it) and is never reported as outdated.
 - `id` is written by the app and optional. Its only job is to recognise a chapter after its file was renamed outside the app, so the app can suggest updating the contents. The app always asks; it never relinks silently.
 - `* * *` is a thematic break (a scene break), **not** a semantic scene identity. It is always preceded by a blank line, because `---` directly under a paragraph would turn that paragraph into a heading.
 - Supported prose formatting: paragraphs, headings, bold (`**…**`), italic (`*…*`), block quotes, links, bullet and numbered lists, scene breaks, and line breaks (a trailing `\`). Existing `_…_` and `__…__` are kept as written.
+- **Poems (ADR 0013).** `form: poem` in the frontmatter makes a chapter a poem. A poem is stored exactly like prose with line breaks: each line but a stanza's last ends with `\`, and a blank line separates stanzas. Without `form`, a chapter is prose; a value the app doesn't know is kept as written and read as prose. Switching the form writes or removes only that one line.
+
+```markdown
+---
+title: Evening in the Orchard
+id: ch-p2m8
+form: poem
+---
+The evening settles on the orchard\
+and salt lies quiet on the leaves\
+I count the trees
+
+The wind says nothing\
+and the sea remembers\
+everything we forgot
+```
 - Author-owned unknown frontmatter keys and unsupported Markdown are preserved, and shown as "kept as written" in the editor.
 
 ## Text direction
@@ -230,7 +264,7 @@ Daughter of Bea's sister.
 
 ## Templates
 - A template (Milestone 19) is bundled with the app, in English and Hebrew: its kinds, its word for chapters, its suggested tags, whether it starts with a chapter, and which starter outlines it begins with. The starter outlines are plain Markdown in `packages/templates/starters/<language>/`.
-- Creating a project reserves a new folder (refused if it exists), then writes `project.md` from the author's details plus the template's `kinds`, `manuscriptUnit` and `suggestedTags`, `CONTENTS.md`, the outlines and, for a short story, one empty chapter named after the book and listed in `CONTENTS.md`. Every file is written as new, never over another. Ids come from the new project, never from the template.
+- Creating a project reserves a new folder (refused if it exists), then writes `project.md` from the author's details plus the template's `kinds`, `manuscriptUnit`, `partUnit`, `chapterForm` and `suggestedTags`, `CONTENTS.md`, the outlines and one empty chapter listed in `CONTENTS.md`: for a short story, named after the book; for a poetry collection, an untitled poem (`title: ""`, `form: poem`) whose file and contents line are named with the book's word for a poem. Every file is written as new, never over another. Ids come from the new project, never from the template.
 - The story's language picks the template's language; any language other than Hebrew gets English.
 - Nothing records which template a project came from. Once created, it is simply the author's project.
 - Every template, in every language, passes the project check with no warnings and loads without any write.

@@ -142,3 +142,26 @@ Worth checking:
 - [ ] **Imperatives:** the menu commands use infinitives (להניח בצד, להחזיר), as elsewhere; the delete question uses statements.
 - [ ] Guide pages new or changed: `planning/timeline.mdx` (new), `planning/outlines.mdx`, `files/outlines.mdx`, `files/folder.mdx`.
 
+
+## Added in Milestone 27 (poems and niqqud)
+
+| Key | Hebrew | English |
+| --- | --- | --- |
+| `template-poetry`, `template-poetry-description`, `template-poetry-outlines`, `template-poetry-summary` | ספר שירה · שירים במקום פרקים, אחד מוכן לכתיבה, ומתווה לסדר אותם. · סדר הספר: שלוש אסופות · סוג דף אחד · מתווה אחד · שירים | Poetry collection · … |
+| the template's words (**written into the author's files**) | שיר / שירים, אסופה / אסופות, טיוטה, מוכן | Poem / Poems, Section / Sections, Draft, Ready |
+| `starters/he/collection.md` (**written into the author's files**) | סדר הספר; אסופה ראשונה, שנייה, שלישית; שיר שפותח את הדלת · שיר מאמצע הדברים · שיר לסיום | Order of the collection … |
+| a new poem's file and contents line (**written into the author's files**) | שיר.md, `[שיר](manuscript/שיר.md)` | poem.md |
+| `format-poem`, `chapter-form-poem`, `chapter-form-prose` | שיר · שיר · פרוזה | Poem · Poem · Prose |
+| `new-chapters-poems` | פרקים חדשים כשירים | Start new chapters as poems |
+| `poem-untitled`, `prompt-poem-title` | שיר ללא שם · שם השיר (אפשר להשאיר ריק) | Untitled poem · Poem title (you can leave it empty) |
+| `part-rename-unit`, `prompt-part-unit-name` | שינוי שם ה$1… · שם ה$1 | Rename $1… · $1 name |
+| `kinds-part-unit-*` | איך קוראים לחלקים · … · חלק · חלקים | What parts are called · … |
+| `niqqud-menu`, `niqqud-title`, `niqqud-hint`, `niqqud-no-letter` | ניקוד… · ניקוד · בוחרים סימן כדי להוסיף אותו, ושוב כדי להסיר אותו. מקשי החיצים עוברים לאות הבאה. · מציבים את הסמן מיד אחרי אות עברית, ופותחים שוב את הניקוד. | Niqqud… · … |
+| `niqqud-<mark>` | קמץ, פתח, צירי, סגול, חיריק, חולם, קובוץ, שווא, חטף פתח, חטף סגול, חטף קמץ, דגש, שין ימנית, שין שמאלית | the marks' names, read by screen readers |
+| `tests/fixtures/chapters/poem-he.md` | „עֶרֶב בַּפַּרְדֵּס”, an invented poem with full niqqud, also used in screenshots | |
+
+- [ ] **„פרקים חדשים כשירים”** in the book menu: short, but is it clear that it's a setting? Alternatives: „לפתוח פרקים חדשים כשירים”, „פרקים חדשים יהיו שירים”.
+- [ ] **„שינוי שם ה$1…”** and **„שם ה$1”** add ה before the book's own word (האסופה). Fine for most words; a word that already starts with ה would read oddly.
+- [ ] **The niqqud names** without niqqud themselves, as menu labels elsewhere. Should they be voweled (קָמָץ, פַּתָּח)?
+- [ ] **The sample poem's niqqud** (`poem-he.md`): please check every mark.
+- [ ] Guide pages new or changed: see the Milestone 27 plan's results.
