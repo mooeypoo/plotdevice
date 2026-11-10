@@ -1,6 +1,6 @@
 # Milestone 27: Poems, a poetry template and niqqud
 
-Status: **Proposed** (2026-11-10), awaiting the owner's approval. Built on [ADR 0013](../adr/0013-poems.md), accepted on 2026-11-10 with the recommended answers. Stacked on Milestone 26 (`milestone-26/download-page`, PR #57), because the site pages it changes are there.
+Status: **Built** (2026-11-10). Approved by the owner on 2026-11-10 with the recommended answers to the open questions (Ctrl+Shift+N for niqqud, no shortcut for Poem, Hebrew wording written for review). Built on [ADR 0013](../adr/0013-poems.md), accepted on 2026-11-10 with the recommended answers. Stacked on Milestone 26 (`milestone-26/download-page`, PR #57), because the site pages it changes are there.
 
 ## Goal
 
@@ -112,4 +112,24 @@ The guide explains the Poem switch. The front page and the comparison page show 
 
 ## Results
 
-To be filled in when the milestone is built.
+**What works:** a Poetry collection in English and Hebrew; the Poem switch in the Format menu; "Start new chapters as poems" in the book menu; Enter, Enter twice, Shift+Enter, Backspace and paste in poems; untitled poems named by their first line as it's typed; poems in PDF, EPUB and Word; naming parts; the niqqud picker in chapters and pages. The guide ("Writing poems", and the other pages listed above), the technical docs, the guide for AI assistants, the front page band and the comparison section are in both languages, with new screenshots.
+
+**Differences from the plan** (see ADR 0013, implementation note):
+- In Word, each poem line is its own paragraph (a hanging indent can't work with line breaks inside one paragraph).
+- Above the page, an untitled poem says "Untitled poem"; its first line is already right below it. The sidebar shows the first line.
+- The "Poem" / "Prose" label beside the chapter's number shows only when a chapter's form differs from the book's new chapters.
+- Fixed on the way: Backspace (and Delete) next to a line break no longer leaves a stray `\` visible, in prose too.
+- Also changed: the template cards fit five in a row; menus can have checked items.
+
+**Tests** (2026-11-10):
+- `pnpm lint`, `pnpm typecheck`: clean.
+- `pnpm test`: 107 files, 1612 passed, 4 skipped. New: `editor-codemirror/src/poem.test.ts` (typing, stanzas, Backspace, paste, niqqud), `storage/test/poems.test.ts` (form on and off byte for byte, unknown forms kept, untitled poems, the book's default, the project check, export reading), `export/src/poems.test.ts` (EPUB, PDF, Word), template and kinds tests.
+- `pnpm arch`: 189 passed. `pnpm perf`: 8 passed.
+- `pnpm e2e`: 140 passed, after updating two tests for the new book-menu item and bridge methods. New: `e2e/poems.e2e.ts` (a Hebrew collection with lines, stanzas, an untitled poem and niqqud; the Poem switch in an English book).
+- Site: `pnpm site:build`, `pnpm site:test` (68 passed, 1 skipped in CI only), `pnpm site:translations` (all up to date), `pnpm site:screenshots` (8 passed).
+
+**Known gaps:**
+- Hebrew wording to review (`docs/reviews/hebrew-wording-milestone-16.md`, "Added in Milestone 27"), including the guide's „בית / בתים” for stanzas.
+- Spell check on words with niqqud wasn't checked by hand on Windows and Linux yet.
+- The Format menu is taller than a 900-pixel window and scrolls; Poem and Plain text are at its end.
+- Niqqud… has no icon in the Format menu.

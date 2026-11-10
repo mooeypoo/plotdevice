@@ -49,6 +49,10 @@ test('the book menu and the app menu work by keyboard, and close on Escape or a 
   await page.keyboard.press('ArrowDown')
   await expect(page.getByTestId('menu-kinds')).toBeFocused()
   await page.keyboard.press('ArrowDown')
+  // A setting that is on or off is in the same keyboard order (ADR 0013).
+  await expect(page.getByTestId('menu-new-chapters-poems')).toBeFocused()
+  await expect(page.getByTestId('menu-new-chapters-poems')).toHaveAttribute('aria-checked', 'false')
+  await page.keyboard.press('ArrowDown')
   await expect(page.getByTestId('menu-chapter-versions')).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('menu')).toHaveCount(0)
