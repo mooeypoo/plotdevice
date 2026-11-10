@@ -126,15 +126,15 @@ describe('versions', () => {
 })
 
 describe('latest.json', () => {
-  it('points at the release and the install page in each language', () => {
+  it('points at the release and the download page in each language', () => {
     expect(latestJson({ version: '0.4.0', date: '2026-11-20' })).toEqual({
       format: 1,
       version: '0.4.0',
       date: '2026-11-20',
       notes: 'https://github.com/mooeypoo/plotdevice/releases/tag/v0.4.0',
       download: {
-        en: 'https://mooeypoo.github.io/plotdevice/start/install/',
-        he: 'https://mooeypoo.github.io/plotdevice/he/start/install/',
+        en: 'https://plotdevice.app/download/',
+        he: 'https://plotdevice.app/he/download/',
       },
     })
   })

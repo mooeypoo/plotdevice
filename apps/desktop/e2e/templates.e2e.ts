@@ -59,7 +59,11 @@ test('a D&D campaign: five kinds, sessions, the session plan, an NPC linked from
   await page.getByTestId('new-npcs').click()
   await page.getByTestId('prompt-input').fill('Captain Vey')
   await page.getByTestId('prompt-input').press('Enter')
+  // Wait for the new page to open before leaving it: on a slow Windows runner it opened after the click
+  // on the session plan, on top of it.
+  await expect(page.getByRole('heading', { level: 1, name: 'Captain Vey' })).toBeVisible()
   await page.locator('[data-outline="outlines/session-plan.md"]').click()
+  await expect(page.getByTestId('outline-title')).toHaveText('Session plan')
   await expect(page.getByTestId('outline-guide')).toHaveCount(0)
   const card = page.locator('.outline-card', { hasText: 'A messenger is waiting at the inn' })
   // Its ⋯ shows on hover or focus (Milestone 17), so point at the card first, as an author would, then

@@ -1,5 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 // The site in both languages and both themes: accessible, right to left in Hebrew, and complete.
 const PAGES = [
@@ -7,6 +9,7 @@ const PAGES = [
   { name: 'the support page', path: 'support/' },
   { name: 'the languages page', path: 'languages/' },
   { name: 'the comparison page', path: 'compare/' },
+  { name: 'the download page', path: 'download/' },
   { name: 'a guide page', path: 'docs/writing/formatting/' },
 ]
 
@@ -227,5 +230,79 @@ test('without JavaScript, the comparison shows every app', async ({ browser }) =
   await page.goto('/compare/')
   await expect(page.locator('.compare-scroll thead th:visible')).toHaveCount(8)
   await expect(page.locator('.show-all')).toBeHidden()
+  await context.close()
+})
+
+// The download page (Milestone 26), from the site's list of published releases.
+const releases = (
+  JSON.parse(readFileSync(join(import.meta.dirname, '../src/releases.json'), 'utf8')) as {
+    releases: { version: string; files: Record<string, { url: string }> }[]
+  }
+).releases
+const AGENTS = {
+  linux: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36',
+  windows: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36',
+  phone: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604.1',
+}
+
+test('every Download button on the site goes to the download page, never to GitHub', async ({ page }) => {
+  for (const [path, download] of [
+    ['/', '/download/'],
+    ['/compare/', '/download/'],
+    ['/he/', '/he/download/'],
+    ['/he/compare/', '/he/download/'],
+  ] as const) {
+    await page.goto(path)
+    const buttons = page.locator('a.button.primary')
+    expect(await buttons.count()).toBeGreaterThan(0)
+    for (const href of await buttons.evaluateAll((links) => links.map((link) => link.getAttribute('href')))) expect(href).toBe(download)
+  }
+})
+
+test('the download page offers the newest version’s files, each by the computer it’s for', async ({ page }) => {
+  const [newest] = releases
+  if (!newest) throw new Error('no releases listed')
+  await page.goto('/download/')
+  await expect(page.locator('.page-head .lede')).toContainText(newest.version)
+  for (const [kind, file] of Object.entries(newest.files)) {
+    const system = { windows: 'windows', appimage: 'linux', deb: 'linux', mac: 'mac' }[kind]
+    await expect(page.locator(`.system[data-system="${system}"] a[href="${file.url}"]`)).toHaveCount(1)
+  }
+  if (!newest.files.mac) await expect(page.locator('.system[data-system="mac"] .soon')).toBeVisible()
+  await expect(page.locator('details.previous')).toHaveCount(releases.length > 1 ? 1 : 0)
+})
+
+for (const [system, agent] of [
+  ['linux', AGENTS.linux],
+  ['windows', AGENTS.windows],
+] as const) {
+  test(`on ${system}, the download page puts ${system} first, marked as the reader’s computer`, async ({ browser }) => {
+    const context = await browser.newContext({ userAgent: agent })
+    const page = await context.newPage()
+    await page.goto('/download/')
+    const first = page.locator('.system').first()
+    await expect(first).toHaveAttribute('data-system', system)
+    await expect(first.locator('.yours')).toBeVisible()
+    await expect(page.locator('.yours:visible')).toHaveCount(1)
+    await expect(page.locator('.on-phone')).toBeHidden()
+    await context.close()
+  })
+}
+
+test('on a phone, the download page says Plot Device is for computers', async ({ browser }) => {
+  const context = await browser.newContext({ userAgent: AGENTS.phone, viewport: { width: 375, height: 800 } })
+  const page = await context.newPage()
+  await page.goto('/download/')
+  await expect(page.locator('.on-phone')).toBeVisible()
+  await expect(page.locator('.yours:visible')).toHaveCount(0)
+  await context.close()
+})
+
+test('without JavaScript, the download page shows every computer, none marked', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false })
+  const page = await context.newPage()
+  await page.goto('/download/')
+  await expect(page.locator('.system')).toHaveCount(3)
+  await expect(page.locator('.yours:visible')).toHaveCount(0)
   await context.close()
 })

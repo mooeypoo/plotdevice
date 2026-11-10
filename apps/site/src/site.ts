@@ -5,8 +5,11 @@
 import en from './i18n/en.json'
 import he from './i18n/he.json'
 
-/** Where the installers are. Today GitHub's releases page (owner, 2026-11-09). */
-export const DOWNLOAD = 'https://github.com/mooeypoo/plotdevice/releases'
+/**
+ * The site's download page (Milestone 26), where every Download button goes. It lists the files from
+ * GitHub's releases today; moving downloads to a sales service later changes that page, not the buttons.
+ */
+export const DOWNLOAD = 'download/'
 /** The guide's first page, where the site's Guide links go (`docs/` itself is a redirect, in public/_redirects). */
 export const GUIDE = 'docs/start/install/'
 export const BUY_ME_A_COFFEE = 'https://buymeacoffee.com/mooeypoo'

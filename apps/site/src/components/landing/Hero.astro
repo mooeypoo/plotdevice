@@ -1,18 +1,18 @@
 ---
 // The front page's opening: the logo's line drawing itself, the promise, and the two ways in.
 import Shot from '../Shot.astro'
-import { DOWNLOAD } from '../../site'
 
 interface Props {
   title: string
   lede: string
   download: string
+  downloadHref: string
   guide: string
   guideHref: string
   platforms: string
   shotAlt: string
 }
-const { title, lede, download, guide, guideHref, platforms, shotAlt } = Astro.props
+const { title, lede, download, downloadHref, guide, guideHref, platforms, shotAlt } = Astro.props
 ---
 
 <section class="hero">
@@ -32,7 +32,7 @@ const { title, lede, download, guide, guideHref, platforms, shotAlt } = Astro.pr
   <h1>{title}</h1>
   <p class="lede">{lede}</p>
   <div class="actions">
-    <a class="button primary" href={DOWNLOAD}>{download}</a>
+    <a class="button primary" href={downloadHref}>{download}</a>
     <a class="button" href={guideHref}>{guide}</a>
   </div>
   <p class="platforms">{platforms}</p>

@@ -1,11 +1,12 @@
 ---
 // The footer of the site's own pages: every page of the site, the same page in the other languages, and
 // who made it. On a phone, Starlight's header hides its links, so this is how a reader gets around.
-import { GUIDE, LANGUAGES, MAKER, path, words, type Lang } from '../site'
+import { DOWNLOAD, GUIDE, LANGUAGES, MAKER, path, words, type Lang } from '../site'
 
 const { lang, page = '' } = Astro.props as { lang: Lang; page?: string }
 const links = [
   { href: path(lang), text: words(lang, 'nav-why') },
+  { href: path(lang, DOWNLOAD), text: words(lang, 'nav-download') },
   { href: path(lang, GUIDE), text: words(lang, 'nav-guide') },
   { href: path(lang, 'support/'), text: words(lang, 'nav-support') },
   { href: path(lang, 'languages/'), text: words(lang, 'nav-languages') },

@@ -25,6 +25,7 @@ const supportLink = `<a href="${path(lang, 'support/')}">${t('closing-support-li
       title={t('hero-title')}
       lede={t('hero-lede')}
       download={t('download')}
+      downloadHref={path(lang, DOWNLOAD)}
       guide={t('read-guide')}
       guideHref={path(lang, GUIDE)}
       platforms={t('platforms')}
@@ -64,7 +65,7 @@ const supportLink = `<a href="${path(lang, 'support/')}">${t('closing-support-li
     <section class="closing">
       <h2>{t('closing-title')}</h2>
       <div class="actions">
-        <a class="button primary" href={DOWNLOAD}>{t('download')}</a>
+        <a class="button primary" href={path(lang, DOWNLOAD)}>{t('download')}</a>
         <a class="button" href={path(lang, GUIDE)}>{t('read-guide')}</a>
       </div>
       <p class="credit" set:html={t('closing-support', supportLink)} />
