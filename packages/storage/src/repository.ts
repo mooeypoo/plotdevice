@@ -535,7 +535,9 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       const current = await store.read(file)
       const frontmatter = current.ok ? (splitFrontmatter(current.value.text).frontmatter?.text ?? '') : ''
       const values = current.ok ? readFrontmatter(current.value.text) : null
-      const title = values?.ok && typeof values.value.title === 'string' ? values.value.title : stemOf(file)
+      // An untitled poem's copy is named after its file, so it can be told apart (ADR 0013).
+      const title =
+        values?.ok && typeof values.value.title === 'string' && values.value.title.trim() !== '' ? values.value.title : stemOf(file)
       const copyTitle = `${title} (${label})`
       // Only chapters have ids (ADR 0008); a copy of a character, place or note page gets none.
       const isChapter = file.startsWith(`${MANUSCRIPT_FOLDER}/`)
@@ -588,7 +590,11 @@ async function planContentsChange(
     case 'add-to-book': {
       const chapter = snapshot.chapters.find((c) => c.file === change.file && !c.listed)
       if (!chapter) return err('not-found')
-      const linkText = chapter.title ?? stemOf(change.file)
+      // An untitled poem goes back in under the book's word for a poem (ADR 0013).
+      const linkText =
+        chapter.title === ''
+          ? untitledName(snapshot.details.manuscriptUnit, snapshot.details.language)
+          : (chapter.title ?? stemOf(change.file))
       const problem = check(addChapter(contents, { kind: 'chapter', file: change.file, linkText }, change.placement))
       return problem ? err(problem) : ok({ edit: { kind: 'add-chapter', file: change.file, linkText, placement: change.placement } })
     }

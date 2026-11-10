@@ -139,6 +139,19 @@ describe('new chapters in a book of poems', () => {
     expect(await read(root, 'CONTENTS.md')).toContain(`- [Evening in the Orchard](${EN})`)
   })
 
+  it('go back into the book untitled, and keep a copy with a name', async () => {
+    const untitled = poemEn.replace('title: Evening in the Orchard', 'title: ""')
+    const { root, repository, snapshot } = await book({ [EN]: untitled })
+    const removed = await repository.changeContents(snapshot, { kind: 'remove-from-book', file: EN })
+    if (!removed.ok) throw new Error(removed.error)
+    const back = await repository.changeContents(removed.value, { kind: 'add-to-book', file: EN, placement: { part: null, index: 0 } })
+    expect(back.ok).toBe(true)
+    expect(await read(root, 'CONTENTS.md')).toContain(`- [Poem](${EN})`)
+    const copy = await repository.saveChapterCopy(root, EN, 'Mine.\n', 'my version')
+    if (!copy.ok) throw new Error(copy.error)
+    expect(await read(root, copy.value)).toMatch(/\ntitle: "evening \(my version\)"\n/)
+  })
+
   it('switch on and off from the book', async () => {
     const { root, repository, snapshot } = await book({})
     const on = await repository.setNewChapterForm(snapshot, 'poem')
