@@ -38,17 +38,30 @@ export function inlinesToHtml(inlines: readonly ExportInline[]): string {
     .join('')
 }
 
+/** A stanza's lines, each its own block, so a line too long for the page carries on indented (ADR 0013). */
+function stanzaLines(inlines: readonly ExportInline[]): string {
+  const lines: ExportInline[][] = [[]]
+  for (const inline of inlines) {
+    if (inline.type === 'break') lines.push([])
+    else lines.at(-1)?.push(inline)
+  }
+  return lines.map((line) => `<span class="line">${inlinesToHtml(line)}</span>`).join('')
+}
+
 /**
  * Blocks as XHTML. `around` is the direction of what holds them (the book, or a list or quote), so a
  * block says its own direction only when it differs. Headings inside a chapter sit `headingOffset`
  * levels below where the author wrote them, under the chapter's own heading, and never below `h6`.
+ * In a poem, each paragraph is a stanza (ADR 0013).
  */
-export function blocksToHtml(blocks: readonly ExportBlock[], around: TextDirection, headingOffset: number): string {
+export function blocksToHtml(blocks: readonly ExportBlock[], around: TextDirection, headingOffset: number, poem = false): string {
   return blocks
     .map((block) => {
       switch (block.type) {
         case 'paragraph':
-          return `<p${dirAttribute(block.direction, around)}>${inlinesToHtml(block.children)}</p>`
+          return poem
+            ? `<p class="stanza"${dirAttribute(block.direction, around)}>${stanzaLines(block.children)}</p>`
+            : `<p${dirAttribute(block.direction, around)}>${inlinesToHtml(block.children)}</p>`
         case 'heading': {
           const level = Math.min(6, block.level + headingOffset)
           return `<h${level}${dirAttribute(block.direction, around)}>${inlinesToHtml(block.children)}</h${level}>`

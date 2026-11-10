@@ -26,6 +26,9 @@ h1 .label { display: block; font-size: 0.7em; letter-spacing: 0.1em; margin-bott
 h2, h3, h4, h5, h6 { font-weight: normal; font-style: italic; margin: 1.5em 0 0.75em; }
 h1 + p, h2 + p, h3 + p, h4 + p, h5 + p, h6 + p, .scene-break + p, blockquote + p, ul + p, ol + p { text-indent: 0; }
 .scene-break { text-align: center; text-indent: 0; margin: 1em 0; }
+.stanza { text-indent: 0; margin: 0 0 1.5em; text-align: start; hyphens: none; -webkit-hyphens: none; }
+.stanza .line { display: block; padding-inline-start: 2em; text-indent: -2em; }
+.untitled { margin-top: 3em; }
 blockquote { margin: 1em 2em; }
 blockquote p, li p { text-indent: 0; }
 .part { margin-top: 30%; }
@@ -48,7 +51,7 @@ export function writeEpub(book: ExportedBook, words: EpubWords, cover: EpubCover
   pages.push({ id: 'title-page', href: 'title.xhtml', title: book.title, type: 'titlepage', body: titleBody(book) })
   let partNumber = 0
   let chapterNumber = 0
-  const toc: { href: string; text: string; part: boolean }[] = []
+  const toc: { href: string; text: string; part: boolean; untitled?: boolean }[] = []
   for (const entry of book.entries) {
     if (entry.kind === 'part') {
       const href = `part-${++partNumber}.xhtml`
@@ -68,9 +71,12 @@ export function writeEpub(book: ExportedBook, words: EpubWords, cover: EpubCover
         href,
         title: heading,
         type: 'chapter',
-        body: `<h1>${entry.label === null ? '' : `<span class="label">${escapeXml(entry.label)}</span>`}${escapeXml(entry.name)}</h1>\n${blocksToHtml(entry.blocks, book.direction, 1)}`,
+        // An untitled poem has no heading; the contents names it by its first line (ADR 0013).
+        body: entry.untitled
+          ? `<div class="untitled">${blocksToHtml(entry.blocks, book.direction, 1, true)}</div>`
+          : `<h1>${entry.label === null ? '' : `<span class="label">${escapeXml(entry.label)}</span>`}${escapeXml(entry.name)}</h1>\n${blocksToHtml(entry.blocks, book.direction, 1, entry.poem)}`,
       })
-      toc.push({ href, text: heading, part: false })
+      toc.push({ href, text: heading, part: false, ...(entry.untitled ? { untitled: true } : {}) })
     }
   }
 
@@ -87,7 +93,8 @@ export function writeEpub(book: ExportedBook, words: EpubWords, cover: EpubCover
   return zipSync(files, { level: 9, mtime: new Date(book.made) })
 }
 
-const chapterHeading = (chapter: ExportedChapter): string => (chapter.label === null ? chapter.name : `${chapter.label}: ${chapter.name}`)
+const chapterHeading = (chapter: ExportedChapter): string =>
+  chapter.label === null || chapter.untitled ? chapter.name : `${chapter.label}: ${chapter.name}`
 
 const CONTAINER = `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
@@ -125,7 +132,7 @@ function coverBody(book: ExportedBook, cover: EpubCover): string {
 
 function navBody(
   words: EpubWords,
-  toc: readonly { href: string; text: string; part: boolean }[],
+  toc: readonly { href: string; text: string; part: boolean; untitled?: boolean }[],
   pages: readonly { href: string; type: string; title: string }[],
 ): string {
   // Chapters after a part are listed inside it; chapters before the first part stand alone.
@@ -136,7 +143,11 @@ function navBody(
       if (inPart) items += '</ol></li>\n'
       items += `<li><a href="${entry.href}">${escapeXml(entry.text)}</a><ol>\n`
       inPart = true
-    } else items += `<li><a href="${entry.href}">${escapeXml(entry.text)}</a></li>\n`
+    } else {
+      // An untitled poem is listed by its first line, in italics (ADR 0013).
+      const text = entry.untitled ? `<em>${escapeXml(entry.text)}</em>` : escapeXml(entry.text)
+      items += `<li><a href="${entry.href}">${text}</a></li>\n`
+    }
   }
   if (inPart) items += '</ol></li>\n'
   // An empty part has an empty list, which EPUB doesn't allow; it stands alone instead.

@@ -4,7 +4,12 @@ export interface ExportedChapter {
   kind: 'chapter'
   /** "Chapter 3", "פרק 3", in the book's word for chapters; `null` when the heading is only the name. */
   label: string | null
+  /** The chapter's title; for an untitled poem, its first line, shown in the contents only. */
   name: string
+  /** Laid out as verse: lines kept, stanzas spaced, no indent or justification (ADR 0013). */
+  poem?: boolean
+  /** An untitled poem: no heading above it, and its first line, in italics, in the contents. */
+  untitled?: boolean
   /** Every paragraph, heading, quote and list has its direction resolved. */
   blocks: ExportBlock[]
 }

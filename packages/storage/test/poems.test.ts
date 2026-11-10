@@ -7,6 +7,7 @@ import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import poemEn from '../../../tests/fixtures/chapters/poem-en.md?raw'
 import poemHe from '../../../tests/fixtures/chapters/poem-he.md?raw'
+import { readBookForExport } from '../src/compile'
 import { checkProject, createProjectRepository } from '../src/index'
 
 // Poems (ADR 0013): a chapter's `form`, the book's `chapterForm` and `partUnit`, and untitled poems.
@@ -151,5 +152,24 @@ describe('new chapters in a book of poems', () => {
   it('pass the project check', async () => {
     const { store } = await book({ [EN]: poemEn, [HE]: poemHe }, POETRY)
     expect((await checkProject(store)).findings).toEqual([])
+  })
+})
+
+describe('poems read for export', () => {
+  it('are marked as poems, and an untitled one is named by its first line', async () => {
+    const untitled = poemEn.replace('title: Evening in the Orchard', 'title: ""')
+    const { snapshot } = await book({ [EN]: untitled, [HE]: poemHe, 'manuscript/crossing.md': PROSE })
+    const { book: exported } = await readBookForExport(createProjectFolders(), snapshot, {
+      chapters: undefined,
+      headings: 'name',
+      directionMode: 'project',
+      chapterLabel: (n) => `Poem ${n}`,
+      made: '2026-11-10T12:00:00.000Z',
+    })
+    expect(exported.entries.map((entry) => (entry.kind === 'chapter' ? [entry.name, entry.poem, entry.untitled] : entry.name))).toEqual([
+      ['The evening settles on the orchard', true, true],
+      ['עֶרֶב בַּפַּרְדֵּס', true, undefined],
+      ['The Crossing', undefined, undefined],
+    ])
   })
 })

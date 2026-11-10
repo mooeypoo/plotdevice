@@ -142,10 +142,16 @@ export async function readBookForExport(
     wordCount += countWords(plainTextOf(blocks))
     if (!wanted) continue
     const label = entry.number !== null && reading.headings === 'number-and-name' ? reading.chapterLabel(entry.number) : null
+    const chapter = snapshot.chapters.find((c) => c.file === entry.file)
+    const poem = chapter?.form === 'poem'
+    // An untitled poem is known by its first line, and has no heading (ADR 0013).
+    const untitled = poem && chapter.title === ''
     entries.push({
       kind: 'chapter',
       label,
-      name: entry.name,
+      name: untitled ? (chapter.firstLine ?? entry.name) : entry.name,
+      ...(poem ? { poem: true } : {}),
+      ...(untitled ? { untitled: true } : {}),
       blocks: blocks.map((block) => resolveDirection(block, reading.directionMode, direction)),
     })
   }
