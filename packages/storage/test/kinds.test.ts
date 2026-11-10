@@ -129,36 +129,48 @@ describe('writing the kinds to project.md (ADR 0011, decision 2)', () => {
 
   const SALT = '---\ntitle: The Salt Orchard\nlanguage: en\n# Kept by hand\nseries: Orchard Books\n---\nNotes the author keeps.\n'
 
-  it('adds only the two keys, keeping comments, other keys and the body', async () => {
+  it('adds only its keys, keeping comments, other keys and the body', async () => {
     const root = await book({ 'project.md': SALT })
     const { repository, snapshot } = await repositoryFor(root)
     const kinds = [
       { folder: 'characters', one: 'NPC', many: 'NPCs' },
       { folder: 'פלגים', one: 'פלג', many: 'פלגים' },
     ]
-    const written = await repository.setKinds(snapshot, kinds, { one: 'Session', many: 'Sessions' })
+    const written = await repository.setKinds(snapshot, {
+      kinds,
+      manuscriptUnit: { one: 'Session', many: 'Sessions' },
+      partUnit: { one: 'Arc', many: 'Arcs' },
+    })
     expect(written.ok && written.value.details.kinds).toEqual(kinds)
     expect(await readFile(join(root, 'project.md'), 'utf8')).toBe(
       '---\ntitle: The Salt Orchard\nlanguage: en\n# Kept by hand\nseries: Orchard Books\n' +
         'kinds:\n  - folder: characters\n    one: NPC\n    many: NPCs\n  - folder: פלגים\n    one: פלג\n    many: פלגים\n' +
-        'manuscriptUnit:\n  one: Session\n  many: Sessions\n---\nNotes the author keeps.\n',
+        'manuscriptUnit:\n  one: Session\n  many: Sessions\npartUnit:\n  one: Arc\n  many: Arcs\n---\nNotes the author keeps.\n',
     )
   })
 
   it('back to the defaults, the keys go and the file is as it was', async () => {
     const root = await book({ 'project.md': SALT })
     const first = await repositoryFor(root)
-    const changed = await first.repository.setKinds(first.snapshot, [{ folder: 'npcs', one: 'NPC: Ally', many: 'NPCs' }], null)
+    const changed = await first.repository.setKinds(first.snapshot, {
+      kinds: [{ folder: 'npcs', one: 'NPC: Ally', many: 'NPCs' }],
+      manuscriptUnit: null,
+      partUnit: { one: 'Section', many: 'Sections' },
+    })
     expect(await readFile(join(root, 'project.md'), 'utf8')).toContain('    one: "NPC: Ally"\n')
     if (!changed.ok) throw new Error(changed.error)
-    await first.repository.setKinds(changed.value, [{ folder: 'characters' }, { folder: 'places' }, { folder: 'notes' }], null)
+    await first.repository.setKinds(changed.value, {
+      kinds: [{ folder: 'characters' }, { folder: 'places' }, { folder: 'notes' }],
+      manuscriptUnit: null,
+      partUnit: null,
+    })
     expect(await readFile(join(root, 'project.md'), 'utf8')).toBe(SALT)
   })
 
   it('writes nothing when nothing changes', async () => {
     const root = await book({ 'project.md': SALT })
     const { repository, snapshot } = await repositoryFor(root)
-    expect((await repository.setKinds(snapshot, snapshot.details.kinds, null)).ok).toBe(true)
+    expect((await repository.setKinds(snapshot, { kinds: snapshot.details.kinds, manuscriptUnit: null, partUnit: null })).ok).toBe(true)
     expect(await readFile(join(root, 'project.md'), 'utf8')).toBe(SALT)
   })
 })

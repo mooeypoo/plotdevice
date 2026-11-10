@@ -87,6 +87,31 @@ describe('what each template makes', () => {
     expect(await readFile(join(root, 'manuscript/salt.md'), 'utf8')).toBe('---\ntitle: Salt\nid: ch-t2\n---\n')
   })
 
+  it('a poetry collection: notes, poems, sections, an outline, and one untitled poem ready to write', async () => {
+    const { snapshot, root } = await create('poetry', 'en', 'Salt Hours')
+    expect(snapshot.details).toMatchObject({
+      kinds: [{ folder: 'notes' }],
+      manuscriptUnit: { one: 'Poem', many: 'Poems' },
+      partUnit: { one: 'Section', many: 'Sections' },
+      chapterForm: 'poem',
+      suggestedTags: ['Draft', 'Ready'],
+      mainOutline: 'outlines/order-of-the-collection.md',
+    })
+    expect(snapshot.chapters).toMatchObject([{ file: 'manuscript/poem.md', title: '', form: 'poem', listed: true }])
+    expect(await readFile(join(root, 'manuscript/poem.md'), 'utf8')).toBe('---\ntitle: ""\nid: ch-t2\nform: poem\n---\n')
+    expect(await readFile(join(root, 'project.md'), 'utf8')).toMatch(
+      /\npartUnit:\n {2}one: Section\n {2}many: Sections\nchapterForm: poem\n/,
+    )
+  })
+
+  it('a Hebrew poetry collection: שירים in אסופות, and the outline in Hebrew', async () => {
+    const { snapshot, root } = await create('poetry', 'he', 'שעות מלח')
+    expect(snapshot.details.manuscriptUnit).toEqual({ one: 'שיר', many: 'שירים' })
+    expect(snapshot.details.partUnit).toEqual({ one: 'אסופה', many: 'אסופות' })
+    expect(snapshot.chapters.map((chapter) => chapter.file)).toEqual(['manuscript/שיר.md'])
+    expect(await readFile(join(root, 'outlines/סדר-הספר.md'), 'utf8')).toMatch(/^# סדר הספר\n\n## אסופה ראשונה\n/)
+  })
+
   it('a campaign: five kinds of its own, sessions, the arc and the session plan', async () => {
     const { snapshot, root } = await create('campaign', 'en')
     expect(snapshot.details.kinds).toEqual([

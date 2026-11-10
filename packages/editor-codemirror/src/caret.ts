@@ -13,6 +13,7 @@ import {
 import { Direction, keymap, type Command, type EditorView } from '@codemirror/view'
 import { clusters, hiddenIn, hiddenSource, markdownHidden, pendingFormat, restingPlace, textStart, type Hidden } from './hidden'
 import { nest } from './outline-text'
+import { endsWithBreak } from './poem'
 
 /**
  * The cursor and editing over hidden marks (ADR 0010, Milestone 16). The author never meets a mark:
@@ -95,6 +96,15 @@ export const deleteBackward: StateCommand = ({ state, dispatch }) => {
     dispatch(state.update({ changes: { from: last.from, to: last.to }, scrollIntoView: true, userEvent: 'delete.backward' }))
     return true
   }
+  // At the start of a line after a line break, the break's hidden `\` goes with the line ending, or it
+  // would show, glued to the first letter.
+  if (pos === line.from && start === line.from && line.number > 1) {
+    const previous = state.doc.line(line.number - 1)
+    if (endsWithBreak(previous.text)) {
+      dispatch(state.update({ changes: { from: previous.to - 1, to: line.from }, scrollIntoView: true, userEvent: 'delete.backward' }))
+      return true
+    }
+  }
   if (!invisibleAt(hidden, pos, true)) return false
   const cluster = clusters(hidden).find((c) => c.from < pos && pos <= c.to)
   if (!cluster) return false
@@ -120,9 +130,10 @@ export const deleteForward: StateCommand = ({ state, dispatch }) => {
   const cluster = clusters(hidden).find((c) => c.from <= pos && pos < c.to)
   if (!cluster) return false
   if (cluster.to >= line.to) {
-    // Only marks until the end of the line: join the next line to this one.
+    // Only marks until the end of the line: join the next line to this one, and a line break's `\` goes too.
     if (line.number === state.doc.lines) return true
-    dispatch(state.update({ changes: { from: line.to, to: line.to + 1 }, scrollIntoView: true, userEvent: 'delete.forward' }))
+    const from = endsWithBreak(line.text) ? line.to - 1 : line.to
+    dispatch(state.update({ changes: { from, to: line.to + 1 }, scrollIntoView: true, userEvent: 'delete.forward' }))
     return true
   }
   const letter = line.from + findClusterBreak(line.text, cluster.to - line.from, true)

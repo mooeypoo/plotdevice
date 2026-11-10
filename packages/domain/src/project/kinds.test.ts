@@ -89,7 +89,7 @@ describe('changing the kinds', () => {
 })
 
 describe('a change from the "Kinds of pages" screen', () => {
-  const book = { kinds: DEFAULT_KINDS, manuscriptUnit: null }
+  const book = { kinds: DEFAULT_KINDS, manuscriptUnit: null, partUnit: null }
 
   it('adds, renames, moves and removes, and names the chapters', () => {
     const added = applyKindsChange(book, { kind: 'add', one: 'Faction', many: 'Factions', folder: 'factions' })
@@ -100,12 +100,23 @@ describe('a change from the "Kinds of pages" screen', () => {
     })
     expect(applyKindsChange(book, { kind: 'unit', unit: { one: ' Session ', many: 'Sessions' } })).toEqual({
       ok: true,
-      value: { kinds: DEFAULT_KINDS, manuscriptUnit: { one: 'Session', many: 'Sessions' } },
+      value: { kinds: DEFAULT_KINDS, manuscriptUnit: { one: 'Session', many: 'Sessions' }, partUnit: null },
     })
     expect(applyKindsChange({ ...book, manuscriptUnit: { one: 'Session', many: 'Sessions' } }, { kind: 'unit', unit: null })).toEqual({
       ok: true,
-      value: { kinds: DEFAULT_KINDS, manuscriptUnit: null },
+      value: { kinds: DEFAULT_KINDS, manuscriptUnit: null, partUnit: null },
     })
+  })
+
+  it('names the parts, leaving the chapters’ word alone', () => {
+    const session = { one: 'Session', many: 'Sessions' }
+    expect(applyKindsChange({ ...book, manuscriptUnit: session }, { kind: 'part-unit', unit: { one: ' אסופה', many: 'אסופות ' } })).toEqual(
+      {
+        ok: true,
+        value: { kinds: DEFAULT_KINDS, manuscriptUnit: session, partUnit: { one: 'אסופה', many: 'אסופות' } },
+      },
+    )
+    expect(applyKindsChange(book, { kind: 'part-unit', unit: { one: 'Section', many: ' ' } })).toEqual({ ok: false, error: 'empty-name' })
   })
 
   it('refuses a change to a kind the book doesn’t have', () => {

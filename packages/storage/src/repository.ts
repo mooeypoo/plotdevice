@@ -1,5 +1,6 @@
 import type {
   ChangeProblem,
+  ChapterFile,
   ContentsChange,
   FolderRenameBlock,
   FolderRenamePlan,
@@ -31,8 +32,10 @@ import {
   renamePart,
   replaceChapterFile,
   validateNewProject,
+  type ChapterForm,
   type ManuscriptProblem,
   isDefaultKinds,
+  isUnknownChapterForm,
   type ManuscriptUnit,
   type PageKind,
   isValidKindFolder,
@@ -135,6 +138,20 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
     return read.value.revision === snapshot.contentsRevision ? ok(read.value) : err('stale' as const)
   }
 
+  /** A poem's title emptied (ADR 0013): only its frontmatter changes. */
+  async function untitle(snapshot: ProjectSnapshot, chapter: ChapterFile): Promise<Result<ProjectSnapshot, ChangeProblem>> {
+    const store = folders.open(snapshot.root)
+    const current = await store.read(chapter.file)
+    if (!current.ok) return err('unreadable')
+    if (current.value.revision !== chapter.revision) return err('stale')
+    const updated = setFrontmatterValues(current.value.text, { title: '' })
+    if (!updated.ok) return err('unreadable')
+    if (updated.value === current.value.text) return ok(snapshot)
+    const written = await store.write(chapter.file, { text: updated.value, hasBom: current.value.hasBom }, current.value.revision)
+    if (!written.ok) return err(writeProblem(written.error))
+    return reopen(snapshot.root)
+  }
+
   /** One targeted change to `project.md`'s details, refused if the file changed meanwhile. */
   async function patchProject(
     snapshot: ProjectSnapshot,
@@ -179,16 +196,14 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       const files: { file: ProjectPath; text: string }[] = [{ file: PROJECT_FILE, text: projectFile.value }]
       let contents = newContentsFile(valid.value.title)
       if (template?.firstChapter) {
-        const file = chapterFileFor(valid.value.title, [])
-        const edited = editContents(contents, {
-          kind: 'add-chapter',
-          file,
-          linkText: valid.value.title,
-          placement: { part: null, index: 0 },
-        })
+        // A short story's chapter is named after the book; a collection's first poem has no title yet (ADR 0013).
+        const poem = template.chapterForm === 'poem'
+        const linkText = poem ? untitledName(template.manuscriptUnit, valid.value.language) : valid.value.title
+        const file = chapterFileFor(linkText, [])
+        const edited = editContents(contents, { kind: 'add-chapter', file, linkText, placement: { part: null, index: 0 } })
         if (!edited.ok) return err('invalid-details')
         contents = edited.value
-        files.push({ file, text: newChapterFile(valid.value.title, ids.next('ch')) })
+        files.push({ file, text: newChapterFile(poem ? '' : valid.value.title, ids.next('ch'), '', template.chapterForm) })
       }
       if (chapters && chapters.length > 0) {
         const added = withChapters(contents, [], chapters)
@@ -226,6 +241,8 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       const chapter = snapshot.chapters.find((c) => c.file === file)
       if (!chapter) return err('not-found')
       if (chapter.status !== 'ok') return err('unreadable')
+      // Only a poem can be untitled (ADR 0013); its contents line keeps what it says.
+      if (title.trim() === '') return chapter.form === 'poem' ? untitle(snapshot, chapter) : err('invalid')
       const renamed = chapter.listed
         ? renameChapterLink(snapshot.contents, file, title)
         : title.trim()
@@ -367,19 +384,39 @@ export function createProjectRepository(options: RepositoryOptions): ProjectRepo
       return reopen(snapshot.root)
     },
 
-    async setKinds(snapshot, kinds, manuscriptUnit) {
+    async setKinds(snapshot, { kinds, manuscriptUnit, partUnit }) {
+      // Only these keys change; back to the defaults, a key goes (ADR 0011, decision 2).
+      return patchProject(snapshot, (text) => {
+        const withKinds = setFrontmatterBlock(text, 'kinds', kindsLines(kinds))
+        const withUnit = withKinds.ok
+          ? setFrontmatterBlock(withKinds.value, 'manuscriptUnit', unitLines('manuscriptUnit', manuscriptUnit))
+          : withKinds
+        return withUnit.ok ? setFrontmatterBlock(withUnit.value, 'partUnit', unitLines('partUnit', partUnit)) : withUnit
+      })
+    },
+
+    async setChapterForm(snapshot, file, form) {
+      const chapter = snapshot.chapters.find((c) => c.file === file)
+      if (!chapter) return err('not-found')
+      if (chapter.status !== 'ok') return err('unreadable')
       const store = folders.open(snapshot.root)
-      const current = await store.read(PROJECT_FILE)
+      const current = await store.read(file)
       if (!current.ok) return err('unreadable')
-      // Only these two keys change; back to the defaults, a key goes (ADR 0011, decision 2).
-      const withKinds = setFrontmatterBlock(current.value.text, 'kinds', kindsLines(kinds))
-      if (!withKinds.ok) return err('unreadable')
-      const withUnit = setFrontmatterBlock(withKinds.value, 'manuscriptUnit', unitLines(manuscriptUnit))
-      if (!withUnit.ok) return err('unreadable')
-      if (withUnit.value === current.value.text) return ok(snapshot)
-      const written = await store.write(PROJECT_FILE, { text: withUnit.value, hasBom: current.value.hasBom }, current.value.revision)
+      if (current.value.revision !== chapter.revision) return err('stale')
+      // A form the app doesn't know is the author's: it reads as prose and is kept (ADR 0013).
+      const values = readFrontmatter(current.value.text)
+      if (form === 'prose' && values.ok && isUnknownChapterForm(values.value.form)) return ok(snapshot)
+      // Only the `form` line changes: the words are the same in either form (ADR 0013, point 4).
+      const updated = setFrontmatterBlock(current.value.text, 'form', formLines('form', form))
+      if (!updated.ok) return err('unreadable')
+      if (updated.value === current.value.text) return ok(snapshot)
+      const written = await store.write(file, { text: updated.value, hasBom: current.value.hasBom }, current.value.revision)
       if (!written.ok) return err(writeProblem(written.error))
       return reopen(snapshot.root)
+    },
+
+    setNewChapterForm(snapshot, form) {
+      return patchProject(snapshot, (text) => setFrontmatterBlock(text, 'chapterForm', formLines('chapterForm', form)))
     },
 
     async addChapters(snapshot, chapters) {
@@ -535,13 +572,17 @@ async function planContentsChange(
     result.ok ? null : result.error === 'not-in-book' ? 'not-found' : 'invalid'
   switch (change.kind) {
     case 'add-chapter': {
-      const file = chapterFileFor(change.title, await store.listMarkdownFiles())
-      const problem = check(addChapter(contents, { kind: 'chapter', file, linkText: change.title }, change.placement))
-      if (problem) return err(problem)
       const title = change.title.trim()
+      const { details } = snapshot
+      // A poem may start without a title (ADR 0013): its contents line and file are named for what it is.
+      if (title === '' && details.chapterForm !== 'poem') return err('invalid')
+      const linkText = title === '' ? untitledName(details.manuscriptUnit, details.language) : title
+      const file = chapterFileFor(linkText, await store.listMarkdownFiles())
+      const problem = check(addChapter(contents, { kind: 'chapter', file, linkText }, change.placement))
+      if (problem) return err(problem)
       return ok({
-        edit: { kind: 'add-chapter', file, linkText: title, placement: change.placement },
-        newChapter: { file, text: newChapterFile(title, ids.next('ch'), change.text ?? '') },
+        edit: { kind: 'add-chapter', file, linkText, placement: change.placement },
+        newChapter: { file, text: newChapterFile(title, ids.next('ch'), change.text ?? '', snapshot.details.chapterForm) },
       })
     }
     case 'add-to-book': {
@@ -670,8 +711,10 @@ function withTemplate(
 ): Result<string, 'invalid'> {
   if (!template) return ok(projectFile)
   const kinds = setFrontmatterBlock(projectFile, 'kinds', template.kinds ? kindsLines(template.kinds) : null)
-  const unit = kinds.ok ? setFrontmatterBlock(kinds.value, 'manuscriptUnit', unitLines(template.manuscriptUnit)) : kinds
-  const tags = unit.ok ? setFrontmatterList(unit.value, 'suggestedTags', template.suggestedTags) : unit
+  const unit = kinds.ok ? setFrontmatterBlock(kinds.value, 'manuscriptUnit', unitLines('manuscriptUnit', template.manuscriptUnit)) : kinds
+  const parts = unit.ok ? setFrontmatterBlock(unit.value, 'partUnit', unitLines('partUnit', template.partUnit)) : unit
+  const form = parts.ok ? setFrontmatterBlock(parts.value, 'chapterForm', formLines('chapterForm', template.chapterForm)) : parts
+  const tags = form.ok ? setFrontmatterList(form.value, 'suggestedTags', template.suggestedTags) : form
   const main = tags.ok ? setFrontmatterBlock(tags.value, 'mainOutline', mainOutline && mainOutlineLines(mainOutline)) : tags
   return main.ok ? main : err('invalid')
 }
@@ -693,8 +736,21 @@ function kindsLines(kinds: readonly PageKind[]): string[] | null {
   ]
 }
 
-function unitLines(unit: ManuscriptUnit | null): string[] | null {
-  return unit === null ? null : ['manuscriptUnit:', `  one: ${formatScalar(unit.one)}`, `  many: ${formatScalar(unit.many)}`]
+function unitLines(key: 'manuscriptUnit' | 'partUnit', unit: ManuscriptUnit | null): string[] | null {
+  return unit === null ? null : [`${key}:`, `  one: ${formatScalar(unit.one)}`, `  many: ${formatScalar(unit.many)}`]
+}
+
+/** `form: poem` (a chapter) or `chapterForm: poem` (the book); prose is the default, so it needs no key (ADR 0013). */
+function formLines(key: 'form' | 'chapterForm', form: ChapterForm): string[] | null {
+  return form === 'poem' ? [`${key}: poem`] : null
+}
+
+/**
+ * What an untitled poem's line in `CONTENTS.md` and its file are called: the book's word for a poem,
+ * or "Poem" in the book's language (ADR 0013). The app shows the poem's first line instead.
+ */
+function untitledName(unit: ManuscriptUnit | null, language: string): string {
+  return unit?.one ?? (/^he(-|$)/i.test(language) ? 'שיר' : 'Poem')
 }
 
 function writeProblem(problem: WriteProblem): ChangeProblem {

@@ -22,6 +22,8 @@ import {
   type RenameFoldersResult,
   type UndoFolderRenamesResult,
   renameChapterSchema,
+  setChapterFormSchema,
+  setNewChapterFormSchema,
   resolveConflictSchema,
   saveChapterSchema,
   type CreateProjectResult,
@@ -187,6 +189,14 @@ export function createProjectHandlers(context: ProjectIpcContext): Record<string
       const undone = await session.undoFolderRenames()
       return undone.ok ? ok(projectView(undone.value)) : undone
     },
+
+    [channels.setChapterForm]: async (payload) => {
+      const { file, form } = parsePayload(setChapterFormSchema, payload)
+      return changed(await session.setChapterForm(file, form))
+    },
+
+    [channels.setNewChapterForm]: async (payload) =>
+      changed(await session.setNewChapterForm(parsePayload(setNewChapterFormSchema, payload).form)),
 
     [channels.renameChapter]: async (payload) => {
       const { file, title } = parsePayload(renameChapterSchema, payload)
