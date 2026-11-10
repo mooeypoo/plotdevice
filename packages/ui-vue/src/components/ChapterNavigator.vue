@@ -78,7 +78,7 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
             </button>
             <MenuButton
               :label="t('part-actions', entry.name)"
-              :items="[{ key: 'rename-part', label: t('part-rename'), run: () => nav.renamePart(index, entry.name) }]"
+              :items="[{ key: 'rename-part', label: kinds.parts.rename(), run: () => nav.renamePart(index, entry.name) }]"
               align="end"
             />
           </div>
@@ -104,9 +104,15 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
                   @keydown="onKey($event, chapter)"
                 >
                   <span v-if="chapter.number !== null" class="number">{{ chapter.number }}</span>
-                  <span dir="auto">{{ chapter.linkText }}</span>
+                  <span dir="auto" :class="{ untitled: kinds.chapterName(chapter.file, chapter.linkText).untitled }">{{
+                    kinds.chapterName(chapter.file, chapter.linkText).text
+                  }}</span>
                 </button>
-                <MenuButton :label="t('chapter-actions', chapter.linkText)" :items="nav.chapterMenu(chapter)" align="end" />
+                <MenuButton
+                  :label="t('chapter-actions', kinds.chapterName(chapter.file, chapter.linkText).text)"
+                  :items="nav.chapterMenu(chapter)"
+                  align="end"
+                />
               </div>
               <button v-if="nav.outdatedTitle(chapter.file)" type="button" class="link-button" @click="nav.updateTitle(chapter.file)">
                 {{ t('navigator-update-title', nav.outdatedTitle(chapter.file) ?? '') }}
@@ -135,9 +141,15 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
               @keydown="onKey($event, entry)"
             >
               <span v-if="entry.number !== null" class="number">{{ entry.number }}</span>
-              <span dir="auto">{{ entry.linkText }}</span>
+              <span dir="auto" :class="{ untitled: kinds.chapterName(entry.file, entry.linkText).untitled }">{{
+                kinds.chapterName(entry.file, entry.linkText).text
+              }}</span>
             </button>
-            <MenuButton :label="t('chapter-actions', entry.linkText)" :items="nav.chapterMenu(entry)" align="end" />
+            <MenuButton
+              :label="t('chapter-actions', kinds.chapterName(entry.file, entry.linkText).text)"
+              :items="nav.chapterMenu(entry)"
+              align="end"
+            />
           </div>
           <button v-if="nav.outdatedTitle(entry.file)" type="button" class="link-button" @click="nav.updateTitle(entry.file)">
             {{ t('navigator-update-title', nav.outdatedTitle(entry.file) ?? '') }}
@@ -148,7 +160,7 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
 
     <div class="add-links">
       <button type="button" class="add-link" data-testid="new-chapter" @click="nav.addChapter">{{ kinds.chapters.add() }}</button>
-      <button type="button" class="add-link" @click="nav.addPart">{{ t('navigator-new-part') }}</button>
+      <button type="button" class="add-link" data-testid="new-part" @click="nav.addPart">{{ kinds.parts.add() }}</button>
     </div>
 
     <section v-if="nav.missing.value.length > 0" class="navigator-section">
@@ -176,7 +188,9 @@ async function onKey(event: KeyboardEvent, chapter: ChapterRef): Promise<void> {
           @dragend="nav.dragEnd"
         >
           <button type="button" class="chapter" :data-chapter="chapter.file" @click="emit('open', chapter.file)">
-            <span dir="auto">{{ chapter.title ?? chapter.file }}</span>
+            <span dir="auto" :class="{ untitled: chapter.title === '' }">{{
+              kinds.chapterName(chapter.file, chapter.title ?? chapter.file).text
+            }}</span>
           </button>
           <button type="button" class="link-button" @click="nav.addToBook(chapter.file)">{{ t('navigator-add-to-book') }}</button>
         </li>

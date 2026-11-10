@@ -304,8 +304,9 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
       const place = letter ? view.coordsAtPos(letter.from, 1) : null
       return letter && place ? { letter: letter.letter, marks: letter.marks, x: place.left, y: place.bottom } : null
     },
-    toggleNiqqud: (mark) => run(toggleNiqqud(mark)),
-    moveToLetter: (forward) => run(moveToLetter(forward)),
+    // The picker keeps the keyboard while the author points letter by letter.
+    toggleNiqqud: (mark) => void toggleNiqqud(mark)(view),
+    moveToLetter: (forward) => void moveToLetter(forward)(view),
     focus: () => view.focus(),
     destroy: () => view.destroy(),
   }

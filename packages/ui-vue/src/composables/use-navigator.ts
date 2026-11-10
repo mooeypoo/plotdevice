@@ -15,6 +15,7 @@ import { computed, ref, type Ref } from 'vue'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import type { MenuItem } from '../components/menu'
+import { useKinds } from './use-kinds'
 import { usePrompt } from './use-prompt'
 
 /** The navigator's actions: everything an author can do to the book's arrangement, with prompts and menus. */
@@ -22,6 +23,7 @@ export function useNavigator(project: Ref<ProjectView>, openFile: Ref<ProjectPat
   const store = useProjectStore()
   const settings = useSettingsStore()
   const { ask } = usePrompt()
+  const kinds = useKinds()
   const t = settings.t
 
   const unlisted = computed(() => project.value.chapters.filter((chapter) => !chapter.listed))
@@ -39,8 +41,10 @@ export function useNavigator(project: Ref<ProjectView>, openFile: Ref<ProjectPat
     placement ? store.changeContents({ kind: 'move-chapter', file, placement }) : Promise.resolve(false)
 
   async function addChapter(): Promise<void> {
-    const title = await ask(t('prompt-chapter-title'))
-    if (!title) return
+    // In a book of poems, a new poem may be left untitled (ADR 0013).
+    const poems = project.value.chapterForm === 'poem'
+    const title = await ask(t(poems ? 'prompt-poem-title' : 'prompt-chapter-title'), '', poems)
+    if (title === null) return
     const before = new Set(project.value.chapters.map((chapter) => chapter.file))
     const added = await store.changeContents({
       kind: 'add-chapter',
@@ -52,12 +56,12 @@ export function useNavigator(project: Ref<ProjectView>, openFile: Ref<ProjectPat
   }
 
   async function addPart(): Promise<void> {
-    const name = await ask(t('prompt-part-name'))
+    const name = await ask(kinds.parts.prompt())
     if (name) await store.changeContents({ kind: 'add-part', name, index: project.value.contents.length })
   }
 
   async function renamePart(part: number, current: string): Promise<void> {
-    const name = await ask(t('prompt-part-name'), current)
+    const name = await ask(kinds.parts.prompt(), current)
     if (name && name !== current) await store.changeContents({ kind: 'rename-part', part, name })
   }
 
@@ -65,15 +69,18 @@ export function useNavigator(project: Ref<ProjectView>, openFile: Ref<ProjectPat
     const contents = project.value.contents
     const up = moveUp(contents, chapter.file)
     const down = moveDown(contents, chapter.file)
-    const title = project.value.chapters.find((c) => c.file === chapter.file)?.title ?? chapter.linkText
+    const own = project.value.chapters.find((c) => c.file === chapter.file)
+    const title = own?.title ?? chapter.linkText
+    const poem = own?.form === 'poem'
     const fileName = chapter.file.split('/').at(-1)?.replace(/\.md$/, '') ?? ''
     return [
       {
         key: 'rename',
         label: t('chapter-rename'),
         run: async () => {
-          const next = await ask(t('prompt-chapter-title'), title)
-          if (next && next !== title) await store.renameChapter(chapter.file, next)
+          // A poem's title may be emptied: it is then known by its first line (ADR 0013).
+          const next = await ask(t(poem ? 'prompt-poem-title' : 'prompt-chapter-title'), title, poem)
+          if (next !== null && next !== title) await store.renameChapter(chapter.file, next)
         },
       },
       {

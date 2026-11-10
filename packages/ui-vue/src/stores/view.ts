@@ -31,6 +31,8 @@ export const useViewStore = defineStore('view', () => {
   const chapterRequest = ref<ProjectPath | null>(null)
   /** The chapter open in Write and its save status, for the top bar and the book menu. */
   const writingChapter = ref<{ file: ProjectPath; name: string } | null>(null)
+  /** The first line of the chapter open in Write, as it is being typed: an untitled poem's name (ADR 0013). */
+  const openFirstLine = ref<{ file: ProjectPath; line: string | null } | null>(null)
   const saveStatus = ref<SaveStatusView | null>(null)
   /** The save status of the page or outline text open in Story, for the same place in the top bar (Milestone 17). */
   const storySaveStatus = ref<SaveStatusView | null>(null)
@@ -82,6 +84,7 @@ export const useViewStore = defineStore('view', () => {
     navigatorHidden,
     chapterRequest,
     writingChapter,
+    openFirstLine,
     saveStatus,
     storySaveStatus,
     plainTextRequest,

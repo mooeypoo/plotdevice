@@ -8,10 +8,11 @@ import {
   type FormatCommand,
   type LinkReport,
   type LinkSuggestionOptions,
+  type NiqqudReport,
   type OutlineTextOptions,
   type SelectionPlace,
 } from '@plotdevice/editor-codemirror'
-import { pastedMarkdown } from '@plotdevice/markdown'
+import { firstLineOf, pastedMarkdown } from '@plotdevice/markdown'
 import type { ProjectPath } from '@plotdevice/shared'
 import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 import { useApi } from '../api'
@@ -73,7 +74,18 @@ export function useChapterWriting(
     return hostStatus === 'conflict' || hostStatus === 'failed' || !pending.value ? hostStatus : 'unsaved'
   })
 
+  /** Prose or a poem (ADR 0013): only chapters have a form; pages and outlines are prose. */
+  const form = computed(() => store.project?.chapters.find((chapter) => chapter.file === file.value)?.form ?? 'prose')
+  /** Counts changes to the text, so what is read from it (an untitled poem's first line) follows typing. */
+  const edits = ref(0)
+  /** The open text's first line as words, for an untitled poem's name while it is being written. */
+  const firstLine = computed(() => {
+    void edits.value
+    return editor && state.value === 'ready' ? firstLineOf(editor.text()) : null
+  })
+
   const editorSettings = (project: ProjectView | null, preferences: Preferences | null): EditorSettings => ({
+    form: form.value,
     projectDirection: project?.direction ?? 'ltr',
     directionMode: 'project',
     language: project?.language ?? preferences?.locale ?? 'en',
@@ -128,8 +140,11 @@ export function useChapterWriting(
     generation = chapter.value.generation
     store.statuses = { ...store.statuses, [next]: chapter.value.status }
     lastTop = top ?? 0
+    // The new chapter's form first, so its text loads with the right keys (ADR 0013).
+    editor?.updateSettings(editorSettings(store.project, settings.preferences))
     editor?.load(chapter.value.text, cursor, top)
     state.value = 'ready'
+    edits.value++
     editor?.focus()
   }
 
@@ -140,6 +155,7 @@ export function useChapterWriting(
       else {
         generation = event.generation
         editor.load(event.text, editor.cursor(), editor.top() ?? lastTop)
+        edits.value++
       }
     }
   }
@@ -179,6 +195,7 @@ export function useChapterWriting(
       text: '',
       settings: editorSettings(store.project, settings.preferences),
       onChange: () => {
+        edits.value++
         pending.value = true
         clearTimeout(timer)
         timer = setTimeout(flush, AUTOSAVE_DELAY_MS)
@@ -210,7 +227,7 @@ export function useChapterWriting(
   })
 
   watch(
-    () => [store.project?.direction, store.project?.language, settings.locale] as const,
+    () => [store.project?.direction, store.project?.language, settings.locale, form.value] as const,
     () => editor?.updateSettings(editorSettings(store.project, settings.preferences)),
   )
 
@@ -242,6 +259,12 @@ export function useChapterWriting(
       selection.value = editor?.selectionPlace() ?? null
     },
     focus: () => editor?.focus(),
+    form,
+    firstLine,
+    /** The Hebrew letter before the cursor and its niqqud, for the picker (ADR 0013). */
+    niqqud: (): NiqqudReport | null => editor?.niqqud() ?? null,
+    toggleNiqqud: (mark: string) => editor?.toggleNiqqud(mark),
+    moveToLetter: (forward: boolean) => editor?.moveToLetter(forward),
     /** The view is about to be hidden: note the paragraph at the top of the page while it can be measured. */
     hiding: () => {
       lastTop = editor?.top() ?? lastTop

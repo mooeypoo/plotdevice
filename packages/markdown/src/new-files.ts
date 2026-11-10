@@ -54,8 +54,11 @@ export function newOutlineFile(title: string, about?: { path: string; title: str
  * (ADR 0013). Blank lines and direction fences are skipped; `null` when there is no text yet.
  */
 export function firstLineOf(body: string): string | null {
-  for (const raw of body.split(/\r?\n/)) {
-    const line = raw.trim()
+  // Line by line from the top, without splitting the whole text: this runs as the author types.
+  for (let start = 0; start <= body.length;) {
+    const end = body.indexOf('\n', start)
+    const line = body.slice(start, end < 0 ? body.length : end).trim()
+    start = end < 0 ? body.length + 1 : end + 1
     if (line === '' || line.startsWith(':::') || /^([*\-_])(\s*\1){2,}$/.test(line)) continue
     const words = line
       .replace(/\\$/, '')
