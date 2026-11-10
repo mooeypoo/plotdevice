@@ -1,0 +1,85 @@
+---
+title: Writing poems
+description: Make a chapter a poem, where Enter starts a new line and Enter twice a new stanza; leave a poem untitled; export it as verse; and add niqqud to Hebrew.
+---
+
+import Ui from '~/components/Ui.astro'
+import Shot from '~/components/Shot.astro'
+
+Any chapter can be a poem. In a poem, every line stays exactly where you put it, on screen and in the exported book. A novel can hold a poem, and a poetry collection can hold a piece of prose.
+
+<Shot name="poem" alt="A poem in Write: Evening in the Orchard, two stanzas of three lines each" />
+
+## Make a chapter a poem
+
+Open the chapter, then choose **<Ui k="toolbar-format" /> → <Ui k="format-poem" />**. A tick shows it's on. Choose it again to make the chapter prose again.
+
+It's a setting for one chapter at a time. When a chapter's form is different from the rest of the book, a small label above the page, beside the chapter's number, says so: **<Ui k="chapter-form-poem" />** in a novel, **<Ui k="chapter-form-prose" />** in a poetry collection.
+
+## Typing a poem
+
+| Press | To |
+|---|---|
+| **Enter** | Start a new line |
+| **Enter** twice (Enter on an empty line) | Start a new stanza |
+| **Shift+Enter** | Start a new stanza straight away |
+| **Backspace**, at the start of a stanza | Join it to the stanza above |
+
+On screen, a poem has no indent at the start of a stanza. A line too long for the page carries on underneath, indented, so you can always tell where a line really ends.
+
+Pasting a poem from somewhere else keeps each line on its own line, and a blank line between lines becomes a new stanza.
+
+## Switching it on and off
+
+Switching never changes your words. Only how Enter works, how the chapter looks and how it exports change.
+
+| | Poem on | Poem off |
+|---|---|---|
+| Your words | Unchanged | Unchanged |
+| Each paragraph | Becomes a stanza | Each stanza becomes a paragraph again |
+| Lines | Lines you broke with Shift+Enter stay broken | Every line stays on its own line |
+| Enter | A new line; twice for a new stanza | A new paragraph, as usual |
+| On screen | No indent; long lines carry on indented | The usual page |
+| Export | As verse (see below) | As prose |
+| Word count | Unchanged | Unchanged |
+
+So you can try it, change your mind and switch back without losing anything.
+
+## A whole book of poems
+
+The **<Ui k="template-poetry" />** template, on the new book screen, is made for poems. Every new chapter starts as a poem, and the book calls its chapters poems and its parts sections. It opens on one empty poem, ready to write. See [Your first book](/docs/start/first-book/).
+
+Any book can start its new chapters as poems: in the book menu (the book's title), tick **<Ui k="new-chapters-poems" />**. Chapters you already have stay as they are.
+
+## Untitled poems
+
+Many poems have no title. When you add a poem, the box says **<Ui k="prompt-poem-title" />**: leave it empty if you like.
+
+An untitled poem shows in the sidebar by its first line, in italics, which updates as you type. Above the page it says **<Ui k="poem-untitled" />**. In an exported book, it has no heading, and an e-book's table of contents lists it by its first line, in italics.
+
+## Exporting poems
+
+When you [export](/docs/sharing/export/) to Word, PDF or EPUB, each poem:
+
+- keeps every line where you put it;
+- has a gap between stanzas;
+- has no indent, and is never stretched to the margins or broken with hyphens;
+- carries a long line on to the next line, indented, so the reader can tell it's the same line;
+- starts on a new page, like every chapter.
+
+## Niqqud
+
+Niqqud, the Hebrew vowel marks, can be typed in any chapter or page, poem or not. Choose **<Ui k="toolbar-format" /> → <Ui k="niqqud-menu" />**, or press **Ctrl+Shift+N** (⌘⇧N on a Mac).
+
+<Shot name="niqqud" alt="The niqqud picker open on the letter kaf, with its qamats and dagesh chosen, under the last lines of a pointed Hebrew poem" close />
+
+The picker shows the letter just before the cursor, large, and a button for each mark: the vowels (**<Ui k="niqqud-qamats" />**, **<Ui k="niqqud-patah" />**, **<Ui k="niqqud-tsere" />**, **<Ui k="niqqud-segol" />**, **<Ui k="niqqud-hiriq" />**, **<Ui k="niqqud-holam" />**, **<Ui k="niqqud-qubuts" />**, **<Ui k="niqqud-sheva" />**, **<Ui k="niqqud-hataf-patah" />**, **<Ui k="niqqud-hataf-segol" />** and **<Ui k="niqqud-hataf-qamats" />**), **<Ui k="niqqud-dagesh" />**, and the **<Ui k="niqqud-shin-dot" />** and **<Ui k="niqqud-sin-dot" />**.
+
+- Choose a mark to add it, and again to take it off. Choosing another vowel replaces the one that's there.
+- You see the letter change as you go: ב, then בָ with a qamats, then בָּ with a dagesh too.
+- The arrow keys move from letter to letter, so you can point a whole word without leaving the picker. Hebrew runs right to left, so **←** goes to the next letter and **→** to the one before.
+- **Escape** closes it.
+
+Niqqud is saved exactly as you typed it. When you search, it doesn't get in the way: searching for יעל finds יַעֵל.
+
+Plot Device doesn't add niqqud by itself. The tools that do are online services, and Plot Device never sends your writing anywhere.

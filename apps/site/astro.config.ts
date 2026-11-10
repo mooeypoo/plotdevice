@@ -50,6 +50,7 @@ export default defineConfig({
                   'docs/writing/chapters-and-parts',
                   'docs/writing/moving-chapters',
                   'docs/writing/formatting',
+                  'docs/writing/poems',
                   'docs/writing/hebrew-and-english',
                   'docs/writing/the-page',
                   'docs/writing/references',
