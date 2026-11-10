@@ -43,6 +43,25 @@ suggestedTags: [Player character, Villain, Ally]
 - A book without `kinds` has characters, places and notes. A folder of pages that isn't listed shows as "Not sorted yet".
 - `suggestedTags` are offered by **+ Tag** before any page uses them. A book from a template may have some; any book can.
 
+## Poems and parts in project.md
+
+A poetry collection, or any book set to start new chapters as poems, has two more settings:
+
+```yaml
+manuscriptUnit:
+  one: Poem
+  many: Poems
+partUnit:
+  one: Section
+  many: Sections
+chapterForm: poem
+```
+
+- `partUnit` is what the book calls its parts, written like `manuscriptUnit`. Without it, they're parts. It changes only Plot Device's words: `CONTENTS.md` and the files stay the same.
+- `chapterForm: poem` makes new chapters start as poems (each new chapter file gets `form: poem`; see [A poem](/docs/technical/files/chapters/#a-poem)). It doesn't change chapters you already have. Without it, new chapters are prose.
+
+Both are optional, and older versions of Plot Device ignore them.
+
 ## The main outline and outlines set aside
 
 ```yaml
