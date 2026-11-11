@@ -46,7 +46,19 @@ export {
 } from './references'
 export { menuPlacement, type Box } from './menu-placement'
 export { groupByTags, partOf, tagProblems, tagRow, tagSuggestions, withSuggestedTags, type TagGroups, type TagProblems } from './tags'
-export { builtInKindKey, kindFolderFor, kindLabels, kindOrder, unsortedFolders, type KindLabels, type Translate } from './kinds'
+export {
+  builtInKindKey,
+  CHAPTER_UNITS,
+  kindFolderFor,
+  kindLabels,
+  kindOrder,
+  knownUnit,
+  PART_UNITS,
+  TEMPLATE_KINDS,
+  unsortedFolders,
+  type KindLabels,
+  type Translate,
+} from './kinds'
 export {
   chapterChips,
   lineUpChoices,

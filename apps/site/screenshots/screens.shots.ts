@@ -123,6 +123,11 @@ test.afterAll(async () => {
 
 /** The window as the person sees it, at twice the pixels for sharp images on any screen. */
 async function snap(page: Page, lang: string, name: string, theme: string): Promise<void> {
+  // "Saved", not "Not saved yet": the shot waits for the last words typed to be written.
+  await page.waitForFunction(() => {
+    const status = document.querySelector('[data-testid="save-status"]')
+    return !status || status.getAttribute('data-state') === 'saved'
+  })
   await new Promise((resolve) => setTimeout(resolve, 400)) // transitions and fonts settle
   await mkdir(join(OUT, lang), { recursive: true })
   await page.screenshot({ path: join(OUT, lang, `${name}-${theme}.png`), caret: 'hide', timeout: 20_000 })
@@ -202,7 +207,7 @@ async function restCursor(page: Page): Promise<void> {
     const blank = [...lines].find((line) => line.textContent === '')
     if (blank) document.getSelection()?.setBaseAndExtent(blank, 0, blank, 0)
   })
-  await page.locator('.chapter-title').click()
+  await page.locator('.chapter-head').click({ position: { x: 2, y: 2 } })
 }
 
 /** Puts the cursor in the middle of `phrase`, as a click there would. */
@@ -502,7 +507,7 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
         if (p > 0) await story.page.keyboard.press('Enter')
         await story.page.keyboard.insertText(paragraph)
       }
-      await story.page.locator('.chapter-title').click()
+      await story.page.locator('.chapter-head').click({ position: { x: 2, y: 2 } })
       await snap(story.page, lang, 'kind-short-story', theme)
       await story.app.close()
 
@@ -512,16 +517,13 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await snap(campaign.page, lang, 'kind-campaign', theme)
       await campaign.app.close()
 
-      // A poetry collection opens on its one untitled poem. Give it a title, then write it.
+      // A poetry collection opens on its one untitled poem. Give it a title on the page, then write it.
       const poetry = await make('poetry', books.poetry)
       const pp = poetry.page
       const poem = POEMS[lang as keyof typeof POEMS]
-      const row = pp.getByTestId('navigator').locator('.chapter-row').first()
-      await row.hover()
-      await row.locator('.menu-button').click()
-      await pp.getByTestId('menu-rename').click()
-      await pp.getByTestId('prompt-input').fill(poem.title)
-      await pp.getByTestId('prompt-input').press('Enter')
+      await pp.getByTestId('chapter-title-field').click()
+      await pp.keyboard.insertText(poem.title)
+      await pp.keyboard.press('Enter')
       await pp.locator('.chapter-title', { hasText: poem.title }).waitFor()
       await typePoem(pp, poem.stanzas)
       await restCursor(pp)

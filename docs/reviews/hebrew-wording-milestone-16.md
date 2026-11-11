@@ -165,3 +165,9 @@ Worth checking:
 - [ ] **The niqqud names** without niqqud themselves, as menu labels elsewhere. Should they be voweled (קָמָץ, פַּתָּח)?
 - [ ] **The sample poem's niqqud** (`poem-he.md`): please check every mark.
 - [ ] Guide pages new or changed: see the Milestone 27 plan's results.
+
+## Added in Milestone 28
+
+- [ ] **„שם”** is what screen readers call the title above the page, which can now be retyped ("Title" in English).
+- [ ] Guide: the new section **„שינוי שם של פרק”** in Chapters and parts, and in Writing poems, **„באפור”** for how "Untitled poem" is shown ("faintly").
+- [ ] Template words in the interface's language (campaign kinds as well: an English campaign in a Hebrew interface says „דמות”, „מקום”, „פלג”, „חפץ”, „ידע” for NPC, Location, Faction, Item, Lore; is „דמות” right for NPC?): **„שיר חדש”**, **„מפגש חדש”**, **„אסופה חדשה”**, **„שינוי שם האסופה…”**, **„שם האסופה”**, **„עוד אין שירים”**, **„עוד אין מפגשים”**. They replace „הוספת שיר” and the like for template books. The author's own words still use „הוספת $1”.

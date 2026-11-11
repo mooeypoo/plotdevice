@@ -14,6 +14,7 @@ import { useSettingsStore } from '../stores/settings'
 import { useViewStore } from '../stores/view'
 import AppIcon from './AppIcon.vue'
 import ChapterNavigator from './ChapterNavigator.vue'
+import ChapterTitle from './ChapterTitle.vue'
 import ConflictDialog from './ConflictDialog.vue'
 import EmptyState from './EmptyState.vue'
 import FormatBubble from './FormatBubble.vue'
@@ -157,14 +158,20 @@ const heading = computed(() => {
   const refs = props.project.contents.flatMap((entry) => (entry.kind === 'part' ? entry.chapters : [entry]))
   const ref = refs.find((chapter) => chapter.file === file)
   const own = props.project.chapters.find((chapter) => chapter.file === file)
-  // An untitled poem's first line is right below; above it, the page says it has no title yet.
-  const untitled = own?.title === ''
-  const name = untitled
-    ? { text: settings.tIn(props.project.language, 'poem-untitled'), untitled }
-    : { text: own?.title ?? ref?.linkText ?? '', untitled }
-  const eyebrow = !ref ? t('navigator-not-in-book') : ref.number !== null ? kinds.chapters.number(ref.number) : ''
+  // The title can be retyped on the page (Milestone 28). An untitled poem's is empty, and says so faintly.
+  const poem = own?.form === 'poem'
+  const title = own?.title ?? ref?.linkText ?? ''
+  const eyebrow = !ref ? t('navigator-not-in-book') : ref.number !== null ? kinds.chapters.numberInBook(ref.number) : ''
   const form = own && own.form !== props.project.chapterForm ? t(own.form === 'poem' ? 'chapter-form-poem' : 'chapter-form-prose') : null
-  return { eyebrow, title: name.text, untitled: name.untitled, form }
+  return {
+    file,
+    eyebrow,
+    title,
+    // Only a poem can be emptied; it is then "Untitled poem", in the book's language.
+    poem,
+    placeholder: poem ? settings.tIn(props.project.language, 'poem-untitled') : '',
+    form,
+  }
 })
 // An untitled poem's name follows its first line as it is typed, in the sidebar too.
 watch(
@@ -316,7 +323,16 @@ onBeforeUnmount(() => {
             <p v-if="heading.eyebrow || heading.form" class="chapter-eyebrow">
               {{ heading.eyebrow }}<span v-if="heading.form" class="chapter-form" data-testid="chapter-form">{{ heading.form }}</span>
             </p>
-            <h1 class="chapter-title" :class="{ untitled: heading.untitled }" dir="auto">{{ heading.title }}</h1>
+            <h1 class="chapter-title" dir="auto">
+              <ChapterTitle
+                :file="heading.file"
+                :title="heading.title"
+                :placeholder="heading.placeholder"
+                :may-be-empty="heading.poem"
+                :rename="store.renameChapter"
+                @done="writing.focus"
+              />
+            </h1>
           </header>
           <PlainTextBanner v-if="writing.mode.value === 'plain'" @back="writing.setMode('rendered')" />
           <div ref="host" class="editor-host" :lang="project.language" data-testid="editor" @keydown="onEditorKey"></div>

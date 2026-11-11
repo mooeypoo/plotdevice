@@ -1,7 +1,7 @@
 import type { ReferenceSummaryView } from '@plotdevice/contracts'
 import type { ProjectPath } from '@plotdevice/shared'
 import { describe, expect, it } from 'vitest'
-import { kindLabels, kindOrder, unsortedFolders } from './kinds'
+import { CHAPTER_UNITS, kindLabels, kindOrder, knownUnit, PART_UNITS, unsortedFolders } from './kinds'
 
 /** The message key and its values, so the tests see which message is used. */
 const t = (key: string, ...params: (string | number)[]): string => [key, ...params].join(':')
@@ -55,5 +55,41 @@ describe('"Not sorted yet" (ADR 0011, decision 5)', () => {
 
   it('orders kinds as the book lists them, then the unsorted', () => {
     expect(kindOrder(campaign, pages)).toEqual(['characters', 'פלגים', 'notes', 'factions', 'world'])
+  })
+})
+
+describe('a template’s word for chapters and parts, in any language (ADR 0011, 0013)', () => {
+  const catalogs: Record<string, Record<string, string>> = {
+    en: { 'unit-poem': 'Poem', 'unit-session': 'Session', 'unit-section': 'Section' },
+    he: { 'unit-poem': 'שיר', 'unit-session': 'מפגש', 'unit-section': 'אסופה' },
+  }
+  const wordsFor = (key: string) => Object.values(catalogs).map((messages) => messages[key] ?? '')
+
+  it('is recognised whichever language the book was written in', () => {
+    expect(knownUnit({ one: 'שיר' }, CHAPTER_UNITS, wordsFor)).toBe('poem')
+    expect(knownUnit({ one: 'Session' }, CHAPTER_UNITS, wordsFor)).toBe('session')
+    expect(knownUnit({ one: ' poem ' }, CHAPTER_UNITS, wordsFor)).toBe('poem')
+    expect(knownUnit({ one: 'אסופה' }, PART_UNITS, wordsFor)).toBe('section')
+  })
+
+  it('leaves the author’s own words, and books without one, alone', () => {
+    expect(knownUnit({ one: 'Canto' }, CHAPTER_UNITS, wordsFor)).toBeNull()
+    expect(knownUnit({ one: 'אסופה' }, CHAPTER_UNITS, wordsFor)).toBeNull()
+    expect(knownUnit(null, CHAPTER_UNITS, wordsFor)).toBeNull()
+  })
+})
+
+describe('a template’s kind of page, in any language', () => {
+  const wordsFor = (key: string) => ({ 'kind-faction': ['Faction', 'פלג'], 'kind-npc': ['NPC', 'דמות'] })[key] ?? []
+  const hebrewCampaign = [
+    { folder: 'פלגים', one: 'פלג', many: 'פלגים' },
+    { folder: 'קסמים', one: 'קסם', many: 'קסמים' },
+  ]
+
+  it('is said in the interface’s language; the author’s own kinds as typed', () => {
+    const faction = kindLabels(hebrewCampaign, 'פלגים', t, wordsFor)
+    expect([faction.one, faction.many, faction.newPage]).toEqual(['kind-faction', 'kind-faction-many', 'new-page-of-kind:kind-faction'])
+    expect(kindLabels(hebrewCampaign, 'קסמים', t, wordsFor).one).toBe('קסם')
+    expect(kindLabels(hebrewCampaign, 'פלגים', t).one).toBe('פלג')
   })
 })
