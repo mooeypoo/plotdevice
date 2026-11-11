@@ -156,7 +156,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
     <div class="top-end">
       <UpdateNotice />
       <!-- The same bar in both workspaces (Milestone 17, decision 3). -->
-      <span v-if="store.project && status" class="save-status" :class="{ problem }" role="status" data-testid="save-status">{{
+      <span v-if="store.project && status" class="save-status" :class="{ problem }" role="status" :data-state="status" data-testid="save-status">{{
         t(`save-${status}`)
       }}</span>
       <AppearancePanel v-if="store.project" />
