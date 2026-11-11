@@ -119,7 +119,7 @@ The guide explains the Poem switch. The front page and the comparison page show 
 - Above the page, an untitled poem says "Untitled poem"; its first line is already right below it. The sidebar shows the first line.
 - The "Poem" / "Prose" label beside the chapter's number shows only when a chapter's form differs from the book's new chapters.
 - Fixed on the way: Backspace (and Delete) next to a line break no longer leaves a stray `\` visible, in prose too.
-- Also changed: the template cards fit five in a row; menus can have checked items.
+- Also changed: the template cards fit five in a row; menus can have checked items; Niqqud… has an icon (a ב with a dagesh and a qamats).
 
 **Tests** (2026-11-10):
 - `pnpm lint`, `pnpm typecheck`: clean.
@@ -132,4 +132,3 @@ The guide explains the Poem switch. The front page and the comparison page show 
 - Hebrew wording to review (`docs/reviews/hebrew-wording-milestone-16.md`, "Added in Milestone 27"), including the guide's „בית / בתים” for stanzas.
 - Spell check on words with niqqud wasn't checked by hand on Windows and Linux yet.
 - The Format menu is taller than a 900-pixel window and scrolls; Poem and Plain text are at its end.
-- Niqqud… has no icon in the Format menu.

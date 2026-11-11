@@ -39,7 +39,7 @@ export const isNiqqudKey = (event: KeyboardEvent): boolean =>
 
 /** "Niqqud…" in the Format menu: opens the picker on the letter before the cursor. */
 export function niqqudItem(t: (key: string) => string, open: () => void): MenuItem {
-  return { key: 'niqqud', label: t('niqqud-menu'), hint: niqqudKeys(), group: 'niqqud', run: open }
+  return { key: 'niqqud', label: t('niqqud-menu'), icon: 'niqqud', hint: niqqudKeys(), group: 'niqqud', run: open }
 }
 
 /** Plain text, or back to normal view, as the Format menu's last item, with its keys (ADR 0010). */
