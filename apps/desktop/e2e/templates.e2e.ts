@@ -122,6 +122,9 @@ test("the book's language comes first, and the cards show what a template brings
   // The book says „מפגש”; the English interface says "session".
   await page.getByTestId('workspace-write').click()
   await expect(page.getByTestId('new-chapter').filter({ visible: true })).toHaveText('New session')
+  // Its kinds of pages too: the folder is פלגים; the English interface calls it Factions.
+  await page.getByTestId('workspace-story').click()
+  await expect(page.locator('[data-gallery="פלגים"]')).toContainText('Factions')
 })
 
 test('a short story opens in Write on its chapter; "New project…" over a book, and Back or Cancel to it', async () => {

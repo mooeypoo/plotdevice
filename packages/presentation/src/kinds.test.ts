@@ -78,3 +78,18 @@ describe('a template’s word for chapters and parts, in any language (ADR 0011,
     expect(knownUnit(null, CHAPTER_UNITS, wordsFor)).toBeNull()
   })
 })
+
+describe('a template’s kind of page, in any language', () => {
+  const wordsFor = (key: string) => ({ 'kind-faction': ['Faction', 'פלג'], 'kind-npc': ['NPC', 'דמות'] })[key] ?? []
+  const hebrewCampaign = [
+    { folder: 'פלגים', one: 'פלג', many: 'פלגים' },
+    { folder: 'קסמים', one: 'קסם', many: 'קסמים' },
+  ]
+
+  it('is said in the interface’s language; the author’s own kinds as typed', () => {
+    const faction = kindLabels(hebrewCampaign, 'פלגים', t, wordsFor)
+    expect([faction.one, faction.many, faction.newPage]).toEqual(['kind-faction', 'kind-faction-many', 'new-page-of-kind:kind-faction'])
+    expect(kindLabels(hebrewCampaign, 'קסמים', t, wordsFor).one).toBe('קסם')
+    expect(kindLabels(hebrewCampaign, 'פלגים', t).one).toBe('פלג')
+  })
+})

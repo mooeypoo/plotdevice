@@ -54,6 +54,7 @@ export {
   kindOrder,
   knownUnit,
   PART_UNITS,
+  TEMPLATE_KINDS,
   unsortedFolders,
   type KindLabels,
   type Translate,

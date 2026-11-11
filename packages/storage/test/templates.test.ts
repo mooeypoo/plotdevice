@@ -179,7 +179,7 @@ describe('starter outlines', () => {
   })
 })
 
-describe('the words templates give chapters and parts', () => {
+describe('the words templates give chapters, parts and kinds of pages', () => {
   // The interface recognises these words, in any language, to say them in the author's (use-kinds).
   // A template's word that the app's messages don't have would show untranslated, as "+ New שיר".
   const catalogs: Record<string, Record<string, unknown>> = { en: english, he: hebrew }
@@ -188,10 +188,10 @@ describe('the words templates give chapters and parts', () => {
       for (const language of Object.keys(catalogs)) {
         const words = projectTemplate(id, language)
         const messages = Object.values(catalogs[language] ?? {})
-        for (const unit of [words.manuscriptUnit, words.partUnit])
+        for (const unit of [words.manuscriptUnit, words.partUnit, ...(words.kinds ?? []).filter((kind) => kind.one !== undefined)])
           if (unit) {
             expect(messages, `${id} ${language}: ${unit.one}`).toContain(unit.one)
-            expect(messages, `${id} ${language}: ${unit.many}`).toContain(unit.many)
+            if (unit.many !== undefined) expect(messages, `${id} ${language}: ${unit.many}`).toContain(unit.many)
           }
       }
   })

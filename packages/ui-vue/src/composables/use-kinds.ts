@@ -22,7 +22,6 @@ export function useKinds() {
   const kinds = computed(() => project.project?.kinds ?? DEFAULTS)
   const unsorted = computed(() => unsortedFolders(kinds.value, story.references))
   const order = computed(() => kindOrder(kinds.value, story.references))
-  const labels = (folder: string) => kindLabels(kinds.value, folder, settings.t)
   const listed = (folder: string): boolean => kinds.value.some((kind) => kind.folder === folder)
 
   /** One word for what a search result or link is: "Character", "NPC", "Chapter". */
@@ -45,6 +44,7 @@ export function useKinds() {
 
   /** A message in every language the app has: to recognise a template's word in any of them. */
   const wordsFor = (key: string): string[] => Object.keys(catalogs).map((language) => settings.tIn(language, key))
+  const labels = (folder: string) => kindLabels(kinds.value, folder, settings.t, wordsFor)
   const bookLanguage = (): string => project.project?.language ?? settings.locale
 
   /**

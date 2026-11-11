@@ -31,7 +31,7 @@ export interface KindLabels {
  * open question 3). The default kinds, unrenamed, use the app's own translations. A folder the book
  * doesn't list is named as it is on disk.
  */
-export function kindLabels(kinds: Kinds, folder: string, t: Translate): KindLabels {
+export function kindLabels(kinds: Kinds, folder: string, t: Translate, wordsFor?: (key: string) => string[]): KindLabels {
   const kind = kinds.find((each) => each.folder === folder)
   const key = builtInKindKey(folder)
   if (kind?.one === undefined && kind?.many === undefined && key !== null && kind !== undefined)
@@ -43,8 +43,10 @@ export function kindLabels(kinds: Kinds, folder: string, t: Translate): KindLabe
       emptyText: t(`gallery-empty-${key}-text`),
       all: (count) => t(`tag-all-${key}`, count),
     }
-  const one = kind?.one ?? folder
-  const many = kind?.many ?? folder
+  // A template's kind ("NPC", „פלג”) is the app's word, so it is said in the interface's language.
+  const known = kind?.one !== undefined && wordsFor ? knownUnit({ one: kind.one }, TEMPLATE_KINDS, wordsFor, 'kind') : null
+  const one = known ? t(`kind-${known}`) : (kind?.one ?? folder)
+  const many = known ? t(`kind-${known}-many`) : (kind?.many ?? folder)
   return {
     one,
     many,
@@ -75,9 +77,11 @@ export const kindFolderFor = (plural: string, kinds: Kinds): string =>
 /** The words templates give a book for its chapters and parts, which the app can translate (ADR 0011, 0013). */
 export const CHAPTER_UNITS = ['poem', 'session'] as const
 export const PART_UNITS = ['section'] as const
+/** The kinds of pages templates bring beyond the default three (the campaign's), by message stem (`kind-npc`). */
+export const TEMPLATE_KINDS = ['npc', 'location', 'faction', 'item', 'lore'] as const
 
 /**
- * Which of the app's own unit words a book's word is (`unit-poem`…), whatever language it was
+ * Which of the app's own words for a chapter, a part or (with `prefix` `kind`) a kind of page a book's word is (`unit-poem`…), whatever language it was
  * written in, so the interface can say it in the author's language: a Hebrew collection's „שיר” is
  * "Poem" in an English interface. `wordsFor` gives a message in every language the app has. A word
  * the author typed themselves isn't one of these, and is shown as typed.
@@ -86,8 +90,9 @@ export function knownUnit<Key extends string>(
   unit: { one: string } | null,
   keys: readonly Key[],
   wordsFor: (key: string) => string[],
+  prefix: 'unit' | 'kind' = 'unit',
 ): Key | null {
   if (!unit) return null
   const word = unit.one.trim().toLocaleLowerCase()
-  return keys.find((key) => wordsFor(`unit-${key}`).some((each) => each.trim().toLocaleLowerCase() === word)) ?? null
+  return keys.find((key) => wordsFor(`${prefix}-${key}`).some((each) => each.trim().toLocaleLowerCase() === word)) ?? null
 }
