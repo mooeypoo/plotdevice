@@ -36,6 +36,8 @@ const pageTheme = EditorView.theme({
   '.cm-list-mark': { color: 'var(--color-text-secondary)', paddingInlineEnd: '0.5em' },
   // A poem: a line too long for the page carries on indented, so the reader sees where it really ends (ADR 0013).
   '&.cm-poem .cm-line': { paddingInlineStart: '2em', textIndent: '-2em' },
+  // Inline blocks in a line (the empty page's hint) would take the indent again and spill past the page.
+  '&.cm-poem .cm-line *': { textIndent: '0' },
   '.cm-link': {
     color: 'var(--color-accent)',
     textDecoration: 'underline',

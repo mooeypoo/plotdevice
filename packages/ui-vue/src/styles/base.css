@@ -3550,6 +3550,14 @@ button.moment-name:hover {
 .chapter-title.untitled {
   color: var(--color-text-secondary);
 }
+/* A first line can be long: two lines of it are enough to know the poem by. */
+.chapter-row .untitled {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
 .chapter-form {
   margin-inline-start: 0.5rem;
   padding-inline: 0.45rem;
