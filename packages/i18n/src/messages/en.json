@@ -110,6 +110,7 @@
   "chapter-text": "Chapter text",
   "chapter-form-poem": "Poem",
   "chapter-form-prose": "Prose",
+  "chapter-title-field": "Title",
   "poem-untitled": "Untitled poem",
   "scene-break": "Scene break",
   "chapter-unreadable": "This can't be shown: the file isn't plain text, or the information at its top is damaged. Nothing in it will be changed.",

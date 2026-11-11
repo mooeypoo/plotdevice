@@ -45,8 +45,9 @@ test('a Hebrew poetry collection: lines and stanzas, an untitled poem named by i
   await create(page, 'poetry', 'שעות מלח')
 
   // It opens in Write, on its one untitled poem, ready to type.
-  await expect(page.locator('.chapter-title')).toHaveText('שיר ללא שם')
-  await expect(page.locator('.chapter-title')).toHaveClass(/untitled/)
+  const title = page.getByTestId('chapter-title-field')
+  await expect(title).toHaveText('')
+  await expect(title).toHaveAttribute('data-placeholder', 'שיר ללא שם')
   await page.locator('.cm-content').click()
   await page.keyboard.type('הערב יורד')
   await page.keyboard.press('Enter')
@@ -61,7 +62,7 @@ test('a Hebrew poetry collection: lines and stanzas, an untitled poem named by i
   // The sidebar and the page call it by its first line, in italics, as it is typed.
   const row = page.getByTestId('navigator').locator('.chapter .untitled')
   await expect(row).toHaveText('הערב יורד')
-  await expect(page.locator('.chapter-title')).toHaveText('שיר ללא שם')
+  await expect(title).toHaveText('')
 
   // Niqqud: after the ה of הערב, a qamats from the picker (Ctrl+Shift+N).
   await page.locator('.cm-line').first().click()
@@ -89,7 +90,7 @@ test('a Hebrew collection in an English interface: the empty poem speaks the boo
   await page.getByTestId('new-project-create').click()
   await page.locator('.project-title').waitFor()
 
-  await expect(page.locator('.chapter-title')).toHaveText('שיר ללא שם')
+  await expect(page.getByTestId('chapter-title-field')).toHaveAttribute('data-placeholder', 'שיר ללא שם')
   await expect(page.getByTestId('navigator').locator('.chapter .untitled')).toHaveText('שיר ללא שם')
   await expect(page.locator('.cm-placeholder')).toHaveText('כאן מתחילים לכתוב.')
   // The poem's hanging indent must not push the hint past the page: no sideways scrolling.

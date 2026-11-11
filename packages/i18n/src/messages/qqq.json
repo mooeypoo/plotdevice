@@ -110,6 +110,7 @@
   "chapter-text": "Screen-reader name of the writing area where the chapter's text is typed, in the Write workspace.",
   "chapter-form-poem": "Small label beside the chapter's number above the page, when a chapter is a poem in a book whose new chapters are prose (ADR 0013). One word.",
   "chapter-form-prose": "Small label beside the chapter's number above the page, when a chapter is prose in a book whose new chapters are poems, such as a poetry collection (ADR 0013). One word.",
+  "chapter-title-field": "Name read out by screen readers for the chapter's title above the page, which the author can click and retype (Milestone 28). One word: what the field is.",
   "poem-untitled": "Shown in italics above the page for a poem with no title (ADR 0013), and in the sidebar while it has no text yet; once it has text, the sidebar shows its first line instead. Shown in the book's language, not the interface's, because it stands where the poem's title would be.",
   "scene-break": "Screen-reader name of the ⁂ mark in the text that separates two scenes inside a chapter.",
   "chapter-unreadable": "Warning above a chapter or page when its file can't be shown because it isn't valid text or its details (the information at the top of the file) are damaged. Also used for pages and outlines, not only chapters.",

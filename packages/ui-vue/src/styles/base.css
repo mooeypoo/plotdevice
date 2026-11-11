@@ -3543,11 +3543,29 @@ button.moment-name:hover {
   margin: 0.6rem 0 0;
   font-size: 0.8rem;
 }
-.chapter-title.untitled,
 .chapter-row .untitled {
   font-style: italic;
 }
-.chapter-title.untitled {
+/* The title above the page can be retyped (Milestone 28): it looks like a title until hovered. */
+.title-field {
+  border-radius: 4px;
+  outline: none;
+  text-decoration: underline transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color 0.15s;
+  cursor: text;
+}
+.title-field:hover:not(:focus) {
+  text-decoration-color: var(--color-mark);
+}
+.title-field:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 4px;
+}
+/* An untitled poem (ADR 0013): "Untitled poem", faintly, until it is given a title. */
+.title-field:empty::before {
+  content: attr(data-placeholder);
   color: var(--color-text-secondary);
 }
 /* A first line can be long: two lines of it are enough to know the poem by. */
