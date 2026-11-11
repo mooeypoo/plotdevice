@@ -20,10 +20,11 @@ import {
   type ProjectId,
   DEFAULT_KINDS,
   OUTLINES_FOLDER,
+  parseChapterForm,
   parseKinds,
   parseManuscriptUnit,
 } from '@plotdevice/domain'
-import { parseContents, readFrontmatter, type ContentsChapterItem } from '@plotdevice/markdown'
+import { firstLineOf, parseContents, readFrontmatter, splitFrontmatter, type ContentsChapterItem } from '@plotdevice/markdown'
 import { cleanTags, collisionKey, err, ok, parseProjectPath, resolveRelative, type ProjectPath, type Result } from '@plotdevice/shared'
 
 export const PROJECT_FILE = 'project.md' as ProjectPath
@@ -38,8 +39,21 @@ export async function readDetails(store: FileStore, warnings: ProjectWarning[]):
   if (!file.ok) return err(file.error === 'missing' ? 'not-a-project' : file.error === 'io' ? 'io' : 'unreadable-project-file')
   const values = readFrontmatter(file.value.text)
   if (!values.ok) return err('unreadable-project-file')
-  const { title, author, language, chapterNumbering, id, schemaVersion, kinds, manuscriptUnit, suggestedTags, mainOutline, setAside } =
-    values.value
+  const {
+    title,
+    author,
+    language,
+    chapterNumbering,
+    id,
+    schemaVersion,
+    kinds,
+    manuscriptUnit,
+    partUnit,
+    chapterForm,
+    suggestedTags,
+    mainOutline,
+    setAside,
+  } = values.value
   if (typeof title !== 'string' || title.trim() === '') return err('unreadable-project-file')
   const version = typeof schemaVersion === 'number' ? schemaVersion : 1
   if (version > CURRENT_SCHEMA_VERSION) return err('newer-format')
@@ -51,6 +65,8 @@ export async function readDetails(store: FileStore, warnings: ProjectWarning[]):
   if (!readKinds.ok) warnings.push({ file: PROJECT_FILE, code: 'unreadable-kinds' })
   const readUnit = parseManuscriptUnit(manuscriptUnit)
   if (!readUnit.ok) warnings.push({ file: PROJECT_FILE, code: 'unreadable-manuscript-unit' })
+  const readPartUnit = parseManuscriptUnit(partUnit)
+  if (!readPartUnit.ok) warnings.push({ file: PROJECT_FILE, code: 'unreadable-part-unit' })
   return ok({
     title: title.trim(),
     ...(typeof author === 'string' && author.trim() ? { author: author.trim() } : {}),
@@ -60,6 +76,8 @@ export async function readDetails(store: FileStore, warnings: ProjectWarning[]):
     schemaVersion: version,
     kinds: readKinds.ok ? readKinds.value : DEFAULT_KINDS,
     manuscriptUnit: readUnit.ok ? readUnit.value : null,
+    partUnit: readPartUnit.ok ? readPartUnit.value : null,
+    chapterForm: parseChapterForm(chapterForm),
     // A list or a single tag, as on a page; anything else suggests nothing.
     suggestedTags: cleanTags((Array.isArray(suggestedTags) ? suggestedTags : [suggestedTags]).filter((tag) => typeof tag === 'string')),
     mainOutline: outlinePath(mainOutline),
@@ -118,7 +136,8 @@ export async function readProject(
   for (const file of chapterPaths) chapters.push(await readChapterFile(store, file, listedKeys.has(collisionKey(file))))
 
   const missing = listed.filter((c) => !fileKeys.has(collisionKey(c.file)))
-  const titles = new Map(chapters.flatMap((c) => (c.title !== undefined ? [[c.file, c.title] as const] : [])))
+  // An untitled chapter's contents line keeps whatever it says; there is no title to bring it up to date with.
+  const titles = new Map(chapters.flatMap((c) => (c.title !== undefined && c.title !== '' ? [[c.file, c.title] as const] : [])))
   const unlisted = chapters.filter((c) => !c.listed)
 
   return ok({
@@ -144,13 +163,16 @@ async function readChapterFile(store: FileStore, file: ProjectPath, listed: bool
   if (!read.ok) return { file, status: 'unreadable', listed }
   const values = readFrontmatter(read.value.text)
   if (!values.ok) return { file, status: 'unreadable', listed, revision: read.value.revision }
-  const { title, id } = values.value
+  const { title, id, form } = values.value
   return {
     file,
     status: 'ok',
     listed,
     revision: read.value.revision as Revision,
+    form: parseChapterForm(form),
     ...(typeof title === 'string' ? { title: title.trim() } : {}),
+    // An untitled poem is known by its first line (ADR 0013).
+    ...(typeof title === 'string' && title.trim() === '' ? { firstLine: firstLineOf(splitFrontmatter(read.value.text).body) } : {}),
     ...(typeof id === 'string' ? { id } : {}),
   }
 }

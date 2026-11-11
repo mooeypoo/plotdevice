@@ -1,4 +1,6 @@
 import type {
+  BookNames,
+  ChapterForm,
   Contents,
   FolderRename,
   ManuscriptUnit,
@@ -19,6 +21,10 @@ export interface ChapterFile {
   title?: string
   id?: string
   revision?: Revision
+  /** Prose or a poem, from the chapter's `form` (ADR 0013); prose when unreadable. */
+  form?: ChapterForm
+  /** An untitled chapter's (`title: ""`) first line of text, to be known by (ADR 0013); `null` while it has none. */
+  firstLine?: string | null
   /** `unreadable`: not UTF-8, or frontmatter that isn't valid YAML. Shown, never rewritten. */
   status: 'ok' | 'unreadable'
   listed: boolean
@@ -110,6 +116,10 @@ export interface ProjectTemplate {
   /** `null` for the three default kinds. */
   kinds: readonly PageKind[] | null
   manuscriptUnit: ManuscriptUnit | null
+  /** What the book calls a part (ADR 0013); `null` for the app's own word. */
+  partUnit: ManuscriptUnit | null
+  /** The form new chapters start in; the first chapter too. */
+  chapterForm: ChapterForm
   suggestedTags: readonly string[]
   /** One empty chapter, named after the book. */
   firstChapter: boolean
@@ -169,12 +179,15 @@ export interface ProjectRepository {
   ): Promise<Result<{ snapshot: ProjectSnapshot; undo: FolderRenameUndo; linksUpdated: number }, ChangeProblem | 'blocked'>>
   /** Puts every name and link back, byte for byte; refused if a file changed since. */
   undoFolderRenames(snapshot: ProjectSnapshot, undo: FolderRenameUndo): Promise<Result<ProjectSnapshot, ChangeProblem>>
-  /** Writes the book's kinds of pages and what it calls a chapter to `project.md` (ADR 0011); nothing else changes. */
-  setKinds(
-    snapshot: ProjectSnapshot,
-    kinds: readonly PageKind[],
-    manuscriptUnit: ManuscriptUnit | null,
-  ): Promise<Result<ProjectSnapshot, ChangeProblem>>
+  /** Writes the book's kinds of pages and what it calls chapters and parts to `project.md` (ADR 0011, 0013); nothing else changes. */
+  setKinds(snapshot: ProjectSnapshot, names: BookNames): Promise<Result<ProjectSnapshot, ChangeProblem>>
+  /**
+   * Writes a chapter's form to its frontmatter (ADR 0013): `form: poem`, or no `form` key for prose.
+   * Nothing else in the file changes. Refused if the chapter changed since the snapshot.
+   */
+  setChapterForm(snapshot: ProjectSnapshot, file: ProjectPath, form: ChapterForm): Promise<Result<ProjectSnapshot, ChangeProblem>>
+  /** Writes the form new chapters start in to `project.md` (`chapterForm`, ADR 0013); existing chapters don't change. */
+  setNewChapterForm(snapshot: ProjectSnapshot, form: ChapterForm): Promise<Result<ProjectSnapshot, ChangeProblem>>
   /**
    * Writes the book's title and author to `project.md` (Milestone 22, from the Export window), each only
    * when given; other keys, comments and the folder's name don't change.

@@ -151,6 +151,10 @@ export const useProjectStore = defineStore('project', () => {
     return true
   }
   const renameChapter = (file: ProjectPath, title: string) => change(() => api.renameChapter(file, title))
+  /** A chapter becomes a poem or prose again (ADR 0013): only its `form` line changes. */
+  const setChapterForm = (file: ProjectPath, form: 'prose' | 'poem') => change(() => api.setChapterForm(file, form))
+  /** Whether new chapters start as poems, from the book menu. */
+  const setNewChapterForm = (form: 'prose' | 'poem') => change(() => api.setNewChapterForm(form))
   /** The book's kinds of pages, and what it calls a chapter (ADR 0011). */
   const changeKinds = (request: KindsChangeRequest) => change(() => api.changeKinds(request))
   /** Renames the kinds' folders and every link to them: how many links changed, or `null` when it couldn't. */
@@ -219,6 +223,8 @@ export const useProjectStore = defineStore('project', () => {
     renameFolders,
     undoFolderRenames,
     renameChapter,
+    setChapterForm,
+    setNewChapterForm,
     renameChapterFile,
     exportBook,
   }

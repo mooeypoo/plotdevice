@@ -30,8 +30,12 @@ watch(choice, (now, before) => {
   if (value.value === '' || value.value === nameOf(before)) value.value = nameOf(now)
 })
 
+// Empty means cancelled, unless the answer may be left empty (an untitled poem, ADR 0013).
 const answer = (text: string | null): void =>
-  current.value?.resolve(text === null || text.trim() === '' ? null : text.trim(), current.value.choices ? choice.value : undefined)
+  current.value?.resolve(
+    text === null || (text.trim() === '' && !current.value.optional) ? null : text.trim(),
+    current.value.choices ? choice.value : undefined,
+  )
 </script>
 
 <template>

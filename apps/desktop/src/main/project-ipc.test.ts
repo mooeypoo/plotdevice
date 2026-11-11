@@ -304,6 +304,7 @@ describe('project calls', () => {
     expect(resolved.value.project.chapters).toContainEqual({
       file: 'manuscript/frost-my-version.md',
       title: 'Frost (my version)',
+      form: 'prose',
       status: 'ok',
       listed: false,
     })

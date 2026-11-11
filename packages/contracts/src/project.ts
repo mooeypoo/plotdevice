@@ -14,7 +14,7 @@ const placementSchema = z.strictObject({ part: index.nullable(), index })
 const name = z.string().min(1).max(500)
 
 /** The app's own templates for new projects (Milestone 19); `blank` is always offered. */
-export const templateIdSchema = z.enum(['novel', 'short-story', 'campaign', 'blank'])
+export const templateIdSchema = z.enum(['novel', 'short-story', 'poetry', 'campaign', 'blank'])
 /** `location`: the folder to make the project in, one the host offered (`newProjectLocation`, `chooseNewProjectLocation`). */
 export const newProjectSchema = z.strictObject({
   title: name,
@@ -27,7 +27,8 @@ export const newProjectSchema = z.strictObject({
 })
 
 export const contentsChangeSchema = z.discriminatedUnion('kind', [
-  z.strictObject({ kind: z.literal('add-chapter'), title: name, placement: placementSchema }),
+  // Empty only for an untitled poem (ADR 0013); storage refuses it otherwise.
+  z.strictObject({ kind: z.literal('add-chapter'), title: z.string().max(500), placement: placementSchema }),
   z.strictObject({ kind: z.literal('add-to-book'), file: projectPathSchema, placement: placementSchema }),
   z.strictObject({ kind: z.literal('move-chapter'), file: projectPathSchema, placement: placementSchema }),
   z.strictObject({ kind: z.literal('remove-from-book'), file: projectPathSchema }),
@@ -46,6 +47,7 @@ export const kindsChangeSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('move'), folder: kindFolder, index }),
   z.strictObject({ kind: z.literal('remove'), folder: kindFolder }),
   z.strictObject({ kind: z.literal('unit'), unit: z.strictObject({ one: name, many: name }).nullable() }),
+  z.strictObject({ kind: z.literal('part-unit'), unit: z.strictObject({ one: name, many: name }).nullable() }),
 ])
 export type KindsChangeRequest = z.infer<typeof kindsChangeSchema>
 
@@ -74,7 +76,13 @@ export type RenameFoldersResult = Result<
 >
 export type UndoFolderRenamesResult = Result<ProjectView, Exclude<ProjectChangeResult, { ok: true }>['error'] | 'nothing-to-undo'>
 
-export const renameChapterSchema = z.strictObject({ file: projectPathSchema, title: name })
+/** An empty title only for a poem (ADR 0013); storage refuses it otherwise. */
+export const renameChapterSchema = z.strictObject({ file: projectPathSchema, title: z.string().max(500) })
+/** Prose or a poem (ADR 0013). */
+export const chapterFormSchema = z.enum(['prose', 'poem'])
+export const setChapterFormSchema = z.strictObject({ file: projectPathSchema, form: chapterFormSchema })
+export const setNewChapterFormSchema = z.strictObject({ form: chapterFormSchema })
+export type ChapterFormView = z.infer<typeof chapterFormSchema>
 export const renameChapterFileSchema = z.strictObject({ file: projectPathSchema, newName: name })
 export const openProjectSchema = z.union([z.strictObject({ recent: z.string().min(1) }), z.literal('choose')])
 export const forgetRecentProjectSchema = z.strictObject({ root: z.string().min(1) })
@@ -103,7 +111,18 @@ export interface ProjectView {
   direction: 'ltr' | 'rtl'
   chapterNumbering: 'continuous' | 'per-part' | 'none'
   contents: (({ kind: 'chapter' } & ChapterRef) | { kind: 'part'; name: string; chapters: ChapterRef[] })[]
-  chapters: { file: ProjectPath; title?: string; status: 'ok' | 'unreadable'; listed: boolean }[]
+  /**
+   * Each chapter file; `form` is `poem` for a poem. An untitled poem has `title: ""` and is known by
+   * its `firstLine`, `null` while it has no text (ADR 0013).
+   */
+  chapters: {
+    file: ProjectPath
+    title?: string
+    firstLine?: string | null
+    form: ChapterFormView
+    status: 'ok' | 'unreadable'
+    listed: boolean
+  }[]
   missing: ProjectPath[]
   outdatedLinkText: { file: ProjectPath; linkText: string; title: string }[]
   relinkSuggestions: { missing: ProjectPath; found: ProjectPath; reason: 'same-id' | 'same-title' }[]
@@ -113,6 +132,10 @@ export interface ProjectView {
   kinds: { folder: string; one?: string; many?: string }[]
   /** What the interface calls a chapter in this book, or `null` for the app's own word. */
   manuscriptUnit: { one: string; many: string } | null
+  /** What the interface calls a part in this book ("Section"), or `null` for the app's own word (ADR 0013). */
+  partUnit: { one: string; many: string } | null
+  /** The form new chapters start in: `poem` in a poetry collection (ADR 0013). */
+  chapterForm: ChapterFormView
   /** Tags "+ Tag" offers before any page uses them (Milestone 19). */
   suggestedTags: string[]
   /** The outline `project.md` names as main (ADR 0012), or `null`; if it is gone, the first outline is main. */

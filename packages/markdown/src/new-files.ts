@@ -27,9 +27,13 @@ export function newContentsFile(title: string): string {
   return `# ${title.replace(/^#/, '\\#')}\n`
 }
 
-/** A new chapter file: title and id in frontmatter (ADR 0006, ADR 0008), then the text, if any. */
-export function newChapterFile(title: string, id: string, body = ''): string {
-  return `---\ntitle: ${formatScalar(title)}\nid: ${formatScalar(id)}\n---\n${body}`
+/**
+ * A new chapter file: title and id in frontmatter (ADR 0006, ADR 0008), `form: poem` for a poem
+ * (ADR 0013), then the text, if any.
+ */
+export function newChapterFile(title: string, id: string, body = '', form: 'prose' | 'poem' = 'prose'): string {
+  const poem = form === 'poem' ? 'form: poem\n' : ''
+  return `---\ntitle: ${formatScalar(title)}\nid: ${formatScalar(id)}\n${poem}---\n${body}`
 }
 
 /**
@@ -43,4 +47,29 @@ export function newOutlineFile(title: string, about?: { path: string; title: str
   const link = about ? `\n[${about.title.replace(/([[\]\\])/g, '\\$1')}](${destination})\n` : ''
   const body = starter.replace(/\r\n/g, '\n').trim()
   return `${heading}${link}${body === '' ? '' : `\n${body}\n`}`
+}
+
+/**
+ * The first line of a chapter's text as words, without Markdown: what an untitled poem is known by
+ * (ADR 0013). Blank lines and direction fences are skipped; `null` when there is no text yet.
+ */
+export function firstLineOf(body: string): string | null {
+  // Line by line from the top, without splitting the whole text: this runs as the author types.
+  for (let start = 0; start <= body.length;) {
+    const end = body.indexOf('\n', start)
+    const line = body.slice(start, end < 0 ? body.length : end).trim()
+    start = end < 0 ? body.length + 1 : end + 1
+    if (line === '' || line.startsWith(':::') || /^([*\-_])(\s*\1){2,}$/.test(line)) continue
+    const words = line
+      .replace(/\\$/, '')
+      .replace(/^(#{1,6}\s+|>\s*|[-+*]\s+|\d{1,9}[.)]\s+)/, '')
+      .replace(/\[\[([^\]|]*\|)?([^\]]*)\]\]/g, '$2')
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/\[([^\]]*)\]\{[^}]*\}/g, '$1')
+      .replace(/(\*\*|__|\*|_)(?=\S)([\s\S]*?\S)\1/g, '$2')
+      .replace(/\\([\\`*_{}[\]()#+\-.!>|~])/g, '$1')
+      .trim()
+    if (words !== '') return words
+  }
+  return null
 }

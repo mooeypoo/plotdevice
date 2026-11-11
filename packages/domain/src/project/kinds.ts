@@ -119,16 +119,30 @@ export type KindsChange =
   | { kind: 'move'; folder: string; index: number }
   | { kind: 'remove'; folder: string }
   | { kind: 'unit'; unit: ManuscriptUnit | null }
+  /** What the book calls a part (ADR 0013); `null` for the app's own word. */
+  | { kind: 'part-unit'; unit: ManuscriptUnit | null }
+
+/** What the "Kinds of pages" screen changes in `project.md`. */
+export interface BookNames {
+  kinds: readonly PageKind[]
+  manuscriptUnit: ManuscriptUnit | null
+  partUnit: ManuscriptUnit | null
+}
+
+/** Both names trimmed, or `empty-name`; `null` goes back to the app's own word. */
+function cleanUnit(unit: ManuscriptUnit | null): Result<ManuscriptUnit | null, KindProblem> {
+  if (unit === null) return ok(null)
+  const clean = { one: unit.one.trim(), many: unit.many.trim() }
+  return clean.one === '' || clean.many === '' ? err('empty-name') : ok(clean)
+}
 
 /**
- * Applies one change to a book's kinds and the name of its chapters. "Make this a kind…" for an
- * unsorted folder is an `add` with that folder. Nothing here touches a folder or a page.
+ * Applies one change to a book's kinds and the names of its chapters and parts. "Make this a kind…"
+ * for an unsorted folder is an `add` with that folder. Nothing here touches a folder or a page.
  */
-export function applyKindsChange(
-  current: { kinds: readonly PageKind[]; manuscriptUnit: ManuscriptUnit | null },
-  change: KindsChange,
-): Result<{ kinds: readonly PageKind[]; manuscriptUnit: ManuscriptUnit | null }, KindProblem> {
-  const unchanged = (kinds: readonly PageKind[]) => ok({ kinds, manuscriptUnit: current.manuscriptUnit })
+export function applyKindsChange(current: BookNames, change: KindsChange): Result<BookNames, KindProblem> {
+  const names = { kinds: current.kinds, manuscriptUnit: current.manuscriptUnit, partUnit: current.partUnit }
+  const unchanged = (kinds: readonly PageKind[]) => ok({ ...names, kinds })
   const known = (folder: string) => current.kinds.some((kind) => kind.folder === folder)
   switch (change.kind) {
     case 'add': {
@@ -145,9 +159,12 @@ export function applyKindsChange(
     case 'remove':
       return known(change.folder) ? unchanged(removeKind(current.kinds, change.folder)) : err('invalid-kinds')
     case 'unit': {
-      if (change.unit === null) return ok({ kinds: current.kinds, manuscriptUnit: null })
-      const unit = { one: change.unit.one.trim(), many: change.unit.many.trim() }
-      return unit.one === '' || unit.many === '' ? err('empty-name') : ok({ kinds: current.kinds, manuscriptUnit: unit })
+      const unit = cleanUnit(change.unit)
+      return unit.ok ? ok({ ...names, manuscriptUnit: unit.value }) : unit
+    }
+    case 'part-unit': {
+      const unit = cleanUnit(change.unit)
+      return unit.ok ? ok({ ...names, partUnit: unit.value }) : unit
     }
   }
 }

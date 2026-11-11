@@ -7,6 +7,7 @@ import Folder from '../landing/Folder.astro'
 import Shot from '../Shot.astro'
 import SiteFooter from '../SiteFooter.astro'
 import { DOWNLOAD, GUIDE, SAMPLE, path, words, type Lang } from '../../site'
+import { uiLabel } from '../../app-bridge'
 
 const { lang } = Astro.props as { lang: Lang }
 const t = (key: string, ...params: string[]) => words(lang, key, ...params)
@@ -15,6 +16,13 @@ const promises = [
   { key: 'story', shot: 'story' },
   { key: 'timeline', shot: 'timeline' },
   { key: 'references', shot: 'references' },
+]
+// One app, many kinds of writing (Milestone 27): a new book from each template, named as the app names it.
+const kinds = [
+  { key: 'novel', template: 'template-novel', shot: 'kind-novel' },
+  { key: 'short-story', template: 'template-short-story', shot: 'kind-short-story' },
+  { key: 'poetry', template: 'template-poetry', shot: 'poem' },
+  { key: 'campaign', template: 'template-campaign', shot: 'kind-campaign' },
 ]
 const supportLink = `<a href="${path(lang, 'support/')}">${t('closing-support-link')}</a>`
 ---
@@ -39,6 +47,23 @@ const supportLink = `<a href="${path(lang, 'support/')}">${t('closing-support-li
         </Promise>
       ))
     }
+
+    <section class="story-band">
+      <p class="eyebrow">{t('kinds-eyebrow')}</p>
+      <h2>{t('kinds-title')}</h2>
+      <p>{t('kinds-text')}</p>
+      <ul class="kinds">
+        {
+          kinds.map(({ key, template, shot }) => (
+            <li>
+              <Shot name={shot} alt={t(`kinds-${key}-alt`)} small />
+              <h3>{uiLabel(lang, template)}</h3>
+              <p>{t(`kinds-${key}`)}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
 
     <section class="story-band">
       <p class="eyebrow">{t('bilingual-eyebrow')}</p>

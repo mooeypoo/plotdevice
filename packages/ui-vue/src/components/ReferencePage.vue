@@ -14,8 +14,9 @@ import ConflictDialog from './ConflictDialog.vue'
 import FormatBubble from './FormatBubble.vue'
 import FormatButton from './FormatButton.vue'
 import ItemHeader from './ItemHeader.vue'
-import { formatItem, HEADING_COMMANDS, isPlainTextKey, plainTextItem } from './format-items'
+import { formatItem, HEADING_COMMANDS, isNiqqudKey, isPlainTextKey, niqqudItem, plainTextItem } from './format-items'
 import LinkBubble from './LinkBubble.vue'
+import NiqqudPanel from './NiqqudPanel.vue'
 import LinkSuggestions from './LinkSuggestions.vue'
 import MenuButton from './MenuButton.vue'
 import type { MenuItem } from './menu'
@@ -67,8 +68,15 @@ const formatItems = computed<MenuItem[]>(() => [
   formatItem(t, 'bulletList', () => page.format('bulletList')),
   formatItem(t, 'orderedList', () => page.format('orderedList')),
   { key: 'format-link', label: t('format-link'), icon: 'link', run: () => void addLink() },
+  niqqudItem(t, () => (niqqudOpen.value = true)),
   plainTextItem(t, page.mode.value, page.setMode),
 ])
+/** The niqqud picker (ADR 0013), as in a chapter. */
+const niqqudOpen = ref(false)
+function closeNiqqud(): void {
+  niqqudOpen.value = false
+  page.focus()
+}
 
 /** The switch beside Format, and Ctrl+Shift+M in the editor: plain text and back, the cursor kept. */
 function togglePlain(): void {
@@ -76,6 +84,11 @@ function togglePlain(): void {
   page.focus()
 }
 function onEditorKey(event: KeyboardEvent): void {
+  if (isNiqqudKey(event)) {
+    event.preventDefault()
+    niqqudOpen.value = true
+    return
+  }
   if (!isPlainTextKey(event)) return
   event.preventDefault()
   togglePlain()
@@ -155,6 +168,7 @@ watch(
             ></div>
           </div>
           <FormatBubble :place="page.selection.value" :more="moreItems" @format="page.format" @link="addLink" @back="page.focus" />
+          <NiqqudPanel v-if="niqqudOpen" :read="page.niqqud" :toggle="page.toggleNiqqud" :move="page.moveToLetter" @close="closeNiqqud" />
           <LinkBubble
             :link="page.link.value"
             :from="file"

@@ -3,7 +3,7 @@ import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { EditorState, type Compartment, type Extension } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
 import { formatCommands } from './format'
-import { lineBreak, newParagraph } from './keys'
+import { poemJoinStanza, poemLine, poemStanza } from './poem'
 import { paragraphDirection } from './paragraph-direction'
 import { editorSettings, type EditorSettings } from './settings'
 
@@ -26,8 +26,10 @@ export function chapterState(text: string, settings: Compartment, initial: Edito
       EditorState.lineSeparator.of(lineEndingOf(text)),
       history(),
       keymap.of([
-        { key: 'Enter', run: newParagraph },
-        { key: 'Shift-Enter', run: lineBreak },
+        // Prose: a new paragraph and a line break. A poem: a new line and a new stanza (ADR 0013).
+        { key: 'Enter', run: poemLine },
+        { key: 'Shift-Enter', run: poemStanza },
+        { key: 'Backspace', run: poemJoinStanza },
         { key: 'Mod-b', run: formatCommands.bold },
         { key: 'Mod-i', run: formatCommands.italic },
         // As in Word and Google Docs; Ctrl+0 stays the app's Reset zoom.

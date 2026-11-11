@@ -22,6 +22,7 @@ export type IconName =
   | 'phraseLtr'
   | 'phraseRtl'
   | 'phraseClear'
+  | 'niqqud'
 
 defineProps<{ name: IconName }>()
 </script>
@@ -78,5 +79,10 @@ defineProps<{ name: IconName }>()
     <path v-else-if="name === 'phraseLtr'" d="M5 5h8M9 5v8M5 18h13M15 15l3 3-3 3" />
     <path v-else-if="name === 'phraseRtl'" d="M11 5h8M15 5v8M19 18H6M9 15l-3 3 3 3" />
     <path v-else-if="name === 'phraseClear'" d="M8 5h8M12 5v14" />
+    <template v-else-if="name === 'niqqud'">
+      <!-- A bet with a dagesh inside and a qamats below: a letter with its marks. -->
+      <path d="M5 4h8a3 3 0 0 1 3 3v8M5 15h14M9 19.5h6M12 19.5v2.5" />
+      <circle cx="10.5" cy="9.8" r="1.2" fill="currentColor" />
+    </template>
   </svg>
 </template>

@@ -154,3 +154,10 @@ Accepted by the owner with roadmap decisions D3–D5 (`docs/plans/roadmap-16-app
 - **The fixed folders become the default.** "What is already decided" lists `characters/`, `places/` and `notes/`; these are now the default kinds. A project can list its own kinds in `project.md` (`kinds`), each a folder, and rename "chapter" in the interface (`manuscriptUnit`). Details in **ADR 0011**.
 - `outlines/`, `manuscript/` and `CONTENTS.md` don't change.
 - **No schema version change.** The new keys are optional and older versions ignore them without loss, so `schemaVersion` stays 1 and nothing is migrated.
+
+## Amendment (2026-11-10): poems
+
+Accepted by the owner with **ADR 0013**.
+
+- A chapter may say `form: poem` in its frontmatter; only a poem may have an empty `title`. `project.md` may say `partUnit` (what parts are called) and `chapterForm` (the form new chapters start in). All optional; **`schemaVersion` stays 1**.
+- `CONTENTS.md` and the folders don't change.

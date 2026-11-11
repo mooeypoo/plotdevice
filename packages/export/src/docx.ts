@@ -147,6 +147,11 @@ class ManuscriptWriter {
     private readonly options: ManuscriptOptions,
   ) {}
 
+  /** One line's height, the space after a stanza: as the body's line spacing. */
+  private get lineSpacing(): number {
+    return this.options.doubleSpaced ? 480 : 360
+  }
+
   numbering(): INumberingOptions['config'] {
     return this.lists
   }
@@ -202,8 +207,15 @@ class ManuscriptWriter {
     ]
   }
 
-  chapter(chapter: { label: string | null; name: string; blocks: ExportBlock[] }): Paragraph[] {
+  chapter(chapter: { label: string | null; name: string; blocks: ExportBlock[]; poem?: boolean; untitled?: boolean }): Paragraph[] {
     const { direction } = this.book
+    const at = { quote: 0, list: null, poem: chapter.poem === true || chapter.untitled === true }
+    // An untitled poem has no heading: it starts a new page, as far down as a chapter's heading would (ADR 0013).
+    if (chapter.untitled) {
+      const [first, ...rest] = this.blocks(chapter.blocks, direction, at)
+      const start = new Paragraph({ pageBreakBefore: true, spacing: { before: 2 * INCH }, ...bidi(direction === 'rtl'), children: [] })
+      return [start, ...(first ? [first] : []), ...rest]
+    }
     const heading = new Paragraph({
       style: 'Heading1',
       pageBreakBefore: true,
@@ -213,13 +225,13 @@ class ManuscriptWriter {
         ...this.runs(chapter.name, direction),
       ],
     })
-    return [heading, ...this.blocks(chapter.blocks, direction, { quote: 0, list: null })]
+    return [heading, ...this.blocks(chapter.blocks, direction, at)]
   }
 
   private blocks(
     blocks: readonly ExportBlock[],
     around: TextDirection,
-    at: { quote: number; list: { reference: string; level: number } | null },
+    at: { quote: number; list: { reference: string; level: number } | null; poem?: boolean },
   ): Paragraph[] {
     return blocks.flatMap((block): Paragraph[] => {
       switch (block.type) {
@@ -238,6 +250,7 @@ class ManuscriptWriter {
         }
         case 'paragraph': {
           const direction = block.direction ?? around
+          if (at.poem && at.quote === 0 && at.list === null) return this.stanza(block.children, direction)
           const indent =
             at.list !== null
               ? { start: (at.list.level + 1) * (INCH / 2) + at.quote * (INCH / 2) }
@@ -280,6 +293,30 @@ class ManuscriptWriter {
         }
       }
     })
+  }
+
+  /**
+   * A stanza (ADR 0013): one paragraph per line, so a line too long for the page carries on indented
+   * (a hanging indent would indent every line after a break inside one paragraph). Its lines keep
+   * together on a page, and the last is followed by a line's space.
+   */
+  private stanza(inlines: readonly ExportInline[], direction: TextDirection): Paragraph[] {
+    const lines: ExportInline[][] = [[]]
+    for (const inline of inlines) {
+      if (inline.type === 'break') lines.push([])
+      else lines.at(-1)?.push(inline)
+    }
+    return lines.map(
+      (line, i) =>
+        new Paragraph({
+          ...bidi(direction === 'rtl'),
+          indent: { start: INCH / 2, hanging: INCH / 2 },
+          spacing: { after: i === lines.length - 1 ? this.lineSpacing : 0 },
+          ...(i < lines.length - 1 ? { keepNext: true } : {}),
+          keepLines: true,
+          children: this.inlines(line, direction, {}),
+        }),
+    )
   }
 
   private addList(ordered: boolean, start: number, level: number): string {

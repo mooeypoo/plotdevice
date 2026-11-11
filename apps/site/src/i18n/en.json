@@ -222,5 +222,19 @@
   "download-file-appimage": "Linux AppImage",
   "download-file-deb": "Linux .deb",
   "download-file-mac": "Mac",
-  "download-support": "Plot Device is made by one person. If it helps your writing, $1 is truly appreciated."
+  "download-support": "Plot Device is made by one person. If it helps your writing, $1 is truly appreciated.",
+  "kinds-eyebrow": "Any kind of book",
+  "kinds-title": "One app, many kinds of writing.",
+  "kinds-text": "Start a novel, a short story, a poetry collection or a D&D campaign, and each begins with the right pages, outlines and names. One book can mix prose and poems.",
+  "kinds-novel": "Chapters, characters and places, and a three-act outline to start from.",
+  "kinds-novel-alt": "A new novel in Story: the Main story outline, with Beginning, Middle and End",
+  "kinds-short-story": "One chapter, open and ready, with a short outline beside it.",
+  "kinds-short-story-alt": "A new short story in Write: its one chapter, with its first lines typed",
+  "kinds-poetry": "Poems instead of chapters: every line stays where you put it.",
+  "kinds-poetry-alt": "A poetry collection in Write: a poem of two stanzas",
+  "kinds-campaign": "Sessions, NPCs and locations, and a plan for the next session.",
+  "kinds-campaign-alt": "A new D&D campaign in Story: the Session plan outline, with NPCs, locations, factions, items and lore beside it",
+  "compare-kinds-title": "Every kind of writing, in one app",
+  "compare-kinds-text": "A novel, a short story, a poetry collection or a D&D campaign: each starts with the right pages, outlines and names, such as poems and sections, or sessions and NPCs. A novel can hold a poem, and a poetry collection a piece of prose. You don't need a different app for each kind of book.",
+  "compare-kinds-link": "Writing poems in Plot Device"
 }

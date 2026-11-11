@@ -24,6 +24,8 @@ export const channels = {
   exportBook: 'plotdevice:export-book',
   showExportedFile: 'plotdevice:show-exported-file',
   renameChapter: 'plotdevice:rename-chapter',
+  setChapterForm: 'plotdevice:set-chapter-form',
+  setNewChapterForm: 'plotdevice:set-new-chapter-form',
   changeKinds: 'plotdevice:change-kinds',
   setMainOutline: 'plotdevice:set-main-outline',
   setOutlineAside: 'plotdevice:set-outline-aside',

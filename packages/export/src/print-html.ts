@@ -64,10 +64,15 @@ ${book.author ? `<p class="byline">${escapeXml(`${options.by} ${book.author}`)}<
   }
   for (const entry of book.entries) {
     if (entry.kind === 'part') sections.push(`<section class="part"><h1>${escapeXml(entry.name)}</h1></section>`)
+    else if (entry.untitled)
+      // An untitled poem has no heading (ADR 0013).
+      sections.push(`<section class="chapter untitled">
+${blocksToHtml(entry.blocks, book.direction, 1, true)}
+</section>`)
     else
       sections.push(`<section class="chapter">
 <h1>${entry.label === null ? '' : `<span class="label">${escapeXml(entry.label)}</span>`}${escapeXml(entry.name)}</h1>
-${blocksToHtml(entry.blocks, book.direction, 1)}
+${blocksToHtml(entry.blocks, book.direction, 1, entry.poem)}
 </section>`)
   }
 
@@ -88,6 +93,9 @@ h1 .label { display: block; }
 h2, h3, h4, h5, h6 { font-size: 12pt; font-weight: normal; font-style: italic; margin: ${line / 2}em 0; break-after: avoid; }
 p { margin: 0; text-indent: 0.5in; text-align: start; orphans: 2; widows: 2; }
 .scene-break { text-align: center; text-indent: 0; }
+.stanza { text-indent: 0; margin: 0 0 ${line}em; text-align: start; hyphens: none; break-inside: avoid; }
+.stanza .line { display: block; padding-inline-start: 0.5in; text-indent: -0.5in; }
+.untitled { padding-top: 2in; }
 blockquote { margin: 0 0.5in; }
 blockquote p, li p { text-indent: 0; }
 ul, ol { margin: 0; padding-inline-start: 0.5in; }

@@ -66,6 +66,13 @@ const bookItems = computed<MenuItem[]>(() => {
     { key: 'export-book', label: t('export-book'), run: () => (view.exportDialog = true) },
     { key: 'import-add', label: t('import-add-menu'), run: () => void imports.start('add') },
     { key: 'kinds', label: t('kinds-menu'), run: () => (view.kindsDialog = true) },
+    // New chapters as poems (ADR 0013): on in a poetry collection, for any book to turn on.
+    {
+      key: 'new-chapters-poems',
+      label: t('new-chapters-poems'),
+      checked: store.project?.chapterForm === 'poem',
+      run: () => void store.setNewChapterForm(store.project?.chapterForm === 'poem' ? 'prose' : 'poem'),
+    },
     ...(store.renamedFolders ? [{ key: 'undo-folders', label: t('folders-undo'), run: () => void undoFolders() }] : []),
     ...(chapter ? [{ key: 'chapter-versions', label: t('chapter-versions'), run: () => versions.show(chapter.file, chapter.name) }] : []),
     { key: 'backups', label: t('backups-menu'), group: 'backups', run: () => (backups.dialog = true) },

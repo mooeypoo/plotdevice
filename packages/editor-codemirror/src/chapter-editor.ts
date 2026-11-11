@@ -6,7 +6,9 @@ import { formatCommands, insertLink, type FormatCommand } from './format'
 import type { FoldedSection } from './folded-section'
 import { changeLink, linkAt, removeLink } from './links'
 import { insertChosenLink, linkSuggestions, outlineText, type LinkSuggestionOptions, type OutlineTextOptions } from './outline-text'
+import { letterBefore, moveToLetter, toggleNiqqud } from './niqqud'
 import { pasteText } from './paste'
+import { poemFromPlainText } from './poem'
 import { setParagraphDirection, setPhraseDirection } from './paragraph-direction'
 import { rendered } from './rendered'
 import { editorSettings, type EditorSettings } from './settings'
@@ -32,6 +34,10 @@ const pageTheme = EditorView.theme({
   '.cm-kept': { fontFamily: 'ui-monospace, monospace', fontSize: '0.85em', color: 'var(--color-text-secondary)' },
   '.cm-scene-break': { display: 'inline-block', inlineSize: '100%', textAlign: 'center', color: 'var(--color-mark, currentColor)' },
   '.cm-list-mark': { color: 'var(--color-text-secondary)', paddingInlineEnd: '0.5em' },
+  // A poem: a line too long for the page carries on indented, so the reader sees where it really ends (ADR 0013).
+  '&.cm-poem .cm-line': { paddingInlineStart: '2em', textIndent: '-2em' },
+  // Inline blocks in a line (the empty page's hint) would take the indent again and spill past the page.
+  '&.cm-poem .cm-line *': { textIndent: '0' },
   '.cm-link': {
     color: 'var(--color-accent)',
     textDecoration: 'underline',
@@ -81,6 +87,14 @@ export interface SelectionPlace {
   focused: boolean
 }
 
+/** The Hebrew letter before the cursor, for the niqqud picker: the letter, its marks, and where it is on screen. */
+export interface NiqqudReport {
+  letter: string
+  marks: string[]
+  x: number
+  y: number
+}
+
 /** The chapter editor as the interface uses it. The text in and out is the chapter's Markdown body, byte for byte. */
 export interface ChapterEditor {
   text(): string
@@ -111,6 +125,12 @@ export interface ChapterEditor {
   select(from: number, to?: number): void
   /** Where selected text is now (after the page around it scrolled, say), or `null`. */
   selectionPlace(): SelectionPlace | null
+  /** The Hebrew letter before the cursor and its niqqud, or `null` (ADR 0013). */
+  niqqud(): NiqqudReport | null
+  /** Adds the mark to that letter, replacing another of its kind, or removes it if it's there. */
+  toggleNiqqud(mark: string): void
+  /** Moves to the next or previous Hebrew letter on the line, for pointing a word letter by letter. */
+  moveToLetter(forward: boolean): void
   focus(): void
   destroy(): void
 }
@@ -194,11 +214,17 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
       return hint
     }),
     contentAttributes.of(attributesFor(current)),
+    EditorView.editorAttributes.compute([editorSettings], (state) => ({
+      class: state.facet(editorSettings).form === 'poem' ? 'cm-poem' : '',
+    })),
     EditorView.domEventHandlers({
       paste(event, view) {
         const data = event.clipboardData
         if (!data) return false
-        const text = options.convertPaste(data.getData('text/html'), data.getData('text/plain'))
+        const plain = data.getData('text/plain')
+        // A poem keeps the pasted lines as lines (ADR 0013); prose keeps the clipboard's formatting.
+        const poem = view.state.facet(editorSettings).form === 'poem' && plain.trim() !== ''
+        const text = poem ? poemFromPlainText(plain) : options.convertPaste(data.getData('text/html'), plain)
         event.preventDefault()
         if (text) pasteText(text)(view)
         return true
@@ -274,6 +300,15 @@ export function createChapterEditor(parent: HTMLElement, options: ChapterEditorO
       view.focus()
     },
     selectionPlace: () => selectionPlace(view),
+    niqqud() {
+      const { main } = view.state.selection
+      const letter = main.empty ? letterBefore(view.state, main.head) : null
+      const place = letter ? view.coordsAtPos(letter.from, 1) : null
+      return letter && place ? { letter: letter.letter, marks: letter.marks, x: place.left, y: place.bottom } : null
+    },
+    // The picker keeps the keyboard while the author points letter by letter.
+    toggleNiqqud: (mark) => void toggleNiqqud(mark)(view),
+    moveToLetter: (forward) => void moveToLetter(forward)(view),
     focus: () => view.focus(),
     destroy: () => view.destroy(),
   }

@@ -24,6 +24,32 @@ The ferry left Szeged an hour late.
 - `* * *` is a scene break.
 - Anything else you add above the text, or Markdown Plot Device doesn't show, is kept exactly as written.
 
+## A poem
+
+A chapter that is a poem says `form: poem` above its text:
+
+```markdown
+---
+title: Evening in the Orchard
+id: ch-poem-en
+form: poem
+---
+The evening settles on the orchard\
+and salt lies quiet on the leaves\
+I count the trees
+
+The wind says nothing\
+and the sea remembers\
+everything we forgot
+```
+
+- `form: poem` is the only difference from prose. Without `form`, a chapter is prose. A value Plot Device doesn't know is kept as written, and the chapter is shown as prose.
+- A `\` at the end of a line is Markdown's line break: the line ends there. A blank line starts a new stanza. Plot Device writes both as you type; on screen, the `\` never shows.
+- So any Markdown app shows the poem with its lines and stanzas, and switching the Poem setting off or on changes only the `form` line.
+- An untitled poem has `title: ""`. Plot Device then shows its first line in the sidebar, and exports it with no heading.
+
+Versions of Plot Device from before poems open a poem as prose with its line breaks: nothing is lost.
+
 ## The contents
 
 `CONTENTS.md` is the book's reading order, and also a table of contents a person can read:

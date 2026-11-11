@@ -6,6 +6,7 @@
 // bundled as text, so nothing is read from the install folder or downloaded.
 import campaignArcEn from '../starters/en/campaign-arc.md?raw'
 import characterArcEn from '../starters/en/character-arc.md?raw'
+import collectionEn from '../starters/en/collection.md?raw'
 import looseIdeasEn from '../starters/en/loose-ideas.md?raw'
 import sessionPlanEn from '../starters/en/session-plan.md?raw'
 import shortStoryEn from '../starters/en/short-story.md?raw'
@@ -13,13 +14,14 @@ import storyBeatsEn from '../starters/en/story-beats.md?raw'
 import threeActsEn from '../starters/en/three-acts.md?raw'
 import campaignArcHe from '../starters/he/campaign-arc.md?raw'
 import characterArcHe from '../starters/he/character-arc.md?raw'
+import collectionHe from '../starters/he/collection.md?raw'
 import looseIdeasHe from '../starters/he/loose-ideas.md?raw'
 import sessionPlanHe from '../starters/he/session-plan.md?raw'
 import shortStoryHe from '../starters/he/short-story.md?raw'
 import storyBeatsHe from '../starters/he/story-beats.md?raw'
 import threeActsHe from '../starters/he/three-acts.md?raw'
 
-export const TEMPLATE_IDS = ['novel', 'short-story', 'campaign', 'blank'] as const
+export const TEMPLATE_IDS = ['novel', 'short-story', 'poetry', 'campaign', 'blank'] as const
 export type TemplateId = (typeof TEMPLATE_IDS)[number]
 
 export const STARTER_IDS = [
@@ -30,6 +32,7 @@ export const STARTER_IDS = [
   'session-plan',
   'short-story',
   'loose-ideas',
+  'collection',
 ] as const
 export type StarterId = (typeof STARTER_IDS)[number]
 
@@ -47,6 +50,7 @@ const STARTERS: Record<TemplateLanguage, Record<StarterId, string>> = {
     'session-plan': sessionPlanEn,
     'short-story': shortStoryEn,
     'loose-ideas': looseIdeasEn,
+    collection: collectionEn,
   },
   he: {
     'three-acts': threeActsHe,
@@ -56,6 +60,7 @@ const STARTERS: Record<TemplateLanguage, Record<StarterId, string>> = {
     'session-plan': sessionPlanHe,
     'short-story': shortStoryHe,
     'loose-ideas': looseIdeasHe,
+    collection: collectionHe,
   },
 }
 
@@ -75,6 +80,10 @@ export interface TemplateKind {
 export interface ProjectTemplate {
   kinds: TemplateKind[] | null
   manuscriptUnit: { one: string; many: string } | null
+  /** What the book calls a part (ADR 0013), or `null` for the app's own word. */
+  partUnit: { one: string; many: string } | null
+  /** `poem`: every new chapter, the first one too, starts as a poem (ADR 0013). */
+  chapterForm: 'prose' | 'poem'
   suggestedTags: string[]
   /** One empty chapter, named after the book. */
   firstChapter: boolean
@@ -97,6 +106,7 @@ interface TemplateWords {
   outlines: { starter: StarterId; title?: string }[]
   kinds: TemplateKind[] | null
   manuscriptUnit: { one: string; many: string } | null
+  partUnit?: { one: string; many: string }
   suggestedTags: string[]
 }
 
@@ -129,6 +139,22 @@ const WORDS: Record<Exclude<TemplateId, 'blank'>, Record<TemplateLanguage, Templ
       suggestedTags: [],
     },
   },
+  poetry: {
+    en: {
+      outlines: [{ starter: 'collection' }],
+      kinds: [{ folder: 'notes' }],
+      manuscriptUnit: { one: 'Poem', many: 'Poems' },
+      partUnit: { one: 'Section', many: 'Sections' },
+      suggestedTags: ['Draft', 'Ready'],
+    },
+    he: {
+      outlines: [{ starter: 'collection' }],
+      kinds: [{ folder: 'notes' }],
+      manuscriptUnit: { one: 'שיר', many: 'שירים' },
+      partUnit: { one: 'אסופה', many: 'אסופות' },
+      suggestedTags: ['טיוטה', 'מוכן'],
+    },
+  },
   campaign: {
     en: {
       outlines: [{ starter: 'session-plan' }, { starter: 'campaign-arc' }],
@@ -159,14 +185,18 @@ const WORDS: Record<Exclude<TemplateId, 'blank'>, Record<TemplateLanguage, Templ
 
 /** What a new project from `id` starts with, in the story's language. */
 export function projectTemplate(id: TemplateId, language: string): ProjectTemplate {
-  if (id === 'blank') return { kinds: null, manuscriptUnit: null, suggestedTags: [], firstChapter: false, outlines: [] }
+  if (id === 'blank')
+    return { kinds: null, manuscriptUnit: null, partUnit: null, chapterForm: 'prose', suggestedTags: [], firstChapter: false, outlines: [] }
   const lang = templateLanguage(language)
   const words = WORDS[id][lang]
   return {
     kinds: words.kinds,
     manuscriptUnit: words.manuscriptUnit,
+    partUnit: words.partUnit ?? null,
+    chapterForm: id === 'poetry' ? 'poem' : 'prose',
     suggestedTags: words.suggestedTags,
-    firstChapter: id === 'short-story',
+    // A short story and a poetry collection open ready to write (ADR 0013).
+    firstChapter: id === 'short-story' || id === 'poetry',
     outlines: words.outlines.map((outline) => {
       const own = starter(outline.starter, lang)
       return { title: outline.title ?? own.title, body: own.body }

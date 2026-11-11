@@ -1,4 +1,11 @@
-import { applyKindsChange, type FolderRename, type KindProblem, type KindsChange, type NewProject } from '@plotdevice/domain'
+import {
+  applyKindsChange,
+  type ChapterForm,
+  type FolderRename,
+  type KindProblem,
+  type KindsChange,
+  type NewProject,
+} from '@plotdevice/domain'
 import { err, ok, type ProjectPath, type Result } from '@plotdevice/shared'
 import { createChapterAutosave, type ChapterAutosave, type SaveStatus } from '../chapters/chapter-autosave'
 import type { Revision } from '../ports/file-store'
@@ -77,6 +84,10 @@ export interface WritingSession {
   resolveConflict(file: ProjectPath, choice: ConflictChoice): Promise<Result<ConflictResolved, ResolveProblem>>
   changeContents(change: ContentsChange): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   renameChapter(file: ProjectPath, title: string): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
+  /** Prose or a poem (ADR 0013): only the chapter's `form` line changes, between saves if it is open. */
+  setChapterForm(file: ProjectPath, form: ChapterForm): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
+  /** The form new chapters start in (`chapterForm` in `project.md`); existing chapters don't change. */
+  setNewChapterForm(form: ChapterForm): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>>
   /** A change on the "Kinds of pages" screen (ADR 0011): written to `project.md` only. */
   changeKinds(change: KindsChange): Promise<Result<ProjectSnapshot, ChangeProblem | KindProblem | NoProject>>
   /** The book's title and author, typed in the Export window (Milestone 22). */
@@ -224,6 +235,32 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
     return opened
   }
 
+  /**
+   * A change to a chapter's frontmatter (its title, its form). For an open chapter it runs between
+   * saves of its text, and saving continues from the revision it leaves.
+   */
+  const inChapterFrontmatter = (
+    file: ProjectPath,
+    change: (snapshot: ProjectSnapshot) => Promise<Result<ProjectSnapshot, ChangeProblem>>,
+  ): Promise<Result<ProjectSnapshot, ChangeProblem | NoProject>> =>
+    serially(async () => {
+      if (!project) return err('no-project')
+      const current = project
+      const state = chapters.get(file)
+      if (!state) {
+        const changed = await change(current)
+        if (changed.ok) setProject(changed.value)
+        return changed
+      }
+      return state.autosave.exclusive(
+        async (revision): Promise<{ revision: Revision | null; value: Result<ProjectSnapshot, ChangeProblem> }> => {
+          const changed = await change(withRevision(current, file, revision))
+          if (!changed.ok) return { revision: null, value: changed }
+          setProject(changed.value)
+          return { revision: changed.value.chapters.find((c) => c.file === file)?.revision ?? null, value: changed }
+        },
+      )
+    })
   return {
     project: () => project,
     onEvent(listener) {
@@ -327,7 +364,7 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
         if (!project) return err('no-project')
         const next = applyKindsChange(project.details, change)
         if (!next.ok) return next
-        const written = await repository.setKinds(project, next.value.kinds, next.value.manuscriptUnit)
+        const written = await repository.setKinds(project, next.value)
         if (written.ok) setProject(written.value)
         return written
       }),
@@ -356,25 +393,16 @@ export function createWritingSession({ repository, copyLabel }: WritingSessionOp
         return written
       }),
 
-    renameChapter: (file, title) =>
+    renameChapter: (file, title) => inChapterFrontmatter(file, (snapshot) => repository.renameChapter(snapshot, file, title)),
+
+    setChapterForm: (file, form) => inChapterFrontmatter(file, (snapshot) => repository.setChapterForm(snapshot, file, form)),
+
+    setNewChapterForm: (form) =>
       serially(async () => {
         if (!project) return err('no-project')
-        const current = project
-        const state = chapters.get(file)
-        if (!state) {
-          const renamed = await repository.renameChapter(current, file, title)
-          if (renamed.ok) setProject(renamed.value)
-          return renamed
-        }
-        // The title is in the chapter's frontmatter, so it is written between saves of its text.
-        return state.autosave.exclusive(
-          async (revision): Promise<{ revision: Revision | null; value: Result<ProjectSnapshot, ChangeProblem> }> => {
-            const renamed = await repository.renameChapter(withRevision(current, file, revision), file, title)
-            if (!renamed.ok) return { revision: null, value: renamed }
-            setProject(renamed.value)
-            return { revision: renamed.value.chapters.find((c) => c.file === file)?.revision ?? null, value: renamed }
-          },
-        )
+        const written = await repository.setNewChapterForm(project, form)
+        if (written.ok) setProject(written.value)
+        return written
       }),
 
     renameFile: (file, newName) =>

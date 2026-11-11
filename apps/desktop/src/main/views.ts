@@ -21,6 +21,8 @@ export function projectView(snapshot: ProjectSnapshot): ProjectView {
     chapterNumbering: details.chapterNumbering,
     kinds: details.kinds.map((kind) => ({ ...kind })),
     manuscriptUnit: details.manuscriptUnit ? { ...details.manuscriptUnit } : null,
+    partUnit: details.partUnit ? { ...details.partUnit } : null,
+    chapterForm: details.chapterForm,
     folderMismatches: folderMismatches(details.kinds),
     suggestedTags: [...details.suggestedTags],
     mainOutline: details.mainOutline,
@@ -31,6 +33,8 @@ export function projectView(snapshot: ProjectSnapshot): ProjectView {
     chapters: snapshot.chapters.map((chapter) => ({
       file: chapter.file,
       ...(chapter.title !== undefined ? { title: chapter.title } : {}),
+      ...(chapter.firstLine !== undefined ? { firstLine: chapter.firstLine } : {}),
+      form: chapter.form ?? 'prose',
       status: chapter.status,
       listed: chapter.listed,
     })),

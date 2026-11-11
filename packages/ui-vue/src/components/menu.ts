@@ -11,6 +11,8 @@ export interface MenuItem {
   hint?: string
   /** An icon before the label, where a picture helps (formatting). */
   icon?: IconName
+  /** A setting that is on or off: shown with a check mark, and announced as checked or not. */
+  checked?: boolean
 }
 
 /** Shift+F10, or the keyboard's menu key: the keyboard's right-click. */

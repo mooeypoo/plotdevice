@@ -34,6 +34,7 @@ import type {
 } from './references'
 import type { CopyVersionResult, VersionResult, VersionsView } from './versions'
 import type {
+  ChapterFormView,
   ContentsChangeRequest,
   CreateProjectResult,
   NewProjectRequest,
@@ -97,6 +98,10 @@ export interface PlotDeviceApi {
   /** Shows a file the export just saved in the system's file manager. */
   showExportedFile(path: string): Promise<void>
   renameChapter(file: ProjectPath, title: string): Promise<ProjectChangeResult>
+  /** Makes a chapter a poem or prose again (ADR 0013): only its `form` line changes, never its words. */
+  setChapterForm(file: ProjectPath, form: ChapterFormView): Promise<ProjectChangeResult>
+  /** Whether new chapters start as poems (`chapterForm` in `project.md`); existing chapters don't change. */
+  setNewChapterForm(form: ChapterFormView): Promise<ProjectChangeResult>
   /** A change to the book's kinds of pages, or to what it calls a chapter (ADR 0011). */
   changeKinds(change: KindsChangeRequest): Promise<ProjectChangeResult>
   /** Makes an outline the book's main outline, whose sections name the timeline's columns (ADR 0012). */

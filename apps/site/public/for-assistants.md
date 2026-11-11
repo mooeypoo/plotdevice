@@ -90,7 +90,7 @@ kinds:
 - `one` and `many` are what the app calls one page and the whole kind, in the book's language. The defaults need neither.
 - Pages of every kind are written the same way (see "Characters, places and notes"), and link to each other the same way: `[the Merchants](../factions/merchants.md)`.
 - Don't make a kind for two or three entries: notes are fine for those. A folder of pages not listed in `kinds` still shows in the app, as "Not sorted yet".
-- If the book calls its chapters something else (sessions, episodes), say so too: `manuscriptUnit: { one: Session, many: Sessions }`, or as a block like `kinds`.
+- If the book calls its chapters something else (sessions, episodes, poems), say so too: `manuscriptUnit: { one: Session, many: Sessions }`, or as a block like `kinds`. Its parts likewise (sections of a poetry collection): `partUnit: { one: Section, many: Sections }`.
 - A book may also have `suggestedTags: [Player character, Villain, Ally]`: tags the app offers before any page uses them. Keep them if they're there; add them only if the author asks.
 
 ## CONTENTS.md
@@ -152,6 +152,27 @@ title: Frost
 ---
 The first frost came in the night, and in the morning the trees were white.
 ```
+
+### Poems
+
+A chapter that is a poem says `form: poem` in its frontmatter. Each line but a stanza's last ends with `\`, and a blank line separates stanzas. Keep the poet's lines and stanzas exactly as written, including any niqqud or other marks.
+
+```markdown
+---
+title: Evening in the Orchard
+form: poem
+---
+The evening settles on the orchard\
+and salt lies quiet on the leaves\
+I count the trees
+
+The wind says nothing\
+and the sea remembers\
+everything we forgot
+```
+
+- A poem with no title has `title: ""`; the app shows its first line instead. In `CONTENTS.md`, its link text is the book's word for a poem ("Poem", „שיר”).
+- In a book made mostly of poems, add `chapterForm: poem` to `project.md`, so new chapters start as poems.
 
 ## Characters, places and notes
 
@@ -316,7 +337,7 @@ Before reporting to the author, go through every file:
 
 - [ ] `project.md` has a `title`, and `CONTENTS.md` exists.
 - [ ] Every link in `CONTENTS.md` points to a file in `manuscript/` that exists, and every chapter that belongs in the book is listed, in order.
-- [ ] Every chapter has a `title`, without a number.
+- [ ] Every chapter has a `title`, without a number (only a poem may have `title: ""`).
 - [ ] Every link in every file points to a file that exists, by the right relative path (`../characters/bea.md` from another folder, `bea.md` from the same folder). Paths are case-sensitive.
 - [ ] Every frontmatter block is valid YAML: values with `: ` are quoted, lists are closed.
 - [ ] Each relationship is written on one page only.

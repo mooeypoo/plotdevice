@@ -15,12 +15,12 @@ const SALT = p('manuscript/salt.md')
  * as on disk (same bytes, same revision). `elsewhere` edits a file the way another app would.
  */
 function memoryRepository(initial: Record<string, string>) {
-  const disk = new Map<string, { text: string; title: string }>(
+  const disk = new Map<string, { text: string; title: string; form?: 'poem' }>(
     Object.entries(initial).map(([file, text]) => [file, { text, title: file }]),
   )
   const revisionOf = (file: string): Revision | undefined => {
     const entry = disk.get(file)
-    return entry ? (`r:${entry.title}:${entry.text}` as Revision) : undefined
+    return entry ? (`r:${entry.title}:${entry.form ?? ''}:${entry.text}` as Revision) : undefined
   }
   const writes: { file: string; text: string }[] = []
   const snapshot = (): ProjectSnapshot => ({
@@ -32,6 +32,8 @@ function memoryRepository(initial: Record<string, string>) {
       schemaVersion: 1,
       kinds: DEFAULT_KINDS,
       manuscriptUnit: null,
+      partUnit: null,
+      chapterForm: 'prose',
       suggestedTags: [],
       mainOutline: null,
       setAside: [],
@@ -40,7 +42,8 @@ function memoryRepository(initial: Record<string, string>) {
     contentsRevision: 'r:contents' as Revision,
     chapters: [...disk.keys()].map((file): ChapterFile => {
       const revision = revisionOf(file)
-      return { file: p(file), title: disk.get(file)?.title ?? file, status: 'ok', listed: true, ...(revision ? { revision } : {}) }
+      const form = disk.get(file)?.form ?? 'prose'
+      return { file: p(file), title: disk.get(file)?.title ?? file, form, status: 'ok', listed: true, ...(revision ? { revision } : {}) }
     }),
     missing: [],
     outdatedLinkText: [],
@@ -56,6 +59,15 @@ function memoryRepository(initial: Record<string, string>) {
     create: unknown,
     open: async () => ok(snapshot()),
     setKinds: unknown,
+    setNewChapterForm: unknown,
+    async setChapterForm(given, file, form) {
+      const entry = disk.get(file)
+      if (!entry) return err('not-found')
+      if (given.chapters.find((c) => c.file === file)?.revision !== revisionOf(file)) return err('stale')
+      if (form === 'poem') entry.form = 'poem'
+      else delete entry.form
+      return ok(snapshot())
+    },
     setMainOutline: unknown,
     setDetails: unknown,
     addChapters: unknown,
@@ -233,6 +245,19 @@ describe('writing session', () => {
     expect((await renamed).ok).toBe(true)
     await session.idle()
     expect(disk.get(FROST)).toEqual({ text: 'After the rename.\n', title: 'Early Frost' })
+    expect(session.saveStatus(FROST)?.kind).toBe('saved')
+  })
+
+  it('makes an open chapter a poem while the author types, without a false conflict', async () => {
+    const { session, disk } = await openSession()
+    const frost = await openChapter(session, FROST)
+    session.saveChapter(FROST, 'A line\\\nanother\n', frost.generation)
+    const changed = session.setChapterForm(FROST, 'poem')
+    session.saveChapter(FROST, 'A line\\\nanother line\n', frost.generation)
+    const result = await changed
+    expect(result.ok && result.value.chapters.find((c) => c.file === FROST)?.form).toBe('poem')
+    await session.idle()
+    expect(disk.get(FROST)).toEqual({ text: 'A line\\\nanother line\n', title: FROST, form: 'poem' })
     expect(session.saveStatus(FROST)?.kind).toBe('saved')
   })
 

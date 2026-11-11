@@ -1,5 +1,5 @@
 import { err, ok, type Brand, type ProjectPath, type Result } from '@plotdevice/shared'
-import type { ChapterNumbering } from '../manuscript/index'
+import type { ChapterForm, ChapterNumbering } from '../manuscript/index'
 import type { ManuscriptUnit, PageKind } from './kinds'
 
 export type ProjectId = Brand<string, 'ProjectId'>
@@ -17,6 +17,10 @@ export interface ProjectDetails {
   kinds: readonly PageKind[]
   /** What the interface calls a chapter; `null` for the app's own word. */
   manuscriptUnit: ManuscriptUnit | null
+  /** What the interface calls a part in this book ("Section"); `null` for the app's own word (ADR 0013). */
+  partUnit: ManuscriptUnit | null
+  /** The form new chapters start in (ADR 0013): `poem` in a poetry collection. */
+  chapterForm: ChapterForm
   /** Tags "+ Tag" offers before any page uses them (Milestone 19); empty when `project.md` lists none. */
   suggestedTags: readonly string[]
   /** The outline `project.md` names as main (ADR 0012), as written; `mainOutlineOf` says which one is. */

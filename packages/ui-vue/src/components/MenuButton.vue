@@ -32,7 +32,10 @@ const menu = ref<HTMLElement | null>(null)
 const anchor = ref<HTMLElement | null>(null)
 const opener = (): HTMLElement | null => anchor.value ?? button.value
 
-const entries = (): HTMLButtonElement[] => [...(menu.value?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled])') ?? [])]
+const entries = (): HTMLButtonElement[] => [
+  ...(menu.value?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not([disabled]), [role="menuitemcheckbox"]:not([disabled])') ??
+    []),
+]
 
 async function show(): Promise<void> {
   if (typeof props.items === 'function') built.value = props.items()
@@ -151,8 +154,18 @@ defineExpose({ show, showFrom })
       <div v-if="props.note" class="menu-note secondary" data-testid="menu-note">{{ props.note }}</div>
       <template v-for="(item, index) in listed" :key="item.key">
         <div v-if="(item.group && index > 0) || (index === 0 && props.heading)" class="menu-divider" role="separator"></div>
-        <button type="button" role="menuitem" :disabled="item.disabled" :data-testid="`menu-${item.key}`" @click="choose(item)">
-          <AppIcon v-if="item.icon" :name="item.icon" /><span class="label">{{ item.label }}</span
+        <button
+          type="button"
+          :role="item.checked === undefined ? 'menuitem' : 'menuitemcheckbox'"
+          :aria-checked="item.checked === undefined ? undefined : item.checked"
+          :disabled="item.disabled"
+          :data-testid="`menu-${item.key}`"
+          @click="choose(item)"
+        >
+          <AppIcon v-if="item.icon" :name="item.icon" /><span v-else-if="item.checked !== undefined" class="check" aria-hidden="true">{{
+            item.checked ? '✓' : ''
+          }}</span
+          ><span class="label">{{ item.label }}</span
           ><span v-if="item.hint" class="hint" dir="ltr">{{ item.hint }}</span>
         </button>
       </template>

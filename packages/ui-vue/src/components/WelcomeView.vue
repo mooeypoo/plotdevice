@@ -28,7 +28,7 @@ const bookLanguages = [
   { value: 'he', label: 'עברית' },
 ]
 // Blank is always offered, so no template is ever forced (PRD §5).
-const templates: TemplateId[] = ['novel', 'short-story', 'campaign', 'blank']
+const templates: TemplateId[] = ['novel', 'short-story', 'poetry', 'campaign', 'blank']
 
 async function start(): Promise<void> {
   creating.value = true

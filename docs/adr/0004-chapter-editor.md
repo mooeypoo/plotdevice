@@ -67,3 +67,11 @@ Accepted by the owner with roadmap decision D2 (`docs/plans/roadmap-16-approacha
 - What point 2 says about bullets, the scene-break ornament and "kept as written" text stays. Whether list and quote markers stay hidden on the cursor's line is decided in the Milestone 16 plan.
 - Point 4 (direction markers hidden, caret can't land inside them) already worked this way and is unchanged.
 - **The screen-reader check** listed under "Still to verify" (Orca, NVDA) is done in Milestone 16, since rendered editing changes what a screen reader meets.
+
+## Amendment (2026-11-10): poems
+
+Accepted by the owner with **ADR 0013**.
+
+- **Enter depends on the chapter's form.** In prose, Enter and Shift+Enter work as point "Keys" above says. In a poem, Enter writes a line break (`\`) and a new line, Enter on an empty line (Enter twice) or Shift+Enter starts a new stanza (a blank line), and Backspace at the start of a stanza joins it to the one above. Headings, lists, quotes and scene breaks keep the prose keys.
+- **Line breaks stay the house style.** Poems use the same trailing `\` as prose line breaks; nothing new is written.
+- **Backspace after a line break** (prose and poems): at the start of the next line, the hidden `\` goes with the line ending, so it never shows glued to the first letter. Delete at the end of the line does the same.

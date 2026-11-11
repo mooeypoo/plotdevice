@@ -64,6 +64,12 @@ const STRENGTHS: { key: string; icon: string }[] = [
       <p>{t('compare-different-novels')}</p>
     </Promise>
 
+    <section class="move">
+      <h2>{t('compare-kinds-title')}</h2>
+      <p>{t('compare-kinds-text')}</p>
+      <p><a href={path(lang, 'docs/writing/poems/')}>{t('compare-kinds-link')}</a></p>
+    </section>
+
     <div class="actions pitch-actions">
       <a class="button primary" href={path(lang, DOWNLOAD)}>{t('download')}</a>
       <a class="button" href={path(lang, GUIDE)}>{t('read-guide')}</a>

@@ -16,6 +16,8 @@ export interface EditorSettings {
   /** The project's language tag, for spellcheck and hyphenation. */
   language: string
   labels: EditorLabels
+  /** A poem keeps its lines: Enter is a new line, Enter twice a new stanza (ADR 0013). Prose when absent. */
+  form?: 'prose' | 'poem'
 }
 
 const DEFAULT_SETTINGS: EditorSettings = {

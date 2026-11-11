@@ -35,7 +35,33 @@ interface Language {
   otherCrossing: string
   /** A kind of the book's own, with a page, then renamed (Milestone 18). */
   kind: { one: string; many: string; folder: string; page: string; newOne: string; newMany: string }
+  /** A new book from each template, for the front page's "many kinds of writing" (Milestone 27). */
+  templates: { novel: string; shortStory: string; story: string[]; poetry: string; campaign: string }
 }
+
+/**
+ * Invented poems (Milestone 27; also tests/fixtures/chapters/poem-*.md): stanzas of lines. Never a real
+ * poet's work. The Hebrew one is pointed, and shows the niqqud picker on the כ of כָּל.
+ */
+const POEMS = {
+  en: {
+    title: 'Evening in the Orchard',
+    stanzas: [
+      ['The evening settles on the orchard', 'and salt lies quiet on the leaves', 'I count the trees'],
+      ['The wind says nothing', 'and the sea remembers', 'everything we forgot'],
+    ],
+  },
+  he: {
+    title: 'עֶרֶב בַּפַּרְדֵּס',
+    stanzas: [
+      ['הָעֶרֶב יוֹרֵד עַל הַפַּרְדֵּס', 'וְהַמֶּלַח נָח עַל הֶעָלִים', 'אֲנִי סוֹפֶרֶת אֶת הָעֵצִים'],
+      ['הָרוּחַ שׁוֹתֶקֶת', 'וְהַיָּם זוֹכֵר', 'אֶת כָּל מָה שֶׁשָּׁכַחְנוּ'],
+    ],
+  },
+}
+/** Where the niqqud picker opens in the Hebrew poem: just after this, on the כּ of כָּל, with its qamats and dagesh. */
+const NIQQUD_AFTER = 'אֶת כָּ'
+const NIQQUD_LINE = 'כָּל'
 
 const LANGUAGES: Record<string, Language> = {
   en: {
@@ -53,6 +79,13 @@ const LANGUAGES: Record<string, Language> = {
     otherBook: 'מטע-המלח',
     otherCrossing: 'manuscript/המעבר.md',
     kind: { one: 'Faction', many: 'Factions', folder: 'factions', page: 'The Ferrymen', newOne: 'Guild', newMany: 'Guilds' },
+    templates: {
+      novel: 'The Salt Orchard',
+      shortStory: 'Low Tide',
+      story: ['Mira found the boat at low tide, its name washed off the side.', 'She told no one. Not that night, and not in the morning.'],
+      poetry: 'Salt Hours',
+      campaign: 'The Drowned Coast',
+    },
   },
   he: {
     book: 'מטע-המלח',
@@ -69,6 +102,13 @@ const LANGUAGES: Record<string, Language> = {
     otherBook: 'the-salt-orchard',
     otherCrossing: 'manuscript/the-crossing.md',
     kind: { one: 'פלג', many: 'פלגים', folder: 'פלגים', page: 'המעבורתנים', newOne: 'גילדה', newMany: 'גילדות' },
+    templates: {
+      novel: 'מטע המלח',
+      shortStory: 'שפל',
+      story: ['מירה מצאה את הסירה בשפל, והשם שלה נשטף מהדופן.', 'היא לא סיפרה לאף אחד. לא באותו לילה, וגם לא בבוקר.'],
+      poetry: 'שעות מלח',
+      campaign: 'החוף הטבוע',
+    },
   },
 }
 const THEMES = ['light', 'dark'] as const
@@ -116,6 +156,7 @@ async function open(
   theme: string,
   book?: string,
   extra?: { file: string; text: string },
+  newBooksIn = '/home/ines/Documents',
 ): Promise<{ app: ElectronApplication; page: Page }> {
   const copy = join(work, `${lang}-${theme}-${Date.now()}`)
   if (book) await cp(join(SAMPLES, book), join(copy, book), { recursive: true })
@@ -127,10 +168,11 @@ async function open(
   // Kept beside this script (word/README.md): the site reads nothing from the app's code but its words and colours.
   const wordFile = join(copy, lang === 'he' ? 'מטע המלח.docx' : 'The Salt Orchard.docx')
   await copyFile(join(import.meta.dirname, 'word', `${lang === 'he' ? 'he' : 'en'}.docx`), wordFile)
-  // "Where to keep it" on the new project screen shows this, not the folder of whoever takes the shots.
+  // "Where to keep it" on the new project screen shows this, not the folder of whoever takes the shots;
+  // a shot that makes a book gives a real folder instead.
   const running = await launch(
     join(copy, 'user-data'),
-    { PLOTDEVICE_TEST_CHOOSE_FOLDER: '/home/ines/Documents', PLOTDEVICE_TEST_WORD_FILE: wordFile },
+    { PLOTDEVICE_TEST_CHOOSE_FOLDER: newBooksIn, PLOTDEVICE_TEST_WORD_FILE: wordFile },
     book ? [join(copy, book)] : [],
   )
   const { app, page } = running
@@ -190,6 +232,42 @@ async function select(page: Page, phrase: string): Promise<void> {
     }
     throw new Error(`"${wanted}" isn't on the page`)
   }, phrase)
+}
+
+/** Puts the cursor just after `phrase`, as a click there would. */
+async function caretAfter(page: Page, phrase: string): Promise<void> {
+  await page.locator('.cm-content').click()
+  await page.evaluate((wanted) => {
+    const content = document.querySelector('[data-testid="editor"]')?.shadowRoot?.querySelector('.cm-content')
+    const walker = content && document.createTreeWalker(content, NodeFilter.SHOW_TEXT)
+    for (let node = walker?.nextNode(); node; node = walker?.nextNode()) {
+      const at = node.textContent?.indexOf(wanted) ?? -1
+      if (at >= 0) return document.getSelection()?.setBaseAndExtent(node, at + wanted.length, node, at + wanted.length)
+    }
+    throw new Error(`"${wanted}" isn't on the page`)
+  }, phrase)
+}
+
+/** Makes a new book from `template`, in the language `lang`, and waits for it to open. */
+async function newBook(page: Page, lang: string, template: string, title: string): Promise<void> {
+  await page.getByTestId('new-project').click()
+  await page.getByTestId('new-project-language').selectOption(lang)
+  await page.getByTestId(`template-${template}`).click()
+  await page.getByTestId('new-project-title').fill(title)
+  await page.getByTestId('new-project-create').click()
+  await page.locator('.project-title').waitFor()
+}
+
+/** Types a poem as a poet would: Enter for a new line, Enter twice for a new stanza. */
+async function typePoem(page: Page, stanzas: string[][]): Promise<void> {
+  await page.locator('.cm-content').click()
+  for (const [s, stanza] of stanzas.entries()) {
+    if (s > 0) for (let i = 0; i < 2; i++) await page.keyboard.press('Enter')
+    for (const [l, line] of stanza.entries()) {
+      if (l > 0) await page.keyboard.press('Enter')
+      await page.keyboard.insertText(line)
+    }
+  }
 }
 
 for (const [lang, language] of Object.entries(LANGUAGES)) {
@@ -399,6 +477,70 @@ for (const [lang, language] of Object.entries(LANGUAGES)) {
       await showChapter(other.page, language.otherCrossing)
       await snap(other.page, lang, 'bilingual', theme)
       await other.app.close()
+    })
+
+    // One app, many kinds of writing (Milestone 27): a new book from each template, as it first opens
+    // (a word or two typed in; the poetry collection's is the poem), and the niqqud picker on a Hebrew poem.
+    test(`${lang}, ${theme}: kinds of writing`, async () => {
+      const books = language.templates
+      const make = async (template: string, title: string) => {
+        const folder = await mkdtemp(join(work, 'books-'))
+        const running = await open(lang, theme, undefined, undefined, folder)
+        await newBook(running.page, lang, template, title)
+        return running
+      }
+
+      const novel = await make('novel', books.novel)
+      await novel.page.locator('[data-testid="column"]').first().waitFor()
+      await novel.page.mouse.move(0, 0)
+      await snap(novel.page, lang, 'kind-novel', theme)
+      await novel.app.close()
+
+      const story = await make('short-story', books.shortStory)
+      await story.page.locator('.cm-content').click()
+      for (const [p, paragraph] of books.story.entries()) {
+        if (p > 0) await story.page.keyboard.press('Enter')
+        await story.page.keyboard.insertText(paragraph)
+      }
+      await story.page.locator('.chapter-title').click()
+      await snap(story.page, lang, 'kind-short-story', theme)
+      await story.app.close()
+
+      const campaign = await make('campaign', books.campaign)
+      await campaign.page.locator('[data-testid="column"]').first().waitFor()
+      await campaign.page.mouse.move(0, 0)
+      await snap(campaign.page, lang, 'kind-campaign', theme)
+      await campaign.app.close()
+
+      // A poetry collection opens on its one untitled poem. Give it a title, then write it.
+      const poetry = await make('poetry', books.poetry)
+      const pp = poetry.page
+      const poem = POEMS[lang as keyof typeof POEMS]
+      const row = pp.getByTestId('navigator').locator('.chapter-row').first()
+      await row.hover()
+      await row.locator('.menu-button').click()
+      await pp.getByTestId('menu-rename').click()
+      await pp.getByTestId('prompt-input').fill(poem.title)
+      await pp.getByTestId('prompt-input').press('Enter')
+      await pp.locator('.chapter-title', { hasText: poem.title }).waitFor()
+      await typePoem(pp, poem.stanzas)
+      await restCursor(pp)
+      await snap(pp, lang, 'poem', theme)
+
+      // The niqqud picker, on a Hebrew poem: in a Hebrew book its own; in an English one, a second poem.
+      if (lang !== 'he') {
+        await pp.getByTestId('new-chapter').click()
+        await pp.getByTestId('prompt-input').fill(POEMS.he.title)
+        await pp.getByTestId('prompt-input').press('Enter')
+        await pp.locator('.chapter-title', { hasText: POEMS.he.title }).waitFor()
+        await typePoem(pp, POEMS.he.stanzas)
+      }
+      await caretAfter(pp, NIQQUD_AFTER)
+      await pp.keyboard.press('Control+Shift+N')
+      const panel = pp.getByTestId('niqqud-panel')
+      await panel.waitFor()
+      await snapAround(pp, lang, 'niqqud', theme, [pp.getByTestId('editor').locator('.cm-line', { hasText: NIQQUD_LINE }), panel])
+      await poetry.app.close()
     })
   }
 }

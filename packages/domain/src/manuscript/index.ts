@@ -1,3 +1,4 @@
+export { isUnknownChapterForm, parseChapterForm, type ChapterForm } from './chapter-form'
 export {
   chapterCopyFileFor,
   chapterFileFor,

@@ -32,6 +32,16 @@ export const plainTextKeys = (): string => (navigator.platform.startsWith('Mac')
 export const isPlainTextKey = (event: KeyboardEvent): boolean =>
   (event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.code === 'KeyM'
 
+/** The niqqud picker (ADR 0013), from the editor (Ctrl+Shift+N, ⌘⇧N). By key position, so it works in a Hebrew layout. */
+export const niqqudKeys = (): string => (navigator.platform.startsWith('Mac') ? '⌘⇧N' : 'Ctrl+Shift+N')
+export const isNiqqudKey = (event: KeyboardEvent): boolean =>
+  (event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.code === 'KeyN'
+
+/** "Niqqud…" in the Format menu: opens the picker on the letter before the cursor. */
+export function niqqudItem(t: (key: string) => string, open: () => void): MenuItem {
+  return { key: 'niqqud', label: t('niqqud-menu'), icon: 'niqqud', hint: niqqudKeys(), group: 'niqqud', run: open }
+}
+
 /** Plain text, or back to normal view, as the Format menu's last item, with its keys (ADR 0010). */
 export function plainTextItem(t: (key: string) => string, mode: EditorMode, setMode: (mode: EditorMode) => void): MenuItem {
   return mode === 'plain'

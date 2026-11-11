@@ -22,6 +22,7 @@ export {
   removeKind,
   renameKind,
   withRenamedFolders,
+  type BookNames,
   type FolderRename,
   type KindProblem,
   type KindsChange,

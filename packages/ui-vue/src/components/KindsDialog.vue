@@ -36,6 +36,9 @@ const editing = ref<Editing | null>(null)
 const problem = ref<string | null>(null)
 const unitOne = ref('')
 const unitMany = ref('')
+/** What the book calls a part (ADR 0013), as the chapter word above. */
+const partOne = ref('')
+const partMany = ref('')
 
 // Kinds renamed since their folder was made: matching the folders is offered, never done unasked.
 const mismatches = computed(() => (project.project?.folderMismatches ?? []).filter(({ from }) => pagesOf(from) > 0))
@@ -50,6 +53,8 @@ watch(
     editing.value = null
     unitOne.value = project.project?.manuscriptUnit?.one ?? ''
     unitMany.value = project.project?.manuscriptUnit?.many ?? ''
+    partOne.value = project.project?.partUnit?.one ?? ''
+    partMany.value = project.project?.partUnit?.many ?? ''
     dialog.value?.showModal()
     if (view.kindsAdopt) startAdopt(view.kindsAdopt)
     await nextTick()
@@ -131,6 +136,17 @@ async function saveUnit(): Promise<void> {
   problem.value = ok ? null : t('kinds-not-saved')
 }
 
+const partChanged = computed(
+  () =>
+    partOne.value.trim() !== (project.project?.partUnit?.one ?? '') || partMany.value.trim() !== (project.project?.partUnit?.many ?? ''),
+)
+async function savePartUnit(): Promise<void> {
+  const one = partOne.value.trim()
+  const many = partMany.value.trim()
+  const ok = await project.changeKinds({ kind: 'part-unit', unit: one === '' && many === '' ? null : { one, many } })
+  problem.value = ok ? null : t('kinds-not-saved')
+}
+
 function close(): void {
   view.kindsDialog = false
   view.kindsAdopt = null
@@ -208,6 +224,24 @@ function close(): void {
         </label>
         <div class="actions">
           <button type="submit" :disabled="!unitChanged" data-testid="unit-save">{{ t('kinds-save') }}</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="kinds-unit">
+      <h3 class="group-label">{{ t('kinds-part-unit-title') }}</h3>
+      <p class="secondary">{{ t('kinds-part-unit-hint') }}</p>
+      <form class="kind-form" @submit.prevent="savePartUnit">
+        <label>
+          {{ t('kinds-field-one') }}
+          <input v-model="partOne" dir="auto" :placeholder="t('kinds-part-unit-one-placeholder')" data-testid="part-unit-one" />
+        </label>
+        <label>
+          {{ t('kinds-field-many') }}
+          <input v-model="partMany" dir="auto" :placeholder="t('kinds-part-unit-many-placeholder')" data-testid="part-unit-many" />
+        </label>
+        <div class="actions">
+          <button type="submit" :disabled="!partChanged" data-testid="part-unit-save">{{ t('kinds-save') }}</button>
         </div>
       </form>
     </section>

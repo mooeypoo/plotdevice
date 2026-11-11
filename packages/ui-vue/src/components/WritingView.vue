@@ -18,10 +18,11 @@ import ConflictDialog from './ConflictDialog.vue'
 import EmptyState from './EmptyState.vue'
 import FormatBubble from './FormatBubble.vue'
 import FormatButton from './FormatButton.vue'
-import { formatItem, HEADING_COMMANDS, isPlainTextKey, plainTextItem } from './format-items'
+import { formatItem, HEADING_COMMANDS, isNiqqudKey, isPlainTextKey, niqqudItem, plainTextItem } from './format-items'
 import ItemHeader from './ItemHeader.vue'
 import LinkBubble from './LinkBubble.vue'
 import MenuButton from './MenuButton.vue'
+import NiqqudPanel from './NiqqudPanel.vue'
 import PlainTextBanner from './PlainTextBanner.vue'
 import ReferenceShelf from './ReferenceShelf.vue'
 import ResizeHandle from './ResizeHandle.vue'
@@ -70,15 +71,41 @@ const formatItems = computed<MenuItem[]>(() => [
   ...(['quote', 'bulletList', 'orderedList', 'sceneBreak'] as const).map((command, i) => item(command, i === 0 ? 'blocks' : undefined)),
   { key: 'format-link', label: t('format-link'), icon: 'link', run: () => void addLink() },
   ...directionItems(),
-  // Every mark visible, to fix something by hand (ADR 0010).
-  plainTextItem(t, writing.mode.value, writing.setMode),
+  niqqudItem(t, () => (niqqudOpen.value = true)),
+  ...modeItems(),
 ])
+/** A poem keeps its lines (ADR 0013): this chapter only, and the words don't change. Then plain text (ADR 0010). */
+function modeItems(): MenuItem[] {
+  // Every mark visible, to fix something by hand.
+  const { group, ...plain } = plainTextItem(t, writing.mode.value, writing.setMode)
+  if (!isChapter.value) return [{ ...plain, ...(group ? { group } : {}) }]
+  const poem = writing.form.value === 'poem'
+  return [{ key: 'poem', label: t('format-poem'), group: 'mode', checked: poem, run: () => void togglePoem() }, plain]
+}
+const isChapter = computed(() => props.project.chapters.some((chapter) => chapter.file === writing.file.value))
+async function togglePoem(): Promise<void> {
+  const file = writing.file.value
+  if (!file) return
+  await store.setChapterForm(file, writing.form.value === 'poem' ? 'prose' : 'poem')
+  writing.focus()
+}
+/** The niqqud picker, from the Format menu or Ctrl+Shift+N; closing it returns to the page. */
+const niqqudOpen = ref(false)
+function closeNiqqud(): void {
+  niqqudOpen.value = false
+  writing.focus()
+}
 /** The switch beside Format, and Ctrl+Shift+M in the editor: plain text and back, the cursor kept. */
 function togglePlain(): void {
   writing.setMode(writing.mode.value === 'plain' ? 'rendered' : 'plain')
   writing.focus()
 }
 function onEditorKey(event: KeyboardEvent): void {
+  if (isNiqqudKey(event)) {
+    event.preventDefault()
+    niqqudOpen.value = true
+    return
+  }
   if (!isPlainTextKey(event)) return
   event.preventDefault()
   togglePlain()
@@ -115,18 +142,38 @@ const chapterItems = computed<MenuItem[]>(() => (openRef.value ? chapterNav.chap
 
 const chapterName = computed(() => {
   const file = writing.file.value
-  return props.project.chapters.find((chapter) => chapter.file === file)?.title ?? file ?? ''
+  if (!file) return ''
+  const title = props.project.chapters.find((chapter) => chapter.file === file)?.title
+  return title === '' ? kinds.chapterName(file, '').text : (title ?? file)
 })
-/** Above the page: "Chapter 2" and its title, as the contents show them. */
+/**
+ * Above the page: "Chapter 2" and its title, as the contents show them. An untitled poem says so,
+ * quietly, in italics (ADR 0013); the sidebar names it by its first line. A chapter whose form differs from the book's new chapters says so
+ * quietly: "Poem" in a novel, "Prose" in a poetry collection.
+ */
 const heading = computed(() => {
   const file = writing.file.value
   if (!file) return null
   const refs = props.project.contents.flatMap((entry) => (entry.kind === 'part' ? entry.chapters : [entry]))
   const ref = refs.find((chapter) => chapter.file === file)
-  const title = props.project.chapters.find((chapter) => chapter.file === file)?.title ?? ref?.linkText ?? ''
+  const own = props.project.chapters.find((chapter) => chapter.file === file)
+  // An untitled poem's first line is right below; above it, the page says it has no title yet.
+  const untitled = own?.title === ''
+  const name = untitled
+    ? { text: settings.tIn(props.project.language, 'poem-untitled'), untitled }
+    : { text: own?.title ?? ref?.linkText ?? '', untitled }
   const eyebrow = !ref ? t('navigator-not-in-book') : ref.number !== null ? kinds.chapters.number(ref.number) : ''
-  return { eyebrow, title }
+  const form = own && own.form !== props.project.chapterForm ? t(own.form === 'poem' ? 'chapter-form-poem' : 'chapter-form-prose') : null
+  return { eyebrow, title: name.text, untitled: name.untitled, form }
 })
+// An untitled poem's name follows its first line as it is typed, in the sidebar too.
+watch(
+  () => [writing.file.value, writing.firstLine.value] as const,
+  ([file, line]) => {
+    view.openFirstLine = file ? { file, line } : null
+  },
+  { immediate: true },
+)
 const pageClasses = computed(() => [
   `size-${settings.preferences?.writingSize ?? 'medium'}`,
   `width-${settings.preferences?.pageWidth ?? 'medium'}`,
@@ -202,6 +249,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKey)
   view.writingChapter = null
+  view.openFirstLine = null
   view.saveStatus = null
 })
 </script>
@@ -265,13 +313,22 @@ onBeforeUnmount(() => {
         <article v-show="writing.state.value === 'ready' || writing.state.value === 'loading'" class="sheet">
           <FormatButton :items="formatItems" :plain="writing.mode.value === 'plain'" @plain="togglePlain" />
           <header v-if="heading" class="chapter-head" :lang="project.language">
-            <p v-if="heading.eyebrow" class="chapter-eyebrow">{{ heading.eyebrow }}</p>
-            <h1 class="chapter-title" dir="auto">{{ heading.title }}</h1>
+            <p v-if="heading.eyebrow || heading.form" class="chapter-eyebrow">
+              {{ heading.eyebrow }}<span v-if="heading.form" class="chapter-form" data-testid="chapter-form">{{ heading.form }}</span>
+            </p>
+            <h1 class="chapter-title" :class="{ untitled: heading.untitled }" dir="auto">{{ heading.title }}</h1>
           </header>
           <PlainTextBanner v-if="writing.mode.value === 'plain'" @back="writing.setMode('rendered')" />
           <div ref="host" class="editor-host" :lang="project.language" data-testid="editor" @keydown="onEditorKey"></div>
         </article>
         <FormatBubble :place="writing.selection.value" :more="moreItems" @format="writing.format" @link="addLink" @back="writing.focus" />
+        <NiqqudPanel
+          v-if="niqqudOpen"
+          :read="writing.niqqud"
+          :toggle="writing.toggleNiqqud"
+          :move="writing.moveToLetter"
+          @close="closeNiqqud"
+        />
         <LinkBubble
           :link="writing.link.value"
           :from="writing.file.value"

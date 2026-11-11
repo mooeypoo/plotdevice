@@ -222,5 +222,19 @@
   "download-file-appimage": "Link to one older version's Linux AppImage.",
   "download-file-deb": "Link to one older version's Linux .deb.",
   "download-file-mac": "Link to one older version's Mac file.",
-  "download-support": "Quiet line at the end of the download page. $1 is a link whose text is download-support-link. An invitation, never pressure."
+  "download-support": "Quiet line at the end of the download page. $1 is a link whose text is download-support-link. An invitation, never pressure.",
+  "kinds-eyebrow": "Small capitals label above the front page's section about the kinds of books Plot Device makes (its templates).",
+  "kinds-title": "Heading of the front page's section showing the four templates: novel, short story, poetry collection and D&D campaign.",
+  "kinds-text": "Text of the front page's section about the templates. Name the templates as the app does. 'D&D' is a product name and is not translated.",
+  "kinds-novel": "One line under the screenshot of a new novel, below the template's name (taken from the app). Keep it short.",
+  "kinds-novel-alt": "Description of the new-novel screenshot, for screen readers. Use the outline's name as the app's template has it in your language.",
+  "kinds-short-story": "One line under the screenshot of a new short story, below the template's name (taken from the app). Keep it short.",
+  "kinds-short-story-alt": "Description of the new short story screenshot, for screen readers.",
+  "kinds-poetry": "One line under the screenshot of a poetry collection, below the template's name (taken from the app). Keep it short.",
+  "kinds-poetry-alt": "Description of the poetry collection screenshot, for screen readers. In the Hebrew site the poem is in Hebrew, with niqqud.",
+  "kinds-campaign": "One line under the screenshot of a new D&D campaign, below the template's name (taken from the app). NPCs are non-player characters; use the app's word. Keep it short.",
+  "kinds-campaign-alt": "Description of the new campaign screenshot, for screen readers. Use the outline's and kinds' names as the app's template has them in your language.",
+  "compare-kinds-title": "Heading of the comparison page's section about writing different kinds of books (novel, short story, poems, campaign) in Plot Device. It talks only about Plot Device, never about other apps.",
+  "compare-kinds-text": "Text of the comparison page's section about different kinds of writing in one app. Name the templates and units (poems, sections, sessions, NPCs) as the app does. Talks only about Plot Device.",
+  "compare-kinds-link": "Link under that section, to the guide page about writing poems."
 }

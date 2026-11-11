@@ -22,7 +22,7 @@ export {
   type FrontmatterProblem,
 } from './frontmatter'
 export { findLinks, locateLinks, rewriteLinksTo, type FoundLink, type RewriteOptions } from './links'
-export { newChapterFile, newContentsFile, newOutlineFile, newProjectFile, type NewProjectDetails } from './new-files'
+export { firstLineOf, newChapterFile, newContentsFile, newOutlineFile, newProjectFile, type NewProjectDetails } from './new-files'
 export { lineEndingOf } from './text'
 export { htmlToMarkdown, pastedMarkdown } from './paste'
 export { editOutline, type OutlineEditOptions } from './edit-outline'

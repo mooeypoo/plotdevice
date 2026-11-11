@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import { useStoryStore } from '../stores/story'
+import { useViewStore } from '../stores/view'
+import type { ProjectPath } from '@plotdevice/shared'
 
 /** A book with no `kinds` in `project.md`: what every book had before Milestone 18. */
 const DEFAULTS = [{ folder: 'characters' }, { folder: 'places' }, { folder: 'notes' }]
@@ -15,6 +17,7 @@ export function useKinds() {
   const project = useProjectStore()
   const story = useStoryStore()
   const settings = useSettingsStore()
+  const view = useViewStore()
   const kinds = computed(() => project.project?.kinds ?? DEFAULTS)
   const unsorted = computed(() => unsortedFolders(kinds.value, story.references))
   const order = computed(() => kindOrder(kinds.value, story.references))
@@ -53,5 +56,28 @@ export function useKinds() {
     noneText: (): string => (unit.value ? settings.t('write-empty-unit-text') : settings.t('write-empty-text')),
   }
 
-  return { kinds, unsorted, order, labels, listed, kindWord, colourClass, chapters }
+  /**
+   * What the book calls a part (ADR 0013, `partUnit`): "New section", "Section name". Like the chapter
+   * word, only the interface changes; `CONTENTS.md` doesn't.
+   */
+  const partUnit = computed(() => project.project?.partUnit ?? null)
+  const parts = {
+    add: (): string => (partUnit.value ? settings.t('navigator-new-unit', partUnit.value.one) : settings.t('navigator-new-part')),
+    rename: (): string => (partUnit.value ? settings.t('part-rename-unit', partUnit.value.one) : settings.t('part-rename')),
+    prompt: (): string => (partUnit.value ? settings.t('prompt-part-unit-name', partUnit.value.one) : settings.t('prompt-part-name')),
+  }
+
+  /**
+   * A chapter's name in the sidebar and above the page: its line in the contents or, for an untitled
+   * poem, its first line, as it is being typed when it is open (ADR 0013), shown in italics. With no
+   * first line yet, "Untitled poem" in the book's language, as it stands where the title would be.
+   */
+  function chapterName(file: ProjectPath, linkText: string): { text: string; untitled: boolean } {
+    const chapter = project.project?.chapters.find((each) => each.file === file)
+    if (!chapter || chapter.title !== '') return { text: linkText, untitled: false }
+    const live = view.openFirstLine?.file === file ? view.openFirstLine.line : chapter.firstLine
+    return { text: live ?? settings.tIn(project.project?.language ?? settings.locale, 'poem-untitled'), untitled: true }
+  }
+
+  return { kinds, unsorted, order, labels, listed, kindWord, colourClass, chapters, parts, chapterName }
 }
