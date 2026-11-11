@@ -94,7 +94,12 @@ test('a Hebrew poem: given a title on the page, then emptied again, it is untitl
   await expect(title).toHaveAttribute('data-placeholder', 'שיר ללא שם')
   await expect(title).toHaveAccessibleName('שם')
 
-  await retype(page, 'עֶרֶב בַּפַּרְדֵּס')
+  // Clicked, the faint hint gives way to an empty box with the cursor in it, and typing fills it.
+  await title.click()
+  await expect(title).toBeFocused()
+  expect(await title.evaluate((el) => getComputedStyle(el, '::before').content)).toBe('none')
+  await page.keyboard.type('עֶרֶב בַּפַּרְדֵּס')
+  await expect(title).toHaveText('עֶרֶב בַּפַּרְדֵּס')
   await page.keyboard.press('Enter')
   // An untitled poem's `title: ""` keeps its quotes when filled in: the line is changed, not restyled.
   await file('שעות מלח/manuscript/שיר.md').toContain('title: "עֶרֶב בַּפַּרְדֵּס"\n')

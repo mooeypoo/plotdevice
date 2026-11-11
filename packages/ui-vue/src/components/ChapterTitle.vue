@@ -43,6 +43,17 @@ watch(
 
 function begin(): void {
   editing = { file: props.file, was: props.title, mayBeEmpty: props.mayBeEmpty }
+  // A click on the faint "Untitled poem" lands on a hint, not on text, and leaves the cursor outside
+  // the field: put it inside, so what is typed becomes the title.
+  const box = field.value
+  const selection = document.getSelection()
+  if (box && selection && box.textContent === '' && !box.contains(selection.anchorNode)) {
+    const range = document.createRange()
+    range.selectNodeContents(box)
+    range.collapse(true)
+    selection.removeAllRanges()
+    selection.addRange(range)
+  }
 }
 
 async function save(): Promise<void> {

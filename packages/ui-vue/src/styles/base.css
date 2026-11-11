@@ -3546,27 +3546,39 @@ button.moment-name:hover {
 .chapter-row .untitled {
   font-style: italic;
 }
-/* The title above the page can be retyped (Milestone 28): it looks like a title until hovered. */
+/* The title above the page can be retyped (Milestone 28): it looks like a title until hovered, and
+   like a text box while it is being edited. */
 .title-field {
-  border-radius: 4px;
+  display: inline-block;
+  max-inline-size: 100%;
+  padding-inline: 0.25em;
+  border-radius: 6px;
   outline: none;
   text-decoration: underline transparent;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.18em;
-  transition: text-decoration-color 0.15s;
+  transition:
+    text-decoration-color 0.15s,
+    background-color 0.15s;
   cursor: text;
 }
 .title-field:hover:not(:focus) {
   text-decoration-color: var(--color-mark);
 }
-.title-field:focus-visible {
+.title-field:focus {
+  min-inline-size: min(12em, 100%);
+  background: var(--color-well);
   outline: 2px solid var(--color-focus);
-  outline-offset: 4px;
+  outline-offset: 2px;
 }
 /* An untitled poem (ADR 0013): "Untitled poem", faintly, until it is given a title. */
 .title-field:empty::before {
   content: attr(data-placeholder);
   color: var(--color-text-secondary);
+}
+/* Clicked, it is an empty box with the cursor in it, ready for a title: the hint isn't text to select. */
+.title-field:focus:empty::before {
+  content: none;
 }
 /* A first line can be long: two lines of it are enough to know the poem by. */
 .chapter-row .untitled {

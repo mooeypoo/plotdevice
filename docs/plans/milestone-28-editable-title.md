@@ -11,7 +11,8 @@ Every chapter gets this, not just poems. The sidebar's Rename… stays.
 ## What the author will see
 
 - The title looks the same as before. On hover it gets a faint underline, which says "you can type here".
-- One click puts the cursor in the title.
+- One click puts the cursor in the title, which then looks like a text box (a soft background and the focus ring), so it's clear that typing and selecting work.
+- On an untitled poem, the faint "Untitled poem" is a hint, not text. Clicked, it gives way to an empty box with the cursor in it.
 - **Enter** saves and moves the cursor into the text. **Esc** puts the old name back and moves into the text. Clicking anywhere else saves.
 - It saves once, when the author is done, not on every letter.
 - **Undo is separate:** Ctrl+Z in the title undoes typing in the title, and Ctrl+Z in the text never undoes a rename.
