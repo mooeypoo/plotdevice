@@ -78,7 +78,7 @@ test('a Hebrew poetry collection: lines and stanzas, an untitled poem named by i
   await file('שעות מלח/manuscript/שיר.md').toContain('הָערב יורד\\\n')
 
   // Sections, not parts.
-  await expect(page.getByTestId('new-part')).toHaveText('הוספת אסופה')
+  await expect(page.getByTestId('new-part')).toHaveText('אסופה חדשה')
 })
 
 test('a Hebrew collection in an English interface: the empty poem speaks the book’s language and fits the page', async () => {
@@ -93,6 +93,13 @@ test('a Hebrew collection in an English interface: the empty poem speaks the boo
   await expect(page.getByTestId('chapter-title-field')).toHaveAttribute('data-placeholder', 'שיר ללא שם')
   await expect(page.getByTestId('navigator').locator('.chapter .untitled')).toHaveText('שיר ללא שם')
   await expect(page.locator('.cm-placeholder')).toHaveText('כאן מתחילים לכתוב.')
+  // The interface's buttons and questions are in English; the page above the text is the book's.
+  await expect(page.getByTestId('new-chapter').filter({ visible: true })).toHaveText('New poem')
+  await expect(page.getByTestId('new-part')).toHaveText('New section')
+  await expect(page.locator('.chapter-eyebrow')).toHaveText('שיר 1')
+  await page.getByTestId('new-part').click()
+  await expect(page.getByTestId('prompt-input')).toHaveAccessibleName('Section name')
+  await page.keyboard.press('Escape')
   // The poem's hanging indent must not push the hint past the page: no sideways scrolling.
   const scroller = page.locator('.cm-scroller')
   expect(await scroller.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0)

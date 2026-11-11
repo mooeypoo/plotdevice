@@ -6,6 +6,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { checkProject, createProjectRepository } from '../src/index'
+import english from '../../i18n/src/messages/en.json'
+import hebrew from '../../i18n/src/messages/he.json'
 
 // Every template, in every language, makes a book that passes the project check and opens without a
 // single write (Milestone 19, DOMAIN_AND_FILE_FORMAT.md "Templates").
@@ -174,5 +176,23 @@ describe('starter outlines', () => {
       const sections = (language: string) => starter(id, language).body.match(/^## /gm)?.length
       expect(sections('he'), id).toBe(sections('en'))
     }
+  })
+})
+
+describe('the words templates give chapters and parts', () => {
+  // The interface recognises these words, in any language, to say them in the author's (use-kinds).
+  // A template's word that the app's messages don't have would show untranslated, as "+ New שיר".
+  const catalogs: Record<string, Record<string, unknown>> = { en: english, he: hebrew }
+  it('are the app’s own words, in each language', () => {
+    for (const id of TEMPLATE_IDS)
+      for (const language of Object.keys(catalogs)) {
+        const words = projectTemplate(id, language)
+        const messages = Object.values(catalogs[language] ?? {})
+        for (const unit of [words.manuscriptUnit, words.partUnit])
+          if (unit) {
+            expect(messages, `${id} ${language}: ${unit.one}`).toContain(unit.one)
+            expect(messages, `${id} ${language}: ${unit.many}`).toContain(unit.many)
+          }
+      }
   })
 })

@@ -1,4 +1,5 @@
-import { builtInKindKey, kindLabels, kindOrder, unsortedFolders } from '@plotdevice/presentation'
+import { catalogs } from '@plotdevice/i18n'
+import { builtInKindKey, CHAPTER_UNITS, kindLabels, kindOrder, knownUnit, PART_UNITS, unsortedFolders } from '@plotdevice/presentation'
 import { computed } from 'vue'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
@@ -42,17 +43,47 @@ export function useKinds() {
     return `kind-plot-${(at < 0 ? 0 : at) % 3}`
   }
 
+  /** A message in every language the app has: to recognise a template's word in any of them. */
+  const wordsFor = (key: string): string[] => Object.keys(catalogs).map((language) => settings.tIn(language, key))
+  const bookLanguage = (): string => project.project?.language ?? settings.locale
+
   /**
    * What this book calls a chapter (ADR 0011, `manuscriptUnit`): "Session 3", "New session". Only the
-   * prominent words change (Milestone 18, open question 2); files and contents never do.
+   * prominent words change (Milestone 18, open question 2); files and contents never do. A template's
+   * word ("Poem", „שיר”) is the interface's, so it is said in the interface's language; a word the
+   * author typed is shown as typed.
    */
   const unit = computed(() => project.project?.manuscriptUnit ?? null)
+  const knownChapter = computed(() => knownUnit(unit.value, CHAPTER_UNITS, wordsFor))
   const chapters = {
-    one: (): string => unit.value?.one ?? settings.t('kind-chapter'),
-    many: (): string => unit.value?.many ?? settings.t('navigator-label'),
-    number: (n: number): string => (unit.value ? `${unit.value.one} ${n}` : settings.t('chapter-number', n)),
-    add: (): string => (unit.value ? settings.t('navigator-new-unit', unit.value.one) : settings.t('navigator-new-chapter')),
-    none: (): string => (unit.value ? settings.t('gallery-empty-kind', unit.value.many) : settings.t('write-empty-title')),
+    one: (): string => (knownChapter.value ? settings.t(`unit-${knownChapter.value}`) : (unit.value?.one ?? settings.t('kind-chapter'))),
+    many: (): string =>
+      knownChapter.value ? settings.t(`unit-${knownChapter.value}-many`) : (unit.value?.many ?? settings.t('navigator-label')),
+    number: (n: number): string =>
+      knownChapter.value
+        ? settings.t(`unit-${knownChapter.value}-number`, n)
+        : unit.value
+          ? `${unit.value.one} ${n}`
+          : settings.t('chapter-number', n),
+    /** Above the page, which is the book's: "Poem 1" in the book's language, like the text below it. */
+    numberInBook: (n: number): string =>
+      knownChapter.value
+        ? settings.tIn(bookLanguage(), `unit-${knownChapter.value}-number`, n)
+        : unit.value
+          ? `${unit.value.one} ${n}`
+          : settings.tIn(bookLanguage(), 'chapter-number', n),
+    add: (): string =>
+      knownChapter.value
+        ? settings.t(`unit-${knownChapter.value}-new`)
+        : unit.value
+          ? settings.t('navigator-new-unit', unit.value.one)
+          : settings.t('navigator-new-chapter'),
+    none: (): string =>
+      knownChapter.value
+        ? settings.t(`unit-${knownChapter.value}-none`)
+        : unit.value
+          ? settings.t('gallery-empty-kind', unit.value.many)
+          : settings.t('write-empty-title'),
     noneText: (): string => (unit.value ? settings.t('write-empty-unit-text') : settings.t('write-empty-text')),
   }
 
@@ -61,10 +92,17 @@ export function useKinds() {
    * word, only the interface changes; `CONTENTS.md` doesn't.
    */
   const partUnit = computed(() => project.project?.partUnit ?? null)
+  const knownPart = computed(() => knownUnit(partUnit.value, PART_UNITS, wordsFor))
+  const partWords = (known: string, custom: string, plain: string): string =>
+    knownPart.value
+      ? settings.t(`unit-${knownPart.value}-${known}`)
+      : partUnit.value
+        ? settings.t(custom, partUnit.value.one)
+        : settings.t(plain)
   const parts = {
-    add: (): string => (partUnit.value ? settings.t('navigator-new-unit', partUnit.value.one) : settings.t('navigator-new-part')),
-    rename: (): string => (partUnit.value ? settings.t('part-rename-unit', partUnit.value.one) : settings.t('part-rename')),
-    prompt: (): string => (partUnit.value ? settings.t('prompt-part-unit-name', partUnit.value.one) : settings.t('prompt-part-name')),
+    add: (): string => partWords('new', 'navigator-new-unit', 'navigator-new-part'),
+    rename: (): string => partWords('rename', 'part-rename-unit', 'part-rename'),
+    prompt: (): string => partWords('name', 'prompt-part-unit-name', 'prompt-part-name'),
   }
 
   /**

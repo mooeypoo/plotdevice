@@ -161,7 +161,7 @@ const heading = computed(() => {
   // The title can be retyped on the page (Milestone 28). An untitled poem's is empty, and says so faintly.
   const poem = own?.form === 'poem'
   const title = own?.title ?? ref?.linkText ?? ''
-  const eyebrow = !ref ? t('navigator-not-in-book') : ref.number !== null ? kinds.chapters.number(ref.number) : ''
+  const eyebrow = !ref ? t('navigator-not-in-book') : ref.number !== null ? kinds.chapters.numberInBook(ref.number) : ''
   const form = own && own.form !== props.project.chapterForm ? t(own.form === 'poem' ? 'chapter-form-poem' : 'chapter-form-prose') : null
   return {
     file,

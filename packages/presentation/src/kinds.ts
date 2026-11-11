@@ -71,3 +71,23 @@ export function kindOrder(kinds: Kinds, references: readonly Pick<ReferenceSumma
 /** The folder a new kind gets, from its plural, as the host will make it (ADR 0011, decision 8). */
 export const kindFolderFor = (plural: string, kinds: Kinds): string =>
   freeFolderName(plural, [...kinds.map((kind) => kind.folder), 'manuscript', 'outlines'])
+
+/** The words templates give a book for its chapters and parts, which the app can translate (ADR 0011, 0013). */
+export const CHAPTER_UNITS = ['poem', 'session'] as const
+export const PART_UNITS = ['section'] as const
+
+/**
+ * Which of the app's own unit words a book's word is (`unit-poem`…), whatever language it was
+ * written in, so the interface can say it in the author's language: a Hebrew collection's „שיר” is
+ * "Poem" in an English interface. `wordsFor` gives a message in every language the app has. A word
+ * the author typed themselves isn't one of these, and is shown as typed.
+ */
+export function knownUnit<Key extends string>(
+  unit: { one: string } | null,
+  keys: readonly Key[],
+  wordsFor: (key: string) => string[],
+): Key | null {
+  if (!unit) return null
+  const word = unit.one.trim().toLocaleLowerCase()
+  return keys.find((key) => wordsFor(`unit-${key}`).some((each) => each.trim().toLocaleLowerCase() === word)) ?? null
+}

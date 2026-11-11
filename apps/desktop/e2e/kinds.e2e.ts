@@ -144,14 +144,15 @@ for (const locale of ['en', 'he'] as const) {
   })
 }
 
-test('a book that calls its chapters sessions', async () => {
+test('a book that calls its chapters episodes', async () => {
   const page = await start('en')
   await kindsDialog(page)
-  await page.getByTestId('unit-one').fill('Session')
-  await page.getByTestId('unit-many').fill('Sessions')
+  await page.getByTestId('unit-one').fill('Episode')
+  await page.getByTestId('unit-many').fill('Episodes')
   await page.getByTestId('unit-save').click()
-  await file('project.md').toContain('manuscriptUnit:\n  one: Session\n  many: Sessions\n')
+  await file('project.md').toContain('manuscriptUnit:\n  one: Episode\n  many: Episodes\n')
   await page.getByTestId('kinds-close').click()
   await page.getByTestId('workspace-write').click()
-  await expect(page.getByTestId('new-chapter').filter({ visible: true })).toHaveText('New Session')
+  // The author's own word, as typed.
+  await expect(page.getByTestId('new-chapter').filter({ visible: true })).toHaveText('New Episode')
 })
