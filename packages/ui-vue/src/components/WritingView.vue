@@ -159,7 +159,9 @@ const heading = computed(() => {
   const own = props.project.chapters.find((chapter) => chapter.file === file)
   // An untitled poem's first line is right below; above it, the page says it has no title yet.
   const untitled = own?.title === ''
-  const name = untitled ? { text: t('poem-untitled'), untitled } : { text: own?.title ?? ref?.linkText ?? '', untitled }
+  const name = untitled
+    ? { text: settings.tIn(props.project.language, 'poem-untitled'), untitled }
+    : { text: own?.title ?? ref?.linkText ?? '', untitled }
   const eyebrow = !ref ? t('navigator-not-in-book') : ref.number !== null ? kinds.chapters.number(ref.number) : ''
   const form = own && own.form !== props.project.chapterForm ? t(own.form === 'poem' ? 'chapter-form-poem' : 'chapter-form-prose') : null
   return { eyebrow, title: name.text, untitled: name.untitled, form }

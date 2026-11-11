@@ -80,6 +80,32 @@ test('a Hebrew poetry collection: lines and stanzas, an untitled poem named by i
   await expect(page.getByTestId('new-part')).toHaveText('הוספת אסופה')
 })
 
+test('a Hebrew collection in an English interface: the empty poem speaks the book’s language and fits the page', async () => {
+  const page = await start('en')
+  await page.getByTestId('new-project').click()
+  await page.getByTestId('template-poetry').click()
+  await page.getByTestId('new-project-language').selectOption('he')
+  await page.getByTestId('new-project-title').fill('שעות מלח')
+  await page.getByTestId('new-project-create').click()
+  await page.locator('.project-title').waitFor()
+
+  await expect(page.locator('.chapter-title')).toHaveText('שיר ללא שם')
+  await expect(page.getByTestId('navigator').locator('.chapter .untitled')).toHaveText('שיר ללא שם')
+  await expect(page.locator('.cm-placeholder')).toHaveText('כאן מתחילים לכתוב.')
+  // The poem's hanging indent must not push the hint past the page: no sideways scrolling.
+  const scroller = page.locator('.cm-scroller')
+  expect(await scroller.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0)
+
+  // A long first line names the poem in the sidebar in two lines at most.
+  await page.locator('.cm-content').click()
+  await page.keyboard.type('שורה ארוכה מאוד '.repeat(12))
+  const row = page.getByTestId('navigator').locator('.chapter .untitled')
+  await expect(row).toContainText('שורה ארוכה')
+  const lineHeight = await row.evaluate((el) => parseFloat(getComputedStyle(el).lineHeight))
+  expect((await row.boundingBox())?.height ?? 0).toBeLessThanOrEqual(lineHeight * 2 + 1)
+  expect(await scroller.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0)
+})
+
 test('the Poem switch makes one chapter of a novel a poem, and back, without changing its words', async () => {
   const page = await start('en')
   await create(page, 'short-story', 'Salt')

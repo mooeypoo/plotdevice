@@ -92,7 +92,8 @@ export function useChapterWriting(
     labels: {
       chapterText: options.label?.() ?? settings.t('chapter-text'),
       sceneBreak: settings.t('scene-break'),
-      startWriting: settings.t('start-writing'),
+      // Inside the page, in the book's language, like the text it stands in for.
+      startWriting: settings.tIn(project?.language ?? settings.locale, 'start-writing'),
     },
   })
 

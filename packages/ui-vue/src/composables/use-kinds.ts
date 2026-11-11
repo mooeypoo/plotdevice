@@ -69,13 +69,14 @@ export function useKinds() {
 
   /**
    * A chapter's name in the sidebar and above the page: its line in the contents or, for an untitled
-   * poem, its first line, as it is being typed when it is open (ADR 0013), shown in italics.
+   * poem, its first line, as it is being typed when it is open (ADR 0013), shown in italics. With no
+   * first line yet, "Untitled poem" in the book's language, as it stands where the title would be.
    */
   function chapterName(file: ProjectPath, linkText: string): { text: string; untitled: boolean } {
     const chapter = project.project?.chapters.find((each) => each.file === file)
     if (!chapter || chapter.title !== '') return { text: linkText, untitled: false }
     const live = view.openFirstLine?.file === file ? view.openFirstLine.line : chapter.firstLine
-    return { text: live ?? settings.t('poem-untitled'), untitled: true }
+    return { text: live ?? settings.tIn(project.project?.language ?? settings.locale, 'poem-untitled'), untitled: true }
   }
 
   return { kinds, unsorted, order, labels, listed, kindWord, colourClass, chapters, parts, chapterName }
